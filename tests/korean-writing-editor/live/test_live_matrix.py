@@ -4,7 +4,6 @@ import contextlib
 import concurrent.futures
 import copy
 import dataclasses
-import fcntl
 import hashlib
 import io
 import json
@@ -20,6 +19,11 @@ import tempfile
 import unicodedata
 import unittest
 from unittest import mock
+
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -77,6 +81,26 @@ def case_by_id(case_id: str) -> live_matrix.LiveCase:
         case for case in live_matrix.load_live_cases(HERE / "live_cases.json")
         if case.id == case_id
     )
+
+
+def unix_specials_available() -> bool:
+    return (
+        os.name != "nt"
+        and hasattr(os, "mkfifo")
+        and hasattr(os, "O_NOFOLLOW")
+        and hasattr(os, "O_DIRECTORY")
+        and hasattr(os, "fchmod")
+        and fcntl is not None
+    )
+
+
+class UnixOnlyLiveTestMixin:
+    unix_only_test_names: frozenset[str] = frozenset()
+
+    def setUp(self) -> None:
+        super().setUp()
+        if self._testMethodName in self.unix_only_test_names and not unix_specials_available():
+            self.skipTest("FIFO, fcntl, and dir_fd fixtures require Unix")
 
 
 def temporary_git_install_fixture(
@@ -1841,7 +1865,28 @@ class ProviderAdapterTests(unittest.TestCase):
                 self.assertIn("stderr_sha256=", message)
 
 
-class ReceiptAndBudgetTests(unittest.TestCase):
+class ReceiptAndBudgetTests(UnixOnlyLiveTestMixin, unittest.TestCase):
+    unix_only_test_names = frozenset({
+        "test_manifest_hash_rejects_symlink",
+        "test_manifest_ignores_only_validated_regenerated_python_cache",
+        "test_manifest_rejects_every_unsafe_python_cache_shape",
+        "test_manifest_bounds_excluded_python_cache_files",
+        "test_fd_relative_manifest_matches_canonical_hash_and_rejects_specials",
+        "test_receipt_is_exclusive_and_0600",
+        "test_attempt_reservation_is_durable_and_binds_the_complete_identity",
+        "test_zero_provider_receipt_cannot_claim_an_existing_actual_reservation",
+        "test_loaded_attempt_reservations_are_exactly_gap_free",
+        "test_first_reservation_fsyncs_file_directory_and_run_root",
+        "test_reservation_not_receipt_consumes_crashed_provider_attempt_budget",
+        "test_positive_receipts_without_exact_reservations_fail_closed",
+        "test_crash_after_provider_return_cannot_reuse_a_maxed_reservation",
+        "test_dispatch_reload_preserves_the_once_normalized_trailing_newline",
+        "test_crash_only_reservations_use_monotonic_attempt_ids_through_three",
+        "test_missing_executable_blocks_before_reservation_or_provider_call",
+        "test_reserve_pre_call_post_call_pre_raw_and_pre_receipt_crashes_are_charged_once",
+        "test_concurrent_producer_reservations_are_controller_sequential_immediately_before_submit",
+    })
+
     def test_test_identity_tracks_the_current_runner_version(self) -> None:
         self.assertEqual(
             live_matrix.RunIdentity.for_test().runner_version,
@@ -2720,7 +2765,51 @@ class LiveMatrixCliTests(unittest.TestCase):
                 dispatch.assert_not_called()
 
 
-class LiveMatrixLifecycleTests(unittest.TestCase):
+class LiveMatrixLifecycleTests(UnixOnlyLiveTestMixin, unittest.TestCase):
+    unix_only_test_names = frozenset({
+        "test_first_preflight_requires_an_existing_install_bootstrap_without_mutation",
+        "test_first_preflight_reuses_only_the_complete_task_7_install_bootstrap",
+        "test_first_preflight_rejects_bootstrap_binding_changes_before_publication",
+        "test_first_preflight_rechecks_bound_bytes_and_modes_after_publication",
+        "test_failed_publication_never_unlinks_a_swappable_preflight_name",
+        "test_canonical_preflight_replacement_after_failed_first_run_cannot_reuse",
+        "test_first_preflight_does_not_publish_before_failed_git_postcheck",
+        "test_reuse_rejects_missing_replaced_unsafe_and_oversized_preflight",
+        "test_reuse_rejects_missing_partial_tampered_replaced_or_unsafe_commit_marker",
+        "test_reuse_rechecks_evidence_names_after_intervening_validation",
+        "test_dispatch_revalidates_leased_preflight_evidence_before_provider",
+        "test_held_evidence_read_rejects_same_size_rewrite_during_validation",
+        "test_evidence_name_recheck_is_the_final_lease_authorization_step",
+        "test_reuse_compares_every_preflight_field_to_current_expected_payload",
+        "test_reuse_rejects_unknown_run_root_entry_after_commit",
+        "test_final_commit_marker_fsync_failure_reports_committed_success",
+        "test_first_preflight_rejects_every_incomplete_or_unsafe_install_bootstrap",
+        "test_baseline_preflight_is_accepted_without_execute",
+        "test_preflight_state_is_reused_by_non_resume_execute",
+        "test_execute_reuses_preflight_without_resume",
+        "test_remediation_dispatches_only_the_selected_producer_calls_and_no_reviewers",
+        "test_receipt_publication_and_reload_fail_closed_on_invalid_scalar",
+        "test_current_near_miss_provider_attempt_is_durable_and_not_recalled",
+        "test_unordered_attempt_files_keep_latest_receipt",
+        "test_latest_receipt_uses_actual_attempt_id_when_zero_provider_follows_blocked",
+        "test_receipt_union_rejects_duplicate_actual_attempt_ordinal",
+        "test_final_durable_reload_rejects_reviewer_for_stale_packet",
+        "test_duplicate_reserved_call_number_is_corrupt",
+        "test_evidence_root_rejects_outside_and_does_not_chmod_it",
+        "test_evidence_root_rejects_symlinked_ancestor_escape_before_mutation",
+        "test_dispatch_identity_rejects_head_and_case_drift",
+        "test_dispatch_identity_rejects_case_drift",
+        "test_failed_model_discovery_never_marks_stdout_model_available",
+        "test_crashed_receipt_write_never_publishes_partial_final_path",
+        "test_report_state_allows_only_exact_owned_report_on_resume",
+        "test_owned_report_is_updated_in_place_on_one_persistent_inode",
+        "test_actual_preflight_resume_permits_only_matching_report_state_before_dispatch",
+        "test_actual_resume_before_first_report_dispatches_and_publishes_once",
+        "test_preflight_binds_canonical_remediation_selection_and_rejects_resume_drift",
+        "test_external_report_after_preflight_blocks_dispatch_before_reservation",
+        "test_crash_after_first_report_before_state_blocks_resumed_dispatch",
+    })
+
     def validate_fixture_preflight(
         self,
         *,
@@ -6661,7 +6750,40 @@ class ReviewAndReportTests(unittest.TestCase):
         self.assertFalse(any("HEAD~1" in call for call in calls))
 
 
-class ReviewExecutionWiringTests(unittest.TestCase):
+class ReviewExecutionWiringTests(UnixOnlyLiveTestMixin, unittest.TestCase):
+    unix_only_test_names = frozenset({
+        "test_returned_zero_provider_retry_is_proven_durable_and_supersedes_blocked",
+        "test_deleted_returned_zero_provider_retry_cannot_fall_back_to_blocked",
+        "test_changed_durable_receipt_cannot_satisfy_dispatch_return_claim",
+        "test_report_lease_binds_directory_target_inode_hash_and_state",
+        "test_raw_requested_report_symlink_is_rejected_before_final_component_resolution",
+        "test_report_lease_never_overwrites_same_hash_user_inode_substitution",
+        "test_report_write_path_swap_inside_write_never_mutates_user_inode",
+        "test_final_report_never_conditionally_replaces_the_target_name",
+        "test_partial_in_place_write_keeps_old_state_hash_and_resume_fails_closed",
+        "test_report_lease_parent_symlink_swap_never_writes_external_directory",
+        "test_pre_call_report_lease_drift_blocks_without_attempt_reservation",
+        "test_post_check_parent_swap_charges_only_current_call_and_leaves_safe_residual",
+        "test_report_lease_cleans_staging_file_and_fd_on_final_write_exception",
+        "test_execute_closes_report_lease_when_dispatch_fails",
+        "test_report_reservation_parent_swap_cannot_write_to_replacement_directory",
+        "test_final_report_parent_swap_cannot_write_to_replacement_directory",
+        "test_execute_path_dispatches_reviewers_and_writes_report_with_shared_summary",
+        "test_main_rejects_missing_new_retry_receipt_even_with_older_blocked_receipt",
+        "test_main_rejects_reviewer_receipt_deleted_after_dispatch",
+        "test_producer_retry_changes_packet_and_stale_reviewer_cannot_survive_budget_exhaustion",
+        "test_reviewer_dispatch_reserves_remaining_budget_and_blocks_invalid_json_once",
+        "test_reviewer_prompt_mismatch_requires_a_fresh_durable_attempt",
+        "test_reviewer_prompt_mismatch_cannot_reuse_stale_receipt_when_budget_is_exhausted",
+        "test_unavailable_reviewer_retry_binds_not_measured_to_current_packet",
+        "test_reviewer_crash_only_reservation_uses_attempt_two_with_spare_budget",
+        "test_reviewer_missing_executable_blocks_before_reservation",
+        "test_operations_report_rejects_symlinked_parent_before_writing",
+        "test_execute_rejects_unsafe_report_path_before_provider_dispatch",
+        "test_execute_rejects_symlinked_report_ancestor_before_provider_dispatch",
+        "test_report_bearing_baseline_resume_updates_only_owned_report_with_spare_retry_budget",
+    })
+
     def test_returned_zero_provider_retry_is_proven_durable_and_supersedes_blocked(self) -> None:
         case = case_by_id("correct-obligation")
         call = live_matrix.PlannedCall(

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import ast
+import builtins
 import contextlib
 import importlib.util
 import io
@@ -27,6 +29,19 @@ WINDOWS_STAGE_NAMES = (
     "korean-live-unit",
     "korean-live-dry-run",
     "python-compile",
+)
+LIVE_TEST_PATH = (
+    ROOT / "tests" / "korean-writing-editor" / "live" / "test_live_matrix.py"
+)
+REQUIRED_UNIX_ONLY_LIVE_TESTS = (
+    "test_manifest_ignores_only_validated_regenerated_python_cache",
+    "test_manifest_rejects_every_unsafe_python_cache_shape",
+    "test_fd_relative_manifest_matches_canonical_hash_and_rejects_specials",
+    "test_reuse_rechecks_evidence_names_after_intervening_validation",
+    "test_first_preflight_rejects_every_incomplete_or_unsafe_install_bootstrap",
+    "test_held_evidence_read_rejects_same_size_rewrite_during_validation",
+    "test_report_lease_binds_directory_target_inode_hash_and_state",
+    "test_manifest_hash_rejects_symlink",
 )
 
 
@@ -226,12 +241,94 @@ class VerifyStageTests(unittest.TestCase):
             verify.stages = original  # type: ignore[method-assign]
         self.assertEqual(recorded, ["full"])
 
+    def test_windows_profile_keeps_korean_live_unit(self) -> None:
+        verify = self._load()
+        names = [stage.name for stage in verify.stages("windows-portable")]
+        self.assertIn("korean-live-unit", names)
+
+    def test_live_unit_module_is_importable_without_fcntl(self) -> None:
+        self.assertTrue(LIVE_TEST_PATH.is_file(), "live unit tests are absent")
+        error: BaseException | None = None
+        try:
+            _load_live_tests_without_fcntl()
+        except ModuleNotFoundError as exc:
+            error = exc
+        self.assertIsNone(
+            error,
+            f"live unit discovery would ERROR on Windows: {error}",
+        )
+
+    def test_unix_only_live_tests_are_skipped_without_unix_specials(self) -> None:
+        self.assertTrue(LIVE_TEST_PATH.is_file(), "live unit tests are absent")
+        skipped = _unix_skipped_live_test_names(
+            LIVE_TEST_PATH.read_text(encoding="utf-8")
+        )
+        missing = [
+            name for name in REQUIRED_UNIX_ONLY_LIVE_TESTS if name not in skipped
+        ]
+        self.assertEqual(
+            missing,
+            [],
+            "Unix-only live tests must skipIf FIFO/fcntl/dir_fd fixtures on Windows",
+        )
+
     def _stage(self, profile: str, name: str):
         verify = self._load()
         for stage in verify.stages(profile):
             if stage.name == name:
                 return stage
         self.fail(f"profile {profile!r} is missing stage {name!r}")
+
+
+def _load_live_tests_without_fcntl() -> ModuleType:
+    name = "live_unit_windows_import_probe"
+    spec = importlib.util.spec_from_file_location(name, LIVE_TEST_PATH)
+    if spec is None or spec.loader is None:
+        raise FileNotFoundError(LIVE_TEST_PATH)
+    module = importlib.util.module_from_spec(spec)
+    original_import = builtins.__import__
+
+    def guarded_import(
+        module_name: str,
+        globals: dict[str, object] | None = None,
+        locals: dict[str, object] | None = None,
+        fromlist: tuple[str, ...] = (),
+        level: int = 0,
+    ):
+        if module_name.split(".")[0] == "fcntl":
+            raise ModuleNotFoundError("No module named 'fcntl'")
+        return original_import(module_name, globals, locals, fromlist, level)
+
+    sys.modules[name] = module
+    builtins.__import__ = guarded_import
+    try:
+        spec.loader.exec_module(module)
+        return module
+    finally:
+        builtins.__import__ = original_import
+        sys.modules.pop(name, None)
+
+
+def _unix_skipped_live_test_names(source: str) -> set[str]:
+    tree = ast.parse(source)
+    skipped: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name.startswith("test_"):
+            for decorator in node.decorator_list:
+                text = ast.get_source_segment(source, decorator) or ""
+                lowered = text.lower()
+                if "skipif" in lowered or "unix_only" in lowered or "os.name" in text:
+                    skipped.add(node.name)
+        if isinstance(node, ast.Assign):
+            targets = [
+                target.id for target in node.targets if isinstance(target, ast.Name)
+            ]
+            if "unix_only_test_names" not in targets:
+                continue
+            for const in ast.walk(node.value):
+                if isinstance(const, ast.Constant) and isinstance(const.value, str):
+                    skipped.add(const.value)
+    return skipped
 
 
 if __name__ == "__main__":
