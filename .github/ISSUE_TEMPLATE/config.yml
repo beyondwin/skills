@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/beyondwin/skills/security/advisories/new
+    about: Do not file a public issue for security reports. Use GitHub private vulnerability reporting.
