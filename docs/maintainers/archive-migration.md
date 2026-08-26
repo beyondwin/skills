@@ -1,9 +1,9 @@
 # Archive skill migration provenance
 
 This document freezes the `beyondwin/Archive` source used to create the public
-`beyondwin/skills` repository. Archive is read-only until Task 12 of the public
-skills plan. Do not mutate Archive, rewrite its history, or treat a local
-checkout path as part of this record.
+`beyondwin/skills` repository. It is the import pin, not a description of the
+current Archive tree. Do not rewrite Archive history or treat a local checkout
+path as part of this record.
 
 ## Pinned source
 
@@ -78,8 +78,9 @@ documents for later exact-path removal.
 
 ## Worktrees observed at freeze
 
-These extra Archive worktrees were clean and already merged into `main`. They
-were not deleted.
+These extra Archive worktrees were clean and already merged into `main` at
+freeze time. They were later removed without `--force` after the public
+deletion gate.
 
 | Worktree (repo-relative) | Branch | Tip |
 | --- | --- | --- |
@@ -108,11 +109,25 @@ are also recorded:
 - `.remember/logs/memory-2026-08-24.log`
 
 `.git` internals are not identifier hits. Worktree interiors collapse to
-`.superpowers/worktrees/<name>`. These residues stay in place until the
-Archive removal work after Task 12.
+`.superpowers/worktrees/<name>`. After the public deletion gate those
+residues were removed from Archive's current and ignored trees.
 
 ## Removal gate
 
-Archive stays untouched through public repository creation, `v2.0.0`
-publication, and independent download verification. Task 12 re-proves this pin
-before any Archive worktree is opened for deletion.
+Archive stayed untouched through public repository creation, `v2.0.0`
+publication, and independent download verification. After that gate, Archive
+current-tree copies and active references for the two skills were removed in a
+normal revertible commit. Rollback on Archive is `git revert` of that removal
+commit.
+
+## Post-transition
+
+| Field | Value |
+| --- | --- |
+| Public repository | `https://github.com/beyondwin/skills` |
+| Public `v2.0.0` commit | `d072a37870b5099cb131c91b5270fd7ad032db9f` |
+| Public release | `https://github.com/beyondwin/skills/releases/tag/v2.0.0` |
+| Archive removal commit | `e25fd6d023f8baac4f1c48a0df312ba5e9b53bcd` |
+
+This table records the completed transition. It does not claim a marketplace
+listing. The freeze fields above remain the import pin.

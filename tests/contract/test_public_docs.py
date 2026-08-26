@@ -333,6 +333,25 @@ class MaintainerProtocolTests(unittest.TestCase):
         )
 
 
+class ChangelogPublicationTests(unittest.TestCase):
+    def test_changelog_records_published_github_release(self) -> None:
+        path = ROOT / "CHANGELOG.md"
+        _assert_exists(self, path)
+        text = _read(path)
+        self.assertIn(
+            "https://github.com/beyondwin/skills/releases/tag/v2.0.0",
+            text,
+        )
+        self.assertNotIn(
+            "It does not claim that a GitHub tag, GitHub Release",
+            text,
+        )
+        self.assertNotIn("Archive remains read-only", text)
+        lowered = text.lower()
+        self.assertNotIn("listed in a marketplace", lowered)
+        self.assertNotIn("available in the marketplace", lowered)
+
+
 class PublicClaimTests(unittest.TestCase):
     def test_public_docs_omit_unsupported_quality_and_marketplace_claims(self) -> None:
         for document in PUBLIC_DOC_PATHS:

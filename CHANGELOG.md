@@ -5,9 +5,9 @@ All notable changes to this project are documented in this file.
 ## 2.0.0 - 2026-08-27
 
 First public `beyondwin-skills` plugin and repository version identity.
-This entry describes the local candidate that verification and release
-tooling can prove. It does not claim that a GitHub tag, GitHub Release,
-or plugin-directory listing already exists.
+GitHub tag `v2.0.0` and the four release artifacts are published at
+https://github.com/beyondwin/skills/releases/tag/v2.0.0.
+This does not claim a plugin-directory or marketplace listing.
 
 ### Added
 
@@ -47,5 +47,7 @@ or plugin-directory listing already exists.
 - Offline success does not prove general Korean editing quality, semantic
   equivalence, live image quality, commercial permission, a better provider,
   or cross-runtime parity.
-- Local `dist/` archives are not publication proof. Archive remains read-only
-  until a later public-release deletion gate succeeds.
+- Local `dist/` archives are not publication proof. Public proof is the
+  downloaded GitHub Release bytes. Archive current-tree copies of the two
+  skills were removed after that gate in a separate revertible Archive
+  commit.

@@ -2,7 +2,12 @@
 
 The plugin bundle and repository release start at `2.0.0`. Each `SKILL.md` keeps its own metadata version. A skill version changes only when that skill's contract or runtime payload changes; the plugin version changes whenever the packaged bundle changes. Root documentation-only changes do not require a new release.
 
-Do not claim the GitHub release exists until remote publication is verified. Archive stays read-only until every deletion-gate item succeeds. Provenance is in [archive-migration.md](archive-migration.md).
+Do not claim a GitHub release exists until remote publication is verified.
+`v2.0.0` is published at https://github.com/beyondwin/skills/releases/tag/v2.0.0.
+That does not claim a plugin-directory listing. Provenance is in
+[archive-migration.md](archive-migration.md). Future releases follow the same
+remote-download gate. Archive current-tree copies of the two skills were
+removed after the `v2.0.0` gate in a separate revertible Archive commit.
 
 ## Local gates
 
