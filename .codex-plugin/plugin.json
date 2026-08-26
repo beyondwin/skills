@@ -1,0 +1,24 @@
+{
+  "name": "beyondwin-skills",
+  "version": "2.0.0",
+  "description": "Two conservative, project-aware skills for Korean editing and raster asset work.",
+  "author": {
+    "name": "beyondwin",
+    "url": "https://github.com/beyondwin"
+  },
+  "homepage": "https://github.com/beyondwin/skills",
+  "repository": "https://github.com/beyondwin/skills",
+  "license": "Apache-2.0",
+  "keywords": ["agent-skills", "codex", "korean-writing", "image-workbench"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Beyondwin Skills",
+    "shortDescription": "Korean editing and raster asset workflows",
+    "longDescription": "A curated pair of Codex-first skills for conservative Korean text editing and project-bound raster asset work.",
+    "developerName": "beyondwin",
+    "category": "Developer Tools",
+    "capabilities": ["Interactive", "Read", "Write"],
+    "websiteURL": "https://github.com/beyondwin/skills",
+    "defaultPrompt": ["Polish supplied Korean text", "Plan or audit a project raster asset"]
+  }
+}

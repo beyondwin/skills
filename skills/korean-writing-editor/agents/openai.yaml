@@ -1,0 +1,6 @@
+interface:
+  display_name: "Korean Writing Editor"
+  short_description: "Proofread supplied Korean text conservatively"
+  default_prompt: "Use $korean-writing-editor to proofread the Korean text I supplied."
+policy:
+  allow_implicit_invocation: true
