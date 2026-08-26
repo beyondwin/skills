@@ -31,12 +31,19 @@ Build archives in a temporary directory from tracked files. The plugin zip conta
 
 After the provider-free verifier passes on a clean tree:
 
-1. Validate archive membership (no tests, no maintainer eval runners, no unexpected members).
-2. Extract every archive into a fresh directory.
-3. Run installation smokes against the extracted content, including Korean and image deterministic evaluators and the extracted inspector.
-4. Compute `SHA256SUMS` only after those checks pass.
+```bash
+python3 scripts/build_release.py --version 2.0.0 --output dist
+(cd dist && shasum -a 256 -c SHA256SUMS)
+```
 
-Reject absolute paths, `..`, duplicates, case-fold collisions, and unexpected members before extraction.
+The builder reads only tracked source files, sorts zip members, rejects symlinks and special files, stamps every member at `1980-01-01T00:00:00`, and uses mode `0644` for regular files and `0755` for executable scripts. It then:
+
+1. Validates archive membership (no tests, no maintainer eval runners, no unexpected members).
+2. Extracts every archive into a fresh temporary directory.
+3. Runs installation smokes against the extracted content, including Korean and image deterministic evaluators and the extracted inspector.
+4. Computes `SHA256SUMS` only after those checks pass.
+
+Reject absolute paths, `..`, duplicates, case-fold collisions, and unexpected members before extraction. `SHA256SUMS` lists exactly the three zip files.
 
 ## Remote download
 
@@ -44,7 +51,12 @@ Local `dist/` is not publication proof. After tagging `v2.0.0` and publishing th
 
 1. Download the remote artifacts into a fresh directory rather than reusing local build output.
 2. Verify checksums against the downloaded bytes.
-3. Run fresh extraction and installation smokes from those bytes.
+3. Run fresh extraction and installation smokes from those bytes:
+
+   ```bash
+   python3 scripts/build_release.py --verify-download "$RELEASE_DOWNLOAD_DIR" --version 2.0.0
+   ```
+
 4. Confirm public README links and source skill URLs resolve.
 
 ## Archive deletion gate
