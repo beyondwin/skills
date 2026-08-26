@@ -144,6 +144,11 @@ class IdentifierClassificationTests(unittest.TestCase):
         )
         worktree.mkdir(parents=True)
         (worktree / "ignored.txt").write_text("kws-korean-writing-editor residue\n")
+        (self.repository / ".gitignore").write_text(".remember/\n")
+        remember_log = self.repository / ".remember/logs/memory-session.log"
+        remember_log.parent.mkdir(parents=True)
+        remember_log.write_text("session mentioned korean-writing-editor\n")
+        (self.repository / ".git" / "CATCH_ME").write_text("korean-writing-editor\n")
 
     def tearDown(self) -> None:
         self._tempdir.cleanup()
@@ -194,6 +199,22 @@ class IdentifierClassificationTests(unittest.TestCase):
             "generated-residue",
         )
         self.assertNotIn("unclassified", classes)
+
+    def test_ignored_content_hit_without_identifier_in_path(self) -> None:
+        manifest = build_manifest(
+            self.repository,
+            ("skills/korean-writing-editor/", "skills/image-workbench/"),
+            (
+                "korean-writing-editor",
+                "image-workbench",
+                "kws-korean-writing-editor",
+                "kws-image-workbench",
+            ),
+        )
+        by_path = {hit["path"]: hit["class"] for hit in manifest["identifier_hits"]}
+        self.assertIn(".remember/logs/memory-session.log", by_path)
+        self.assertEqual(by_path[".remember/logs/memory-session.log"], "generated-residue")
+        self.assertFalse(any(item.startswith(".git/") or item == ".git" for item in by_path))
 
 
 class CaptureCliTests(unittest.TestCase):

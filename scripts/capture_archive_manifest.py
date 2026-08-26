@@ -101,12 +101,7 @@ def identifier_hits(
     tracked = set(_nul_items(git(repository, "ls-files", "-z")))
     found: set[str] = set()
     if identifiers:
-        grep_arguments = ["grep", "-I", "-l", "-F", "-z"]
-        for identifier in identifiers:
-            grep_arguments.extend(["-e", identifier])
-        found.update(_posix(item) for item in _nul_items(
-            git(repository, *grep_arguments, ok_returncodes=(0, 1))
-        ))
+        found.update(_content_hit_paths(repository, identifiers))
         for relative in _listed_names(repository):
             if _mentions_identifier(relative, identifiers):
                 found.add(_collapse_worktree(_posix(relative)))
@@ -260,6 +255,32 @@ def _run_verify(repository: Path, manifest_file: Path) -> int:
         _print_problems(problems)
         return 1
     return 0
+
+
+def _content_hit_paths(repository: Path, identifiers: tuple[str, ...]) -> set[str]:
+    grep_arguments = [
+        "grep",
+        "-I",
+        "-l",
+        "-F",
+        "-z",
+        "--untracked",
+        "--no-exclude-standard",
+    ]
+    for identifier in identifiers:
+        grep_arguments.extend(["-e", identifier])
+    grep_arguments.extend([
+        "--",
+        ".",
+        ":(exclude).git",
+        ":(exclude).git/**",
+        f":(exclude){WORKTREE_ROOT}",
+        f":(exclude){WORKTREE_ROOT}**",
+    ])
+    return {
+        _collapse_worktree(_posix(item))
+        for item in _nul_items(git(repository, *grep_arguments, ok_returncodes=(0, 1)))
+    }
 
 
 def _listed_names(repository: Path) -> Iterable[str]:

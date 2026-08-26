@@ -12,7 +12,7 @@ checkout path as part of this record.
 | Source repository | `https://github.com/beyondwin/Archive.git` |
 | Pinned commit | `76e6bf4ebbc9430aee9a04a5b780ae38330f3021` |
 | Manifest | [`archive-source-manifest.json`](archive-source-manifest.json) |
-| Manifest digest (`manifest_sha256`) | `de758712a2df5da808fd5b600be211e80e29ee9ae19f74ec1fd4ad6c93b1d8ef` |
+| Manifest digest (`manifest_sha256`) | `6917f68e6e0d81226e50195d58a884373d23ffbbbe48363ef2428c8cbcb83f78` |
 | Source prefixes | `skills/korean-writing-editor/`, `skills/image-workbench/` |
 | Tracked source files | 22 |
 | Capture tool | `scripts/capture_archive_manifest.py` |
@@ -70,7 +70,7 @@ Every hit in the checked-in manifest has exactly one class:
 | `verification-registration` | 4 | `scripts/agent/contract.ts`, `verification-map.ts`, and their tests |
 | `skill-history-document` | 11 | Skill-specific operations, plans, and specs, including catalog-identity history |
 | `mixed-document` | 4 | Root `AGENTS.md` and `README.md`, plus the two frozen plan-runner catalog assertions |
-| `generated-residue` | 6 | Ignored cache files and two named worktrees |
+| `generated-residue` | 8 | Ignored cache files, two named worktrees, and two ignored session logs |
 
 Unrelated `kws-*` trees are out of scope. The catalog-identity plan and spec are
 included because they name the four identifiers; they remain skill-history
@@ -101,7 +101,15 @@ identifier hit.
 
 No `skills/kws-image-workbench/` directory was present. Two additional ignored
 `.pyc` files exist under `skills/korean-writing-editor/evals/__pycache__/`.
-These residues stay in place until the Archive removal work after Task 12.
+Ignored session logs whose *content* names the identifiers, not their paths,
+are also recorded:
+
+- `.remember/logs/memory-2026-08-23.log`
+- `.remember/logs/memory-2026-08-24.log`
+
+`.git` internals are not identifier hits. Worktree interiors collapse to
+`.superpowers/worktrees/<name>`. These residues stay in place until the
+Archive removal work after Task 12.
 
 ## Removal gate
 
