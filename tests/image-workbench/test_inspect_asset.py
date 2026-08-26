@@ -336,10 +336,10 @@ class AssetInspectorTests(unittest.TestCase):
             result = main([str(input_path), "--output", directory], output_stream=stdout, error_stream=stderr)
         self.assertEqual(result, 1)
         self.assertEqual(stdout.value, "")
-        self.assertEqual(
-            stderr.value,
-            json.dumps({"error": "Is a directory", "path": str(input_path)}, sort_keys=True) + "\n",
-        )
+        payload = json.loads(stderr.value)
+        self.assertEqual(payload["path"], str(input_path))
+        # Unix EISDIR vs Windows EACCES when --output is a directory.
+        self.assertIn(payload["error"], {"Is a directory", "Permission denied", "Access is denied"})
 
 
 class PublicInspectorContractTests(unittest.TestCase):
