@@ -78,6 +78,13 @@ EXPECTED_REPEAT_IDS = {
 }
 APPROVED_CASES_SHA256 = "ba7e1df65ce63e9d110cc4cecb4eb14d291295d376b06dfc0cb22b90e07bc951"
 ANSI_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+
+
+def _fchmod(descriptor: int, mode: int) -> None:
+    if hasattr(os, "fchmod"):
+        os.fchmod(descriptor, mode)
+
+
 STRUCTURAL_LIST_MARKER_RE = re.compile(r"^\s*((?:[-+*])|(?:\d+[.)]))\s+")
 STRUCTURAL_CODE_SPAN_RE = re.compile(r"`[^`\n]+`")
 STRUCTURAL_QUOTED_SEGMENT_RE = re.compile(r'“([^”\n]+)”|"([^"\n]+)"')
@@ -1714,7 +1721,7 @@ def _write_exclusive_json(path: pathlib.Path, payload: dict[str, Any]) -> None:
         raise LiveMatrixError("cannot create receipt staging file") from exc
     published = False
     try:
-        os.fchmod(descriptor, 0o600)
+        _fchmod(descriptor, 0o600)
         encoded = _canonical_json_bytes(payload)
         offset = 0
         while offset < len(encoded):
@@ -2347,7 +2354,7 @@ def _write_pending_json_at(
     descriptor: int | None = None
     try:
         descriptor = os.open(filename, flags, 0o600, dir_fd=directory_descriptor)
-        os.fchmod(descriptor, 0o600)
+        _fchmod(descriptor, 0o600)
         encoded = _canonical_json_bytes(payload)
         _write_all(descriptor, encoded)
         os.fsync(descriptor)
@@ -2473,7 +2480,7 @@ def _write_pending_commit_marker_at(
             0o600,
             dir_fd=directory_descriptor,
         )
-        os.fchmod(descriptor, 0o600)
+        _fchmod(descriptor, 0o600)
         created = os.fstat(descriptor)
         if (
             not stat.S_ISREG(created.st_mode)
@@ -3493,7 +3500,7 @@ def _write_raw_file(run_root: pathlib.Path, relative_path: str, payload: bytes) 
     except OSError as exc:
         raise LiveMatrixError("cannot create raw evidence") from exc
     try:
-        os.fchmod(descriptor, 0o600)
+        _fchmod(descriptor, 0o600)
         offset = 0
         while offset < len(payload):
             written = os.write(descriptor, payload[offset:])
@@ -4141,7 +4148,7 @@ def _ensure_attempt_reservation_directory(run_root: pathlib.Path) -> pathlib.Pat
             opened = os.fstat(reservation_fd)
             if not stat.S_ISDIR(opened.st_mode):
                 raise LiveMatrixError("attempt reservation directory is not a real directory")
-            os.fchmod(reservation_fd, 0o700)
+            _fchmod(reservation_fd, 0o700)
             os.fsync(reservation_fd)
         finally:
             os.close(reservation_fd)
@@ -6105,7 +6112,7 @@ def _atomic_replace_file(path: pathlib.Path, payload: bytes, *, mode: int) -> No
         raise LiveMatrixError("cannot create report staging file") from exc
     published = False
     try:
-        os.fchmod(descriptor, mode)
+        _fchmod(descriptor, mode)
         offset = 0
         while offset < len(payload):
             written = os.write(descriptor, payload[offset:])
@@ -6402,7 +6409,7 @@ def reserve_operations_report(lease: ReportLease) -> ReportState:
         raise LiveMatrixError("operations report target is unsafe")
     lease.target_dev = opened.st_dev
     lease.target_inode = opened.st_ino
-    os.fchmod(descriptor, 0o644)
+    _fchmod(descriptor, 0o644)
     _write_bytes(descriptor, PENDING_OPERATIONS_REPORT)
     os.ftruncate(descriptor, len(PENDING_OPERATIONS_REPORT))
     os.fsync(descriptor)

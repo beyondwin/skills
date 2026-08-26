@@ -1695,7 +1695,8 @@ class DeterministicEvaluationTests(unittest.TestCase):
 
 class ProviderAdapterTests(unittest.TestCase):
     def test_codex_argv_is_direct_ephemeral_read_only(self) -> None:
-        argv = live_matrix.build_codex_argv(pathlib.Path("/repo"), "prompt")
+        repo = pathlib.Path("/repo")
+        argv = live_matrix.build_codex_argv(repo, "prompt")
         self.assertEqual(
             argv,
             (
@@ -1706,15 +1707,16 @@ class ProviderAdapterTests(unittest.TestCase):
                 "read-only",
                 "--json",
                 "--cd",
-                "/repo",
+                str(repo),
                 "prompt",
             ),
         )
         self.assertNotIn("--model", argv)
 
     def test_cursor_argv_is_sandboxed_ask_and_not_forced(self) -> None:
+        repo = pathlib.Path("/repo")
         argv = live_matrix.build_cursor_argv(
-            pathlib.Path("/repo"), "gemini-3.7-flash-high", "prompt"
+            repo, "gemini-3.7-flash-high", "prompt"
         )
         self.assertEqual(
             argv,
@@ -1728,7 +1730,7 @@ class ProviderAdapterTests(unittest.TestCase):
                 "--sandbox",
                 "enabled",
                 "--workspace",
-                "/repo",
+                str(repo),
                 "--model",
                 "gemini-3.7-flash-high",
                 "prompt",
