@@ -55,6 +55,8 @@ Exact-target inspection, update, and uninstall are in [Getting started](docs/en/
 python3 scripts/verify.py
 ```
 
+The default is `--profile full`. Windows portable verification is `python3 scripts/verify.py --profile windows-portable`. Live `--execute` is not included.
+
 ## Exclusions and safety
 
 This repository has no telemetry. Required CI does not use credentials, models, or remote image calls. This plugin is not claimed to be listed in a plugin directory.

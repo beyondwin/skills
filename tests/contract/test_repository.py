@@ -460,6 +460,10 @@ class ValidateSkillRejectionTests(unittest.TestCase):
         errors = "\n".join(validate_skill(staged))
         self.assertIn("payload test/eval/maintainer file", errors)
 
+    @unittest.skipIf(
+        os.name == "nt" or not hasattr(os, "mkfifo"),
+        "symlink and FIFO fixtures require Unix",
+    )
     def test_rejects_symlink_and_special_file(self) -> None:
         source = SKILLS[0]
         staged = self._mutated(

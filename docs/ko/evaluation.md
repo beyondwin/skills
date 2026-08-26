@@ -8,6 +8,13 @@
 python3 scripts/verify.py
 ```
 
+이 명령은 `--profile full`과 같습니다. 단계는 contract, korean-offline, image-contract, image-inspector, korean-live-unit, korean-live-dry-run, python-compile 순서이며, 첫 실패 단계에서 멈춥니다. `windows-portable`는 Codex 전용 `image-contract`와 `image-inspector`를 제외합니다. 라이브 `--execute`는 포함하지 않습니다.
+
+```bash
+python3 scripts/verify.py --profile full
+python3 scripts/verify.py --profile windows-portable
+```
+
 ## 공유 증거 문장
 
 korean-writing-editor: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.

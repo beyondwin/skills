@@ -55,6 +55,8 @@ git clone https://github.com/beyondwin/skills.git
 python3 scripts/verify.py
 ```
 
+기본은 `--profile full`입니다. Windows 이식 검증은 `python3 scripts/verify.py --profile windows-portable`입니다. 라이브 `--execute`는 포함하지 않습니다.
+
 ## 제외와 안전
 
 이 저장소는 텔레메트리를 넣지 않습니다. 필수 CI는 자격 증명·모델·원격 이미지 호출을 하지 않습니다. 플러그인 디렉터리 등록을 주장하지 않습니다.

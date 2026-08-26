@@ -8,6 +8,13 @@ Required verification for repository version `2.0.0` runs without credentials or
 python3 scripts/verify.py
 ```
 
+That command is `--profile full`. Stages run in this order: contract, korean-offline, image-contract, image-inspector, korean-live-unit, korean-live-dry-run, python-compile. The first failing stage stops the command. `windows-portable` excludes the Codex-only `image-contract` and `image-inspector` stages. Live `--execute` is not included.
+
+```bash
+python3 scripts/verify.py --profile full
+python3 scripts/verify.py --profile windows-portable
+```
+
 ## Shared evidence sentences
 
 korean-writing-editor: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.

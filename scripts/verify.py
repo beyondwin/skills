@@ -1,0 +1,147 @@
+#!/usr/bin/env python3
+"""Provider-free repository verification orchestrator."""
+
+from __future__ import annotations
+
+import argparse
+import dataclasses
+import pathlib
+import subprocess
+import sys
+from typing import Iterable
+
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+PROFILES = ("full", "windows-portable")
+FULL_STAGE_NAMES = (
+    "contract",
+    "korean-offline",
+    "image-contract",
+    "image-inspector",
+    "korean-live-unit",
+    "korean-live-dry-run",
+    "python-compile",
+)
+WINDOWS_EXCLUDED_STAGES = frozenset({"image-contract", "image-inspector"})
+
+
+@dataclasses.dataclass(frozen=True)
+class Stage:
+    name: str
+    argv: tuple[str, ...]
+    cwd: pathlib.Path = ROOT
+
+
+def _python(*arguments: str) -> tuple[str, ...]:
+    return (sys.executable, *arguments)
+
+
+def _posix(*parts: str) -> str:
+    return pathlib.PurePosixPath(*parts).as_posix()
+
+
+def _compile_paths() -> tuple[str, ...]:
+    paths = ["scripts", "tests"]
+    skills_root = ROOT / "skills"
+    if skills_root.is_dir():
+        for skill in sorted(path for path in skills_root.iterdir() if path.is_dir()):
+            scripts_dir = skill / "scripts"
+            if scripts_dir.is_dir():
+                paths.append(_posix("skills", skill.name, "scripts"))
+    return tuple(paths)
+
+
+def _catalog() -> dict[str, Stage]:
+    return {
+        "contract": Stage(
+            "contract",
+            _python("-m", "unittest", "discover", "-s", _posix("tests", "contract"), "-p", "test_*.py"),
+        ),
+        "korean-offline": Stage(
+            "korean-offline",
+            _python(
+                _posix("tests", "korean-writing-editor", "offline", "run.py"),
+                "--scope",
+                "full",
+            ),
+        ),
+        "image-contract": Stage(
+            "image-contract",
+            _python(_posix("tests", "image-workbench", "run.py"), "--scope", "full"),
+        ),
+        "image-inspector": Stage(
+            "image-inspector",
+            _python(
+                "-m",
+                "unittest",
+                "discover",
+                "-s",
+                _posix("tests", "image-workbench"),
+                "-p",
+                "test_*.py",
+            ),
+        ),
+        "korean-live-unit": Stage(
+            "korean-live-unit",
+            _python(
+                "-m",
+                "unittest",
+                "discover",
+                "-s",
+                _posix("tests", "korean-writing-editor", "live"),
+                "-p",
+                "test_*.py",
+            ),
+        ),
+        "korean-live-dry-run": Stage(
+            "korean-live-dry-run",
+            _python(
+                _posix("tests", "korean-writing-editor", "live", "live_matrix.py"),
+                "--dry-run",
+            ),
+        ),
+        "python-compile": Stage(
+            "python-compile",
+            _python("-m", "compileall", "-q", *_compile_paths()),
+        ),
+    }
+
+
+def stages(profile: str) -> tuple[Stage, ...]:
+    if profile not in PROFILES:
+        raise ValueError(f"unknown profile: {profile}")
+    catalog = _catalog()
+    names = FULL_STAGE_NAMES
+    if profile == "windows-portable":
+        names = tuple(name for name in names if name not in WINDOWS_EXCLUDED_STAGES)
+    return tuple(catalog[name] for name in names)
+
+
+def run_stage(stage: Stage) -> int:
+    print(f"==> {stage.name}: {' '.join(stage.argv)}", flush=True)
+    return subprocess.run(stage.argv, cwd=stage.cwd, check=False).returncode
+
+
+def run_stages(stage_list: Iterable[Stage]) -> int:
+    for stage in stage_list:
+        code = run_stage(stage)
+        if code != 0:
+            print(f"FAILED stage: {stage.name}", file=sys.stderr, flush=True)
+            return code
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--profile",
+        choices=PROFILES,
+        default="full",
+        help="verification profile (default: full)",
+    )
+    args = parser.parse_args(argv)
+    return run_stages(stages(args.profile))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
