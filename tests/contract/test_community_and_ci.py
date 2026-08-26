@@ -54,7 +54,19 @@ class CiWorkflowTests(unittest.TestCase):
         self.assertRegex(workflow, r"os:\s*macos-latest\s*\n\s*profile:\s*full")
         self.assertRegex(workflow, r"os:\s*windows-latest\s*\n\s*profile:\s*windows-portable")
         self.assertIn("pull_request", workflow)
+        self.assertIn("workflow_dispatch", workflow)
         self.assertRegex(workflow, r"branches:\s*\[main\]|-\s*main")
+
+    def test_ci_keeps_push_pull_request_and_workflow_dispatch(self) -> None:
+        _assert_exists(self, WORKFLOW_PATH)
+        workflow = _read(WORKFLOW_PATH)
+        self.assertRegex(
+            workflow,
+            r"(?ms)^on:\n(?:  .+\n)*  push:\n(?:    .+\n)*    branches:\s*\[main\]",
+        )
+        self.assertRegex(workflow, r"(?m)^  pull_request:\s*$")
+        self.assertRegex(workflow, r"(?m)^  workflow_dispatch:\s*$")
+        self.assertNotIn("pull_request_target", workflow)
 
     def test_ci_runs_only_the_provider_free_verifier(self) -> None:
         _assert_exists(self, WORKFLOW_PATH)
