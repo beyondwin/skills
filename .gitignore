@@ -1,4 +1,5 @@
 .worktrees/
+.superpowers/
 
 # Python bytecode
 __pycache__/

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -320,10 +321,28 @@ class CaptureCliTests(unittest.TestCase):
         self.assertNotEqual(captured.returncode, 0)
         self.assertIn("HEAD differs from origin/main", captured.stderr)
 
+    def test_symlink_prefix_rejection_still_runs_on_unix(self) -> None:
+        method = CaptureCliTests.test_capture_rejects_symlink_in_prefix
+        if os.name == "nt" or not hasattr(os, "symlink"):
+            self.assertTrue(getattr(method, "__unittest_skip__", False))
+            return
+        self.assertFalse(
+            getattr(method, "__unittest_skip__", False),
+            "Unix must still execute capture symlink rejection",
+        )
+
+    # skipIf is Windows/capability-only; Unix still executes the rejection below.
+    @unittest.skipIf(
+        os.name == "nt" or not hasattr(os, "symlink"),
+        "symlink fixtures require Unix",
+    )
     def test_capture_rejects_symlink_in_prefix(self) -> None:
         target = self.repository / "skills/a/SKILL.md"
         link = self.repository / "skills/a/link.md"
-        link.symlink_to(target.name)
+        try:
+            link.symlink_to(target.name)
+        except OSError as exc:
+            raise unittest.SkipTest(f"symlink fixture unavailable: {exc}") from exc
         run_git(self.repository, "add", "skills/a/link.md")
         run_git(self.repository, "commit", "-m", "add symlink")
         run_git(self.repository, "update-ref", "refs/remotes/origin/main", "HEAD")
