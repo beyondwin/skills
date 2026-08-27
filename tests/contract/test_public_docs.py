@@ -60,8 +60,12 @@ MAINTAINER_DOCS = (
     ROOT / "docs" / "maintainers" / "image-workbench.md",
     ROOT / "docs" / "maintainers" / "graspic.md",
 )
+CATALOG_DOCS = (
+    ROOT / "catalog" / "README.md",
+    ROOT / "catalog" / "CHANGELOG.md",
+)
 ARCHIVE_MIGRATION = ROOT / "docs" / "maintainers" / "archive-migration.md"
-PUBLIC_DOC_PATHS = README_PATHS + USER_GUIDES + MAINTAINER_DOCS
+PUBLIC_DOC_PATHS = README_PATHS + USER_GUIDES + MAINTAINER_DOCS + CATALOG_DOCS
 FUTURE_COMMUNITY_FILES = frozenset(
     {
         "CONTRIBUTING.md",
@@ -289,6 +293,9 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("beyondwin-skills", text)
         self.assertIn("python3 scripts/verify.py", text)
         self.assertIn("2.0.0", text)
+        self.assertIn("catalog/plugin/.codex-plugin/plugin.json", text)
+        self.assertIn("catalog/catalog.lock.json", text)
+        self.assertIn("does not own plugin metadata", text)
 
     def test_korean_protocol_preserves_fixture_sync_and_live_budgets(self) -> None:
         path = ROOT / "docs" / "maintainers" / "korean-writing-editor.md"
@@ -329,6 +336,9 @@ class MaintainerProtocolTests(unittest.TestCase):
             self.assertIn(token, lowered)
         self.assertIn("SHA256SUMS", text)
         self.assertIn("v2.0.0", text)
+        self.assertIn("catalog/plugin/.codex-plugin/plugin.json", text)
+        self.assertIn("catalog.lock.json", text)
+        self.assertIn("legacy-bundle", text)
 
     def test_archive_migration_freeze_record_is_preserved(self) -> None:
         _assert_exists(self, ARCHIVE_MIGRATION)
@@ -342,7 +352,7 @@ class MaintainerProtocolTests(unittest.TestCase):
 
 class ChangelogPublicationTests(unittest.TestCase):
     def test_changelog_records_published_github_release(self) -> None:
-        path = ROOT / "CHANGELOG.md"
+        path = ROOT / "catalog" / "CHANGELOG.md"
         _assert_exists(self, path)
         text = _read(path)
         self.assertIn(

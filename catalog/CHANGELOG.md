@@ -1,23 +1,8 @@
 # Changelog
 
-All notable changes to this project are documented in this file.
+All notable changes to this catalog are documented in this file.
 
 ## Unreleased
-
-### Added
-
-- Catalog skill `graspic` `2.0.0`: explains how one machine works at a
-  chosen rung. graspic: Codex supported; Agent Skills contract portable;
-  other hosts only supported after a recorded smoke.
-- Public install, compatibility, evaluation, and maintainer protocol
-  coverage for `graspic`. The plugin still discovers skills under
-  `./skills/`. A future release archive set includes `graspic-v2.0.0.zip`.
-
-### Notes
-
-- The catalog is now these three skills. A fourth skill remains out of
-  scope unless governance is reopened.
-- This section does not claim a new GitHub tag or GitHub Release.
 
 ## 2.0.0 - 2026-08-27
 

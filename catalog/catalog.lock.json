@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "skills": [
+    {
+      "name": "image-workbench",
+      "payload_sha256": "9c4206bf103213eac094e09a26970e8d0a42f5c578a7cb04ca59fe9ec23cc0b0",
+      "release_kind": "legacy-bundle",
+      "source_commit": "78a8b1bf37d1b943f4b8337121b556eeaea926ae",
+      "tag": "v2.0.0",
+      "version": "2.0.0"
+    },
+    {
+      "name": "korean-writing-editor",
+      "payload_sha256": "44d8b7a7ae9b5090165040573387271f50861d08593b22c48c15405012a5d87d",
+      "release_kind": "legacy-bundle",
+      "source_commit": "78a8b1bf37d1b943f4b8337121b556eeaea926ae",
+      "tag": "v2.0.0",
+      "version": "2.0.0"
+    }
+  ]
+}

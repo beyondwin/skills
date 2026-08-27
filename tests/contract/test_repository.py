@@ -21,7 +21,7 @@ from scripts.release_contract import (  # noqa: E402
 )
 
 SKILLS = tuple(ROOT / "skills" / name for name in PRODUCT_NAMES)
-PLUGIN_PATH = ROOT / ".codex-plugin" / "plugin.json"
+PLUGIN_PATH = ROOT / "catalog" / "plugin" / ".codex-plugin" / "plugin.json"
 LICENSE_PATH = ROOT / "LICENSE"
 NOTICE_PATH = ROOT / "NOTICE"
 ARCHIVE_REPOSITORY = "https://github.com/beyondwin/Archive.git"
@@ -30,20 +30,19 @@ MANIFEST_DIGEST = "6917f68e6e0d81226e50195d58a884373d23ffbbbe48363ef2428c8cbcb83
 EXPECTED_PLUGIN: dict[str, object] = {
     "name": "beyondwin-skills",
     "version": "2.0.0",
-    "description": "Three conservative, project-aware skills for Korean editing, raster asset work, and mechanistic explanation.",
+    "description": "Two conservative, project-aware skills for Korean editing and raster asset work.",
     "author": {"name": "beyondwin", "url": "https://github.com/beyondwin"},
     "homepage": "https://github.com/beyondwin/skills",
     "repository": "https://github.com/beyondwin/skills",
     "license": "Apache-2.0",
-    "keywords": ["agent-skills", "codex", "korean-writing", "image-workbench", "graspic"],
+    "keywords": ["agent-skills", "codex", "korean-writing", "image-workbench"],
     "skills": "./skills/",
     "interface": {
         "displayName": "Beyondwin Skills",
-        "shortDescription": "Korean editing, raster assets, and mechanistic explanation",
+        "shortDescription": "Korean editing and raster asset workflows",
         "longDescription": (
-            "A curated set of Codex-first skills for conservative Korean text "
-            "editing, project-bound raster asset work, and runged explanations "
-            "of how something works."
+            "A curated pair of Codex-first skills for conservative Korean text "
+            "editing and project-bound raster asset work."
         ),
         "developerName": "beyondwin",
         "category": "Developer Tools",
@@ -52,7 +51,6 @@ EXPECTED_PLUGIN: dict[str, object] = {
         "defaultPrompt": [
             "Polish supplied Korean text",
             "Plan or audit a project raster asset",
-            "Explain how something works",
         ],
     },
 }
@@ -89,11 +87,15 @@ def _copy_skill(source: Path, destination: Path) -> Path:
 
 class PluginManifestTests(unittest.TestCase):
     def test_plugin_discovers_the_curated_skills(self) -> None:
+        self.assertFalse((ROOT / ".codex-plugin" / "plugin.json").exists())
         self.assertTrue(PLUGIN_PATH.is_file(), "plugin manifest is absent")
         manifest = load_plugin_manifest()
         self.assertEqual(manifest["name"], "beyondwin-skills")
         self.assertEqual(manifest["version"], "2.0.0")
         self.assertEqual(manifest["skills"], "./skills/")
+        self.assertNotIn("graspic", json.dumps(manifest))
+
+    def test_skill_directories_include_unpublished_current_products(self) -> None:
         self.assertEqual(
             {path.name for path in (ROOT / "skills").iterdir() if path.is_dir()},
             {"graspic", "image-workbench", "korean-writing-editor"},

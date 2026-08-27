@@ -1,0 +1,4 @@
+schema_version = 1
+name = "beyondwin-skills"
+version = "2.0.0"
+tag_prefix = "beyondwin-skills-v"
