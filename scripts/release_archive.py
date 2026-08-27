@@ -171,7 +171,11 @@ def extract_archive(path: Path, destination: Path) -> list[str]:
             if not target.is_relative_to(root):
                 return [f"extract escapes destination: {name}"]
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(archive.read(info))
+            data = archive.read(info)
+            target.write_bytes(data)
+            unix_mode = (info.external_attr >> 16) & 0o777
+            if unix_mode & 0o111 or data.startswith(b"#!"):
+                target.chmod(0o755)
     return []
 
 

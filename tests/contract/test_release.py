@@ -232,5 +232,205 @@ class ArchiveSafetyTests(unittest.TestCase):
         self.assertIn("special", fifo_errors.lower())
 
 
+class ProductDownloadTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self._tempdir = tempfile.TemporaryDirectory()
+        self.output = Path(self._tempdir.name)
+
+    def tearDown(self) -> None:
+        self._tempdir.cleanup()
+
+    def _checksums(self, archive: Path) -> None:
+        release_archive.write_checksums((archive,), self.output / "SHA256SUMS")
+
+    def _rewrite_zip(
+        self,
+        archive: Path,
+        rewriter,
+    ) -> None:
+        with zipfile.ZipFile(archive) as source:
+            items = [(info, source.read(info)) for info in source.infolist()]
+        with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as dest:
+            for info, data in rewriter(items):
+                dest.writestr(info, data)
+
+    def test_verify_product_download_accepts_valid_two_file_directory(self) -> None:
+        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
+        self.assertEqual(
+            {path.name for path in self.output.iterdir()},
+            {"graspic-v3.0.0.zip", "SHA256SUMS"},
+        )
+        self.assertEqual(release.verify_product_download(ROOT, "graspic", self.output), [])
+
+    def test_verify_product_download_runs_korean_and_image_smokes(self) -> None:
+        for name in ("korean-writing-editor", "image-workbench"):
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as directory:
+                output = Path(directory)
+                release.build_product(ROOT, name, output, require_release_entry=False)
+                self.assertEqual(release.verify_product_download(ROOT, name, output), [])
+
+    def test_verify_product_download_rejects_missing_checksum(self) -> None:
+        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
+        (self.output / "SHA256SUMS").unlink()
+        errors = release.verify_product_download(ROOT, "graspic", self.output)
+        self.assertIn("missing SHA256SUMS", errors)
+
+    def test_verify_product_download_rejects_malformed_digest(self) -> None:
+        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
+        (self.output / "SHA256SUMS").write_text(
+            "not-a-digest  graspic-v3.0.0.zip\n",
+            encoding="ascii",
+        )
+        errors = release.verify_product_download(ROOT, "graspic", self.output)
+        self.assertTrue(any("malformed digest" in error for error in errors), errors)
+
+    def test_verify_product_download_rejects_another_products_zip(self) -> None:
+        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
+        (self.output / "image-workbench-v2.0.1.zip").write_bytes(b"not a zip")
+        errors = release.verify_product_download(ROOT, "graspic", self.output)
+        self.assertIn("unexpected zip in download directory: image-workbench-v2.0.1.zip", errors)
+
+    def test_verify_product_download_rejects_renamed_zip(self) -> None:
+        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
+        (self.output / "graspic-v3.0.0.zip").rename(self.output / "graspic-renamed.zip")
+        errors = release.verify_product_download(ROOT, "graspic", self.output)
+        self.assertIn("unexpected zip in download directory: graspic-renamed.zip", errors)
+
+    def test_verify_product_download_rejects_checksum_mismatch(self) -> None:
+        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
+        archive = self.output / "graspic-v3.0.0.zip"
+        archive.write_bytes(archive.read_bytes() + b"\x00")
+        errors = release.verify_product_download(ROOT, "graspic", self.output)
+        self.assertTrue(any("checksum mismatch" in error for error in errors), errors)
+
+    def test_verify_product_download_rejects_unexpected_file(self) -> None:
+        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
+        (self.output / "notes.txt").write_text("extra\n", encoding="utf-8")
+        errors = release.verify_product_download(ROOT, "graspic", self.output)
+        self.assertIn("unexpected file in download directory: notes.txt", errors)
+
+    def test_verify_product_download_rejects_extra_checksum_row(self) -> None:
+        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
+        checksums = self.output / "SHA256SUMS"
+        checksums.write_text(
+            checksums.read_text(encoding="ascii") + ("0" * 64) + "  extra.zip\n",
+            encoding="ascii",
+        )
+        errors = release.verify_product_download(ROOT, "graspic", self.output)
+        self.assertTrue(
+            any("SHA256SUMS must list exactly the expected product zip" in error for error in errors),
+            errors,
+        )
+
+    def test_verify_product_download_rejects_unsafe_member(self) -> None:
+        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
+        archive = self.output / "graspic-v3.0.0.zip"
+
+        def add_absolute(items):
+            yield from items
+            evil = zipfile.ZipInfo("/tmp/evil")
+            evil.external_attr = (stat.S_IFREG | 0o644) << 16
+            yield evil, b"x\n"
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            self._rewrite_zip(archive, add_absolute)
+        self._checksums(archive)
+        errors = "\n".join(release.verify_product_download(ROOT, "graspic", self.output))
+        self.assertIn("absolute", errors.lower())
+
+    def test_verify_product_download_rejects_metadata_version_mismatch(self) -> None:
+        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
+        archive = self.output / "graspic-v3.0.0.zip"
+
+        def bump_version(items):
+            for info, data in items:
+                text = data.decode("utf-8")
+                if info.filename == "graspic/release.toml":
+                    text = text.replace('version = "3.0.0"', 'version = "9.9.9"')
+                    data = text.encode("utf-8")
+                elif info.filename == "graspic/SKILL.md":
+                    text = text.replace('version: "3.0.0"', 'version: "9.9.9"')
+                    data = text.encode("utf-8")
+                yield info, data
+
+        self._rewrite_zip(archive, bump_version)
+        self._checksums(archive)
+        errors = release.verify_product_download(ROOT, "graspic", self.output)
+        self.assertTrue(any("metadata version mismatch" in error for error in errors), errors)
+
+    def test_verify_product_download_rejects_extracted_validation_failure(self) -> None:
+        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
+        archive = self.output / "graspic-v3.0.0.zip"
+
+        def drop_changelog(items):
+            for info, data in items:
+                if info.filename == "graspic/CHANGELOG.md":
+                    continue
+                yield info, data
+
+        self._rewrite_zip(archive, drop_changelog)
+        self._checksums(archive)
+        errors = "\n".join(release.verify_product_download(ROOT, "graspic", self.output))
+        self.assertIn("CHANGELOG", errors)
+
+    def test_extract_archive_restores_executable_mode(self) -> None:
+        artifact, _checksums = release.build_product(
+            ROOT,
+            "image-workbench",
+            self.output,
+            require_release_entry=False,
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory)
+            self.assertEqual(release_archive.extract_archive(artifact, destination), [])
+            inspector = destination / "image-workbench" / "scripts" / "inspect_asset.py"
+            self.assertTrue(inspector.is_file())
+            self.assertTrue(inspector.stat().st_mode & stat.S_IXUSR)
+
+    def test_verify_download_cli_requires_input_and_rejects_output(self) -> None:
+        script = ROOT / "scripts" / "release.py"
+        missing_input = subprocess.run(
+            [sys.executable, str(script), "verify-download", "--product", "graspic"],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertNotEqual(missing_input.returncode, 0)
+        unexpected_output = subprocess.run(
+            [
+                sys.executable,
+                str(script),
+                "verify-download",
+                "--product",
+                "graspic",
+                "--output",
+                str(self.output),
+            ],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertNotEqual(unexpected_output.returncode, 0)
+        unexpected_input = subprocess.run(
+            [
+                sys.executable,
+                str(script),
+                "build",
+                "--product",
+                "graspic",
+                "--input",
+                str(self.output),
+            ],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertNotEqual(unexpected_input.returncode, 0)
+
+
 if __name__ == "__main__":
     unittest.main()
