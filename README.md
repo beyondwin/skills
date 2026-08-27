@@ -2,22 +2,23 @@
 
 [English](README.en.md)
 
-이 저장소는 한국어 교정과 프로젝트 래스터 자산 작업을 위한 큐레이션된 Agent Skill 두 개를 Codex 우선으로 배포합니다.
+이 저장소는 한국어 교정, 프로젝트 래스터 자산 작업, 기계가 어떻게 도는지 설명하기 위한 큐레이션된 Agent Skill 세 개를 Codex 우선으로 배포합니다.
 
 [![CI](https://github.com/beyondwin/skills/actions/workflows/verify.yml/badge.svg)](https://github.com/beyondwin/skills/actions/workflows/verify.yml)
 [![Release](https://img.shields.io/github/v/release/beyondwin/skills)](https://github.com/beyondwin/skills/releases)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-플러그인 번들 `beyondwin-skills`, 저장소 릴리스 식별자, 두 스킬의 메타데이터 버전은 `2.0.0`입니다. 라이선스는 Apache-2.0입니다.
+플러그인 번들 `beyondwin-skills`, 저장소 릴리스 식별자, 스킬 메타데이터 버전은 `2.0.0`입니다. 라이선스는 Apache-2.0입니다.
 
 ## 스킬 목록과 지원
 
-카탈로그는 아래 두 스킬뿐입니다. 세 번째 스킬은 첫 릴리스 범위가 아닙니다.
+카탈로그는 아래 세 스킬입니다. 네 번째 스킬은 기본 기여 범위가 아닙니다.
 
 | 스킬 | 역할 | 지원 |
 | --- | --- | --- |
 | `korean-writing-editor` | 사용자가 이미 준 한국어 글을 보수적으로 교정하거나 윤문합니다. | korean-writing-editor: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke. |
 | `image-workbench` | 로컬 프로젝트에 맞는 래스터 자산을 계획·생성·편집·비교·점검합니다. | image-workbench: Codex-only; generate/edit requires Codex image generation and local image viewing. |
+| `graspic` | 같은 기계를 고른 칸(그림/길/뼈대/허점)으로 원리·흐름을 설명합니다. | graspic: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke. |
 
 ## 1분 설치와 호출
 
@@ -26,6 +27,7 @@
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
+$skill-installer https://github.com/beyondwin/skills/tree/main/skills/graspic
 ```
 
 설치 후 다음 턴에서 명시 호출합니다.
@@ -33,6 +35,7 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-work
 ```text
 $korean-writing-editor 오탈자만 고쳐줘: (한국어 원문)
 $image-workbench 이 프로젝트 랜딩 페이지 hero 이미지를 만들어줘.
+$graspic DNS 길
 ```
 
 선택적 제3자 설치기(한국어 편집기만):
@@ -61,7 +64,7 @@ python3 scripts/verify.py
 
 이 저장소는 텔레메트리를 넣지 않습니다. 필수 CI는 자격 증명·모델·원격 이미지 호출을 하지 않습니다. 플러그인 디렉터리 등록을 주장하지 않습니다.
 
-`korean-writing-editor`는 번역, 초안, 요약, 코드 리뷰, 일상 대화, 저작자 검출, 검출 회피에 쓰지 않습니다. `image-workbench`는 재미용 일회성 이미지, SVG·네이티브 UI, 실제 프론트엔드 구현, 외부 프롬프트 갤러리 복제에 쓰지 않습니다.
+`korean-writing-editor`는 번역, 초안, 요약, 코드 리뷰, 일상 대화, 저작자 검출, 검출 회피에 쓰지 않습니다. `image-workbench`는 재미용 일회성 이미지, SVG·네이티브 UI, 실제 프론트엔드 구현, 외부 프롬프트 갤러리 복제에 쓰지 않습니다. `graspic`은 디버깅, 구현, 리뷰, 번역, 한 줄 사실 조회, 어린이 말투 설명, `/eli5` 대행에 쓰지 않습니다.
 
 설치·갱신·제거는 정확한 대상만 다룹니다. 원격 스크립트를 셸에 파이프하거나, 대상을 확인하지 않고 덮어쓰거나, 상위 스킬 디렉터리를 지우거나, 기존 설치를 자동으로 바꾸지 마세요.
 

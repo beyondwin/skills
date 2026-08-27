@@ -1,10 +1,10 @@
 # Contributing
 
-This repository is a curated catalog of exactly two skills: `korean-writing-editor` and `image-workbench`. New skills are not accepted by default. A pull request that adds a third skill is out of scope unless repository governance is changed first.
+This repository is a curated catalog of three skills: `korean-writing-editor`, `image-workbench`, and `graspic`. New skills are not accepted by default. A pull request that adds a fourth skill is out of scope unless repository governance is changed first.
 
 ## What we accept
 
-Focused fixes for the two existing skills only:
+Focused fixes for the three existing skills only:
 
 - behavior defects
 - documentation corrections
@@ -20,7 +20,7 @@ Live provider results are not sufficient evidence by themselves. Include a repro
 - Provide exact reproduction steps.
 - Prefer deterministic, provider-free evidence.
 - Do not include a private prompt, personal Korean text, a private image, credentials, provider receipts, or generated media.
-- Do not add telemetry, a required provider call, or a third skill.
+- Do not add telemetry, a required provider call, or a new skill.
 
 ## Verification
 

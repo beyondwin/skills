@@ -10,6 +10,7 @@ SHARED_FACTS = (
     "2.0.0",
     "korean-writing-editor",
     "image-workbench",
+    "graspic",
     "python3 scripts/verify.py",
     "Apache-2.0",
 )
@@ -19,6 +20,9 @@ KOREAN_SUPPORT = (
 IMAGE_SUPPORT = (
     "image-workbench: Codex-only; generate/edit requires Codex image generation and local image viewing."
 )
+GRASPIC_SUPPORT = (
+    "graspic: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke."
+)
 OFFLINE_EVIDENCE = "Offline fixtures: deterministic contract evidence only."
 LIVE_EVIDENCE = (
     "Live execution: local, explicit, optional, potentially billable, and never required by CI."
@@ -26,12 +30,14 @@ LIVE_EVIDENCE = (
 SUPPORT_AND_EVIDENCE = (
     KOREAN_SUPPORT,
     IMAGE_SUPPORT,
+    GRASPIC_SUPPORT,
     OFFLINE_EVIDENCE,
     LIVE_EVIDENCE,
 )
 PRIMARY_INSTALL_PATHS = (
     "https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor",
     "https://github.com/beyondwin/skills/tree/main/skills/image-workbench",
+    "https://github.com/beyondwin/skills/tree/main/skills/graspic",
 )
 OPTIONAL_NPX = "npx skills add beyondwin/skills --skill korean-writing-editor"
 GIT_CLONE = "git clone https://github.com/beyondwin/skills"
@@ -52,6 +58,7 @@ MAINTAINER_DOCS = (
     ROOT / "docs" / "maintainers" / "release-process.md",
     ROOT / "docs" / "maintainers" / "korean-writing-editor.md",
     ROOT / "docs" / "maintainers" / "image-workbench.md",
+    ROOT / "docs" / "maintainers" / "graspic.md",
 )
 ARCHIVE_MIGRATION = ROOT / "docs" / "maintainers" / "archive-migration.md"
 PUBLIC_DOC_PATHS = README_PATHS + USER_GUIDES + MAINTAINER_DOCS

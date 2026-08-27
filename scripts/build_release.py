@@ -24,13 +24,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 ZIP_EPOCH = (1980, 1, 1, 0, 0, 0)
 PLUGIN_NAME = "beyondwin-skills"
-SKILLS = ("korean-writing-editor", "image-workbench")
+SKILLS = ("korean-writing-editor", "image-workbench", "graspic")
 PLUGIN_TRACKED = (
     ".codex-plugin/plugin.json",
     "LICENSE",
     "NOTICE",
     "skills/korean-writing-editor/",
     "skills/image-workbench/",
+    "skills/graspic/",
 )
 REGULAR_FILE_MODES = frozenset({"100644", "100755"})
 FORBIDDEN_PARTS = frozenset(
@@ -82,11 +83,12 @@ def write_checksums(archives: Iterable[Path], output: Path) -> Path:
     return output
 
 
-def archive_filenames(version: str) -> tuple[str, str, str]:
+def archive_filenames(version: str) -> tuple[str, ...]:
     return (
         f"{PLUGIN_NAME}-v{version}.zip",
         f"korean-writing-editor-v{version}.zip",
         f"image-workbench-v{version}.zip",
+        f"graspic-v{version}.zip",
     )
 
 
@@ -157,7 +159,7 @@ def verify_download(directory: Path, version: str) -> list[str]:
     if errors:
         return errors
     if set(parsed) != expected:
-        errors.append("SHA256SUMS must list exactly the three zips")
+        errors.append("SHA256SUMS must list exactly the release zips")
         return errors
     if list(parsed) != sorted(parsed):
         errors.append("SHA256SUMS is not sorted")
@@ -317,6 +319,8 @@ def _archive_kind(name: str) -> str | None:
         return "korean-writing-editor"
     if re.fullmatch(r"image-workbench-v.+\.zip", name):
         return "image-workbench"
+    if re.fullmatch(r"graspic-v.+\.zip", name):
+        return "graspic"
     return None
 
 
@@ -331,6 +335,8 @@ def _required_members(kind: str) -> tuple[str, ...]:
             "skills/image-workbench/SKILL.md",
             "skills/image-workbench/LICENSE.txt",
             "skills/image-workbench/scripts/inspect_asset.py",
+            "skills/graspic/SKILL.md",
+            "skills/graspic/LICENSE.txt",
         )
     return (f"{kind}/SKILL.md", f"{kind}/LICENSE.txt")
 
@@ -343,7 +349,7 @@ def _member_allowed(kind: str, name: str) -> bool:
         return False
     if kind == "plugin":
         return name in {".codex-plugin/plugin.json", "LICENSE", "NOTICE"} or name.startswith(
-            ("skills/korean-writing-editor/", "skills/image-workbench/")
+            ("skills/korean-writing-editor/", "skills/image-workbench/", "skills/graspic/")
         )
     return name.startswith(f"{kind}/")
 
@@ -457,6 +463,9 @@ def _smoke_extracted(archive_name: str, extracted: Path) -> list[str]:
             *_run_image(skill),
             *_run_inspector(skill / "scripts" / "inspect_asset.py"),
         ]
+    if kind == "graspic":
+        skill = extracted / "graspic"
+        return _validate_extracted_skill(skill)
     return [f"unexpected archive: {archive_name}"]
 
 

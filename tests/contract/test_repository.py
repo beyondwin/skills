@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SKILLS = (
     ROOT / "skills" / "korean-writing-editor",
     ROOT / "skills" / "image-workbench",
+    ROOT / "skills" / "graspic",
 )
 ALLOWED_SKILLS = {skill.name for skill in SKILLS}
 PLUGIN_PATH = ROOT / ".codex-plugin" / "plugin.json"
@@ -26,19 +27,20 @@ MANIFEST_DIGEST = "6917f68e6e0d81226e50195d58a884373d23ffbbbe48363ef2428c8cbcb83
 EXPECTED_PLUGIN: dict[str, object] = {
     "name": "beyondwin-skills",
     "version": "2.0.0",
-    "description": "Two conservative, project-aware skills for Korean editing and raster asset work.",
+    "description": "Three conservative, project-aware skills for Korean editing, raster asset work, and mechanistic explanation.",
     "author": {"name": "beyondwin", "url": "https://github.com/beyondwin"},
     "homepage": "https://github.com/beyondwin/skills",
     "repository": "https://github.com/beyondwin/skills",
     "license": "Apache-2.0",
-    "keywords": ["agent-skills", "codex", "korean-writing", "image-workbench"],
+    "keywords": ["agent-skills", "codex", "korean-writing", "image-workbench", "graspic"],
     "skills": "./skills/",
     "interface": {
         "displayName": "Beyondwin Skills",
-        "shortDescription": "Korean editing and raster asset workflows",
+        "shortDescription": "Korean editing, raster assets, and mechanistic explanation",
         "longDescription": (
-            "A curated pair of Codex-first skills for conservative Korean text "
-            "editing and project-bound raster asset work."
+            "A curated set of Codex-first skills for conservative Korean text "
+            "editing, project-bound raster asset work, and runged explanations "
+            "of how something works."
         ),
         "developerName": "beyondwin",
         "category": "Developer Tools",
@@ -47,6 +49,7 @@ EXPECTED_PLUGIN: dict[str, object] = {
         "defaultPrompt": [
             "Polish supplied Korean text",
             "Plan or audit a project raster asset",
+            "Explain how something works",
         ],
     },
 }
@@ -83,7 +86,7 @@ def validate_skill(skill_root: Path) -> list[str]:
     errors: list[str] = []
     skill_root = Path(skill_root)
     if skill_root.name not in ALLOWED_SKILLS:
-        errors.append(f"third skill is not accepted: {skill_root.name}")
+        errors.append(f"unlisted skill is not accepted: {skill_root.name}")
         return errors
 
     skill_md = skill_root / "SKILL.md"
@@ -248,7 +251,7 @@ def _copy_skill(source: Path, destination: Path) -> Path:
 
 
 class PluginManifestTests(unittest.TestCase):
-    def test_plugin_discovers_exactly_two_skills(self) -> None:
+    def test_plugin_discovers_the_curated_skills(self) -> None:
         self.assertTrue(PLUGIN_PATH.is_file(), "plugin manifest is absent")
         manifest = load_plugin_manifest()
         self.assertEqual(manifest["name"], "beyondwin-skills")
@@ -256,7 +259,7 @@ class PluginManifestTests(unittest.TestCase):
         self.assertEqual(manifest["skills"], "./skills/")
         self.assertEqual(
             {path.name for path in (ROOT / "skills").iterdir() if path.is_dir()},
-            {"korean-writing-editor", "image-workbench"},
+            {"graspic", "image-workbench", "korean-writing-editor"},
         )
 
     def test_plugin_manifest_matches_curated_bundle(self) -> None:
@@ -508,7 +511,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
             encoding="utf-8",
         )
         errors = "\n".join(validate_skill(skill))
-        self.assertIn("third skill", errors)
+        self.assertIn("unlisted skill", errors)
 
     def test_rejects_legacy_prefixed_identifier_in_payload(self) -> None:
         source = SKILLS[0]

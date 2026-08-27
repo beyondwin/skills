@@ -2,7 +2,7 @@
 
 [English](../en/getting-started.md) · [호환성](compatibility.md) · [개인정보와 권리](privacy-and-rights.md) · [평가](evaluation.md)
 
-버전 `2.0.0`의 설치 가능한 페이로드는 `skills/korean-writing-editor`와 `skills/image-workbench`뿐입니다. 라이선스는 Apache-2.0입니다.
+버전 `2.0.0`의 설치 가능한 페이로드는 `skills/korean-writing-editor`, `skills/image-workbench`, `skills/graspic`입니다. 라이선스는 Apache-2.0입니다.
 
 ## 기본 설치 (Codex)
 
@@ -11,6 +11,7 @@
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
+$skill-installer https://github.com/beyondwin/skills/tree/main/skills/graspic
 ```
 
 기본 설치 위치는 `$CODEX_HOME/skills/<skill-name>`이며, `CODEX_HOME`이 없으면 `~/.codex/skills`입니다. 설치 후 새 대화에서 호출하세요.
@@ -18,6 +19,7 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-work
 ```text
 $korean-writing-editor 오탈자만 고쳐줘: (한국어 원문)
 $image-workbench 생성하지 말고 이 자산 브리프만 정리해줘.
+$graspic DNS 길
 ```
 
 ## 선택적 제3자 설치기
@@ -42,7 +44,7 @@ ls -ld "$SKILL_SOURCE"
 ls -ld "$SKILL_TARGET"
 ```
 
-`$SKILL_TARGET`이 없거나, 이 스킬의 안전한 링크임이 확인된 경우에만 복사하세요. 이미 있는 실제 디렉터리는 덮어쓰지 말고 중단하세요. `image-workbench`도 같은 방식으로 정확한 폴더만 다룹니다.
+`$SKILL_TARGET`이 없거나, 이 스킬의 안전한 링크임이 확인된 경우에만 복사하세요. 이미 있는 실제 디렉터리는 덮어쓰지 말고 중단하세요. `image-workbench`와 `graspic`도 같은 방식으로 정확한 폴더만 다룹니다.
 
 다른 호스트 폴더는 `korean-writing-editor`의 Agent Skills 계약 이식 대상일 뿐입니다. 기록된 smoke가 있기 전에는 지원이라고 말하지 마세요.
 
@@ -63,7 +65,7 @@ ls -ld "$SKILL_TARGET"
 
 이 스킬임이 확인된 뒤에만 호스트의 일반 제거 방법으로 그 경로만 지우거나, 대상을 치운 뒤 `$skill-installer`로 다시 설치하세요. 상위 `skills` 디렉터리나 홈 디렉터리를 지우지 마세요. 기존 설치를 확인 없이 교체하지 마세요.
 
-`image-workbench`도 같은 확인 순서를 `.../skills/image-workbench`에 적용합니다.
+`image-workbench`와 `graspic`도 같은 확인 순서를 `.../skills/image-workbench`와 `.../skills/graspic`에 적용합니다.
 
 ## 검증
 

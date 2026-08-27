@@ -2,13 +2,15 @@
 
 [한국어](../ko/compatibility.md) · [Getting started](getting-started.md)
 
-Codex is the first-class runtime for both skills. The catalog is exactly `korean-writing-editor` and `image-workbench` at version `2.0.0`.
+Codex is the first-class runtime for the catalog. The catalog is exactly `korean-writing-editor`, `image-workbench`, and `graspic` at version `2.0.0`.
 
 ## Shared support sentences
 
 korean-writing-editor: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
 
 image-workbench: Codex-only; generate/edit requires Codex image generation and local image viewing.
+
+graspic: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
 
 Offline fixtures: deterministic contract evidence only.
 
@@ -19,6 +21,8 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 `korean-writing-editor` follows the open Agent Skills directory format (`SKILL.md`, optional `scripts/`, `references/`, and `assets/`). That contract portability does not mean Claude Code, Cursor, or any other host is supported today. A host is `supported` only after a current smoke test; otherwise its status is `partially verified` or `not_measured`.
 
 `image-workbench` is Codex-only. Similar tools in another host do not establish compatibility. `brief` and `audit` can run read-only, but generate or edit requires Codex built-in image generation and local image viewing.
+
+`graspic` follows the open Agent Skills directory format. Output is GitHub-flavored markdown and mermaid. That contract portability does not mean another host is supported today.
 
 The plugin name `beyondwin-skills` means the repository is packaged as one plugin. It does not mean the plugin is listed in a plugin directory.
 

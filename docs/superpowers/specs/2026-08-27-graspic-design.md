@@ -2,11 +2,11 @@
 
 **Date:** 2026-08-27
 
-**Status:** Spec approved; personal skill installed at ~/.grok/skills/graspic; not added to the public catalog
+**Status:** Spec approved; personal install exists; public catalog membership approved in chat (governance reopened)
 
-**Install target:** `~/.grok/skills/graspic/` (personal skill)
+**Install target:** `skills/graspic/` in `beyondwin/skills`, plus optional personal copy under `~/.grok/skills/graspic/`
 
-**Not in scope for this repository’s catalog:** `beyondwin/skills` remains a two-skill public catalog (`korean-writing-editor`, `image-workbench`). This spec is a design record only. Do not add `graspic` to `skills/`, the plugin manifest, README skill table, or `v2.0.0` release artifacts unless governance is explicitly reopened.
+**Catalog:** `beyondwin/skills` is a three-skill public catalog (`korean-writing-editor`, `image-workbench`, `graspic`). Published GitHub Release `v2.0.0` artifacts are historical; the current tree includes `graspic` in `skills/` and in the release builder.
 
 ## 1. Decision Summary
 

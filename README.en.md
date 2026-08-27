@@ -2,22 +2,23 @@
 
 [한국어](README.md)
 
-This repository publishes exactly two curated Codex-first Agent Skills for conservative Korean editing and project-bound raster asset work.
+This repository publishes three curated Codex-first Agent Skills for conservative Korean editing, project-bound raster asset work, and mechanistic explanation.
 
 [![CI](https://github.com/beyondwin/skills/actions/workflows/verify.yml/badge.svg)](https://github.com/beyondwin/skills/actions/workflows/verify.yml)
 [![Release](https://img.shields.io/github/v/release/beyondwin/skills)](https://github.com/beyondwin/skills/releases)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-The `beyondwin-skills` plugin bundle, the repository release identity, and both skill metadata versions start at `2.0.0`. The license is Apache-2.0.
+The `beyondwin-skills` plugin bundle, the repository release identity, and skill metadata versions start at `2.0.0`. The license is Apache-2.0.
 
 ## Skill catalog and support
 
-The catalog contains exactly these two skills. A third skill is out of scope for the first release.
+The catalog contains exactly these three skills. A fourth skill is out of scope unless governance is reopened.
 
 | Skill | Role | Support |
 | --- | --- | --- |
 | `korean-writing-editor` | Conservatively proofreads, corrects, or polishes Korean text the user already supplied. | korean-writing-editor: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke. |
 | `image-workbench` | Plans, generates, edits, compares, or audits a raster asset for a local project. | image-workbench: Codex-only; generate/edit requires Codex image generation and local image viewing. |
+| `graspic` | Explains how one machine works at a chosen rung (picture, path, skeleton, or fracture). | graspic: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke. |
 
 ## One-minute install and invocation
 
@@ -26,6 +27,7 @@ The primary Codex path is `$skill-installer` with the public GitHub skill path. 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
+$skill-installer https://github.com/beyondwin/skills/tree/main/skills/graspic
 ```
 
 After install, invoke explicitly on the next turn:
@@ -33,6 +35,7 @@ After install, invoke explicitly on the next turn:
 ```text
 $korean-writing-editor Proofread the supplied Korean source and keep meaning and voice.
 $image-workbench Plan or generate a project-bound raster asset for this repository.
+$graspic Explain DNS as a path.
 ```
 
 Optional third-party installer (Korean editor only):
@@ -61,7 +64,7 @@ The default is `--profile full`. Windows portable verification is `python3 scrip
 
 This repository has no telemetry. Required CI does not use credentials, models, or remote image calls. This plugin is not claimed to be listed in a plugin directory.
 
-Do not use `korean-writing-editor` for translation, drafting, summarization, code review, casual conversation, authorship detection, or detector evasion. Do not use `image-workbench` for casual one-off images, SVG or native UI, actual frontend implementation, or copying an external prompt gallery.
+Do not use `korean-writing-editor` for translation, drafting, summarization, code review, casual conversation, authorship detection, or detector evasion. Do not use `image-workbench` for casual one-off images, SVG or native UI, actual frontend implementation, or copying an external prompt gallery. Do not use `graspic` for debugging, implementing, reviewing, translating, one-line factual lookups, child-register explainers, or as a stand-in for `/eli5`.
 
 Install, update, and uninstall touch only an inspected exact target. Do not pipe remote scripts into a shell, copy without inspecting the destination, delete parent skill directories, or replace an existing install by default.
 

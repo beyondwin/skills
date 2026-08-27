@@ -21,6 +21,8 @@ korean-writing-editor: Codex supported; Agent Skills contract portable; other ho
 
 image-workbench: Codex-only; generate/edit requires Codex image generation and local image viewing.
 
+graspic: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
+
 Offline fixtures: deterministic contract evidence only.
 
 Live execution: local, explicit, optional, potentially billable, and never required by CI.
@@ -31,6 +33,7 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 - `korean-writing-editor`: `tests/korean-writing-editor/offline/`의 트리거·모드·보존·출력 픽스처
 - `image-workbench`: `tests/image-workbench/`의 라우팅·권한·ImageSpec·핸드오프·inspector 픽스처
+- `graspic`: `tests/graspic/cases.json` 형태 픽스처와 `tests/contract/test_graspic.py` 페이로드 계약
 
 통과는 일반 한국어 편집 품질, 의미 동등, 라이브 이미지 품질, 상업 허가, 더 나은 공급자, 런타임 동등성을 뜻하지 않습니다. 라이선스는 Apache-2.0입니다.
 

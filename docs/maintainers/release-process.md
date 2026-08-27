@@ -21,7 +21,7 @@ git diff --check
 
 The source tree must be clean. Generated evidence, caches, and `dist/` stay untracked.
 
-The first release produces:
+The first release produced:
 
 ```text
 beyondwin-skills-v2.0.0.zip
@@ -30,7 +30,9 @@ image-workbench-v2.0.0.zip
 SHA256SUMS
 ```
 
-Build archives in a temporary directory from tracked files. The plugin zip contains `.codex-plugin/plugin.json`, both complete `skills/` payloads, `LICENSE`, and `NOTICE`. Each standalone zip contains one top-level skill directory with `LICENSE.txt`. Tests, live harness, docs, caches, and evidence are not members of the purpose-built skill zips.
+The current builder also emits `graspic-v2.0.0.zip` and includes the `graspic` payload in the plugin zip. That does not claim a new GitHub Release.
+
+Build archives in a temporary directory from tracked files. The plugin zip contains `.codex-plugin/plugin.json`, every complete `skills/` payload, `LICENSE`, and `NOTICE`. Each standalone zip contains one top-level skill directory with `LICENSE.txt`. Tests, live harness, docs, caches, and evidence are not members of the purpose-built skill zips.
 
 ## Archive, extraction, and checksum
 
@@ -48,7 +50,7 @@ The builder reads only tracked source files, sorts zip members, rejects symlinks
 3. Runs installation smokes against the extracted content, including Korean and image deterministic evaluators and the extracted inspector.
 4. Computes `SHA256SUMS` only after those checks pass.
 
-Reject absolute paths, `..`, duplicates, case-fold collisions, and unexpected members before extraction. `SHA256SUMS` lists exactly the three zip files.
+Reject absolute paths, `..`, duplicates, case-fold collisions, and unexpected members before extraction. `SHA256SUMS` lists exactly the release zip files.
 
 ## Remote download
 

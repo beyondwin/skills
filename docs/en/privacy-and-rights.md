@@ -8,6 +8,10 @@ This project itself has no telemetry. Required CI and `python3 scripts/verify.py
 
 `korean-writing-editor` does not persist user text as fixtures, logs, or a voice profile. It does not send text to unofficial spelling services or browse for facts unless the user separately asks. Public fixtures are synthetic examples that may be redistributed. Do not commit personal conversations or private manuscripts.
 
+## Explanation topics
+
+`graspic` does not persist user topics as fixtures or logs. Citations are user-visible URLs from the current turn, not a private corpus. Medical, legal, or financial slices explain mechanism only; they are not advice.
+
 ## Image references and consent
 
 In `image-workbench`, every input image has exactly one role: `edit_target`, `subject_reference`, `style_reference`, or `compositing_input`. A reference does not confer rights to reproduce a person, mark, or protected work. Unknown consent for a person, mark, or example image is a hold. Do not store private references, prompts, or generated outputs as Git fixtures.

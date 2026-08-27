@@ -1,6 +1,6 @@
 ## Summary
 
-Describe the change for `korean-writing-editor` and/or `image-workbench` only.
+Describe the change for `korean-writing-editor`, `image-workbench`, and/or `graspic` only.
 
 ## Change type
 
@@ -15,4 +15,4 @@ Describe the change for `korean-writing-editor` and/or `image-workbench` only.
 - [ ] Contribution is licensed under Apache-2.0
 - [ ] Exact reproduction or other deterministic evidence is included
 - [ ] No personal Korean text, private prompt, private image, credentials, or receipts
-- [ ] Does not add a third skill or new skill package
+- [ ] Does not add a new skill package

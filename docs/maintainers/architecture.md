@@ -1,6 +1,6 @@
 # Architecture
 
-This repository is one Codex plugin named `beyondwin-skills` at version `2.0.0`. The catalog is exactly `korean-writing-editor` and `image-workbench`. Apache-2.0 applies at the root and in each standalone skill.
+This repository is one Codex plugin named `beyondwin-skills` at version `2.0.0`. The catalog is exactly `korean-writing-editor`, `image-workbench`, and `graspic`. Apache-2.0 applies at the root and in each standalone skill.
 
 ## Payload, tests, and docs
 
@@ -14,6 +14,7 @@ Only `skills/` is the installed skill payload. Human quick starts, change protoc
 | `tests/korean-writing-editor/offline/` | Deterministic trigger, mode, preservation, and output fixtures | No |
 | `tests/korean-writing-editor/live/` | Synthetic live harness, unit tests, dry-run, operator guide | No |
 | `tests/image-workbench/` | Routing, authorization, evidence, and inspector tests | No |
+| `tests/graspic/` | Shape fixtures for dump, HTML, comparison, scope, and gloss cases | No |
 | `docs/ko/`, `docs/en/` | Paired public install, compatibility, privacy, evaluation | No |
 | `docs/maintainers/` | Architecture, release, per-skill protocol, Archive freeze | No |
 | `scripts/verify.py` | Provider-free orchestrator | No |
@@ -38,4 +39,4 @@ Required local verification is:
 python3 scripts/verify.py
 ```
 
-That command is credential-free and provider-free. Live Korean evaluation remains an explicit local operation. See [korean-writing-editor.md](korean-writing-editor.md), [image-workbench.md](image-workbench.md), [release-process.md](release-process.md), and [archive-migration.md](archive-migration.md).
+That command is credential-free and provider-free. Live Korean evaluation remains an explicit local operation. See [korean-writing-editor.md](korean-writing-editor.md), [image-workbench.md](image-workbench.md), [graspic.md](graspic.md), [release-process.md](release-process.md), and [archive-migration.md](archive-migration.md).

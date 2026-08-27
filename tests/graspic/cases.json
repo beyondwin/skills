@@ -1,0 +1,34 @@
+{
+  "cases": [
+    {
+      "id": "gate-dump-01",
+      "prompt": "/graspic DNS 설명해",
+      "must": ["그림", "길", "뼈대", "허점"],
+      "forbidden": ["```mermaid"]
+    },
+    {
+      "id": "html-01",
+      "prompt": "/graspic DNS 그림 HTML 아티팩트로",
+      "must": ["```mermaid"],
+      "forbidden": ["<html", "<style", "<div"]
+    },
+    {
+      "id": "type-cmp-01",
+      "prompt": "/graspic REST vs GraphQL 길",
+      "must": ["|", "최적화"],
+      "forbidden": ["둘 다 장단"]
+    },
+    {
+      "id": "scope-01",
+      "prompt": "/graspic 인터넷",
+      "must": ["?"],
+      "forbidden": ["OSI"]
+    },
+    {
+      "id": "ko-gloss-01",
+      "prompt": "/graspic 리베이스 원리 길",
+      "must": ["rebase"],
+      "forbidden": ["여러분", "답니다"]
+    }
+  ]
+}

@@ -21,6 +21,8 @@ korean-writing-editor: Codex supported; Agent Skills contract portable; other ho
 
 image-workbench: Codex-only; generate/edit requires Codex image generation and local image viewing.
 
+graspic: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
+
 Offline fixtures: deterministic contract evidence only.
 
 Live execution: local, explicit, optional, potentially billable, and never required by CI.
@@ -31,6 +33,7 @@ The offline suites prove the deterministic contract only.
 
 - `korean-writing-editor`: trigger, mode, preservation, and output fixtures under `tests/korean-writing-editor/offline/`
 - `image-workbench`: routing, authorization, ImageSpec, handoff, and inspector fixtures under `tests/image-workbench/`
+- `graspic`: shape fixtures in `tests/graspic/cases.json` and payload contracts in `tests/contract/test_graspic.py`
 
 A pass does not mean general Korean editing quality, semantic equivalence, live image quality, commercial permission, a better provider, or runtime parity. The license is Apache-2.0.
 
