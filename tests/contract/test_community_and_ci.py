@@ -26,8 +26,9 @@ PR_TEMPLATE_PATH = ROOT / ".github" / "pull_request_template.md"
 BUG_TEMPLATE_PATH = ROOT / ".github" / "ISSUE_TEMPLATE" / "bug.yml"
 DOCS_TEMPLATE_PATH = ROOT / ".github" / "ISSUE_TEMPLATE" / "documentation.yml"
 ISSUE_CONFIG_PATH = ROOT / ".github" / "ISSUE_TEMPLATE" / "config.yml"
-CHECKOUT_SHA = "11bd71901bbe5b1630ceea73d27597364c9af683"
-SETUP_PYTHON_SHA = "42375524e23c412d93fb67b49958b491fce71c38"
+ACTION_PIN_RE = re.compile(
+    r"uses:\s+(actions/(?:checkout|setup-python))@([0-9a-f]{40})\s+#\s+(v\d+\.\d+\.\d+)"
+)
 CREDENTIAL_MARKERS = ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "CURSOR_API_KEY")
 PERSONAL_MARKERS = ("/Users/", "source/private", "SKILLS_ARCHIVE_CHECKOUT")
 EMAIL_RE = re.compile(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", re.IGNORECASE)
@@ -62,8 +63,17 @@ class CiWorkflowTests(unittest.TestCase):
     def test_ci_pins_required_actions_timeout_python_and_matrix(self) -> None:
         _assert_exists(self, WORKFLOW_PATH)
         workflow = _read(WORKFLOW_PATH)
-        self.assertIn(f"actions/checkout@{CHECKOUT_SHA}", workflow)
-        self.assertIn(f"actions/setup-python@{SETUP_PYTHON_SHA}", workflow)
+        pins = ACTION_PIN_RE.findall(workflow)
+        checkout = [(sha, version) for name, sha, version in pins if name == "actions/checkout"]
+        setup_python = [
+            (sha, version) for name, sha, version in pins if name == "actions/setup-python"
+        ]
+        self.assertEqual(len(checkout), 2)
+        self.assertEqual(len(setup_python), 2)
+        self.assertEqual({sha for sha, _version in checkout}, {checkout[0][0]})
+        self.assertEqual({version for _sha, version in checkout}, {checkout[0][1]})
+        self.assertEqual({sha for sha, _version in setup_python}, {setup_python[0][0]})
+        self.assertEqual({version for _sha, version in setup_python}, {setup_python[0][1]})
         self.assertIn("timeout-minutes: 20", workflow)
         self.assertRegex(workflow, r"python-version:\s*['\"]?3\.11['\"]?")
         self.assertIn("fail-fast: false", workflow)
@@ -194,6 +204,8 @@ class CommunityPolicyTests(unittest.TestCase):
         self.assertIn("github-actions", text)
         self.assertIn("interval:", text)
         self.assertIn("weekly", text)
+        self.assertIn("groups:", text)
+        self.assertIn("patterns:", text)
 
     def test_issue_forms_prohibit_personal_content_and_route_security_privately(self) -> None:
         for path in (BUG_TEMPLATE_PATH, DOCS_TEMPLATE_PATH, ISSUE_CONFIG_PATH):
