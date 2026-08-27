@@ -1,11 +1,21 @@
 from __future__ import annotations
 
 import re
+import sys
 import unittest
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.changed_targets import (  # noqa: E402
+    TARGETS,
+    full_repository_matrix,
+    matrix_for_targets,
+)
+
 WORKFLOW_PATH = ROOT / ".github" / "workflows" / "verify.yml"
 CONTRIBUTING_PATH = ROOT / "CONTRIBUTING.md"
 SECURITY_PATH = ROOT / "SECURITY.md"
@@ -21,7 +31,14 @@ SETUP_PYTHON_SHA = "42375524e23c412d93fb67b49958b491fce71c38"
 CREDENTIAL_MARKERS = ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "CURSOR_API_KEY")
 PERSONAL_MARKERS = ("/Users/", "source/private", "SKILLS_ARCHIVE_CHECKOUT")
 EMAIL_RE = re.compile(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", re.IGNORECASE)
-VERIFIER_COMMAND = 'python scripts/verify.py --profile "${{ matrix.profile }}"'
+VERIFIER_COMMAND = (
+    'python scripts/verify.py --profile "${{ matrix.profile }}" ${{ matrix.selector }}'
+)
+DETECT_COMMAND = (
+    'python scripts/changed_targets.py --event "${{ github.event_name }}" '
+    '--base "${{ github.event.pull_request.base.sha }}" '
+    '--head "${{ github.event.pull_request.head.sha }}"'
+)
 
 
 def _read(path: Path) -> str:
@@ -50,9 +67,34 @@ class CiWorkflowTests(unittest.TestCase):
         self.assertIn("timeout-minutes: 20", workflow)
         self.assertRegex(workflow, r"python-version:\s*['\"]?3\.11['\"]?")
         self.assertIn("fail-fast: false", workflow)
-        self.assertRegex(workflow, r"os:\s*ubuntu-latest\s*\n\s*profile:\s*full")
-        self.assertRegex(workflow, r"os:\s*macos-latest\s*\n\s*profile:\s*full")
-        self.assertRegex(workflow, r"os:\s*windows-latest\s*\n\s*profile:\s*windows-portable")
+        self.assertIn("fetch-depth: 0", workflow)
+        self.assertIn("fromJSON", workflow)
+        self.assertRegex(workflow, r"(?m)^  detect:")
+        self.assertIn("needs: detect", workflow)
+        full_rows = [
+            (row["os"], row["profile"])
+            for row in full_repository_matrix()["include"]
+        ]
+        self.assertEqual(
+            full_rows,
+            [
+                ("ubuntu-latest", "full"),
+                ("macos-latest", "full"),
+                ("windows-latest", "windows-portable"),
+            ],
+        )
+        pr_os_profiles = {
+            (row["os"], row["profile"])
+            for row in matrix_for_targets(TARGETS)["include"]
+        }
+        self.assertEqual(
+            pr_os_profiles,
+            {
+                ("ubuntu-latest", "full"),
+                ("macos-latest", "full"),
+                ("windows-latest", "windows-portable"),
+            },
+        )
         self.assertIn("pull_request", workflow)
         self.assertIn("workflow_dispatch", workflow)
         self.assertRegex(workflow, r"branches:\s*\[main\]|-\s*main")
@@ -62,7 +104,7 @@ class CiWorkflowTests(unittest.TestCase):
         workflow = _read(WORKFLOW_PATH)
         self.assertRegex(
             workflow,
-            r"(?ms)^on:\n(?:  .+\n)*  push:\n(?:    .+\n)*    branches:\s*\[main\]",
+            r"(?m)^on:\n(?:  .+\n)*  push:\n(?:    .+\n)*    branches:\s*\[main\]",
         )
         self.assertRegex(workflow, r"(?m)^  pull_request:\s*$")
         self.assertRegex(workflow, r"(?m)^  workflow_dispatch:\s*$")
@@ -71,9 +113,17 @@ class CiWorkflowTests(unittest.TestCase):
     def test_ci_runs_only_the_provider_free_verifier(self) -> None:
         _assert_exists(self, WORKFLOW_PATH)
         workflow = _read(WORKFLOW_PATH)
+        self.assertIn(DETECT_COMMAND, workflow)
         self.assertIn(VERIFIER_COMMAND, workflow)
         run_commands = re.findall(r"(?m)^\s+run:\s*\|?\s*(.+)$", workflow)
-        self.assertEqual(run_commands, [VERIFIER_COMMAND])
+        detect_commands = [
+            command for command in run_commands if "changed_targets.py" in command
+        ]
+        verify_commands = [command for command in run_commands if "verify.py" in command]
+        self.assertEqual(detect_commands, [DETECT_COMMAND])
+        self.assertEqual(verify_commands, [VERIFIER_COMMAND])
+        self.assertEqual(run_commands, [DETECT_COMMAND, VERIFIER_COMMAND])
+        self.assertTrue(all(command.startswith("python scripts/") for command in run_commands))
         self.assertNotIn("--execute", workflow)
         self.assertNotIn("--preflight", workflow)
         self.assertNotIn("${{ secrets", workflow)
