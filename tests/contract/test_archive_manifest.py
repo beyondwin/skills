@@ -74,6 +74,23 @@ class ArchiveManifestTests(unittest.TestCase):
         self.assertEqual(manifest["source_commit"], run_git(self.repository, "rev-parse", "HEAD"))
         self.assertEqual(manifest["schema_version"], 1)
 
+    def test_build_manifest_uses_literal_remote_when_instead_of_rewrites_get_url(self) -> None:
+        run_git(
+            self.repository,
+            "config",
+            "url.git@github-beyondwin:.insteadOf",
+            "https://github.com/",
+        )
+        self.assertEqual(
+            run_git(self.repository, "remote", "get-url", "origin"),
+            "git@github-beyondwin:beyondwin/Archive.git",
+        )
+        manifest = build_manifest(self.repository, ("skills/a/",), ("skill-a",))
+        self.assertEqual(
+            manifest["source_repository"],
+            "https://github.com/beyondwin/Archive.git",
+        )
+
     def test_verify_manifest_rejects_source_drift(self) -> None:
         manifest = build_manifest(self.repository, ("skills/a/",), ("skill-a",))
         (self.repository / "skills/a/SKILL.md").write_text("changed\n")

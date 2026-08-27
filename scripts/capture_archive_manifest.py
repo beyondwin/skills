@@ -56,7 +56,10 @@ def git(repository: Path, *arguments: str, ok_returncodes: tuple[int, ...] = (0,
 
 
 def remote_url(repository: Path) -> str:
-    return git(repository, "remote", "get-url", "origin")
+    value = git(repository, "config", "--get", "remote.origin.url")
+    if not value:
+        raise CaptureError("missing remote.origin.url")
+    return value
 
 
 def canonical_bytes(value: object) -> bytes:
