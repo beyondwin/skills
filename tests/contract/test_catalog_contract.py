@@ -4,7 +4,6 @@ import hashlib
 import json
 import os
 import stat
-import subprocess
 import sys
 import tempfile
 import unittest
@@ -23,6 +22,7 @@ from scripts.catalog_contract import (  # noqa: E402
 )
 from scripts.catalog_lock import import_legacy_release  # noqa: E402
 from scripts.release_contract import payload_sha256  # noqa: E402
+from tests.contract.test_repository import EXPECTED_PLUGIN  # noqa: E402
 
 
 PINNED_SOURCE_COMMIT = "78a8b1bf37d1b943f4b8337121b556eeaea926ae"
@@ -188,16 +188,19 @@ class CatalogContractTests(unittest.TestCase):
         self.assertTrue(all(item.source_commit == PINNED_SOURCE_COMMIT for item in lock.skills))
         self.assertTrue(all(item.version == "2.0.0" for item in lock.skills))
 
+    def test_catalog_plugin_contract_does_not_lookup_git_tag(self) -> None:
+        source = Path(__file__).read_text(encoding="utf-8")
+        self.assertNotIn(" ".join(("git", "show", "v2.0.0")), source)
+        self.assertNotIn("v2.0.0:" + ".codex-plugin/plugin.json", source)
+
     def test_catalog_release_identity_and_plugin_bytes_match_v2(self) -> None:
         release = load_catalog_release(ROOT / "catalog" / "release.toml")
         self.assertEqual(release.name, "beyondwin-skills")
         self.assertEqual(release.version, "2.0.0")
         self.assertEqual(release.tag_prefix, "beyondwin-skills-v")
-        published = subprocess.check_output(
-            ["git", "show", "v2.0.0:.codex-plugin/plugin.json"],
-            cwd=ROOT,
-        )
-        self.assertEqual(PLUGIN_PATH.read_bytes(), published)
+        plugin = json.loads(PLUGIN_PATH.read_text(encoding="utf-8"))
+        self.assertEqual(plugin, EXPECTED_PLUGIN)
+        self.assertNotIn("graspic", json.dumps(plugin))
         self.assertEqual(validate_catalog(ROOT), [])
 
     def test_catalog_readme_states_artifact_and_root_roles(self) -> None:
