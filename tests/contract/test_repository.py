@@ -140,7 +140,7 @@ class LicenseNoticeTests(unittest.TestCase):
         self.assertIn(ARCHIVE_REPOSITORY, text)
         self.assertIn(PINNED_SOURCE_COMMIT, text)
         self.assertIn(MANIFEST_DIGEST, text)
-        self.assertIn("docs/maintainers/repository/archive-source-manifest.json", text)
+        self.assertNotIn("manifest path", text)
         self.assertNotIn("/Users/", text)
         self.assertNotIn("source/private", text)
         self.assertNotIn("SKILLS_ARCHIVE_CHECKOUT", text)

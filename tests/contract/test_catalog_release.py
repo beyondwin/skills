@@ -41,6 +41,15 @@ HASH_C = "c" * 64
 COMMIT_C = "c" * 40
 SCRIPT = ROOT / "scripts" / "release.py"
 LEGACY_FIXTURE_ROOT = ROOT / "tests" / "contract" / "fixtures" / "legacy-bundle-v2.0.0"
+PUBLISHED_V2_NOTICE = (
+    b"beyondwin-skills\n"
+    b"Copyright 2026 beyondwin\n"
+    b"\n"
+    b"This product includes skills migrated from the Archive repository\n"
+    b"https://github.com/beyondwin/Archive.git\n"
+    b"pinned source commit 76e6bf4ebbc9430aee9a04a5b780ae38330f3021\n"
+    b"manifest digest 6917f68e6e0d81226e50195d58a884373d23ffbbbe48363ef2428c8cbcb83f78\n"
+)
 
 
 def _standalone_members_from_fixture(name: str) -> list[ArchiveMember]:
@@ -193,6 +202,12 @@ class CatalogLegacyFixtureTests(unittest.TestCase):
                     if name.startswith(f"skills/{item.name}/") and not name.endswith("/")
                 }
                 self.assertEqual(actual, expected, item.name)
+
+    def test_catalog_notice_member_matches_published_v2_0_0(self) -> None:
+        archive, _checksums = build_catalog(ROOT, self.legacy_inputs, self.output_one)
+        with zipfile.ZipFile(archive) as plugin:
+            self.assertEqual(plugin.read("NOTICE"), PUBLISHED_V2_NOTICE)
+        self.assertEqual((ROOT / "NOTICE").read_bytes(), PUBLISHED_V2_NOTICE)
 
     def test_catalog_inputs_reject_missing_locked_zip(self) -> None:
         (self.legacy_inputs / "korean-writing-editor-v2.0.0.zip").unlink()
