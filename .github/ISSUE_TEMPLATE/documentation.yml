@@ -1,13 +1,13 @@
 name: Documentation
-description: Report a documentation or guidance defect for the two curated skills
+description: Report a documentation or guidance defect for the three curated products
 title: "[Docs]: "
 labels: ["documentation"]
 body:
   - type: markdown
     attributes:
       value: |
-        Report a documentation issue for `korean-writing-editor` or
-        `image-workbench` only.
+        Report a documentation issue for `korean-writing-editor`,
+        `image-workbench`, or `graspic` only.
 
         Do not include personal Korean text, a private prompt, a private image,
         credentials, provider receipts, or generated media.
@@ -21,6 +21,7 @@ body:
       options:
         - korean-writing-editor
         - image-workbench
+        - graspic
         - repository docs
     validations:
       required: true

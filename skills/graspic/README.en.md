@@ -53,4 +53,6 @@ Check the current version in `SKILL.md` `metadata.version` and [CHANGELOG](CHANG
 ## Changelog and maintainer docs
 
 - [CHANGELOG](CHANGELOG.md)
-- [Maintainer document](../../docs/maintainers/graspic.md)
+- [Contract](../../docs/maintainers/graspic/contract.md)
+- [Testing](../../docs/maintainers/graspic/testing.md)
+- [Release](../../docs/maintainers/graspic/release.md)

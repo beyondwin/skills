@@ -27,7 +27,7 @@ not commit that checkout path.
 ```bash
 python3 scripts/capture_archive_manifest.py verify \
   --repository <archive-checkout> \
-  --manifest docs/maintainers/archive-source-manifest.json
+  --manifest docs/maintainers/repository/archive-source-manifest.json
 ```
 
 ## 22-file source boundary

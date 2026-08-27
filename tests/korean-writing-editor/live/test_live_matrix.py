@@ -979,10 +979,16 @@ class LiveDocumentationTests(unittest.TestCase):
 
     def test_installed_payload_excludes_live_operator_docs(self) -> None:
         names = {path.name for path in PUBLIC_SKILL_ROOT.iterdir()}
-        self.assertNotIn("README.md", names)
         self.assertNotIn("CHANGE_PROTOCOL.md", names)
         self.assertNotIn("evals", names)
         self.assertTrue((PUBLIC_SKILL_ROOT / "SKILL.md").is_file())
+        self.assertTrue((PUBLIC_SKILL_ROOT / "README.md").is_file())
+        self.assertTrue((HERE / "README.md").is_file())
+        live_guide = (HERE / "README.md").read_text(encoding="utf-8")
+        product_readme = (PUBLIC_SKILL_ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertNotEqual(live_guide, product_readme)
+        self.assertIn("live_matrix.py --dry-run", live_guide)
+        self.assertNotIn("live_matrix.py --dry-run", product_readme)
 
     def test_live_harness_stays_outside_installed_payload(self) -> None:
         self.assertTrue((HERE / "live_matrix.py").is_file())

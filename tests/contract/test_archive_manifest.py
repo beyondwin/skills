@@ -379,5 +379,28 @@ class CaptureCliTests(unittest.TestCase):
         self.assertIn("symlink or special file", captured.stderr)
 
 
+PINNED_MANIFEST = (
+    REPOSITORY_ROOT / "docs" / "maintainers" / "repository" / "archive-source-manifest.json"
+)
+OBSOLETE_MANIFEST = (
+    REPOSITORY_ROOT / "docs" / "maintainers" / "archive-source-manifest.json"
+)
+MANIFEST_DIGEST = "6917f68e6e0d81226e50195d58a884373d23ffbbbe48363ef2428c8cbcb83f78"
+
+
+class CommittedArchivePinTests(unittest.TestCase):
+    def test_committed_manifest_lives_under_repository_docs(self) -> None:
+        self.assertTrue(
+            PINNED_MANIFEST.is_file(),
+            "docs/maintainers/repository/archive-source-manifest.json is absent",
+        )
+        self.assertFalse(
+            OBSOLETE_MANIFEST.exists(),
+            "docs/maintainers/archive-source-manifest.json must move under repository/",
+        )
+        payload = json.loads(PINNED_MANIFEST.read_text(encoding="utf-8"))
+        self.assertEqual(payload["manifest_sha256"], MANIFEST_DIGEST)
+
+
 if __name__ == "__main__":
     unittest.main()

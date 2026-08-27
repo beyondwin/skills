@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 import shutil
 import sys
@@ -112,20 +113,60 @@ KOREAN_RELOCATION = (
 ENGLISH_RELOCATION = (
     "This guide moved to the independent product documentation structure. This pointer remains for one catalog minor."
 )
-MAINTAINER_DOCS = (
-    ROOT / "docs" / "maintainers" / "architecture.md",
-    ROOT / "docs" / "maintainers" / "release-process.md",
-    ROOT / "docs" / "maintainers" / "korean-writing-editor.md",
-    ROOT / "docs" / "maintainers" / "image-workbench.md",
-    ROOT / "docs" / "maintainers" / "graspic.md",
+MAINTAINER_INDEX = ROOT / "docs" / "maintainers" / "README.md"
+REPOSITORY_DOCS = (
+    ROOT / "docs" / "maintainers" / "repository" / "architecture.md",
+    ROOT / "docs" / "maintainers" / "repository" / "versioning.md",
+    ROOT / "docs" / "maintainers" / "repository" / "catalog-release.md",
+)
+ARCHIVE_MIGRATION = (
+    ROOT / "docs" / "maintainers" / "repository" / "archive-migration.md"
+)
+ARCHIVE_MANIFEST = (
+    ROOT / "docs" / "maintainers" / "repository" / "archive-source-manifest.json"
+)
+PRODUCT_PROTOCOL_FILES = ("contract.md", "testing.md", "release.md")
+MAINTAINER_DOCS = (MAINTAINER_INDEX,) + REPOSITORY_DOCS + (ARCHIVE_MIGRATION,) + tuple(
+    ROOT / "docs" / "maintainers" / name / filename
+    for name in PRODUCT_NAMES
+    for filename in PRODUCT_PROTOCOL_FILES
 )
 CATALOG_DOCS = (
     ROOT / "catalog" / "README.md",
     ROOT / "catalog" / "CHANGELOG.md",
 )
-ARCHIVE_MIGRATION = ROOT / "docs" / "maintainers" / "archive-migration.md"
 ACTIVE_USER_DOCS = README_PATHS + PRODUCT_README_PATHS + USER_GUIDES
 PUBLIC_DOC_PATHS = ACTIVE_USER_DOCS + OLD_PATHS + MAINTAINER_DOCS + CATALOG_DOCS
+OBSOLETE_MAINTAINER_RELATIVE = (
+    "docs/maintainers/architecture.md",
+    "docs/maintainers/release-process.md",
+    "docs/maintainers/korean-writing-editor.md",
+    "docs/maintainers/image-workbench.md",
+    "docs/maintainers/graspic.md",
+    "docs/maintainers/archive-migration.md",
+    "docs/maintainers/archive-source-manifest.json",
+)
+HISTORY_PREFIXES = (
+    "docs/superpowers/",
+    "catalog/CHANGELOG.md",
+)
+ACTIVE_ROUTING_SURFACES = (
+    README_PATHS
+    + PRODUCT_README_PATHS
+    + USER_GUIDES
+    + OLD_PATHS
+    + MAINTAINER_DOCS
+    + (
+        ROOT / "catalog" / "README.md",
+        ROOT / "CONTRIBUTING.md",
+        ROOT / "SECURITY.md",
+        ROOT / "CODE_OF_CONDUCT.md",
+        ROOT / "NOTICE",
+        ROOT / ".github" / "ISSUE_TEMPLATE" / "bug.yml",
+        ROOT / ".github" / "ISSUE_TEMPLATE" / "documentation.yml",
+        ROOT / ".github" / "pull_request_template.md",
+    )
+)
 FUTURE_COMMUNITY_FILES = frozenset(
     {
         "CONTRIBUTING.md",
@@ -304,7 +345,10 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
                 self.assertIn(INSTALLER_COMMANDS[name], text)
                 self.assertIn(SUPPORT_BY_PRODUCT[name], text)
                 self.assertIn("CHANGELOG.md", text)
-                self.assertIn(f"docs/maintainers/{name}.md", text)
+                self.assertIn(f"docs/maintainers/{name}/contract.md", text)
+                self.assertIn(f"docs/maintainers/{name}/testing.md", text)
+                self.assertIn(f"docs/maintainers/{name}/release.md", text)
+                self.assertNotIn(f"docs/maintainers/{name}.md", text)
                 self.assertTrue(
                     "inspect" in text.lower() or "확인" in text,
                     f"{path.relative_to(ROOT).as_posix()} must describe the update check",
@@ -533,11 +577,79 @@ class InstallSafetyTests(unittest.TestCase):
             self.assertNotIn("unchecked overwrite", lowered)
 
 
+class MaintainerStructureTests(unittest.TestCase):
+    def test_every_product_has_contract_testing_and_release(self) -> None:
+        for name in PRODUCT_NAMES:
+            directory = ROOT / "docs" / "maintainers" / name
+            self.assertTrue(directory.is_dir(), f"{name} maintainer directory is absent")
+            for filename in PRODUCT_PROTOCOL_FILES:
+                path = directory / filename
+                _assert_exists(self, path)
+                self.assertRegex(_read(path), r"[가-힣]")
+
+    def test_repository_trio_and_archive_evidence_live_under_repository(self) -> None:
+        for path in REPOSITORY_DOCS:
+            _assert_exists(self, path)
+            self.assertRegex(_read(path), r"[가-힣]")
+        _assert_exists(self, ARCHIVE_MIGRATION)
+        _assert_exists(self, ARCHIVE_MANIFEST)
+        self.assertEqual(
+            json.loads(_read(ARCHIVE_MANIFEST))["manifest_sha256"],
+            "6917f68e6e0d81226e50195d58a884373d23ffbbbe48363ef2428c8cbcb83f78",
+        )
+
+    def test_maintainer_index_reaches_every_maintainer_document(self) -> None:
+        _assert_exists(self, MAINTAINER_INDEX)
+        index = _read(MAINTAINER_INDEX)
+        self.assertRegex(index, r"[가-힣]")
+        for href in (
+            "repository/architecture.md",
+            "repository/versioning.md",
+            "repository/catalog-release.md",
+            "repository/archive-migration.md",
+        ):
+            self.assertIn(href, index)
+        for name in PRODUCT_NAMES:
+            for filename in PRODUCT_PROTOCOL_FILES:
+                self.assertIn(f"{name}/{filename}", index)
+        targets = {path.resolve() for path in MAINTAINER_DOCS}
+        reachable: set[Path] = set()
+        stack = [MAINTAINER_INDEX]
+        while stack:
+            document = stack.pop()
+            resolved = document.resolve()
+            if resolved in reachable or not resolved.is_file():
+                continue
+            reachable.add(resolved)
+            for href in MARKDOWN_LINK_RE.findall(_read(resolved)):
+                target = href.strip()
+                if not target or re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", target):
+                    continue
+                path_part = target.split("#", 1)[0]
+                if not path_part:
+                    continue
+                linked = (resolved.parent / path_part).resolve()
+                if linked in targets and linked not in reachable:
+                    stack.append(linked)
+        missing = sorted(
+            path.relative_to(ROOT).as_posix()
+            for path in MAINTAINER_DOCS
+            if path.resolve() not in reachable
+        )
+        self.assertEqual(missing, [])
+
+    def test_obsolete_flat_maintainer_paths_are_absent(self) -> None:
+        for relative in OBSOLETE_MAINTAINER_RELATIVE:
+            path = ROOT / relative
+            self.assertFalse(path.exists(), f"{relative} must not remain after migration")
+
+
 class MaintainerProtocolTests(unittest.TestCase):
     def test_architecture_owns_payload_and_test_separation(self) -> None:
-        path = ROOT / "docs" / "maintainers" / "architecture.md"
+        path = ROOT / "docs" / "maintainers" / "repository" / "architecture.md"
         _assert_exists(self, path)
         text = _read(path)
+        self.assertRegex(text, r"[가-힣]")
         self.assertIn("skills/", text)
         self.assertIn("tests/", text)
         self.assertIn("beyondwin-skills", text)
@@ -546,34 +658,27 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("catalog/plugin/.codex-plugin/plugin.json", text)
         self.assertIn("catalog/catalog.lock.json", text)
         self.assertIn("does not own plugin metadata", text)
+        self.assertIn("README.md", text)
+        self.assertIn("CHANGELOG.md", text)
+        self.assertIn("release.toml", text)
 
-    def test_korean_protocol_preserves_fixture_sync_and_live_budgets(self) -> None:
-        path = ROOT / "docs" / "maintainers" / "korean-writing-editor.md"
+    def test_versioning_owns_the_semver_table(self) -> None:
+        path = ROOT / "docs" / "maintainers" / "repository" / "versioning.md"
         _assert_exists(self, path)
         text = _read(path)
-        for token in ("trigger", "mode", "output", "tier"):
-            self.assertIn(token, text.lower())
-        for budget in LIVE_BUDGETS:
-            self.assertIn(budget, text)
-        self.assertIn("119", text)
-        self.assertIn("producer", text.lower())
-        self.assertIn("reviewer", text.lower())
+        self.assertRegex(text, r"[가-힣]")
+        self.assertIn("PATCH", text)
+        self.assertIn("MINOR", text)
+        self.assertIn("MAJOR", text)
+        self.assertIn("release.toml", text)
+        self.assertIn("기본 모드", text)
+        self.assertIn("카탈로그", text)
 
-    def test_image_protocol_preserves_route_authorization_spec_and_inspector(self) -> None:
-        path = ROOT / "docs" / "maintainers" / "image-workbench.md"
+    def test_catalog_release_owns_lock_adoption_and_remote_byte_gates(self) -> None:
+        path = ROOT / "docs" / "maintainers" / "repository" / "catalog-release.md"
         _assert_exists(self, path)
         text = _read(path)
-        lowered = text.lower()
-        self.assertIn("route", lowered)
-        self.assertIn("authorization", lowered)
-        self.assertIn("imagespec", lowered)
-        self.assertIn("rubric", lowered)
-        self.assertIn("inspector", lowered)
-
-    def test_release_process_owns_clean_tree_archive_and_deletion_gates(self) -> None:
-        path = ROOT / "docs" / "maintainers" / "release-process.md"
-        _assert_exists(self, path)
-        text = _read(path)
+        self.assertRegex(text, r"[가-힣]")
         lowered = text.lower()
         for token in (
             "clean",
@@ -589,6 +694,69 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("catalog/plugin/.codex-plugin/plugin.json", text)
         self.assertIn("catalog.lock.json", text)
         self.assertIn("legacy-bundle", text)
+        self.assertIn("verify-download", text)
+
+    def test_korean_protocol_preserves_fixture_sync_and_live_budgets(self) -> None:
+        contract = ROOT / "docs" / "maintainers" / "korean-writing-editor" / "contract.md"
+        testing = ROOT / "docs" / "maintainers" / "korean-writing-editor" / "testing.md"
+        release = ROOT / "docs" / "maintainers" / "korean-writing-editor" / "release.md"
+        for path in (contract, testing, release):
+            _assert_exists(self, path)
+        contract_text = _read(contract)
+        testing_text = _read(testing)
+        release_text = _read(release)
+        for token in ("trigger", "mode", "output", "tier"):
+            self.assertIn(token, contract_text.lower())
+        for budget in LIVE_BUDGETS:
+            self.assertIn(budget, testing_text)
+        self.assertIn("119", testing_text)
+        self.assertIn("producer", testing_text.lower())
+        self.assertIn("reviewer", testing_text.lower())
+        self.assertIn("release.toml", release_text)
+        self.assertIn("python3 scripts/release.py check --product korean-writing-editor", release_text)
+
+    def test_image_protocol_preserves_route_authorization_spec_and_inspector(self) -> None:
+        contract = ROOT / "docs" / "maintainers" / "image-workbench" / "contract.md"
+        testing = ROOT / "docs" / "maintainers" / "image-workbench" / "testing.md"
+        release = ROOT / "docs" / "maintainers" / "image-workbench" / "release.md"
+        for path in (contract, testing, release):
+            _assert_exists(self, path)
+        contract_text = _read(contract).lower()
+        testing_text = _read(testing).lower()
+        release_text = _read(release)
+        self.assertIn("route", contract_text)
+        self.assertIn("authorization", contract_text)
+        self.assertIn("imagespec", contract_text)
+        self.assertIn("rubric", contract_text)
+        self.assertIn("inspector", testing_text)
+        self.assertIn("inspect_asset.py", testing_text)
+        self.assertIn("release.toml", release_text)
+        self.assertIn("python3 scripts/release.py check --product image-workbench", release_text)
+
+    def test_graspic_protocol_preserves_rung_fixtures_and_artifact_page(self) -> None:
+        contract = ROOT / "docs" / "maintainers" / "graspic" / "contract.md"
+        testing = ROOT / "docs" / "maintainers" / "graspic" / "testing.md"
+        release = ROOT / "docs" / "maintainers" / "graspic" / "release.md"
+        for path in (contract, testing, release):
+            _assert_exists(self, path)
+        contract_text = _read(contract)
+        testing_text = _read(testing)
+        release_text = _read(release)
+        self.assertIn("artifact", contract_text.lower())
+        self.assertIn("mermaid", contract_text.lower())
+        self.assertNotIn("Do not add HTML artifacts", contract_text)
+        self.assertNotIn("chat-only", contract_text.lower())
+        for fixture_id in (
+            "gate-dump-01",
+            "html-01",
+            "type-cmp-01",
+            "scope-01",
+            "ko-gloss-01",
+        ):
+            self.assertIn(fixture_id, testing_text)
+        self.assertIn("/eli5", testing_text)
+        self.assertIn("release.toml", release_text)
+        self.assertIn("python3 scripts/release.py check --product graspic", release_text)
 
     def test_archive_migration_freeze_record_is_preserved(self) -> None:
         _assert_exists(self, ARCHIVE_MIGRATION)
@@ -596,6 +764,10 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("76e6bf4ebbc9430aee9a04a5b780ae38330f3021", text)
         self.assertIn(
             "6917f68e6e0d81226e50195d58a884373d23ffbbbe48363ef2428c8cbcb83f78",
+            text,
+        )
+        self.assertIn(
+            "docs/maintainers/repository/archive-source-manifest.json",
             text,
         )
 
@@ -634,8 +806,23 @@ class PublicClaimTests(unittest.TestCase):
             for claim in STALE_TWO_SKILL:
                 self.assertNotIn(claim, lowered)
 
+    def test_active_surfaces_omit_stale_two_skill_claims_and_obsolete_paths(self) -> None:
+        for document in ACTIVE_ROUTING_SURFACES:
+            _assert_exists(self, document)
+            text = _read(document)
+            lowered = text.lower()
+            for claim in STALE_TWO_SKILL:
+                self.assertNotIn(claim, lowered)
+            for relative in OBSOLETE_MAINTAINER_RELATIVE:
+                self.assertNotIn(relative, text)
+            relative = document.relative_to(ROOT).as_posix()
+            self.assertFalse(
+                relative.startswith(HISTORY_PREFIXES),
+                f"{relative} is history and should not be in the active routing scan",
+            )
+
     def test_public_docs_omit_personal_paths(self) -> None:
-        for document in PUBLIC_DOC_PATHS + (ARCHIVE_MIGRATION,):
+        for document in PUBLIC_DOC_PATHS + (ARCHIVE_MIGRATION, ARCHIVE_MANIFEST):
             _assert_exists(self, document)
             text = _read(document)
             for marker in PERSONAL_MARKERS:

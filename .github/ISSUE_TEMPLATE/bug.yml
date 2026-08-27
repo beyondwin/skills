@@ -1,12 +1,13 @@
 name: Bug
-description: Report a behavior defect in one of the two curated skills
+description: Report a behavior defect in one of the three curated products
 title: "[Bug]: "
 labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Report a defect in `korean-writing-editor` or `image-workbench` only.
+        Report a defect in `korean-writing-editor`, `image-workbench`, or
+        `graspic` only.
 
         Do not include personal Korean text, a private prompt, a private image,
         credentials, provider receipts, or generated media.
@@ -20,6 +21,7 @@ body:
       options:
         - korean-writing-editor
         - image-workbench
+        - graspic
     validations:
       required: true
   - type: textarea

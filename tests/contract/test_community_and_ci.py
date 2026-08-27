@@ -164,6 +164,17 @@ class CommunityPolicyTests(unittest.TestCase):
             "issue config must route security away from public issues",
         )
 
+    def test_issue_dropdowns_list_all_three_products(self) -> None:
+        for path in (BUG_TEMPLATE_PATH, DOCS_TEMPLATE_PATH):
+            _assert_exists(self, path)
+            text = _read(path)
+            self.assertIn("korean-writing-editor", text)
+            self.assertIn("image-workbench", text)
+            self.assertIn("graspic", text)
+            lowered = text.lower()
+            self.assertNotIn("two curated skills", lowered)
+            self.assertNotIn("two skills only", lowered)
+
     def test_pull_request_template_requires_curated_evidence(self) -> None:
         _assert_exists(self, PR_TEMPLATE_PATH)
         text = _read(PR_TEMPLATE_PATH).lower()
@@ -172,6 +183,10 @@ class CommunityPolicyTests(unittest.TestCase):
         self.assertTrue("personal" in text or "private" in text)
         self.assertTrue("image" in text or "prompt" in text)
         self.assertTrue("deterministic" in text or "reproduction" in text)
+        self.assertIn("release.toml", text)
+        self.assertIn("changelog", text)
+        self.assertNotIn("two curated skills", text)
+        self.assertNotIn("two skills only", text)
 
     def test_governance_files_omit_personal_paths_and_credentials(self) -> None:
         paths = (

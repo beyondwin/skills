@@ -55,4 +55,6 @@ korean-writing-editor: Codex supported; Agent Skills contract portable; other ho
 ## 변경 이력과 관리자 문서
 
 - [CHANGELOG](CHANGELOG.md)
-- [관리자 문서](../../docs/maintainers/korean-writing-editor.md)
+- [계약](../../docs/maintainers/korean-writing-editor/contract.md)
+- [테스트](../../docs/maintainers/korean-writing-editor/testing.md)
+- [릴리스](../../docs/maintainers/korean-writing-editor/release.md)
