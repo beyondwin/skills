@@ -453,6 +453,15 @@ class CatalogLockImportTests(unittest.TestCase):
             )
         self.assertIn("special", str(fifo_raised.exception).lower())
 
+    def test_importer_reuses_release_archive_safety_primitives(self) -> None:
+        source = (ROOT / "scripts" / "catalog_lock.py").read_text(encoding="utf-8")
+        self.assertIn("from scripts.release_archive import", source)
+        self.assertNotIn("def _member_safety_errors", source)
+        self.assertNotIn("def _member_mode_errors", source)
+        self.assertNotIn("def _is_absolute_member", source)
+        self.assertNotIn("def _parse_checksums", source)
+        self.assertNotIn("def _archive_member_errors", source)
+
     def test_import_does_not_require_historical_release_toml(self) -> None:
         release_dir = _legacy_release_dir(self.workspace)
         output = self.workspace / "lock.json"

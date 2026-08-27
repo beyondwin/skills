@@ -4,15 +4,11 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
-import pathlib
 import re
-import stat
 import sys
 import tempfile
-import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,6 +20,12 @@ from scripts.catalog_contract import (  # noqa: E402
     CatalogLock,
     LockedSkill,
 )
+from scripts.release_archive import (  # noqa: E402
+    extract_archive,
+    sha256_file,
+    verify_product_archive,
+    _parse_checksums,
+)
 from scripts.release_contract import payload_sha256  # noqa: E402
 
 
@@ -32,7 +34,6 @@ REQUIRED_ZIPS = (
     "korean-writing-editor-v2.0.0.zip",
 )
 ALLOWED_IMPORT_NAMES = frozenset((*REQUIRED_ZIPS, "SHA256SUMS"))
-DIGEST_RE = re.compile(r"^[0-9a-f]{64}$")
 ZIP_NAME_RE = re.compile(r"^([a-z0-9-]+)-v2\.0\.0\.zip$")
 
 
@@ -64,7 +65,10 @@ def import_legacy_release(release_dir: Path, source_commit: str, output: Path) -
     checksums_path = release_dir / "SHA256SUMS"
     if not checksums_path.is_file():
         raise ValueError("missing SHA256SUMS")
-    parsed = _parse_checksums(checksums_path)
+    checksum_errors: list[str] = []
+    parsed = _parse_checksums(checksums_path, checksum_errors)
+    if checksum_errors:
+        raise ValueError("\n".join(checksum_errors))
     missing_rows = [name for name in REQUIRED_ZIPS if name not in parsed]
     if missing_rows:
         raise ValueError(
@@ -78,7 +82,7 @@ def import_legacy_release(release_dir: Path, source_commit: str, output: Path) -
             archive = release_dir / archive_name
             if not archive.is_file():
                 raise ValueError(f"missing archive: {archive_name}")
-            digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+            digest = sha256_file(archive)
             if digest != parsed[archive_name]:
                 raise ValueError(f"checksum mismatch: {archive_name}")
             product_name = _product_name(archive_name)
@@ -132,131 +136,16 @@ def _product_name(archive_name: str) -> str:
 
 
 def _extract_standalone(archive_path: Path, product_name: str, destination: Path) -> Path:
-    errors = _archive_member_errors(archive_path, product_name)
+    errors = verify_product_archive(archive_path, product_name)
     if errors:
         raise ValueError("\n".join(errors))
+    extract_errors = extract_archive(archive_path, destination)
+    if extract_errors:
+        raise ValueError("\n".join(extract_errors))
     product_root = Path(destination) / product_name
-    prefix = f"{product_name}/"
-    with zipfile.ZipFile(archive_path) as archive:
-        for info in archive.infolist():
-            name = info.filename
-            if name.endswith("/"):
-                continue
-            relative = name[len(prefix) :]
-            target = (product_root / relative).resolve()
-            if not target.is_relative_to(product_root.resolve()):
-                raise ValueError(f"extract escapes destination: {name}")
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(archive.read(info))
     if not product_root.is_dir():
         raise ValueError(f"missing extracted skill: {product_name}")
     return product_root
-
-
-def _archive_member_errors(path: Path, product_name: str) -> list[str]:
-    try:
-        archive = zipfile.ZipFile(path)
-    except zipfile.BadZipFile as exc:
-        return [f"invalid zip: {exc}"]
-    errors: list[str] = []
-    seen: set[str] = set()
-    folded: dict[str, str] = {}
-    prefix = f"{product_name}/"
-    with archive:
-        for info in archive.infolist():
-            name = info.filename
-            member_errors = _member_safety_errors(name, seen, folded)
-            errors.extend(member_errors)
-            errors.extend(_member_mode_errors(name, info))
-            if member_errors:
-                continue
-            if name.endswith("/"):
-                if name != prefix and not name.startswith(prefix):
-                    errors.append(f"unexpected member: {name}")
-                continue
-            if not name.startswith(prefix) or name == prefix:
-                errors.append(f"unexpected member: {name}")
-    return errors
-
-
-def _member_safety_errors(
-    name: str,
-    seen: set[str],
-    folded: dict[str, str],
-) -> list[str]:
-    errors: list[str] = []
-    if not name or "\\" in name or "\x00" in name:
-        errors.append(f"unexpected member: {name}")
-        return errors
-    if _is_absolute_member(name):
-        errors.append(f"absolute path: {name}")
-        return errors
-    raw_parts = name.split("/")
-    if name.endswith("/"):
-        raw_parts = raw_parts[:-1]
-    if any(part in {"", ".", ".."} for part in raw_parts):
-        if ".." in raw_parts:
-            errors.append(f"parent path segment: {name}")
-        elif "." in raw_parts:
-            errors.append(f"dot path segment: {name}")
-        else:
-            errors.append(f"empty path segment: {name}")
-        return errors
-    if name in seen:
-        errors.append(f"duplicate member: {name}")
-        return errors
-    seen.add(name)
-    key = name.casefold()
-    if key in folded:
-        errors.append(f"case-fold collision: {name}")
-        return errors
-    folded[key] = name
-    return errors
-
-
-def _member_mode_errors(name: str, info: zipfile.ZipInfo) -> list[str]:
-    mode = (info.external_attr >> 16) & 0o170000
-    if mode == stat.S_IFLNK:
-        return [f"symlink member: {name}"]
-    if mode and mode not in {stat.S_IFREG, stat.S_IFDIR}:
-        return [f"special file member: {name}"]
-    return []
-
-
-def _is_absolute_member(name: str) -> bool:
-    if name.startswith("/") or name.startswith("\\"):
-        return True
-    if pathlib.PurePosixPath(name).is_absolute():
-        return True
-    if pathlib.PureWindowsPath(name).is_absolute():
-        return True
-    return False
-
-
-def _parse_checksums(path: Path) -> dict[str, str]:
-    parsed: dict[str, str] = {}
-    errors: list[str] = []
-    text = path.read_text(encoding="ascii")
-    for raw in text.splitlines():
-        if not raw.strip():
-            continue
-        if "  " not in raw:
-            errors.append(f"malformed SHA256SUMS line: {raw}")
-            continue
-        digest, name = raw.split("  ", 1)
-        if "/" in name or "\\" in name or name != Path(name).name:
-            errors.append(f"SHA256SUMS name must be a basename: {name}")
-            continue
-        if not DIGEST_RE.fullmatch(digest):
-            errors.append(f"malformed digest: {digest}")
-            continue
-        if name in parsed:
-            errors.append(f"duplicate SHA256SUMS name: {name}")
-            continue
-        parsed[name] = digest
-    if errors:
-        raise ValueError("\n".join(errors))
-    return parsed
 
 
 def _write_lock(output: Path, lock: CatalogLock) -> Path:
