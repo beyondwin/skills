@@ -1238,7 +1238,7 @@ git commit -m "ci: verify changed skill products independently"
 - Consumes: all product, catalog, documentation, release, and CI contracts.
 - Produces: a clean locally verified branch ready for separate release authorization.
 
-- [ ] **Step 1: Run placeholder, stale-fact, and tree checks**
+- [x] **Step 1: Run placeholder, stale-fact, and tree checks**
 
 ```bash
 rg -n '\b(T[B]D|T[O]DO|F[I]XME|X[X]X)\b' README.md README.en.md skills catalog docs/users docs/maintainers docs/ko docs/en .github scripts tests
@@ -1249,7 +1249,7 @@ git diff --check
 
 Expected: no placeholder or stale-current claim in active documentation and code. Historical changelogs and superseded design/plan records under `docs/superpowers/` may describe the legacy two-skill `v2.0.0` only with an explicit historical scope.
 
-- [ ] **Step 2: Run every independent verifier**
+- [x] **Step 2: Run every independent verifier**
 
 ```bash
 python3 scripts/verify.py --skill korean-writing-editor
@@ -1260,7 +1260,7 @@ python3 scripts/verify.py --catalog
 
 Expected: all PASS.
 
-- [ ] **Step 3: Run the complete cross-platform-local profile set**
+- [x] **Step 3: Run the complete cross-platform-local profile set**
 
 ```bash
 python3 scripts/verify.py --profile full
@@ -1270,7 +1270,7 @@ python3 -m compileall -q scripts tests skills
 
 Expected: all PASS without credentials, providers, models, or remote images.
 
-- [ ] **Step 4: Exercise legacy catalog reconstruction from public bytes**
+- [x] **Step 4: Exercise legacy catalog reconstruction from public bytes**
 
 ```bash
 final_public_dir=$(mktemp -d)
@@ -1313,7 +1313,7 @@ PY
 
 Expected: all PASS and normalized public/rebuilt catalog payloads are equal. Report compressed-byte equality only if separately observed.
 
-- [ ] **Step 5: Confirm product release readiness remains honest**
+- [x] **Step 5: Confirm product release readiness remains honest**
 
 ```bash
 python3 scripts/release.py check --product korean-writing-editor
@@ -1324,7 +1324,7 @@ git tag --list 'korean-writing-editor-v*' 'image-workbench-v*' 'graspic-v*' 'bey
 
 Expected: checks PASS in development mode, no new product-qualified tags exist, and no public-release claim has been added.
 
-- [ ] **Step 6: Mark the design locally implemented and release pending**
+- [x] **Step 6: Mark the design locally implemented and release pending**
 
 Change the spec status line to:
 
@@ -1334,14 +1334,14 @@ Change the spec status line to:
 
 Do not change the migration target versions or claim GitHub publication.
 
-- [ ] **Step 7: Commit the final verified state**
+- [x] **Step 7: Commit the final verified state**
 
 ```bash
 git add docs/superpowers/specs/2026-08-27-independent-skill-product-architecture-design.md docs/superpowers/plans/2026-08-27-independent-skill-product-architecture.md
 git commit -m "docs: record independent skill migration verification"
 ```
 
-- [ ] **Step 8: Review the branch without publishing it**
+- [x] **Step 8: Review the branch without publishing it**
 
 ```bash
 git status --short --branch --untracked-files=all
