@@ -1,7 +1,7 @@
 # 독립 스킬 제품 구조와 릴리스 체계 설계
 
 - 작성일: 2026-08-27
-- 상태: 대화 설계 승인 완료, 작성된 명세 검토 대기
+- 상태: 작성된 명세 승인 완료, 구현 계획 작성 완료 및 실행 대기
 - 범위: 저장소 구조, 스킬별 버전, 문서 정보구조, 검증, 패키징, 릴리스
 - 비범위: 스킬 동작 재설계, 새 스킬 추가, 실제 저장소 분리, 이번 문서에서의 공개 릴리스
 
@@ -109,13 +109,14 @@ smoke를 통과한 뒤에만 공개 Release로 전환한다.
 
 ```text
 .
-├── .codex-plugin/
-│   └── plugin.json
 ├── catalog/
 │   ├── README.md
 │   ├── CHANGELOG.md
 │   ├── release.toml
-│   └── catalog.lock.json
+│   ├── catalog.lock.json
+│   └── plugin/
+│       └── .codex-plugin/
+│           └── plugin.json
 ├── skills/
 │   ├── korean-writing-editor/
 │   │   ├── SKILL.md
@@ -128,9 +129,25 @@ smoke를 통과한 뒤에만 공개 Release로 전환한다.
 │   │   ├── references/
 │   │   └── scripts/
 │   ├── image-workbench/
-│   │   └── ...
+│   │   ├── SKILL.md
+│   │   ├── README.md
+│   │   ├── README.en.md
+│   │   ├── CHANGELOG.md
+│   │   ├── release.toml
+│   │   ├── LICENSE.txt
+│   │   ├── agents/
+│   │   ├── references/
+│   │   └── scripts/
 │   └── graspic/
-│       └── ...
+│       ├── SKILL.md
+│       ├── README.md
+│       ├── README.en.md
+│       ├── CHANGELOG.md
+│       ├── release.toml
+│       ├── LICENSE.txt
+│       ├── agents/
+│       ├── references/
+│       └── scripts/
 ├── docs/
 │   ├── users/
 │   │   ├── ko/
@@ -139,7 +156,10 @@ smoke를 통과한 뒤에만 공개 Release로 전환한다.
 │   │   │   ├── safety-and-privacy.md
 │   │   │   └── verification.md
 │   │   └── en/
-│   │       └── ...
+│   │       ├── installation.md
+│   │       ├── compatibility.md
+│   │       ├── safety-and-privacy.md
+│   │       └── verification.md
 │   ├── maintainers/
 │   │   ├── README.md
 │   │   ├── repository/
@@ -151,9 +171,13 @@ smoke를 통과한 뒤에만 공개 Release로 전환한다.
 │   │   │   ├── testing.md
 │   │   │   └── release.md
 │   │   ├── image-workbench/
-│   │   │   └── ...
+│   │   │   ├── contract.md
+│   │   │   ├── testing.md
+│   │   │   └── release.md
 │   │   ├── graspic/
-│   │   │   └── ...
+│   │   │   ├── contract.md
+│   │   │   ├── testing.md
+│   │   │   └── release.md
 │   │   └── decisions/
 │   └── superpowers/
 ├── scripts/
@@ -220,7 +244,8 @@ license = "Apache-2.0"
 - `catalog/CHANGELOG.md`: 카탈로그 구성과 통합 표면 변경
 - `catalog/README.md`: 카탈로그의 역할, 채택 규칙, 설치 안내
 - `catalog/catalog.lock.json`: 채택한 스킬의 불변 릴리스 식별자
-- `.codex-plugin/plugin.json`: Codex가 읽는 배포용 플러그인 메타데이터
+- `catalog/plugin/.codex-plugin/plugin.json`: 릴리스 빌드가 ZIP 루트로 옮기는
+  배포용 플러그인 메타데이터
 
 `catalog.lock.json`의 각 항목은 다음 값을 가진다.
 
@@ -232,6 +257,7 @@ license = "Apache-2.0"
       "name": "graspic",
       "version": "3.0.0",
       "tag": "graspic-v3.0.0",
+      "release_kind": "independent",
       "source_commit": "40-character-lowercase-git-commit",
       "payload_sha256": "64-character-lowercase-sha256"
     }
@@ -245,10 +271,16 @@ license = "Apache-2.0"
 카탈로그 검증기는 다음을 확인한다.
 
 1. lock schema, 제품 이름 정렬, 항목 유일성과 SemVer·commit·hash 형식이 맞다.
-2. `catalog/release.toml`과 `.codex-plugin/plugin.json` 버전이 같다.
-3. 릴리스 입력 검증 단계에서 각 standalone ZIP의 이름, 내부
+2. `release_kind`가 `independent` 또는 `legacy-bundle`이다. 새 릴리스는
+   `independent`만 사용하며 `legacy-bundle`은 기존 `v2.0.0` 두 제품을
+   이관할 때만 허용한다.
+3. `catalog/release.toml`과
+   `catalog/plugin/.codex-plugin/plugin.json` 버전이 같다.
+4. 릴리스 입력 검증 단계에서 각 standalone ZIP의 이름, 내부
    `release.toml`, `SKILL.md`, payload hash가 lock 항목과 같다.
-4. 원격 릴리스 검증 단계에서 lock의 태그, source commit, 공개 아티팩트와
+   `legacy-bundle` 항목은 기존 standalone ZIP에 `release.toml`이 없으므로
+   이름, `SKILL.md` 버전, pinned source commit과 payload hash를 검사한다.
+5. 원격 릴리스 검증 단계에서 lock의 태그, source commit, 공개 아티팩트와
    checksum이 모두 일치한다.
 
 개별 스킬 릴리스가 카탈로그 lock을 자동으로 바꾸지 않는다. 별도 채택 변경과
@@ -257,8 +289,10 @@ license = "Apache-2.0"
 lock은 현재 `main`의 제품 버전과 같을 필요가 없다. 최신 제품 소스가 앞으로
 진행되어도 기존 카탈로그는 채택한 이전 릴리스를 계속 고정할 수 있어야 한다.
 따라서 카탈로그 ZIP은 현재 `skills/`를 복사해 만들지 않고, lock과 일치하는
-검증된 standalone 릴리스 ZIP들을 입력으로 조립한다. 저장소 루트의 플러그인
-표면은 개발 중 발견과 통합 검증을 위한 작업 공간이며 공개 번들 증거가 아니다.
+검증된 standalone 릴리스 ZIP들을 입력으로 조립한다. 저장소 루트는 개별
+스킬 개발과 GitHub 경로 설치를 위한 작업 공간이며 플러그인 매니페스트를
+두지 않는다. 릴리스 빌드는 `catalog/plugin/.codex-plugin/plugin.json`을 ZIP의
+`.codex-plugin/plugin.json`으로 옮긴다.
 
 ## 8. SemVer 정책
 
@@ -466,7 +500,7 @@ python3 scripts/release.py verify-download \
 
 카탈로그 변경은 공개되고 원격 검증을 통과한 스킬 릴리스만 채택한다.
 채택 변경은 lock 항목, 카탈로그 CHANGELOG, 필요한 플러그인 버전과
-`.codex-plugin/plugin.json` 복제 값을 함께 수정한다.
+`catalog/plugin/.codex-plugin/plugin.json` 복제 값을 함께 수정한다.
 
 카탈로그 릴리스 준비는 각 lock 항목의 standalone ZIP과 `SHA256SUMS`를 새
 입력 디렉터리에 내려받는다. 이 입력은 개별 제품의 원격 검증을 다시 통과해야
@@ -502,6 +536,12 @@ payload를 추출해 플러그인 ZIP을 조립한다.
 - 루트 CHANGELOG는 `catalog/CHANGELOG.md`로 역할을 좁힌다.
 - 모든 스킬이 같은 `EXPECTED_VERSION`을 가져야 하는 테스트를 제품별
   매니페스트 기반 검증으로 교체한다.
+- 기존 공개 `v2.0.0`의 두 standalone ZIP을 다시 내려받아
+  `release_kind: legacy-bundle` lock 항목으로 고정한다. 이 예외는 역사적
+  아티팩트에 `release.toml`이 없다는 사실만 수용하며 새 릴리스에는 쓰지 않는다.
+- 루트 `.codex-plugin/plugin.json`의 공개 `v2.0.0` 내용을
+  `catalog/plugin/.codex-plugin/plugin.json`으로 옮기고 루트 매니페스트를
+  제거한다. 이후 플러그인 매니페스트는 카탈로그만 소유한다.
 
 ### 13.3 문서 재구성
 
@@ -579,6 +619,8 @@ Release는 레거시 통합 기준선으로 보존하고 각 CHANGELOG에서 pro
 - [ ] 독립 ZIP은 재현 가능하며 허용된 제품 파일만 포함한다.
 - [ ] 원격 다운로드 checksum과 추출 설치 smoke 없이는 공개 완료로 표시되지 않는다.
 - [ ] 기존 `v2.0.0` 태그와 Release 기록이 변경되지 않는다.
+- [ ] 저장소 루트에는 플러그인 매니페스트가 없고 카탈로그 릴리스 소스만
+  `catalog/plugin/.codex-plugin/plugin.json`을 소유한다.
 - [ ] 전체 provider-free 검증과 `git diff --check`가 통과한다.
 
 ## 16. 승인 기록
