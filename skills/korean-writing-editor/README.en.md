@@ -4,11 +4,11 @@
 
 ## The problem this skill solves
 
-Conservatively proofreads, corrects, or polishes Korean text the user already supplied. It preserves meaning, factual literals, and the writer's voice.
+It takes Korean text you already have and edits it. It fixes spelling, spacing, and awkward sentences, and it leaves meaning, the writer's voice, and values such as names, dates, and numbers unchanged.
 
 ## When to use it and when not to
 
-Use it when the user already supplied Korean source text to proofread, correct, or polish.
+Use it when you already have Korean text and want that text edited.
 
 Do not use `korean-writing-editor` for translation, drafting, summarization, code review, casual conversation, authorship detection, or detector evasion.
 
@@ -30,7 +30,7 @@ Shared install, update, and uninstall steps are in [Installation](../../docs/use
 
 ## Main workflow
 
-After a valid trigger, the default is conservative `polish`. `diagnose` names issues and does not rewrite. `correct` applies local normative and grammatical fixes only. `polish` still preserves meaning and voice.
+For a valid request, the default is `polish`: small readability edits that keep meaning and voice. `diagnose` names problems and does not rewrite. `correct` fixes spelling, spacing, and clear grammar only.
 
 ## Safety and privacy
 

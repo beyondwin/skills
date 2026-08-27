@@ -4,7 +4,7 @@ route, authorization, ImageSpec, rubric, inspector, 픽스처, 버전을 함께 
 
 ## 트리거와 기본값
 
-프로젝트에 묶인 래스터 산출물이 필요할 때 활성화합니다. 명시 호출은 `$image-workbench` 또는 `/image-workbench`입니다. 예전 `kws-` 접두 호출은 제외된 near-miss이며 no-op입니다. 재미용 일회성 이미지는 일반 번들 경로입니다.
+프로젝트에 묶인 래스터 산출물이 필요할 때 활성화합니다. 명시 호출은 `$image-workbench` 또는 `/image-workbench`입니다. 예전 `kws-` 접두 호출은 제외된 near-miss이며 no-op입니다. 재미용 일회성 이미지는 일반 번들 경로를 따릅니다.
 
 모드는 행동 전에 하나만 고릅니다: `brief`, `generate`, `edit`, `audit`. `brief`와 `audit`, 비교, 진단은 읽기 전용이며 생성을 승인하지 않습니다. 분명한 `generate` 또는 `edit` 요청만 이미지 호출을 승인합니다.
 

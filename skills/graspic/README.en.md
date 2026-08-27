@@ -4,11 +4,18 @@
 
 ## The problem this skill solves
 
-Explains how one machine works at a chosen rung (picture, path, skeleton, or fracture). The picture holds. Age does not go down.
+It explains how one machine works. You pick one depth:
+
+- picture: the whole shape at a glance
+- path: the flow, one step at a time
+- skeleton: the internal structure and branches
+- fracture: where it breaks
+
+It does not swap the content for a cute analogy, and it does not talk down in a child voice.
 
 ## When to use it and when not to
 
-Use it to explain how one machine works at a chosen rung.
+Use it to explain how one machine works at a depth you pick.
 
 Do not use `graspic` for debugging, implementing, reviewing, translating, one-line factual lookups, child-register explainers, or as a stand-in for `/eli5`.
 
@@ -30,7 +37,7 @@ Shared install, update, and uninstall steps are in [Installation](../../docs/use
 
 ## Main workflow
 
-Do not explain until slice, type, rung, and language are filled. Rungs are picture, path, skeleton, and fracture. The default deliverable is a published page; mermaid is the visual channel. Do not leave the explanation in terminal scrollback.
+Do not explain until the topic, the depth (picture, path, skeleton, or fracture), and the language are set. The result is a page you open in a browser, not a chat log. Diagrams are drawn in mermaid. Do not leave the explanation only in the terminal.
 
 ## Safety and privacy
 

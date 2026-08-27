@@ -37,7 +37,7 @@ GitHub 경로 설치의 스킬 페이로드는 `skills/<name>/`입니다. 제품
 - 이미지 평가기: `tests/image-workbench/run.py --skill-root PATH`, 케이스는 러너 옆에 둡니다.
 - inspector: 실제 스킬 루트에서 `python3 scripts/inspect_asset.py`를 해석합니다.
 - 라이브 하니스: 소스 스킬은 `<repo>/skills/korean-writing-editor`이며, 보고서는 명시된 무시 증거 루트 아래에 둡니다.
-- 공개 사실: 한영 사용자 문서는 명령, 지원 상태, 한계에 동의해야 합니다. 현재 버전 리터럴은 제품 `release.toml`이 소유합니다.
+- 공개 사실: 한영 사용자 문서는 명령, 지원 상태, 한계가 일치해야 합니다. 현재 버전 리터럴은 제품 `release.toml`이 소유합니다.
 
 ## 검증 경계
 

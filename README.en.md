@@ -2,7 +2,7 @@
 
 [한국어](README.md)
 
-This repository publishes three curated Codex-first Agent Skills for conservative Korean editing, project-bound raster asset work, and mechanistic explanation.
+This repository collects three skills you can install in Codex. Use them to edit Korean you already wrote, make images that belong in this project, or explain how a machine works.
 
 [![CI](https://github.com/beyondwin/skills/actions/workflows/verify.yml/badge.svg)](https://github.com/beyondwin/skills/actions/workflows/verify.yml)
 [![Release](https://img.shields.io/github/v/release/beyondwin/skills)](https://github.com/beyondwin/skills/releases)
@@ -16,9 +16,9 @@ The catalog contains these three skills. A fourth skill is out of scope unless g
 
 | Skill | Role |
 | --- | --- |
-| [`korean-writing-editor`](skills/korean-writing-editor/README.en.md) | Conservatively proofreads, corrects, or polishes Korean text the user already supplied. |
-| [`image-workbench`](skills/image-workbench/README.en.md) | Plans, generates, edits, compares, or audits a raster asset for a local project. |
-| [`graspic`](skills/graspic/README.en.md) | Explains how one machine works at a chosen rung (picture, path, skeleton, or fracture). |
+| [`korean-writing-editor`](skills/korean-writing-editor/README.en.md) | Takes Korean text you already have and fixes spelling and sentences without changing the meaning. |
+| [`image-workbench`](skills/image-workbench/README.en.md) | Plans, makes, or edits PNG/JPG images that belong in this project. |
+| [`graspic`](skills/graspic/README.en.md) | Explains how one machine works, at a depth you pick, in writing and diagrams. |
 
 Use each product README for install and first invocation.
 

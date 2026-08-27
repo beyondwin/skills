@@ -4,13 +4,13 @@
 
 ## The problem this skill solves
 
-Plans, generates, edits, compares, or audits a raster asset for a local project. It keeps project fit, input constraints, and a saved result.
+It plans, makes, edits, compares, or checks bitmap images (PNG, JPG, and similar) that will actually go into this project. It does not keep a result that does not fit the project or that breaks a given constraint.
 
 ## When to use it and when not to
 
-Use it for a project-bound raster deliverable.
+Use it when you need an image that belongs in the project.
 
-Do not use `image-workbench` for casual one-off images, SVG or native UI, actual frontend implementation, or copying an external prompt gallery.
+Do not use `image-workbench` for a casual one-off picture, SVG or code-drawn UI, actual screen implementation, or copying an external prompt gallery.
 
 ## One-minute install and first invocation
 
@@ -23,14 +23,14 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-work
 After install, invoke explicitly on the next turn:
 
 ```text
-$image-workbench Plan or generate a project-bound raster asset for this repository.
+$image-workbench Make a landing-page hero image for this project.
 ```
 
 Shared install, update, and uninstall steps are in [Installation](../../docs/users/en/installation.md).
 
 ## Main workflow
 
-Choose one mode before acting: `brief`, `generate`, `edit`, or `audit`. `brief` and `audit` are read-only and never authorize generation. Only a clear generate or edit request authorizes an image call. For a project-bound final file, run `python3 scripts/inspect_asset.py` from this skill root.
+Choose one mode first. `brief` only writes down what image is needed and does not create one. `generate` makes a new image. `edit` changes an existing image. `audit` only inspects and does not create. `brief` and `audit` are read-only. An image is created only when the generate or edit request is clear. For a final project file, run `python3 scripts/inspect_asset.py` from this skill folder to check the file format and size.
 
 ## Safety and privacy
 

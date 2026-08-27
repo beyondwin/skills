@@ -2,7 +2,7 @@
 
 [English](README.en.md)
 
-이 저장소는 한국어 교정, 프로젝트 래스터 자산 작업, 기계가 어떻게 도는지 설명하기 위한 큐레이션된 Agent Skill 세 개를 Codex 우선으로 배포합니다.
+이 저장소는 Codex에서 설치해 쓰는 스킬 세 개를 모아 둡니다. 이미 있는 한국어 글을 고치거나, 이 프로젝트에 넣을 이미지를 만들거나, 어떤 기계가 어떻게 동작하는지 설명할 때 씁니다.
 
 [![CI](https://github.com/beyondwin/skills/actions/workflows/verify.yml/badge.svg)](https://github.com/beyondwin/skills/actions/workflows/verify.yml)
 [![Release](https://img.shields.io/github/v/release/beyondwin/skills)](https://github.com/beyondwin/skills/releases)
@@ -12,13 +12,13 @@
 
 ## 스킬 선택
 
-카탈로그는 아래 세 스킬입니다. 네 번째 스킬은 기본 기여 범위가 아닙니다.
+카탈로그에는 아래 세 스킬이 있습니다. 네 번째 스킬은 기본 기여 범위가 아닙니다.
 
 | 스킬 | 역할 |
 | --- | --- |
-| [`korean-writing-editor`](skills/korean-writing-editor/README.md) | 사용자가 이미 준 한국어 글을 보수적으로 교정하거나 윤문합니다. |
-| [`image-workbench`](skills/image-workbench/README.md) | 로컬 프로젝트에 맞는 래스터 자산을 계획·생성·편집·비교·점검합니다. |
-| [`graspic`](skills/graspic/README.md) | 같은 기계를 고른 칸(그림/길/뼈대/허점)으로 원리·흐름을 설명합니다. |
+| [`korean-writing-editor`](skills/korean-writing-editor/README.md) | 있는 한국어 글을 받아, 뜻은 그대로 두고 맞춤법과 문장을 고칩니다. |
+| [`image-workbench`](skills/image-workbench/README.md) | 이 프로젝트에 넣을 PNG·JPG 같은 이미지를 기획하고 만들고 고칩니다. |
+| [`graspic`](skills/graspic/README.md) | 한 기계가 어떻게 도는지, 고른 깊이로 그림과 글로 설명합니다. |
 
 각 제품 README에서 설치와 첫 호출을 확인하세요.
 

@@ -18,7 +18,7 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/graspic
 
 ## 선택적 제3자 설치기
 
-한국어 편집기만 해당합니다.
+이 경로는 한국어 편집기에만 해당합니다.
 
 ```text
 npx skills add beyondwin/skills --skill korean-writing-editor
@@ -38,7 +38,7 @@ ls -ld "$SKILL_SOURCE"
 ls -ld "$SKILL_TARGET"
 ```
 
-`$SKILL_TARGET`이 없거나, 이 스킬의 안전한 링크임이 확인된 경우에만 복사하세요. 이미 있는 실제 디렉터리는 덮어쓰지 말고 중단하세요. `image-workbench`와 `graspic`도 같은 방식으로 정확한 폴더만 다룹니다.
+`$SKILL_TARGET`이 없거나, 이 스킬을 가리키는 안전한 링크임이 확인된 경우에만 복사하세요. 이미 있는 실제 디렉터리는 덮어쓰지 말고 중단하세요. `image-workbench`와 `graspic`도 같은 방식으로 정확한 폴더만 다룹니다.
 
 다른 호스트 폴더는 `korean-writing-editor`의 Agent Skills 계약 이식 대상일 뿐입니다. 기록된 smoke가 있기 전에는 지원이라고 말하지 마세요.
 

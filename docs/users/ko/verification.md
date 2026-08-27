@@ -35,7 +35,7 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 ## 라이브 실행
 
-라이브 평가는 로컬에서만, 명시 플래그와 이름 있는 런타임, 제한된 호출 예산, 추적 소스 밖의 증거 루트가 있을 때 합니다. CI는 라이브를 요구하지 않습니다. 공급자 프로세스를 조용히 바꾸지 않습니다.
+라이브 평가는 로컬에서만 하며, 명시 플래그, 이름 있는 런타임, 제한된 호출 예산, 추적 소스 밖의 증거 루트가 있을 때 합니다. CI는 라이브를 요구하지 않습니다. 공급자 프로세스를 조용히 바꾸지 않습니다.
 
 상태 어휘는 `verified`, `partially_verified`, `failed`, `blocked`, `not_measured`입니다. 오프라인 성공을 `partially_verified`로 바꾸지 말고, 공급자 불가를 통과로 바꾸지 마세요.
 
