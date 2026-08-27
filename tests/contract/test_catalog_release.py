@@ -119,6 +119,18 @@ def _rewrite_zip(archive: Path, rewriter) -> None:
             dest.writestr(info, data)
 
 
+class CatalogLegacyNewlineTests(unittest.TestCase):
+    def test_legacy_fixture_bytes_use_lf_newlines(self) -> None:
+        files = [
+            path
+            for path in LEGACY_FIXTURE_ROOT.rglob("*")
+            if path.is_file() and "__pycache__" not in path.parts
+        ]
+        self.assertGreater(len(files), 0)
+        for path in files:
+            self.assertNotIn(b"\r", path.read_bytes(), path.as_posix())
+
+
 class CatalogLegacyFixtureTests(unittest.TestCase):
     def setUp(self) -> None:
         self._tempdir = tempfile.TemporaryDirectory()

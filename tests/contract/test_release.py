@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import stat
 import subprocess
 import sys
@@ -381,12 +382,16 @@ class ProductDownloadTests(unittest.TestCase):
             self.output,
             require_release_entry=False,
         )
+        with zipfile.ZipFile(artifact) as archive:
+            info = archive.getinfo("image-workbench/scripts/inspect_asset.py")
+            self.assertTrue((info.external_attr >> 16) & 0o111)
         with tempfile.TemporaryDirectory() as directory:
             destination = Path(directory)
             self.assertEqual(release_archive.extract_archive(artifact, destination), [])
             inspector = destination / "image-workbench" / "scripts" / "inspect_asset.py"
             self.assertTrue(inspector.is_file())
-            self.assertTrue(inspector.stat().st_mode & stat.S_IXUSR)
+            if os.name != "nt":
+                self.assertTrue(inspector.stat().st_mode & stat.S_IXUSR)
 
     def test_verify_download_cli_requires_input_and_rejects_output(self) -> None:
         script = ROOT / "scripts" / "release.py"

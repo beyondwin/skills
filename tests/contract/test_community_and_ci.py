@@ -22,6 +22,7 @@ SECURITY_PATH = ROOT / "SECURITY.md"
 CONDUCT_PATH = ROOT / "CODE_OF_CONDUCT.md"
 CODEOWNERS_PATH = ROOT / ".github" / "CODEOWNERS"
 DEPENDABOT_PATH = ROOT / ".github" / "dependabot.yml"
+GITATTRIBUTES_PATH = ROOT / ".gitattributes"
 PR_TEMPLATE_PATH = ROOT / ".github" / "pull_request_template.md"
 BUG_TEMPLATE_PATH = ROOT / ".github" / "ISSUE_TEMPLATE" / "bug.yml"
 DOCS_TEMPLATE_PATH = ROOT / ".github" / "ISSUE_TEMPLATE" / "documentation.yml"
@@ -196,6 +197,12 @@ class CommunityPolicyTests(unittest.TestCase):
         _assert_exists(self, CODEOWNERS_PATH)
         text = _read(CODEOWNERS_PATH)
         self.assertIn("* @beyondwin", text)
+
+    def test_gitattributes_forces_lf_for_text_files(self) -> None:
+        _assert_exists(self, GITATTRIBUTES_PATH)
+        text = _read(GITATTRIBUTES_PATH)
+        self.assertIn("text=auto", text)
+        self.assertIn("eol=lf", text)
 
     def test_dependabot_tracks_github_actions_weekly(self) -> None:
         _assert_exists(self, DEPENDABOT_PATH)
