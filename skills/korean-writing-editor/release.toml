@@ -1,0 +1,5 @@
+schema_version = 1
+name = "korean-writing-editor"
+version = "2.0.1"
+tag_prefix = "korean-writing-editor-v"
+license = "Apache-2.0"

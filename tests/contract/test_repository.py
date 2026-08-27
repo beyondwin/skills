@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import shutil
-import stat
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -12,12 +11,16 @@ from typing import Callable
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SKILLS = (
-    ROOT / "skills" / "korean-writing-editor",
-    ROOT / "skills" / "image-workbench",
-    ROOT / "skills" / "graspic",
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.release_contract import (  # noqa: E402
+    PRODUCT_NAMES,
+    stage_product,
+    validate_product,
 )
-ALLOWED_SKILLS = {skill.name for skill in SKILLS}
+
+SKILLS = tuple(ROOT / "skills" / name for name in PRODUCT_NAMES)
 PLUGIN_PATH = ROOT / ".codex-plugin" / "plugin.json"
 LICENSE_PATH = ROOT / "LICENSE"
 NOTICE_PATH = ROOT / "NOTICE"
@@ -68,176 +71,10 @@ LEGACY_IDENTIFIERS = (
     "kws-korean-writing-editor",
     "kws-image-workbench",
 )
-EXPECTED_VERSION = "2.0.0"
-FRONTMATTER_RE = re.compile(r"\A---\n(.*?)\n---(?:\n|\Z)", re.DOTALL)
-MARKDOWN_LINK_RE = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
-HOME_PREFIX = "/Users/"
-ARCHIVE_MARKERS = ("SKILLS_ARCHIVE_CHECKOUT", "source/private")
-CREDENTIAL_MARKERS = ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "CURSOR_API_KEY")
-IGNORE_NAMES = frozenset({"__pycache__"})
-BYTECODE_SUFFIXES = {".pyc", ".pyo"}
 
 
 def load_plugin_manifest() -> dict[str, object]:
     return json.loads(PLUGIN_PATH.read_text(encoding="utf-8"))
-
-
-def validate_skill(skill_root: Path) -> list[str]:
-    errors: list[str] = []
-    skill_root = Path(skill_root)
-    if skill_root.name not in ALLOWED_SKILLS:
-        errors.append(f"unlisted skill is not accepted: {skill_root.name}")
-        return errors
-
-    skill_md = skill_root / "SKILL.md"
-    if not skill_md.is_file():
-        errors.append("missing SKILL.md")
-        return errors
-
-    skill_text = skill_md.read_text(encoding="utf-8")
-    frontmatter = _parse_frontmatter(skill_text)
-    if frontmatter.get("name") != skill_root.name:
-        errors.append("directory/frontmatter name mismatch")
-    if frontmatter.get("license") != "Apache-2.0":
-        errors.append("missing Apache declaration")
-    metadata = frontmatter.get("metadata")
-    version = metadata.get("version") if isinstance(metadata, dict) else None
-    if version != EXPECTED_VERSION:
-        errors.append("version mismatch")
-
-    license_path = skill_root / "LICENSE.txt"
-    if not license_path.is_file():
-        errors.append("missing Apache license")
-    else:
-        license_text = license_path.read_text(encoding="utf-8")
-        if "Apache License" not in license_text or "Version 2.0" not in license_text:
-            errors.append("missing Apache license")
-
-    openai_path = skill_root / "agents" / "openai.yaml"
-    if not openai_path.is_file():
-        errors.append("missing agents/openai.yaml")
-    else:
-        errors.extend(_validate_openai_yaml(openai_path, skill_root.name))
-
-    for path in _iter_payload_paths(skill_root):
-        relative = path.relative_to(skill_root).as_posix()
-        info = path.lstat()
-        if stat.S_ISLNK(info.st_mode):
-            errors.append(f"symlink is not allowed: {relative}")
-            continue
-        if any(part in FORBIDDEN_PAYLOAD_NAMES for part in path.relative_to(skill_root).parts):
-            errors.append(f"payload test/eval/maintainer file: {relative}")
-        if stat.S_ISDIR(info.st_mode):
-            continue
-        if not stat.S_ISREG(info.st_mode):
-            errors.append(f"special file is not allowed: {relative}")
-            continue
-        try:
-            content = path.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
-            continue
-        if HOME_PREFIX in content:
-            errors.append(f"personal macOS home-prefix path in {relative}")
-        if any(marker in content for marker in ARCHIVE_MARKERS):
-            errors.append(f"Archive checkout assumption in {relative}")
-        if any(marker in content for marker in CREDENTIAL_MARKERS):
-            errors.append(f"credential-like token in {relative}")
-        if any(identifier in content for identifier in LEGACY_IDENTIFIERS):
-            errors.append(f"legacy prefixed identifier in {relative}")
-        if path.suffix.lower() in {".md", ".markdown"}:
-            errors.extend(_check_relative_links(skill_root, relative, content))
-    return errors
-
-
-def stage_skill(skill_root: Path, destination: Path) -> Path:
-    errors = validate_skill(skill_root)
-    if errors:
-        raise ValueError("\n".join(errors))
-    target = Path(destination) / skill_root.name
-    shutil.copytree(
-        skill_root,
-        target,
-        ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"),
-        symlinks=False,
-    )
-    staged_errors = validate_skill(target)
-    if staged_errors:
-        raise ValueError("\n".join(staged_errors))
-    return target
-
-
-def _parse_frontmatter(text: str) -> dict[str, object]:
-    match = FRONTMATTER_RE.match(text)
-    if not match:
-        return {}
-    data: dict[str, object] = {}
-    metadata: dict[str, str] = {}
-    in_metadata = False
-    for raw_line in match.group(1).splitlines():
-        line = raw_line.rstrip()
-        if not line.strip():
-            continue
-        if line == "metadata:":
-            in_metadata = True
-            continue
-        if in_metadata and line.startswith("  ") and ":" in line:
-            key, value = line.strip().split(":", 1)
-            metadata[key.strip()] = value.strip().strip("\"'")
-            continue
-        in_metadata = False
-        if ":" not in line:
-            continue
-        key, value = line.split(":", 1)
-        data[key.strip()] = value.strip().strip("\"'")
-    if metadata:
-        data["metadata"] = metadata
-    return data
-
-
-def _validate_openai_yaml(path: Path, skill_name: str) -> list[str]:
-    errors: list[str] = []
-    text = path.read_text(encoding="utf-8")
-    for field in ("display_name:", "short_description:", "default_prompt:"):
-        if field not in text:
-            errors.append(f"missing {field[:-1]} in agents/openai.yaml")
-    if f"${skill_name}" not in text:
-        errors.append("default_prompt must mention the skill")
-    if "allow_implicit_invocation: true" not in text:
-        errors.append("invocation policy must match the skill activation gate")
-    if "allow_implicit_invocation: false" in text:
-        errors.append("invocation policy bypasses excluded near misses")
-    return errors
-
-
-def _check_relative_links(skill_root: Path, relative_path: str, text: str) -> list[str]:
-    errors: list[str] = []
-    base = (skill_root / relative_path).parent
-    for href in MARKDOWN_LINK_RE.findall(text):
-        target = href.strip()
-        if not target or target.startswith("#"):
-            continue
-        if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", target):
-            continue
-        path_part = target.split("#", 1)[0]
-        if not path_part:
-            continue
-        resolved = (base / path_part).resolve()
-        try:
-            resolved.relative_to(skill_root.resolve())
-        except ValueError:
-            errors.append(f"broken relative link in {relative_path}: {target}")
-            continue
-        if not resolved.exists():
-            errors.append(f"broken relative link in {relative_path}: {target}")
-    return errors
-
-
-def _iter_payload_paths(skill_root: Path):
-    for path in skill_root.rglob("*"):
-        parts = path.relative_to(skill_root).parts
-        if any(part in IGNORE_NAMES or Path(part).suffix in BYTECODE_SUFFIXES for part in parts):
-            continue
-        yield path
 
 
 def _copy_skill(source: Path, destination: Path) -> Path:
@@ -323,7 +160,15 @@ class InstalledPayloadTests(unittest.TestCase):
                 (skill / "agents" / "openai.yaml").is_file(),
                 f"{skill.name} openai.yaml is absent",
             )
-            self.assertEqual(validate_skill(skill), [])
+            self.assertTrue(
+                (skill / "CHANGELOG.md").is_file(),
+                f"{skill.name} CHANGELOG.md is absent",
+            )
+            self.assertTrue(
+                (skill / "release.toml").is_file(),
+                f"{skill.name} release.toml is absent",
+            )
+            self.assertEqual(validate_product(skill), [])
 
 
 class OpenAIMetadataTests(unittest.TestCase):
@@ -376,7 +221,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
                 encoding="utf-8",
             ),
         )
-        errors = "\n".join(validate_skill(staged))
+        errors = "\n".join(validate_product(staged))
         self.assertIn("directory/frontmatter name mismatch", errors)
 
     def test_rejects_version_mismatch(self) -> None:
@@ -385,15 +230,18 @@ class ValidateSkillRejectionTests(unittest.TestCase):
             source,
             lambda skill: (skill / "SKILL.md").write_text(
                 (skill / "SKILL.md").read_text(encoding="utf-8").replace(
-                    'version: "2.0.0"',
+                    'version: "2.0.1"',
                     'version: "1.0.0"',
                     1,
                 ),
                 encoding="utf-8",
             ),
         )
-        errors = "\n".join(validate_skill(staged))
-        self.assertIn("version mismatch", errors)
+        errors = "\n".join(validate_product(staged))
+        self.assertIn(
+            "release.toml version 2.0.1 != SKILL.md version 1.0.0",
+            errors,
+        )
 
     def test_rejects_missing_apache_declaration_and_license(self) -> None:
         source = SKILLS[0]
@@ -411,7 +259,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
                 (skill / "LICENSE.txt").unlink(missing_ok=True),
             ),
         )
-        errors = "\n".join(validate_skill(staged))
+        errors = "\n".join(validate_product(staged))
         self.assertIn("missing Apache declaration", errors)
         self.assertIn("missing Apache license", errors)
 
@@ -425,7 +273,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
                 encoding="utf-8",
             ),
         )
-        errors = "\n".join(validate_skill(staged))
+        errors = "\n".join(validate_product(staged))
         self.assertIn("broken relative link", errors)
 
     def test_rejects_personal_macos_home_prefix_path(self) -> None:
@@ -438,7 +286,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
                 encoding="utf-8",
             ),
         )
-        errors = "\n".join(validate_skill(staged))
+        errors = "\n".join(validate_product(staged))
         self.assertIn("personal macOS home-prefix path", errors)
 
     def test_rejects_archive_checkout_assumption(self) -> None:
@@ -451,17 +299,31 @@ class ValidateSkillRejectionTests(unittest.TestCase):
                 encoding="utf-8",
             ),
         )
-        errors = "\n".join(validate_skill(staged))
+        errors = "\n".join(validate_product(staged))
         self.assertIn("Archive checkout assumption", errors)
 
     def test_rejects_payload_test_eval_or_maintainer_file(self) -> None:
         source = SKILLS[0]
         staged = self._mutated(
             source,
-            lambda skill: (skill / "README.md").write_text("maintainer notes\n", encoding="utf-8"),
+            lambda skill: (
+                (skill / "evals").mkdir(),
+                (skill / "evals" / "case.json").write_text("{}\n", encoding="utf-8"),
+            ),
         )
-        errors = "\n".join(validate_skill(staged))
+        errors = "\n".join(validate_product(staged))
         self.assertIn("payload test/eval/maintainer file", errors)
+
+    def test_permits_readme_names(self) -> None:
+        source = SKILLS[0]
+        staged = self._mutated(
+            source,
+            lambda skill: (
+                (skill / "README.md").write_text("# Korean Writing Editor\n", encoding="utf-8"),
+                (skill / "README.en.md").write_text("# Korean Writing Editor\n", encoding="utf-8"),
+            ),
+        )
+        self.assertEqual(validate_product(staged), [])
 
     @unittest.skipIf(
         os.name == "nt" or not hasattr(os, "mkfifo"),
@@ -476,7 +338,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
                 os.mkfifo(skill / "pipe"),
             ),
         )
-        errors = "\n".join(validate_skill(staged))
+        errors = "\n".join(validate_product(staged))
         self.assertIn("symlink", errors)
         self.assertIn("special file", errors)
 
@@ -490,7 +352,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
                 encoding="utf-8",
             ),
         )
-        errors = "\n".join(validate_skill(staged))
+        errors = "\n".join(validate_product(staged))
         self.assertIn("credential-like token", errors)
 
     def test_rejects_a_third_skill(self) -> None:
@@ -510,7 +372,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
             "policy:\n  allow_implicit_invocation: true\n",
             encoding="utf-8",
         )
-        errors = "\n".join(validate_skill(skill))
+        errors = "\n".join(validate_product(skill))
         self.assertIn("unlisted skill", errors)
 
     def test_rejects_legacy_prefixed_identifier_in_payload(self) -> None:
@@ -523,35 +385,48 @@ class ValidateSkillRejectionTests(unittest.TestCase):
                 encoding="utf-8",
             ),
         )
-        errors = "\n".join(validate_skill(staged))
+        errors = "\n".join(validate_product(staged))
         self.assertIn("legacy prefixed identifier", errors)
 
 
-class StageSkillTests(unittest.TestCase):
-    def test_stage_skill_copies_a_valid_payload(self) -> None:
+class StageProductTests(unittest.TestCase):
+    def test_stage_product_copies_a_valid_payload(self) -> None:
         source = SKILLS[0]
         self.assertTrue(
             (source / "LICENSE.txt").is_file(),
             "korean-writing-editor LICENSE.txt is absent",
         )
         with tempfile.TemporaryDirectory() as directory:
-            staged = stage_skill(source, Path(directory))
+            staged = stage_product(source, Path(directory))
             self.assertEqual(staged.name, source.name)
             self.assertTrue((staged / "SKILL.md").is_file())
             self.assertTrue((staged / "LICENSE.txt").is_file())
+            self.assertTrue((staged / "CHANGELOG.md").is_file())
+            self.assertTrue((staged / "release.toml").is_file())
             self.assertTrue((staged / "agents" / "openai.yaml").is_file())
             self.assertFalse((staged / "README.md").exists())
             self.assertFalse((staged / "evals").exists())
-            self.assertEqual(validate_skill(staged), [])
+            self.assertEqual(validate_product(staged), [])
 
-    def test_stage_skill_rejects_invalid_payload(self) -> None:
+    def test_stage_product_rejects_invalid_payload(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             workspace = Path(directory)
             mutated = _copy_skill(SKILLS[0], workspace / "source")
-            (mutated / "README.md").write_text("maintainer notes\n", encoding="utf-8")
+            (mutated / "notes.txt").write_text("not part of the product\n", encoding="utf-8")
             with self.assertRaises(ValueError) as raised:
-                stage_skill(mutated, workspace / "dest")
-            self.assertIn("payload test/eval/maintainer file", str(raised.exception))
+                stage_product(mutated, workspace / "dest")
+            self.assertIn("unexpected top-level file: notes.txt", str(raised.exception))
+
+    def test_stage_product_permits_readme_names(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            mutated = _copy_skill(SKILLS[0], workspace / "source")
+            (mutated / "README.md").write_text("# Korean Writing Editor\n", encoding="utf-8")
+            (mutated / "README.en.md").write_text("# Korean Writing Editor\n", encoding="utf-8")
+            staged = stage_product(mutated, workspace / "dest")
+            self.assertTrue((staged / "README.md").is_file())
+            self.assertTrue((staged / "README.en.md").is_file())
+            self.assertEqual(validate_product(staged), [])
 
 
 class LegacyIdentifierAllowlistTests(unittest.TestCase):

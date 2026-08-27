@@ -1,0 +1,5 @@
+schema_version = 1
+name = "graspic"
+version = "3.0.0"
+tag_prefix = "graspic-v"
+license = "Apache-2.0"

@@ -61,7 +61,7 @@ class KoreanPackageTests(unittest.TestCase):
         self.assertIn("name: korean-writing-editor", text)
         self.assertIn("license: Apache-2.0", text)
         self.assertIn("compatibility:", text)
-        self.assertIn('version: "2.0.0"', text)
+        self.assertIn('version: "2.0.1"', text)
         for relative in PAYLOAD_FILES:
             self.assertTrue(
                 (SKILL_ROOT / relative).is_file(),

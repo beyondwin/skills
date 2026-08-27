@@ -1,0 +1,5 @@
+schema_version = 1
+name = "image-workbench"
+version = "2.0.1"
+tag_prefix = "image-workbench-v"
+license = "Apache-2.0"
