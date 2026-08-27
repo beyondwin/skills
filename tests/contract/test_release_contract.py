@@ -107,6 +107,22 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         errors = "\n".join(validate_product(root))
         self.assertIn("missing CHANGELOG.md", errors)
 
+    def test_rejects_missing_korean_readme(self) -> None:
+        root = self._copy("graspic")
+        readme = root / "README.md"
+        if readme.is_file():
+            readme.unlink()
+        errors = "\n".join(validate_product(root))
+        self.assertIn("missing README.md", errors)
+
+    def test_rejects_missing_english_readme(self) -> None:
+        root = self._copy("image-workbench")
+        readme = root / "README.en.md"
+        if readme.is_file():
+            readme.unlink()
+        errors = "\n".join(validate_product(root))
+        self.assertIn("missing README.en.md", errors)
+
     def test_rejects_missing_license(self) -> None:
         root = self._copy("korean-writing-editor")
         (root / "LICENSE.txt").unlink()

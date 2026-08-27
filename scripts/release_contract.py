@@ -213,6 +213,11 @@ def validate_product(skill_root: Path) -> list[str]:
         if UNRELEASED_RE.search(changelog_text) is None:
             errors.append("CHANGELOG.md missing ## Unreleased section")
 
+    if not (skill_root / "README.md").is_file():
+        errors.append("missing README.md")
+    if not (skill_root / "README.en.md").is_file():
+        errors.append("missing README.en.md")
+
     license_path = skill_root / "LICENSE.txt"
     if not license_path.is_file():
         errors.append("missing Apache license")
@@ -321,6 +326,8 @@ def _check_relative_links(skill_root: Path, relative_path: str, text: str) -> li
         try:
             resolved.relative_to(skill_root.resolve())
         except ValueError:
+            if Path(relative_path).name in {"README.md", "README.en.md"}:
+                continue
             errors.append(f"broken relative link in {relative_path}: {target}")
             continue
         if not resolved.exists():

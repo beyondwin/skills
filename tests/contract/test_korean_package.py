@@ -49,7 +49,8 @@ class KoreanPackageTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn(EXPECTED_SUMMARY, result.stdout)
             self.assertIn("mutation checks: PASS", result.stdout)
-            self.assertFalse((staged / "README.md").exists())
+            self.assertTrue((staged / "README.md").is_file())
+            self.assertTrue((staged / "README.en.md").is_file())
             self.assertFalse((staged / "CHANGE_PROTOCOL.md").exists())
             self.assertFalse((staged / "evals").exists())
 
@@ -68,7 +69,8 @@ class KoreanPackageTests(unittest.TestCase):
                 f"payload missing {relative}",
             )
         payload_names = {path.name for path in SKILL_ROOT.iterdir()}
-        self.assertNotIn("README.md", payload_names)
+        self.assertIn("README.md", payload_names)
+        self.assertIn("README.en.md", payload_names)
         self.assertNotIn("CHANGE_PROTOCOL.md", payload_names)
         self.assertNotIn("evals", payload_names)
 

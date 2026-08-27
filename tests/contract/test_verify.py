@@ -227,7 +227,12 @@ class VerifyStageTests(unittest.TestCase):
         names = [stage.name for stage in verify.stages("full", catalog=True)]
         self.assertEqual(
             names,
-            ["catalog-contract", "catalog-release-contract", "python-compile"],
+            [
+                "catalog-contract",
+                "catalog-release-contract",
+                "public-docs",
+                "python-compile",
+            ],
         )
 
     def test_skill_and_catalog_are_mutually_exclusive(self) -> None:
@@ -304,6 +309,14 @@ class VerifyStageTests(unittest.TestCase):
         self.assertNotIn("gh", stage.argv)
         self.assertNotIn("curl", stage.argv)
         self.assertNotIn("http", " ".join(stage.argv).lower())
+
+    def test_public_docs_runs_public_docs_module(self) -> None:
+        stage = self._stage("full", "public-docs", catalog=True)
+        self.assertEqual(stage.argv[0], sys.executable)
+        self.assertEqual(
+            stage.argv[1:4],
+            ("-m", "unittest", "tests.contract.test_public_docs"),
+        )
 
     def test_korean_package_runs_korean_package_module(self) -> None:
         stage = self._stage(

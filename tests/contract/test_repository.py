@@ -54,7 +54,7 @@ EXPECTED_PLUGIN: dict[str, object] = {
         ],
     },
 }
-FORBIDDEN_PAYLOAD_NAMES = frozenset({"README.md", "CHANGE_PROTOCOL.md", "evals", "tests"})
+FORBIDDEN_PAYLOAD_NAMES = frozenset({"CHANGE_PROTOCOL.md", "evals", "tests"})
 UNSUPPORTED_PLUGIN_FIELDS = ("hooks", "mcpServers", "apps")
 UNSUPPORTED_INTERFACE_FIELDS = (
     "privacyPolicyURL",
@@ -406,7 +406,8 @@ class StageProductTests(unittest.TestCase):
             self.assertTrue((staged / "CHANGELOG.md").is_file())
             self.assertTrue((staged / "release.toml").is_file())
             self.assertTrue((staged / "agents" / "openai.yaml").is_file())
-            self.assertFalse((staged / "README.md").exists())
+            self.assertTrue((staged / "README.md").is_file())
+            self.assertTrue((staged / "README.en.md").is_file())
             self.assertFalse((staged / "evals").exists())
             self.assertEqual(validate_product(staged), [])
 

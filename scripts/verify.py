@@ -52,6 +52,7 @@ PRODUCT_STAGE_NAMES = {
 CATALOG_STAGE_NAMES = (
     "catalog-contract",
     "catalog-release-contract",
+    "public-docs",
     "python-compile",
 )
 
@@ -154,6 +155,10 @@ def _catalog() -> dict[str, Stage]:
         "catalog-release-contract": Stage(
             "catalog-release-contract",
             _python("-m", "unittest", "tests.contract.test_catalog_release"),
+        ),
+        "public-docs": Stage(
+            "public-docs",
+            _python("-m", "unittest", "tests.contract.test_public_docs"),
         ),
     }
 
