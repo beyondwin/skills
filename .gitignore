@@ -16,12 +16,35 @@ generated-media/
 venv/
 env/
 
-# Coverage
+# Coverage and tool caches
 .coverage
 .coverage.*
 htmlcov/
 .pytest_cache/
 .mypy_cache/
+.ruff_cache/
+.tox/
 
 # Generated release archives (never commit)
 dist/
+
+# Playwright / browser tooling
+.playwright-mcp/
+test-results/
+playwright-report/
+blob-report/
+
+# Secrets and local env
+.env
+.env.*
+
+# OS and editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# Logs
+*.log
