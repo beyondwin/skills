@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-27
 
-**Status:** Design approved in chat; this spec awaits user review; implementation has not started
+**Status:** Spec approved in chat; implementation has not started
 
 **Install target:** `~/.grok/skills/graspic/` (personal skill)
 
