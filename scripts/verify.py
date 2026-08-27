@@ -8,10 +8,15 @@ import dataclasses
 import pathlib
 import subprocess
 import sys
-from typing import Iterable
+from collections.abc import Iterable, Sequence
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.release_contract import PRODUCT_NAMES  # noqa: E402
+
 PROFILES = ("full", "windows-portable")
 FULL_STAGE_NAMES = (
     "contract",
@@ -23,6 +28,28 @@ FULL_STAGE_NAMES = (
     "python-compile",
 )
 WINDOWS_EXCLUDED_STAGES = frozenset({"image-contract", "image-inspector"})
+PRODUCT_STAGE_NAMES = {
+    "korean-writing-editor": (
+        "product-contract",
+        "korean-package",
+        "korean-offline",
+        "korean-live-unit",
+        "korean-live-dry-run",
+        "python-compile",
+    ),
+    "image-workbench": (
+        "product-contract",
+        "image-contract",
+        "image-inspector",
+        "python-compile",
+    ),
+    "graspic": (
+        "product-contract",
+        "graspic-contract",
+        "python-compile",
+    ),
+}
+CATALOG_STAGE_NAMES = ("catalog-contract", "python-compile")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -104,17 +131,44 @@ def _catalog() -> dict[str, Stage]:
             "python-compile",
             _python("-m", "compileall", "-q", *_compile_paths()),
         ),
+        "product-contract": Stage(
+            "product-contract",
+            _python("-m", "unittest", "tests.contract.test_release_contract"),
+        ),
+        "korean-package": Stage(
+            "korean-package",
+            _python("-m", "unittest", "tests.contract.test_korean_package"),
+        ),
+        "graspic-contract": Stage(
+            "graspic-contract",
+            _python("-m", "unittest", "tests.contract.test_graspic"),
+        ),
+        "catalog-contract": Stage(
+            "catalog-contract",
+            _python("-m", "unittest", "tests.contract.test_catalog_contract"),
+        ),
     }
 
 
-def stages(profile: str) -> tuple[Stage, ...]:
+def stages(
+    profile: str, *, skill: str | None = None, catalog: bool = False
+) -> Sequence[Stage]:
     if profile not in PROFILES:
         raise ValueError(f"unknown profile: {profile}")
-    catalog = _catalog()
-    names = FULL_STAGE_NAMES
+    if skill is not None and catalog:
+        raise ValueError("skill and catalog selectors are mutually exclusive")
+    if skill is not None and skill not in PRODUCT_STAGE_NAMES:
+        raise ValueError(f"unknown skill: {skill}")
+    stage_map = _catalog()
+    if catalog:
+        names: tuple[str, ...] = CATALOG_STAGE_NAMES
+    elif skill is not None:
+        names = PRODUCT_STAGE_NAMES[skill]
+    else:
+        names = FULL_STAGE_NAMES
     if profile == "windows-portable":
         names = tuple(name for name in names if name not in WINDOWS_EXCLUDED_STAGES)
-    return tuple(catalog[name] for name in names)
+    return tuple(stage_map[name] for name in names)
 
 
 def run_stage(stage: Stage) -> int:
@@ -139,8 +193,11 @@ def main(argv: list[str] | None = None) -> int:
         default="full",
         help="verification profile (default: full)",
     )
+    target = parser.add_mutually_exclusive_group()
+    target.add_argument("--skill", choices=PRODUCT_NAMES)
+    target.add_argument("--catalog", action="store_true")
     args = parser.parse_args(argv)
-    return run_stages(stages(args.profile))
+    return run_stages(stages(args.profile, skill=args.skill, catalog=args.catalog))
 
 
 if __name__ == "__main__":

@@ -217,6 +217,116 @@ class VerifyStageTests(unittest.TestCase):
             self.assertIn("korean-offline", stderr.getvalue())
             self.assertFalse(marker.exists())
 
+    def test_graspic_selection_runs_only_shared_and_graspic_gates(self) -> None:
+        verify = self._load()
+        names = [stage.name for stage in verify.stages("full", skill="graspic")]
+        self.assertEqual(names, ["product-contract", "graspic-contract", "python-compile"])
+
+    def test_catalog_selection_runs_catalog_gates_only(self) -> None:
+        verify = self._load()
+        names = [stage.name for stage in verify.stages("full", catalog=True)]
+        self.assertEqual(names, ["catalog-contract", "python-compile"])
+
+    def test_skill_and_catalog_are_mutually_exclusive(self) -> None:
+        verify = self._load()
+        with self.assertRaises(ValueError):
+            verify.stages("full", skill="graspic", catalog=True)
+
+    def test_korean_selection_runs_only_shared_and_korean_gates(self) -> None:
+        verify = self._load()
+        names = [
+            stage.name
+            for stage in verify.stages("full", skill="korean-writing-editor")
+        ]
+        self.assertEqual(
+            names,
+            [
+                "product-contract",
+                "korean-package",
+                "korean-offline",
+                "korean-live-unit",
+                "korean-live-dry-run",
+                "python-compile",
+            ],
+        )
+
+    def test_image_selection_runs_only_shared_and_image_gates(self) -> None:
+        verify = self._load()
+        names = [
+            stage.name for stage in verify.stages("full", skill="image-workbench")
+        ]
+        self.assertEqual(
+            names,
+            [
+                "product-contract",
+                "image-contract",
+                "image-inspector",
+                "python-compile",
+            ],
+        )
+
+    def test_windows_profile_excludes_image_gates_after_skill_selection(self) -> None:
+        verify = self._load()
+        names = [
+            stage.name
+            for stage in verify.stages("windows-portable", skill="image-workbench")
+        ]
+        self.assertEqual(names, ["product-contract", "python-compile"])
+        self.assertNotIn("image-contract", names)
+        self.assertNotIn("image-inspector", names)
+
+    def test_product_contract_runs_release_contract_module(self) -> None:
+        stage = self._stage("full", "product-contract", skill="graspic")
+        self.assertEqual(stage.argv[0], sys.executable)
+        self.assertEqual(
+            stage.argv[1:4],
+            ("-m", "unittest", "tests.contract.test_release_contract"),
+        )
+
+    def test_catalog_contract_runs_catalog_contract_module(self) -> None:
+        stage = self._stage("full", "catalog-contract", catalog=True)
+        self.assertEqual(stage.argv[0], sys.executable)
+        self.assertEqual(
+            stage.argv[1:4],
+            ("-m", "unittest", "tests.contract.test_catalog_contract"),
+        )
+
+    def test_korean_package_runs_korean_package_module(self) -> None:
+        stage = self._stage(
+            "full", "korean-package", skill="korean-writing-editor"
+        )
+        self.assertEqual(
+            stage.argv[1:4],
+            ("-m", "unittest", "tests.contract.test_korean_package"),
+        )
+
+    def test_graspic_contract_runs_graspic_module(self) -> None:
+        stage = self._stage("full", "graspic-contract", skill="graspic")
+        self.assertEqual(
+            stage.argv[1:4],
+            ("-m", "unittest", "tests.contract.test_graspic"),
+        )
+
+    def test_selected_stages_use_sys_executable_and_tuple_argv(self) -> None:
+        verify = self._load()
+        selections = (
+            ("full", "graspic", False),
+            ("full", "korean-writing-editor", False),
+            ("full", "image-workbench", False),
+            ("windows-portable", "image-workbench", False),
+            ("full", None, True),
+        )
+        for profile, skill, catalog in selections:
+            for stage in verify.stages(profile, skill=skill, catalog=catalog):
+                self.assertIsInstance(stage.argv, tuple)
+                self.assertTrue(stage.argv, stage.name)
+                self.assertEqual(stage.argv[0], sys.executable)
+                self.assertEqual(stage.cwd, verify.ROOT)
+                joined = " ".join(stage.argv)
+                self.assertNotIn("&&", joined)
+                self.assertNotIn("|", joined)
+                self.assertNotIn(";", joined)
+
     def test_cli_rejects_unknown_profile(self) -> None:
         verify = self._load()
         stderr = io.StringIO()
@@ -225,13 +335,31 @@ class VerifyStageTests(unittest.TestCase):
                 verify.main(["--profile", "linux"])
         self.assertNotEqual(raised.exception.code, 0)
 
+    def test_cli_rejects_unknown_skill(self) -> None:
+        verify = self._load()
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            with self.assertRaises(SystemExit) as raised:
+                verify.main(["--skill", "not-a-skill"])
+        self.assertNotEqual(raised.exception.code, 0)
+
+    def test_cli_rejects_conflicting_selectors(self) -> None:
+        verify = self._load()
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            with self.assertRaises(SystemExit) as raised:
+                verify.main(["--skill", "graspic", "--catalog"])
+        self.assertNotEqual(raised.exception.code, 0)
+
     def test_cli_defaults_to_full_profile(self) -> None:
         verify = self._load()
-        recorded: list[str] = []
+        recorded: list[tuple[str, str | None, bool]] = []
         original = verify.stages
 
-        def fake_stages(profile: str):
-            recorded.append(profile)
+        def fake_stages(
+            profile: str, *, skill: str | None = None, catalog: bool = False
+        ):
+            recorded.append((profile, skill, catalog))
             return ()
 
         verify.stages = fake_stages  # type: ignore[method-assign]
@@ -239,7 +367,43 @@ class VerifyStageTests(unittest.TestCase):
             self.assertEqual(verify.main([]), 0)
         finally:
             verify.stages = original  # type: ignore[method-assign]
-        self.assertEqual(recorded, ["full"])
+        self.assertEqual(recorded, [("full", None, False)])
+
+    def test_cli_passes_skill_selector(self) -> None:
+        verify = self._load()
+        recorded: list[tuple[str, str | None, bool]] = []
+        original = verify.stages
+
+        def fake_stages(
+            profile: str, *, skill: str | None = None, catalog: bool = False
+        ):
+            recorded.append((profile, skill, catalog))
+            return ()
+
+        verify.stages = fake_stages  # type: ignore[method-assign]
+        try:
+            self.assertEqual(verify.main(["--skill", "graspic"]), 0)
+        finally:
+            verify.stages = original  # type: ignore[method-assign]
+        self.assertEqual(recorded, [("full", "graspic", False)])
+
+    def test_cli_passes_catalog_selector(self) -> None:
+        verify = self._load()
+        recorded: list[tuple[str, str | None, bool]] = []
+        original = verify.stages
+
+        def fake_stages(
+            profile: str, *, skill: str | None = None, catalog: bool = False
+        ):
+            recorded.append((profile, skill, catalog))
+            return ()
+
+        verify.stages = fake_stages  # type: ignore[method-assign]
+        try:
+            self.assertEqual(verify.main(["--catalog"]), 0)
+        finally:
+            verify.stages = original  # type: ignore[method-assign]
+        self.assertEqual(recorded, [("full", None, True)])
 
     def test_windows_profile_keeps_korean_live_unit(self) -> None:
         verify = self._load()
@@ -272,9 +436,21 @@ class VerifyStageTests(unittest.TestCase):
             "Unix-only live tests must skipIf FIFO/fcntl/dir_fd fixtures on Windows",
         )
 
-    def _stage(self, profile: str, name: str):
+    def _stage(
+        self,
+        profile: str,
+        name: str,
+        *,
+        skill: str | None = None,
+        catalog: bool = False,
+    ):
         verify = self._load()
-        for stage in verify.stages(profile):
+        kwargs: dict[str, str | bool] = {}
+        if skill is not None:
+            kwargs["skill"] = skill
+        if catalog:
+            kwargs["catalog"] = catalog
+        for stage in verify.stages(profile, **kwargs):
             if stage.name == name:
                 return stage
         self.fail(f"profile {profile!r} is missing stage {name!r}")
