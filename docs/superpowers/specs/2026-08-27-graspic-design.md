@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-27
 
-**Status:** Spec approved in chat; implementation has not started
+**Status:** Spec approved; personal skill installed at ~/.grok/skills/graspic; not added to the public catalog
 
 **Install target:** `~/.grok/skills/graspic/` (personal skill)
 
