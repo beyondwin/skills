@@ -1,8 +1,8 @@
 # Visuals
 
-Default: GitHub-flavored markdown + mermaid. The hop list must read if mermaid fails.
+Default: mermaid inside the published page, in `<pre class="mermaid">` blocks. Artifacts draw it. The hop list must still read on its own — a terminal prints the diagram as source.
 
-Hosts that render mermaid typically draw: flowchart/graph, sequenceDiagram, stateDiagram. Other types may show as source.
+Stick to flowchart/graph, sequenceDiagram, stateDiagram. Other types may show as source.
 
 Rules:
 
@@ -17,6 +17,6 @@ Rules:
 - 절차: boxes are states, not commands
 - 되먹임: loops, not a sequence that hides them
 - Mind map only for “what exists in this field”
-- No HTML, no `<div`, no `<style`, no image_gen for structure
+- The page's HTML is frame only: no boxes hand-drawn in `<div>`, no image_gen for structure. Mermaid draws every map
 
 Redraw if a hop has no box, a box has no hop, 그림 uses an unglossed term, or 허점 is a different machine.

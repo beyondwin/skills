@@ -1,6 +1,6 @@
 # Output
 
-Chat is the artifact. Do not write a spec file per explanation. Save to a file only if the user asks. Visual channel is mermaid + GFM, not HTML artifacts.
+The page is the artifact: one published page per slice, republished as the rung climbs. Publish mechanics live in `## Deliverable` in `SKILL.md`. Do not write a spec file beside it. Visual channel is mermaid; HTML only frames it.
 
 Every rung fills the same slots. Empty slots are allowed. Contradictory fillings are not.
 
@@ -46,6 +46,7 @@ Chrome order is authoritative. Length is a budget, not a target. Restating the s
 - 지도: mermaid; caption is the diagram’s claim
 - 본문: type-specific; see recipes below
 - 지금 다루지 않은 것: 2–5 adjacent slices as prose links, not a second essay
+- On the page these heads become sections in this order. 한 줄 sits under the title as the standing claim, 지도 renders in `<pre class="mermaid">`, and `다음:` is the one part that also belongs in chat beside the link
 - If a metaphor was used, include **이 그림이 깨지는 지점** as a short section. At 허점 that *is* the body; do not duplicate a cute “breaks at” box.
 
 ## Rung overlay

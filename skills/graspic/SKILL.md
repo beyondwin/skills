@@ -2,10 +2,10 @@
 name: graspic
 description: Use when the user wants to grasp how something works, asks for a visual or flow explanation, types /graspic, names a rung 그림/길/뼈대/허점, or asks in Korean to 원리부터 / 그림으로 / 어떻게 돌아가 / 감이 안 와. Do not use for debugging, implementing, reviewing, translating, one-line factual lookups, or child-register explainers.
 license: Apache-2.0
-compatibility: Requires local Agent Skills file access. Mermaid is best-effort; hop lists must remain readable if the host cannot draw diagrams.
+compatibility: Requires local Agent Skills file access and the Artifact tool. The map ships as mermaid: artifacts draw it, terminals print it as source, so the hop list must read on its own.
 argument-hint: "<topic> [그림|길|뼈대|허점]"
 metadata:
-  version: "2.0.0"
+  version: "3.0.0"
   updated_at: "2026-08-27"
 ---
 
@@ -70,9 +70,24 @@ One next move only:
 - 다른 각도 (비교 / 절차 / 실패)
 - 한 줄로 되말하기
 
+## Deliverable
+
+The explanation is a published page, not terminal scrollback. Mermaid stays the visual channel — artifacts draw it, terminals print it as source.
+
+1. Load `artifact-design` before writing the file. Every time, no exceptions.
+2. Write the chrome from `references/output.md` as one HTML page. Every map goes in a `<pre class="mermaid">` block.
+3. Publish with the Artifact tool. `<title>` is `{slice}` plus the rung word, nothing appended.
+4. Chat keeps three things: the intent line, the 한 줄, and the link. Restating the page in the terminal is the padding `korean.md` bans.
+
+**One slice, one artifact.** Climbing 그림 → 길 → 뼈대 → 허점 republishes the SAME file path, so the URL, the title, and the favicon hold. Hop IDs are already stable across rungs and the page is where that promise becomes visible; a new URL per rung breaks it.
+
+The four next moves in `## After EXPLAIN` do not each earn a page. 다음 칸 and 흐린 홉 하나 republish the page. 한 줄로 되말하기 answers in chat. 다른 각도 changes the type, so the chrome changes — that one is a new page.
+
+Terminal only when the user asks for it (`채팅으로만`, `페이지 말고`): then follow `references/output.md` as plain markdown and skip the publish.
+
 ## EXPLAIN
 
-Read `references/output.md`, then `references/visuals.md`. If Korean → `references/korean.md`. If metaphor → the isomorphism section in `output.md`. If medical/legal/financial → `references/stakes.md`.
+Read `references/output.md`, then `references/visuals.md`, then the `artifact-design` skill — the output lands as a page, so `## Deliverable` above is part of this step, not an afterthought. If Korean → `references/korean.md`. If metaphor → the isomorphism section in `output.md`. If medical/legal/financial → `references/stakes.md`.
 
 ## Dump gate
 
@@ -80,7 +95,9 @@ Read `references/output.md`, then `references/visuals.md`. If Korean → `refere
 | --- | --- |
 | They asked 설명해줘 so answer now | Wrong type/rung wastes the answer. One question. |
 | Topic is obvious | Announce type+rung. If they specified both, 바로. |
-| HTML will look nicer | HTML tags are not the visual channel. Mermaid is. |
+| I'll draw the boxes in HTML | HTML frames the page. Mermaid draws the map. Hand-authored boxes are not a diagram. |
+| It's a short answer, chat is enough | The page is the default. Only 한 줄로 되말하기 stays in chat. |
+| I'll publish first and fix the rung after | The gate comes first. A page at the wrong rung is a wrong page. |
 | They asked 동물로 so use animals | Animals requested still means no animals. Map is mermaid + table. Analogy vehicle is not a mascot. |
 | Depth 그림 means simpler than true | 그림 is a smaller true map. False-simple is a bug. |
 | They said 쉽게 so pick 그림 | rebase/TTL/Raft still 뼈대. 쉽게 is an alias, not the word 그림. |
@@ -92,7 +109,9 @@ Read `references/output.md`, then `references/visuals.md`. If Korean → `refere
 
 - Essay in the same turn as the first classification when a slot is missing
 - `/eli5` handled as this skill
-- `여러분`, `답니다`, animals, HTML artifacts
+- `여러분`, `답니다`, animals, hand-drawn HTML boxes in place of mermaid
+- The explanation left in terminal scrollback with no page
+- A second URL for the next rung of the same slice
 - 허점 that cannot collapse to 그림
 
 All of these mean: stop, classify, restart the gate.
