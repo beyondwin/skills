@@ -49,7 +49,11 @@ PRODUCT_STAGE_NAMES = {
         "python-compile",
     ),
 }
-CATALOG_STAGE_NAMES = ("catalog-contract", "python-compile")
+CATALOG_STAGE_NAMES = (
+    "catalog-contract",
+    "catalog-release-contract",
+    "python-compile",
+)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -146,6 +150,10 @@ def _catalog() -> dict[str, Stage]:
         "catalog-contract": Stage(
             "catalog-contract",
             _python("-m", "unittest", "tests.contract.test_catalog_contract"),
+        ),
+        "catalog-release-contract": Stage(
+            "catalog-release-contract",
+            _python("-m", "unittest", "tests.contract.test_catalog_release"),
         ),
     }
 

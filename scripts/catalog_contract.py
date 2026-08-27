@@ -3,9 +3,23 @@ from __future__ import annotations
 import dataclasses
 import json
 import re
+import tempfile
 import tomllib
 from collections.abc import Sequence
 from pathlib import Path
+
+from scripts.release_archive import (
+    extract_archive,
+    sha256_file,
+    verify_product_archive,
+    _parse_checksums,
+)
+from scripts.release_contract import (
+    load_product_release,
+    parse_skill_frontmatter,
+    payload_sha256,
+    validate_product,
+)
 
 
 SEMVER_RE = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
@@ -69,6 +83,14 @@ def load_catalog_lock(path: Path) -> CatalogLock:
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     skills = tuple(LockedSkill(**item) for item in data["skills"])
     return CatalogLock(schema_version=int(data["schema_version"]), skills=skills)
+
+
+def catalog_artifact_name(release: CatalogRelease) -> str:
+    return f"{release.name}-v{release.version}.zip"
+
+
+def locked_artifact_name(item: LockedSkill) -> str:
+    return f"{item.name}-v{item.version}.zip"
 
 
 def validate_catalog(root: Path) -> list[str]:
@@ -195,3 +217,157 @@ def _validate_locked_skill(item: LockedSkill) -> list[str]:
     else:
         errors.append(f"invalid release kind: {item.release_kind}")
     return errors
+
+
+def validate_catalog_inputs(root: Path, input_dir: Path) -> list[str]:
+    root = Path(root)
+    input_dir = Path(input_dir)
+    errors = validate_catalog(root)
+    if errors:
+        return errors
+    if not input_dir.is_dir():
+        return [f"input directory is not a directory: {input_dir}"]
+
+    lock = load_catalog_lock(root / "catalog" / "catalog.lock.json")
+    expected_zips = {locked_artifact_name(item) for item in lock.skills}
+    errors.extend(_input_directory_errors(input_dir, expected_zips | {"SHA256SUMS"}))
+    checksums_path = input_dir / "SHA256SUMS"
+    if not checksums_path.is_file():
+        errors.append("missing SHA256SUMS")
+        return errors
+    parse_errors: list[str] = []
+    try:
+        parsed = _parse_checksums(checksums_path, parse_errors)
+    except (OSError, UnicodeError) as exc:
+        errors.append(f"SHA256SUMS: {exc}")
+        return errors
+    if parse_errors:
+        errors.extend(parse_errors)
+        return errors
+    missing_rows = [name for name in sorted(expected_zips) if name not in parsed]
+    if missing_rows:
+        errors.append("SHA256SUMS missing checksum row: " + ", ".join(missing_rows))
+    for name in sorted(expected_zips):
+        archive = input_dir / name
+        if not archive.is_file():
+            errors.append(f"missing archive: {name}")
+            continue
+        if name in parsed and sha256_file(archive) != parsed[name]:
+            errors.append(f"checksum mismatch: {name}")
+    if errors:
+        return errors
+
+    for item in lock.skills:
+        errors.extend(_validate_locked_archive(root, input_dir / locked_artifact_name(item), item))
+    return errors
+
+
+def locked_extract_errors(root: Path, skill_root: Path, item: LockedSkill) -> list[str]:
+    skill_root = Path(skill_root)
+    errors: list[str] = []
+    if item.release_kind == "legacy-bundle":
+        errors.extend(_legacy_extract_errors(skill_root, item))
+    elif item.release_kind == "independent":
+        errors.extend(_independent_extract_errors(root, skill_root, item))
+    else:
+        errors.append(f"invalid release kind: {item.release_kind}")
+    try:
+        digest = payload_sha256(skill_root)
+    except ValueError as exc:
+        errors.append(f"{item.name}: {exc}")
+        return errors
+    if digest != item.payload_sha256:
+        errors.append(f"payload hash mismatch: {item.name}")
+    return errors
+
+
+def _input_directory_errors(directory: Path, expected: set[str]) -> list[str]:
+    errors: list[str] = []
+    for path in sorted(directory.iterdir(), key=lambda item: item.name):
+        if path.name in expected:
+            continue
+        if path.is_dir():
+            errors.append(f"unexpected directory in input directory: {path.name}")
+        elif path.suffix == ".zip":
+            errors.append(f"unexpected zip in input directory: {path.name}")
+        else:
+            errors.append(f"unexpected file in input directory: {path.name}")
+    return errors
+
+
+def _validate_locked_archive(root: Path, archive: Path, item: LockedSkill) -> list[str]:
+    errors = verify_product_archive(archive, item.name)
+    if errors:
+        return errors
+    with tempfile.TemporaryDirectory() as directory:
+        destination = Path(directory)
+        extract_errors = extract_archive(archive, destination)
+        if extract_errors:
+            return extract_errors
+        skill_root = destination / item.name
+        if not skill_root.is_dir():
+            return [f"missing extracted skill: {item.name}"]
+        errors = locked_extract_errors(root, skill_root, item)
+        if errors:
+            return errors
+        if item.release_kind == "independent":
+            from scripts.release import _run_product_smoke
+
+            errors.extend(_run_product_smoke(root, item.name, skill_root))
+        return errors
+
+
+def _legacy_extract_errors(skill_root: Path, item: LockedSkill) -> list[str]:
+    errors: list[str] = []
+    if item.name not in LEGACY_BUNDLE_PRODUCTS:
+        errors.append(f"legacy-bundle is not permitted for {item.name}")
+    if item.version != LEGACY_BUNDLE_VERSION:
+        errors.append(
+            f"legacy-bundle version {item.version} != {LEGACY_BUNDLE_VERSION}"
+        )
+    version = _skill_version(skill_root)
+    if version != item.version:
+        errors.append(f"{item.name}: SKILL.md version {version} != {item.version}")
+    return errors
+
+
+def _independent_extract_errors(_root: Path, skill_root: Path, item: LockedSkill) -> list[str]:
+    errors: list[str] = []
+    expected_tag = f"{item.name}-v{item.version}"
+    if item.tag != expected_tag:
+        errors.append(
+            f"independent tag {item.tag} is not product-qualified; expected {expected_tag}"
+        )
+    release_path = skill_root / "release.toml"
+    if not release_path.is_file():
+        errors.append(f"{item.name}: missing release.toml")
+        return errors
+    try:
+        extracted = load_product_release(skill_root)
+    except (OSError, ValueError, KeyError) as exc:
+        return [f"{item.name}: release.toml: {exc}"]
+    if extracted.tag != expected_tag:
+        errors.append(
+            f"independent tag {extracted.tag} is not product-qualified; expected {expected_tag}"
+        )
+    if extracted.version != item.version:
+        errors.append(
+            f"metadata version mismatch: {extracted.version} != {item.version}"
+        )
+    version = _skill_version(skill_root)
+    if version != item.version:
+        errors.append(f"{item.name}: SKILL.md version {version} != {item.version}")
+    errors.extend(validate_product(skill_root))
+    return errors
+
+
+def _skill_version(skill_root: Path) -> str | None:
+    skill_md = skill_root / "SKILL.md"
+    if not skill_md.is_file():
+        return None
+    frontmatter = parse_skill_frontmatter(skill_md.read_text(encoding="utf-8"))
+    metadata = frontmatter.get("metadata")
+    if not isinstance(metadata, dict):
+        return None
+    version = metadata.get("version")
+    return str(version) if version is not None else None

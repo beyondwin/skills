@@ -225,7 +225,10 @@ class VerifyStageTests(unittest.TestCase):
     def test_catalog_selection_runs_catalog_gates_only(self) -> None:
         verify = self._load()
         names = [stage.name for stage in verify.stages("full", catalog=True)]
-        self.assertEqual(names, ["catalog-contract", "python-compile"])
+        self.assertEqual(
+            names,
+            ["catalog-contract", "catalog-release-contract", "python-compile"],
+        )
 
     def test_skill_and_catalog_are_mutually_exclusive(self) -> None:
         verify = self._load()
@@ -290,6 +293,17 @@ class VerifyStageTests(unittest.TestCase):
             stage.argv[1:4],
             ("-m", "unittest", "tests.contract.test_catalog_contract"),
         )
+
+    def test_catalog_release_contract_runs_catalog_release_module(self) -> None:
+        stage = self._stage("full", "catalog-release-contract", catalog=True)
+        self.assertEqual(stage.argv[0], sys.executable)
+        self.assertEqual(
+            stage.argv[1:4],
+            ("-m", "unittest", "tests.contract.test_catalog_release"),
+        )
+        self.assertNotIn("gh", stage.argv)
+        self.assertNotIn("curl", stage.argv)
+        self.assertNotIn("http", " ".join(stage.argv).lower())
 
     def test_korean_package_runs_korean_package_module(self) -> None:
         stage = self._stage(
