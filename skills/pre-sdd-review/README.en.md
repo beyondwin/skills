@@ -49,15 +49,12 @@ Pass the plan path as the primary input and name the design document as well:
 $pre-sdd-review docs/history/specs/<design>.md docs/history/plans/<plan>.md
 ```
 
+Use `review-only` only when you want the first review verdict without repair;
+its invocation is in Expected result.
+
 During resolution, the plan path is primary and its `**Spec:**` field selects
 the resolved design specification. A separately supplied design path does not
 override that authority.
-
-Use `review-only` only when you want the first review verdict without repair:
-
-```text
-$pre-sdd-review review-only docs/history/specs/<design>.md docs/history/plans/<plan>.md
-```
 
 ## Expected result
 
@@ -80,6 +77,23 @@ effects such as publishing, billing, messaging, or production mutations.
 Changing either document invalidates its fingerprints and requires re-review.
 A repository change also requires re-review when it changes evidence for a
 path, command, interface, or blast-radius claim.
+
+### Contract
+
+- `primary-input`: `plan-primary`, `spec-resolves-design`
+- `editable-surfaces`: `resolved-design-specification`, `resolved-implementation-plan`
+- `review-only`: `no-mutation`
+- `repair-flow`: `review-repair-scoped-re-review`
+- `repair-passes`: `at-most-two`
+- `verdicts`: `READY`, `REVISE`, `BLOCKED`
+- `second-reviewer`: `conditional-only`
+- `risk-triggers`: `framework-runtime-removal`, `schema-data-deletion`, `auth-security-boundary`, `data-boundary-change`, `external-side-effects`
+- `freshness`: `fingerprints`, `content-change-invalidates`
+- `sdd`: `outer-request-implementation-only`
+
+```text
+$pre-sdd-review review-only docs/history/specs/<design>.md docs/history/plans/<plan>.md
+```
 
 ## Safety and privacy
 

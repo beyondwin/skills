@@ -35,14 +35,11 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-re
 $pre-sdd-review docs/history/specs/<design>.md docs/history/plans/<plan>.md
 ```
 
+`review-only`는 명시 모드입니다. 변경 없이 첫 판정만 원할 때는 주요 흐름의
+`review-only` 호출을 사용합니다.
+
 실제 해석에서는 계획 경로가 primary이고, 그 계획의 `**Spec:**` 필드가 가리키는
 해결된 설계 명세를 검토합니다. 인자로 쓴 설계 경로가 그 결정을 바꾸지 않습니다.
-
-`review-only`는 명시 모드입니다.
-
-```text
-$pre-sdd-review review-only docs/history/specs/<design>.md docs/history/plans/<plan>.md
-```
 
 ## 주요 흐름
 
@@ -62,6 +59,25 @@ $pre-sdd-review review-only docs/history/specs/<design>.md docs/history/plans/<p
 있을 때만 두 번째 집중 검토자를 부릅니다. 설계나 계획 내용이 바뀌면 문서 지문이
 무효화되어 다시 검토해야 합니다. 문서 밖 Git 변경도 경로·명령·인터페이스·영향 범위
 근거를 바꾸면 다시 검토합니다.
+
+### Contract
+
+- `primary-input`: `plan-primary`, `spec-resolves-design`
+- `editable-surfaces`: `resolved-design-specification`, `resolved-implementation-plan`
+- `review-only`: `no-mutation`
+- `repair-flow`: `review-repair-scoped-re-review`
+- `repair-passes`: `at-most-two`
+- `verdicts`: `READY`, `REVISE`, `BLOCKED`
+- `second-reviewer`: `conditional-only`
+- `risk-triggers`: `framework-runtime-removal`, `schema-data-deletion`, `auth-security-boundary`, `data-boundary-change`, `external-side-effects`
+- `freshness`: `fingerprints`, `content-change-invalidates`
+- `sdd`: `outer-request-implementation-only`
+
+`review-only`는 명시 모드이며 아무 파일도 변경하지 않습니다.
+
+```text
+$pre-sdd-review review-only docs/history/specs/<design>.md docs/history/plans/<plan>.md
+```
 
 ## 안전과 개인정보
 

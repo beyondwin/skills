@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+import tomllib
 import unittest
 from pathlib import Path
 
@@ -12,6 +13,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from scripts.lib.product_contract import parse_skill_frontmatter  # noqa: E402
+from scripts.lib.product_registry import load_registry  # noqa: E402
 
 
 SKILL = ROOT / "skills" / "pre-sdd-review"
@@ -283,10 +285,203 @@ ENGLISH_README_HEADINGS = (
     "## Changelog and maintainer docs",
 )
 MAINTAINERS = ROOT / "docs" / "maintainers" / "products" / "pre-sdd-review"
+DEFAULT_FIRST_CALL = (
+    "$pre-sdd-review docs/history/specs/<design>.md "
+    "docs/history/plans/<plan>.md"
+)
+README_CONTRACT = (
+    ("primary-input", ("plan-primary", "spec-resolves-design")),
+    ("editable-surfaces", ("resolved-design-specification", "resolved-implementation-plan")),
+    ("review-only", ("no-mutation",)),
+    ("repair-flow", ("review-repair-scoped-re-review",)),
+    ("repair-passes", ("at-most-two",)),
+    ("verdicts", ("READY", "REVISE", "BLOCKED")),
+    ("second-reviewer", ("conditional-only",)),
+    (
+        "risk-triggers",
+        (
+            "framework-runtime-removal",
+            "schema-data-deletion",
+            "auth-security-boundary",
+            "data-boundary-change",
+            "external-side-effects",
+        ),
+    ),
+    ("freshness", ("fingerprints", "content-change-invalidates")),
+    ("sdd", ("outer-request-implementation-only",)),
+)
 
 
 def section(text: str, start: str, end: str) -> str:
     return text[text.index(start) : text.index(end, text.index(start) + len(start))]
+
+
+def markdown_section(text: str, heading: str) -> str:
+    start = text.index(heading)
+    next_heading = re.search(r"^## (?!#)", text[start + len(heading) :], re.MULTILINE)
+    end = len(text) if next_heading is None else start + len(heading) + next_heading.start()
+    return text[start:end]
+
+
+def subsection(text: str, heading: str) -> str:
+    if heading not in text:
+        return ""
+    start = text.index(heading)
+    next_heading = re.search(r"^### ", text[start + len(heading) :], re.MULTILINE)
+    end = len(text) if next_heading is None else start + len(heading) + next_heading.start()
+    return text[start:end]
+
+
+def pre_sdd_invocations(text: str) -> tuple[str, ...]:
+    return tuple(re.findall(r"^\$pre-sdd-review[^\n]*$", text, re.MULTILINE))
+
+
+def parse_readme_contract(text: str) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    contract = subsection(text, "### Contract")
+    entries = re.findall(r"^- `([a-z-]+)`: (.+)$", contract, re.MULTILINE)
+    return tuple((name, tuple(re.findall(r"`([A-Za-z0-9-]+)`", value))) for name, value in entries)
+
+
+def readme_contract_errors(text: str) -> tuple[str, ...]:
+    errors: list[str] = []
+    first_call_heading = "## First call" if "## First call" in text else "## 1분 설치와 첫 호출"
+    first_call = markdown_section(text, first_call_heading)
+    if pre_sdd_invocations(first_call) != (DEFAULT_FIRST_CALL,):
+        errors.append("first call must contain only the approved invocation")
+    if parse_readme_contract(text) != README_CONTRACT:
+        errors.append("bounded README contract differs from the product contract")
+    return tuple(errors)
+
+
+def numbered_items(text: str) -> tuple[str, ...]:
+    return tuple(re.findall(r"^\d+\. (.+?)[.;]$", text, re.MULTILINE))
+
+
+def backtick_list(text: str) -> tuple[str, ...]:
+    return tuple(re.findall(r"^- `([^`]+)`", text, re.MULTILINE))
+
+
+def maintainer_contract_errors(text: str) -> tuple[str, ...]:
+    errors: list[str] = []
+    authority = subsection(text, "### Authority order")
+    if tuple(re.findall(r"^\d+\. (.+)$", authority, re.MULTILINE)) != AUTHORITY_ORDER:
+        errors.append("authority order differs")
+    if numbered_items(subsection(text, "### Editable paths")) != MUTATION_ALLOWLIST:
+        errors.append("editable paths differ")
+    if backtick_list(subsection(text, "### Excluded surfaces")) != MUTATION_EXCLUSIONS:
+        errors.append("excluded surfaces differ")
+    if numbered_items(subsection(text, "### Review passes")) != (
+        "authority trace",
+        "repository grounding",
+        "cross-artifact consistency",
+        "verification falsification",
+        "readiness verdict",
+    ):
+        errors.append("review passes differ")
+    if backtick_list(subsection(text, "### Severities")) != FINDING_SEVERITIES:
+        errors.append("severities differ")
+    if backtick_list(subsection(text, "### Finding classes")) != FINDING_CLASSES:
+        errors.append("finding classes differ")
+    risks = subsection(text, "### Conditional risk triggers")
+    if backtick_list(risks) != RISK_TRIGGERS or "conditional only" not in risks:
+        errors.append("risk triggers must be conditional and exact")
+    verdicts = subsection(text, "### Verdicts")
+    for verdict, meaning in (
+        ("READY", "no unresolved finding requires invention"),
+        ("REVISE", "repairable material document defect"),
+        ("BLOCKED", "required input, authority, or repository evidence is unavailable"),
+    ):
+        if f"`{verdict}`" not in verdicts or meaning not in verdicts:
+            errors.append(f"{verdict} definition differs")
+    freshness = subsection(text, "### Freshness")
+    for field in (
+        "repository-relative design path and SHA-256",
+        "repository-relative plan path and SHA-256",
+        "Git `HEAD` (or `unborn`)",
+        "worktree was clean or dirty",
+        "review timestamp",
+        "final verdict",
+        "Any content change to either resolved document invalidates `READY`",
+    ):
+        if field not in freshness:
+            errors.append("freshness contract differs")
+            break
+    handoff = subsection(text, "### SDD handoff")
+    if "Do not start SDD unless the outer request explicitly asks for implementation" not in handoff:
+        errors.append("SDD handoff differs")
+    return tuple(errors)
+
+
+def fixture_inventory() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    return tuple(
+        (path.name, tuple(sorted(file.name for file in path.iterdir())))
+        for path in sorted(FIXTURES.iterdir())
+    )
+
+
+def parse_fixture_inventory(text: str) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    inventory = subsection(text, "### Fixture inventory")
+    return tuple(
+        (name, tuple(re.findall(r"`([^`]+)`", files)))
+        for name, files in re.findall(r"^- `([^`]+)`: (.+)$", inventory, re.MULTILINE)
+    )
+
+
+def testing_document_errors(text: str) -> tuple[str, ...]:
+    errors: list[str] = []
+    case_ids = tuple(case["id"] for case in json.loads(CASES.read_text(encoding="utf-8"))["cases"])
+    if backtick_list(subsection(text, "### Case inventory")) != case_ids:
+        errors.append("case inventory differs")
+    if parse_fixture_inventory(text) != fixture_inventory():
+        errors.append("fixture inventory differs")
+    normalized = re.sub(r"\s+", " ", text)
+    for required in (
+        "fresh Codex session",
+        "non-sensitive synthetic design and plan",
+        "record only host, client version, date, case identifier, and verdict",
+        "user documents",
+        "full model responses",
+        "optional",
+        "billable",
+        "CI never",
+    ):
+        if required not in normalized:
+            errors.append("live-check boundary differs")
+            break
+    return tuple(errors)
+
+
+def compatibility_document_errors(text: str) -> tuple[str, ...]:
+    registry = load_registry(ROOT / "products.toml")
+    product = registry.require("pre-sdd-review")
+    hosts = tuple(sorted({host for item in registry.products for host in item.supported_hosts}))
+    expected = tuple((host, "supported" if host in product.supported_hosts else "not_measured") for host in hosts)
+    matrix = subsection(text, "### Host matrix")
+    actual = tuple(re.findall(r"^\| `([^`]+)` \| `([^`]+)` \|$", matrix, re.MULTILINE))
+    return () if actual == expected else ("host matrix differs from products.toml",)
+
+
+def bash_blocks(text: str) -> tuple[str, ...]:
+    return tuple(re.findall(r"```bash\n(.*?)\n```", text, re.DOTALL))
+
+
+def release_document_errors(text: str) -> tuple[str, ...]:
+    release = tomllib.loads((SKILL / "release.toml").read_text(encoding="utf-8"))
+    errors: list[str] = []
+    identity = f"`{release['name']}` `version {release['version']}`"
+    if identity not in text or f"`skills/{release['name']}/release.toml`" not in text:
+        errors.append("release identity or version source differs")
+    commands = (
+        f"python3 scripts/release.py check --product {release['name']}",
+        f"python3 scripts/release.py build --product {release['name']} --output <new-empty-directory>",
+        f"python3 scripts/release.py verify-download --product {release['name']} --input <fresh-download-directory>",
+    )
+    if not all(command in text for command in commands):
+        errors.append("release commands differ")
+    forbidden = re.compile(r"(?m)^\s*(?:git\s+(?:tag|push)\b|gh\s+release\b|\S*publish\S*)")
+    if any(forbidden.search(block) for block in bash_blocks(text)):
+        errors.append("release document contains a publication instruction")
+    return tuple(errors)
 
 
 def second_review_risk_triggers(reviewers: str) -> tuple[str, ...]:
@@ -662,6 +857,67 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         self.assertIn("## 1.0.0 - 2026-08-29", changelog)
         self.assertIn("first independent product release contract", changelog)
         self.assertIn("does not claim", changelog)
+
+    def test_readme_contract_is_bounded_symmetric_and_has_one_first_call(self) -> None:
+        korean = (SKILL / "README.md").read_text(encoding="utf-8")
+        english = (SKILL / "README.en.md").read_text(encoding="utf-8")
+        self.assertEqual(readme_contract_errors(korean), ())
+        self.assertEqual(readme_contract_errors(english), ())
+        self.assertEqual(parse_readme_contract(korean), parse_readme_contract(english))
+
+    def test_readme_validator_rejects_wrong_command_asymmetry_and_third_surface(self) -> None:
+        korean = (SKILL / "README.md").read_text(encoding="utf-8")
+        english = (SKILL / "README.en.md").read_text(encoding="utf-8")
+        self.assertEqual(readme_contract_errors(korean), ())
+        self.assertEqual(readme_contract_errors(english), ())
+        wrong_command = english.replace(DEFAULT_FIRST_CALL, "$pre-sdd-review docs/other.md docs/plan.md")
+        self.assertIn("first call must contain only the approved invocation", readme_contract_errors(wrong_command))
+        asymmetric = korean.replace("`at-most-two`", "`at-most-three`")
+        self.assertIn("bounded README contract differs from the product contract", readme_contract_errors(asymmetric))
+        third_surface = english.replace(
+            "`resolved-implementation-plan`",
+            "`resolved-implementation-plan`, `proposed-decision-record`",
+        )
+        self.assertIn("bounded README contract differs from the product contract", readme_contract_errors(third_surface))
+
+    def test_maintainer_contract_uses_bounded_exact_protocols(self) -> None:
+        contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
+        self.assertEqual(maintainer_contract_errors(contract), ())
+
+    def test_maintainer_validator_rejects_routine_second_review_stale_ready_and_third_path(self) -> None:
+        contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
+        self.assertEqual(maintainer_contract_errors(contract), ())
+        routine = contract.replace("conditional only", "routine")
+        self.assertIn("risk triggers must be conditional and exact", maintainer_contract_errors(routine))
+        stale_ready = contract.replace(
+            "Any content change to either resolved document invalidates `READY`",
+            "A content change preserves `READY`",
+        )
+        self.assertIn("freshness contract differs", maintainer_contract_errors(stale_ready))
+        third_path = contract.replace(
+            "2. resolved implementation plan.",
+            "2. resolved implementation plan.\n3. proposed decision record.",
+        )
+        self.assertIn("editable paths differ", maintainer_contract_errors(third_path))
+
+    def test_testing_compatibility_and_release_documents_are_derived_from_sources(self) -> None:
+        testing = (MAINTAINERS / "testing.md").read_text(encoding="utf-8")
+        compatibility = (MAINTAINERS / "compatibility.md").read_text(encoding="utf-8")
+        release = (MAINTAINERS / "release.md").read_text(encoding="utf-8")
+        self.assertEqual(testing_document_errors(testing), ())
+        self.assertEqual(compatibility_document_errors(compatibility), ())
+        self.assertEqual(release_document_errors(release), ())
+
+    def test_truth_validators_reject_inventory_host_and_publication_mutations(self) -> None:
+        testing = (MAINTAINERS / "testing.md").read_text(encoding="utf-8")
+        compatibility = (MAINTAINERS / "compatibility.md").read_text(encoding="utf-8")
+        release = (MAINTAINERS / "release.md").read_text(encoding="utf-8")
+        missing_case = testing.replace("- `default-auto-improve`\n", "", 1)
+        self.assertIn("case inventory differs", testing_document_errors(missing_case))
+        changed_host = compatibility.replace("| `codex` | `supported` |", "| `codex` | `not_measured` |")
+        self.assertIn("host matrix differs from products.toml", compatibility_document_errors(changed_host))
+        publication = release + "\n```bash\ngit push origin pre-sdd-review-v1.0.0\n```\n"
+        self.assertIn("release document contains a publication instruction", release_document_errors(publication))
 
 
 class PreSddReviewFixtureTests(unittest.TestCase):

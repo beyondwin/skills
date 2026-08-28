@@ -14,6 +14,13 @@ Do not infer support from an installer path, a similar subagent feature, or a
 provider-free fixture run. Add a host to the registry and public documents only
 after a recorded fresh-session smoke establishes the required behavior.
 
+### Host matrix
+
+| Host | Status |
+| --- | --- |
+| `claude-code` | `not_measured` |
+| `codex` | `supported` |
+
 ## Evidence limit
 
 The required provider-free command is documented in [testing](testing.md). It

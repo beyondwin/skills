@@ -28,6 +28,30 @@ Fixtures are bounded synthetic contracts, not a corpus. Do not store user
 documents, private prompts, credentials, transcripts, or full model responses
 in fixtures, test logs, or committed live records.
 
+### Case inventory
+
+- `default-auto-improve`
+- `explicit-review-only`
+- `ready-zero-findings`
+- `missing-spec-coverage`
+- `nonexistent-command`
+- `extension-collision`
+- `false-positive-smoke`
+- `task-interface-order`
+- `runtime-removal-risk-review`
+- `stale-document-hash`
+- `near-miss-write-spec`
+- `near-miss-write-plan`
+- `near-miss-code-review`
+- `near-miss-release-review`
+
+### Fixture inventory
+
+- `false-verification`: `design.md`, `expected.json`, `plan.md`, `repository.json`
+- `missing-coverage`: `design.md`, `expected.json`, `plan.md`, `repository.json`
+- `ready`: `design.md`, `expected.json`, `plan.md`, `repository.json`
+- `runtime-removal`: `design.md`, `expected.json`, `plan.md`, `repository.json`
+
 ## Optional fresh-session live checks
 
 A live check is local, explicit, optional, and may be billable; CI never

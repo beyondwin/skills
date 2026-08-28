@@ -19,6 +19,8 @@ unresolvable `**Spec:**` path is `BLOCKED`; never guess among nearby files.
 
 Interpret conflicts in this order:
 
+### Authority order
+
 1. User-approved direction and referenced visual authority.
 2. Accepted ADRs and other explicitly binding decision records.
 3. The approved design specification.
@@ -42,9 +44,26 @@ configuration, generated artifacts, and unrelated documentation.
 Never add a feature, dependency, host claim, or product decision while fixing
 the documents.
 
+### Editable paths
+
+1. resolved design specification.
+2. resolved implementation plan.
+
+### Excluded surfaces
+
+- `accepted ADRs`
+- `approved visual authority`
+- `application code`
+- `tests`
+- `configuration`
+- `generated artifacts`
+- `unrelated documentation`
+
 ## Review passes and findings
 
 The protocol has five passes:
+
+### Review passes
 
 1. authority trace;
 2. repository grounding;
@@ -58,11 +77,34 @@ classes: `authority-drift`, `repo-reality`, `coverage`, `ordering`, and
 location, evidence, concrete consequence, and smallest document fix. Zero
 findings is valid.
 
+### Severities
+
+- `BLOCKER`
+- `IMPORTANT`
+
+### Finding classes
+
+- `authority-drift`
+- `repo-reality`
+- `coverage`
+- `ordering`
+- `verification-gap`
+
 One reviewer is routine. A focused second read-only reviewer is conditional
 only for framework or runtime removal; schema migration or data deletion;
 authentication, authorization, or security boundaries; public/private
 data-boundary changes; or external side effects such as publishing, billing,
 messaging, or production mutations. It reviews only the triggered risk class.
+
+### Conditional risk triggers
+
+A second reviewer is conditional only, never routine.
+
+- `framework or runtime removal`
+- `schema migration or data deletion`
+- `authentication, authorization, or security boundaries`
+- `public/private data-boundary changes`
+- `external side effects such as publishing, billing, messaging, or production mutations`
 
 ## Default flow, verdicts, and freshness
 
@@ -77,6 +119,12 @@ repairable material document defect; and `BLOCKED` when required input,
 authority, or repository evidence is unavailable or would require a new
 product decision.
 
+### Verdicts
+
+- `READY`: no unresolved finding requires invention or permits a materially wrong implementation to pass planned evidence.
+- `REVISE`: a repairable material document defect remains.
+- `BLOCKED`: required input, authority, or repository evidence is unavailable or would require a new product decision.
+
 The final record contains repository-relative design and plan paths, their
 SHA-256 hashes, Git `HEAD` (or `unborn`), whether the worktree was clean or
 dirty, review timestamp, and final verdict. Any content change to either
@@ -84,9 +132,23 @@ resolved document invalidates `READY`; a repository change also invalidates
 the review when it changes evidence for a path, command, interface, or
 blast-radius claim.
 
+### Freshness
+
+- repository-relative design path and SHA-256
+- repository-relative plan path and SHA-256
+- Git `HEAD` (or `unborn`)
+- worktree was clean or dirty
+- review timestamp
+- final verdict
+- Any content change to either resolved document invalidates `READY`.
+
 ## Handoff
 
 For `READY`, print the exact resolved design and plan paths with final
 fingerprints. Do not start SDD unless the outer request explicitly asks for
 implementation. In the combined flow, pass the final repaired documents to
 the SDD worker rather than the pre-review copies.
+
+### SDD handoff
+
+Do not start SDD unless the outer request explicitly asks for implementation.

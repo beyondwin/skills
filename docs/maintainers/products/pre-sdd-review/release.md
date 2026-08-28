@@ -5,6 +5,8 @@ The version source is `skills/pre-sdd-review/release.toml`; `SKILL.md`
 `metadata.version` is its verified copy, and `CHANGELOG.md` records the
 human-readable contract history.
 
+Product identity is `pre-sdd-review` `version 1.0.0` from `release.toml`.
+
 ## Check, build, and verify download
 
 Run the provider-free product verification, then package into a new empty
