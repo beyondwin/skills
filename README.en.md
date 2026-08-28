@@ -2,7 +2,7 @@
 
 [한국어](README.md)
 
-This repository collects three skills you can install in Codex. Use them to edit Korean you already wrote, make images that belong in this project, or explain how a machine works.
+This repository collects three current standalone products. Korean Writing Editor and Image Workbench install in Codex. How It Works installs for local or repository-based use in Codex, Claude Code, Grok, and Cursor.
 
 [![CI](https://github.com/beyondwin/skills/actions/workflows/verify.yml/badge.svg)](https://github.com/beyondwin/skills/actions/workflows/verify.yml)
 [![Release](https://img.shields.io/github/v/release/beyondwin/skills)](https://github.com/beyondwin/skills/releases)
@@ -12,15 +12,15 @@ The license is Apache-2.0.
 
 ## Standalone products
 
-The current standalone products are these three. A fourth product is out of scope unless governance is reopened.
+The current standalone products are these three. A fourth product is out of scope unless governance is reopened. The immutable catalog `v2.0.0` bundle does not include How It Works.
 
-| Skill | Role |
-| --- | --- |
-| [`korean-writing-editor`](skills/korean-writing-editor/README.en.md) | Takes Korean text you already have and fixes spelling and sentences without changing the meaning. |
-| [`image-workbench`](skills/image-workbench/README.en.md) | Plans, makes, or edits PNG/JPG images that belong in this project. |
-| [`how-it-works`](skills/how-it-works/README.en.md) | Explains how one machine works, at a depth you pick, in writing and diagrams. |
+| Skill | Role | Hosts |
+| --- | --- | --- |
+| [`korean-writing-editor`](skills/korean-writing-editor/README.en.md) | Takes Korean text you already have and fixes spelling and sentences without changing the meaning. | Codex |
+| [`image-workbench`](skills/image-workbench/README.en.md) | Plans, makes, or edits PNG/JPG images that belong in this project. | Codex |
+| [`how-it-works`](skills/how-it-works/README.en.md) | Explains how one machine works, at a depth you pick, in writing and diagrams. | Codex, Claude Code, Grok, Cursor |
 
-Use each product README for install and first invocation.
+Use each product README for install and first invocation. How It Works four-host links are in the product README and [Installation](docs/users/en/installation.md).
 
 ## Install
 

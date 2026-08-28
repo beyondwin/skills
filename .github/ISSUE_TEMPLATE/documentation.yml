@@ -7,7 +7,8 @@ body:
     attributes:
       value: |
         Report a documentation issue for `korean-writing-editor`,
-        `image-workbench`, or `how-it-works` only.
+        `image-workbench`, or `how-it-works` only. Host-support claims must
+        match `products.toml`, the docs, and the tests.
 
         Do not include personal Korean text, a private prompt, a private image,
         credentials, provider receipts, or generated media.

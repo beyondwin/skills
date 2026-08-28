@@ -16,6 +16,20 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-wor
 
 The default destination is `$CODEX_HOME/skills/<skill-name>`, or `~/.codex/skills` when `CODEX_HOME` is unset. Invoke on a new turn after install using the product README.
 
+## How It Works four-host links
+
+`how-it-works` supports Codex, Claude Code, Grok, and Cursor for local or repository-based use. The shortest repository-based install is a clone plus two links. The first link serves Codex, Grok, and Cursor; the second serves Claude Code. `ln -s` fails instead of overwriting an existing target.
+
+```bash
+git clone https://github.com/beyondwin/skills.git
+cd skills
+mkdir -p ~/.agents/skills ~/.claude/skills
+ln -s "$PWD/skills/how-it-works" ~/.agents/skills/how-it-works
+ln -s "$PWD/skills/how-it-works" ~/.claude/skills/how-it-works
+```
+
+Do not create host-specific payload copies. First-call examples are in the [`how-it-works` README](../../../skills/how-it-works/README.en.md).
+
 ## Optional third-party installer
 
 This path applies to the Korean editor only.
@@ -24,11 +38,11 @@ This path applies to the Korean editor only.
 npx skills add beyondwin/skills --skill korean-writing-editor
 ```
 
-That `npx` command is a third-party installer with its own release and telemetry policy. `image-workbench` is Codex-only and is not supported on this path.
+That `npx` command is a third-party installer with its own release and telemetry policy. `image-workbench` is Codex-only and is not supported on this path. `how-it-works` uses the four-host links above.
 
-## Git clone and host-native folder install
+## Codex-only git clone
 
-The non-`npx` alternative is a verified clone plus a host-native folder copy.
+`korean-writing-editor` and `image-workbench` are Codex-only. The non-`npx` alternative is a verified clone plus a Codex folder copy.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -38,7 +52,7 @@ ls -ld "$SKILL_SOURCE"
 ls -ld "$SKILL_TARGET"
 ```
 
-Copy only when `$SKILL_TARGET` is absent or is a confirmed safe link to this skill. If a real directory already exists, stop; do not copy over it. Use the same exact-folder rule for `image-workbench` and `how-it-works`.
+Copy only when `$SKILL_TARGET` is absent or is a confirmed safe link to this skill. If a real directory already exists, stop; do not copy over it. Use the same exact-folder rule for `image-workbench`.
 
 Other host folders are an Agent Skills portability target for `korean-writing-editor` only. Do not call those hosts supported until a recorded smoke exists.
 
@@ -59,7 +73,15 @@ Confirm all of the following:
 
 Only after that confirmation, remove that exact path with the host's ordinary uninstall, or clear that exact destination and reinstall with `$skill-installer`. Do not delete the parent `skills` directory or a home directory. Do not replace an existing install without that inspection.
 
-Apply the same inspection sequence to `.../skills/image-workbench` and `.../skills/how-it-works`.
+Apply the same inspection sequence to `.../skills/image-workbench`.
+
+For `how-it-works` links, inspect first, then remove only those exact links.
+
+```bash
+ls -ld ~/.agents/skills/how-it-works ~/.claude/skills/how-it-works
+unlink ~/.agents/skills/how-it-works
+unlink ~/.claude/skills/how-it-works
+```
 
 Install, update, and uninstall touch only an inspected exact target. Do not pipe remote scripts into a shell, copy without inspecting the destination, delete parent skill directories, or replace an existing install by default.
 

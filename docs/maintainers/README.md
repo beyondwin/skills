@@ -9,7 +9,7 @@
 | 작업 | 문서 |
 | --- | --- |
 | 제품 동작 바꾸기 | [계약](products/)과 해당 제품 `contract.md`, `testing.md` |
-| 호스트 지원 추가 | 해당 제품 [호환성](products/) `compatibility.md` |
+| 호스트 지원 추가 | 해당 제품 [호환성](products/) `compatibility.md`. `products.toml`, 공개 안내, 테스트를 함께 고칩니다 |
 | 제품 등록 | [제품 레지스트리](repository/products-registry.md) |
 | 검증 | `python3 scripts/verify.py`, 해당 제품 `testing.md` |
 | 릴리스 | [독립 제품 릴리스](repository/release.md), 해당 제품 `release.md` |

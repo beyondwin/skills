@@ -169,6 +169,9 @@ class CommunityPolicyTests(unittest.TestCase):
         self.assertIn("deterministic", lowered)
         self.assertIn("korean-writing-editor", text)
         self.assertIn("image-workbench", text)
+        self.assertIn("how-it-works", text)
+        self.assertIn("products.toml", text)
+        self.assertIn("host-support", lowered)
         self.assertIn("private", lowered)
         self.assertTrue("prompt" in lowered and "image" in lowered)
 
@@ -257,6 +260,10 @@ class CommunityPolicyTests(unittest.TestCase):
         self.assertTrue("deterministic" in text or "reproduction" in text)
         self.assertIn("release.toml", text)
         self.assertIn("changelog", text)
+        self.assertIn(
+            "host-support changes update the product registry, docs, and tests together",
+            text,
+        )
         self.assertNotIn("two curated skills", text)
         self.assertNotIn("two skills only", text)
 

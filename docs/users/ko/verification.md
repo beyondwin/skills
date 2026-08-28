@@ -29,7 +29,7 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 - `korean-writing-editor`: `tests/products/korean-writing-editor/offline/`의 트리거·모드·보존·출력 픽스처
 - `image-workbench`: `tests/products/image-workbench/`의 라우팅·권한·ImageSpec·핸드오프·inspector 픽스처
-- `how-it-works`: `tests/products/how-it-works/cases.json` 형태 픽스처와 `tests/products/how-it-works/test_contract.py` 페이로드 계약
+- `how-it-works`: `tests/products/how-it-works/cases.json`의 합성 DNS·rebase 계약 픽스처와 `tests/products/how-it-works/test_contract.py` 페이로드 계약. 채팅 필수 산출(one-sentence claim, Mermaid, numbered hop list, rung-specific body, adjacent slices, one next move)의 형태만 잠급니다.
 
 통과는 일반 한국어 편집 품질, 의미 동등, 라이브 이미지 품질, 상업 허가, 더 나은 공급자, 런타임 동등성을 증명하지 않습니다. 라이선스는 Apache-2.0입니다.
 
@@ -43,4 +43,4 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 ## 한계
 
-측정된 지원과 픽스처 결과만 보고하세요. 플러그인 디렉터리 등록, 모든 호스트 지원, 일반 품질, 라이브 이미지 품질, 권리 확정, 공급자 우월을 주장하지 마세요.
+측정된 지원과 픽스처 결과만 보고하세요. 플러그인 디렉터리 등록, 모든 호스트 지원, 일반 품질, 라이브 이미지 품질, 권리 확정, 공급자 우월을 주장하지 마세요. `how-it-works` 오프라인 통과는 Codex, Claude Code, Grok, Cursor 라이브 품질을 증명하지 않습니다. 라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있고 CI가 요구하지 않습니다.

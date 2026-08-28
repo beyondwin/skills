@@ -2,20 +2,22 @@
 
 버전 원본은 `skills/how-it-works/release.toml`입니다. `SKILL.md` `metadata.version`은 검증된 복제 값입니다. 사람이 체감하는 이력은 같은 디렉터리의 `CHANGELOG.md`입니다. 공통 판정표는 [버저닝](../../repository/versioning.md)을 따릅니다.
 
-공개 how-it-works 릴리스는 아직 없습니다. 이 제품은 `how-it-works 2.0.0`으로 공개되지 않았고 통합 `v2.0.0` GitHub Release에 포함되지 않았습니다. 첫 독립 공개 목표는 `1.0.0`입니다.
+공개 how-it-works 릴리스는 아직 없습니다. 이 제품은 통합 `v2.0.0` GitHub Release와 불변 카탈로그 lock에 포함되지 않았습니다. 첫 독립 공개 목표는 `1.0.0`입니다.
 
 ## SemVer 예시
 
 - PATCH: 깨진 상대 링크, 설치 README 정정, 문서화된 dump gate를 회복하는 결함 수정
 - MINOR: 기본 길 칸을 유지하는 새 선택 별칭
-- MAJOR: 기본 산출을 터미널 스크롤백으로 되돌리거나, `/eli5`를 활성화하거나, 기본 칸을 바꾸는 변경
+- MAJOR: 필수 산출에서 numbered hop list를 빼거나, 호스트 도구를 필수로 만들거나, `/eli5`를 활성화하거나, 기본 칸을 바꾸는 변경
 - 없음: 설치되지 않는 형태 픽스처 주석, 관리자 문서만의 변경
 
 동작 변경은 SemVer를 올립니다. 문서 문구만 바꾸고 동작이 같으면 버전을 올리지 않습니다.
 
-설치 페이로드가 바뀌면 `release.toml`과 `SKILL.md` 버전 결정과 제품 CHANGELOG 항목이 같은 변경에 있어야 합니다. 아티팩트 페이지 계약은 이미 커밋된 비호환 실행 계약이며 채팅 전용으로 되돌리지 않습니다.
+설치 페이로드가 바뀌면 `release.toml`과 `SKILL.md` 버전 결정과 제품 CHANGELOG 항목이 같은 변경에 있어야 합니다.
 
 ## 검사, 빌드, 다운로드
+
+`1.0.0` 검사·빌드·다운로드 확인:
 
 ```bash
 python3 scripts/verify.py --skill how-it-works
@@ -35,3 +37,5 @@ python3 scripts/release.py verify-download --product how-it-works --input <fresh
 - 태그 뒤 Draft 실패: 태그를 이동하지 않습니다. 같은 커밋의 정확한 아티팩트만 고쳐서 검증하거나, 코드 변경이 필요하면 새 버전을 준비합니다.
 - 원격 검증 실패: Draft를 비공개로 유지합니다. 로컬 성공을 공개 증거로 대체하지 않습니다.
 - 이 제품 실패: 다른 제품의 버전, 태그, Release와 카탈로그 lock을 바꾸지 않습니다.
+
+no tag or GitHub Release is created by these commands.

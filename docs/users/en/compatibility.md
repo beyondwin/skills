@@ -2,7 +2,7 @@
 
 [한국어](../ko/compatibility.md) · [Installation](installation.md)
 
-Codex is the first-class runtime for the current standalone products. The current standalone products are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), and [`how-it-works`](../../../skills/how-it-works/README.en.md).
+The current standalone products are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), and [`how-it-works`](../../../skills/how-it-works/README.en.md). Only How It Works has the four-host claim. Korean Writing Editor and Image Workbench keep their registered Codex boundaries.
 
 ## Shared support sentences
 
@@ -10,7 +10,7 @@ korean-writing-editor: Codex supported; Agent Skills contract portable; other ho
 
 image-workbench: Codex-only; generate/edit requires Codex image generation and local image viewing.
 
-how-it-works: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
+how-it-works: Codex, Claude Code, Grok, and Cursor supported for local or repository-based use.
 
 ## Contract portability versus measured support
 
@@ -18,13 +18,14 @@ how-it-works: Codex supported; Agent Skills contract portable; other hosts only 
 
 `image-workbench` is Codex-only. Similar tools in another host do not establish compatibility. `brief` and `audit` can run read-only, but generate or edit requires Codex built-in image generation and local image viewing.
 
-`how-it-works` follows the open Agent Skills directory format. Output is GitHub-flavored markdown and mermaid. That contract portability does not mean another host is supported today.
+`how-it-works` supports `codex`, `claude-code`, `grok`, and `cursor` for local or repository-based use. Output is GitHub-flavored markdown in chat, plus mermaid source and a numbered hop list. A host page or mermaid renderer is not required. Claude.ai, Cowork, Skills API upload, and marketplace publication are not supported.
 
-The plugin name `beyondwin-skills` means the repository is packaged as one plugin. It does not mean the plugin is listed in a plugin directory.
+The immutable catalog `v2.0.0` plugin bundle does not include How It Works. The plugin name `beyondwin-skills` means the repository is packaged as one plugin. It does not mean the plugin is listed in a plugin directory.
 
 ## Install paths and hosts
 
-- Primary: `$skill-installer` with the public GitHub skill path. See [Installation](installation.md).
+- Codex primary: `$skill-installer` with the public GitHub skill path. See [Installation](installation.md).
+- How It Works: `~/.agents/skills/how-it-works` (Codex, Grok, Cursor) and `~/.claude/skills/how-it-works` (Claude Code). `ln -s` fails instead of overwriting an existing target.
 - Optional: third-party `npx skills add beyondwin/skills --skill korean-writing-editor`. That installer has its own policy.
 - Alternative: `git clone` plus host-native folder install. Inspect the exact target before copying.
 

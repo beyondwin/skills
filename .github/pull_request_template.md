@@ -17,3 +17,4 @@ Describe the change for `korean-writing-editor`, `image-workbench`, and/or `how-
 - [ ] No personal Korean text, private prompt, private image, credentials, or receipts
 - [ ] Does not add a new skill package
 - [ ] Installed-payload changes include a matching `release.toml` / SKILL.md version decision and a product CHANGELOG entry
+- [ ] Host-support changes update the product registry, docs, and tests together

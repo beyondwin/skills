@@ -2,7 +2,7 @@
 
 [한국어](README.md)
 
-## The problem this skill solves
+## Purpose
 
 It explains how one machine works. You pick one depth:
 
@@ -13,31 +13,81 @@ It explains how one machine works. You pick one depth:
 
 It does not swap the content for a cute analogy, and it does not talk down in a child voice.
 
-## When to use it and when not to
+## When to use and not use
 
 Use it to explain how one machine works at a depth you pick.
 
 Do not use `how-it-works` for debugging, implementing, reviewing, translating, one-line factual lookups, child-register explainers, or as a stand-in for `/eli5`.
 
-## One-minute install and first invocation
+## Supported hosts
 
-The primary Codex path is `$skill-installer` with the public GitHub skill path. The installer stops if the destination already exists; it does not replace an existing install.
+how-it-works: Codex, Claude Code, Grok, and Cursor supported for local or repository-based use.
+
+The supported host ids are `codex`, `claude-code`, `grok`, and `cursor`. Only this product has the four-host claim. Claude.ai, Cowork, Skills API upload, and marketplace publication are not supported. Shared limits are in [Compatibility](../../docs/users/en/compatibility.md).
+
+## Install
+
+The shortest repository-based install is a clone plus two links. The first link serves Codex, Grok, and Cursor; the second serves Claude Code. `ln -s` fails instead of overwriting an existing target.
+
+```bash
+git clone https://github.com/beyondwin/skills.git
+cd skills
+mkdir -p ~/.agents/skills ~/.claude/skills
+ln -s "$PWD/skills/how-it-works" ~/.agents/skills/how-it-works
+ln -s "$PWD/skills/how-it-works" ~/.claude/skills/how-it-works
+```
+
+The Codex `$skill-installer` path also exists. The installer stops if the destination already exists; it does not replace an existing install.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-works
 ```
 
-After install, invoke explicitly on the next turn:
+Shared install, update, and uninstall steps are in [Installation](../../docs/users/en/installation.md).
+
+## First call
+
+Explicit calls are `$how-it-works` on Codex, `/how-it-works` on Claude Code and Grok, and `/how-it-works` or optional `@how-it-works` on Cursor.
 
 ```text
 $how-it-works Explain DNS as a path.
+/how-it-works Explain DNS as a path.
 ```
 
-Shared install, update, and uninstall steps are in [Installation](../../docs/users/en/installation.md).
+## Expected result
 
-## Main workflow
+The explanation is complete in this chat reply. A host page, Canvas, browser, URL, file, or mermaid renderer is not required. A missing renderer is not a failed task.
 
-Do not explain until the topic, the depth (picture, path, skeleton, or fracture), and the language are set. The result is a page you open in a browser, not a chat log. Diagrams are drawn in mermaid. Do not leave the explanation only in the terminal.
+The six required items are:
+
+1. one-sentence claim
+2. Mermaid
+3. numbered hop list
+4. rung-specific body
+5. adjacent slices
+6. one next move
+
+Skeleton:
+
+````markdown
+# {slice} · {picture|path|skeleton|fracture}
+
+## One sentence
+
+## Map
+
+```mermaid
+{diagram source}
+```
+
+1. **H1** — {what moves or changes}
+
+## Body
+
+## Adjacent slices
+
+Next: {exactly one move}
+````
 
 ## Safety and privacy
 
@@ -45,19 +95,23 @@ This repository has no telemetry. The skill does not persist user topics as fixt
 
 Details are in [Safety and privacy](../../docs/users/en/safety-and-privacy.md).
 
-## Compatibility and verification
+## Verification
 
-how-it-works: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
+Provider-free verification is `python3 scripts/verify.py --skill how-it-works`. Offline fixtures prove the deterministic contract only; they do not prove live host quality.
 
-Registered hosts: `codex`, `claude-code`, `grok`, `cursor`.
+Shared evidence limits are in [Verification](../../docs/users/en/verification.md).
 
-Shared support policy is in [Compatibility](../../docs/users/en/compatibility.md). Evidence limits are in [Verification](../../docs/users/en/verification.md).
+## Update and remove
 
-## Updates and version checks
+Inspect the exact install target before update or removal. Confirm the path matches this skill name, whether it is a symlink, and that `SKILL.md` `name` and `metadata.version` are the expected values. Do not replace an existing install without that inspection.
 
-Inspect the exact install target before update. Confirm the path matches this skill name, whether it is a real directory, and that `SKILL.md` `name` and `metadata.version` are the expected values. Do not replace an existing install without that inspection.
+```bash
+ls -ld ~/.agents/skills/how-it-works ~/.claude/skills/how-it-works
+unlink ~/.agents/skills/how-it-works
+unlink ~/.claude/skills/how-it-works
+```
 
-Check the current version in `SKILL.md` `metadata.version` and [CHANGELOG](CHANGELOG.md).
+Do not delete the parent `skills` directory or a home directory. Check the current version in `SKILL.md` `metadata.version` and [CHANGELOG](CHANGELOG.md).
 
 ## Changelog and maintainer docs
 

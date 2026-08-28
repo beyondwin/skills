@@ -35,6 +35,32 @@ KOREAN_PRODUCT_HEADINGS = (
     "갱신과 버전 확인",
     "변경 이력과 관리자 문서",
 )
+PRODUCT_README_HEADINGS = {
+    "README.md": (
+        "## 목적",
+        "## 사용할 때와 사용하지 않을 때",
+        "## 지원 호스트",
+        "## 설치",
+        "## 첫 호출",
+        "## 예상 결과",
+        "## 안전과 개인정보",
+        "## 검증",
+        "## 업데이트와 제거",
+        "## 변경 이력과 관리자 문서",
+    ),
+    "README.en.md": (
+        "## Purpose",
+        "## When to use and not use",
+        "## Supported hosts",
+        "## Install",
+        "## First call",
+        "## Expected result",
+        "## Safety and privacy",
+        "## Verification",
+        "## Update and remove",
+        "## Changelog and maintainer docs",
+    ),
+}
 INSTALLER_COMMANDS = {
     product.name: (
         "$skill-installer https://github.com/beyondwin/skills/tree/main/"
@@ -49,13 +75,44 @@ IMAGE_SUPPORT = (
     "image-workbench: Codex-only; generate/edit requires Codex image generation and local image viewing."
 )
 HOW_IT_WORKS_SUPPORT = (
-    "how-it-works: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke."
+    "how-it-works: Codex, Claude Code, Grok, and Cursor supported for local or repository-based use."
 )
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
     "image-workbench": IMAGE_SUPPORT,
     "how-it-works": HOW_IT_WORKS_SUPPORT,
 }
+HOW_IT_WORKS_MKDIR = "mkdir -p ~/.agents/skills ~/.claude/skills"
+HOW_IT_WORKS_AGENTS_LINK = (
+    'ln -s "$PWD/skills/how-it-works" ~/.agents/skills/how-it-works'
+)
+HOW_IT_WORKS_CLAUDE_LINK = (
+    'ln -s "$PWD/skills/how-it-works" ~/.claude/skills/how-it-works'
+)
+HOW_IT_WORKS_UNLINK_AGENTS = "unlink ~/.agents/skills/how-it-works"
+HOW_IT_WORKS_UNLINK_CLAUDE = "unlink ~/.claude/skills/how-it-works"
+HOW_IT_WORKS_EXPECTED_EN = (
+    "one-sentence claim",
+    "Mermaid",
+    "numbered hop list",
+    "rung-specific body",
+    "adjacent slices",
+    "one next move",
+)
+HOW_IT_WORKS_FIXTURE_IDS = (
+    "broad-slice",
+    "missing-rung",
+    "explicit-dns-path",
+    "implicit-positive",
+    "near-miss-debug",
+    "near-miss-eli5",
+    "jargon-rung",
+    "no-renderer",
+    "no-fetched-source",
+)
+RELEASE_NO_PUBLICATION = (
+    "no tag or GitHub Release is created by these commands."
+)
 OFFLINE_EVIDENCE = "Offline fixtures: deterministic contract evidence only."
 LIVE_EVIDENCE = (
     "Live execution: local, explicit, optional, potentially billable, and never required by CI."
@@ -248,6 +305,8 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
 
     def test_korean_product_readmes_use_required_heading_order(self) -> None:
         for product in REGISTRY.products:
+            if product.name == "how-it-works":
+                continue
             path = ROOT / product.skill_path / "README.md"
             _assert_exists(self, path)
             text = _read(path)
@@ -262,6 +321,38 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
                 self.assertGreaterEqual(pos, 0, f"{product.name} missing {marker!r}")
                 self.assertGreater(pos, last, f"{product.name} out of order: {marker!r}")
                 last = pos
+
+    def test_how_it_works_readmes_follow_common_information_order(self) -> None:
+        for filename in ("README.md", "README.en.md"):
+            text = (ROOT / "skills/how-it-works" / filename).read_text(encoding="utf-8")
+            self.assertTrue(text.startswith("# How It Works\n"), filename)
+            positions = [text.index(marker) for marker in PRODUCT_README_HEADINGS[filename]]
+            self.assertEqual(positions, sorted(positions), filename)
+
+    def test_how_it_works_readmes_include_four_host_install_call_and_result(self) -> None:
+        for filename in ("README.md", "README.en.md"):
+            path = ROOT / "skills/how-it-works" / filename
+            text = _read(path)
+            self.assertIn(HOW_IT_WORKS_MKDIR, text)
+            self.assertIn(HOW_IT_WORKS_AGENTS_LINK, text)
+            self.assertIn(HOW_IT_WORKS_CLAUDE_LINK, text)
+            self.assertIn(HOW_IT_WORKS_UNLINK_AGENTS, text)
+            self.assertIn(HOW_IT_WORKS_UNLINK_CLAUDE, text)
+            self.assertIn("$how-it-works", text)
+            self.assertIn("/how-it-works", text)
+            self.assertIn("@how-it-works", text)
+            for host in ("codex", "claude-code", "grok", "cursor"):
+                self.assertIn(host, text.lower(), f"{filename} {host}")
+            for phrase in HOW_IT_WORKS_EXPECTED_EN:
+                self.assertIn(phrase, text, f"{filename} {phrase}")
+            self.assertNotIn("Registered hosts:", text)
+            self.assertNotIn("artifact-design", text)
+            self.assertNotIn("브라우저에서 여는 페이지", text)
+            self.assertNotIn("page you open in a browser", text.lower())
+            self.assertTrue(
+                "fails instead of overwriting" in text.lower() or "덮어쓰지 않고 실패" in text,
+                f"{filename} must say ln -s fails instead of overwriting",
+            )
 
     def test_product_readmes_include_installer_support_and_maintainer_link(self) -> None:
         for product in REGISTRY.products:
@@ -285,6 +376,19 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
 
 
 class RootCatalogTests(unittest.TestCase):
+    def test_root_readmes_do_not_treat_every_product_as_codex_only(self) -> None:
+        korean = _read(ROOT / "README.md")
+        english = _read(ROOT / "README.en.md")
+        self.assertNotIn("Codex에서 설치해 쓰는 스킬 세 개", korean)
+        self.assertNotIn("three skills you can install in Codex", english)
+        self.assertIn("current standalone products", english)
+        self.assertIn("현재 독립 제품", korean)
+        for document in (korean, english):
+            self.assertIn("Claude Code", document)
+            self.assertIn("Grok", document)
+            self.assertIn("Cursor", document)
+            self.assertIn("Codex", document)
+
     def test_readmes_follow_catalog_section_order(self) -> None:
         cases = (
             (ROOT / "README.md", README_ORDER_KO),
@@ -366,6 +470,21 @@ class UserGuideFactTests(unittest.TestCase):
             text = _read(document)
             for product in REGISTRY.products:
                 self.assertIn(SUPPORT_BY_PRODUCT[product.name], text)
+            lowered = text.lower()
+            self.assertIn("claude.ai", lowered)
+            self.assertIn("cowork", lowered)
+            self.assertIn("skills api", lowered)
+            self.assertTrue("marketplace" in lowered or "마켓플레이스" in text)
+            self.assertTrue("catalog" in lowered or "카탈로그" in text)
+            self.assertNotIn(
+                "how-it-works: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.",
+                text,
+            )
+
+    def test_docs_exclude_cloud_upload_support(self) -> None:
+        active = "\n".join(path.read_text(encoding="utf-8") for path in active_markdown_paths(ROOT))
+        for unsupported in ("skills api upload supported", "cowork supported", "claude.ai supported"):
+            self.assertNotIn(unsupported, active.lower())
 
     def test_installation_covers_install_update_and_inspection(self) -> None:
         for document in (
@@ -389,6 +508,11 @@ class UserGuideFactTests(unittest.TestCase):
                 "third-party" in lowered or "제3자" in text,
                 f"{document.name} must label the npx installer as third-party",
             )
+            self.assertIn(HOW_IT_WORKS_MKDIR, text)
+            self.assertIn(HOW_IT_WORKS_AGENTS_LINK, text)
+            self.assertIn(HOW_IT_WORKS_CLAUDE_LINK, text)
+            self.assertIn(HOW_IT_WORKS_UNLINK_AGENTS, text)
+            self.assertIn(HOW_IT_WORKS_UNLINK_CLAUDE, text)
 
     def test_safety_docs_own_telemetry_text_images_rights_and_high_stakes(self) -> None:
         for document in (
@@ -823,30 +947,52 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("release.toml", release_text)
         self.assertIn("python3 scripts/release.py check --product image-workbench", release_text)
 
-    def test_how_it_works_protocol_preserves_rung_fixtures_and_artifact_page(self) -> None:
+    def test_how_it_works_protocol_maps_contract_testing_compatibility_and_release(self) -> None:
         contract = ROOT / "docs" / "maintainers" / "products" / "how-it-works" / "contract.md"
         testing = ROOT / "docs" / "maintainers" / "products" / "how-it-works" / "testing.md"
+        compatibility = (
+            ROOT / "docs" / "maintainers" / "products" / "how-it-works" / "compatibility.md"
+        )
         release = ROOT / "docs" / "maintainers" / "products" / "how-it-works" / "release.md"
-        for path in (contract, testing, release):
+        for path in (contract, testing, compatibility, release):
             _assert_exists(self, path)
         contract_text = _read(contract)
         testing_text = _read(testing)
+        compatibility_text = _read(compatibility)
         release_text = _read(release)
-        self.assertIn("artifact", contract_text.lower())
-        self.assertIn("mermaid", contract_text.lower())
-        self.assertNotIn("Do not add HTML artifacts", contract_text)
+        for token in ("trigger", "slice", "type", "rung", "language", "mermaid"):
+            self.assertIn(token, contract_text.lower(), token)
+        self.assertIn("$how-it-works", contract_text)
+        self.assertIn("/how-it-works", contract_text)
+        self.assertIn("@how-it-works", contract_text)
+        self.assertNotIn("artifact-design", contract_text)
         self.assertNotIn("chat-only", contract_text.lower())
-        for fixture_id in (
-            "gate-dump-01",
-            "html-01",
-            "type-cmp-01",
-            "scope-01",
-            "ko-gloss-01",
-        ):
+        for phrase in HOW_IT_WORKS_EXPECTED_EN:
+            self.assertIn(phrase, contract_text, phrase)
+        for fixture_id in HOW_IT_WORKS_FIXTURE_IDS:
             self.assertIn(fixture_id, testing_text)
         self.assertIn("/eli5", testing_text)
+        self.assertIn("발견", testing_text)
+        self.assertIn("명시", testing_text)
+        self.assertIn("암묵", testing_text)
+        self.assertIn("near-miss", testing_text)
+        self.assertIn("~/.agents/skills/how-it-works", compatibility_text)
+        self.assertIn("~/.claude/skills/how-it-works", compatibility_text)
+        self.assertIn("$how-it-works", compatibility_text)
+        self.assertIn("/how-it-works", compatibility_text)
+        self.assertIn("@how-it-works", compatibility_text)
         self.assertIn("release.toml", release_text)
+        self.assertIn("1.0.0", release_text)
         self.assertIn("python3 scripts/release.py check --product how-it-works", release_text)
+        self.assertIn("python3 scripts/release.py build --product how-it-works", release_text)
+        self.assertIn(
+            "python3 scripts/release.py verify-download --product how-it-works",
+            release_text,
+        )
+        self.assertTrue(
+            release_text.rstrip().endswith(RELEASE_NO_PUBLICATION),
+            "release.md must end with the no-publication sentence",
+        )
 
     def test_archive_migration_freeze_record_is_preserved(self) -> None:
         path = ROOT / "docs" / "maintainers" / "repository" / "migrations.md"
