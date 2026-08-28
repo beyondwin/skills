@@ -3,11 +3,13 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
 from typing import Callable
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -84,6 +86,21 @@ def _copy_skill(source: Path, destination: Path) -> Path:
         ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"),
     )
     return staged
+
+
+def _tracked_test_roots(root: Path) -> set[str]:
+    result = subprocess.run(
+        ("git", "ls-files", "--", "tests"),
+        cwd=root,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return {
+        Path(path).parts[1]
+        for path in result.stdout.splitlines()
+        if len(Path(path).parts) > 1
+    }
 
 
 class PluginManifestTests(unittest.TestCase):
@@ -441,8 +458,41 @@ class StageProductTests(unittest.TestCase):
 
 
 class RepositoryContractTests(unittest.TestCase):
+    def test_layout_contract_ignores_untracked_roots_but_rejects_tracked_legacy_roots(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            tests_root = workspace / "tests"
+            for root in ("products", "repository"):
+                path = tests_root / root / "case.py"
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("# tracked fixture\n", encoding="utf-8")
+            untracked = tests_root / "contract" / "cache.py"
+            untracked.parent.mkdir(parents=True, exist_ok=True)
+            untracked.write_text("# ignored cache\n", encoding="utf-8")
+            for command in (
+                ("git", "init", "--quiet"),
+                ("git", "add", "tests/products/case.py", "tests/repository/case.py"),
+            ):
+                subprocess.run(command, cwd=workspace, check=True)
+
+            with patch(f"{__name__}.ROOT", workspace):
+                RepositoryContractTests(
+                    "test_tests_have_only_product_and_repository_roots"
+                ).test_tests_have_only_product_and_repository_roots()
+
+            subprocess.run(
+                ("git", "add", "tests/contract/cache.py"),
+                cwd=workspace,
+                check=True,
+            )
+            with patch(f"{__name__}.ROOT", workspace):
+                with self.assertRaises(AssertionError):
+                    RepositoryContractTests(
+                        "test_tests_have_only_product_and_repository_roots"
+                    ).test_tests_have_only_product_and_repository_roots()
+
     def test_tests_have_only_product_and_repository_roots(self) -> None:
-        roots = {path.name for path in (ROOT / "tests").iterdir() if path.is_dir() and path.name != "__pycache__"}
+        roots = _tracked_test_roots(ROOT)
         self.assertEqual(roots, {"products", "repository"})
 
     def test_reusable_tooling_lives_under_scripts_lib(self) -> None:
