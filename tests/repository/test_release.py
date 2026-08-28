@@ -83,9 +83,37 @@ class ProductBuildTests(unittest.TestCase):
             {"how-it-works-v1.0.0.zip", "SHA256SUMS"},
         )
         names = zip_names(self.output / "how-it-works-v1.0.0.zip")
+        self.assertTrue(names)
+        self.assertEqual({name.split("/", 1)[0] for name in names}, {"how-it-works"})
         self.assertTrue(all(name.startswith("how-it-works/") for name in names))
         self.assertIn("how-it-works/release.toml", names)
         self.assertNotIn("korean-writing-editor/SKILL.md", names)
+
+    def test_how_it_works_archive_extracts_to_product_root(self) -> None:
+        archive, _checksums = release.build_product(
+            ROOT,
+            "how-it-works",
+            self.output,
+            require_release_entry=False,
+        )
+        names = zip_names(archive)
+        self.assertTrue(names)
+        self.assertEqual({name.split("/", 1)[0] for name in names}, {"how-it-works"})
+        self.assertTrue(all(name.startswith("how-it-works/") for name in names))
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory)
+            self.assertEqual(extract_archive(archive, destination), [])
+            children = [path.name for path in destination.iterdir()]
+            self.assertEqual(children, ["how-it-works"])
+            self.assertTrue((destination / "how-it-works").is_dir())
+            self.assertFalse((destination / "how-it-works").is_symlink())
+            leftover = [
+                path.name
+                for path in destination.rglob("*")
+                if path.is_file()
+                and not path.is_relative_to(destination / "how-it-works")
+            ]
+            self.assertEqual(leftover, [])
 
     def test_build_rejects_nonempty_output(self) -> None:
         (self.output / "keep.txt").write_text("keep\n", encoding="utf-8")

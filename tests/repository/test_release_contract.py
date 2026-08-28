@@ -42,6 +42,12 @@ class ProductReleaseTests(unittest.TestCase):
         self.assertNotIn("PRODUCT_NAMES =", source)
         self.assertEqual(self.registry.names, tuple(product.name for product in self.registry.products))
 
+    def test_how_it_works_first_archive_identity(self) -> None:
+        product = load_product_release(ROOT / "skills/how-it-works")
+        self.assertEqual(product.version, "1.0.0")
+        self.assertEqual(product.tag, "how-it-works-v1.0.0")
+        self.assertEqual(product.artifact_name, "how-it-works-v1.0.0.zip")
+
     def test_each_product_owns_an_independent_release_manifest(self) -> None:
         self.assertEqual(set(self.registry.names), set(EXPECTED))
         for name, version in EXPECTED.items():
@@ -50,6 +56,7 @@ class ProductReleaseTests(unittest.TestCase):
             self.assertEqual(release.name, name)
             self.assertEqual(release.version, version)
             self.assertEqual(release.tag, f"{name}-v{version}")
+            self.assertEqual(release.artifact_name, f"{name}-v{version}.zip")
             self.assertEqual(validate_product(release.root, self.registry), [])
 
     def test_one_product_version_can_change_without_changing_neighbors(self) -> None:
