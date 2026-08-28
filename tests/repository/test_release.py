@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import stat
 import subprocess
 import sys
@@ -92,8 +93,21 @@ class ProductBuildTests(unittest.TestCase):
             release.build_product(ROOT, "image-workbench", self.output, require_release_entry=False)
 
     def test_build_requires_dated_changelog_by_default(self) -> None:
-        with self.assertRaises(ReleaseError) as raised:
-            release.build_product(ROOT, "how-it-works", self.output)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            skill = root / "skills" / "how-it-works"
+            shutil.copytree(ROOT / "skills" / "how-it-works", skill)
+            changelog = skill / "CHANGELOG.md"
+            changelog.write_text(
+                changelog.read_text(encoding="utf-8").replace(
+                    "## 1.0.0 - 2026-08-28\n",
+                    "",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaises(ReleaseError) as raised:
+                release.build_product(root, "how-it-works", self.output)
         self.assertIn("dated release heading", str(raised.exception))
         self.assertEqual(list(self.output.iterdir()), [])
 

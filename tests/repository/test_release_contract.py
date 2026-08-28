@@ -238,21 +238,21 @@ class ProductReleaseRejectionTests(unittest.TestCase):
 
         source = ROOT / "skills" / "how-it-works"
         self.assertEqual(validate_product(source, REGISTRY), [])
-        self.assertIn(
-            "CHANGELOG.md missing dated release heading for 1.0.0",
-            require_dated_changelog(source),
-        )
+        self.assertEqual(require_dated_changelog(source), [])
         root = self._copy("how-it-works")
         changelog = root / "CHANGELOG.md"
         changelog.write_text(
             changelog.read_text(encoding="utf-8").replace(
-                "## Unreleased\n",
-                "## Unreleased\n\n## 1.0.0 - 2026-08-27\n",
+                "## 1.0.0 - 2026-08-28\n",
+                "",
                 1,
             ),
             encoding="utf-8",
         )
-        self.assertEqual(require_dated_changelog(root), [])
+        self.assertIn(
+            "CHANGELOG.md missing dated release heading for 1.0.0",
+            require_dated_changelog(root),
+        )
         self.assertEqual(validate_product(root, REGISTRY), [])
 
 
