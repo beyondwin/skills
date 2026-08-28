@@ -24,8 +24,8 @@ The immutable catalog `v2.0.0` plugin bundle does not include How It Works. The 
 
 ## Install paths and hosts
 
-- Codex primary: `$skill-installer` with the public GitHub skill path. See [Installation](installation.md).
-- How It Works: `~/.agents/skills/how-it-works` (Codex, Grok, Cursor) and `~/.claude/skills/how-it-works` (Claude Code). `ln -s` fails instead of overwriting an existing target.
+- Codex primary for Korean Writing Editor and Image Workbench: `$skill-installer` with the public GitHub skill path. See [Installation](installation.md).
+- How It Works: `~/.agents/skills/how-it-works` (Codex, Grok, Cursor) and `~/.claude/skills/how-it-works` (Claude Code). Codex does not use `~/.codex`. `ln -s` fails instead of overwriting an existing target.
 - Optional: third-party `npx skills add beyondwin/skills --skill korean-writing-editor`. That installer has its own policy.
 - Alternative: `git clone` plus host-native folder install. Inspect the exact target before copying.
 

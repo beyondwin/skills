@@ -6,19 +6,18 @@ The installable payloads are [`korean-writing-editor`](../../../skills/korean-wr
 
 ## Primary install (Codex)
 
-Use `$skill-installer` with the public GitHub skill path. The installer stops if the destination already exists.
+Use `$skill-installer` for `korean-writing-editor` and `image-workbench` only. The installer stops if the destination already exists. The default destination for those two skills is `$CODEX_HOME/skills/<skill-name>`, or `~/.codex/skills` when `CODEX_HOME` is unset. How It Works is not this destination.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
-$skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-works
 ```
 
-The default destination is `$CODEX_HOME/skills/<skill-name>`, or `~/.codex/skills` when `CODEX_HOME` is unset. Invoke on a new turn after install using the product README.
+Invoke on a new turn after install using the product README.
 
 ## How It Works four-host links
 
-`how-it-works` supports Codex, Claude Code, Grok, and Cursor for local or repository-based use. The shortest repository-based install is a clone plus two links. The first link serves Codex, Grok, and Cursor; the second serves Claude Code. `ln -s` fails instead of overwriting an existing target.
+`how-it-works` supports Codex, Claude Code, Grok, and Cursor for local or repository-based use. The public GitHub path is https://github.com/beyondwin/skills/tree/main/skills/how-it-works. The shortest repository-based install is a clone plus two links. The first link serves Codex, Grok, and Cursor; the second serves Claude Code. Codex discovers `~/.agents/skills/how-it-works`. Do not create a `~/.codex` or `~/.grok` duplicate. `ln -s` fails instead of overwriting an existing target.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git

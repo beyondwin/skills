@@ -37,7 +37,7 @@ ln -s "$PWD/skills/how-it-works" ~/.agents/skills/how-it-works
 ln -s "$PWD/skills/how-it-works" ~/.claude/skills/how-it-works
 ```
 
-Codex `$skill-installer` 경로도 있습니다. 대상 디렉터리가 이미 있으면 설치기는 중단하며, 기존 설치를 자동으로 바꾸지 않습니다.
+`$skill-installer`는 공개 GitHub 경로를 가리킵니다. Codex는 `~/.agents/skills/how-it-works`에서 발견합니다. `~/.codex` 복사본을 만들지 마세요. 대상 디렉터리가 이미 있으면 설치기는 중단하며, 기존 설치를 자동으로 바꾸지 않습니다.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-works

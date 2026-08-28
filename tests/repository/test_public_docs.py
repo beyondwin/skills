@@ -514,6 +514,56 @@ class UserGuideFactTests(unittest.TestCase):
             self.assertIn(HOW_IT_WORKS_UNLINK_AGENTS, text)
             self.assertIn(HOW_IT_WORKS_UNLINK_CLAUDE, text)
 
+    def test_how_it_works_install_and_remove_share_agents_destination(self) -> None:
+        installer = INSTALLER_COMMANDS["how-it-works"]
+        codex_home_targets = (
+            "${CODEX_HOME:-$HOME/.codex}/skills/how-it-works",
+            "$CODEX_HOME/skills/how-it-works",
+        )
+        guides = (
+            (
+                ROOT / "docs" / "users" / "en" / "installation.md",
+                "## Primary install (Codex)",
+                "## How It Works four-host links",
+            ),
+            (
+                ROOT / "docs" / "users" / "ko" / "installation.md",
+                "## 기본 설치 (Codex)",
+                "## How It Works 네 호스트 링크",
+            ),
+        )
+        for path, start, end in guides:
+            text = _read(path)
+            start_at = text.index(start)
+            end_at = text.index(end)
+            self.assertLess(start_at, end_at, path.name)
+            primary = text[start_at:end_at]
+            self.assertNotIn(installer, primary, f"{path.name} primary Codex block")
+            for dest in codex_home_targets:
+                self.assertNotIn(dest, text)
+            if "~/.codex/skills/how-it-works" in text:
+                self.assertIn("unlink ~/.codex/skills/how-it-works", text)
+            self.assertIn("~/.agents/skills/how-it-works", text)
+            self.assertIn(HOW_IT_WORKS_UNLINK_AGENTS, text)
+            self.assertIn(HOW_IT_WORKS_UNLINK_CLAUDE, text)
+        for filename in ("README.md", "README.en.md"):
+            text = _read(ROOT / "skills/how-it-works" / filename)
+            self.assertIn(installer, text)
+            self.assertIn("~/.agents/skills/how-it-works", text)
+            self.assertIn(HOW_IT_WORKS_UNLINK_AGENTS, text)
+            for dest in codex_home_targets:
+                self.assertNotIn(dest, text)
+            if "~/.codex/skills/how-it-works" in text:
+                self.assertIn("unlink ~/.codex/skills/how-it-works", text)
+        for path in README_PATHS:
+            text = _read(path)
+            if installer in text:
+                self.assertIn(
+                    "~/.agents/skills/how-it-works",
+                    text,
+                    f"{path.name} lists $skill-installer for how-it-works without the agents destination",
+                )
+
     def test_safety_docs_own_telemetry_text_images_rights_and_high_stakes(self) -> None:
         for document in (
             ROOT / "docs" / "users" / "ko" / "safety-and-privacy.md",

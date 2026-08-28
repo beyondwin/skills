@@ -24,13 +24,14 @@ Use each product README for install and first invocation. How It Works four-host
 
 ## Install
 
-The primary Codex path is `$skill-installer` with the public GitHub skill path. The installer stops if the destination already exists; it does not replace an existing install.
+The primary Codex path for Korean Writing Editor and Image Workbench is `$skill-installer` with the public GitHub skill path. The installer stops if the destination already exists; it does not replace an existing install.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
-$skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-works
 ```
+
+How It Works installs at `~/.agents/skills/how-it-works` (Codex, Grok, Cursor) and `~/.claude/skills/how-it-works` (Claude Code). The public GitHub path is https://github.com/beyondwin/skills/tree/main/skills/how-it-works. Do not create a `~/.codex` duplicate.
 
 Install, update, uninstall, and the third-party installer are in [Installation](docs/users/en/installation.md).
 

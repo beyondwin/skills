@@ -6,19 +6,18 @@
 
 ## 기본 설치 (Codex)
 
-공개 GitHub 스킬 경로와 `$skill-installer`를 씁니다. 대상이 이미 있으면 설치기는 중단합니다.
+`$skill-installer`는 `korean-writing-editor`와 `image-workbench`에만 씁니다. 대상이 이미 있으면 설치기는 중단합니다. 이 두 스킬의 기본 설치 위치는 `$CODEX_HOME/skills/<skill-name>`이며, `CODEX_HOME`이 없으면 `~/.codex/skills`입니다. How It Works는 이 위치가 아닙니다.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
-$skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-works
 ```
 
-기본 설치 위치는 `$CODEX_HOME/skills/<skill-name>`이며, `CODEX_HOME`이 없으면 `~/.codex/skills`입니다. 설치 후 새 대화에서 제품 README의 첫 호출을 쓰세요.
+설치 후 새 대화에서 제품 README의 첫 호출을 쓰세요.
 
 ## How It Works 네 호스트 링크
 
-`how-it-works`는 로컬 또는 저장소 기준으로 Codex, Claude Code, Grok, Cursor를 지원합니다. 가장 짧은 저장소 설치는 클론 후 링크 두 개입니다. 첫 링크는 Codex, Grok, Cursor가 쓰고, 둘째는 Claude Code가 씁니다. `ln -s`는 이미 있는 대상을 덮어쓰지 않고 실패합니다.
+`how-it-works`는 로컬 또는 저장소 기준으로 Codex, Claude Code, Grok, Cursor를 지원합니다. 공개 GitHub 경로는 https://github.com/beyondwin/skills/tree/main/skills/how-it-works 입니다. 가장 짧은 저장소 설치는 클론 후 링크 두 개입니다. 첫 링크는 Codex, Grok, Cursor가 쓰고, 둘째는 Claude Code가 씁니다. Codex는 `~/.agents/skills/how-it-works`에서 발견합니다. `~/.codex`나 `~/.grok` 복사본을 만들지 마세요. `ln -s`는 이미 있는 대상을 덮어쓰지 않고 실패합니다.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git

@@ -24,8 +24,8 @@ how-it-works: Codex, Claude Code, Grok, and Cursor supported for local or reposi
 
 ## 설치 경로와 호스트
 
-- Codex 기본: `$skill-installer`와 공개 GitHub 스킬 경로. [설치](installation.md)를 보세요.
-- How It Works: `~/.agents/skills/how-it-works`(Codex, Grok, Cursor)와 `~/.claude/skills/how-it-works`(Claude Code). `ln -s`는 이미 있는 대상을 덮어쓰지 않고 실패합니다.
+- Korean Writing Editor와 Image Workbench의 Codex 기본: `$skill-installer`와 공개 GitHub 스킬 경로. [설치](installation.md)를 보세요.
+- How It Works: `~/.agents/skills/how-it-works`(Codex, Grok, Cursor)와 `~/.claude/skills/how-it-works`(Claude Code). Codex는 `~/.codex`를 쓰지 않습니다. `ln -s`는 이미 있는 대상을 덮어쓰지 않고 실패합니다.
 - 선택: 제3자 `npx skills add beyondwin/skills --skill korean-writing-editor`. 이 설치기의 정책은 이 저장소와 다릅니다.
 - 대안: `git clone` 후 호스트 기본 폴더 설치. 정확한 대상을 확인하기 전에 복사하지 마세요.
 

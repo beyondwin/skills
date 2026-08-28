@@ -24,13 +24,14 @@
 
 ## 설치
 
-Codex 기본 경로는 `$skill-installer`와 공개 GitHub 스킬 경로입니다. 대상 디렉터리가 이미 있으면 설치기는 중단하며, 기존 설치를 자동으로 바꾸지 않습니다.
+Korean Writing Editor와 Image Workbench의 Codex 기본 경로는 `$skill-installer`와 공개 GitHub 스킬 경로입니다. 대상 디렉터리가 이미 있으면 설치기는 중단하며, 기존 설치를 자동으로 바꾸지 않습니다.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
-$skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-works
 ```
+
+How It Works는 `~/.agents/skills/how-it-works`(Codex, Grok, Cursor)와 `~/.claude/skills/how-it-works`(Claude Code)에 설치합니다. 공개 GitHub 경로는 https://github.com/beyondwin/skills/tree/main/skills/how-it-works 입니다. `~/.codex` 복사본을 만들지 마세요.
 
 설치·갱신·제거와 제3자 설치기는 [설치](docs/users/ko/installation.md)를 따릅니다.
 

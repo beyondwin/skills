@@ -37,7 +37,7 @@ ln -s "$PWD/skills/how-it-works" ~/.agents/skills/how-it-works
 ln -s "$PWD/skills/how-it-works" ~/.claude/skills/how-it-works
 ```
 
-The Codex `$skill-installer` path also exists. The installer stops if the destination already exists; it does not replace an existing install.
+`$skill-installer` names the public GitHub path. Codex still discovers `~/.agents/skills/how-it-works`; do not create a `~/.codex` duplicate. The installer stops if the destination already exists; it does not replace an existing install.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-works
