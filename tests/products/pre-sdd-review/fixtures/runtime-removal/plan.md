@@ -1,5 +1,7 @@
 # sample-app runtime replacement plan
 
+**Spec:** design.md
+
 ## Implementation
 
 1. Remove `src/app.ts`.

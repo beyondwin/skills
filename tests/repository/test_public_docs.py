@@ -82,8 +82,8 @@ PRE_SDD_REVIEW_SUPPORT = (
     "pre-sdd-review: Codex supported; other hosts not_measured."
 )
 PRE_SDD_SHARED_SECTION_DIGESTS = {
-    ("ko", "safety"): "6b413c23697d3514b8ba46337a7dc3a0e6ca11026d0c4446877e1dc6496f7eaf",
-    ("en", "safety"): "e6606e971dbce5ee8f882d32685a8d665fe15c492cf681d4ed1418bc13ba4881",
+    ("ko", "safety"): "a714e5bee17c4f294241fdeac8b3ecdf9a95f8de1440cc8a7c352f4a9471889c",
+    ("en", "safety"): "235f585ae1156133e0f06bc21b9b6218799f4c9527e94b7dadf2ee49f83f7dce",
     ("ko", "verification"): "eb4dbd7356163a0d28f361f8b2e6cd3dd00c134cf2901b5be9fc4186d2b14507",
     ("en", "verification"): "daf31490f6ccc9dedd39218681523ce812e9be09b33c737e075bc65156c4b19a",
 }
@@ -427,13 +427,17 @@ def pre_sdd_shared_contract_errors(
         ("ko", "safety"): (
             "`pre-sdd-review`는 로컬 설계, 구현 계획, 참조된 ADR, 저장소 파일을 읽습니다.",
             "기본 모드에서는 확인된 설계와 계획만 수정합니다.",
-            "사용자 문서를 전송하거나 지속 저장하거나 저장소 소유 테스트 픽스처로 수집하지 않습니다.",
+            "저장소 소유 테스트는 사용자 문서를 전송하거나 지속 저장하거나 픽스처로 수집하지 않습니다.",
+            "이 제품은 텔레메트리나 업로드 경로를 추가하지 않습니다.",
+            "라이브 처리와 보존은 Codex 호스트의 데이터 제어를 따릅니다.",
             "명시적인 외부 요청 없이는 구현이나 SDD를 시작하지 않습니다.",
         ),
         ("en", "safety"): (
             "`pre-sdd-review` reads local design, implementation plan, referenced ADR, and repository files.",
             "In default mode it edits only the resolved design and plan.",
-            "It does not transmit or persist user documents or capture them as repository-owned test fixtures.",
+            "Repository-owned tests do not transmit, persist, or capture user documents as fixtures.",
+            "This product adds no telemetry or upload path.",
+            "Live processing and retention follow the Codex host's data controls.",
             "It never starts implementation or SDD without an explicit outer request.",
         ),
         ("ko", "verification"): (
@@ -862,7 +866,22 @@ class UserGuideFactTests(unittest.TestCase):
                 _read(ROOT / "docs/users/ko/safety-and-privacy.md"),
                 (
                     ("확인된 설계와 계획만 수정합니다", "확인된 설계와 계획뿐 아니라 application code도 수정합니다"),
-                    ("픽스처로 수집하지 않습니다", "픽스처로 수집합니다"),
+                    (
+                        "저장소 소유 테스트는 사용자 문서를 전송하거나 지속 저장하거나 픽스처로 수집하지 않습니다",
+                        "저장소 소유 테스트는 사용자 문서를 전송하고 지속 저장하고 픽스처로 수집합니다",
+                    ),
+                    (
+                        "이 제품은 텔레메트리나 업로드 경로를 추가하지 않습니다",
+                        "이 제품은 텔레메트리와 업로드 경로를 추가합니다",
+                    ),
+                    (
+                        "라이브 처리와 보존은 Codex 호스트의 데이터 제어를 따릅니다",
+                        "저장소 소유 테스트가 라이브 처리와 보존을 제어합니다",
+                    ),
+                    (
+                        "저장소 소유 테스트는 사용자 문서를 전송하거나 지속 저장하거나 픽스처로 수집하지 않습니다",
+                        "사용자 문서를 전송하거나 지속 저장하거나 저장소 소유 테스트 픽스처로 수집하지 않습니다",
+                    ),
                     ("명시적인 외부 요청 없이는 구현이나 SDD를 시작하지 않습니다", "명시적인 외부 요청 없이도 구현이나 SDD를 시작합니다"),
                 ),
             ),
@@ -872,7 +891,22 @@ class UserGuideFactTests(unittest.TestCase):
                 _read(ROOT / "docs/users/en/safety-and-privacy.md"),
                 (
                     ("edits only the resolved design and plan", "edits not only the resolved design and plan but also application code"),
-                    ("does not transmit or persist user documents or capture them as repository-owned test fixtures", "does transmit or persist user documents and capture them as repository-owned test fixtures"),
+                    (
+                        "Repository-owned tests do not transmit, persist, or capture user documents as fixtures",
+                        "Repository-owned tests transmit, persist, and capture user documents as fixtures",
+                    ),
+                    (
+                        "This product adds no telemetry or upload path",
+                        "This product adds telemetry and an upload path",
+                    ),
+                    (
+                        "Live processing and retention follow the Codex host's data controls",
+                        "Repository-owned tests control live processing and retention",
+                    ),
+                    (
+                        "Repository-owned tests do not transmit, persist, or capture user documents as fixtures",
+                        "It does not transmit or persist user documents or capture them as repository-owned test fixtures",
+                    ),
                     ("never starts implementation or SDD without an explicit outer request", "starts implementation or SDD without an explicit outer request"),
                 ),
             ),

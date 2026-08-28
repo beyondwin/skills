@@ -20,7 +20,7 @@ In `image-workbench`, every input image has exactly one role: `edit_target`, `su
 
 ## Pre-SDD document review
 
-`pre-sdd-review` reads local design, implementation plan, referenced ADR, and repository files. In default mode it edits only the resolved design and plan. It does not transmit or persist user documents or capture them as repository-owned test fixtures. It never starts implementation or SDD without an explicit outer request.
+`pre-sdd-review` reads local design, implementation plan, referenced ADR, and repository files. In default mode it edits only the resolved design and plan. Repository-owned tests do not transmit, persist, or capture user documents as fixtures. This product adds no telemetry or upload path. Live processing and retention follow the Codex host's data controls. It never starts implementation or SDD without an explicit outer request.
 
 ## High-stakes requests
 

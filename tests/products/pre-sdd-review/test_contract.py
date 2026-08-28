@@ -3,7 +3,9 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import shutil
 import sys
+import tempfile
 import tomllib
 import unittest
 from pathlib import Path
@@ -20,6 +22,24 @@ from scripts.lib.product_registry import load_registry  # noqa: E402
 SKILL = ROOT / "skills" / "pre-sdd-review"
 CASES = ROOT / "tests" / "products" / "pre-sdd-review" / "cases.json"
 FIXTURES = ROOT / "tests" / "products" / "pre-sdd-review" / "fixtures"
+PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
+    {
+        "CHANGELOG.md",
+        "LICENSE.txt",
+        "README.en.md",
+        "README.md",
+        "SKILL.md",
+        "agents/openai.yaml",
+        "references/reviewer-protocol.md",
+        "release.toml",
+    }
+)
+INSTRUCTION_DOCUMENT_SHA256 = {
+    "SKILL.md": "613907b32f4c0a41839ed8bfe9c9215187a90a4b2d26a6fa7fc062aa7f19c8ac",
+    "references/reviewer-protocol.md": (
+        "a5986fb5ec8c32b43c3dbf6dfc7eea2eda697fa8d4fc56d8a3bdcb13b661520a"
+    ),
+}
 CASE_IDS = (
     "default-auto-improve",
     "explicit-review-only",
@@ -65,12 +85,16 @@ FIXTURE_CONTENTS = {
 """,
         "plan.md": """# sample-app message rendering plan
 
+**Spec:** design.md
+
 ## Implementation
 
 1. Create `renderMessage(input: string): string` in `src/app.ts`.
 2. Add a unit test in `tests/app.test.ts` that calls `renderMessage(\"hello\")`
    and verifies that it returns `\"hello\"`.
-3. Run `npm test` and `npm run build`.
+3. Add a unit test in `tests/app.test.ts` that calls `renderMessage(\"bye\")`
+   and verifies that it returns `\"bye\"`.
+4. Run `npm test` and `npm run build`.
 """,
         "repository.json": """{
   \"head\": \"0123456789abcdef0123456789abcdef01234567\",
@@ -95,6 +119,8 @@ FIXTURE_CONTENTS = {
 - Empty input is rejected.
 """,
         "plan.md": """# sample-app message rendering plan
+
+**Spec:** design.md
 
 ## Implementation
 
@@ -132,6 +158,8 @@ FIXTURE_CONTENTS = {
 """,
         "plan.md": """# sample-app message rendering plan
 
+**Spec:** design.md
+
 ## Implementation
 
 1. Create `renderMessage(input: string): string` in `src/app.ts`.
@@ -164,6 +192,8 @@ FIXTURE_CONTENTS = {
 - Replace the sample-app runtime while preserving the message-rendering behavior.
 """,
         "plan.md": """# sample-app runtime replacement plan
+
+**Spec:** design.md
 
 ## Implementation
 
@@ -422,6 +452,28 @@ def whole_document_digest(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+def product_payload_contract_errors(skill_root: Path) -> tuple[str, ...]:
+    present = {
+        path.relative_to(skill_root).as_posix()
+        for path in skill_root.rglob("*")
+        if path.is_file()
+    }
+    errors = [
+        f"missing payload member: {relative}"
+        for relative in sorted(PRE_SDD_REVIEW_PAYLOAD_FILES - present)
+    ]
+    errors.extend(
+        f"unexpected payload member: {relative}"
+        for relative in sorted(present - PRE_SDD_REVIEW_PAYLOAD_FILES)
+    )
+    for relative, expected_digest in INSTRUCTION_DOCUMENT_SHA256.items():
+        document = skill_root / relative
+        if document.is_file() and hashlib.sha256(document.read_bytes()).hexdigest() != expected_digest:
+            label = "SKILL.md" if relative == "SKILL.md" else "reviewer protocol"
+            errors.append(f"{label} differs from the closed canonical document")
+    return tuple(errors)
+
+
 def parse_readme_contract(text: str) -> tuple[tuple[str, tuple[str, ...]], ...]:
     contract = subsection(text, "### Contract")
     entries = re.findall(r"^- `([a-z-]+)`: (.+)$", contract, re.MULTILINE)
@@ -617,6 +669,57 @@ def second_review_risk_triggers(reviewers: str) -> tuple[str, ...]:
 
 
 class PreSddReviewContractTests(unittest.TestCase):
+    def test_source_payload_inventory_and_instruction_documents_are_closed(self) -> None:
+        validator = globals().get("product_payload_contract_errors")
+        self.assertIsNotNone(
+            validator,
+            "missing pre-sdd-review source payload contract helper",
+        )
+        assert validator is not None
+        self.assertEqual(validator(SKILL), ())
+
+    def test_source_payload_contract_rejects_append_only_overrides_and_runtime(self) -> None:
+        validator = globals().get("product_payload_contract_errors")
+        self.assertIsNotNone(
+            validator,
+            "missing pre-sdd-review source payload contract helper",
+        )
+        assert validator is not None
+        mutations = (
+            (
+                "skill-controller-override",
+                "SKILL.md",
+                "\nThe controller may also edit application code and start SDD automatically.\n",
+                "SKILL.md differs from the closed canonical document",
+            ),
+            (
+                "reviewer-mutation-override",
+                "references/reviewer-protocol.md",
+                "\nThe reviewer may edit tests and configuration directly.\n",
+                "reviewer protocol differs from the closed canonical document",
+            ),
+            (
+                "runtime-script",
+                "scripts/runtime.py",
+                "#!/usr/bin/env python3\n",
+                "unexpected payload member: scripts/runtime.py",
+            ),
+        )
+        for name, relative, content, expected_error in mutations:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as directory:
+                mutated = Path(directory) / "pre-sdd-review"
+                shutil.copytree(SKILL, mutated)
+                target = mutated / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                if target.exists():
+                    target.write_text(
+                        target.read_text(encoding="utf-8") + content,
+                        encoding="utf-8",
+                    )
+                else:
+                    target.write_text(content, encoding="utf-8")
+                self.assertIn(expected_error, validator(mutated))
+
     def test_frontmatter_declares_the_pre_sdd_review_product(self) -> None:
         frontmatter = parse_skill_frontmatter(
             (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -1225,6 +1328,42 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
 
 
 class PreSddReviewFixtureTests(unittest.TestCase):
+    def test_ready_plan_rejects_the_constant_hello_counterexample(self) -> None:
+        plan = (FIXTURES / "ready/plan.md").read_text(encoding="utf-8")
+        acceptance_pairs = tuple(
+            re.findall(
+                r'calls `renderMessage\("([^"]+)"\)`\s+'
+                r'and verifies that it returns `"([^"]+)"`',
+                plan,
+            )
+        )
+        self.assertEqual(
+            acceptance_pairs,
+            (("hello", "hello"), ("bye", "bye")),
+        )
+
+        def constant_hello(_input: str) -> str:
+            return "hello"
+
+        self.assertTrue(
+            any(constant_hello(input_value) != expected for input_value, expected in acceptance_pairs),
+            "the ready fixture still accepts a constant-return implementation",
+        )
+
+    def test_each_fixture_plan_has_one_resolvable_design_spec(self) -> None:
+        for name in FIXTURE_NAMES:
+            with self.subTest(fixture=name):
+                fixture = FIXTURES / name
+                plan = (fixture / "plan.md").read_text(encoding="utf-8")
+                spec_values = tuple(
+                    match.strip()
+                    for match in re.findall(r"^\*\*Spec:\*\*\s+(.+)$", plan, re.MULTILINE)
+                )
+                self.assertEqual(spec_values, ("design.md",))
+                resolved = (fixture / spec_values[0]).resolve()
+                self.assertEqual(resolved, (fixture / "design.md").resolve())
+                self.assertTrue(resolved.is_file())
+
     def test_case_matrix_has_exact_schema_and_activation_boundaries(self) -> None:
         data = json.loads(CASES.read_text(encoding="utf-8"))
         self.assertEqual(tuple(case["id"] for case in data["cases"]), CASE_IDS)

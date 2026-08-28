@@ -200,6 +200,16 @@ def verify_product_download(root: Path, name: str, directory: Path) -> list[str]
         extracted_errors = validate_product(skill_root, REGISTRY)
         if extracted_errors:
             return [f"{name}: {error}" for error in extracted_errors]
+        if name == "pre-sdd-review":
+            try:
+                extracted_payload = payload_sha256(skill_root)
+                source_payload = payload_sha256(root / "skills" / name)
+            except ValueError as exc:
+                return [f"pre-sdd-review: cannot compare extracted payload: {exc}"]
+            if extracted_payload != source_payload:
+                return [
+                    "pre-sdd-review: extracted payload does not match current source payload"
+                ]
         version_errors = _extracted_version_errors(skill_root, expected)
         if version_errors:
             return version_errors

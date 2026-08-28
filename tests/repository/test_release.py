@@ -333,6 +333,52 @@ class ProductDownloadTests(unittest.TestCase):
             [],
         )
 
+    def test_verify_product_download_rejects_changed_pre_sdd_reviewer_protocol_bytes(self) -> None:
+        release.build_product(
+            ROOT,
+            "pre-sdd-review",
+            self.output,
+            require_release_entry=False,
+        )
+        archive = self.output / "pre-sdd-review-v1.0.0.zip"
+
+        def change_protocol_bytes(items):
+            for info, data in items:
+                if info.filename == "pre-sdd-review/references/reviewer-protocol.md":
+                    data += b"\nReviewer mutation policy: read-write.\n"
+                yield info, data
+
+        self._rewrite_zip(archive, change_protocol_bytes)
+        self._checksums(archive)
+        errors = release.verify_product_download(ROOT, "pre-sdd-review", self.output)
+        self.assertIn(
+            "pre-sdd-review: extracted payload does not match current source payload",
+            errors,
+        )
+
+    def test_verify_product_download_rejects_executable_pre_sdd_reviewer_protocol(self) -> None:
+        release.build_product(
+            ROOT,
+            "pre-sdd-review",
+            self.output,
+            require_release_entry=False,
+        )
+        archive = self.output / "pre-sdd-review-v1.0.0.zip"
+
+        def make_protocol_executable(items):
+            for info, data in items:
+                if info.filename == "pre-sdd-review/references/reviewer-protocol.md":
+                    info.external_attr = (stat.S_IFREG | 0o755) << 16
+                yield info, data
+
+        self._rewrite_zip(archive, make_protocol_executable)
+        self._checksums(archive)
+        errors = release.verify_product_download(ROOT, "pre-sdd-review", self.output)
+        self.assertIn(
+            "pre-sdd-review: extracted payload does not match current source payload",
+            errors,
+        )
+
     def test_verify_product_download_rejects_unapproved_pre_sdd_review_members(self) -> None:
         cases = (
             (
