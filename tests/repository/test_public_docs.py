@@ -304,10 +304,7 @@ def _matching_inline_code_end(text: str, start: int, run_end: int) -> int | None
         closing_end = closing_start
         while closing_end < paragraph_end and text[closing_end] == "`":
             closing_end += 1
-        if (
-            not _is_backtick_escaped(text, closing_start)
-            and closing_end - closing_start == width
-        ):
+        if closing_end - closing_start == width:
             return closing_end
         cursor = closing_end
     return None
@@ -1315,6 +1312,8 @@ class MaintainerStructureTests(unittest.TestCase):
         code_spans = (
             "`literal\n<!-- remains literal\nspan`\n\n",
             "``literal\n<!-- remains literal\nspan``\n\n",
+            "`literal\n<!-- remains literal\nspan\\`\n\n",
+            "``literal\n<!-- remains literal\nspan\\``\n\n",
         )
         for path in documents:
             source = _read(path)
