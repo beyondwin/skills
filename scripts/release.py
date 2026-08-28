@@ -530,6 +530,10 @@ def _run_product_smoke(root: Path, name: str, skill_root: Path) -> list[str]:
         return errors
     if name == "how-it-works":
         return _smoke_how_it_works(skill_root)
+    if name == "pre-sdd-review":
+        # This Markdown-only product has no runtime script; extracted payload
+        # validation above is its complete standalone smoke boundary.
+        return []
     return [f"unlisted skill is not accepted: {name}"]
 
 
