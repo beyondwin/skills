@@ -79,15 +79,18 @@ resolve plan -> resolve plan **Spec:** -> read binding references
 -> hash design and plan -> record HEAD and dirty state
 -> fresh read-only review -> controller deduplication
 -> authority-preserving document repair -> scoped re-review
--> optional second repair -> READY | REVISE | BLOCKED
+-> optional second repair -> fresh scoped re-review
+-> READY | REVISE | BLOCKED
 ```
 
 After the first review, repair only findings that have an
 authority-preserving document correction, then give the changed sections and
-original findings to a fresh reviewer for scoped re-review. At most two repair passes
-are permitted. If a material issue remains after the second repair
-pass, return `REVISE` with its evidence; do not downgrade it to finish the
-loop.
+original findings to a fresh reviewer for scoped re-review. An optional second
+repair is allowed only after that scoped re-review finds another repairable
+material defect, and it must be followed by another fresh scoped re-review
+before the final verdict. At most two repair passes are permitted. If a
+material issue remains after the second repair pass, return `REVISE` with its
+evidence; do not downgrade it to finish the loop.
 
 ## Review-only mode
 
