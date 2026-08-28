@@ -819,7 +819,7 @@ CHANGE_PROTOCOL_HEADINGS = (
     ("##", "Required Verification"),
 )
 CHANGE_PROTOCOL_VERIFICATION_FENCE = (
-    "python3 skills/korean-writing-editor/tests/korean-writing-editor/offline/run.py --scope full\n"
+    "python3 tests/products/korean-writing-editor/offline/run.py --scope full\n"
     "bun run agent:verify\n"
     "git diff --check"
 )
@@ -6452,7 +6452,7 @@ class ReviewAndReportTests(unittest.TestCase):
                     "`한Latin`",
                 )
 
-        safe = "한글 Latin python3 skills/korean-writing-editor/tests/korean-writing-editor/offline/run.py --scope full"
+        safe = "한글 Latin python3 tests/products/korean-writing-editor/offline/run.py --scope full"
         self.assertEqual(live_matrix._safe_report_text(safe), f"`{safe}`")
         self.assertEqual(live_matrix._safe_report_text("\u202e" * 300 + safe), f"`{safe}`")
         self.assertEqual(
@@ -6611,7 +6611,7 @@ class ReviewAndReportTests(unittest.TestCase):
             response_sha256=hostile,
             findings=(live_matrix.Finding(hostile, hostile),),
         )
-        safe_command = "python3 skills/korean-writing-editor/tests/korean-writing-editor/offline/run.py --scope full"
+        safe_command = "python3 tests/products/korean-writing-editor/offline/run.py --scope full"
         report = live_matrix.render_operations_report(
             live_matrix.ReportInput.for_test(
                 receipts=(producer,),
@@ -6698,12 +6698,12 @@ class ReviewAndReportTests(unittest.TestCase):
                 remote_state=hostile,
                 git_state=hostile,
                 installation_state=hostile,
-                verification_results=(("python3 tests/korean-writing-editor/offline/run.py --scope full", hostile),),
+                verification_results=(("python3 tests/products/korean-writing-editor/offline/run.py --scope full", hostile),),
             )
         )
         for token in ("\u0085", "\u2028", "\u2029", "<script>", "<table>", "[link](", "\n## injected"):
             self.assertNotIn(token, report)
-        self.assertIn("python3 tests/korean-writing-editor/offline/run.py --scope full", report)
+        self.assertIn("python3 tests/products/korean-writing-editor/offline/run.py --scope full", report)
         self.assertIn("status=blocked", report)
         malformed = live_matrix.CallReceipt.for_test("reviewer-claude:packet:1", status="blocked\u2028## injected")
         with self.assertRaisesRegex(live_matrix.LiveMatrixError, "report status"):
@@ -6722,7 +6722,7 @@ class ReviewAndReportTests(unittest.TestCase):
                 changed_files=(hostile,),
                 local_state=hostile,
                 remote_state=hostile,
-                verification_results=(("python3 tests/korean-writing-editor/offline/run.py --scope full", hostile),),
+                verification_results=(("python3 tests/products/korean-writing-editor/offline/run.py --scope full", hostile),),
             )
         )
         for token in (
@@ -6730,7 +6730,7 @@ class ReviewAndReportTests(unittest.TestCase):
             r"C:\\Users", r"\\server\\share", "token-value", "sk-secret-token", "raw/0001", "## injected",
         ):
             self.assertNotIn(token, report)
-        self.assertIn("python3 tests/korean-writing-editor/offline/run.py --scope full", report)
+        self.assertIn("python3 tests/products/korean-writing-editor/offline/run.py --scope full", report)
         self.assertNotIn("\n## injected", report)
 
     def test_git_report_facts_use_main_merge_base_and_local_remote_refs(self) -> None:

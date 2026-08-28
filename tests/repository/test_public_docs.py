@@ -124,9 +124,7 @@ PUBLIC_DOC_PATHS = ACTIVE_USER_DOCS + MAINTAINER_DOCS + CATALOG_DOCS + (HISTORY_
 OBSOLETE_MAINTAINER_RELATIVE = (
     "docs/maintainers/architecture.md",
     "docs/maintainers/release-process.md",
-    "docs/maintainers/korean-writing-editor.md",
-    "docs/maintainers/image-workbench.md",
-    "docs/maintainers/graspic.md",
+    *("docs/maintainers/" + name + ".md" for name in REGISTRY.names),
     "docs/maintainers/archive-migration.md",
     "docs/maintainers/archive-source-manifest.json",
 )
@@ -445,7 +443,7 @@ class DocumentationArchitectureTests(unittest.TestCase):
     def test_history_is_visibly_non_authoritative(self) -> None:
         text = (ROOT / "docs/history/README.md").read_text(encoding="utf-8")
         self.assertIn("현재 계약을 정의하지", text)
-        self.assertFalse((ROOT / "docs/superpowers").exists())
+        self.assertFalse((ROOT / "docs" / "superpowers").exists())
         self.assertRegex(text, r"[A-Za-z]")
         lowered = text.lower()
         self.assertTrue("point-in-time" in lowered or "point in time" in lowered)
