@@ -36,7 +36,7 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 - `korean-writing-editor`: `tests/products/korean-writing-editor/offline/`의 트리거·모드·보존·출력 픽스처
 - `image-workbench`: `tests/products/image-workbench/`의 라우팅·권한·ImageSpec·핸드오프·inspector 픽스처
 - `how-it-works`: `tests/products/how-it-works/cases.json`의 합성 DNS·rebase 계약 픽스처와 `tests/products/how-it-works/test_contract.py` 페이로드 계약. 채팅 필수 산출(one-sentence claim, Mermaid, numbered hop list, rung-specific body, adjacent slices, one next move)의 형태만 잠급니다.
-- `pre-sdd-review`: `tests/products/pre-sdd-review/`의 합성 사례와 문서 픽스처. 공급자 없는 픽스처는 지시와 패키지 계약만 검증하며, 리뷰어 독립성, 의미 완전성, 라이브 리뷰 품질을 증명하지 않습니다.
+- `pre-sdd-review`: `tests/products/pre-sdd-review/`의 합성 사례와 문서 픽스처. `pre-sdd-review`의 공급자 없는 픽스처는 지시와 패키지 계약만 검증합니다. 리뷰어 독립성, 의미 완전성, 라이브 리뷰 품질을 증명하지 않습니다.
 
 통과는 일반 한국어 편집 품질, 의미 동등, 라이브 이미지 품질, 상업 허가, 더 나은 공급자, 런타임 동등성을 증명하지 않습니다. 라이선스는 Apache-2.0입니다.
 

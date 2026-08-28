@@ -340,19 +340,19 @@ README_CANONICAL_DOCUMENT_DIGESTS = {
     "en": "aa518bbaf55dbf0c418e4d3077715aae809b23cc6f9e96fb713c430797e96cb7",
 }
 MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
-    ("### Authority order", "9b12469723b1e631fed289e2134a4c47826bd61c26014c9a84f3e302c02f0e6c"),
+    ("### Authority order", "3156a43d665d21723ce61b333c7c34f30abd2e6d288c472d5eec5878e5ef8321"),
     ("### Editable paths", "4c7d511afb38f386f06926cfa9b7b6307a7d2fb9e1b69ae0254021ca7fbaba8e"),
     ("### Excluded surfaces", "892b4d931a0e8c7bbf0979e4303e512eaf3af1ebe4e18063b699a05f5f7adaee"),
     ("### Review passes", "85923c91aaadfe1eea3a6dfad1ba81e43e5df9d99ba111b5116c63dbff80e018"),
     ("### Severities", "72c20c936027d62761c1b2dd9ef16b954c0780d7a15b4b1e05cf33e28b383ebd"),
-    ("### Finding classes", "fc676fde7830ae8402090ef7e3321f58a1bc828b74f75f397fb27107980b7e39"),
+    ("### Finding classes", "2a0892a5aad034ceaf1218606d657f4b22bac89c0d2b67065b7018e811a44352"),
     ("### Conditional risk triggers", "beb83c2728bf4bcc9ee15a353a1391971daa10bd59c45fea6a6fd641333db10c"),
-    ("### Verdicts", "71d2539b57f56eaed895bcde77a9938f3d631a0a4a8dec0c4b67be1bec88b987"),
+    ("### Verdicts", "6bbc48d01219299cd47b1ae4f6f44952ce497012736b0785551fdb0995aacb00"),
     ("### Freshness", "d11924689bcb72cc82cefbef5ed84201ccc73d5b29bb896fedffdad1b0932d94"),
     ("### SDD handoff", "8a629dd12d78e2c08e77e7c1d057d0e450b135bc0633d5b62c8c926665976bca"),
 )
-MAINTAINER_CANONICAL_DIGEST = "73f5d6a6c65ced2ba56b91e5f173988b6bf0e93e9387d93ac70405ee012eda1d"
-RELEASE_CANONICAL_DIGEST = "a6517ec604bbafa93f5fbd1405e81fd37aa8d51b0a7801223d202b68901359f9"
+MAINTAINER_CANONICAL_DIGEST = "54bc00bbdabf23dd20bc31b8d2d57c4a5fdc69e1da453a1ed8f6008c58a1fa34"
+RELEASE_CANONICAL_DIGEST = "9dc0088c21c5c311caa0938d7c64d0c1c98632f4c60ef70e99a589e5a87d2abd"
 
 
 def section(text: str, start: str, end: str) -> str:

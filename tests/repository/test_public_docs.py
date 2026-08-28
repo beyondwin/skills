@@ -257,6 +257,58 @@ def _assert_exists(test: unittest.TestCase, path: Path) -> None:
     test.assertTrue(path.is_file(), f"{path.relative_to(ROOT).as_posix()} is absent")
 
 
+def _owned_section(text: str, heading: str) -> str:
+    pattern = re.compile(
+        rf"^{re.escape(heading)}\s*$.*?(?=^##\s|\Z)",
+        re.MULTILINE | re.DOTALL,
+    )
+    matches = pattern.findall(text)
+    return matches[0] if len(matches) == 1 else ""
+
+
+def pre_sdd_shared_contract_errors(
+    text: str,
+    *,
+    language: str,
+    document: str,
+) -> tuple[str, ...]:
+    headings = {
+        ("ko", "safety"): "## SDD 전 문서 검토",
+        ("en", "safety"): "## Pre-SDD document review",
+        ("ko", "verification"): "## 오프라인 픽스처",
+        ("en", "verification"): "## Offline fixtures",
+    }
+    clauses = {
+        ("ko", "safety"): (
+            "`pre-sdd-review`는 로컬 설계, 구현 계획, 참조된 ADR, 저장소 파일을 읽습니다.",
+            "기본 모드에서는 확인된 설계와 계획만 수정합니다.",
+            "사용자 문서를 전송하거나 지속 저장하거나 저장소 소유 테스트 픽스처로 수집하지 않습니다.",
+            "명시적인 외부 요청 없이는 구현이나 SDD를 시작하지 않습니다.",
+        ),
+        ("en", "safety"): (
+            "`pre-sdd-review` reads local design, implementation plan, referenced ADR, and repository files.",
+            "In default mode it edits only the resolved design and plan.",
+            "It does not transmit or persist user documents or capture them as repository-owned test fixtures.",
+            "It never starts implementation or SDD without an explicit outer request.",
+        ),
+        ("ko", "verification"): (
+            "`pre-sdd-review`의 공급자 없는 픽스처는 지시와 패키지 계약만 검증합니다.",
+            "리뷰어 독립성, 의미 완전성, 라이브 리뷰 품질을 증명하지 않습니다.",
+        ),
+        ("en", "verification"): (
+            "Provider-free fixtures validate only instruction and package contracts.",
+            "They do not prove reviewer independence, semantic completeness, or live review quality.",
+        ),
+    }
+    key = (language, document)
+    owned = _owned_section(text, headings[key])
+    if not owned:
+        return ("pre-sdd shared section is missing or duplicated",)
+    if any(owned.count(clause) != 1 for clause in clauses[key]):
+        return ("pre-sdd shared exact clauses differ",)
+    return ()
+
+
 class ProductReadmeOwnershipTests(unittest.TestCase):
     def test_every_product_owns_a_korean_english_readme_pair(self) -> None:
         for product in REGISTRY.products:
@@ -624,35 +676,90 @@ class UserGuideFactTests(unittest.TestCase):
 
         korean_safety = _read(ROOT / "docs/users/ko/safety-and-privacy.md")
         english_safety = _read(ROOT / "docs/users/en/safety-and-privacy.md")
-        for term in ("설계", "계획", "ADR", "저장소", "전송", "저장", "픽스처"):
-            self.assertIn(term, korean_safety)
-        for term in (
-            "design",
-            "plan",
-            "ADR",
-            "repository",
-            "transmit",
-            "persist",
-            "fixture",
-        ):
-            self.assertIn(term, english_safety)
-        self.assertIn("명시적인 외부 요청", korean_safety)
-        self.assertIn("explicit outer request", english_safety)
+        self.assertEqual(
+            pre_sdd_shared_contract_errors(korean_safety, language="ko", document="safety"),
+            (),
+        )
+        self.assertEqual(
+            pre_sdd_shared_contract_errors(english_safety, language="en", document="safety"),
+            (),
+        )
 
         korean_verification = _read(ROOT / "docs/users/ko/verification.md")
         english_verification = _read(ROOT / "docs/users/en/verification.md")
         self.assertIn("python3 scripts/verify.py --skill pre-sdd-review", korean_verification)
         self.assertIn("python3 scripts/verify.py --skill pre-sdd-review", english_verification)
-        for term in ("지시", "패키지", "리뷰어 독립성", "의미 완전성", "라이브 리뷰 품질"):
-            self.assertIn(term, korean_verification)
-        for term in (
-            "instruction",
-            "package",
-            "reviewer independence",
-            "semantic completeness",
-            "live review quality",
-        ):
-            self.assertIn(term, english_verification)
+        self.assertEqual(
+            pre_sdd_shared_contract_errors(
+                korean_verification,
+                language="ko",
+                document="verification",
+            ),
+            (),
+        )
+        self.assertEqual(
+            pre_sdd_shared_contract_errors(
+                english_verification,
+                language="en",
+                document="verification",
+            ),
+            (),
+        )
+
+    def test_pre_sdd_shared_clause_validator_rejects_reversed_polarities(self) -> None:
+        cases = (
+            (
+                "ko",
+                "safety",
+                _read(ROOT / "docs/users/ko/safety-and-privacy.md"),
+                (
+                    ("확인된 설계와 계획만 수정합니다", "확인된 설계와 계획뿐 아니라 application code도 수정합니다"),
+                    ("픽스처로 수집하지 않습니다", "픽스처로 수집합니다"),
+                    ("명시적인 외부 요청 없이는 구현이나 SDD를 시작하지 않습니다", "명시적인 외부 요청 없이도 구현이나 SDD를 시작합니다"),
+                ),
+            ),
+            (
+                "en",
+                "safety",
+                _read(ROOT / "docs/users/en/safety-and-privacy.md"),
+                (
+                    ("edits only the resolved design and plan", "edits not only the resolved design and plan but also application code"),
+                    ("does not transmit or persist user documents or capture them as repository-owned test fixtures", "does transmit or persist user documents and capture them as repository-owned test fixtures"),
+                    ("never starts implementation or SDD without an explicit outer request", "starts implementation or SDD without an explicit outer request"),
+                ),
+            ),
+            (
+                "ko",
+                "verification",
+                _read(ROOT / "docs/users/ko/verification.md"),
+                (
+                    ("지시와 패키지 계약만 검증합니다", "지시와 패키지 계약뿐 아니라 라이브 동작도 검증합니다"),
+                    ("라이브 리뷰 품질을 증명하지 않습니다", "라이브 리뷰 품질을 증명합니다"),
+                ),
+            ),
+            (
+                "en",
+                "verification",
+                _read(ROOT / "docs/users/en/verification.md"),
+                (
+                    ("validate only instruction and package contracts", "validate instruction and package contracts plus live behavior"),
+                    ("They do not prove reviewer independence, semantic completeness, or live review quality", "They prove reviewer independence, semantic completeness, and live review quality"),
+                ),
+            ),
+        )
+        for language, document, source, mutations in cases:
+            for old, new in mutations:
+                with self.subTest(language=language, document=document, mutation=new):
+                    mutation = source.replace(old, new, 1)
+                    self.assertNotEqual(mutation, source)
+                    self.assertTrue(
+                        pre_sdd_shared_contract_errors(
+                            mutation,
+                            language=language,
+                            document=document,
+                        ),
+                        "polarity reversal must be rejected",
+                    )
 
 
 class DocumentationArchitectureTests(unittest.TestCase):
@@ -890,6 +997,7 @@ class MaintainerStructureTests(unittest.TestCase):
             for filename in PRODUCT_PROTOCOL_FILES:
                 path = directory / filename
                 _assert_exists(self, path)
+                self.assertRegex(_read(path), r"[가-힣]")
 
     def test_repository_trio_and_archive_evidence_live_under_repository(self) -> None:
         for path in REPOSITORY_DOCS:

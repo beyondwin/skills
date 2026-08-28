@@ -36,7 +36,7 @@ The offline suites prove the deterministic contract only.
 - `korean-writing-editor`: trigger, mode, preservation, and output fixtures under `tests/products/korean-writing-editor/offline/`
 - `image-workbench`: routing, authorization, ImageSpec, handoff, and inspector fixtures under `tests/products/image-workbench/`
 - `how-it-works`: synthetic DNS and rebase contract fixtures in `tests/products/how-it-works/cases.json` and payload contracts in `tests/products/how-it-works/test_contract.py`. They lock the in-chat required deliverable (one-sentence claim, Mermaid, numbered hop list, rung-specific body, adjacent slices, one next move).
-- `pre-sdd-review`: synthetic cases and document fixtures under `tests/products/pre-sdd-review/`. Provider-free fixtures validate instruction and package contracts; they do not prove reviewer independence, semantic completeness, or live review quality.
+- `pre-sdd-review`: synthetic cases and document fixtures under `tests/products/pre-sdd-review/`. Provider-free fixtures validate only instruction and package contracts. They do not prove reviewer independence, semantic completeness, or live review quality.
 
 A pass does not prove general Korean editing quality, semantic equivalence, live image quality, commercial permission, a better provider, or runtime parity. The license is Apache-2.0.
 

@@ -1,32 +1,33 @@
-# pre-sdd-review testing
+# pre-sdd-review 테스트
 
-This document owns provider-free contract evidence, bounded fixtures, and the
-optional live-check boundary. It does not claim to measure model review quality.
+이 문서는 provider-free contract evidence, 제한된 합성 픽스처, 선택적
+live-check 경계를 소유합니다. 모델의 실제 리뷰 품질을 측정했다고 주장하지
+않습니다.
 
 ## Required provider-free command
 
-Run the product contract without provider credentials or a model call:
+공급자 자격 증명과 모델 호출 없이 제품 계약을 실행합니다.
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
   -s tests/products/pre-sdd-review -p 'test_contract.py' -v
 ```
 
-The command proves package identity, instructions, fixture shape, activation
-boundaries, and documented contract facts. It does not prove a live review,
-semantic quality, or equivalent support on another host.
+이 명령은 package identity, instructions, fixture shape, activation boundary,
+documented contract fact를 확인합니다. live review, semantic quality, 다른
+호스트의 동등 지원은 증명하지 않습니다.
 
 ## Exact fixture boundary
 
-`cases.json` owns exactly fourteen activation, default-flow, review-only,
-verdict, risk, freshness, and near-miss cases. `fixtures/` owns exactly four
-named repositories: `ready`, `missing-coverage`, `false-verification`, and
-`runtime-removal`. Each contains only `design.md`, `plan.md`,
-`repository.json`, and `expected.json`.
+`cases.json`은 exactly fourteen개의 activation, default-flow, review-only,
+verdict, risk, freshness, near-miss 사례를 소유합니다. `fixtures/`는 정확히
+`ready`, `missing-coverage`, `false-verification`, and `runtime-removal` 네 합성
+저장소를 소유합니다. 각 저장소에는 `design.md`, `plan.md`,
+`repository.json`, and `expected.json`만 둡니다.
 
-Fixtures are bounded synthetic contracts, not a corpus. Do not store user
-documents, private prompts, credentials, transcripts, or full model responses
-in fixtures, test logs, or committed live records.
+픽스처는 bounded synthetic contract이지 corpus가 아닙니다. user documents,
+private prompts, credentials, transcripts, full model responses를 픽스처,
+테스트 로그, 커밋된 live record에 저장하지 않습니다.
 
 ### Case inventory
 
@@ -54,8 +55,8 @@ in fixtures, test logs, or committed live records.
 
 ## Optional fresh-session live checks
 
-A live check is local, explicit, optional, and may be billable; CI never
-requires it. Use a fresh Codex session, a non-sensitive synthetic design and
-plan, and record only host, client version, date, case identifier, and verdict.
-Do not turn provider-free evidence into a claim about live quality. Do not
-store user documents or full model responses.
+live check는 local, explicit, optional이며 billable일 수 있고 CI never
+requires it. fresh Codex session과 non-sensitive synthetic design and plan만
+사용하고, record only host, client version, date, case identifier, and verdict.
+provider-free 결과를 live quality 주장으로 바꾸지 않으며 user documents나
+full model responses를 저장하지 않습니다.

@@ -1,23 +1,22 @@
-# pre-sdd-review contract
+# pre-sdd-review 계약
 
-This document owns activation, authority, reviewer isolation, document repair,
-findings, freshness, verdicts, and the SDD handoff for Pre-SDD Review.
+이 문서는 Pre-SDD Review의 활성화 조건, 권위 순서, 리뷰어 격리,
+문서 수정 경계, finding, freshness, verdict, SDD handoff를 소유합니다.
 
 ## Activation and input resolution
 
-Activate only when an approved design specification and implementation plan
-exist and the request is a readiness review immediately before SDD or plan
-execution. Do not activate for initial design or plan writing, source-diff
-review, release readiness, proofreading, or general documentation work.
+승인된 설계 명세와 구현 계획이 모두 있고, SDD 또는 계획 실행 직전의
+준비 상태를 검토할 때만 활성화합니다. 최초 설계·계획 작성, source diff
+review, release readiness, 교정, 일반 문서 작업에는 활성화하지 않습니다.
 
-Resolve one implementation plan path first. Resolve the resolved design
-specification from that plan's `**Spec:**` field, then its explicitly binding
-references, the repository root, and current Git state. A missing or
-unresolvable `**Spec:**` path is `BLOCKED`; never guess among nearby files.
+구현 계획 경로 하나를 먼저 확정합니다. 그 계획의 `**Spec:**` 필드로
+resolved design specification을 찾고, 명시적으로 binding인 참조, 저장소
+루트, 현재 Git 상태를 차례로 확인합니다. `**Spec:**` 경로가 없거나 해석할
+수 없으면 `BLOCKED`이며, 주변 파일을 추측해 선택하지 않습니다.
 
 ## Authority order
 
-Interpret conflicts in this order:
+충돌은 아래의 machine-readable 순서로 해석합니다.
 
 ### Authority order
 
@@ -27,18 +26,16 @@ Interpret conflicts in this order:
 4. The implementation plan.
 5. Current repository reality.
 
-Repository reality is feasibility and blast-radius evidence, not authority to
-replace an approved product decision. If repair would need a new product
-decision, preserve the conflict and return `BLOCKED`.
+저장소 현실은 feasibility와 blast radius의 증거일 뿐, 승인된 제품 결정을
+대체할 권위가 아닙니다. 수리에 새 제품 결정이 필요하면 충돌을 보존하고
+`BLOCKED`를 반환합니다.
 
 ## Reviewer isolation and repair allowlist
 
-The normal reviewer is fresh, independent, and read-only. It reports evidence
-and the smallest authority-preserving correction; the controller owns all
-repairs and does not let a reviewer mutate documents.
-
-The bounded lists below are the sole mutation authority. Never add a feature,
-dependency, host claim, or product decision while fixing the documents.
+기본 리뷰어는 fresh, independent, `read-only`입니다. 리뷰어는 증거와 가장
+작은 authority-preserving correction만 보고하고, controlling agent만 문서를
+고칩니다. 아래 bounded list만 수정 권위를 가지며 기능, dependency, host
+claim, 제품 결정을 추가하지 않습니다.
 
 ### Editable paths
 
@@ -57,7 +54,7 @@ dependency, host claim, or product decision while fixing the documents.
 
 ## Review passes and findings
 
-The protocol has five passes:
+프로토콜은 정확히 `five passes`를 실행합니다.
 
 ### Review passes
 
@@ -86,7 +83,7 @@ findings is valid.
 - `ordering`
 - `verification-gap`
 
-The bounded trigger list below owns the second-review rule.
+아래 목록이 두 번째 리뷰어의 유일한 trigger 집합입니다.
 
 ### Conditional risk triggers
 
@@ -100,10 +97,10 @@ A second reviewer is conditional only, never routine.
 
 ## Default flow, verdicts, and freshness
 
-Default mode is review, repair documents, and scoped re-review. It permits at
-most two repair passes; after the second pass, an unresolved material issue
-remains `REVISE` rather than being downgraded. `review-only` changes no files
-and returns the first review verdict.
+기본 모드는 review, repair documents, scoped re-review입니다. 수정 패스는
+최대 두 번이며, 두 번째 패스 뒤에도 material issue가 남으면 severity를
+낮추지 않고 `REVISE`로 유지합니다. `review-only`는 파일을 바꾸지 않고 첫
+검토 verdict만 반환합니다.
 
 ### Verdicts
 
@@ -111,7 +108,7 @@ and returns the first review verdict.
 - `REVISE`: a repairable material document defect remains.
 - `BLOCKED`: required input, authority, or repository evidence is unavailable or would require a new product decision.
 
-The bounded freshness list below owns the final record and invalidation rule.
+아래 freshness 목록과 invalidation 규칙을 최종 보고에 그대로 기록합니다.
 
 ### Freshness
 
@@ -125,9 +122,9 @@ The bounded freshness list below owns the final record and invalidation rule.
 
 ## Handoff
 
-For `READY`, print the exact resolved design and plan paths with final
-fingerprints. In the combined flow, pass the final repaired documents to the
-SDD worker rather than the pre-review copies.
+`READY`이면 resolved design과 plan의 정확한 경로와 final fingerprints를
+출력합니다. review와 implementation이 결합된 흐름에서는 수리 전 복사본이
+아니라 최종 문서를 SDD worker에게 전달합니다.
 
 ### SDD handoff
 

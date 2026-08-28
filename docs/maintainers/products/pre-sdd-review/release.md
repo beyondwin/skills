@@ -1,16 +1,15 @@
-# pre-sdd-review release
+# pre-sdd-review 릴리스
 
-This document owns the independent packaging procedure for Pre-SDD Review.
-The version source is `skills/pre-sdd-review/release.toml`; `SKILL.md`
-`metadata.version` is its verified copy, and `CHANGELOG.md` records the
-human-readable contract history.
+이 문서는 Pre-SDD Review의 독립 패키징 절차를 소유합니다.
+version source is `skills/pre-sdd-review/release.toml`; `SKILL.md`의 `metadata.version`은 검증된
+복사본이고 `CHANGELOG.md`는 사람이 읽는 계약 이력을 기록합니다.
 
-Product identity is `pre-sdd-review` `version 1.0.0` from `release.toml`.
+제품 식별자는 `release.toml`의 `pre-sdd-review` `version 1.0.0`입니다.
 
 ## Check, build, and verify download
 
-Run the provider-free product verification, then package into a new empty
-directory and validate bytes from a fresh download directory:
+provider-free 제품 검증을 실행한 뒤 새 빈 디렉터리에 패키징하고, 별도의
+fresh download directory에서 바이트를 검증합니다.
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
@@ -20,17 +19,17 @@ python3 scripts/release.py build --product pre-sdd-review --output <new-empty-di
 python3 scripts/release.py verify-download --product pre-sdd-review --input <fresh-download-directory>
 ```
 
-`check` validates the tracked product scope, SemVer, changelog, and required
-verification. `build` writes one standalone ZIP and `SHA256SUMS` only to the
-new empty output directory. `verify-download` validates the fresh bytes,
-checksum, ZIP structure, extracted payload hash, and product verification.
-Local build output is not public-release evidence.
+`check`는 tracked product scope, SemVer, changelog, 필수 verification을
+확인합니다. `build`는 새 빈 출력 디렉터리에 standalone ZIP 하나와
+`SHA256SUMS`만 씁니다. `verify-download`는 fresh bytes, checksum, ZIP
+structure, extracted payload hash, product verification을 확인합니다. 로컬
+build output은 public-release evidence가 아닙니다.
 
 No tag or GitHub Release is created by these commands.
 
 ## Failure recovery
 
-Correct the product files, version decision, changelog, or tests and repeat
-the failed command. Rebuild only in a new empty directory; do not reuse partial
-artifacts. Tagging and publishing are separate, explicit release operations
-and are outside this procedure.
+제품 파일, version decision, changelog, test를 고치고 실패한 명령을 다시
+실행합니다. partial artifact를 재사용하지 말고 새 빈 디렉터리에서만 다시
+빌드합니다. tagging과 publishing은 별도의 explicit release operation이며 이
+절차의 범위 밖입니다.
