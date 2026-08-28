@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import json
 import hashlib
+import json
 import re
-import shlex
 import sys
 import tomllib
 import unittest
@@ -336,6 +335,10 @@ README_CANONICAL_SECTION_DIGESTS = {
         ("## Changelog and maintainer docs", "7a5611089ddaf6819881da0ae7d96ec6ce36107f2c0076e9528499437749e7b1"),
     ),
 }
+README_CANONICAL_DOCUMENT_DIGESTS = {
+    "ko": "a2a55ec3f188fef40c0e5f6cb6b1afb20066f3e640fc72cdd68c9281903ca2a8",
+    "en": "b489a81f80017a2e060a3ebb0469e591b17acdec838874a611707512ebd037d0",
+}
 MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Authority order", "9b12469723b1e631fed289e2134a4c47826bd61c26014c9a84f3e302c02f0e6c"),
     ("### Editable paths", "4c7d511afb38f386f06926cfa9b7b6307a7d2fb9e1b69ae0254021ca7fbaba8e"),
@@ -349,6 +352,7 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### SDD handoff", "8a629dd12d78e2c08e77e7c1d057d0e450b135bc0633d5b62c8c926665976bca"),
 )
 MAINTAINER_CANONICAL_DIGEST = "73f5d6a6c65ced2ba56b91e5f173988b6bf0e93e9387d93ac70405ee012eda1d"
+RELEASE_CANONICAL_DIGEST = "c1d580de38782962baf47ea34f1883d8c68dfb89d86958e67651b84082cdf487"
 
 
 def section(text: str, start: str, end: str) -> str:
@@ -421,6 +425,8 @@ def parse_readme_contract(text: str) -> tuple[tuple[str, tuple[str, ...]], ...]:
 def readme_contract_errors(text: str) -> tuple[str, ...]:
     errors: list[str] = []
     language = "en" if markdown_section(text, "## Purpose") else "ko"
+    if canonical_digest(text) != README_CANONICAL_DOCUMENT_DIGESTS[language]:
+        errors.append("README differs from the closed canonical document")
     canonical_sections = README_CANONICAL_SECTION_DIGESTS[language]
     actual_headings = tuple(
         heading for level, heading, _ in markdown_headings(text) if level == 2
@@ -561,71 +567,11 @@ def fenced_code_blocks(text: str) -> tuple[str, ...]:
     return tuple(re.findall(r"```[^\n]*\n(.*?)\n```", text, re.DOTALL))
 
 
-def executable_block_tokens(block: str) -> tuple[str, ...]:
-    tokens: list[str] = []
-    for line in block.splitlines():
-        line = line.rstrip()
-        if line.endswith("\\"):
-            line = line[:-1]
-        if not line.strip():
-            continue
-        lexer = shlex.shlex(line, posix=True, punctuation_chars=";&|()")
-        lexer.commenters = "#"
-        lexer.whitespace_split = True
-        try:
-            tokens.extend(lexer)
-        except ValueError:
-            # A malformed shell line cannot be proven safe as a release instruction.
-            tokens.append("opaque-shell-syntax")
-    return tuple(tokens)
-
-
-def publication_or_indirection(tokens: tuple[str, ...]) -> bool:
-    if not tokens:
-        return False
-    lowered = tuple(token.lower() for token in tokens)
-    words = tuple(
-        word
-        for token in lowered
-        for word in re.findall(r"[a-z0-9_.-]+", token)
-    )
-
-    def ordered(first: str, later: tuple[str, ...]) -> bool:
-        return any(
-            word == first and any(candidate in later for candidate in words[index + 1 :])
-            for index, word in enumerate(words)
-        )
-
-    direct_publication = any(
-        (
-            ordered("git", ("tag", "push")),
-            ordered("gh", ("release",)),
-            any(
-                ordered(manager, ("publish", "release"))
-                for manager in ("npm", "pnpm", "yarn")
-            ),
-            ordered("twine", ("upload",)),
-            ordered("uv", ("publish",)),
-        )
-    )
-    opaque_indirection = any(
-        (
-            "opaque-shell-syntax" in lowered,
-            any(token in {"eval", "source"} for token in lowered),
-            any(token.startswith("$") for token in lowered),
-            any("$(" in token or "${" in token or "`" in token for token in lowered),
-            any(
-                token in {"sh", "bash", "zsh"} and "-c" in lowered[index + 1 :]
-                for index, token in enumerate(lowered)
-            ),
-        )
-    )
-    return direct_publication or opaque_indirection
-
-
 def release_document_errors(text: str) -> tuple[str, ...]:
     release = tomllib.loads((SKILL / "release.toml").read_text(encoding="utf-8"))
     errors: list[str] = []
+    if canonical_digest(text) != RELEASE_CANONICAL_DIGEST:
+        errors.append("release document differs from the closed canonical contract")
     identity = f"`{release['name']}` `version {release['version']}`"
     if identity not in text or f"`skills/{release['name']}/release.toml`" not in text:
         errors.append("release identity or version source differs")
@@ -639,11 +585,6 @@ def release_document_errors(text: str) -> tuple[str, ...]:
     command_lines = tuple(line for block in fenced_code_blocks(text) for line in block.splitlines())
     if not all(command in command_lines for command in commands):
         errors.append("release commands must be fenced command lines")
-    if any(
-        publication_or_indirection(executable_block_tokens(block))
-        for block in fenced_code_blocks(text)
-    ):
-        errors.append("release document contains a publication instruction")
     return tuple(errors)
 
 
@@ -1079,6 +1020,28 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
                     readme_contract_errors(mutation),
                 )
 
+    def test_readme_validator_rejects_round_five_preamble_authority(self) -> None:
+        english = (SKILL / "README.en.md").read_text(encoding="utf-8")
+        anchor = "[한국어](README.md)\n"
+        mutations = (
+            english.replace(
+                anchor,
+                anchor + "\nThe design path, not the plan path, is primary.\n",
+                1,
+            ),
+            english.replace(
+                anchor,
+                anchor + "\nThe controller is authorized to edit release notes.\n",
+                1,
+            ),
+        )
+        for mutation in mutations:
+            with self.subTest(mutation=mutation):
+                self.assertIn(
+                    "README differs from the closed canonical document",
+                    readme_contract_errors(mutation),
+                )
+
     def test_maintainer_contract_uses_bounded_exact_protocols(self) -> None:
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
         self.assertEqual(maintainer_contract_errors(contract), ())
@@ -1172,10 +1135,46 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             release + "\n```sh\npython3 -m twine upload dist/*\n```\n",
             release + "\n```sh\nuv publish dist/*\n```\n",
         ):
-            self.assertIn("release document contains a publication instruction", release_document_errors(publication))
+            self.assertIn(
+                "release document differs from the closed canonical contract",
+                release_document_errors(publication),
+            )
 
         comment_only = release + "\n```sh\n# Do not run git push from this procedure.\n```\n"
-        self.assertEqual(release_document_errors(comment_only), ())
+        self.assertIn(
+            "release document differs from the closed canonical contract",
+            release_document_errors(comment_only),
+        )
+        self.assertNotIn(
+            "release document contains a publication instruction",
+            release_document_errors(comment_only),
+        )
+
+    def test_release_validator_rejects_round_five_command_drift_without_guessing(self) -> None:
+        release = (MAINTAINERS / "release.md").read_text(encoding="utf-8")
+        mutations = (
+            release + "\n~~~sh\ngit push origin pre-sdd-review-v1.0.0\n~~~\n",
+            release + "\n    git push origin pre-sdd-review-v1.0.0\n",
+            release + "\n```sh\nbash scripts/publish-release.sh\n```\n",
+            release
+            + "\n```sh\nprintf '%s' 'Z2l0IHB1c2g=' | base64 --decode | sh\n```\n",
+        )
+        for mutation in mutations:
+            with self.subTest(mutation=mutation):
+                self.assertIn(
+                    "release document differs from the closed canonical contract",
+                    release_document_errors(mutation),
+                )
+
+        safe_data = release + "\n```sh\nprintf '%s\\n' 'git push is prohibited'\n```\n"
+        self.assertIn(
+            "release document differs from the closed canonical contract",
+            release_document_errors(safe_data),
+        )
+        self.assertNotIn(
+            "release document contains a publication instruction",
+            release_document_errors(safe_data),
+        )
 
 
 class PreSddReviewFixtureTests(unittest.TestCase):
