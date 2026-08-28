@@ -1,7 +1,7 @@
 # how-it-works live smoke
 
-This optional operator procedure scores fresh-session host behavior from
-pass/fail from observable output. It is not CI. Calls may consume
+This optional operator procedure scores pass/fail from observable output
+in a fresh session. It is not CI. Calls may consume
 subscription/API quota.
 
 Do not use private or user prompts. Use only the three synthetic cases in

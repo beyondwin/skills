@@ -97,6 +97,13 @@ class RegistryParsingTests(unittest.TestCase):
             "tests/products/how-it-works/cases.json",
         )
 
+    def test_leading_dot_github_path_is_preserved(self) -> None:
+        self.assertEqual(
+            normalize_repo_path(".github/workflows/verify.yml"),
+            ".github/workflows/verify.yml",
+        )
+        self.assertEqual(normalize_repo_path("./scripts/lib/archive.py"), "scripts/lib/archive.py")
+
     def test_require_returns_the_named_product(self) -> None:
         product = load_registry(ROOT / "products.toml").require("how-it-works")
         self.assertEqual(product.name, "how-it-works")

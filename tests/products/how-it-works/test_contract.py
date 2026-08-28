@@ -197,6 +197,12 @@ class HowItWorksPayloadTests(unittest.TestCase):
             text,
         )
 
+    def test_unreleased_changelog_records_one_turn_emit_instruction(self) -> None:
+        text = (SKILL / "CHANGELOG.md").read_text(encoding="utf-8")
+        unreleased = text.split("## Unreleased", 1)[1].split("\n## ", 1)[0]
+        self.assertIn("current reply", unreleased)
+        self.assertIn("focused references", unreleased)
+
     def test_release_smoke_accepts_portable_frontmatter(self) -> None:
         from scripts.release import _smoke_how_it_works
 

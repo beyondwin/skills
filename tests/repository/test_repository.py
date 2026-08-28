@@ -450,7 +450,17 @@ class RepositoryContractTests(unittest.TestCase):
             "release_contract.py", "release_archive.py", "catalog_contract.py",
         }
         self.assertTrue(forbidden.isdisjoint({path.name for path in (ROOT / "scripts").glob("*.py")}))
-        for name in ("product_registry.py", "product_contract.py", "verification.py", "change_routing.py", "archive.py", "catalog.py", "archive_manifest.py"):
+        for name in (
+            "product_registry.py",
+            "product_contract.py",
+            "verification.py",
+            "change_routing.py",
+            "archive.py",
+            "catalog.py",
+            "archive_manifest.py",
+            "documentation.py",
+            "stale_identifiers.py",
+        ):
             self.assertTrue((ROOT / "scripts/lib" / name).is_file(), name)
 
 

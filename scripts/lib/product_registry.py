@@ -44,7 +44,9 @@ class ProductRegistry:
 
 
 def normalize_repo_path(value: str | pathlib.PurePath) -> str:
-    normalized = str(value).replace("\\", "/").lstrip("./")
+    normalized = str(value).replace("\\", "/")
+    while normalized.startswith("./"):
+        normalized = normalized[2:]
     while "//" in normalized:
         normalized = normalized.replace("//", "/")
     return normalized
