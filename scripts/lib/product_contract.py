@@ -25,6 +25,9 @@ ALLOWED_TOP_LEVEL = frozenset({
     "scripts",
 })
 FORBIDDEN_PAYLOAD_NAMES = frozenset({"CHANGE_PROTOCOL.md", "evals", "tests"})
+PORTABLE_FRONTMATTER_FIELDS = frozenset(
+    {"name", "description", "license", "compatibility", "metadata"}
+)
 FRONTMATTER_RE = re.compile(r"\A---\n(.*?)\n---(?:\n|\Z)", re.DOTALL)
 MARKDOWN_LINK_RE = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
 UNRELEASED_RE = re.compile(r"^## Unreleased\s*$", re.MULTILINE)
@@ -166,8 +169,13 @@ def validate_product(skill_root: Path, registry: ProductRegistry) -> list[str]:
 
     skill_text = skill_md.read_text(encoding="utf-8")
     frontmatter = parse_skill_frontmatter(skill_text)
+    product = registry.require(skill_root.name)
     if frontmatter.get("name") != skill_root.name:
         errors.append("directory/frontmatter name mismatch")
+    if len(product.supported_hosts) > 1:
+        extra = sorted(set(frontmatter) - PORTABLE_FRONTMATTER_FIELDS)
+        for field in extra:
+            errors.append(f"non-portable frontmatter field: {field}")
     if frontmatter.get("license") != "Apache-2.0":
         errors.append("missing Apache declaration")
     metadata = frontmatter.get("metadata")
@@ -224,9 +232,7 @@ def validate_product(skill_root: Path, registry: ProductRegistry) -> list[str]:
             errors.append("missing Apache license")
 
     openai_path = skill_root / "agents" / "openai.yaml"
-    if not openai_path.is_file():
-        errors.append("missing agents/openai.yaml")
-    else:
+    if openai_path.is_file():
         errors.extend(_validate_openai_yaml(openai_path, skill_root.name))
 
     for child in skill_root.iterdir():
@@ -292,13 +298,23 @@ def _is_ignored_residue(name: str) -> bool:
     return name in IGNORE_NAMES or Path(name).suffix in BYTECODE_SUFFIXES
 
 
+def _yaml_scalar(text: str, field: str) -> str | None:
+    prefix = f"{field}:"
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith(prefix):
+            return stripped.split(":", 1)[1].strip().strip("\"'")
+    return None
+
+
 def _validate_openai_yaml(path: Path, skill_name: str) -> list[str]:
     errors: list[str] = []
     text = path.read_text(encoding="utf-8")
     for field in ("display_name:", "short_description:", "default_prompt:"):
         if field not in text:
             errors.append(f"missing {field[:-1]} in agents/openai.yaml")
-    if f"${skill_name}" not in text:
+    default_prompt = _yaml_scalar(text, "default_prompt")
+    if default_prompt is None or f"${skill_name}" not in default_prompt:
         errors.append("default_prompt must mention the skill")
     if "allow_implicit_invocation: true" not in text:
         errors.append("invocation policy must match the skill activation gate")

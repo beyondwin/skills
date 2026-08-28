@@ -171,6 +171,68 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         errors = "\n".join(validate_product(root, REGISTRY))
         self.assertIn("unexpected top-level file: notes.txt", errors)
 
+    def test_rejects_directory_frontmatter_name_mismatch(self) -> None:
+        root = self._copy("how-it-works")
+        skill_md = root / "SKILL.md"
+        skill_md.write_text(
+            skill_md.read_text(encoding="utf-8").replace(
+                "name: how-it-works\n",
+                "name: other-skill\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = "\n".join(validate_product(root, REGISTRY))
+        self.assertIn("directory/frontmatter name mismatch", errors)
+
+    def test_multi_host_product_rejects_non_portable_frontmatter(self) -> None:
+        root = self._copy("how-it-works")
+        skill_md = root / "SKILL.md"
+        skill_md.write_text(
+            skill_md.read_text(encoding="utf-8").replace(
+                "license: Apache-2.0\n",
+                'license: Apache-2.0\nargument-hint: "<topic>"\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = "\n".join(validate_product(root, REGISTRY))
+        self.assertIn("non-portable frontmatter field: argument-hint", errors)
+
+    def test_single_host_product_allows_non_portable_frontmatter(self) -> None:
+        root = self._copy("korean-writing-editor")
+        skill_md = root / "SKILL.md"
+        skill_md.write_text(
+            skill_md.read_text(encoding="utf-8").replace(
+                "license: Apache-2.0\n",
+                'license: Apache-2.0\nargument-hint: "<text>"\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        self.assertEqual(validate_product(root, REGISTRY), [])
+
+    def test_openai_yaml_is_optional_presentation_metadata(self) -> None:
+        root = self._copy("how-it-works")
+        (root / "agents" / "openai.yaml").unlink()
+        errors = validate_product(root, REGISTRY)
+        self.assertNotIn("missing agents/openai.yaml", errors)
+        self.assertEqual(errors, [])
+
+    def test_openai_yaml_default_prompt_must_use_current_product_name(self) -> None:
+        root = self._copy("how-it-works")
+        (root / "agents" / "openai.yaml").write_text(
+            'interface:\n'
+            '  display_name: "How It Works"\n'
+            '  short_description: "Use $how-it-works in presentation copy"\n'
+            '  default_prompt: "Explain this mechanism."\n'
+            "policy:\n"
+            "  allow_implicit_invocation: true\n",
+            encoding="utf-8",
+        )
+        errors = "\n".join(validate_product(root, REGISTRY))
+        self.assertIn("default_prompt must mention the skill", errors)
+
     def test_dated_release_validation_is_opt_in(self) -> None:
         from scripts.lib.product_contract import require_dated_changelog
 

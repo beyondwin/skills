@@ -1,12 +1,11 @@
 ---
 name: how-it-works
-description: Use when the user wants to grasp how something works, asks for a visual or flow explanation, types /how-it-works, names a rung 그림/길/뼈대/허점, or asks in Korean to 원리부터 / 그림으로 / 어떻게 돌아가 / 감이 안 와. Do not use for debugging, implementing, reviewing, translating, one-line factual lookups, or child-register explainers.
+description: Use when the user wants to understand how a mechanism or flow works visually, asks for a diagram or step-by-step path, names 그림/길/뼈대/허점, invokes the skill explicitly, or asks 원리부터, 그림으로, 어떻게 돌아가, or 감이 안 와. Do not use for debugging, implementation, review, translation, one-line factual lookup, child-register explanation, or ELI5 requests.
 license: Apache-2.0
-compatibility: Requires local Agent Skills file access and the Artifact tool. The map ships as mermaid: artifacts draw it, terminals print it as source, so the hop list must read on its own.
-argument-hint: "<topic> [그림|길|뼈대|허점]"
+compatibility: Requires an Agent Skills host that can read this directory and return Markdown text.
 metadata:
   version: "1.0.0"
-  updated_at: "2026-08-27"
+  updated_at: "2026-08-28"
 ---
 
 # how-it-works
@@ -19,6 +18,8 @@ Violating the letter of this gate is violating the spirit.
 If the noun is a civilization (인터넷, AI, 자본주의), do not explain — cut a slice first.
 Do not activate on eli5, /eli5, or “explain like I’m 5”. That is a different skill.
 </HARD-GATE>
+
+Prefer explicit invocation: `$how-it-works` on Codex, `/how-it-works` on Claude Code and Grok, and `/how-it-works` or optional `@how-it-works` on Cursor.
 
 ## Classify
 

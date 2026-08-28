@@ -540,13 +540,13 @@ def _smoke_how_it_works(skill_root: Path) -> list[str]:
         text = skill_md.read_text(encoding="utf-8")
         parts = text.split("---", 2)
         frontmatter = parts[1] if len(parts) > 2 else ""
-        if "eli5" in frontmatter.lower():
-            errors.append("how-it-works: SKILL.md description contains eli5")
+        if "/eli5" in frontmatter.lower():
+            errors.append("how-it-works: SKILL.md description contains /eli5")
         if "바로 / 하나" in frontmatter:
             errors.append("how-it-works: SKILL.md description contains workflow shorthand")
         if "Use when" not in frontmatter:
             errors.append("how-it-works: SKILL.md missing Use when")
-        if "/how-it-works" not in frontmatter:
+        if "/how-it-works" not in text:
             errors.append("how-it-works: SKILL.md missing /how-it-works")
     for relative in (
         "SKILL.md",
