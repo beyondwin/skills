@@ -126,7 +126,7 @@ def classify_hit(relative: str, prefixes: tuple[str, ...], tracked: set[str]) ->
         return "active-routing"
     if posix.startswith("scripts/agent/"):
         return "verification-registration"
-    if posix.startswith("docs/superpowers/") or posix.startswith("docs/operations/"):
+    if posix.startswith("docs/history/") or posix.startswith("docs/operations/"):
         return "skill-history-document"
     return "mixed-document"
 

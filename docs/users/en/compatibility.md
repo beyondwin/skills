@@ -2,7 +2,7 @@
 
 [한국어](../ko/compatibility.md) · [Installation](installation.md)
 
-Codex is the first-class runtime for the catalog. The catalog is [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), and [`graspic`](../../../skills/graspic/README.en.md).
+Codex is the first-class runtime for the current standalone products. The current standalone products are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), and [`graspic`](../../../skills/graspic/README.en.md).
 
 ## Shared support sentences
 

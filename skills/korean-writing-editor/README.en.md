@@ -57,4 +57,5 @@ Check the current version in `SKILL.md` `metadata.version` and [CHANGELOG](CHANG
 - [CHANGELOG](CHANGELOG.md)
 - [Contract](../../docs/maintainers/products/korean-writing-editor/contract.md)
 - [Testing](../../docs/maintainers/products/korean-writing-editor/testing.md)
+- [Compatibility](../../docs/maintainers/products/korean-writing-editor/compatibility.md)
 - [Release](../../docs/maintainers/products/korean-writing-editor/release.md)

@@ -10,9 +10,9 @@ This repository collects three skills you can install in Codex. Use them to edit
 
 The license is Apache-2.0.
 
-## Skill catalog
+## Standalone products
 
-The catalog contains these three skills. A fourth skill is out of scope unless governance is reopened.
+The current standalone products are these three. A fourth product is out of scope unless governance is reopened.
 
 | Skill | Role |
 | --- | --- |
@@ -54,6 +54,7 @@ Details are in [Safety and privacy](docs/users/en/safety-and-privacy.md).
 
 ## Documentation and community
 
+- [Documentation index](docs/README.md)
 - [Installation](docs/users/en/installation.md)
 - [Compatibility](docs/users/en/compatibility.md)
 - [Safety and privacy](docs/users/en/safety-and-privacy.md)

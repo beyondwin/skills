@@ -12,7 +12,7 @@
 
 ## 스킬 선택
 
-카탈로그에는 아래 세 스킬이 있습니다. 네 번째 스킬은 기본 기여 범위가 아닙니다.
+현재 독립 제품은 아래 세 가지입니다. 네 번째 제품은 기본 기여 범위가 아닙니다.
 
 | 스킬 | 역할 |
 | --- | --- |
@@ -54,6 +54,7 @@ python3 scripts/verify.py
 
 ## 문서와 커뮤니티
 
+- [문서 색인](docs/README.md)
 - [설치](docs/users/ko/installation.md)
 - [호환성](docs/users/ko/compatibility.md)
 - [안전과 개인정보](docs/users/ko/safety-and-privacy.md)

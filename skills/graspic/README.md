@@ -62,4 +62,5 @@ graspic: Codex supported; Agent Skills contract portable; other hosts only suppo
 - [CHANGELOG](CHANGELOG.md)
 - [계약](../../docs/maintainers/products/graspic/contract.md)
 - [테스트](../../docs/maintainers/products/graspic/testing.md)
+- [호환성](../../docs/maintainers/products/graspic/compatibility.md)
 - [릴리스](../../docs/maintainers/products/graspic/release.md)

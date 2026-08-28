@@ -136,7 +136,7 @@ class IdentifierClassificationTests(unittest.TestCase):
         agent.mkdir(parents=True)
         (agent / "verification-map.ts").write_text('id: "korean-writing-editor"\n')
         (agent / "contract.ts").write_text("skills/korean-writing-editor\n")
-        history = self.repository / "docs/superpowers/plans"
+        history = self.repository / "docs/history/plans"
         history.mkdir(parents=True)
         (history / "2026-08-22-kws-korean-writing-editor.md").write_text(
             "history of korean-writing-editor\n"
@@ -198,7 +198,7 @@ class IdentifierClassificationTests(unittest.TestCase):
         self.assertEqual(by_path["scripts/agent/verification-map.ts"], "verification-registration")
         self.assertEqual(by_path["scripts/agent/contract.ts"], "verification-registration")
         self.assertEqual(
-            by_path["docs/superpowers/plans/2026-08-22-kws-korean-writing-editor.md"],
+            by_path["docs/history/plans/2026-08-22-kws-korean-writing-editor.md"],
             "skill-history-document",
         )
         self.assertEqual(by_path["docs/operations/note.md"], "skill-history-document")

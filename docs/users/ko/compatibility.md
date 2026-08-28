@@ -2,7 +2,7 @@
 
 [English](../en/compatibility.md) · [설치](installation.md)
 
-Codex가 카탈로그의 1급 런타임입니다. 카탈로그는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`graspic`](../../../skills/graspic/README.md)입니다.
+Codex가 현재 독립 제품의 1급 런타임입니다. 현재 독립 제품은 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`graspic`](../../../skills/graspic/README.md)입니다.
 
 ## 공유 지원 문장
 

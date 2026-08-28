@@ -1,12 +1,12 @@
 # 카탈로그 릴리스
 
-마지막 공개 카탈로그 식별은 `beyondwin-skills` `2.0.0`입니다. 플러그인 메타데이터는 `catalog/plugin/.codex-plugin/plugin.json`에 있으며 저장소 루트에 두지 않습니다. 카탈로그는 제품 계약을 소유하지 않고, 이미 공개되어 원격 검증을 통과한 스킬 릴리스만 채택합니다.
+마지막 공개 카탈로그 식별은 `beyondwin-skills` `2.0.0`입니다. 플러그인 메타데이터는 `catalog/plugin/.codex-plugin/plugin.json`에 있으며 저장소 루트에 두지 않습니다. 카탈로그는 제품 계약을 소유하지 않고, 이미 공개되어 원격 검증을 통과한 스킬 릴리스만 채택합니다. Registry products do not automatically enter v2.0.0. `products.toml`에 있는 현재 독립 제품이 카탈로그 lock이나 공개 `v2.0.0` 번들에 자동으로 들어가지 않습니다.
 
 스킬 버전은 그 스킬의 계약 또는 런타임 페이로드가 바뀔 때만 올립니다. 카탈로그 버전은 채택한 lock 또는 패키지된 카탈로그 번들이 바뀔 때만 올립니다. 루트 문서만 바뀌면 카탈로그 릴리스가 필요하지 않습니다.
 
 GitHub Release가 있다고 말하지 마세요. 공개 증명은 원격 다운로드 바이트입니다.
 `v2.0.0`은 https://github.com/beyondwin/skills/releases/tag/v2.0.0 에 공개되어 있습니다.
-플러그인 디렉터리 등록을 주장하지 않습니다. Archive 출처는 [archive-migration.md](archive-migration.md)입니다.
+플러그인 디렉터리 등록을 주장하지 않습니다. Archive 출처는 [migrations.md](migrations.md)입니다.
 
 ## lock 채택
 
@@ -89,7 +89,7 @@ Archive 현재 트리를 바꾸기 전에 다음이 모두 성립해야 합니�
 - 개인 경로, 비밀, 비공개 픽스처, 의도하지 않은 아티팩트가 없다
 - 지원하지 않는 호환성·품질 주장이 없다
 
-로컬 Archive 제거 커밋을 push하기 전에는 비파괴적으로 고치거나 되돌립니다. push 뒤에는 그 제거 커밋을 `git revert`합니다. 이 게이트의 완료 기록은 [archive-migration.md](archive-migration.md)에 있습니다.
+로컬 Archive 제거 커밋을 push하기 전에는 비파괴적으로 고치거나 되돌립니다. push 뒤에는 그 제거 커밋을 `git revert`합니다. 이 게이트의 완료 기록은 [migrations.md](migrations.md)에 있습니다.
 
 ## 실패 복구
 

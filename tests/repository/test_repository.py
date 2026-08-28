@@ -464,7 +464,7 @@ class LegacyIdentifierAllowlistTests(unittest.TestCase):
             ROOT / "docs" / "maintainers" / "repository" / "archive-source-manifest.json"
         ).read_text(encoding="utf-8")
         notes = (
-            ROOT / "docs" / "maintainers" / "repository" / "archive-migration.md"
+            ROOT / "docs" / "maintainers" / "repository" / "migrations.md"
         ).read_text(encoding="utf-8")
         self.assertIn("kws-korean-writing-editor", manifest)
         self.assertIn("kws-image-workbench", manifest)

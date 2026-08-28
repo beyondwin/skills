@@ -55,4 +55,5 @@ image-workbench: Codex-only; generate/edit requires Codex image generation and l
 - [CHANGELOG](CHANGELOG.md)
 - [계약](../../docs/maintainers/products/image-workbench/contract.md)
 - [테스트](../../docs/maintainers/products/image-workbench/testing.md)
+- [호환성](../../docs/maintainers/products/image-workbench/compatibility.md)
 - [릴리스](../../docs/maintainers/products/image-workbench/release.md)

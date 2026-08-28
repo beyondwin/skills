@@ -1,10 +1,10 @@
 # Contributing
 
-This repository is a curated catalog of three skills: `korean-writing-editor`, `image-workbench`, and `graspic`. New skills are not accepted by default. A pull request that adds a fourth skill is out of scope unless repository governance is changed first.
+This repository has three current standalone products: `korean-writing-editor`, `image-workbench`, and `graspic`. New skills are not accepted by default. A pull request that adds a fourth skill is out of scope unless repository governance is changed first. The immutable plugin bundle under `catalog/` is separate from those products.
 
 ## What we accept
 
-Focused fixes for the three existing skills only:
+Focused fixes for the three current standalone products only:
 
 - behavior defects
 - documentation corrections

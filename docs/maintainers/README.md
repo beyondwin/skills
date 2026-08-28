@@ -1,17 +1,32 @@
 # 관리자 문서
 
-이 인덱스는 저장소 공통 규칙과 제품별 변경 프로토콜의 위치만 안내합니다. 사용자 설치 안내는 각 제품 README와 `docs/users/`에 있습니다.
+이 인덱스는 할 일을 고르는 안내입니다. 사용자 설치 안내는 각 제품 README와 `docs/users/`에 있습니다.
 
 관리자 문서는 한국어가 원본입니다. 명령, 파일 경로, 계약 식별자는 영어로 둡니다.
+
+## 할 일
+
+| 작업 | 문서 |
+| --- | --- |
+| 제품 동작 바꾸기 | [계약](products/)과 해당 제품 `contract.md`, `testing.md` |
+| 호스트 지원 추가 | 해당 제품 [호환성](products/) `compatibility.md` |
+| 제품 등록 | [제품 레지스트리](repository/products-registry.md) |
+| 검증 | `python3 scripts/verify.py`, 해당 제품 `testing.md` |
+| 릴리스 | [독립 제품 릴리스](repository/release.md), 해당 제품 `release.md` |
+| 불변 카탈로그 확인 | [카탈로그](repository/catalog.md), `catalog/` |
+| 마이그레이션·Archive | [마이그레이션](repository/migrations.md) |
+| 과거 결정 확인 | [기록](../history/) |
 
 ## 저장소 공통
 
 | 문서 | 소유 |
 | --- | --- |
 | [구조](repository/architecture.md) | 설치 페이로드와 개발 증거 경계 |
+| [제품 레지스트리](repository/products-registry.md) | `products.toml` 스키마와 등록 |
 | [버저닝](repository/versioning.md) | 제품·카탈로그 SemVer 판정표 |
-| [카탈로그 릴리스](repository/catalog-release.md) | lock 채택과 원격 바이트 게이트 |
-| [Archive 출처](repository/archive-migration.md) | 가져오기 pin과 provenance |
+| [릴리스](repository/release.md) | 독립 제품 check/build/verify-download |
+| [카탈로그](repository/catalog.md) | lock 채택과 원격 바이트 게이트 |
+| [마이그레이션](repository/migrations.md) | Archive pin과 provenance |
 
 ## 제품 프로토콜
 
