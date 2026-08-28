@@ -128,6 +128,25 @@ class TrackedIdentifierScannerTests(unittest.TestCase):
                 tracked_identifier_hits(repository, STALE_ID)
             self.assertIn(CHANGELOG, str(raised.exception))
 
+    def test_leading_dot_github_paths_are_content_scanned(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            repository = make_git_fixture(Path(directory))
+            write_and_commit(repository, CHANGELOG, "ok\n")
+            write_and_commit(
+                repository,
+                ".github/ISSUE_TEMPLATE/bug.yml",
+                f"body: {STALE_ID}\n",
+            )
+            self.assertEqual(
+                tracked_identifier_hits(repository, STALE_ID),
+                (
+                    IdentifierHit(
+                        path=".github/ISSUE_TEMPLATE/bug.yml",
+                        location="content",
+                    ),
+                ),
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

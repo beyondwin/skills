@@ -82,7 +82,9 @@ def _is_allowed(
 
 
 def _normalize(relative: str) -> str:
-    normalized = str(relative).replace("\\", "/").lstrip("./")
+    normalized = str(relative).replace("\\", "/")
+    while normalized.startswith("./"):
+        normalized = normalized[2:]
     while "//" in normalized:
         normalized = normalized.replace("//", "/")
     if normalized in {"", "."}:
