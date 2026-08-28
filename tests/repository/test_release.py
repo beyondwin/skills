@@ -423,6 +423,40 @@ class ProductDownloadTests(unittest.TestCase):
             errors,
         )
 
+    def test_verify_product_download_rejects_dos_creator_with_fake_unix_file_mode(self) -> None:
+        release.build_product(
+            ROOT,
+            "pre-sdd-review",
+            self.output,
+            require_release_entry=False,
+        )
+        archive = self.output / "pre-sdd-review-v1.0.0.zip"
+
+        def change_required_member_creator(items):
+            for info, data in items:
+                if info.filename == "pre-sdd-review/agents/openai.yaml":
+                    info.create_system = 0
+                    info.external_attr = (
+                        ((stat.S_IFREG | 0o644) << 16) | 0x10
+                    )
+                yield info, data
+
+        self._rewrite_zip(archive, change_required_member_creator)
+        self._checksums(archive)
+        with zipfile.ZipFile(archive) as source:
+            changed = source.getinfo("pre-sdd-review/agents/openai.yaml")
+        self.assertEqual(changed.create_system, 0)
+        self.assertEqual((changed.external_attr >> 16) & 0o170000, stat.S_IFREG)
+        self.assertEqual(changed.external_attr & 0x10, 0x10)
+
+        errors = release.verify_product_download(ROOT, "pre-sdd-review", self.output)
+        self.assertIn(
+            "pre-sdd-review: archive member creator/type mismatch: "
+            "pre-sdd-review/agents/openai.yaml requires Unix creator system 3 "
+            "with regular-file mode",
+            errors,
+        )
+
     def test_verify_product_download_rejects_missing_pre_sdd_review_member(self) -> None:
         release.build_product(
             ROOT,

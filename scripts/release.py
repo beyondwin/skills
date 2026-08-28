@@ -596,6 +596,12 @@ def _pre_sdd_review_archive_errors(archive: Path) -> list[str]:
             errors.append(
                 f"pre-sdd-review: directory archive member: {info.filename}"
             )
+        if info.filename in expected and info.create_system != 3:
+            errors.append(
+                "pre-sdd-review: archive member creator/type mismatch: "
+                f"{info.filename} requires Unix creator system 3 "
+                "with regular-file mode"
+            )
         if info.filename in expected and file_type != stat.S_IFREG:
             errors.append(
                 "pre-sdd-review: archive member type mismatch: "
