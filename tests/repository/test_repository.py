@@ -434,12 +434,18 @@ class StageProductTests(unittest.TestCase):
             self.assertEqual(validate_product(staged, REGISTRY), [])
 
 
+class RepositoryContractTests(unittest.TestCase):
+    def test_tests_have_only_product_and_repository_roots(self) -> None:
+        roots = {path.name for path in (ROOT / "tests").iterdir() if path.is_dir() and path.name != "__pycache__"}
+        self.assertEqual(roots, {"products", "repository"})
+
+
 class LegacyIdentifierAllowlistTests(unittest.TestCase):
     def test_legacy_identifiers_remain_in_near_miss_fixtures(self) -> None:
         korean_cases = (
-            ROOT / "tests" / "korean-writing-editor" / "offline" / "cases.json"
+            ROOT / "tests" / "products" / "korean-writing-editor" / "offline" / "cases.json"
         ).read_text(encoding="utf-8")
-        image_cases = (ROOT / "tests" / "image-workbench" / "cases.json").read_text(
+        image_cases = (ROOT / "tests" / "products" / "image-workbench" / "cases.json").read_text(
             encoding="utf-8"
         )
         self.assertIn("kws-korean-writing-editor", korean_cases)

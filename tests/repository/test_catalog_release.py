@@ -43,7 +43,7 @@ HASH_B = "b" * 64
 HASH_C = "c" * 64
 COMMIT_C = "c" * 40
 SCRIPT = ROOT / "scripts" / "release.py"
-LEGACY_FIXTURE_ROOT = ROOT / "tests" / "contract" / "fixtures" / "legacy-bundle-v2.0.0"
+LEGACY_FIXTURE_ROOT = ROOT / "tests" / "repository" / "fixtures" / "legacy-bundle-v2.0.0"
 PUBLISHED_V2_NOTICE = (
     b"beyondwin-skills\n"
     b"Copyright 2026 beyondwin\n"

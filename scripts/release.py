@@ -578,7 +578,7 @@ def _run_korean(root: Path, skill_root: Path) -> list[str]:
         "korean-offline",
         [
             sys.executable,
-            str(root / "tests" / "korean-writing-editor" / "offline" / "run.py"),
+            str(root / "tests" / "products" / "korean-writing-editor" / "offline" / "run.py"),
             "--scope",
             "full",
             "--skill-root",
@@ -593,7 +593,7 @@ def _run_image(root: Path, skill_root: Path) -> list[str]:
         "image-contract",
         [
             sys.executable,
-            str(root / "tests" / "image-workbench" / "run.py"),
+            str(root / "tests" / "products" / "image-workbench" / "run.py"),
             "--scope",
             "full",
             "--skill-root",
@@ -616,7 +616,7 @@ def _run_inspector(root: Path, inspector: Path) -> list[str]:
             "unittest",
             "discover",
             "-s",
-            str(root / "tests" / "image-workbench"),
+            str(root / "tests" / "products" / "image-workbench"),
             "-p",
             "test_*.py",
         ],

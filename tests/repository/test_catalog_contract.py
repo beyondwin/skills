@@ -22,7 +22,7 @@ from scripts.catalog_contract import (  # noqa: E402
 )
 from scripts.catalog_lock import import_legacy_release  # noqa: E402
 from scripts.lib.product_contract import payload_sha256  # noqa: E402
-from tests.contract.test_repository import EXPECTED_PLUGIN  # noqa: E402
+from tests.repository.test_repository import EXPECTED_PLUGIN  # noqa: E402
 
 
 PINNED_SOURCE_COMMIT = "78a8b1bf37d1b943f4b8337121b556eeaea926ae"

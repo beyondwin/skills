@@ -17,7 +17,7 @@ GitHub 경로 설치의 스킬 페이로드는 `skills/<name>/`입니다. 제품
 | `catalog/plugin/.codex-plugin/plugin.json` | 마지막 공개 카탈로그 플러그인 매니페스트 소스 | 플러그인 번들만 |
 | `catalog/catalog.lock.json` | 카탈로그가 채택한 불변 스킬 릴리스 | 아니오 |
 | `catalog/release.toml` | 카탈로그 식별 (`beyondwin-skills` `2.0.0`) | 아니오 |
-| `tests/contract/` | 매니페스트, 링크, 패키징, 공개 문서 사실 | 아니오 |
+| `tests/repository/` | 매니페스트, 링크, 패키징, 공개 문서 사실 | 아니오 |
 | `tests/products/korean-writing-editor/offline/` | 결정적 트리거·모드·보존·출력 픽스처 | 아니오 |
 | `tests/products/korean-writing-editor/live/` | 합성 라이브 하니스, 단위 테스트, dry-run, 운영 안내 | 아니오 |
 | `tests/products/image-workbench/` | 라우팅, 권한, 증거, inspector 테스트 | 아니오 |

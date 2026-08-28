@@ -89,7 +89,7 @@ def _catalog() -> dict[str, Stage]:
     return {
         "contract": Stage(
             "contract",
-            _python("-m", "unittest", "discover", "-s", _posix("tests", "contract"), "-p", "test_*.py"),
+            _python("-m", "unittest", "discover", "-s", _posix("tests", "repository"), "-p", "test_*.py"),
         ),
         "korean-offline": Stage(
             "korean-offline",
@@ -140,7 +140,7 @@ def _catalog() -> dict[str, Stage]:
         ),
         "product-contract": Stage(
             "product-contract",
-            _python("-m", "unittest", "tests.contract.test_release_contract"),
+            _python("-m", "unittest", "tests.repository.test_release_contract"),
         ),
         "korean-package": Stage(
             "korean-package",
@@ -168,15 +168,15 @@ def _catalog() -> dict[str, Stage]:
         ),
         "catalog-contract": Stage(
             "catalog-contract",
-            _python("-m", "unittest", "tests.contract.test_catalog_contract"),
+            _python("-m", "unittest", "tests.repository.test_catalog_contract"),
         ),
         "catalog-release-contract": Stage(
             "catalog-release-contract",
-            _python("-m", "unittest", "tests.contract.test_catalog_release"),
+            _python("-m", "unittest", "tests.repository.test_catalog_release"),
         ),
         "public-docs": Stage(
             "public-docs",
-            _python("-m", "unittest", "tests.contract.test_public_docs"),
+            _python("-m", "unittest", "tests.repository.test_public_docs"),
         ),
     }
 

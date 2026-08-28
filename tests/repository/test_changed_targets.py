@@ -133,7 +133,7 @@ class TargetMappingTests(unittest.TestCase):
             "LICENSE",
             "NOTICE",
             ".github/workflows/verify.yml",
-            "tests/contract/test_community_and_ci.py",
+            "tests/repository/test_community_and_ci.py",
             "scripts/changed_targets.py",
         ):
             self.assertEqual(targets_for_paths([path]), ALL_TARGETS, path)

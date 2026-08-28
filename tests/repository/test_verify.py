@@ -104,7 +104,7 @@ class VerifyStageTests(unittest.TestCase):
             argv = stages[0].argv
             self.assertEqual(argv[0], sys.executable)
             self.assertEqual(argv[1:4], ("-m", "unittest", "discover"))
-            self.assertIn("tests/contract", argv)
+            self.assertIn("tests/repository", argv)
 
     def test_every_stage_uses_sys_executable_and_list_argv(self) -> None:
         verify = self._load()
@@ -293,7 +293,7 @@ class VerifyStageTests(unittest.TestCase):
         self.assertEqual(stage.argv[0], sys.executable)
         self.assertEqual(
             stage.argv[1:4],
-            ("-m", "unittest", "tests.contract.test_release_contract"),
+            ("-m", "unittest", "tests.repository.test_release_contract"),
         )
 
     def test_catalog_contract_runs_catalog_contract_module(self) -> None:
@@ -301,7 +301,7 @@ class VerifyStageTests(unittest.TestCase):
         self.assertEqual(stage.argv[0], sys.executable)
         self.assertEqual(
             stage.argv[1:4],
-            ("-m", "unittest", "tests.contract.test_catalog_contract"),
+            ("-m", "unittest", "tests.repository.test_catalog_contract"),
         )
 
     def test_catalog_release_contract_runs_catalog_release_module(self) -> None:
@@ -309,7 +309,7 @@ class VerifyStageTests(unittest.TestCase):
         self.assertEqual(stage.argv[0], sys.executable)
         self.assertEqual(
             stage.argv[1:4],
-            ("-m", "unittest", "tests.contract.test_catalog_release"),
+            ("-m", "unittest", "tests.repository.test_catalog_release"),
         )
         self.assertNotIn("gh", stage.argv)
         self.assertNotIn("curl", stage.argv)
@@ -320,7 +320,7 @@ class VerifyStageTests(unittest.TestCase):
         self.assertEqual(stage.argv[0], sys.executable)
         self.assertEqual(
             stage.argv[1:4],
-            ("-m", "unittest", "tests.contract.test_public_docs"),
+            ("-m", "unittest", "tests.repository.test_public_docs"),
         )
 
     def test_korean_package_runs_korean_package_module(self) -> None:
