@@ -1,0 +1,6 @@
+interface:
+  display_name: "Pre-SDD Review"
+  short_description: "Review, repair, and re-review specs and plans before SDD"
+  default_prompt: "Use $pre-sdd-review to review, improve, and re-review the approved design and implementation plan before SDD."
+policy:
+  allow_implicit_invocation: true

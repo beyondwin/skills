@@ -1,0 +1,9 @@
+{
+  "cases": [
+    {
+      "id": "default-auto-improve",
+      "request": "$pre-sdd-review docs/design.md docs/plan.md",
+      "expect": ["review", "repair", "re-review", "fingerprints"]
+    }
+  ]
+}

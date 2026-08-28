@@ -76,7 +76,12 @@ class RegistryParsingTests(unittest.TestCase):
         registry = load_registry(ROOT / "products.toml")
         self.assertEqual(
             registry.names,
-            ("korean-writing-editor", "image-workbench", "how-it-works"),
+            (
+                "korean-writing-editor",
+                "image-workbench",
+                "how-it-works",
+                "pre-sdd-review",
+            ),
         )
 
     def test_explanation_product_has_measured_supported_hosts(self) -> None:
@@ -134,6 +139,17 @@ class RegistryParsingTests(unittest.TestCase):
             registry.schema_version = 2  # type: ignore[misc]
         with self.assertRaises(dataclasses.FrozenInstanceError):
             registry.products[0].name = "renamed"  # type: ignore[misc]
+
+
+class ProductRegistryTests(unittest.TestCase):
+    def test_pre_sdd_review_is_codex_only(self) -> None:
+        product = load_registry(ROOT / "products.toml").require("pre-sdd-review")
+        self.assertEqual(product.display_name, "Pre-SDD Review")
+        self.assertEqual(product.supported_hosts, ("codex",))
+        self.assertEqual(
+            product.verify_stages,
+            ("product-contract", "pre-sdd-review-contract", "python-compile"),
+        )
 
 
 class RegistryRejectionTests(unittest.TestCase):

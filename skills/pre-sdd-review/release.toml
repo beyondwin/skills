@@ -1,0 +1,5 @@
+schema_version = 1
+name = "pre-sdd-review"
+version = "1.0.0"
+tag_prefix = "pre-sdd-review-v"
+license = "Apache-2.0"
