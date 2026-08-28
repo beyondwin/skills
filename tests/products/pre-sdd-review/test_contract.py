@@ -234,6 +234,51 @@ FINDING_RECORD = (
     "Consequence: concrete implementation failure",
     "Minimal document fix: smallest authority-preserving correction",
 )
+KOREAN_FACTS = (
+    "$pre-sdd-review",
+    "검토 → 문서 개선 → 재검토",
+    "review-only",
+    "최대 두 번",
+    "READY",
+    "REVISE",
+    "BLOCKED",
+    "Codex",
+    "not_measured",
+)
+ENGLISH_FACTS = (
+    "$pre-sdd-review",
+    "review -> repair documents -> scoped re-review",
+    "review-only",
+    "at most two repair passes",
+    "READY",
+    "REVISE",
+    "BLOCKED",
+    "Codex",
+    "not_measured",
+)
+KOREAN_README_HEADINGS = (
+    "## 이 스킬이 해결하는 문제",
+    "## 사용해야 할 때와 사용하지 말아야 할 때",
+    "## 1분 설치와 첫 호출",
+    "## 주요 흐름",
+    "## 안전과 개인정보",
+    "## 호환성과 검증 수준",
+    "## 갱신과 버전 확인",
+    "## 변경 이력과 관리자 문서",
+)
+ENGLISH_README_HEADINGS = (
+    "## Purpose",
+    "## When to use and not use",
+    "## Supported hosts",
+    "## Install",
+    "## First call",
+    "## Expected result",
+    "## Safety and privacy",
+    "## Verification",
+    "## Update and remove",
+    "## Changelog and maintainer docs",
+)
+MAINTAINERS = ROOT / "docs" / "maintainers" / "products" / "pre-sdd-review"
 
 
 def section(text: str, start: str, end: str) -> str:
@@ -414,6 +459,90 @@ class PreSddReviewContractTests(unittest.TestCase):
             "Do not start SDD unless the outer request explicitly asks for implementation",
             normalized_handoff,
         )
+
+
+class PreSddReviewDocumentationTests(unittest.TestCase):
+    def test_bilingual_readmes_keep_the_required_order_and_symmetric_contract(self) -> None:
+        korean = (SKILL / "README.md").read_text(encoding="utf-8")
+        english = (SKILL / "README.en.md").read_text(encoding="utf-8")
+
+        self.assertTrue(korean.startswith("# Pre-SDD Review\n"))
+        self.assertTrue(english.startswith("# Pre-SDD Review\n"))
+        for text, headings in (
+            (korean, KOREAN_README_HEADINGS),
+            (english, ENGLISH_README_HEADINGS),
+        ):
+            positions = tuple(text.index(heading) for heading in headings)
+            self.assertEqual(positions, tuple(sorted(positions)))
+        for fact in KOREAN_FACTS:
+            self.assertIn(fact, korean)
+        for fact in ENGLISH_FACTS:
+            self.assertIn(fact, english)
+
+        for text in (korean, english):
+            self.assertIn("**Spec:**", text)
+        for fact in ("계획 경로", "해결된 설계 명세", "변경하지 않습니다", "SDD를 시작하지"):
+            self.assertIn(fact, korean)
+        normalized_english = re.sub(r"\s+", " ", english)
+        for fact in (
+            "plan path",
+            "resolved design specification",
+            "changes nothing",
+            "does not start SDD",
+        ):
+            self.assertIn(fact, normalized_english)
+
+    def test_maintainer_contract_owns_the_complete_runtime_boundary(self) -> None:
+        contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
+        normalized = re.sub(r"\s+", " ", contract)
+        for fact in AUTHORITY_ORDER + RISK_TRIGGERS + FINDING_SEVERITIES + FINDING_CLASSES:
+            self.assertIn(fact, normalized)
+        for fact in (
+            "resolved design specification",
+            "resolved implementation plan",
+            "read-only",
+            "five passes",
+            "SHA-256",
+            "Git `HEAD`",
+            "worktree",
+            "review timestamp",
+        ):
+            self.assertIn(fact, contract)
+        self.assertIn(
+            "Do not start SDD unless the outer request explicitly asks for implementation",
+            normalized,
+        )
+
+    def test_maintainer_testing_compatibility_and_release_stay_role_specific(self) -> None:
+        testing = (MAINTAINERS / "testing.md").read_text(encoding="utf-8")
+        compatibility = (MAINTAINERS / "compatibility.md").read_text(encoding="utf-8")
+        release = (MAINTAINERS / "release.md").read_text(encoding="utf-8")
+
+        for fact in (
+            "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover",
+            "provider-free",
+            "optional",
+            "user documents",
+            "full model responses",
+        ):
+            self.assertIn(fact, testing)
+        self.assertIn("Codex", compatibility)
+        self.assertIn("not_measured", compatibility)
+        normalized_release = re.sub(r"\s+", " ", release).lower()
+        for fact in (
+            "release.toml",
+            "python3 scripts/release.py check --product pre-sdd-review",
+            "python3 scripts/release.py build --product pre-sdd-review",
+            "python3 scripts/release.py verify-download --product pre-sdd-review",
+        ):
+            self.assertIn(fact, release)
+        self.assertIn("no tag or github release is created by these commands.", normalized_release)
+
+    def test_changelog_records_the_first_independent_release_without_publication_claim(self) -> None:
+        changelog = (SKILL / "CHANGELOG.md").read_text(encoding="utf-8")
+        self.assertIn("## 1.0.0 - 2026-08-29", changelog)
+        self.assertIn("first independent product release contract", changelog)
+        self.assertIn("does not claim", changelog)
 
 
 class PreSddReviewFixtureTests(unittest.TestCase):

@@ -1,3 +1,93 @@
 # pre-sdd-review contract
 
-This document owns the final behavior contract for the Pre-SDD Review product.
+This document owns activation, authority, reviewer isolation, document repair,
+findings, freshness, verdicts, and the SDD handoff for Pre-SDD Review.
+
+## Activation and input resolution
+
+Activate only when an approved design specification and implementation plan
+exist and the request is a readiness review immediately before SDD or plan
+execution. Do not activate for initial design or plan writing, source-diff
+review, release readiness, proofreading, or general documentation work.
+
+Resolve one implementation plan path first. Resolve the resolved design
+specification from that plan's `**Spec:**` field, then its explicitly binding
+references, the repository root, and current Git state. A missing or
+unresolvable `**Spec:**` path is `BLOCKED`; never guess among nearby files.
+
+## Authority order
+
+Interpret conflicts in this order:
+
+1. User-approved direction and referenced visual authority.
+2. Accepted ADRs and other explicitly binding decision records.
+3. The approved design specification.
+4. The implementation plan.
+5. Current repository reality.
+
+Repository reality is feasibility and blast-radius evidence, not authority to
+replace an approved product decision. If repair would need a new product
+decision, preserve the conflict and return `BLOCKED`.
+
+## Reviewer isolation and repair allowlist
+
+The normal reviewer is fresh, independent, and read-only. It reports evidence
+and the smallest authority-preserving correction; the controller owns all
+repairs and does not let a reviewer mutate documents.
+
+In default mode the controller may edit only the resolved design specification
+and resolved implementation plan, plus a directly referenced proposed decision
+record only when the plan explicitly delegates that non-product decision. The
+allowlist excludes accepted ADRs, approved visual authority, application code,
+tests, configuration, generated artifacts, and unrelated documentation.
+Never add a feature, dependency, host claim, or product decision while fixing
+the documents.
+
+## Review passes and findings
+
+The protocol has five passes:
+
+1. authority trace;
+2. repository grounding;
+3. cross-artifact consistency;
+4. verification falsification;
+5. readiness verdict.
+
+Use only two severities: `BLOCKER` and `IMPORTANT`. Use only five finding
+classes: `authority-drift`, `repo-reality`, `coverage`, `ordering`, and
+`verification-gap`. A finding records its ID, severity, class, exact document
+location, evidence, concrete consequence, and smallest document fix. Zero
+findings is valid.
+
+One reviewer is routine. A focused second read-only reviewer is conditional
+only for framework or runtime removal; schema migration or data deletion;
+authentication, authorization, or security boundaries; public/private
+data-boundary changes; or external side effects such as publishing, billing,
+messaging, or production mutations. It reviews only the triggered risk class.
+
+## Default flow, verdicts, and freshness
+
+Default mode is review, repair documents, and scoped re-review. It permits at
+most two repair passes; after the second pass, an unresolved material issue
+remains `REVISE` rather than being downgraded. `review-only` changes no files
+and returns the first review verdict.
+
+Return `READY` when no unresolved finding requires invention or permits a
+materially wrong implementation to pass planned evidence; `REVISE` for a
+repairable material document defect; and `BLOCKED` when required input,
+authority, or repository evidence is unavailable or would require a new
+product decision.
+
+The final record contains repository-relative design and plan paths, their
+SHA-256 hashes, Git `HEAD` (or `unborn`), whether the worktree was clean or
+dirty, review timestamp, and final verdict. Any content change to either
+resolved document invalidates `READY`; a repository change also invalidates
+the review when it changes evidence for a path, command, interface, or
+blast-radius claim.
+
+## Handoff
+
+For `READY`, print the exact resolved design and plan paths with final
+fingerprints. Do not start SDD unless the outer request explicitly asks for
+implementation. In the combined flow, pass the final repaired documents to
+the SDD worker rather than the pre-review copies.
