@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import re
+import shlex
 import sys
 import tomllib
 import unittest
@@ -310,28 +312,92 @@ README_CONTRACT = (
     ("freshness", ("fingerprints", "content-change-invalidates")),
     ("sdd", ("outer-request-implementation-only",)),
 )
+README_CANONICAL_SECTION_DIGESTS = {
+    "ko": (
+        ("## 이 스킬이 해결하는 문제", "89e5d01a28d670a82baeff38428807bc0fe44b0e746cca2d1313b48242d82a19"),
+        ("## 사용해야 할 때와 사용하지 말아야 할 때", "6c985feb1d0d2a5cc33e1b7eb3553a72d436007f55623c0af55bb99eae7e9523"),
+        ("## 1분 설치와 첫 호출", "20d4ac5b06601ac16c4fd995a652fca8e9162dee28a0278108f7c94fa760d4aa"),
+        ("## 주요 흐름", "30aae191b48aa49bd55707cc20e4994480f57112a1160d48bbfbf5026cb3f651"),
+        ("## 안전과 개인정보", "dea164c33a94794be32109070c22cfcb05245b599e8bb8712018df995f036845"),
+        ("## 호환성과 검증 수준", "32ae6efc3bd8d980262a975e41958de4f49688744e719f4f2a92b85b6e6a5ef1"),
+        ("## 갱신과 버전 확인", "cdba0c18b5fa475a30d52f3b8dec1cbeba902873bcfe2ccd64ad1a93a4aa457e"),
+        ("## 변경 이력과 관리자 문서", "7e1cb70139ec2f47b67004352fdd0ca739f19515c2c715095501268c5b7405ac"),
+    ),
+    "en": (
+        ("## Purpose", "2439dba5bafeba4c05041c3b6569f6fb6b920e6e83c70ce27f9d8229b3a20737"),
+        ("## When to use and not use", "7133b17ed84bc5f8e1721b63ec5ffbf63f462f0816014c2bbfd4aeef58925d4d"),
+        ("## Supported hosts", "adb46f35ba78974f2c3f4df43deca598c9558480606022f07ccce3626b70edc6"),
+        ("## Install", "d5163949c27feaa36279e4bfebb1f6cc9dd269079567b5c96ec1314cf08035b7"),
+        ("## First call", "27b7d3681619789c1e0fadff8d1dd802cdc387b70bddde1457adfbead72caff2"),
+        ("## Expected result", "9c16d9c02b79a6d64514d36b3e263a91c0bbc7affd303447545b7d4d1ce79d8a"),
+        ("## Safety and privacy", "e654b5ffb7381e162c135673b092b27a62eac49fc2d372c75d840dcd16f9c756"),
+        ("## Verification", "602a43f5501e8cb0d77254324bbf8fe72c1de9251a11263e902d02bf0edf791b"),
+        ("## Update and remove", "3041985025dea4c4e636368de6d72f214b14f37e2e74b58431fdc74d25d4fb83"),
+        ("## Changelog and maintainer docs", "7a5611089ddaf6819881da0ae7d96ec6ce36107f2c0076e9528499437749e7b1"),
+    ),
+}
+MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
+    ("### Authority order", "9b12469723b1e631fed289e2134a4c47826bd61c26014c9a84f3e302c02f0e6c"),
+    ("### Editable paths", "4c7d511afb38f386f06926cfa9b7b6307a7d2fb9e1b69ae0254021ca7fbaba8e"),
+    ("### Excluded surfaces", "892b4d931a0e8c7bbf0979e4303e512eaf3af1ebe4e18063b699a05f5f7adaee"),
+    ("### Review passes", "85923c91aaadfe1eea3a6dfad1ba81e43e5df9d99ba111b5116c63dbff80e018"),
+    ("### Severities", "72c20c936027d62761c1b2dd9ef16b954c0780d7a15b4b1e05cf33e28b383ebd"),
+    ("### Finding classes", "fc676fde7830ae8402090ef7e3321f58a1bc828b74f75f397fb27107980b7e39"),
+    ("### Conditional risk triggers", "beb83c2728bf4bcc9ee15a353a1391971daa10bd59c45fea6a6fd641333db10c"),
+    ("### Verdicts", "71d2539b57f56eaed895bcde77a9938f3d631a0a4a8dec0c4b67be1bec88b987"),
+    ("### Freshness", "d11924689bcb72cc82cefbef5ed84201ccc73d5b29bb896fedffdad1b0932d94"),
+    ("### SDD handoff", "8a629dd12d78e2c08e77e7c1d057d0e450b135bc0633d5b62c8c926665976bca"),
+)
+MAINTAINER_CANONICAL_DIGEST = "73f5d6a6c65ced2ba56b91e5f173988b6bf0e93e9387d93ac70405ee012eda1d"
 
 
 def section(text: str, start: str, end: str) -> str:
     return text[text.index(start) : text.index(end, text.index(start) + len(start))]
 
 
-def markdown_section(text: str, heading: str) -> str:
-    if heading not in text:
+def markdown_headings(text: str) -> tuple[tuple[int, str, int], ...]:
+    headings: list[tuple[int, str, int]] = []
+    fence: str | None = None
+    offset = 0
+    for line in text.splitlines(keepends=True):
+        fence_match = re.match(r"^\s*(`{3,}|~{3,})", line)
+        if fence_match:
+            marker = fence_match.group(1)
+            if fence is None:
+                fence = marker[0]
+            elif marker[0] == fence:
+                fence = None
+            offset += len(line)
+            continue
+        if fence is None:
+            heading_match = re.match(r"^(#{2,3}) (.+?)\s*$", line.rstrip("\n"))
+            if heading_match:
+                headings.append(
+                    (len(heading_match.group(1)), heading_match.group(0), offset)
+                )
+        offset += len(line)
+    return tuple(headings)
+
+
+def bounded_markdown_section(text: str, heading: str) -> str:
+    candidates = [item for item in markdown_headings(text) if item[1] == heading]
+    if len(candidates) != 1:
         return ""
-    start = text.index(heading)
-    next_heading = re.search(r"^## (?!#)", text[start + len(heading) :], re.MULTILINE)
-    end = len(text) if next_heading is None else start + len(heading) + next_heading.start()
+    level, _, start = candidates[0]
+    end = len(text)
+    for next_level, _, next_start in markdown_headings(text):
+        if next_start > start and next_level <= level:
+            end = next_start
+            break
     return text[start:end]
+
+
+def markdown_section(text: str, heading: str) -> str:
+    return bounded_markdown_section(text, heading)
 
 
 def subsection(text: str, heading: str) -> str:
-    if heading not in text:
-        return ""
-    start = text.index(heading)
-    next_heading = re.search(r"^#{2,3} ", text[start + len(heading) :], re.MULTILINE)
-    end = len(text) if next_heading is None else start + len(heading) + next_heading.start()
-    return text[start:end]
+    return bounded_markdown_section(text, heading)
 
 
 def pre_sdd_invocations(text: str) -> tuple[str, ...]:
@@ -341,18 +407,9 @@ def pre_sdd_invocations(text: str) -> tuple[str, ...]:
     )
 
 
-def without_subsections(text: str, headings: tuple[str, ...]) -> str:
-    result = text
-    for heading in headings:
-        if heading in result:
-            owned = subsection(result, heading)
-            result = result.replace(owned, "")
-    return result
-
-
-def sensitive_sentences(text: str, pattern: re.Pattern[str]) -> tuple[str, ...]:
-    normalized = re.sub(r"\s+", " ", text)
-    return tuple(sentence.strip() for sentence in re.split(r"(?<=[.!?])\s+", normalized) if pattern.search(sentence))
+def canonical_digest(text: str) -> str:
+    normalized = re.sub(r"\s+", " ", text).strip()
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
 def parse_readme_contract(text: str) -> tuple[tuple[str, tuple[str, ...]], ...]:
@@ -363,7 +420,17 @@ def parse_readme_contract(text: str) -> tuple[tuple[str, tuple[str, ...]], ...]:
 
 def readme_contract_errors(text: str) -> tuple[str, ...]:
     errors: list[str] = []
-    first_call_heading = "## First call" if "## First call" in text else "## 1분 설치와 첫 호출"
+    language = "en" if markdown_section(text, "## Purpose") else "ko"
+    canonical_sections = README_CANONICAL_SECTION_DIGESTS[language]
+    actual_headings = tuple(
+        heading for level, heading, _ in markdown_headings(text) if level == 2
+    )
+    if actual_headings != tuple(heading for heading, _ in canonical_sections) or any(
+        canonical_digest(markdown_section(text, heading)) != digest
+        for heading, digest in canonical_sections
+    ):
+        errors.append("README sensitive sections differ from the canonical contract")
+    first_call_heading = "## First call" if language == "en" else "## 1분 설치와 첫 호출"
     first_call = markdown_section(text, first_call_heading)
     if not first_call:
         errors.append("missing First call section")
@@ -371,13 +438,6 @@ def readme_contract_errors(text: str) -> tuple[str, ...]:
         errors.append("first call must contain only the approved invocation")
     if parse_readme_contract(text) != README_CONTRACT:
         errors.append("bounded README contract differs from the product contract")
-    outside_contract = without_subsections(text, ("### Contract",))
-    mutation_grant = re.compile(
-        r"(?i)(?:\b(?:controller|agent)\b[^.!?]*(?:may|can|will)[^.!?]*\b(?:edit|mutate|modify|change)\b|"
-        r"(?:제어 에이전트|컨트롤러)[^.!?]*(?:수정|변경))"
-    )
-    if sensitive_sentences(outside_contract, mutation_grant):
-        errors.append("mutation grant appears outside the bounded contract")
     return tuple(errors)
 
 
@@ -391,6 +451,14 @@ def backtick_list(text: str) -> tuple[str, ...]:
 
 def maintainer_contract_errors(text: str) -> tuple[str, ...]:
     errors: list[str] = []
+    if (
+        canonical_digest(text) != MAINTAINER_CANONICAL_DIGEST
+        or any(
+            canonical_digest(subsection(text, heading)) != digest
+            for heading, digest in MAINTAINER_CANONICAL_SUBSECTION_DIGESTS
+        )
+    ):
+        errors.append("maintainer contract differs from the closed canonical contract")
     authority = subsection(text, "### Authority order")
     if tuple(re.findall(r"^\d+\. (.+)$", authority, re.MULTILINE)) != AUTHORITY_ORDER:
         errors.append("authority order differs")
@@ -437,26 +505,6 @@ def maintainer_contract_errors(text: str) -> tuple[str, ...]:
     handoff = subsection(text, "### SDD handoff")
     if "Do not start SDD unless the outer request explicitly asks for implementation" not in handoff:
         errors.append("SDD handoff differs")
-    outside = without_subsections(
-        text,
-        (
-            "### Editable paths",
-            "### Excluded surfaces",
-            "### Conditional risk triggers",
-            "### Verdicts",
-            "### Freshness",
-            "### SDD handoff",
-        ),
-    )
-    sensitive = re.compile(
-        r"(?i)(?:\b(?:may|can|will)\b[^.!?]*(?:edit|mutate|modify)\b|"
-        r"(?:second reviewer|second review)[^.!?]*\broutine\b|"
-        r"\bREADY\b[^.!?]*(?:hash|content change|survives)|"
-        r"(?:start|invoke)\s+SDD|(?:자동으로\s*SDD를\s*(?:시작|호출))|"
-        r"(?:수정|변경)할\s*수\s*있)"
-    )
-    if sensitive_sentences(outside, sensitive):
-        errors.append("contract-sensitive rule appears outside its bounded subsection")
     return tuple(errors)
 
 
@@ -513,6 +561,68 @@ def fenced_code_blocks(text: str) -> tuple[str, ...]:
     return tuple(re.findall(r"```[^\n]*\n(.*?)\n```", text, re.DOTALL))
 
 
+def executable_block_tokens(block: str) -> tuple[str, ...]:
+    tokens: list[str] = []
+    for line in block.splitlines():
+        line = line.rstrip()
+        if line.endswith("\\"):
+            line = line[:-1]
+        if not line.strip():
+            continue
+        lexer = shlex.shlex(line, posix=True, punctuation_chars=";&|()")
+        lexer.commenters = "#"
+        lexer.whitespace_split = True
+        try:
+            tokens.extend(lexer)
+        except ValueError:
+            # A malformed shell line cannot be proven safe as a release instruction.
+            tokens.append("opaque-shell-syntax")
+    return tuple(tokens)
+
+
+def publication_or_indirection(tokens: tuple[str, ...]) -> bool:
+    if not tokens:
+        return False
+    lowered = tuple(token.lower() for token in tokens)
+    words = tuple(
+        word
+        for token in lowered
+        for word in re.findall(r"[a-z0-9_.-]+", token)
+    )
+
+    def ordered(first: str, later: tuple[str, ...]) -> bool:
+        return any(
+            word == first and any(candidate in later for candidate in words[index + 1 :])
+            for index, word in enumerate(words)
+        )
+
+    direct_publication = any(
+        (
+            ordered("git", ("tag", "push")),
+            ordered("gh", ("release",)),
+            any(
+                ordered(manager, ("publish", "release"))
+                for manager in ("npm", "pnpm", "yarn")
+            ),
+            ordered("twine", ("upload",)),
+            ordered("uv", ("publish",)),
+        )
+    )
+    opaque_indirection = any(
+        (
+            "opaque-shell-syntax" in lowered,
+            any(token in {"eval", "source"} for token in lowered),
+            any(token.startswith("$") for token in lowered),
+            any("$(" in token or "${" in token or "`" in token for token in lowered),
+            any(
+                token in {"sh", "bash", "zsh"} and "-c" in lowered[index + 1 :]
+                for index, token in enumerate(lowered)
+            ),
+        )
+    )
+    return direct_publication or opaque_indirection
+
+
 def release_document_errors(text: str) -> tuple[str, ...]:
     release = tomllib.loads((SKILL / "release.toml").read_text(encoding="utf-8"))
     errors: list[str] = []
@@ -529,11 +639,10 @@ def release_document_errors(text: str) -> tuple[str, ...]:
     command_lines = tuple(line for block in fenced_code_blocks(text) for line in block.splitlines())
     if not all(command in command_lines for command in commands):
         errors.append("release commands must be fenced command lines")
-    forbidden = re.compile(
-        r"(?i)(?:\bgit\s+(?:tag|push)\b|\bgh\s+release\b|"
-        r"\b(?:npm|pnpm|yarn|twine)\s+(?:publish|release)\b)"
-    )
-    if any(forbidden.search(line) for line in command_lines):
+    if any(
+        publication_or_indirection(executable_block_tokens(block))
+        for block in fenced_code_blocks(text)
+    ):
         errors.append("release document contains a publication instruction")
     return tuple(errors)
 
@@ -935,9 +1044,40 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         )
         self.assertIn("first call must contain only the approved invocation", readme_contract_errors(indented_command))
         extra_prose = english + "\nThe controller may also edit release notes.\n"
-        self.assertIn("mutation grant appears outside the bounded contract", readme_contract_errors(extra_prose))
+        self.assertIn(
+            "README sensitive sections differ from the canonical contract",
+            readme_contract_errors(extra_prose),
+        )
         missing_heading = english.replace("## First call", "## Invocation")
         self.assertIn("missing First call section", readme_contract_errors(missing_heading))
+
+    def test_readme_validator_rejects_every_round_four_semantic_bypass(self) -> None:
+        english = (SKILL / "README.en.md").read_text(encoding="utf-8")
+        mutations = (
+            english + "\nThe controller is authorized to revise release notes.\n",
+            english.replace(
+                "The plan path is primary.",
+                "The design path is primary.",
+            ),
+            english.replace(
+                "`review-only` changes nothing",
+                "`review-only` may update the plan",
+            ),
+            english.replace(
+                "There are at most two repair passes.",
+                "There are three repair passes.",
+            ),
+            english.replace("## First call", "## Invocation").replace(
+                "```text\n$skill-installer",
+                "```text\n## First call\n$skill-installer",
+            ),
+        )
+        for mutation in mutations:
+            with self.subTest(mutation=mutation):
+                self.assertIn(
+                    "README sensitive sections differ from the canonical contract",
+                    readme_contract_errors(mutation),
+                )
 
     def test_maintainer_contract_uses_bounded_exact_protocols(self) -> None:
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
@@ -965,9 +1105,45 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "Automatically start SDD after READY.",
         ):
             self.assertIn(
-                "contract-sensitive rule appears outside its bounded subsection",
+                "maintainer contract differs from the closed canonical contract",
                 maintainer_contract_errors(contract + f"\n## Contradiction\n\n{contradiction}\n"),
             )
+
+    def test_maintainer_validator_rejects_extra_prose_inside_owned_subsections(self) -> None:
+        contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
+        mutations = (
+            contract.replace(
+                "5. Current repository reality.\n",
+                "5. Current repository reality.\n\n"
+                "The implementation plan overrides the approved design.\n",
+            ),
+            contract.replace(
+                "2. resolved implementation plan.\n",
+                "2. resolved implementation plan.\n\n"
+                "The controller is authorized to revise release notes.\n",
+            ),
+            contract.replace(
+                "A second reviewer is conditional only, never routine.\n",
+                "A second reviewer is conditional only, never routine.\n\n"
+                "A second reviewer is routine for every change.\n",
+            ),
+            contract.replace(
+                "- Any content change to either resolved document invalidates `READY`.\n",
+                "- Any content change to either resolved document invalidates `READY`.\n\n"
+                "A prose-only content change preserves `READY`.\n",
+            ),
+            contract.replace(
+                "Do not start SDD unless the outer request explicitly asks for implementation.\n",
+                "Do not start SDD unless the outer request explicitly asks for implementation.\n\n"
+                "Start SDD immediately after `READY`.\n",
+            ),
+        )
+        for mutation in mutations:
+            with self.subTest(mutation=mutation):
+                self.assertIn(
+                    "maintainer contract differs from the closed canonical contract",
+                    maintainer_contract_errors(mutation),
+                )
 
     def test_testing_compatibility_and_release_documents_are_derived_from_sources(self) -> None:
         testing = (MAINTAINERS / "testing.md").read_text(encoding="utf-8")
@@ -989,8 +1165,17 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             release + "\n```sh\ngit push origin pre-sdd-review-v1.0.0\n```\n",
             release + "\n```bash\nenv git push origin pre-sdd-review-v1.0.0\n```\n",
             release + "\n```text\ntrue && git tag pre-sdd-review-v1.0.0\n```\n",
+            release + "\n```sh\ngit -C . push origin pre-sdd-review-v1.0.0\n```\n",
+            release
+            + "\n```sh\npublisher=git\nverb=push\n"
+            '"$publisher" "$verb" origin pre-sdd-review-v1.0.0\n```\n',
+            release + "\n```sh\npython3 -m twine upload dist/*\n```\n",
+            release + "\n```sh\nuv publish dist/*\n```\n",
         ):
             self.assertIn("release document contains a publication instruction", release_document_errors(publication))
+
+        comment_only = release + "\n```sh\n# Do not run git push from this procedure.\n```\n"
+        self.assertEqual(release_document_errors(comment_only), ())
 
 
 class PreSddReviewFixtureTests(unittest.TestCase):
