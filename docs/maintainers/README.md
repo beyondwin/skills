@@ -52,3 +52,10 @@
 - [테스트](products/how-it-works/testing.md) — 결정적 픽스처, 명령, 증거 한계
 - [호환성](products/how-it-works/compatibility.md) — 현재 호스트, 능력, 증거 경계, 새 지원 규칙
 - [릴리스](products/how-it-works/release.md) — 버전 원본, SemVer 예시, check/build/download, 실패 복구
+
+### pre-sdd-review
+
+- [계약](products/pre-sdd-review/contract.md) — 권위 순서, 기본 문서 개선 흐름, 변이 경계, 판정
+- [테스트](products/pre-sdd-review/testing.md) — 공급자 없는 계약 픽스처와 선택적 라이브 절차의 증거 한계
+- [호환성](products/pre-sdd-review/compatibility.md) — Codex 측정 지원과 다른 호스트 `not_measured` 경계
+- [릴리스](products/pre-sdd-review/release.md) — 독립 제품 check/build/verify-download와 비게시 경계

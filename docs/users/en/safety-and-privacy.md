@@ -4,7 +4,7 @@
 
 This project itself has no telemetry. Required CI and `python3 scripts/verify.py` do not use credentials, model calls, or remote uploads. The optional third-party installer `npx skills add beyondwin/skills --skill korean-writing-editor` is third-party and follows its own policy.
 
-Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md).
+Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md).
 
 ## Korean source text
 
@@ -17,6 +17,10 @@ Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/
 ## Image references and consent
 
 In `image-workbench`, every input image has exactly one role: `edit_target`, `subject_reference`, `style_reference`, or `compositing_input`. A reference does not confer rights to reproduce a person, mark, or protected work. Unknown consent for a person, mark, or example image is a hold. Do not store private references, prompts, or generated outputs as Git fixtures.
+
+## Pre-SDD document review
+
+`pre-sdd-review` reads local design, implementation plan, referenced ADR, and repository files. In default mode it edits only the resolved design and plan; it does not transmit or persist user documents or turn them into fixtures in repository-owned tests. It never starts code implementation or SDD without an explicit outer request.
 
 ## High-stakes requests
 

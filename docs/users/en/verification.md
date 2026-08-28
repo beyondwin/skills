@@ -8,14 +8,20 @@ Required verification runs without credentials or models.
 python3 scripts/verify.py
 ```
 
-That command is `--profile full`. Stages run in this order: contract, korean-offline, image-contract, image-inspector, korean-live-unit, korean-live-dry-run, python-compile. The first failing stage stops the command. `windows-portable` excludes the Codex-only `image-contract` and `image-inspector` stages. Live `--execute` is not included.
+That command is `--profile full`. Stages run in this order: repository-contract, korean-package, korean-offline, korean-live-unit, korean-live-dry-run, image-contract, image-inspector, how-it-works-contract, pre-sdd-review-contract, python-compile. The first failing stage stops the command. `windows-portable` excludes the Codex-only `image-contract` and `image-inspector` stages but keeps the portable `pre-sdd-review-contract`. Live `--execute` is not included.
 
 ```bash
 python3 scripts/verify.py --profile full
 python3 scripts/verify.py --profile windows-portable
 ```
 
-Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md).
+Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md).
+
+To verify only `pre-sdd-review`, run:
+
+```bash
+python3 scripts/verify.py --skill pre-sdd-review
+```
 
 ## Shared evidence sentences
 
@@ -30,6 +36,7 @@ The offline suites prove the deterministic contract only.
 - `korean-writing-editor`: trigger, mode, preservation, and output fixtures under `tests/products/korean-writing-editor/offline/`
 - `image-workbench`: routing, authorization, ImageSpec, handoff, and inspector fixtures under `tests/products/image-workbench/`
 - `how-it-works`: synthetic DNS and rebase contract fixtures in `tests/products/how-it-works/cases.json` and payload contracts in `tests/products/how-it-works/test_contract.py`. They lock the in-chat required deliverable (one-sentence claim, Mermaid, numbered hop list, rung-specific body, adjacent slices, one next move).
+- `pre-sdd-review`: synthetic cases and document fixtures under `tests/products/pre-sdd-review/`. Provider-free fixtures validate instruction and package contracts; they do not prove reviewer independence, semantic completeness, or live review quality.
 
 A pass does not prove general Korean editing quality, semantic equivalence, live image quality, commercial permission, a better provider, or runtime parity. The license is Apache-2.0.
 
@@ -43,4 +50,4 @@ Korean live ceilings follow the 119 / 3 / 122 / 38 / 160 budgets in the maintain
 
 ## Limitations
 
-Report measured support and fixture results only. Do not claim plugin-directory availability, support on every host, general quality, live image quality, settled reuse rights, or a better provider. An offline `how-it-works` pass does not prove live quality on Codex or Claude Code. Live execution is local, explicit, optional, potentially billable, and never required by CI.
+Report measured support and fixture results only. Do not claim plugin-directory availability, support on every host, general quality, live image quality, settled reuse rights, or a better provider. An offline `how-it-works` pass does not prove live quality on Codex or Claude Code. An offline `pre-sdd-review` pass does not prove reviewer independence, semantic completeness, or live review quality. Live execution is local, explicit, optional, potentially billable, and never required by CI.

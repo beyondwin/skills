@@ -2,7 +2,7 @@
 
 [한국어](../ko/compatibility.md) · [Installation](installation.md)
 
-The current standalone products are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), and [`how-it-works`](../../../skills/how-it-works/README.en.md). How It Works currently claims Codex and Claude Code. Korean Writing Editor and Image Workbench keep their registered Codex boundaries.
+The current standalone products are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), and [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md). How It Works currently claims Codex and Claude Code. Korean Writing Editor, Image Workbench, and Pre-SDD Review keep their registered Codex boundaries.
 
 ## Shared support sentences
 
@@ -12,6 +12,8 @@ image-workbench: Codex-only; generate/edit requires Codex image generation and l
 
 how-it-works: Codex and Claude Code supported for local or repository-based use.
 
+pre-sdd-review: Codex supported; other hosts not_measured.
+
 ## Contract portability versus measured support
 
 `korean-writing-editor` follows the open Agent Skills directory format (`SKILL.md`, optional `scripts/`, `references/`, and `assets/`). That contract portability does not mean Claude Code, Cursor, or any other host is supported today. A host is `supported` only after a current smoke test; otherwise its status is `partially verified` or `not_measured`.
@@ -20,11 +22,13 @@ how-it-works: Codex and Claude Code supported for local or repository-based use.
 
 `how-it-works` supports `codex` and `claude-code` for local or repository-based use. Output is GitHub-flavored markdown in chat, plus mermaid source and a numbered hop list. A host page or mermaid renderer is not required. Claude.ai, Cowork, Skills API upload, and marketplace publication are not supported.
 
+`pre-sdd-review` is measured only on Codex with a local Git repository and independent subagent review. A portable Markdown package shape does not prove reviewer independence or equivalent repository inspection on another host, so those hosts remain `not_measured`.
+
 The immutable catalog `v2.0.0` plugin bundle does not include How It Works. The plugin name `beyondwin-skills` means the repository is packaged as one plugin. It does not mean the plugin is listed in a plugin directory.
 
 ## Install paths and hosts
 
-- Codex primary for Korean Writing Editor and Image Workbench: `$skill-installer` with the public GitHub skill path. See [Installation](installation.md).
+- Codex primary for Korean Writing Editor, Image Workbench, and Pre-SDD Review: `$skill-installer` with the public GitHub skill path. See [Installation](installation.md).
 - How It Works: `~/.agents/skills/how-it-works` (Codex) and `~/.claude/skills/how-it-works` (Claude Code). Codex does not use `~/.codex`. `ln -s` fails instead of overwriting an existing target.
 - Optional: third-party `npx skills add beyondwin/skills --skill korean-writing-editor`. That installer has its own policy.
 - Alternative: `git clone` plus host-native folder install. Inspect the exact target before copying.

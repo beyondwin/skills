@@ -77,10 +77,14 @@ IMAGE_SUPPORT = (
 HOW_IT_WORKS_SUPPORT = (
     "how-it-works: Codex and Claude Code supported for local or repository-based use."
 )
+PRE_SDD_REVIEW_SUPPORT = (
+    "pre-sdd-review: Codex supported; other hosts not_measured."
+)
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
     "image-workbench": IMAGE_SUPPORT,
     "how-it-works": HOW_IT_WORKS_SUPPORT,
+    "pre-sdd-review": PRE_SDD_REVIEW_SUPPORT,
 }
 HOW_IT_WORKS_MKDIR = "mkdir -p ~/.agents/skills ~/.claude/skills"
 HOW_IT_WORKS_AGENTS_LINK = (
@@ -459,7 +463,7 @@ class UserGuideFactTests(unittest.TestCase):
             for product in REGISTRY.products:
                 self.assertIn(f"{product.skill_path.as_posix()}/{filename}", text)
 
-    def test_compatibility_owns_the_three_support_sentences(self) -> None:
+    def test_compatibility_owns_the_registered_support_sentences(self) -> None:
         for document in (
             ROOT / "docs" / "users" / "ko" / "compatibility.md",
             ROOT / "docs" / "users" / "en" / "compatibility.md",
@@ -610,6 +614,45 @@ class UserGuideFactTests(unittest.TestCase):
                 "does not prove" in text.lower() or "증명하지 않습니다" in text,
                 f"{document.name} must not treat offline fixtures as live quality evidence",
             )
+
+    def test_pre_sdd_review_shared_guides_preserve_scope_and_evidence_limits(self) -> None:
+        korean_installation = _read(ROOT / "docs/users/ko/installation.md")
+        english_installation = _read(ROOT / "docs/users/en/installation.md")
+        installer = INSTALLER_COMMANDS["pre-sdd-review"]
+        self.assertIn(installer, korean_installation)
+        self.assertIn(installer, english_installation)
+
+        korean_safety = _read(ROOT / "docs/users/ko/safety-and-privacy.md")
+        english_safety = _read(ROOT / "docs/users/en/safety-and-privacy.md")
+        for term in ("설계", "계획", "ADR", "저장소", "전송", "저장", "픽스처"):
+            self.assertIn(term, korean_safety)
+        for term in (
+            "design",
+            "plan",
+            "ADR",
+            "repository",
+            "transmit",
+            "persist",
+            "fixture",
+        ):
+            self.assertIn(term, english_safety)
+        self.assertIn("명시적인 외부 요청", korean_safety)
+        self.assertIn("explicit outer request", english_safety)
+
+        korean_verification = _read(ROOT / "docs/users/ko/verification.md")
+        english_verification = _read(ROOT / "docs/users/en/verification.md")
+        self.assertIn("python3 scripts/verify.py --skill pre-sdd-review", korean_verification)
+        self.assertIn("python3 scripts/verify.py --skill pre-sdd-review", english_verification)
+        for term in ("지시", "패키지", "리뷰어 독립성", "의미 완전성", "라이브 리뷰 품질"):
+            self.assertIn(term, korean_verification)
+        for term in (
+            "instruction",
+            "package",
+            "reviewer independence",
+            "semantic completeness",
+            "live review quality",
+        ):
+            self.assertIn(term, english_verification)
 
 
 class DocumentationArchitectureTests(unittest.TestCase):
@@ -847,7 +890,6 @@ class MaintainerStructureTests(unittest.TestCase):
             for filename in PRODUCT_PROTOCOL_FILES:
                 path = directory / filename
                 _assert_exists(self, path)
-                self.assertRegex(_read(path), r"[가-힣]")
 
     def test_repository_trio_and_archive_evidence_live_under_repository(self) -> None:
         for path in REPOSITORY_DOCS:

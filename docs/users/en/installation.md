@@ -2,15 +2,16 @@
 
 [한국어](../ko/installation.md) · [Compatibility](compatibility.md) · [Safety and privacy](safety-and-privacy.md) · [Verification](verification.md)
 
-The installable payloads are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), and [`how-it-works`](../../../skills/how-it-works/README.en.md). The license is Apache-2.0.
+The installable payloads are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), and [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md). The license is Apache-2.0.
 
 ## Primary install (Codex)
 
-Use `$skill-installer` for `korean-writing-editor` and `image-workbench` only. The installer stops if the destination already exists. The default destination for those two skills is `$CODEX_HOME/skills/<skill-name>`, or `~/.codex/skills` when `CODEX_HOME` is unset. How It Works is not this destination.
+Use `$skill-installer` for `korean-writing-editor`, `image-workbench`, and `pre-sdd-review`. The installer stops if the destination already exists. The default destination for those three skills is `$CODEX_HOME/skills/<skill-name>`, or `~/.codex/skills` when `CODEX_HOME` is unset. How It Works is not this destination.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
+$skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-review
 ```
 
 Invoke on a new turn after install using the product README.
@@ -37,11 +38,11 @@ This path applies to the Korean editor only.
 npx skills add beyondwin/skills --skill korean-writing-editor
 ```
 
-That `npx` command is a third-party installer with its own release and telemetry policy. `image-workbench` is Codex-only and is not supported on this path. `how-it-works` uses the local links above.
+That `npx` command is a third-party installer with its own release and telemetry policy. `image-workbench` and `pre-sdd-review` are Codex-only and are not supported on this path. `how-it-works` uses the local links above.
 
 ## Codex-only git clone
 
-`korean-writing-editor` and `image-workbench` are Codex-only. The non-`npx` alternative is a verified clone plus a Codex folder copy.
+`korean-writing-editor`, `image-workbench`, and `pre-sdd-review` are Codex-only. The non-`npx` alternative is a verified clone plus a Codex folder copy.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -72,7 +73,7 @@ Confirm all of the following:
 
 Only after that confirmation, remove that exact path with the host's ordinary uninstall, or clear that exact destination and reinstall with `$skill-installer`. Do not delete the parent `skills` directory or a home directory. Do not replace an existing install without that inspection.
 
-Apply the same inspection sequence to `.../skills/image-workbench`.
+Apply the same inspection sequence to `.../skills/image-workbench` and `.../skills/pre-sdd-review`.
 
 For `how-it-works` links, inspect first, then remove only those exact links.
 

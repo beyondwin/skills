@@ -8,14 +8,20 @@
 python3 scripts/verify.py
 ```
 
-이 명령은 `--profile full`과 같습니다. 단계는 contract, korean-offline, image-contract, image-inspector, korean-live-unit, korean-live-dry-run, python-compile 순서이며, 첫 실패 단계에서 멈춥니다. `windows-portable`는 Codex 전용 `image-contract`와 `image-inspector`를 제외합니다. 라이브 `--execute`는 포함하지 않습니다.
+이 명령은 `--profile full`과 같습니다. 단계는 repository-contract, korean-package, korean-offline, korean-live-unit, korean-live-dry-run, image-contract, image-inspector, how-it-works-contract, pre-sdd-review-contract, python-compile 순서이며, 첫 실패 단계에서 멈춥니다. `windows-portable`는 Codex 전용 `image-contract`와 `image-inspector`를 제외하지만 이식 가능한 `pre-sdd-review-contract`는 유지합니다. 라이브 `--execute`는 포함하지 않습니다.
 
 ```bash
 python3 scripts/verify.py --profile full
 python3 scripts/verify.py --profile windows-portable
 ```
 
-제품 안내는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md)를 보세요.
+제품 안내는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md)를 보세요.
+
+`pre-sdd-review`만 검증하려면 다음 명령을 씁니다.
+
+```bash
+python3 scripts/verify.py --skill pre-sdd-review
+```
 
 ## 공유 증거 문장
 
@@ -30,6 +36,7 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 - `korean-writing-editor`: `tests/products/korean-writing-editor/offline/`의 트리거·모드·보존·출력 픽스처
 - `image-workbench`: `tests/products/image-workbench/`의 라우팅·권한·ImageSpec·핸드오프·inspector 픽스처
 - `how-it-works`: `tests/products/how-it-works/cases.json`의 합성 DNS·rebase 계약 픽스처와 `tests/products/how-it-works/test_contract.py` 페이로드 계약. 채팅 필수 산출(one-sentence claim, Mermaid, numbered hop list, rung-specific body, adjacent slices, one next move)의 형태만 잠급니다.
+- `pre-sdd-review`: `tests/products/pre-sdd-review/`의 합성 사례와 문서 픽스처. 공급자 없는 픽스처는 지시와 패키지 계약만 검증하며, 리뷰어 독립성, 의미 완전성, 라이브 리뷰 품질을 증명하지 않습니다.
 
 통과는 일반 한국어 편집 품질, 의미 동등, 라이브 이미지 품질, 상업 허가, 더 나은 공급자, 런타임 동등성을 증명하지 않습니다. 라이선스는 Apache-2.0입니다.
 
@@ -43,4 +50,4 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 ## 한계
 
-측정된 지원과 픽스처 결과만 보고하세요. 플러그인 디렉터리 등록, 모든 호스트 지원, 일반 품질, 라이브 이미지 품질, 권리 확정, 공급자 우월을 주장하지 마세요. `how-it-works` 오프라인 통과는 Codex나 Claude Code 라이브 품질을 증명하지 않습니다. 라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있고 CI가 요구하지 않습니다.
+측정된 지원과 픽스처 결과만 보고하세요. 플러그인 디렉터리 등록, 모든 호스트 지원, 일반 품질, 라이브 이미지 품질, 권리 확정, 공급자 우월을 주장하지 마세요. `how-it-works` 오프라인 통과는 Codex나 Claude Code 라이브 품질을 증명하지 않습니다. `pre-sdd-review` 오프라인 통과도 리뷰어 독립성, 의미 완전성, 라이브 리뷰 품질을 증명하지 않습니다. 라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있고 CI가 요구하지 않습니다.

@@ -139,6 +139,19 @@ def _stage_catalog(root: pathlib.Path) -> dict[str, Stage]:
             ),
             cwd=root,
         ),
+        "pre-sdd-review-contract": Stage(
+            "pre-sdd-review-contract",
+            _python(
+                "-m",
+                "unittest",
+                "discover",
+                "-s",
+                _posix("tests", "products", "pre-sdd-review"),
+                "-p",
+                "test_contract.py",
+            ),
+            cwd=root,
+        ),
         "catalog-contract": Stage(
             "catalog-contract",
             _python("-m", "unittest", "tests.repository.test_catalog_contract"),

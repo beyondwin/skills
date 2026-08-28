@@ -4,7 +4,7 @@
 
 이 프로젝트 자체는 텔레메트리를 넣지 않습니다. 필수 CI와 `python3 scripts/verify.py`는 자격 증명, 모델 호출, 원격 업로드를 하지 않습니다. 선택적 제3자 설치기 `npx skills add beyondwin/skills --skill korean-writing-editor`는 제3자이며 자체 정책을 따릅니다.
 
-제품 안내는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md)를 보세요.
+제품 안내는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md)를 보세요.
 
 ## 한국어 원문
 
@@ -17,6 +17,10 @@
 ## 이미지 참조와 동의
 
 `image-workbench`에서 입력 이미지의 역할은 하나입니다: `edit_target`, `subject_reference`, `style_reference`, 또는 `compositing_input`. 참조 이미지는 사람, 상표, 보호된 작업을 복제할 권리를 주지 않습니다. 인물·상표·예시 이미지의 consent가 불명하면 보류합니다. 비공개 참조, 프롬프트, 생성 결과는 Git 픽스처로 저장하지 않습니다.
+
+## SDD 전 문서 검토
+
+`pre-sdd-review`는 로컬 설계, 구현 계획, 참조된 ADR, 저장소 파일을 읽습니다. 기본 모드에서 고치는 대상은 확인된 설계와 계획뿐이며, 사용자 문서를 전송하거나 지속 저장하거나 저장소 소유 테스트의 픽스처로 만들지 않습니다. 명시적인 외부 요청 없이는 코드 구현이나 SDD를 시작하지 않습니다.
 
 ## 이해관계가 큰 요청
 
