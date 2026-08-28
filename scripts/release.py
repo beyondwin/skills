@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 import pathlib
+import stat
 import subprocess
 import sys
 import tempfile
@@ -184,6 +185,10 @@ def verify_product_download(root: Path, name: str, directory: Path) -> list[str]
     archive_errors = verify_product_archive(archive, name)
     if archive_errors:
         return archive_errors
+    if name == "pre-sdd-review":
+        archive_errors = _pre_sdd_review_archive_errors(archive)
+        if archive_errors:
+            return archive_errors
     with tempfile.TemporaryDirectory() as tmp:
         destination = Path(tmp)
         extract_errors = extract_archive(archive, destination)
@@ -565,6 +570,37 @@ def _smoke_pre_sdd_review(skill_root: Path) -> list[str]:
             )
         else:
             errors.append(f"pre-sdd-review: unexpected payload member: {relative}")
+    return errors
+
+
+def _pre_sdd_review_archive_errors(archive: Path) -> list[str]:
+    expected = {
+        f"pre-sdd-review/{relative}"
+        for relative in PRE_SDD_REVIEW_PAYLOAD_FILES
+    }
+    with zipfile.ZipFile(archive) as source:
+        infos = list(source.infolist())
+    present = {info.filename for info in infos}
+    errors = [
+        f"pre-sdd-review: missing archive member: {name}"
+        for name in sorted(expected - present)
+    ]
+    errors.extend(
+        f"pre-sdd-review: unexpected archive member: {name}"
+        for name in sorted(present - expected)
+    )
+    for info in infos:
+        file_type = (info.external_attr >> 16) & 0o170000
+        is_directory = info.filename.endswith("/") or file_type == stat.S_IFDIR
+        if is_directory:
+            errors.append(
+                f"pre-sdd-review: directory archive member: {info.filename}"
+            )
+        if info.filename in expected and file_type != stat.S_IFREG:
+            errors.append(
+                "pre-sdd-review: archive member type mismatch: "
+                f"{info.filename} is not a regular file"
+            )
     return errors
 
 

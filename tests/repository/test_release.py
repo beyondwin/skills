@@ -337,11 +337,13 @@ class ProductDownloadTests(unittest.TestCase):
         cases = (
             (
                 "pre-sdd-review/scripts/runtime.py",
-                "pre-sdd-review: unexpected runtime/scripts payload member: scripts/runtime.py",
+                "pre-sdd-review: unexpected archive member: "
+                "pre-sdd-review/scripts/runtime.py",
             ),
             (
                 "pre-sdd-review/references/extra.md",
-                "pre-sdd-review: unexpected payload member: references/extra.md",
+                "pre-sdd-review: unexpected archive member: "
+                "pre-sdd-review/references/extra.md",
             ),
         )
         for member, expected_error in cases:
@@ -370,6 +372,57 @@ class ProductDownloadTests(unittest.TestCase):
                 )
                 self.assertIn(expected_error, errors)
 
+    def test_verify_product_download_rejects_pre_sdd_review_directory_member(self) -> None:
+        release.build_product(
+            ROOT,
+            "pre-sdd-review",
+            self.output,
+            require_release_entry=False,
+        )
+        archive = self.output / "pre-sdd-review-v1.0.0.zip"
+
+        def add_directory(items):
+            yield from items
+            info = zipfile.ZipInfo("pre-sdd-review/scripts/")
+            info.external_attr = (stat.S_IFDIR | 0o755) << 16
+            yield info, b""
+
+        self._rewrite_zip(archive, add_directory)
+        self._checksums(archive)
+        errors = release.verify_product_download(ROOT, "pre-sdd-review", self.output)
+        self.assertIn(
+            "pre-sdd-review: unexpected archive member: pre-sdd-review/scripts/",
+            errors,
+        )
+        self.assertIn(
+            "pre-sdd-review: directory archive member: pre-sdd-review/scripts/",
+            errors,
+        )
+
+    def test_verify_product_download_rejects_required_member_with_directory_mode(self) -> None:
+        release.build_product(
+            ROOT,
+            "pre-sdd-review",
+            self.output,
+            require_release_entry=False,
+        )
+        archive = self.output / "pre-sdd-review-v1.0.0.zip"
+
+        def change_required_member_type(items):
+            for info, data in items:
+                if info.filename == "pre-sdd-review/agents/openai.yaml":
+                    info.external_attr = (stat.S_IFDIR | 0o755) << 16
+                yield info, data
+
+        self._rewrite_zip(archive, change_required_member_type)
+        self._checksums(archive)
+        errors = release.verify_product_download(ROOT, "pre-sdd-review", self.output)
+        self.assertIn(
+            "pre-sdd-review: archive member type mismatch: "
+            "pre-sdd-review/agents/openai.yaml is not a regular file",
+            errors,
+        )
+
     def test_verify_product_download_rejects_missing_pre_sdd_review_member(self) -> None:
         release.build_product(
             ROOT,
@@ -389,9 +442,42 @@ class ProductDownloadTests(unittest.TestCase):
         self._checksums(archive)
         errors = release.verify_product_download(ROOT, "pre-sdd-review", self.output)
         self.assertIn(
-            "pre-sdd-review: missing payload member: agents/openai.yaml",
+            "pre-sdd-review: missing archive member: "
+            "pre-sdd-review/agents/openai.yaml",
             errors,
         )
+
+    def test_pre_sdd_review_extracted_smoke_retains_exact_allowlist(self) -> None:
+        approved = (
+            "CHANGELOG.md",
+            "LICENSE.txt",
+            "README.en.md",
+            "README.md",
+            "SKILL.md",
+            "agents/openai.yaml",
+            "references/reviewer-protocol.md",
+            "release.toml",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            skill_root = Path(directory) / "pre-sdd-review"
+            for relative in approved:
+                path = skill_root / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("fixture\n", encoding="utf-8")
+            self.assertEqual(release._smoke_pre_sdd_review(skill_root), [])
+
+            (skill_root / "agents/openai.yaml").unlink()
+            runtime = skill_root / "scripts/runtime.py"
+            runtime.parent.mkdir(parents=True)
+            runtime.write_text("runtime\n", encoding="utf-8")
+            self.assertEqual(
+                release._smoke_pre_sdd_review(skill_root),
+                [
+                    "pre-sdd-review: missing payload member: agents/openai.yaml",
+                    "pre-sdd-review: unexpected runtime/scripts payload member: "
+                    "scripts/runtime.py",
+                ],
+            )
 
     def test_verify_product_download_rejects_missing_checksum(self) -> None:
         release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
