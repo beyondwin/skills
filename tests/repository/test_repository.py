@@ -99,7 +99,7 @@ def _tracked_test_roots(root: Path) -> set[str]:
     return {
         Path(path).parts[1]
         for path in result.stdout.splitlines()
-        if len(Path(path).parts) > 1
+        if len(Path(path).parts) > 2
     }
 
 
@@ -458,10 +458,12 @@ class StageProductTests(unittest.TestCase):
 
 
 class RepositoryContractTests(unittest.TestCase):
-    def test_layout_contract_ignores_untracked_roots_but_rejects_tracked_legacy_roots(self) -> None:
+    def test_layout_contract_accepts_package_marker_and_untracked_roots_but_rejects_tracked_legacy_roots(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             workspace = Path(directory)
             tests_root = workspace / "tests"
+            (tests_root / "__init__.py").parent.mkdir(parents=True, exist_ok=True)
+            (tests_root / "__init__.py").write_text("", encoding="utf-8")
             for root in ("products", "repository"):
                 path = tests_root / root / "case.py"
                 path.parent.mkdir(parents=True, exist_ok=True)
@@ -471,7 +473,13 @@ class RepositoryContractTests(unittest.TestCase):
             untracked.write_text("# ignored cache\n", encoding="utf-8")
             for command in (
                 ("git", "init", "--quiet"),
-                ("git", "add", "tests/products/case.py", "tests/repository/case.py"),
+                (
+                    "git",
+                    "add",
+                    "tests/__init__.py",
+                    "tests/products/case.py",
+                    "tests/repository/case.py",
+                ),
             ):
                 subprocess.run(command, cwd=workspace, check=True)
 
