@@ -18,6 +18,7 @@ from scripts.lib.product_registry import (  # noqa: E402
     normalize_repo_path,
     validate_registry,
 )
+from scripts.lib.verification import REGISTERED_STAGE_NAMES  # noqa: E402
 
 
 def _product(
@@ -255,13 +256,6 @@ class RegistryValidationTests(unittest.TestCase):
     def setUp(self) -> None:
         self.registry = load_registry(ROOT / "products.toml")
 
-    def _declared_stages(self) -> set[str]:
-        return {
-            stage
-            for product in self.registry.products
-            for stage in product.verify_stages
-        }
-
     def test_registry_exactly_covers_product_directories(self) -> None:
         registry = load_registry(ROOT / "products.toml")
         self.assertEqual(
@@ -286,9 +280,16 @@ class RegistryValidationTests(unittest.TestCase):
     def test_current_registry_has_no_validation_errors(self) -> None:
         registry = load_registry(ROOT / "products.toml")
         self.assertEqual(
-            validate_registry(ROOT, registry, self._declared_stages()),
+            validate_registry(ROOT, registry, REGISTERED_STAGE_NAMES),
             [],
         )
+
+    def test_unknown_registry_stage_fails_validation(self) -> None:
+        broken = dataclasses.replace(
+            self.registry,
+            products=(dataclasses.replace(self.registry.products[0], verify_stages=("missing-stage",)),) + self.registry.products[1:],
+        )
+        self.assertIn("unknown verification stage: missing-stage", validate_registry(ROOT, broken, REGISTERED_STAGE_NAMES))
 
     def test_validate_registry_reports_missing_directories(self) -> None:
         registry = load_registry(ROOT / "products.toml")
@@ -296,7 +297,7 @@ class RegistryValidationTests(unittest.TestCase):
             errors = validate_registry(
                 Path(directory),
                 registry,
-                self._declared_stages(),
+                REGISTERED_STAGE_NAMES,
             )
         joined = "\n".join(errors)
         self.assertTrue(errors)

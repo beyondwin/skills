@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import builtins
 import contextlib
+import dataclasses
 import importlib.util
 import io
 import sys
@@ -13,21 +14,36 @@ from types import ModuleType
 
 
 ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.lib.product_registry import load_registry  # noqa: E402
+from scripts.lib.verification import (  # noqa: E402
+    Stage,
+    run_stage,
+    run_stages,
+    stages,
+)
+
 VERIFY_PATH = ROOT / "scripts" / "verify.py"
 FULL_STAGE_NAMES = (
-    "contract",
+    "repository-contract",
+    "korean-package",
     "korean-offline",
-    "image-contract",
-    "image-inspector",
     "korean-live-unit",
     "korean-live-dry-run",
+    "image-contract",
+    "image-inspector",
+    "graspic-contract",
     "python-compile",
 )
 WINDOWS_STAGE_NAMES = (
-    "contract",
+    "repository-contract",
+    "korean-package",
     "korean-offline",
     "korean-live-unit",
     "korean-live-dry-run",
+    "graspic-contract",
     "python-compile",
 )
 LIVE_TEST_PATH = (
@@ -70,50 +86,76 @@ class VerifyModuleTests(unittest.TestCase):
 
 
 class VerifyStageTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.registry = load_registry(ROOT / "products.toml")
+
     def _load(self) -> ModuleType:
         self.assertTrue(VERIFY_PATH.is_file(), "scripts.verify does not exist")
         return load_verify()
 
+    def _selected(
+        self,
+        profile: str,
+        *,
+        skill: str | None = None,
+        catalog: bool = False,
+    ):
+        return stages(ROOT, profile, self.registry, skill=skill, catalog=catalog)
+
+    def test_product_stage_order_comes_from_registry(self) -> None:
+        product = self.registry.require("graspic")
+        selected = stages(ROOT, "full", self.registry, skill="graspic")
+        self.assertEqual(tuple(stage.name for stage in selected), product.verify_stages)
+
+    def test_product_stage_order_follows_replaced_registry_entry(self) -> None:
+        product = dataclasses.replace(
+            self.registry.require("graspic"),
+            verify_stages=("python-compile", "graspic-contract"),
+        )
+        replaced = dataclasses.replace(
+            self.registry,
+            products=tuple(
+                product if item.name == "graspic" else item
+                for item in self.registry.products
+            ),
+        )
+        selected = stages(ROOT, "full", replaced, skill="graspic")
+        self.assertEqual(tuple(stage.name for stage in selected), product.verify_stages)
+
     def test_full_profile_contains_all_provider_free_gates(self) -> None:
-        verify = self._load()
-        names = [stage.name for stage in verify.stages("full")]
+        names = [stage.name for stage in self._selected("full")]
         self.assertEqual(names, list(FULL_STAGE_NAMES))
 
     def test_windows_profile_excludes_codex_only_image_gate(self) -> None:
-        verify = self._load()
-        names = [stage.name for stage in verify.stages("windows-portable")]
+        names = [stage.name for stage in self._selected("windows-portable")]
         self.assertNotIn("image-contract", names)
         self.assertNotIn("image-inspector", names)
 
     def test_windows_profile_contains_portable_gates_in_order(self) -> None:
-        verify = self._load()
-        names = [stage.name for stage in verify.stages("windows-portable")]
+        names = [stage.name for stage in self._selected("windows-portable")]
         self.assertEqual(names, list(WINDOWS_STAGE_NAMES))
 
     def test_unknown_profile_is_rejected(self) -> None:
-        verify = self._load()
         with self.assertRaises(ValueError):
-            verify.stages("linux")
+            stages(ROOT, "linux", self.registry)
 
     def test_contract_discovery_runs_first(self) -> None:
-        verify = self._load()
         for profile in ("full", "windows-portable"):
-            stages = verify.stages(profile)
-            self.assertTrue(stages)
-            self.assertEqual(stages[0].name, "contract")
-            argv = stages[0].argv
+            selected = self._selected(profile)
+            self.assertTrue(selected)
+            self.assertEqual(selected[0].name, "repository-contract")
+            argv = selected[0].argv
             self.assertEqual(argv[0], sys.executable)
             self.assertEqual(argv[1:4], ("-m", "unittest", "discover"))
             self.assertIn("tests/repository", argv)
 
     def test_every_stage_uses_sys_executable_and_list_argv(self) -> None:
-        verify = self._load()
         for profile in ("full", "windows-portable"):
-            for stage in verify.stages(profile):
+            for stage in self._selected(profile):
                 self.assertIsInstance(stage.argv, tuple)
                 self.assertTrue(stage.argv, stage.name)
                 self.assertEqual(stage.argv[0], sys.executable)
-                self.assertEqual(stage.cwd, verify.ROOT)
+                self.assertEqual(stage.cwd, ROOT)
                 joined = " ".join(stage.argv)
                 self.assertNotIn("&&", joined)
                 self.assertNotIn("|", joined)
@@ -156,9 +198,8 @@ class VerifyStageTests(unittest.TestCase):
         self.assertNotIn("--preflight", stage.argv)
 
     def test_no_stage_invokes_live_execute(self) -> None:
-        verify = self._load()
         for profile in ("full", "windows-portable"):
-            for stage in verify.stages(profile):
+            for stage in self._selected(profile):
                 self.assertNotIn("--execute", stage.argv)
                 self.assertNotIn("--preflight", stage.argv)
 
@@ -175,36 +216,34 @@ class VerifyStageTests(unittest.TestCase):
         self.assertFalse(any("*" in part for part in stage.argv))
 
     def test_run_stage_returns_subprocess_exit_code(self) -> None:
-        verify = self._load()
-        ok = verify.Stage(
-            "contract",
+        ok = Stage(
+            "repository-contract",
             (sys.executable, "-c", "raise SystemExit(0)"),
             cwd=ROOT,
         )
-        failed = verify.Stage(
+        failed = Stage(
             "korean-offline",
             (sys.executable, "-c", "raise SystemExit(5)"),
             cwd=ROOT,
         )
-        self.assertEqual(verify.run_stage(ok), 0)
-        self.assertEqual(verify.run_stage(failed), 5)
+        self.assertEqual(run_stage(ok), 0)
+        self.assertEqual(run_stage(failed), 5)
 
     def test_fail_fast_stops_and_names_the_failed_stage(self) -> None:
-        verify = self._load()
         with tempfile.TemporaryDirectory() as tmp:
             marker = Path(tmp) / "later-stage-ran"
-            stages = (
-                verify.Stage(
-                    "contract",
+            stage_list = (
+                Stage(
+                    "repository-contract",
                     (sys.executable, "-c", "raise SystemExit(0)"),
                     cwd=ROOT,
                 ),
-                verify.Stage(
+                Stage(
                     "korean-offline",
                     (sys.executable, "-c", "raise SystemExit(3)"),
                     cwd=ROOT,
                 ),
-                verify.Stage(
+                Stage(
                     "python-compile",
                     (
                         sys.executable,
@@ -217,19 +256,17 @@ class VerifyStageTests(unittest.TestCase):
             )
             stderr = io.StringIO()
             with contextlib.redirect_stderr(stderr):
-                code = verify.run_stages(stages)
+                code = run_stages(stage_list)
             self.assertEqual(code, 3)
             self.assertIn("korean-offline", stderr.getvalue())
             self.assertFalse(marker.exists())
 
     def test_graspic_selection_runs_only_shared_and_graspic_gates(self) -> None:
-        verify = self._load()
-        names = [stage.name for stage in verify.stages("full", skill="graspic")]
+        names = [stage.name for stage in self._selected("full", skill="graspic")]
         self.assertEqual(names, ["product-contract", "graspic-contract", "python-compile"])
 
     def test_catalog_selection_runs_catalog_gates_only(self) -> None:
-        verify = self._load()
-        names = [stage.name for stage in verify.stages("full", catalog=True)]
+        names = [stage.name for stage in self._selected("full", catalog=True)]
         self.assertEqual(
             names,
             [
@@ -241,15 +278,13 @@ class VerifyStageTests(unittest.TestCase):
         )
 
     def test_skill_and_catalog_are_mutually_exclusive(self) -> None:
-        verify = self._load()
         with self.assertRaises(ValueError):
-            verify.stages("full", skill="graspic", catalog=True)
+            stages(ROOT, "full", self.registry, skill="graspic", catalog=True)
 
     def test_korean_selection_runs_only_shared_and_korean_gates(self) -> None:
-        verify = self._load()
         names = [
             stage.name
-            for stage in verify.stages("full", skill="korean-writing-editor")
+            for stage in self._selected("full", skill="korean-writing-editor")
         ]
         self.assertEqual(
             names,
@@ -264,9 +299,8 @@ class VerifyStageTests(unittest.TestCase):
         )
 
     def test_image_selection_runs_only_shared_and_image_gates(self) -> None:
-        verify = self._load()
         names = [
-            stage.name for stage in verify.stages("full", skill="image-workbench")
+            stage.name for stage in self._selected("full", skill="image-workbench")
         ]
         self.assertEqual(
             names,
@@ -279,10 +313,9 @@ class VerifyStageTests(unittest.TestCase):
         )
 
     def test_windows_profile_excludes_image_gates_after_skill_selection(self) -> None:
-        verify = self._load()
         names = [
             stage.name
-            for stage in verify.stages("windows-portable", skill="image-workbench")
+            for stage in self._selected("windows-portable", skill="image-workbench")
         ]
         self.assertEqual(names, ["product-contract", "python-compile"])
         self.assertNotIn("image-contract", names)
@@ -338,7 +371,6 @@ class VerifyStageTests(unittest.TestCase):
         self.assertIn("test_contract.py", stage.argv)
 
     def test_selected_stages_use_sys_executable_and_tuple_argv(self) -> None:
-        verify = self._load()
         selections = (
             ("full", "graspic", False),
             ("full", "korean-writing-editor", False),
@@ -347,11 +379,11 @@ class VerifyStageTests(unittest.TestCase):
             ("full", None, True),
         )
         for profile, skill, catalog in selections:
-            for stage in verify.stages(profile, skill=skill, catalog=catalog):
+            for stage in self._selected(profile, skill=skill, catalog=catalog):
                 self.assertIsInstance(stage.argv, tuple)
                 self.assertTrue(stage.argv, stage.name)
                 self.assertEqual(stage.argv[0], sys.executable)
-                self.assertEqual(stage.cwd, verify.ROOT)
+                self.assertEqual(stage.cwd, ROOT)
                 joined = " ".join(stage.argv)
                 self.assertNotIn("&&", joined)
                 self.assertNotIn("|", joined)
@@ -387,7 +419,11 @@ class VerifyStageTests(unittest.TestCase):
         original = verify.stages
 
         def fake_stages(
-            profile: str, *, skill: str | None = None, catalog: bool = False
+            root,
+            profile: str,
+            registry,
+            skill: str | None = None,
+            catalog: bool = False,
         ):
             recorded.append((profile, skill, catalog))
             return ()
@@ -405,7 +441,11 @@ class VerifyStageTests(unittest.TestCase):
         original = verify.stages
 
         def fake_stages(
-            profile: str, *, skill: str | None = None, catalog: bool = False
+            root,
+            profile: str,
+            registry,
+            skill: str | None = None,
+            catalog: bool = False,
         ):
             recorded.append((profile, skill, catalog))
             return ()
@@ -423,7 +463,11 @@ class VerifyStageTests(unittest.TestCase):
         original = verify.stages
 
         def fake_stages(
-            profile: str, *, skill: str | None = None, catalog: bool = False
+            root,
+            profile: str,
+            registry,
+            skill: str | None = None,
+            catalog: bool = False,
         ):
             recorded.append((profile, skill, catalog))
             return ()
@@ -436,8 +480,7 @@ class VerifyStageTests(unittest.TestCase):
         self.assertEqual(recorded, [("full", None, True)])
 
     def test_windows_profile_keeps_korean_live_unit(self) -> None:
-        verify = self._load()
-        names = [stage.name for stage in verify.stages("windows-portable")]
+        names = [stage.name for stage in self._selected("windows-portable")]
         self.assertIn("korean-live-unit", names)
 
     def test_live_unit_module_is_importable_without_fcntl(self) -> None:
@@ -474,13 +517,7 @@ class VerifyStageTests(unittest.TestCase):
         skill: str | None = None,
         catalog: bool = False,
     ):
-        verify = self._load()
-        kwargs: dict[str, str | bool] = {}
-        if skill is not None:
-            kwargs["skill"] = skill
-        if catalog:
-            kwargs["catalog"] = catalog
-        for stage in verify.stages(profile, **kwargs):
+        for stage in self._selected(profile, skill=skill, catalog=catalog):
             if stage.name == name:
                 return stage
         self.fail(f"profile {profile!r} is missing stage {name!r}")
