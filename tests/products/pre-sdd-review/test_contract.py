@@ -352,6 +352,8 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### SDD handoff", "8a629dd12d78e2c08e77e7c1d057d0e450b135bc0633d5b62c8c926665976bca"),
 )
 MAINTAINER_CANONICAL_DIGEST = "54bc00bbdabf23dd20bc31b8d2d57c4a5fdc69e1da453a1ed8f6008c58a1fa34"
+TESTING_CANONICAL_DIGEST = "cdd51cddf5acbaa58ed1a36bf0275c1f9215c80cb946f071f0a2d9f5609b02c3"
+COMPATIBILITY_CANONICAL_DIGEST = "5155b790d834e242079a6ab68ef396f8c1185eaa9f0af922ff0f78c988e0dc1e"
 RELEASE_CANONICAL_DIGEST = "9dc0088c21c5c311caa0938d7c64d0c1c98632f4c60ef70e99a589e5a87d2abd"
 
 
@@ -535,6 +537,8 @@ def parse_fixture_inventory(text: str) -> tuple[tuple[str, tuple[str, ...]], ...
 
 def testing_document_errors(text: str) -> tuple[str, ...]:
     errors: list[str] = []
+    if whole_document_digest(text) != TESTING_CANONICAL_DIGEST:
+        errors.append("testing document differs from the closed canonical contract")
     case_ids = tuple(case["id"] for case in json.loads(CASES.read_text(encoding="utf-8"))["cases"])
     if backtick_list(subsection(text, "### Case inventory")) != case_ids:
         errors.append("case inventory differs")
@@ -558,13 +562,18 @@ def testing_document_errors(text: str) -> tuple[str, ...]:
 
 
 def compatibility_document_errors(text: str) -> tuple[str, ...]:
+    errors: list[str] = []
+    if whole_document_digest(text) != COMPATIBILITY_CANONICAL_DIGEST:
+        errors.append("compatibility document differs from the closed canonical contract")
     registry = load_registry(ROOT / "products.toml")
     product = registry.require("pre-sdd-review")
     hosts = tuple(sorted({host for item in registry.products for host in item.supported_hosts}))
     expected = tuple((host, "supported" if host in product.supported_hosts else "not_measured") for host in hosts)
     matrix = subsection(text, "### Host matrix")
     actual = tuple(re.findall(r"^\| `([^`]+)` \| `([^`]+)` \|$", matrix, re.MULTILINE))
-    return () if actual == expected else ("host matrix differs from products.toml",)
+    if actual != expected:
+        errors.append("host matrix differs from products.toml")
+    return tuple(errors)
 
 
 def fenced_code_blocks(text: str) -> tuple[str, ...]:
@@ -1139,6 +1148,20 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         self.assertEqual(testing_document_errors(testing), ())
         self.assertEqual(compatibility_document_errors(compatibility), ())
         self.assertEqual(release_document_errors(release), ())
+
+    def test_testing_and_compatibility_reject_append_only_document_drift(self) -> None:
+        testing = (MAINTAINERS / "testing.md").read_text(encoding="utf-8")
+        compatibility = (MAINTAINERS / "compatibility.md").read_text(encoding="utf-8")
+        testing_mutation = testing + "\n## Drift\n\nProvider-free fixtures prove live review quality.\n"
+        compatibility_mutation = compatibility + "\n## Drift\n\nEvery host is supported.\n"
+        self.assertIn(
+            "testing document differs from the closed canonical contract",
+            testing_document_errors(testing_mutation),
+        )
+        self.assertIn(
+            "compatibility document differs from the closed canonical contract",
+            compatibility_document_errors(compatibility_mutation),
+        )
 
     def test_truth_validators_reject_inventory_host_and_publication_mutations(self) -> None:
         testing = (MAINTAINERS / "testing.md").read_text(encoding="utf-8")

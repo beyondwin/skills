@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import shutil
@@ -80,6 +81,12 @@ HOW_IT_WORKS_SUPPORT = (
 PRE_SDD_REVIEW_SUPPORT = (
     "pre-sdd-review: Codex supported; other hosts not_measured."
 )
+PRE_SDD_SHARED_SECTION_DIGESTS = {
+    ("ko", "safety"): "6b413c23697d3514b8ba46337a7dc3a0e6ca11026d0c4446877e1dc6496f7eaf",
+    ("en", "safety"): "e6606e971dbce5ee8f882d32685a8d665fe15c492cf681d4ed1418bc13ba4881",
+    ("ko", "verification"): "eb4dbd7356163a0d28f361f8b2e6cd3dd00c134cf2901b5be9fc4186d2b14507",
+    ("en", "verification"): "daf31490f6ccc9dedd39218681523ce812e9be09b33c737e075bc65156c4b19a",
+}
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
     "image-workbench": IMAGE_SUPPORT,
@@ -266,6 +273,45 @@ def _owned_section(text: str, heading: str) -> str:
     return matches[0] if len(matches) == 1 else ""
 
 
+def _append_to_owned_section(text: str, heading: str, contradiction: str) -> str:
+    owned = _owned_section(text, heading)
+    if not owned:
+        return text
+    replacement = owned.rstrip() + f"\n\n{contradiction}\n\n"
+    return text.replace(owned, replacement, 1)
+
+
+def maintainer_korean_source_errors(text: str) -> tuple[str, ...]:
+    errors: list[str] = []
+    lines = text.splitlines()
+    h1_index = next(
+        (index for index, line in enumerate(lines) if re.match(r"^# (?!#)", line)),
+        None,
+    )
+    if h1_index is None or not re.search(r"[가-힣]{2,}", lines[h1_index]):
+        errors.append("maintainer H1 must include a substantive Korean label")
+
+    paragraph_lines: list[str] = []
+    if h1_index is not None:
+        for line in lines[h1_index + 1 :]:
+            stripped = line.strip()
+            if not stripped:
+                if paragraph_lines:
+                    break
+                continue
+            if stripped.startswith(("#", "- ", "* ", ">", "```", "~~~")):
+                break
+            paragraph_lines.append(stripped)
+    paragraph = " ".join(paragraph_lines)
+    has_korean_clause = bool(
+        re.search(r"[가-힣]+(?:은|는|이|가|을|를|의|에서|으로)", paragraph)
+    )
+    has_korean_ending = bool(re.search(r"[가-힣]+(?:니다|세요)\.", paragraph))
+    if not paragraph or not has_korean_clause or not has_korean_ending:
+        errors.append("maintainer first explanatory paragraph must be substantive Korean prose")
+    return tuple(errors)
+
+
 def pre_sdd_shared_contract_errors(
     text: str,
     *,
@@ -304,9 +350,12 @@ def pre_sdd_shared_contract_errors(
     owned = _owned_section(text, headings[key])
     if not owned:
         return ("pre-sdd shared section is missing or duplicated",)
+    errors: list[str] = []
     if any(owned.count(clause) != 1 for clause in clauses[key]):
-        return ("pre-sdd shared exact clauses differ",)
-    return ()
+        errors.append("pre-sdd shared exact clauses differ")
+    if hashlib.sha256(owned.encode("utf-8")).hexdigest() != PRE_SDD_SHARED_SECTION_DIGESTS[key]:
+        errors.append("pre-sdd shared section differs from canonical contract")
+    return tuple(errors)
 
 
 class ProductReadmeOwnershipTests(unittest.TestCase):
@@ -752,14 +801,59 @@ class UserGuideFactTests(unittest.TestCase):
                 with self.subTest(language=language, document=document, mutation=new):
                     mutation = source.replace(old, new, 1)
                     self.assertNotEqual(mutation, source)
-                    self.assertTrue(
+                    self.assertIn(
+                        "pre-sdd shared exact clauses differ",
                         pre_sdd_shared_contract_errors(
                             mutation,
                             language=language,
                             document=document,
                         ),
-                        "polarity reversal must be rejected",
                     )
+
+    def test_pre_sdd_shared_validator_rejects_append_only_contradictions(self) -> None:
+        cases = (
+            (
+                "ko",
+                "safety",
+                "## SDD 전 문서 검토",
+                ROOT / "docs/users/ko/safety-and-privacy.md",
+                "기본 모드에서도 application code를 수정해도 됩니다.",
+            ),
+            (
+                "en",
+                "safety",
+                "## Pre-SDD document review",
+                ROOT / "docs/users/en/safety-and-privacy.md",
+                "In default mode, application code may also be edited.",
+            ),
+            (
+                "ko",
+                "verification",
+                "## 오프라인 픽스처",
+                ROOT / "docs/users/ko/verification.md",
+                "이 픽스처 통과는 라이브 리뷰 품질도 증명합니다.",
+            ),
+            (
+                "en",
+                "verification",
+                "## Offline fixtures",
+                ROOT / "docs/users/en/verification.md",
+                "Passing these fixtures also proves live review quality.",
+            ),
+        )
+        for language, document, heading, path, contradiction in cases:
+            with self.subTest(language=language, document=document):
+                source = _read(path)
+                mutation = _append_to_owned_section(source, heading, contradiction)
+                self.assertNotEqual(mutation, source)
+                self.assertIn(
+                    "pre-sdd shared section differs from canonical contract",
+                    pre_sdd_shared_contract_errors(
+                        mutation,
+                        language=language,
+                        document=document,
+                    ),
+                )
 
 
 class DocumentationArchitectureTests(unittest.TestCase):
@@ -997,7 +1091,29 @@ class MaintainerStructureTests(unittest.TestCase):
             for filename in PRODUCT_PROTOCOL_FILES:
                 path = directory / filename
                 _assert_exists(self, path)
-                self.assertRegex(_read(path), r"[가-힣]")
+                self.assertEqual(maintainer_korean_source_errors(_read(path)), ())
+
+    def test_korean_source_validator_requires_korean_h1_and_explanatory_prose(self) -> None:
+        contract = _read(ROOT / "docs/maintainers/products/pre-sdd-review/contract.md")
+        mutations = (
+            (
+                contract.replace("# pre-sdd-review 계약", "# pre-sdd-review contract", 1),
+                "maintainer H1 must include a substantive Korean label",
+            ),
+            (
+                contract.replace(
+                    "이 문서는 Pre-SDD Review의 활성화 조건, 권위 순서, 리뷰어 격리,\n"
+                    "문서 수정 경계, finding, freshness, verdict, SDD handoff를 소유합니다.",
+                    "한.",
+                    1,
+                ),
+                "maintainer first explanatory paragraph must be substantive Korean prose",
+            ),
+        )
+        for mutation, expected_error in mutations:
+            with self.subTest(mutation=mutation.splitlines()[:4]):
+                self.assertNotEqual(mutation, contract)
+                self.assertIn(expected_error, maintainer_korean_source_errors(mutation))
 
     def test_repository_trio_and_archive_evidence_live_under_repository(self) -> None:
         for path in REPOSITORY_DOCS:
