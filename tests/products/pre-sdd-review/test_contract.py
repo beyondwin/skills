@@ -317,6 +317,8 @@ def section(text: str, start: str, end: str) -> str:
 
 
 def markdown_section(text: str, heading: str) -> str:
+    if heading not in text:
+        return ""
     start = text.index(heading)
     next_heading = re.search(r"^## (?!#)", text[start + len(heading) :], re.MULTILINE)
     end = len(text) if next_heading is None else start + len(heading) + next_heading.start()
@@ -327,13 +329,30 @@ def subsection(text: str, heading: str) -> str:
     if heading not in text:
         return ""
     start = text.index(heading)
-    next_heading = re.search(r"^### ", text[start + len(heading) :], re.MULTILINE)
+    next_heading = re.search(r"^#{2,3} ", text[start + len(heading) :], re.MULTILINE)
     end = len(text) if next_heading is None else start + len(heading) + next_heading.start()
     return text[start:end]
 
 
 def pre_sdd_invocations(text: str) -> tuple[str, ...]:
-    return tuple(re.findall(r"^\$pre-sdd-review[^\n]*$", text, re.MULTILINE))
+    return tuple(
+        invocation.strip()
+        for invocation in re.findall(r"^\s*\$pre-sdd-review[^\n]*$", text, re.MULTILINE)
+    )
+
+
+def without_subsections(text: str, headings: tuple[str, ...]) -> str:
+    result = text
+    for heading in headings:
+        if heading in result:
+            owned = subsection(result, heading)
+            result = result.replace(owned, "")
+    return result
+
+
+def sensitive_sentences(text: str, pattern: re.Pattern[str]) -> tuple[str, ...]:
+    normalized = re.sub(r"\s+", " ", text)
+    return tuple(sentence.strip() for sentence in re.split(r"(?<=[.!?])\s+", normalized) if pattern.search(sentence))
 
 
 def parse_readme_contract(text: str) -> tuple[tuple[str, tuple[str, ...]], ...]:
@@ -346,10 +365,19 @@ def readme_contract_errors(text: str) -> tuple[str, ...]:
     errors: list[str] = []
     first_call_heading = "## First call" if "## First call" in text else "## 1분 설치와 첫 호출"
     first_call = markdown_section(text, first_call_heading)
+    if not first_call:
+        errors.append("missing First call section")
     if pre_sdd_invocations(first_call) != (DEFAULT_FIRST_CALL,):
         errors.append("first call must contain only the approved invocation")
     if parse_readme_contract(text) != README_CONTRACT:
         errors.append("bounded README contract differs from the product contract")
+    outside_contract = without_subsections(text, ("### Contract",))
+    mutation_grant = re.compile(
+        r"(?i)(?:\b(?:controller|agent)\b[^.!?]*(?:may|can|will)[^.!?]*\b(?:edit|mutate|modify|change)\b|"
+        r"(?:제어 에이전트|컨트롤러)[^.!?]*(?:수정|변경))"
+    )
+    if sensitive_sentences(outside_contract, mutation_grant):
+        errors.append("mutation grant appears outside the bounded contract")
     return tuple(errors)
 
 
@@ -409,6 +437,26 @@ def maintainer_contract_errors(text: str) -> tuple[str, ...]:
     handoff = subsection(text, "### SDD handoff")
     if "Do not start SDD unless the outer request explicitly asks for implementation" not in handoff:
         errors.append("SDD handoff differs")
+    outside = without_subsections(
+        text,
+        (
+            "### Editable paths",
+            "### Excluded surfaces",
+            "### Conditional risk triggers",
+            "### Verdicts",
+            "### Freshness",
+            "### SDD handoff",
+        ),
+    )
+    sensitive = re.compile(
+        r"(?i)(?:\b(?:may|can|will)\b[^.!?]*(?:edit|mutate|modify)\b|"
+        r"(?:second reviewer|second review)[^.!?]*\broutine\b|"
+        r"\bREADY\b[^.!?]*(?:hash|content change|survives)|"
+        r"(?:start|invoke)\s+SDD|(?:자동으로\s*SDD를\s*(?:시작|호출))|"
+        r"(?:수정|변경)할\s*수\s*있)"
+    )
+    if sensitive_sentences(outside, sensitive):
+        errors.append("contract-sensitive rule appears outside its bounded subsection")
     return tuple(errors)
 
 
@@ -461,8 +509,8 @@ def compatibility_document_errors(text: str) -> tuple[str, ...]:
     return () if actual == expected else ("host matrix differs from products.toml",)
 
 
-def bash_blocks(text: str) -> tuple[str, ...]:
-    return tuple(re.findall(r"```bash\n(.*?)\n```", text, re.DOTALL))
+def fenced_code_blocks(text: str) -> tuple[str, ...]:
+    return tuple(re.findall(r"```[^\n]*\n(.*?)\n```", text, re.DOTALL))
 
 
 def release_document_errors(text: str) -> tuple[str, ...]:
@@ -478,8 +526,14 @@ def release_document_errors(text: str) -> tuple[str, ...]:
     )
     if not all(command in text for command in commands):
         errors.append("release commands differ")
-    forbidden = re.compile(r"(?m)^\s*(?:git\s+(?:tag|push)\b|gh\s+release\b|\S*publish\S*)")
-    if any(forbidden.search(block) for block in bash_blocks(text)):
+    command_lines = tuple(line for block in fenced_code_blocks(text) for line in block.splitlines())
+    if not all(command in command_lines for command in commands):
+        errors.append("release commands must be fenced command lines")
+    forbidden = re.compile(
+        r"(?i)(?:\bgit\s+(?:tag|push)\b|\bgh\s+release\b|"
+        r"\b(?:npm|pnpm|yarn|twine)\s+(?:publish|release)\b)"
+    )
+    if any(forbidden.search(line) for line in command_lines):
         errors.append("release document contains a publication instruction")
     return tuple(errors)
 
@@ -740,8 +794,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         self.assertIn("`review-only`는 같은 검토를 하지만 아무 파일도 변경하지 않습니다.", normalized_korean)
         self.assertIn("`review-only` changes nothing", re.sub(r"\s+", " ", english))
         for text, allowlist in (
-            (normalized_korean, "해결된 설계 명세와 해결된 구현 계획만"),
-            (re.sub(r"\s+", " ", english), "only the resolved design specification and resolved implementation plan"),
+            (normalized_korean, "`editable-surfaces`: `resolved-design-specification`, `resolved-implementation-plan`"),
+            (re.sub(r"\s+", " ", english), "`editable-surfaces`: `resolved-design-specification`, `resolved-implementation-plan`"),
         ):
             self.assertIn(allowlist, text)
             self.assertNotIn("proposed decision record", text)
@@ -751,20 +805,14 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
         repair_rules = section(skill, "## Repair rules", "## Verdict and handoff")
-        allowlist = section(
-            contract,
-            "## Reviewer isolation and repair allowlist",
-            "## Review passes and findings",
-        )
-        for text in (repair_rules, allowlist):
-            normalized = re.sub(r"\s+", " ", text)
-            self.assertIn("may edit only the resolved design specification", normalized)
-            for editable_document in MUTATION_ALLOWLIST:
-                self.assertIn(editable_document, normalized)
-            self.assertNotIn("proposed decision record", normalized)
-            self.assertNotIn("directly referenced", normalized)
-            for excluded in MUTATION_EXCLUSIONS:
-                self.assertIn(excluded, normalized)
+        normalized = re.sub(r"\s+", " ", repair_rules)
+        self.assertIn("may edit only the resolved design specification", normalized)
+        for editable_document in MUTATION_ALLOWLIST:
+            self.assertIn(editable_document, normalized)
+        self.assertNotIn("proposed decision record", normalized)
+        self.assertNotIn("directly referenced", normalized)
+        self.assertEqual(numbered_items(subsection(contract, "### Editable paths")), MUTATION_ALLOWLIST)
+        self.assertEqual(backtick_list(subsection(contract, "### Excluded surfaces")), MUTATION_EXCLUSIONS)
 
     def test_maintainer_contract_owns_the_complete_runtime_boundary(self) -> None:
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
@@ -808,13 +856,15 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "Do not start SDD unless the outer request explicitly asks for implementation",
             normalized,
         )
+        verdicts = subsection(contract, "### Verdicts")
+        freshness = subsection(contract, "### Freshness")
         for fact in (
-            "Return `READY` when no unresolved finding requires invention",
-            "`REVISE` for a repairable material document defect",
-            "`BLOCKED` when required input, authority, or repository evidence is unavailable",
-            "Any content change to either resolved document invalidates `READY`",
+            "`READY`: no unresolved finding requires invention",
+            "`REVISE`: a repairable material document defect",
+            "`BLOCKED`: required input, authority, or repository evidence is unavailable",
         ):
-            self.assertIn(fact, normalized)
+            self.assertIn(fact, verdicts)
+        self.assertIn("Any content change to either resolved document invalidates `READY`", freshness)
 
     def test_maintainer_testing_compatibility_and_release_stay_role_specific(self) -> None:
         testing = (MAINTAINERS / "testing.md").read_text(encoding="utf-8")
@@ -879,6 +929,15 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "`resolved-implementation-plan`, `proposed-decision-record`",
         )
         self.assertIn("bounded README contract differs from the product contract", readme_contract_errors(third_surface))
+        indented_command = english.replace(
+            DEFAULT_FIRST_CALL,
+            f"{DEFAULT_FIRST_CALL}\n  $pre-sdd-review docs/extra.md docs/extra-plan.md",
+        )
+        self.assertIn("first call must contain only the approved invocation", readme_contract_errors(indented_command))
+        extra_prose = english + "\nThe controller may also edit release notes.\n"
+        self.assertIn("mutation grant appears outside the bounded contract", readme_contract_errors(extra_prose))
+        missing_heading = english.replace("## First call", "## Invocation")
+        self.assertIn("missing First call section", readme_contract_errors(missing_heading))
 
     def test_maintainer_contract_uses_bounded_exact_protocols(self) -> None:
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
@@ -899,6 +958,16 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "2. resolved implementation plan.\n3. proposed decision record.",
         )
         self.assertIn("editable paths differ", maintainer_contract_errors(third_path))
+        for contradiction in (
+            "The controller may edit application code.",
+            "A second reviewer is routine.",
+            "READY survives a content change.",
+            "Automatically start SDD after READY.",
+        ):
+            self.assertIn(
+                "contract-sensitive rule appears outside its bounded subsection",
+                maintainer_contract_errors(contract + f"\n## Contradiction\n\n{contradiction}\n"),
+            )
 
     def test_testing_compatibility_and_release_documents_are_derived_from_sources(self) -> None:
         testing = (MAINTAINERS / "testing.md").read_text(encoding="utf-8")
@@ -916,8 +985,12 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         self.assertIn("case inventory differs", testing_document_errors(missing_case))
         changed_host = compatibility.replace("| `codex` | `supported` |", "| `codex` | `not_measured` |")
         self.assertIn("host matrix differs from products.toml", compatibility_document_errors(changed_host))
-        publication = release + "\n```bash\ngit push origin pre-sdd-review-v1.0.0\n```\n"
-        self.assertIn("release document contains a publication instruction", release_document_errors(publication))
+        for publication in (
+            release + "\n```sh\ngit push origin pre-sdd-review-v1.0.0\n```\n",
+            release + "\n```bash\nenv git push origin pre-sdd-review-v1.0.0\n```\n",
+            release + "\n```text\ntrue && git tag pre-sdd-review-v1.0.0\n```\n",
+        ):
+            self.assertIn("release document contains a publication instruction", release_document_errors(publication))
 
 
 class PreSddReviewFixtureTests(unittest.TestCase):

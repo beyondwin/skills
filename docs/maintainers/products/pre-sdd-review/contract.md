@@ -37,12 +37,8 @@ The normal reviewer is fresh, independent, and read-only. It reports evidence
 and the smallest authority-preserving correction; the controller owns all
 repairs and does not let a reviewer mutate documents.
 
-In default mode the controller may edit only the resolved design specification
-and resolved implementation plan. The closed two-document allowlist excludes
-accepted ADRs, approved visual authority, application code, tests,
-configuration, generated artifacts, and unrelated documentation.
-Never add a feature, dependency, host claim, or product decision while fixing
-the documents.
+The bounded lists below are the sole mutation authority. Never add a feature,
+dependency, host claim, or product decision while fixing the documents.
 
 ### Editable paths
 
@@ -90,11 +86,7 @@ findings is valid.
 - `ordering`
 - `verification-gap`
 
-One reviewer is routine. A focused second read-only reviewer is conditional
-only for framework or runtime removal; schema migration or data deletion;
-authentication, authorization, or security boundaries; public/private
-data-boundary changes; or external side effects such as publishing, billing,
-messaging, or production mutations. It reviews only the triggered risk class.
+The bounded trigger list below owns the second-review rule.
 
 ### Conditional risk triggers
 
@@ -113,24 +105,13 @@ most two repair passes; after the second pass, an unresolved material issue
 remains `REVISE` rather than being downgraded. `review-only` changes no files
 and returns the first review verdict.
 
-Return `READY` when no unresolved finding requires invention or permits a
-materially wrong implementation to pass planned evidence; `REVISE` for a
-repairable material document defect; and `BLOCKED` when required input,
-authority, or repository evidence is unavailable or would require a new
-product decision.
-
 ### Verdicts
 
 - `READY`: no unresolved finding requires invention or permits a materially wrong implementation to pass planned evidence.
 - `REVISE`: a repairable material document defect remains.
 - `BLOCKED`: required input, authority, or repository evidence is unavailable or would require a new product decision.
 
-The final record contains repository-relative design and plan paths, their
-SHA-256 hashes, Git `HEAD` (or `unborn`), whether the worktree was clean or
-dirty, review timestamp, and final verdict. Any content change to either
-resolved document invalidates `READY`; a repository change also invalidates
-the review when it changes evidence for a path, command, interface, or
-blast-radius claim.
+The bounded freshness list below owns the final record and invalidation rule.
 
 ### Freshness
 
@@ -145,9 +126,8 @@ blast-radius claim.
 ## Handoff
 
 For `READY`, print the exact resolved design and plan paths with final
-fingerprints. Do not start SDD unless the outer request explicitly asks for
-implementation. In the combined flow, pass the final repaired documents to
-the SDD worker rather than the pre-review copies.
+fingerprints. In the combined flow, pass the final repaired documents to the
+SDD worker rather than the pre-review copies.
 
 ### SDD handoff
 

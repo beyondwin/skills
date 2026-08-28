@@ -58,10 +58,9 @@ override that authority.
 
 ## Expected result
 
-In default mode, a fresh read-only reviewer returns evidence-backed findings.
-The controller may repair only the resolved design specification and resolved
-implementation plan, then obtains a scoped re-review. `review-only` changes
-nothing and returns the first review verdict.
+In default mode, a fresh read-only reviewer returns evidence-backed findings,
+then the controller obtains a scoped re-review. `review-only` changes nothing
+and returns the first review verdict.
 
 There are at most two repair passes. The final verdict is one of:
 
@@ -97,11 +96,11 @@ $pre-sdd-review review-only docs/history/specs/<design>.md docs/history/plans/<p
 
 ## Safety and privacy
 
-Reviewers are read-only. In default mode, the controller changes only the
-resolved design specification and resolved implementation plan. It never
-automatically changes accepted ADRs, approved visual authority, application
-code, tests, configuration, generated artifacts, or unrelated documentation.
-A correction that needs a new approved product decision returns `BLOCKED`.
+Reviewers are read-only. The `Contract` list in Expected result is the sole
+automatic-mutation authority. Accepted ADRs, approved visual authority,
+application code, tests, configuration, generated artifacts, and unrelated
+documentation require a separate product decision. A correction that needs a
+new approved product decision returns `BLOCKED`.
 
 Provider-free fixtures must not store user documents, private prompts, or full
 model responses.
