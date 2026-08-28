@@ -1,0 +1,50 @@
+schema_version = 1
+
+[[products]]
+name = "korean-writing-editor"
+display_name = "Korean Writing Editor"
+skill_path = "skills/korean-writing-editor"
+test_path = "tests/korean-writing-editor"
+maintainer_docs = "docs/maintainers/korean-writing-editor"
+supported_hosts = ["codex"]
+owned_paths = [
+  "skills/korean-writing-editor/",
+  "tests/korean-writing-editor/",
+  "docs/maintainers/korean-writing-editor/",
+]
+verify_stages = [
+  "product-contract",
+  "korean-package",
+  "korean-offline",
+  "korean-live-unit",
+  "korean-live-dry-run",
+  "python-compile",
+]
+
+[[products]]
+name = "image-workbench"
+display_name = "Image Workbench"
+skill_path = "skills/image-workbench"
+test_path = "tests/image-workbench"
+maintainer_docs = "docs/maintainers/image-workbench"
+supported_hosts = ["codex"]
+owned_paths = [
+  "skills/image-workbench/",
+  "tests/image-workbench/",
+  "docs/maintainers/image-workbench/",
+]
+verify_stages = ["product-contract", "image-contract", "image-inspector", "python-compile"]
+
+[[products]]
+name = "graspic"
+display_name = "graspic"
+skill_path = "skills/graspic"
+test_path = "tests/graspic"
+maintainer_docs = "docs/maintainers/graspic"
+supported_hosts = ["codex"]
+owned_paths = [
+  "skills/graspic/",
+  "tests/graspic/",
+  "docs/maintainers/graspic/",
+]
+verify_stages = ["product-contract", "graspic-contract", "python-compile"]
