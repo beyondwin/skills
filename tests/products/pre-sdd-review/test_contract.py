@@ -336,8 +336,8 @@ README_CANONICAL_SECTION_DIGESTS = {
     ),
 }
 README_CANONICAL_DOCUMENT_DIGESTS = {
-    "ko": "a2a55ec3f188fef40c0e5f6cb6b1afb20066f3e640fc72cdd68c9281903ca2a8",
-    "en": "b489a81f80017a2e060a3ebb0469e591b17acdec838874a611707512ebd037d0",
+    "ko": "1106bf4012eabef711b434c21302e4e04a16939ddf6975ed437c007dc844bf57",
+    "en": "aa518bbaf55dbf0c418e4d3077715aae809b23cc6f9e96fb713c430797e96cb7",
 }
 MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Authority order", "9b12469723b1e631fed289e2134a4c47826bd61c26014c9a84f3e302c02f0e6c"),
@@ -352,7 +352,7 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### SDD handoff", "8a629dd12d78e2c08e77e7c1d057d0e450b135bc0633d5b62c8c926665976bca"),
 )
 MAINTAINER_CANONICAL_DIGEST = "73f5d6a6c65ced2ba56b91e5f173988b6bf0e93e9387d93ac70405ee012eda1d"
-RELEASE_CANONICAL_DIGEST = "c1d580de38782962baf47ea34f1883d8c68dfb89d86958e67651b84082cdf487"
+RELEASE_CANONICAL_DIGEST = "a6517ec604bbafa93f5fbd1405e81fd37aa8d51b0a7801223d202b68901359f9"
 
 
 def section(text: str, start: str, end: str) -> str:
@@ -416,6 +416,10 @@ def canonical_digest(text: str) -> str:
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
+def whole_document_digest(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
 def parse_readme_contract(text: str) -> tuple[tuple[str, tuple[str, ...]], ...]:
     contract = subsection(text, "### Contract")
     entries = re.findall(r"^- `([a-z-]+)`: (.+)$", contract, re.MULTILINE)
@@ -425,7 +429,7 @@ def parse_readme_contract(text: str) -> tuple[tuple[str, tuple[str, ...]], ...]:
 def readme_contract_errors(text: str) -> tuple[str, ...]:
     errors: list[str] = []
     language = "en" if markdown_section(text, "## Purpose") else "ko"
-    if canonical_digest(text) != README_CANONICAL_DOCUMENT_DIGESTS[language]:
+    if whole_document_digest(text) != README_CANONICAL_DOCUMENT_DIGESTS[language]:
         errors.append("README differs from the closed canonical document")
     canonical_sections = README_CANONICAL_SECTION_DIGESTS[language]
     actual_headings = tuple(
@@ -570,7 +574,7 @@ def fenced_code_blocks(text: str) -> tuple[str, ...]:
 def release_document_errors(text: str) -> tuple[str, ...]:
     release = tomllib.loads((SKILL / "release.toml").read_text(encoding="utf-8"))
     errors: list[str] = []
-    if canonical_digest(text) != RELEASE_CANONICAL_DIGEST:
+    if whole_document_digest(text) != RELEASE_CANONICAL_DIGEST:
         errors.append("release document differs from the closed canonical contract")
     identity = f"`{release['name']}` `version {release['version']}`"
     if identity not in text or f"`skills/{release['name']}/release.toml`" not in text:
@@ -1041,6 +1045,26 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
                     "README differs from the closed canonical document",
                     readme_contract_errors(mutation),
                 )
+
+    def test_whole_document_digest_rejects_indented_readme_h1(self) -> None:
+        english = (SKILL / "README.en.md").read_text(encoding="utf-8")
+        indented_h1 = english.replace(
+            "# Pre-SDD Review\n",
+            "    # Pre-SDD Review\n",
+            1,
+        )
+        self.assertIn(
+            "README differs from the closed canonical document",
+            readme_contract_errors(indented_h1),
+        )
+
+    def test_whole_document_digest_rejects_indented_release_fence(self) -> None:
+        release = (MAINTAINERS / "release.md").read_text(encoding="utf-8")
+        indented_fence = release.replace("```bash\n", "    ```bash\n", 1)
+        self.assertIn(
+            "release document differs from the closed canonical contract",
+            release_document_errors(indented_fence),
+        )
 
     def test_maintainer_contract_uses_bounded_exact_protocols(self) -> None:
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
