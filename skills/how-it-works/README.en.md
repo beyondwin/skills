@@ -23,7 +23,7 @@ Do not use `how-it-works` for debugging, implementing, reviewing, translating, o
 
 how-it-works: Codex and Claude Code supported for local or repository-based use.
 
-The supported host ids are `codex` and `claude-code`. Grok and Cursor are not supported on this build because live smoke did not pass. Claude.ai, Cowork, Skills API upload, and marketplace publication are not supported. Shared limits are in [Compatibility](../../docs/users/en/compatibility.md).
+The supported host ids are `codex` and `claude-code`. Grok was measured and failed live smoke, so it is not supported. Cursor was not executed, so it is not claimed. Claude.ai, Cowork, Skills API upload, and marketplace publication are not supported. Shared limits are in [Compatibility](../../docs/users/en/compatibility.md).
 
 ## Install
 

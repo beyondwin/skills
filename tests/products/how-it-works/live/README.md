@@ -78,9 +78,13 @@ grok --single 'DNS 요청이 브라우저에서 어디를 거쳐 IP 주소가 �
 grok --single 'DNS resolver 테스트 실패를 고쳐줘. 동작 설명은 하지 마.' --permission-mode plan --max-turns 1 | tee "$how_it_works_smoke_tmp/grok-near-miss.txt"
 ```
 
-Cursor desktop smoke requires Computer Use (`node_repl` / `@oai/sky`). Do not
-drive Cursor with AppleScript, osascript, or CGEvent. If Computer Use is
-unavailable, record Cursor as not executed and do not mark it `supported`.
+Cursor uses the installed desktop application. In a fresh Cursor window or
+session, verify the skill through `/how-it-works` or `@how-it-works`, then run
+explicit, implicit, and near-miss cases in separate new chats. Do not drive
+Cursor with AppleScript, osascript, or CGEvent. Prefer Computer Use
+(`node_repl` / `@oai/sky`) when that harness is available. If Computer Use is
+absent in this run, record Cursor as `not_measured` and do not mark it
+`supported`; that is this-run status, not a standing skip of desktop smoke.
 
 After scoring, delete the temporary directory only when it matches a `mktemp`
 path:

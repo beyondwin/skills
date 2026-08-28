@@ -23,7 +23,7 @@
 
 how-it-works: Codex and Claude Code supported for local or repository-based use.
 
-지원 호스트 id는 `codex`, `claude-code`입니다. Grok와 Cursor는 이 빌드의 라이브 smoke가 통과하지 않아 지원하지 않습니다. Claude.ai, Cowork, Skills API 업로드, marketplace 게시는 지원하지 않습니다. 공유 한계는 [호환성](../../docs/users/ko/compatibility.md)을 따릅니다.
+지원 호스트 id는 `codex`, `claude-code`입니다. Grok는 라이브 smoke에서 측정되었고 실패했습니다. Cursor는 실행하지 않아 지원을 주장하지 않습니다. Claude.ai, Cowork, Skills API 업로드, marketplace 게시는 지원하지 않습니다. 공유 한계는 [호환성](../../docs/users/ko/compatibility.md)을 따릅니다.
 
 ## 설치
 

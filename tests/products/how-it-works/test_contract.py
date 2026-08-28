@@ -396,6 +396,34 @@ class HowItWorksPayloadTests(unittest.TestCase):
         for forbidden in HOST_TOOL_MARKERS:
             self.assertNotIn(forbidden, text)
 
+    def test_product_readmes_do_not_invent_a_cursor_smoke_failure(self) -> None:
+        for filename in ("README.md", "README.en.md"):
+            text = (SKILL / filename).read_text(encoding="utf-8")
+            self.assertNotRegex(
+                text,
+                r"(?is)cursor.{0,120}(did not pass|통과하지 않)",
+                filename,
+            )
+            self.assertNotRegex(
+                text,
+                r"(?is)(did not pass|통과하지 않).{0,120}cursor",
+                filename,
+            )
+            self.assertNotIn(
+                "Grok and Cursor are not supported on this build because live smoke did not pass",
+                text,
+            )
+            self.assertNotIn(
+                "Grok와 Cursor는 이 빌드의 라이브 smoke가 통과하지 않아 지원하지 않습니다",
+                text,
+            )
+        korean = (SKILL / "README.md").read_text(encoding="utf-8")
+        english = (SKILL / "README.en.md").read_text(encoding="utf-8")
+        self.assertIn("Grok는 라이브 smoke에서 측정되었고 실패했습니다", korean)
+        self.assertIn("Cursor는 실행하지 않아 지원을 주장하지 않습니다", korean)
+        self.assertIn("Grok was measured and failed live smoke", english)
+        self.assertIn("Cursor was not executed, so it is not claimed", english)
+
 
 class HowItWorksLiveContractTests(unittest.TestCase):
     def test_live_cases_lock_synthetic_dns_prompts_and_allowed_fields(self) -> None:
@@ -418,10 +446,25 @@ class HowItWorksLiveContractTests(unittest.TestCase):
             self.assertIn(case_id, text)
         self.assertNotIn("sk-", text)
 
-    @unittest.skipUnless(
-        LIVE_RECORD.is_file(),
-        "live/smoke-record.json is created after approved execution",
-    )
+    def test_live_readme_keeps_desktop_cursor_smoke_as_required_path(self) -> None:
+        text = LIVE_README.read_text(encoding="utf-8")
+        self.assertIn("installed desktop", text)
+        self.assertIn("@how-it-works", text)
+        self.assertIn("separate new chats", text)
+        self.assertIn("not_measured", text)
+        self.assertIn("this-run", text)
+        self.assertNotIn(
+            "If Computer Use is unavailable, record Cursor as not executed",
+            text,
+        )
+
+    def test_live_smoke_record_test_is_not_gated_by_skipunless(self) -> None:
+        source = Path(__file__).read_text(encoding="utf-8")
+        marker = "def test_live_smoke_record_contains_only_metadata_fields"
+        start = source.index(marker)
+        prefix = source[max(0, start - 180) : start]
+        self.assertNotIn("skipUnless", prefix)
+
     def test_live_smoke_record_contains_only_metadata_fields(self) -> None:
         self.assertTrue(LIVE_RECORD.is_file(), "live/smoke-record.json is absent")
         data = json.loads(LIVE_RECORD.read_text(encoding="utf-8"))
