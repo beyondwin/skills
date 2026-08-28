@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import re
 import sys
 import unittest
 from pathlib import Path
-import re
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -40,6 +40,14 @@ RISK_TRIGGERS = (
     "public/private data-boundary changes",
     "external side effects such as publishing, billing, messaging, or production mutations",
 )
+FINDING_SEVERITIES = ("BLOCKER", "IMPORTANT")
+FINDING_CLASSES = (
+    "authority-drift",
+    "repo-reality",
+    "coverage",
+    "ordering",
+    "verification-gap",
+)
 MUTATION_EXCLUSIONS = (
     "accepted ADRs",
     "approved visual authority",
@@ -62,6 +70,21 @@ FINDING_RECORD = (
 
 def section(text: str, start: str, end: str) -> str:
     return text[text.index(start) : text.index(end, text.index(start) + len(start))]
+
+
+def second_review_risk_triggers(reviewers: str) -> tuple[str, ...]:
+    match = re.search(
+        r"A second fresh reviewer\s+is conditional, not routine: dispatch one focused "
+        r"reviewer only for\s+(.+?)\.\s+It examines only the triggered risk class\.",
+        reviewers,
+        re.DOTALL,
+    )
+    if match is None:
+        raise AssertionError("missing bounded second-review trigger list")
+    return tuple(
+        re.sub(r"\s+", " ", trigger).strip().removeprefix("or ")
+        for trigger in match.group(1).split(";")
+    )
 
 
 class PreSddReviewContractTests(unittest.TestCase):
@@ -134,12 +157,7 @@ class PreSddReviewContractTests(unittest.TestCase):
             "## Select reviewers",
             "## Default mode: review -> repair documents -> scoped re-review",
         )
-        self.assertIn("conditional, not routine", reviewers)
-        self.assertIn("only for", reviewers)
-        self.assertIn("It examines only the triggered risk class.", reviewers)
-        normalized_reviewers = re.sub(r"\s+", " ", reviewers)
-        for trigger in RISK_TRIGGERS:
-            self.assertIn(trigger, normalized_reviewers)
+        self.assertEqual(second_review_risk_triggers(reviewers), RISK_TRIGGERS)
 
     def test_mutation_boundary_retains_every_exclusion(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -162,8 +180,39 @@ class PreSddReviewContractTests(unittest.TestCase):
         record = re.search(r"```text\n(.*?)\n```", protocol, re.DOTALL)
         self.assertIsNotNone(record)
         self.assertEqual(tuple(record.group(1).splitlines()), FINDING_RECORD)
-        self.assertIn("Use only these severities:", protocol)
-        self.assertIn("Use only these classes:", protocol)
+
+    def test_protocol_allows_exactly_two_severities(self) -> None:
+        protocol = (SKILL / "references/reviewer-protocol.md").read_text(
+            encoding="utf-8"
+        )
+        severities = section(
+            protocol,
+            "Use only these severities:",
+            "Use only these classes:",
+        )
+        self.assertEqual(
+            tuple(re.findall(r"^- `([A-Z]+)`:", severities, re.MULTILINE)),
+            FINDING_SEVERITIES,
+        )
+
+    def test_protocol_allows_exactly_five_finding_classes(self) -> None:
+        protocol = (SKILL / "references/reviewer-protocol.md").read_text(
+            encoding="utf-8"
+        )
+        classes = section(
+            protocol,
+            "Use only these classes:",
+            "Return each material finding in this complete record:",
+        )
+        self.assertEqual(
+            tuple(re.findall(r"`([a-z-]+)`", classes)),
+            FINDING_CLASSES,
+        )
+
+    def test_protocol_falsification_keeps_evidence_classes_distinct(self) -> None:
+        protocol = (SKILL / "references/reviewer-protocol.md").read_text(
+            encoding="utf-8"
+        )
         self.assertRegex(
             protocol,
             re.compile(
