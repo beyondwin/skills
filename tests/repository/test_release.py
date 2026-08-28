@@ -333,6 +333,66 @@ class ProductDownloadTests(unittest.TestCase):
             [],
         )
 
+    def test_verify_product_download_rejects_unapproved_pre_sdd_review_members(self) -> None:
+        cases = (
+            (
+                "pre-sdd-review/scripts/runtime.py",
+                "pre-sdd-review: unexpected runtime/scripts payload member: scripts/runtime.py",
+            ),
+            (
+                "pre-sdd-review/references/extra.md",
+                "pre-sdd-review: unexpected payload member: references/extra.md",
+            ),
+        )
+        for member, expected_error in cases:
+            with self.subTest(member=member), tempfile.TemporaryDirectory() as directory:
+                output = Path(directory)
+                release.build_product(
+                    ROOT,
+                    "pre-sdd-review",
+                    output,
+                    require_release_entry=False,
+                )
+                archive = output / "pre-sdd-review-v1.0.0.zip"
+
+                def add_member(items):
+                    yield from items
+                    info = zipfile.ZipInfo(member)
+                    info.external_attr = (stat.S_IFREG | 0o644) << 16
+                    yield info, b"unexpected\n"
+
+                self._rewrite_zip(archive, add_member)
+                write_checksums((archive,), output / "SHA256SUMS")
+                errors = release.verify_product_download(
+                    ROOT,
+                    "pre-sdd-review",
+                    output,
+                )
+                self.assertIn(expected_error, errors)
+
+    def test_verify_product_download_rejects_missing_pre_sdd_review_member(self) -> None:
+        release.build_product(
+            ROOT,
+            "pre-sdd-review",
+            self.output,
+            require_release_entry=False,
+        )
+        archive = self.output / "pre-sdd-review-v1.0.0.zip"
+
+        def drop_member(items):
+            for info, data in items:
+                if info.filename == "pre-sdd-review/agents/openai.yaml":
+                    continue
+                yield info, data
+
+        self._rewrite_zip(archive, drop_member)
+        self._checksums(archive)
+        errors = release.verify_product_download(ROOT, "pre-sdd-review", self.output)
+        self.assertIn(
+            "pre-sdd-review: missing payload member: agents/openai.yaml",
+            errors,
+        )
+
     def test_verify_product_download_rejects_missing_checksum(self) -> None:
         release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
         (self.output / "SHA256SUMS").unlink()

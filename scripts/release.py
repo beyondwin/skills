@@ -65,6 +65,18 @@ SHARED_RELEASE_PATHS = (
     "scripts/lib/product_contract.py",
     "scripts/lib/product_registry.py",
 )
+PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
+    {
+        "CHANGELOG.md",
+        "LICENSE.txt",
+        "README.en.md",
+        "README.md",
+        "SKILL.md",
+        "agents/openai.yaml",
+        "references/reviewer-protocol.md",
+        "release.toml",
+    }
+)
 REGISTRY = load_registry(ROOT / "products.toml")
 
 
@@ -531,10 +543,29 @@ def _run_product_smoke(root: Path, name: str, skill_root: Path) -> list[str]:
     if name == "how-it-works":
         return _smoke_how_it_works(skill_root)
     if name == "pre-sdd-review":
-        # This Markdown-only product has no runtime script; extracted payload
-        # validation above is its complete standalone smoke boundary.
-        return []
+        return _smoke_pre_sdd_review(skill_root)
     return [f"unlisted skill is not accepted: {name}"]
+
+
+def _smoke_pre_sdd_review(skill_root: Path) -> list[str]:
+    present = {
+        path.relative_to(skill_root).as_posix()
+        for path in skill_root.rglob("*")
+        if path.is_file()
+    }
+    errors = [
+        f"pre-sdd-review: missing payload member: {relative}"
+        for relative in sorted(PRE_SDD_REVIEW_PAYLOAD_FILES - present)
+    ]
+    for relative in sorted(present - PRE_SDD_REVIEW_PAYLOAD_FILES):
+        if relative == "scripts" or relative.startswith("scripts/"):
+            errors.append(
+                "pre-sdd-review: unexpected runtime/scripts payload member: "
+                f"{relative}"
+            )
+        else:
+            errors.append(f"pre-sdd-review: unexpected payload member: {relative}")
+    return errors
 
 
 def _smoke_how_it_works(skill_root: Path) -> list[str]:
