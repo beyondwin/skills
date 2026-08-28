@@ -281,61 +281,57 @@ def _append_to_owned_section(text: str, heading: str, contradiction: str) -> str
     return text.replace(owned, replacement, 1)
 
 
-def _strip_html_comments_outside_inline_code(
-    line: str,
-    in_comment: bool,
-) -> tuple[str, bool]:
-    visible: list[str] = []
-    cursor = 0
-    while cursor < len(line):
-        if in_comment:
-            comment_end = line.find("-->", cursor)
-            if comment_end == -1:
-                visible.append(" " * (len(line) - cursor))
-                return "".join(visible), True
-            visible.append(" " * (comment_end + 3 - cursor))
-            cursor = comment_end + 3
-            in_comment = False
-            continue
+def _is_backtick_escaped(text: str, index: int) -> bool:
+    backslashes = 0
+    index -= 1
+    while index >= 0 and text[index] == "\\":
+        backslashes += 1
+        index -= 1
+    return backslashes % 2 == 1
 
-        comment_start = line.find("<!--", cursor)
-        code_start = re.search(r"`+", line[cursor:])
-        code_offset = cursor + code_start.start() if code_start is not None else -1
-        if comment_start != -1 and (code_offset == -1 or comment_start < code_offset):
-            visible.append(line[cursor:comment_start])
-            visible.append(" " * len("<!--"))
-            cursor = comment_start + len("<!--")
-            in_comment = True
-            continue
-        if code_start is not None:
-            visible.append(line[cursor:code_offset])
-            delimiter = code_start.group(0)
-            delimiter_end = code_offset + len(delimiter)
-            closing = re.search(
-                rf"(?<!`){re.escape(delimiter)}(?!`)",
-                line[delimiter_end:],
-            )
-            if closing is None:
-                visible.append(delimiter)
-                cursor = delimiter_end
-                continue
-            closing_end = delimiter_end + closing.end()
-            visible.append(line[code_offset:closing_end])
-            cursor = closing_end
-            continue
-        visible.append(line[cursor:])
-        break
-    return "".join(visible), in_comment
+
+def _matching_inline_code_end(text: str, start: int, run_end: int) -> int | None:
+    paragraph_break = re.search(r"\n[ \t]*\n", text[run_end:])
+    paragraph_end = (
+        run_end + paragraph_break.start() if paragraph_break is not None else len(text)
+    )
+    width = run_end - start
+    cursor = run_end
+    while cursor < paragraph_end:
+        closing_start = text.find("`", cursor, paragraph_end)
+        if closing_start == -1:
+            return None
+        closing_end = closing_start
+        while closing_end < paragraph_end and text[closing_end] == "`":
+            closing_end += 1
+        if (
+            not _is_backtick_escaped(text, closing_start)
+            and closing_end - closing_start == width
+        ):
+            return closing_end
+        cursor = closing_end
+    return None
 
 
 def _rendered_markdown_lines(text: str) -> tuple[str, ...]:
-    visible: list[str] = []
+    structural = list(text)
+    cursor = 0
     fence_marker: str | None = None
     fence_width = 0
     in_comment = False
-    for line in text.splitlines():
+
+    def mask(start: int, end: int) -> None:
+        for index in range(start, end):
+            if structural[index] not in "\r\n":
+                structural[index] = " "
+
+    while cursor < len(text):
+        at_line_start = cursor == 0 or text[cursor - 1] == "\n"
         if fence_marker is not None:
-            closing = re.match(r"^ {0,3}(`{3,}|~{3,})\s*$", line)
+            line_end = text.find("\n", cursor)
+            line_end = len(text) if line_end == -1 else line_end + 1
+            content = text[cursor:line_end].rstrip("\r\n")
+            closing = re.match(r"^ {0,3}(`{3,}|~{3,})\s*$", content)
             if (
                 closing is not None
                 and closing.group(1)[0] == fence_marker
@@ -343,15 +339,48 @@ def _rendered_markdown_lines(text: str) -> tuple[str, ...]:
             ):
                 fence_marker = None
                 fence_width = 0
+            mask(cursor, line_end)
+            cursor = line_end
             continue
-        opening = None if in_comment else re.match(r"^ {0,3}(`{3,}|~{3,})", line)
-        if opening is not None:
-            fence_marker = opening.group(1)[0]
-            fence_width = len(opening.group(1))
+        if in_comment:
+            if text.startswith("-->", cursor):
+                mask(cursor, cursor + 3)
+                cursor += 3
+                in_comment = False
+                continue
+            mask(cursor, cursor + 1)
+            cursor += 1
             continue
-        line, in_comment = _strip_html_comments_outside_inline_code(line, in_comment)
-        visible.append(line)
-    return tuple(visible)
+        if at_line_start:
+            line_end = text.find("\n", cursor)
+            line_end = len(text) if line_end == -1 else line_end + 1
+            content = text[cursor:line_end].rstrip("\r\n")
+            opening = re.match(r"^ {0,3}(`{3,}|~{3,})", content)
+            if opening is not None:
+                fence_marker = opening.group(1)[0]
+                fence_width = len(opening.group(1))
+                mask(cursor, line_end)
+                cursor = line_end
+                continue
+        if text.startswith("<!--", cursor):
+            mask(cursor, cursor + 4)
+            cursor += 4
+            in_comment = True
+            continue
+        if text[cursor] == "`":
+            run_end = cursor
+            while run_end < len(text) and text[run_end] == "`":
+                run_end += 1
+            if not _is_backtick_escaped(text, cursor):
+                code_end = _matching_inline_code_end(text, cursor, run_end)
+                if code_end is not None:
+                    mask(cursor, code_end)
+                    cursor = code_end
+                    continue
+            cursor = run_end
+            continue
+        cursor += 1
+    return tuple("".join(structural).splitlines())
 
 
 def maintainer_korean_source_errors(text: str) -> tuple[str, ...]:
@@ -1276,6 +1305,64 @@ class MaintainerStructureTests(unittest.TestCase):
             )
             with self.subTest(path=path):
                 self.assertEqual(maintainer_korean_source_errors(mutation), ())
+
+    def test_korean_source_validator_accepts_multiline_code_comment_literal(self) -> None:
+        documents = (
+            ROOT / "docs/maintainers/products/pre-sdd-review/testing.md",
+            ROOT / "docs/maintainers/products/pre-sdd-review/compatibility.md",
+            ROOT / "docs/maintainers/products/how-it-works/testing.md",
+        )
+        code_spans = (
+            "`literal\n<!-- remains literal\nspan`\n\n",
+            "``literal\n<!-- remains literal\nspan``\n\n",
+        )
+        for path in documents:
+            source = _read(path)
+            for code_span in code_spans:
+                with self.subTest(path=path, delimiter=code_span.split("literal", 1)[0]):
+                    self.assertEqual(
+                        maintainer_korean_source_errors(code_span + source),
+                        (),
+                    )
+
+    def test_korean_source_validator_removes_comments_after_non_code_backticks(self) -> None:
+        non_code_lines = (
+            "\\`<!-- 이 문서는 숨겨진 한국어 설명을 제공합니다. -->\\`",
+            "\\``<!-- 이 문서는 숨겨진 한국어 설명을 제공합니다. -->\\``",
+            "`<!-- 이 문서는 숨겨진 한국어 설명을 제공합니다. -->",
+            "``<!-- 이 문서는 숨겨진 한국어 설명을 제공합니다. -->",
+        )
+        expected = (
+            "maintainer H1 must include a substantive Korean label",
+            "maintainer first explanatory paragraph must be substantive Korean prose",
+        )
+        for non_code_line in non_code_lines:
+            mutation = (
+                "# rendered English\n\n"
+                f"{non_code_line}\n\n"
+                "This rendered explanatory paragraph is English.\n"
+            )
+            with self.subTest(non_code_line=non_code_line):
+                self.assertEqual(maintainer_korean_source_errors(mutation), expected)
+
+    def test_korean_source_validator_accepts_korean_after_comments_with_fence_literals(self) -> None:
+        documents = (
+            ROOT / "docs/maintainers/products/pre-sdd-review/testing.md",
+            ROOT / "docs/maintainers/products/pre-sdd-review/compatibility.md",
+            ROOT / "docs/maintainers/products/how-it-works/testing.md",
+        )
+        comments = (
+            "<!--\n```text\nliteral unclosed fence\n-->\n\n",
+            "<!--\n~~~text\nliteral unclosed fence\n-->\n\n",
+        )
+        for path in documents:
+            source = _read(path)
+            for comment in comments:
+                with self.subTest(path=path, fence=comment.splitlines()[1]):
+                    self.assertEqual(
+                        maintainer_korean_source_errors(comment + source),
+                        (),
+                    )
 
     def test_repository_trio_and_archive_evidence_live_under_repository(self) -> None:
         for path in REPOSITORY_DOCS:
