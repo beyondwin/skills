@@ -1,0 +1,4 @@
+{
+  "risk_reviewer_required": true,
+  "risk_trigger": "framework-or-runtime-removal"
+}

@@ -1,0 +1,10 @@
+{
+  "verdict": "REVISE",
+  "findings": [
+    {
+      "id": "PSDR-001",
+      "severity": "IMPORTANT",
+      "class": "verification-gap"
+    }
+  ]
+}

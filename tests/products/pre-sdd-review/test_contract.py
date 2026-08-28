@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 import sys
 import unittest
@@ -14,6 +15,24 @@ from scripts.lib.product_contract import parse_skill_frontmatter  # noqa: E402
 
 
 SKILL = ROOT / "skills" / "pre-sdd-review"
+CASES = ROOT / "tests" / "products" / "pre-sdd-review" / "cases.json"
+FIXTURES = ROOT / "tests" / "products" / "pre-sdd-review" / "fixtures"
+CASE_IDS = (
+    "default-auto-improve",
+    "explicit-review-only",
+    "ready-zero-findings",
+    "missing-spec-coverage",
+    "nonexistent-command",
+    "extension-collision",
+    "false-positive-smoke",
+    "task-interface-order",
+    "runtime-removal-risk-review",
+    "stale-document-hash",
+    "near-miss-write-spec",
+    "near-miss-write-plan",
+    "near-miss-code-review",
+    "near-miss-release-review",
+)
 REQUIRED_SECTIONS = (
     "# Pre-SDD Review",
     "## Hard gate",
@@ -246,3 +265,41 @@ class PreSddReviewContractTests(unittest.TestCase):
             "Do not start SDD unless the outer request explicitly asks for implementation",
             normalized_handoff,
         )
+
+
+class PreSddReviewFixtureTests(unittest.TestCase):
+    def test_case_ids_and_near_misses_are_exact(self) -> None:
+        data = json.loads(CASES.read_text(encoding="utf-8"))
+        self.assertEqual(tuple(case["id"] for case in data["cases"]), CASE_IDS)
+        near_misses = [
+            case for case in data["cases"] if case["id"].startswith("near-miss-")
+        ]
+        self.assertTrue(near_misses)
+        self.assertTrue(
+            all(case["expect"] == ["not_activated"] for case in near_misses)
+        )
+
+    def test_ready_fixture_allows_zero_findings(self) -> None:
+        expected = json.loads(
+            (FIXTURES / "ready/expected.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(expected, {"verdict": "READY", "findings": []})
+
+    def test_runtime_removal_requires_focused_second_reviewer(self) -> None:
+        expected = json.loads(
+            (FIXTURES / "runtime-removal/expected.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(expected["risk_reviewer_required"], True)
+        self.assertEqual(expected["risk_trigger"], "framework-or-runtime-removal")
+
+    def test_fixtures_contain_no_personal_paths_or_credentials(self) -> None:
+        text = "\n".join(
+            path.read_text(encoding="utf-8") for path in FIXTURES.rglob("*.*")
+        )
+        for forbidden in (
+            "/Users/",
+            "source/private",
+            "OPENAI_API_KEY",
+            "ANTHROPIC_API_KEY",
+        ):
+            self.assertNotIn(forbidden, text)

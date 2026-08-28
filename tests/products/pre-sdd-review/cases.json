@@ -2,8 +2,73 @@
   "cases": [
     {
       "id": "default-auto-improve",
-      "request": "$pre-sdd-review docs/design.md docs/plan.md",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md",
       "expect": ["review", "repair", "re-review", "fingerprints"]
+    },
+    {
+      "id": "explicit-review-only",
+      "request": "$pre-sdd-review review-only sample-app/design.md sample-app/plan.md",
+      "expect": ["read_only", "single_verdict"]
+    },
+    {
+      "id": "ready-zero-findings",
+      "request": "$pre-sdd-review sample-app/ready-design.md sample-app/ready-plan.md",
+      "expect": ["READY", "zero_findings"]
+    },
+    {
+      "id": "missing-spec-coverage",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md with an uncovered requirement",
+      "expect": ["PSDR-001", "BLOCKER", "coverage"]
+    },
+    {
+      "id": "nonexistent-command",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md that names npm run verify",
+      "expect": ["PSDR-001", "BLOCKER", "repo-reality"]
+    },
+    {
+      "id": "extension-collision",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md that adds an occupied extension point",
+      "expect": ["PSDR-001", "BLOCKER", "repo-reality"]
+    },
+    {
+      "id": "false-positive-smoke",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md with build-only verification",
+      "expect": ["PSDR-001", "IMPORTANT", "verification-gap"]
+    },
+    {
+      "id": "task-interface-order",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md with a consumer before its producer",
+      "expect": ["PSDR-001", "BLOCKER", "ordering"]
+    },
+    {
+      "id": "runtime-removal-risk-review",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md that replaces the runtime",
+      "expect": ["focused_second_reviewer", "framework-or-runtime-removal"]
+    },
+    {
+      "id": "stale-document-hash",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after the plan changed",
+      "expect": ["stale_fingerprints", "re-review"]
+    },
+    {
+      "id": "near-miss-write-spec",
+      "request": "Write a design specification for sample-app.",
+      "expect": ["not_activated"]
+    },
+    {
+      "id": "near-miss-write-plan",
+      "request": "Create an implementation plan for sample-app.",
+      "expect": ["not_activated"]
+    },
+    {
+      "id": "near-miss-code-review",
+      "request": "Review the sample-app source diff.",
+      "expect": ["not_activated"]
+    },
+    {
+      "id": "near-miss-release-review",
+      "request": "Verify whether the sample-app release is ready.",
+      "expect": ["not_activated"]
     }
   ]
 }
