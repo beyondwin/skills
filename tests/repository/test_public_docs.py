@@ -281,9 +281,39 @@ def _append_to_owned_section(text: str, heading: str, contradiction: str) -> str
     return text.replace(owned, replacement, 1)
 
 
+def _rendered_markdown_lines(text: str) -> tuple[str, ...]:
+    without_comments = re.sub(
+        r"<!--.*?(?:-->|\Z)",
+        lambda match: "\n" * match.group(0).count("\n"),
+        text,
+        flags=re.DOTALL,
+    )
+    visible: list[str] = []
+    fence_marker: str | None = None
+    fence_width = 0
+    for line in without_comments.splitlines():
+        if fence_marker is not None:
+            closing = re.match(r"^ {0,3}(`{3,}|~{3,})\s*$", line)
+            if (
+                closing is not None
+                and closing.group(1)[0] == fence_marker
+                and len(closing.group(1)) >= fence_width
+            ):
+                fence_marker = None
+                fence_width = 0
+            continue
+        opening = re.match(r"^ {0,3}(`{3,}|~{3,})", line)
+        if opening is not None:
+            fence_marker = opening.group(1)[0]
+            fence_width = len(opening.group(1))
+            continue
+        visible.append(line)
+    return tuple(visible)
+
+
 def maintainer_korean_source_errors(text: str) -> tuple[str, ...]:
     errors: list[str] = []
-    lines = text.splitlines()
+    lines = _rendered_markdown_lines(text)
     h1_index = next(
         (index for index, line in enumerate(lines) if re.match(r"^# (?!#)", line)),
         None,
@@ -1114,6 +1144,53 @@ class MaintainerStructureTests(unittest.TestCase):
             with self.subTest(mutation=mutation.splitlines()[:4]):
                 self.assertNotEqual(mutation, contract)
                 self.assertIn(expected_error, maintainer_korean_source_errors(mutation))
+
+    def test_korean_source_validator_ignores_hidden_korean_markdown(self) -> None:
+        cases = (
+            (
+                ROOT / "docs/maintainers/products/pre-sdd-review/testing.md",
+                "# pre-sdd-review 테스트",
+                "# pre-sdd-review testing",
+                "이 문서는 provider-free contract evidence, 제한된 합성 픽스처, 선택적\n"
+                "live-check 경계를 소유합니다. 모델의 실제 리뷰 품질을 측정했다고 주장하지\n"
+                "않습니다.",
+                "This document owns provider-free evidence and optional live checks.",
+            ),
+            (
+                ROOT / "docs/maintainers/products/pre-sdd-review/compatibility.md",
+                "# pre-sdd-review 호환성",
+                "# pre-sdd-review compatibility",
+                "이 문서는 Pre-SDD Review의 measured-host 경계를 소유합니다.",
+                "This document owns the measured-host boundary.",
+            ),
+            (
+                ROOT / "docs/maintainers/products/how-it-works/testing.md",
+                "# how-it-works 테스트",
+                "# how-it-works testing",
+                "공급자 없는 계약과 선택적 유료 smoke를 섞지 마세요. 사용자 주제, 공급자 트랜스크립트, 비공개 로그를 Git 픽스처로 커밋하지 마세요.",
+                "Do not mix provider-free contracts with optional paid smoke checks.",
+            ),
+        )
+        hidden_blocks = (
+            "<!--\n# 숨겨진 한국어 제목\n이 문서는 숨겨진 한국어 설명을 제공합니다.\n-->\n",
+            "```text\n# 숨겨진 한국어 제목\n이 문서는 숨겨진 한국어 설명을 제공합니다.\n```\n",
+        )
+        expected = (
+            "maintainer H1 must include a substantive Korean label",
+            "maintainer first explanatory paragraph must be substantive Korean prose",
+        )
+        for path, source_h1, english_h1, source_prose, english_prose in cases:
+            source = _read(path)
+            rendered_english = source.replace(source_h1, english_h1, 1).replace(
+                source_prose,
+                english_prose,
+                1,
+            )
+            self.assertNotEqual(rendered_english, source)
+            for hidden_block in hidden_blocks:
+                with self.subTest(path=path, hidden=hidden_block.splitlines()[0]):
+                    mutation = hidden_block + rendered_english
+                    self.assertEqual(maintainer_korean_source_errors(mutation), expected)
 
     def test_repository_trio_and_archive_evidence_live_under_repository(self) -> None:
         for path in REPOSITORY_DOCS:
