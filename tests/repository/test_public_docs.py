@@ -415,6 +415,13 @@ class UserGuideFactTests(unittest.TestCase):
             self.assertTrue("medical" in lowered or "의료" in text)
             self.assertTrue("financial" in lowered or "금융" in text)
 
+    def test_safety_docs_name_how_it_works_in_high_stakes_slices(self) -> None:
+        korean = _read(ROOT / "docs" / "users" / "ko" / "safety-and-privacy.md")
+        english = _read(ROOT / "docs" / "users" / "en" / "safety-and-privacy.md")
+        self.assertIn("`how-it-works`의 해당 슬라이스", korean)
+        self.assertIn("`how-it-works` slices", english)
+        self.assertNotIn("Gra" + "spic slices", english)
+
     def test_verification_owns_offline_live_evidence_and_profiles(self) -> None:
         for document in (
             ROOT / "docs" / "users" / "ko" / "verification.md",

@@ -20,7 +20,7 @@ In `image-workbench`, every input image has exactly one role: `edit_target`, `su
 
 ## High-stakes requests
 
-For high-stakes legal, medical, or financial Korean text, default to mechanical `correct` or `diagnose`. Graspic slices in those domains explain mechanism only. Image Workbench holds when material rights or privacy are unknown.
+For high-stakes legal, medical, or financial Korean text, default to mechanical `correct` or `diagnose`. `how-it-works` slices in those domains explain mechanism only. Image Workbench holds when material rights or privacy are unknown.
 
 ## hash, provenance, consent, and rights
 
