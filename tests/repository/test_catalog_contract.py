@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.catalog_contract import (  # noqa: E402
+from scripts.lib.catalog import (  # noqa: E402
     load_catalog_lock,
     load_catalog_release,
     validate_catalog,
@@ -455,7 +455,7 @@ class CatalogLockImportTests(unittest.TestCase):
 
     def test_importer_reuses_release_archive_safety_primitives(self) -> None:
         source = (ROOT / "scripts" / "catalog_lock.py").read_text(encoding="utf-8")
-        self.assertIn("from scripts.release_archive import", source)
+        self.assertIn("from scripts.lib.archive import", source)
         self.assertNotIn("def _member_safety_errors", source)
         self.assertNotIn("def _member_mode_errors", source)
         self.assertNotIn("def _is_absolute_member", source)

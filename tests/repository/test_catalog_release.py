@@ -16,13 +16,13 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.catalog_contract import (  # noqa: E402
+from scripts.lib.catalog import (  # noqa: E402
     PINNED_SOURCE_COMMIT,
     load_catalog_lock,
     validate_catalog_inputs,
 )
 from scripts.release import build_catalog, verify_catalog_download  # noqa: E402
-from scripts.release_archive import (  # noqa: E402
+from scripts.lib.archive import (  # noqa: E402
     ArchiveMember,
     ReleaseError,
     extract_archive,

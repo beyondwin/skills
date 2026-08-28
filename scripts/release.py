@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.catalog_contract import (  # noqa: E402
+from scripts.lib.catalog import (  # noqa: E402
     CatalogLock,
     catalog_artifact_name,
     load_catalog_lock,
@@ -28,7 +28,7 @@ from scripts.catalog_contract import (  # noqa: E402
     validate_catalog,
     validate_catalog_inputs,
 )
-from scripts.release_archive import (  # noqa: E402
+from scripts.lib.archive import (  # noqa: E402
     FORBIDDEN_NAMES,
     FORBIDDEN_PARTS,
     ArchiveMember,
@@ -58,9 +58,12 @@ from scripts.lib.product_registry import load_registry  # noqa: E402
 
 REGULAR_FILE_MODES = frozenset({"100644", "100755"})
 SHARED_RELEASE_PATHS = (
+    "products.toml",
     "scripts/release.py",
-    "scripts/release_archive.py",
+    "scripts/lib/archive.py",
+    "scripts/lib/catalog.py",
     "scripts/lib/product_contract.py",
+    "scripts/lib/product_registry.py",
 )
 REGISTRY = load_registry(ROOT / "products.toml")
 

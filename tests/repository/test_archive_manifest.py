@@ -14,8 +14,8 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
-from scripts.capture_archive_manifest import (  # noqa: E402
-    CAPTURE_SCRIPT,
+from scripts.capture_archive_manifest import CAPTURE_SCRIPT  # noqa: E402
+from scripts.lib.archive_manifest import (  # noqa: E402
     build_manifest,
     canonical_bytes,
     verify_manifest,
@@ -377,6 +377,14 @@ class CaptureCliTests(unittest.TestCase):
         )
         self.assertNotEqual(captured.returncode, 0)
         self.assertIn("symlink or special file", captured.stderr)
+
+    def test_capture_cli_imports_reusable_manifest_logic(self) -> None:
+        source = CAPTURE_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn("from scripts.lib.archive_manifest import", source)
+        self.assertNotIn("def build_manifest", source)
+        self.assertNotIn("def verify_manifest", source)
+        self.assertNotIn("def source_problems", source)
+        self.assertNotIn("class CaptureError", source)
 
 
 PINNED_MANIFEST = (

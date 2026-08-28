@@ -15,12 +15,12 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.catalog_contract import (  # noqa: E402
+from scripts.lib.catalog import (  # noqa: E402
     PINNED_SOURCE_COMMIT,
     CatalogLock,
     LockedSkill,
 )
-from scripts.release_archive import (  # noqa: E402
+from scripts.lib.archive import (  # noqa: E402
     extract_archive,
     sha256_file,
     verify_product_archive,

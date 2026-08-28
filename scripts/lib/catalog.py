@@ -8,7 +8,7 @@ import tomllib
 from collections.abc import Sequence
 from pathlib import Path
 
-from scripts.release_archive import (
+from scripts.lib.archive import (
     extract_archive,
     sha256_file,
     verify_product_archive,
