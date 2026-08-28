@@ -1,6 +1,6 @@
 # Korean voice
 
-Do not run korean-writing-editor. These rules apply to drafts.
+Do not run korean-writing-editor. These rules apply to the complete chat output.
 
 - 해요체. Not 합니다. Not 답니다. Banmal is not default.
 - No 우리 / 여러분 / 당신.

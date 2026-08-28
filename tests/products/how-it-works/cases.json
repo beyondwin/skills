@@ -1,34 +1,58 @@
 {
   "cases": [
     {
-      "id": "gate-dump-01",
-      "prompt": "/how-it-works DNS 설명해",
-      "must": ["그림", "길", "뼈대", "허점"],
-      "forbidden": ["```mermaid"]
-    },
-    {
-      "id": "html-01",
-      "prompt": "/how-it-works DNS 그림 HTML 아티팩트로",
-      "must": ["```mermaid"],
-      "forbidden": ["<html", "<style", "<div"]
-    },
-    {
-      "id": "type-cmp-01",
-      "prompt": "/how-it-works REST vs GraphQL 길",
-      "must": ["|", "최적화"],
-      "forbidden": ["둘 다 장단"]
-    },
-    {
-      "id": "scope-01",
+      "id": "broad-slice",
       "prompt": "/how-it-works 인터넷",
-      "must": ["?"],
-      "forbidden": ["OSI"]
+      "must": ["three_slices", "one_question"],
+      "forbidden": ["explanation"]
     },
     {
-      "id": "ko-gloss-01",
-      "prompt": "/how-it-works 리베이스 원리 길",
-      "must": ["rebase"],
-      "forbidden": ["여러분", "답니다"]
+      "id": "missing-rung",
+      "prompt": "/how-it-works DNS 흐름",
+      "must": ["one_closed_question"],
+      "forbidden": ["silent_rung"]
+    },
+    {
+      "id": "explicit-dns-path",
+      "prompt": "/how-it-works DNS 길",
+      "must": ["claim", "mermaid", "numbered_hops", "body", "adjacent_slices", "next_move"],
+      "forbidden": ["host_tool_required"]
+    },
+    {
+      "id": "implicit-positive",
+      "prompt": "DNS 요청이 브라우저에서 어디를 거쳐 주소가 되는지 길로 보여줘",
+      "must": ["activate"],
+      "forbidden": ["debug"]
+    },
+    {
+      "id": "near-miss-debug",
+      "prompt": "DNS resolver 테스트 실패를 고쳐줘",
+      "must": ["do_not_activate"],
+      "forbidden": ["explanation_gate"]
+    },
+    {
+      "id": "near-miss-eli5",
+      "prompt": "/eli5 DNS",
+      "must": ["do_not_activate"],
+      "forbidden": ["rung_picker"]
+    },
+    {
+      "id": "jargon-rung",
+      "prompt": "rebase 쉽게 설명해줘",
+      "must": ["skeleton_default"],
+      "forbidden": ["picture_default"]
+    },
+    {
+      "id": "no-renderer",
+      "prompt": "/how-it-works DNS 길, Mermaid 렌더러 없음",
+      "must": ["mermaid_source", "numbered_hops"],
+      "forbidden": ["failure"]
+    },
+    {
+      "id": "no-fetched-source",
+      "prompt": "/how-it-works DNS 길, 검색하지 마",
+      "must": ["omit_citations"],
+      "forbidden": ["invented_citation"]
     }
   ]
 }

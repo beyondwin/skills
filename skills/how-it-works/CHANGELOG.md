@@ -6,9 +6,9 @@ All notable changes to this product are documented in this file.
 
 ### Breaking
 
-- Artifact-page contract: the explanation is a published page, not terminal
-  scrollback. Mermaid stays the visual channel — artifacts draw it, terminals
-  print it as source. One slice keeps one artifact URL across rungs.
+- Required output is complete in chat: one-sentence claim, Mermaid source,
+  numbered hop list, rung-specific body, adjacent slices, and one next move.
+  A host preview is optional and non-fatal.
 
 ### Notes
 

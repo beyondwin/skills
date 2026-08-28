@@ -1,6 +1,6 @@
 # Output
 
-The page is the artifact: one published page per slice, republished as the rung climbs. Publish mechanics live in `## Deliverable` in `SKILL.md`. Do not write a spec file beside it. Visual channel is mermaid; HTML only frames it.
+The required deliverable is complete in chat Markdown. Do not write a spec file beside it. Visual channel is mermaid source plus a numbered hop list; rendering is optional.
 
 Every rung fills the same slots. Empty slots are allowed. Contradictory fillings are not.
 
@@ -18,35 +18,42 @@ Every rung fills the same slots. Empty slots are allowed. Contradictory fillings
 
 **No-retraction test:** later rungs may say “그림 left out X.” They may not say “그림 was wrong,” unless 그림 was labeled a toy that remains a special case.
 
-**Hop IDs stay stable.** 그림 hop 1 is 허점 hop 1. “3번만 더 깊게” must work.
+**Hop IDs stay stable.** 그림 hop 1 is 허점 hop 1. “3번만 더 깊게” must work. Hop identifiers in Mermaid labels and the numbered list must agree and survive rung changes.
 
 **Ontology lock:** if 허점 is an emergent process, 그림 may not be an agent with a goal.
 
 **Term monotonicity:** a word introduced at 길 keeps its meaning at 허점. If 허점 must split a term, 길 should have used a more careful everyday word or flagged the split.
 
-Chrome order is authoritative. Length is a budget, not a target. Restating the same sentence to fill space is a failure.
+Chrome order is authoritative. Length is a budget, not a target. Restating the same sentence to fill space is a failure. Mermaid rendering is enhancement only; source plus hop list is the fallback.
 
-```text
-# {slice}  ·  {그림|길|뼈대|허점}
+````markdown
+# {slice} · {그림|길|뼈대|허점}
 
-{banner or omit}
+{high-stakes banner or omit}
 
-## 한 줄
+## 한 줄 / One sentence
 
-## 지도
+## 지도 / Map
 
-## 본문
-
-## 지금 다루지 않은 것
-
-다음:
+```mermaid
+{diagram source}
 ```
 
+1. **H1** — {what moves or changes}
+2. **H2** — {what moves or changes}
+
+## 본문 / Body
+
+## 지금 다루지 않은 것 / Adjacent slices
+
+다음 / Next: {exactly one move}
+````
+
 - 한 줄: one sentence that remains true at 허점
-- 지도: mermaid; caption is the diagram’s claim
+- 지도: mermaid source, then the numbered hop list; caption is the diagram’s claim
 - 본문: type-specific; see recipes below
 - 지금 다루지 않은 것: 2–5 adjacent slices as prose links, not a second essay
-- On the page these heads become sections in this order. 한 줄 sits under the title as the standing claim, 지도 renders in `<pre class="mermaid">`, and `다음:` is the one part that also belongs in chat beside the link
+- Every rung includes the numbered hop list even when the map is a table
 - If a metaphor was used, include **이 그림이 깨지는 지점** as a short section. At 허점 that *is* the body; do not duplicate a cute “breaks at” box.
 
 ## Rung overlay
