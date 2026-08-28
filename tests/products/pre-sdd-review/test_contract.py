@@ -33,6 +33,155 @@ CASE_IDS = (
     "near-miss-code-review",
     "near-miss-release-review",
 )
+FIXTURE_NAMES = (
+    "ready",
+    "missing-coverage",
+    "false-verification",
+    "runtime-removal",
+)
+FIXTURE_FILES = (
+    "design.md",
+    "plan.md",
+    "repository.json",
+    "expected.json",
+)
+REPOSITORY_MANIFEST = {
+    "head": "0123456789abcdef0123456789abcdef01234567",
+    "dirty": False,
+    "paths": ["package.json", "src/app.ts", "tests/app.test.ts"],
+    "commands": ["npm test", "npm run build"],
+}
+FIXTURE_CONTENTS = {
+    "ready": {
+        "design.md": """# sample-app message rendering
+
+## Requirements
+
+- Implement `renderMessage(input: string): string` in `src/app.ts`.
+- The function returns the rendered string for the supplied input.
+""",
+        "plan.md": """# sample-app message rendering plan
+
+## Implementation
+
+1. Create `renderMessage(input: string): string` in `src/app.ts`.
+2. Add a unit test in `tests/app.test.ts` that calls `renderMessage(\"hello\")`
+   and verifies that it returns `\"hello\"`.
+3. Run `npm test` and `npm run build`.
+""",
+        "repository.json": """{
+  \"head\": \"0123456789abcdef0123456789abcdef01234567\",
+  \"dirty\": false,
+  \"paths\": [\"package.json\", \"src/app.ts\", \"tests/app.test.ts\"],
+  \"commands\": [\"npm test\", \"npm run build\"]
+}
+""",
+        "expected.json": """{
+  \"verdict\": \"READY\",
+  \"findings\": []
+}
+""",
+    },
+    "missing-coverage": {
+        "design.md": """# sample-app message rendering
+
+## Requirements
+
+- Implement `renderMessage(input: string): string` in `src/app.ts`.
+- The function returns the rendered string for the supplied input.
+- Empty input is rejected.
+""",
+        "plan.md": """# sample-app message rendering plan
+
+## Implementation
+
+1. Create `renderMessage(input: string): string` in `src/app.ts`.
+2. Add a unit test in `tests/app.test.ts` that calls `renderMessage(\"hello\")`
+   and verifies that it returns `\"hello\"`.
+3. Run `npm test` and `npm run build`.
+""",
+        "repository.json": """{
+  \"head\": \"0123456789abcdef0123456789abcdef01234567\",
+  \"dirty\": false,
+  \"paths\": [\"package.json\", \"src/app.ts\", \"tests/app.test.ts\"],
+  \"commands\": [\"npm test\", \"npm run build\"]
+}
+""",
+        "expected.json": """{
+  \"verdict\": \"REVISE\",
+  \"findings\": [
+    {
+      \"id\": \"PSDR-001\",
+      \"severity\": \"BLOCKER\",
+      \"class\": \"coverage\"
+    }
+  ]
+}
+""",
+    },
+    "false-verification": {
+        "design.md": """# sample-app message rendering
+
+## Requirements
+
+- Implement `renderMessage(input: string): string` in `src/app.ts`.
+- `renderMessage(\"hello\")` returns the rendered string `\"hello\"`.
+""",
+        "plan.md": """# sample-app message rendering plan
+
+## Implementation
+
+1. Create `renderMessage(input: string): string` in `src/app.ts`.
+2. Run `npm run build` and treat a successful build as acceptance.
+""",
+        "repository.json": """{
+  \"head\": \"0123456789abcdef0123456789abcdef01234567\",
+  \"dirty\": false,
+  \"paths\": [\"package.json\", \"src/app.ts\", \"tests/app.test.ts\"],
+  \"commands\": [\"npm test\", \"npm run build\"]
+}
+""",
+        "expected.json": """{
+  \"verdict\": \"REVISE\",
+  \"findings\": [
+    {
+      \"id\": \"PSDR-001\",
+      \"severity\": \"IMPORTANT\",
+      \"class\": \"verification-gap\"
+    }
+  ]
+}
+""",
+    },
+    "runtime-removal": {
+        "design.md": """# sample-app runtime replacement
+
+## Requirements
+
+- Replace the sample-app runtime while preserving the message-rendering behavior.
+""",
+        "plan.md": """# sample-app runtime replacement plan
+
+## Implementation
+
+1. Remove `src/app.ts`.
+2. Replace the application runtime and move message rendering to the new runtime.
+3. Run `npm test` and `npm run build`.
+""",
+        "repository.json": """{
+  \"head\": \"0123456789abcdef0123456789abcdef01234567\",
+  \"dirty\": false,
+  \"paths\": [\"package.json\", \"src/app.ts\", \"tests/app.test.ts\"],
+  \"commands\": [\"npm test\", \"npm run build\"]
+}
+""",
+        "expected.json": """{
+  \"risk_reviewer_required\": true,
+  \"risk_trigger\": \"framework-or-runtime-removal\"
+}
+""",
+    },
+}
 REQUIRED_SECTIONS = (
     "# Pre-SDD Review",
     "## Hard gate",
@@ -268,9 +417,20 @@ class PreSddReviewContractTests(unittest.TestCase):
 
 
 class PreSddReviewFixtureTests(unittest.TestCase):
-    def test_case_ids_and_near_misses_are_exact(self) -> None:
+    def test_case_matrix_has_exact_schema_and_activation_boundaries(self) -> None:
         data = json.loads(CASES.read_text(encoding="utf-8"))
         self.assertEqual(tuple(case["id"] for case in data["cases"]), CASE_IDS)
+        self.assertTrue(
+            all(set(case) == {"id", "request", "expect"} for case in data["cases"])
+        )
+        self.assertEqual(
+            data["cases"][0]["expect"],
+            ["review", "repair", "re-review", "fingerprints"],
+        )
+        self.assertEqual(
+            data["cases"][1]["expect"],
+            ["read_only", "single_verdict"],
+        )
         near_misses = [
             case for case in data["cases"] if case["id"].startswith("near-miss-")
         ]
@@ -279,27 +439,60 @@ class PreSddReviewFixtureTests(unittest.TestCase):
             all(case["expect"] == ["not_activated"] for case in near_misses)
         )
 
-    def test_ready_fixture_allows_zero_findings(self) -> None:
-        expected = json.loads(
+    def test_fixture_tree_and_repository_manifests_are_exact(self) -> None:
+        self.assertEqual(
+            tuple(sorted(path.name for path in FIXTURES.iterdir())),
+            tuple(sorted(FIXTURE_NAMES)),
+        )
+        for name in FIXTURE_NAMES:
+            fixture = FIXTURES / name
+            self.assertTrue(fixture.is_dir())
+            self.assertEqual(
+                tuple(sorted(path.name for path in fixture.iterdir())),
+                tuple(sorted(FIXTURE_FILES)),
+            )
+            self.assertTrue(all(path.is_file() for path in fixture.iterdir()))
+            manifest = json.loads(
+                (fixture / "repository.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(manifest, REPOSITORY_MANIFEST)
+
+    def test_fixture_content_is_the_bounded_review_contract(self) -> None:
+        for name, expected_files in FIXTURE_CONTENTS.items():
+            for filename, expected_content in expected_files.items():
+                self.assertEqual(
+                    (FIXTURES / name / filename).read_text(encoding="utf-8"),
+                    expected_content,
+                )
+
+    def test_ready_and_runtime_expected_metadata_are_exact(self) -> None:
+        ready = json.loads(
             (FIXTURES / "ready/expected.json").read_text(encoding="utf-8")
         )
-        self.assertEqual(expected, {"verdict": "READY", "findings": []})
-
-    def test_runtime_removal_requires_focused_second_reviewer(self) -> None:
-        expected = json.loads(
+        self.assertEqual(ready, {"verdict": "READY", "findings": []})
+        runtime = json.loads(
             (FIXTURES / "runtime-removal/expected.json").read_text(encoding="utf-8")
         )
-        self.assertEqual(expected["risk_reviewer_required"], True)
-        self.assertEqual(expected["risk_trigger"], "framework-or-runtime-removal")
+        self.assertEqual(
+            runtime,
+            {
+                "risk_reviewer_required": True,
+                "risk_trigger": "framework-or-runtime-removal",
+            },
+        )
 
-    def test_fixtures_contain_no_personal_paths_or_credentials(self) -> None:
+    def test_fixtures_contain_no_private_or_model_response_payload(self) -> None:
         text = "\n".join(
-            path.read_text(encoding="utf-8") for path in FIXTURES.rglob("*.*")
+            path.read_text(encoding="utf-8")
+            for name in FIXTURE_NAMES
+            for path in (FIXTURES / name).iterdir()
         )
         for forbidden in (
             "/Users/",
             "source/private",
             "OPENAI_API_KEY",
             "ANTHROPIC_API_KEY",
+            '"model_response"',
+            '"transcript"',
         ):
             self.assertNotIn(forbidden, text)
