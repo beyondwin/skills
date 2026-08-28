@@ -10,11 +10,11 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.changed_targets import (  # noqa: E402
-    TARGETS,
+from scripts.lib.change_routing import (  # noqa: E402
     full_repository_matrix,
     matrix_for_targets,
 )
+from scripts.lib.product_registry import load_registry  # noqa: E402
 
 WORKFLOW_PATH = ROOT / ".github" / "workflows" / "verify.yml"
 CONTRIBUTING_PATH = ROOT / "CONTRIBUTING.md"
@@ -41,6 +41,9 @@ DETECT_COMMAND = (
     '--base "${{ github.event.pull_request.base.sha }}" '
     '--head "${{ github.event.pull_request.head.sha }}"'
 )
+
+
+REGISTRY = load_registry(ROOT / "products.toml")
 
 
 def _read(path: Path) -> str:
@@ -96,7 +99,7 @@ class CiWorkflowTests(unittest.TestCase):
         )
         pr_os_profiles = {
             (row["os"], row["profile"])
-            for row in matrix_for_targets(TARGETS)["include"]
+            for row in matrix_for_targets(("catalog", *REGISTRY.names), REGISTRY)["include"]
         }
         self.assertEqual(
             pr_os_profiles,
