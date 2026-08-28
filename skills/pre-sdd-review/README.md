@@ -29,7 +29,7 @@ Codex는 공개 GitHub 경로를 가리키는 `$skill-installer`로 설치할 �
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-review
 ```
 
-첫 호출에서는 계획을 먼저 주고 설계 경로도 명시합니다.
+첫 호출에서는 계획 경로를 주 입력으로 삼고 설계 경로도 명시합니다.
 
 ```text
 $pre-sdd-review docs/history/specs/<design>.md docs/history/plans/<plan>.md

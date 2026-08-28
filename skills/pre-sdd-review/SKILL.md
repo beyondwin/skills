@@ -99,10 +99,9 @@ review and controller deduplication, and return the first review's verdict.
 
 ## Repair rules
 
-The controlling agent may edit only the resolved design specification, the
-resolved implementation plan, and a directly referenced proposed decision
-record only when the document explicitly delegates that non-product decision
-to the plan. Ordinary evidence-backed corrections within that boundary do not require an approval checkpoint.
+The controlling agent may edit only the resolved design specification and the
+resolved implementation plan. Ordinary evidence-backed corrections within that
+closed two-document boundary do not require an approval checkpoint.
 
 Any correction that changes approved product intent is forbidden and returns `BLOCKED`. The mutation allowlist excludes accepted ADRs, approved visual authority, application code, tests, configuration, generated artifacts, and unrelated documentation. Do not introduce a new feature, dependency, host claim, or product decision while repairing documents.
 

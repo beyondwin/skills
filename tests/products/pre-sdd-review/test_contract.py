@@ -225,6 +225,10 @@ MUTATION_EXCLUSIONS = (
     "generated artifacts",
     "unrelated documentation",
 )
+MUTATION_ALLOWLIST = (
+    "resolved design specification",
+    "resolved implementation plan",
+)
 FINDING_RECORD = (
     "ID: PSDR-001",
     "Severity: BLOCKER | IMPORTANT",
@@ -375,10 +379,12 @@ class PreSddReviewContractTests(unittest.TestCase):
     def test_mutation_boundary_retains_every_exclusion(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         repair_rules = section(body, "## Repair rules", "## Verdict and handoff")
+        normalized_repair_rules = re.sub(r"\s+", " ", repair_rules)
         self.assertIn("may edit only the resolved design specification", repair_rules)
         self.assertIn("resolved implementation plan", repair_rules)
         self.assertIn("The mutation allowlist excludes", repair_rules)
         self.assertIn("Any correction that changes approved product intent is forbidden", repair_rules)
+        self.assertNotIn("proposed decision record", normalized_repair_rules)
         for protected_surface in MUTATION_EXCLUSIONS:
             self.assertIn(protected_surface, repair_rules)
             self.assertNotRegex(
@@ -492,14 +498,109 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         ):
             self.assertIn(fact, normalized_english)
 
+    def test_bilingual_readmes_lock_primary_input_mutation_and_review_semantics(self) -> None:
+        korean = (SKILL / "README.md").read_text(encoding="utf-8")
+        english = (SKILL / "README.en.md").read_text(encoding="utf-8")
+        default_call = (
+            "$pre-sdd-review docs/history/specs/<design>.md "
+            "docs/history/plans/<plan>.md"
+        )
+        review_only_call = (
+            "$pre-sdd-review review-only docs/history/specs/<design>.md "
+            "docs/history/plans/<plan>.md"
+        )
+        for text in (korean, english):
+            self.assertIn(default_call, text)
+            self.assertIn(review_only_call, text)
+            self.assertIn("**Spec:**", text)
+
+        for text, purpose, first_call, expected, safety in (
+            (
+                korean,
+                "계획 경로가 주 입력입니다.",
+                "`review-only`는 명시 모드입니다.",
+                "수정 패스는 최대 두 번입니다.",
+                "문서 지문이",
+            ),
+            (
+                english,
+                "plan path is primary",
+                "Use `review-only` only",
+                "There are at most two repair passes.",
+                "invalidates its fingerprints",
+            ),
+        ):
+            positions = tuple(text.index(item) for item in (purpose, first_call, expected, safety))
+            self.assertEqual(positions, tuple(sorted(positions)))
+        for text, verdicts, risk in (
+            (korean, ("`READY`:", "`REVISE`:", "`BLOCKED`:"), "두 번째 집중 검토자"),
+            (english, ("`READY`:", "`REVISE`:", "`BLOCKED`:"), "focused second reviewer"),
+        ):
+            positions = tuple(text.index(item) for item in (*verdicts, risk))
+            self.assertEqual(positions, tuple(sorted(positions)))
+
+        self.assertNotIn("계획을 먼저 주고", korean)
+        self.assertIn("계획 경로가 주 입력", korean)
+        normalized_korean = re.sub(r"\s+", " ", korean)
+        self.assertIn("`review-only`는 같은 검토를 하지만 아무 파일도 변경하지 않습니다.", normalized_korean)
+        self.assertIn("`review-only` changes nothing", re.sub(r"\s+", " ", english))
+        for text, allowlist in (
+            (normalized_korean, "해결된 설계 명세와 해결된 구현 계획만"),
+            (re.sub(r"\s+", " ", english), "only the resolved design specification and resolved implementation plan"),
+        ):
+            self.assertIn(allowlist, text)
+            self.assertNotIn("proposed decision record", text)
+            self.assertNotIn("directly referenced", text)
+
+    def test_skill_and_readmes_close_the_default_mutation_allowlist_to_two_documents(self) -> None:
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
+        repair_rules = section(skill, "## Repair rules", "## Verdict and handoff")
+        allowlist = section(
+            contract,
+            "## Reviewer isolation and repair allowlist",
+            "## Review passes and findings",
+        )
+        for text in (repair_rules, allowlist):
+            normalized = re.sub(r"\s+", " ", text)
+            self.assertIn("may edit only the resolved design specification", normalized)
+            for editable_document in MUTATION_ALLOWLIST:
+                self.assertIn(editable_document, normalized)
+            self.assertNotIn("proposed decision record", normalized)
+            self.assertNotIn("directly referenced", normalized)
+            for excluded in MUTATION_EXCLUSIONS:
+                self.assertIn(excluded, normalized)
+
     def test_maintainer_contract_owns_the_complete_runtime_boundary(self) -> None:
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
         normalized = re.sub(r"\s+", " ", contract)
-        for fact in AUTHORITY_ORDER + RISK_TRIGGERS + FINDING_SEVERITIES + FINDING_CLASSES:
-            self.assertIn(fact, normalized)
+        authority = section(contract, "## Authority order", "## Reviewer isolation")
+        self.assertEqual(
+            tuple(re.findall(r"^\d+\. (.+)$", authority, re.MULTILINE)),
+            AUTHORITY_ORDER,
+        )
+        passes = section(contract, "## Review passes and findings", "## Default flow")
+        self.assertEqual(
+            tuple(re.findall(r"^\d+\. (.+?)[;.]+$", passes, re.MULTILINE)),
+            (
+                "authority trace",
+                "repository grounding",
+                "cross-artifact consistency",
+                "verification falsification",
+                "readiness verdict",
+            ),
+        )
+        self.assertEqual(
+            tuple(re.findall(r"`([A-Z]+)`", passes.split("Use only five finding")[0])),
+            FINDING_SEVERITIES,
+        )
+        self.assertEqual(
+            tuple(re.findall(r"`([a-z-]+)`", passes.split("A finding")[0])),
+            FINDING_CLASSES,
+        )
+        for trigger in RISK_TRIGGERS:
+            self.assertIn(trigger, normalized)
         for fact in (
-            "resolved design specification",
-            "resolved implementation plan",
             "read-only",
             "five passes",
             "SHA-256",
@@ -512,25 +613,43 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "Do not start SDD unless the outer request explicitly asks for implementation",
             normalized,
         )
+        for fact in (
+            "Return `READY` when no unresolved finding requires invention",
+            "`REVISE` for a repairable material document defect",
+            "`BLOCKED` when required input, authority, or repository evidence is unavailable",
+            "Any content change to either resolved document invalidates `READY`",
+        ):
+            self.assertIn(fact, normalized)
 
     def test_maintainer_testing_compatibility_and_release_stay_role_specific(self) -> None:
         testing = (MAINTAINERS / "testing.md").read_text(encoding="utf-8")
         compatibility = (MAINTAINERS / "compatibility.md").read_text(encoding="utf-8")
         release = (MAINTAINERS / "release.md").read_text(encoding="utf-8")
+        normalized_testing = re.sub(r"\s+", " ", testing)
 
         for fact in (
             "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover",
             "provider-free",
+            "exactly fourteen",
+            "`ready`, `missing-coverage`, `false-verification`, and",
+            "`runtime-removal`",
+            "`design.md`, `plan.md`,",
+            "`repository.json`, and `expected.json`",
             "optional",
+            "fresh Codex session",
+            "non-sensitive synthetic design and plan",
+            "record only host, client version, date, case identifier, and verdict",
+            "billable",
+            "CI never",
             "user documents",
             "full model responses",
         ):
-            self.assertIn(fact, testing)
-        self.assertIn("Codex", compatibility)
-        self.assertIn("not_measured", compatibility)
+            self.assertIn(fact, normalized_testing)
+        self.assertIn("Codex is supported", compatibility)
+        self.assertIn("Every other host is `not_measured`", compatibility)
         normalized_release = re.sub(r"\s+", " ", release).lower()
         for fact in (
-            "release.toml",
+            "version source is `skills/pre-sdd-review/release.toml`",
             "python3 scripts/release.py check --product pre-sdd-review",
             "python3 scripts/release.py build --product pre-sdd-review",
             "python3 scripts/release.py verify-download --product pre-sdd-review",

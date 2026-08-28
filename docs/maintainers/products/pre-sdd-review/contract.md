@@ -36,10 +36,9 @@ and the smallest authority-preserving correction; the controller owns all
 repairs and does not let a reviewer mutate documents.
 
 In default mode the controller may edit only the resolved design specification
-and resolved implementation plan, plus a directly referenced proposed decision
-record only when the plan explicitly delegates that non-product decision. The
-allowlist excludes accepted ADRs, approved visual authority, application code,
-tests, configuration, generated artifacts, and unrelated documentation.
+and resolved implementation plan. The closed two-document allowlist excludes
+accepted ADRs, approved visual authority, application code, tests,
+configuration, generated artifacts, and unrelated documentation.
 Never add a feature, dependency, host claim, or product decision while fixing
 the documents.
 
