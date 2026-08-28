@@ -188,7 +188,15 @@ class TargetMappingTests(RegistryRoutingTestCase):
 
     def test_all_targets_follow_catalog_then_registry_order(self) -> None:
         self.assertEqual(self.all_targets, ("catalog", *self.registry.names))
-        self.assertEqual(self.registry.names, ("korean-writing-editor", "image-workbench", "how-it-works"))
+        self.assertEqual(
+            self.registry.names,
+            (
+                "korean-writing-editor",
+                "image-workbench",
+                "how-it-works",
+                "pre-sdd-review",
+            ),
+        )
 
     def test_routing_follows_replaced_owned_paths(self) -> None:
         original = self.registry.require("how-it-works")
@@ -236,6 +244,7 @@ class MatrixSerializationTests(RegistryRoutingTestCase):
                 ("korean-writing-editor", "windows-portable", "--skill korean-writing-editor"),
                 ("image-workbench", "windows-portable", "--skill image-workbench"),
                 ("how-it-works", "windows-portable", "--skill how-it-works"),
+                ("pre-sdd-review", "windows-portable", "--skill pre-sdd-review"),
             ],
         )
 
