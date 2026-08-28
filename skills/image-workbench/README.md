@@ -53,6 +53,6 @@ image-workbench: Codex-only; generate/edit requires Codex image generation and l
 ## 변경 이력과 관리자 문서
 
 - [CHANGELOG](CHANGELOG.md)
-- [계약](../../docs/maintainers/image-workbench/contract.md)
-- [테스트](../../docs/maintainers/image-workbench/testing.md)
-- [릴리스](../../docs/maintainers/image-workbench/release.md)
+- [계약](../../docs/maintainers/products/image-workbench/contract.md)
+- [테스트](../../docs/maintainers/products/image-workbench/testing.md)
+- [릴리스](../../docs/maintainers/products/image-workbench/release.md)

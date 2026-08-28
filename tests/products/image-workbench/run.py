@@ -59,7 +59,7 @@ class EvaluatorTests(unittest.TestCase):
             return validate_skill_tree(root, "core")
 
     def payload_source_root(self) -> pathlib.Path:
-        return pathlib.Path(__file__).resolve().parents[2] / "skills" / "image-workbench"
+        return pathlib.Path(__file__).resolve().parents[3] / "skills" / "image-workbench"
 
     def copy_payload_files(self, root: pathlib.Path, relatives: tuple[str, ...]) -> None:
         source_root = self.payload_source_root()
@@ -1548,7 +1548,7 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--cases and --scope are mutually exclusive")
     if args.scope is None and args.cases is None:
         parser.error("one of --self-test, --scope, or --cases is required")
-    skill_root = args.skill_root or pathlib.Path(__file__).resolve().parents[2] / "skills" / "image-workbench"
+    skill_root = args.skill_root or pathlib.Path(__file__).resolve().parents[3] / "skills" / "image-workbench"
     cases_path = args.cases or pathlib.Path(__file__).with_name("cases.json")
     fixture_errors, _cases, counts = _validate_fixtures(cases_path)
     errors = list(fixture_errors)

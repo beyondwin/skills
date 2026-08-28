@@ -27,9 +27,9 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 The offline suites prove the deterministic contract only.
 
-- `korean-writing-editor`: trigger, mode, preservation, and output fixtures under `tests/korean-writing-editor/offline/`
-- `image-workbench`: routing, authorization, ImageSpec, handoff, and inspector fixtures under `tests/image-workbench/`
-- `graspic`: shape fixtures in `tests/graspic/cases.json` and payload contracts in `tests/contract/test_graspic.py`
+- `korean-writing-editor`: trigger, mode, preservation, and output fixtures under `tests/products/korean-writing-editor/offline/`
+- `image-workbench`: routing, authorization, ImageSpec, handoff, and inspector fixtures under `tests/products/image-workbench/`
+- `graspic`: shape fixtures in `tests/products/graspic/cases.json` and payload contracts in `tests/products/graspic/test_contract.py`
 
 A pass does not prove general Korean editing quality, semantic equivalence, live image quality, commercial permission, a better provider, or runtime parity. The license is Apache-2.0.
 
@@ -39,7 +39,7 @@ Live evaluation is local only. It needs a positive flag, a named runtime, a boun
 
 Status labels are `verified`, `partially_verified`, `failed`, `blocked`, and `not_measured`. Do not turn an offline pass into `partially_verified`, and do not turn an unavailable provider into a pass.
 
-Korean live ceilings follow the 119 / 3 / 122 / 38 / 160 budgets in the maintainer protocol. Operator steps are in `tests/korean-writing-editor/live/README.md`. Do not commit user Korean text, provider responses, private reference images, generated images, credentials, or receipts.
+Korean live ceilings follow the 119 / 3 / 122 / 38 / 160 budgets in the maintainer protocol. Operator steps are in `tests/products/korean-writing-editor/live/README.md`. Do not commit user Korean text, provider responses, private reference images, generated images, credentials, or receipts.
 
 ## Limitations
 

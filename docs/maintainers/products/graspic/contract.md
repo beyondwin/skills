@@ -29,7 +29,7 @@
 
 동작 변경을 한 파일에만 넣지 마세요.
 
-- trigger 또는 near-miss 변경 (`/graspic`, 원리부터, `/eli5` no-op): `skills/graspic/SKILL.md` 활성화 문구, `tests/graspic/cases.json`, `tests/contract/test_graspic.py`, 제품 README와 공유 공개 안내
+- trigger 또는 near-miss 변경 (`/graspic`, 원리부터, `/eli5` no-op): `skills/graspic/SKILL.md` 활성화 문구, `tests/products/graspic/cases.json`, `tests/products/graspic/test_contract.py`, 제품 README와 공유 공개 안내
 - 칸 기본값 또는 별칭 변경 (길 default, jargon to 뼈대, 쉽게 is not 그림): `SKILL.md` dump gate, 픽스처, 공개 안내
 - 출력 크롬, 유형 레시피, 은유 테스트: `skills/graspic/references/output.md`와 해당 픽스처 id
 - 시각 채널: `skills/graspic/references/visuals.md`. 페이지 프레임 HTML과 mermaid 지도를 유지하고, 구조에 `image_gen`을 쓰지 않습니다.

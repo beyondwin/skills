@@ -1,6 +1,6 @@
 # graspic 릴리스
 
-버전 원본은 `skills/graspic/release.toml`입니다. `SKILL.md` `metadata.version`은 검증된 복제 값입니다. 사람이 체감하는 이력은 같은 디렉터리의 `CHANGELOG.md`입니다. 공통 판정표는 [버저닝](../repository/versioning.md)을 따릅니다.
+버전 원본은 `skills/graspic/release.toml`입니다. `SKILL.md` `metadata.version`은 검증된 복제 값입니다. 사람이 체감하는 이력은 같은 디렉터리의 `CHANGELOG.md`입니다. 공통 판정표는 [버저닝](../../repository/versioning.md)을 따릅니다.
 
 공개 graspic 릴리스는 아직 없습니다. 이 제품은 `graspic 2.0.0`으로 공개되지 않았고 통합 `v2.0.0` GitHub Release에 포함되지 않았습니다. 첫 독립 공개 목표는 `3.0.0`입니다.
 

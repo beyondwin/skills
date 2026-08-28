@@ -1,6 +1,6 @@
 # korean-writing-editor 릴리스
 
-버전 원본은 `skills/korean-writing-editor/release.toml`입니다. `SKILL.md` `metadata.version`은 검증된 복제 값입니다. 사람이 체감하는 이력은 같은 디렉터리의 `CHANGELOG.md`입니다. 공통 판정표는 [버저닝](../repository/versioning.md)을 따릅니다.
+버전 원본은 `skills/korean-writing-editor/release.toml`입니다. `SKILL.md` `metadata.version`은 검증된 복제 값입니다. 사람이 체감하는 이력은 같은 디렉터리의 `CHANGELOG.md`입니다. 공통 판정표는 [버저닝](../../repository/versioning.md)을 따릅니다.
 
 ## SemVer 예시
 

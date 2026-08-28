@@ -15,22 +15,25 @@
 
 ## 제품 프로토콜
 
-각 제품은 계약, 테스트, 릴리스 문서를 가집니다. 한 제품의 동작 변경이 다른 제품 버전을 요구하지 않습니다.
+각 제품은 계약, 테스트, 호환성, 릴리스 문서를 가집니다. 한 제품의 동작 변경이 다른 제품 버전을 요구하지 않습니다.
 
 ### korean-writing-editor
 
-- [계약](korean-writing-editor/contract.md) — 트리거, 기본값, 출력, 안전, 함께 고칠 파일
-- [테스트](korean-writing-editor/testing.md) — 결정적 픽스처, 명령, 증거 한계
-- [릴리스](korean-writing-editor/release.md) — 버전 원본, SemVer 예시, check/build/download, 실패 복구
+- [계약](products/korean-writing-editor/contract.md) — 트리거, 기본값, 출력, 안전, 함께 고칠 파일
+- [테스트](products/korean-writing-editor/testing.md) — 결정적 픽스처, 명령, 증거 한계
+- [호환성](products/korean-writing-editor/compatibility.md) — 현재 호스트, 능력, 증거 경계, 새 지원 규칙
+- [릴리스](products/korean-writing-editor/release.md) — 버전 원본, SemVer 예시, check/build/download, 실패 복구
 
 ### image-workbench
 
-- [계약](image-workbench/contract.md) — 트리거, 기본값, 출력, 안전, 함께 고칠 파일
-- [테스트](image-workbench/testing.md) — 결정적 픽스처, 명령, 증거 한계
-- [릴리스](image-workbench/release.md) — 버전 원본, SemVer 예시, check/build/download, 실패 복구
+- [계약](products/image-workbench/contract.md) — 트리거, 기본값, 출력, 안전, 함께 고칠 파일
+- [테스트](products/image-workbench/testing.md) — 결정적 픽스처, 명령, 증거 한계
+- [호환성](products/image-workbench/compatibility.md) — 현재 호스트, 능력, 증거 경계, 새 지원 규칙
+- [릴리스](products/image-workbench/release.md) — 버전 원본, SemVer 예시, check/build/download, 실패 복구
 
 ### graspic
 
-- [계약](graspic/contract.md) — 트리거, 기본값, 출력, 안전, 함께 고칠 파일
-- [테스트](graspic/testing.md) — 결정적 픽스처, 명령, 증거 한계
-- [릴리스](graspic/release.md) — 버전 원본, SemVer 예시, check/build/download, 실패 복구
+- [계약](products/graspic/contract.md) — 트리거, 기본값, 출력, 안전, 함께 고칠 파일
+- [테스트](products/graspic/testing.md) — 결정적 픽스처, 명령, 증거 한계
+- [호환성](products/graspic/compatibility.md) — 현재 호스트, 능력, 증거 경계, 새 지원 규칙
+- [릴리스](products/graspic/release.md) — 버전 원본, SemVer 예시, check/build/download, 실패 복구

@@ -31,7 +31,12 @@ WINDOWS_STAGE_NAMES = (
     "python-compile",
 )
 LIVE_TEST_PATH = (
-    ROOT / "tests" / "korean-writing-editor" / "live" / "test_live_matrix.py"
+    ROOT
+    / "tests"
+    / "products"
+    / "korean-writing-editor"
+    / "live"
+    / "test_live_matrix.py"
 )
 REQUIRED_UNIX_ONLY_LIVE_TESTS = (
     "test_manifest_ignores_only_validated_regenerated_python_cache",
@@ -118,7 +123,7 @@ class VerifyStageTests(unittest.TestCase):
         stage = self._stage("full", "korean-offline")
         self.assertEqual(stage.argv[0], sys.executable)
         self.assertTrue(stage.argv[1].replace("\\", "/").endswith(
-            "tests/korean-writing-editor/offline/run.py"
+            "tests/products/korean-writing-editor/offline/run.py"
         ))
         self.assertIn("--scope", stage.argv)
         self.assertIn("full", stage.argv)
@@ -126,7 +131,7 @@ class VerifyStageTests(unittest.TestCase):
     def test_image_contract_runs_full_scope_evaluator(self) -> None:
         stage = self._stage("full", "image-contract")
         self.assertTrue(stage.argv[1].replace("\\", "/").endswith(
-            "tests/image-workbench/run.py"
+            "tests/products/image-workbench/run.py"
         ))
         self.assertIn("--scope", stage.argv)
         self.assertIn("full", stage.argv)
@@ -134,17 +139,17 @@ class VerifyStageTests(unittest.TestCase):
     def test_image_inspector_discovers_external_inspector_tests(self) -> None:
         stage = self._stage("full", "image-inspector")
         self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
-        self.assertIn("tests/image-workbench", stage.argv)
+        self.assertIn("tests/products/image-workbench", stage.argv)
 
     def test_korean_live_unit_discovers_live_tests(self) -> None:
         stage = self._stage("windows-portable", "korean-live-unit")
         self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
-        self.assertIn("tests/korean-writing-editor/live", stage.argv)
+        self.assertIn("tests/products/korean-writing-editor/live", stage.argv)
 
     def test_korean_live_dry_run_is_dry_run_only(self) -> None:
         stage = self._stage("full", "korean-live-dry-run")
         self.assertTrue(stage.argv[1].replace("\\", "/").endswith(
-            "tests/korean-writing-editor/live/live_matrix.py"
+            "tests/products/korean-writing-editor/live/live_matrix.py"
         ))
         self.assertIn("--dry-run", stage.argv)
         self.assertNotIn("--execute", stage.argv)
@@ -322,17 +327,15 @@ class VerifyStageTests(unittest.TestCase):
         stage = self._stage(
             "full", "korean-package", skill="korean-writing-editor"
         )
-        self.assertEqual(
-            stage.argv[1:4],
-            ("-m", "unittest", "tests.contract.test_korean_package"),
-        )
+        self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
+        self.assertIn("tests/products/korean-writing-editor", stage.argv)
+        self.assertIn("test_package.py", stage.argv)
 
     def test_graspic_contract_runs_graspic_module(self) -> None:
         stage = self._stage("full", "graspic-contract", skill="graspic")
-        self.assertEqual(
-            stage.argv[1:4],
-            ("-m", "unittest", "tests.contract.test_graspic"),
-        )
+        self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
+        self.assertIn("tests/products/graspic", stage.argv)
+        self.assertIn("test_contract.py", stage.argv)
 
     def test_selected_stages_use_sys_executable_and_tuple_argv(self) -> None:
         verify = self._load()

@@ -128,9 +128,9 @@ ARCHIVE_MIGRATION = (
 ARCHIVE_MANIFEST = (
     ROOT / "docs" / "maintainers" / "repository" / "archive-source-manifest.json"
 )
-PRODUCT_PROTOCOL_FILES = ("contract.md", "testing.md", "release.md")
+PRODUCT_PROTOCOL_FILES = ("contract.md", "testing.md", "compatibility.md", "release.md")
 MAINTAINER_DOCS = (MAINTAINER_INDEX,) + REPOSITORY_DOCS + (ARCHIVE_MIGRATION,) + tuple(
-    ROOT / "docs" / "maintainers" / name / filename
+    ROOT / "docs" / "maintainers" / "products" / name / filename
     for name in REGISTRY.names
     for filename in PRODUCT_PROTOCOL_FILES
 )
@@ -348,9 +348,9 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
                 self.assertIn(INSTALLER_COMMANDS[name], text)
                 self.assertIn(SUPPORT_BY_PRODUCT[name], text)
                 self.assertIn("CHANGELOG.md", text)
-                self.assertIn(f"docs/maintainers/{name}/contract.md", text)
-                self.assertIn(f"docs/maintainers/{name}/testing.md", text)
-                self.assertIn(f"docs/maintainers/{name}/release.md", text)
+                self.assertIn(f"docs/maintainers/products/{name}/contract.md", text)
+                self.assertIn(f"docs/maintainers/products/{name}/testing.md", text)
+                self.assertIn(f"docs/maintainers/products/{name}/release.md", text)
                 self.assertNotIn(f"docs/maintainers/{name}.md", text)
                 self.assertTrue(
                     "inspect" in text.lower() or "확인" in text,
@@ -583,7 +583,7 @@ class InstallSafetyTests(unittest.TestCase):
 class MaintainerStructureTests(unittest.TestCase):
     def test_every_product_has_contract_testing_and_release(self) -> None:
         for name in REGISTRY.names:
-            directory = ROOT / "docs" / "maintainers" / name
+            directory = ROOT / "docs" / "maintainers" / "products" / name
             self.assertTrue(directory.is_dir(), f"{name} maintainer directory is absent")
             for filename in PRODUCT_PROTOCOL_FILES:
                 path = directory / filename
@@ -700,9 +700,9 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("verify-download", text)
 
     def test_korean_protocol_preserves_fixture_sync_and_live_budgets(self) -> None:
-        contract = ROOT / "docs" / "maintainers" / "korean-writing-editor" / "contract.md"
-        testing = ROOT / "docs" / "maintainers" / "korean-writing-editor" / "testing.md"
-        release = ROOT / "docs" / "maintainers" / "korean-writing-editor" / "release.md"
+        contract = ROOT / "docs" / "maintainers" / "products" / "korean-writing-editor" / "contract.md"
+        testing = ROOT / "docs" / "maintainers" / "products" / "korean-writing-editor" / "testing.md"
+        release = ROOT / "docs" / "maintainers" / "products" / "korean-writing-editor" / "release.md"
         for path in (contract, testing, release):
             _assert_exists(self, path)
         contract_text = _read(contract)
@@ -719,9 +719,9 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("python3 scripts/release.py check --product korean-writing-editor", release_text)
 
     def test_image_protocol_preserves_route_authorization_spec_and_inspector(self) -> None:
-        contract = ROOT / "docs" / "maintainers" / "image-workbench" / "contract.md"
-        testing = ROOT / "docs" / "maintainers" / "image-workbench" / "testing.md"
-        release = ROOT / "docs" / "maintainers" / "image-workbench" / "release.md"
+        contract = ROOT / "docs" / "maintainers" / "products" / "image-workbench" / "contract.md"
+        testing = ROOT / "docs" / "maintainers" / "products" / "image-workbench" / "testing.md"
+        release = ROOT / "docs" / "maintainers" / "products" / "image-workbench" / "release.md"
         for path in (contract, testing, release):
             _assert_exists(self, path)
         contract_text = _read(contract).lower()
@@ -737,9 +737,9 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("python3 scripts/release.py check --product image-workbench", release_text)
 
     def test_graspic_protocol_preserves_rung_fixtures_and_artifact_page(self) -> None:
-        contract = ROOT / "docs" / "maintainers" / "graspic" / "contract.md"
-        testing = ROOT / "docs" / "maintainers" / "graspic" / "testing.md"
-        release = ROOT / "docs" / "maintainers" / "graspic" / "release.md"
+        contract = ROOT / "docs" / "maintainers" / "products" / "graspic" / "contract.md"
+        testing = ROOT / "docs" / "maintainers" / "products" / "graspic" / "testing.md"
+        release = ROOT / "docs" / "maintainers" / "products" / "graspic" / "release.md"
         for path in (contract, testing, release):
             _assert_exists(self, path)
         contract_text = _read(contract)

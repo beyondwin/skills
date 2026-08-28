@@ -15,22 +15,26 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 TARGETS = ("catalog", "graspic", "image-workbench", "korean-writing-editor")
 PRODUCT_PREFIXES = {
-    "graspic": ("skills/graspic/", "tests/graspic/", "docs/maintainers/graspic/"),
+    "graspic": (
+        "skills/graspic/",
+        "tests/products/graspic/",
+        "docs/maintainers/products/graspic/",
+    ),
     "image-workbench": (
         "skills/image-workbench/",
-        "tests/image-workbench/",
-        "docs/maintainers/image-workbench/",
+        "tests/products/image-workbench/",
+        "docs/maintainers/products/image-workbench/",
     ),
     "korean-writing-editor": (
         "skills/korean-writing-editor/",
-        "tests/korean-writing-editor/",
-        "docs/maintainers/korean-writing-editor/",
+        "tests/products/korean-writing-editor/",
+        "docs/maintainers/products/korean-writing-editor/",
     ),
 }
 PRODUCT_EXACT_PATHS = {
-    "graspic": ("tests/contract/test_graspic.py",),
+    "graspic": (),
     "image-workbench": (),
-    "korean-writing-editor": ("tests/contract/test_korean_package.py",),
+    "korean-writing-editor": (),
 }
 OS_ROWS = (
     ("ubuntu-latest", "full"),

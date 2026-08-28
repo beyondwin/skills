@@ -9,9 +9,16 @@ import unittest
 from pathlib import Path
 
 
-REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 SKILL_ROOT = REPOSITORY_ROOT / "skills" / "korean-writing-editor"
-RUNNER = REPOSITORY_ROOT / "tests" / "korean-writing-editor" / "offline" / "run.py"
+RUNNER = (
+    REPOSITORY_ROOT
+    / "tests"
+    / "products"
+    / "korean-writing-editor"
+    / "offline"
+    / "run.py"
+)
 CASES = RUNNER.with_name("cases.json")
 EXPECTED_SUMMARY = (
     "31 cases: normative=8 preservation=8 noop=6 voice=4 trigger=5"

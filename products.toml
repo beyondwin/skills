@@ -4,13 +4,13 @@ schema_version = 1
 name = "korean-writing-editor"
 display_name = "Korean Writing Editor"
 skill_path = "skills/korean-writing-editor"
-test_path = "tests/korean-writing-editor"
-maintainer_docs = "docs/maintainers/korean-writing-editor"
+test_path = "tests/products/korean-writing-editor"
+maintainer_docs = "docs/maintainers/products/korean-writing-editor"
 supported_hosts = ["codex"]
 owned_paths = [
   "skills/korean-writing-editor/",
-  "tests/korean-writing-editor/",
-  "docs/maintainers/korean-writing-editor/",
+  "tests/products/korean-writing-editor/",
+  "docs/maintainers/products/korean-writing-editor/",
 ]
 verify_stages = [
   "product-contract",
@@ -25,13 +25,13 @@ verify_stages = [
 name = "image-workbench"
 display_name = "Image Workbench"
 skill_path = "skills/image-workbench"
-test_path = "tests/image-workbench"
-maintainer_docs = "docs/maintainers/image-workbench"
+test_path = "tests/products/image-workbench"
+maintainer_docs = "docs/maintainers/products/image-workbench"
 supported_hosts = ["codex"]
 owned_paths = [
   "skills/image-workbench/",
-  "tests/image-workbench/",
-  "docs/maintainers/image-workbench/",
+  "tests/products/image-workbench/",
+  "docs/maintainers/products/image-workbench/",
 ]
 verify_stages = ["product-contract", "image-contract", "image-inspector", "python-compile"]
 
@@ -39,12 +39,12 @@ verify_stages = ["product-contract", "image-contract", "image-inspector", "pytho
 name = "graspic"
 display_name = "graspic"
 skill_path = "skills/graspic"
-test_path = "tests/graspic"
-maintainer_docs = "docs/maintainers/graspic"
+test_path = "tests/products/graspic"
+maintainer_docs = "docs/maintainers/products/graspic"
 supported_hosts = ["codex"]
 owned_paths = [
   "skills/graspic/",
-  "tests/graspic/",
-  "docs/maintainers/graspic/",
+  "tests/products/graspic/",
+  "docs/maintainers/products/graspic/",
 ]
 verify_stages = ["product-contract", "graspic-contract", "python-compile"]

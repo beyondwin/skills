@@ -12,7 +12,7 @@ from pathlib import Path
 from types import ModuleType
 
 
-REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_INSPECTOR_PATH = (
     REPOSITORY_ROOT / "skills" / "image-workbench" / "scripts" / "inspect_asset.py"
 )

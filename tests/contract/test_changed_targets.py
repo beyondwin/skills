@@ -72,32 +72,41 @@ class TargetMappingTests(unittest.TestCase):
 
     def test_product_docs_and_tests_select_that_product(self) -> None:
         self.assertEqual(
-            targets_for_paths(["docs/maintainers/graspic/contract.md"]),
-            ("graspic",),
-        )
-        self.assertEqual(targets_for_paths(["tests/graspic/cases.json"]), ("graspic",))
-        self.assertEqual(
-            targets_for_paths(["tests/contract/test_graspic.py"]),
+            targets_for_paths(["docs/maintainers/products/graspic/contract.md"]),
             ("graspic",),
         )
         self.assertEqual(
-            targets_for_paths(["docs/maintainers/image-workbench/testing.md"]),
+            targets_for_paths(["tests/products/graspic/cases.json"]),
+            ("graspic",),
+        )
+        self.assertEqual(
+            targets_for_paths(["tests/products/graspic/test_contract.py"]),
+            ("graspic",),
+        )
+        self.assertEqual(
+            targets_for_paths(["docs/maintainers/products/image-workbench/testing.md"]),
             ("image-workbench",),
         )
         self.assertEqual(
-            targets_for_paths(["tests/image-workbench/run.py"]),
+            targets_for_paths(["tests/products/image-workbench/run.py"]),
             ("image-workbench",),
         )
         self.assertEqual(
-            targets_for_paths(["docs/maintainers/korean-writing-editor/release.md"]),
+            targets_for_paths(
+                ["docs/maintainers/products/korean-writing-editor/release.md"]
+            ),
             ("korean-writing-editor",),
         )
         self.assertEqual(
-            targets_for_paths(["tests/korean-writing-editor/offline/cases.json"]),
+            targets_for_paths(
+                ["tests/products/korean-writing-editor/offline/cases.json"]
+            ),
             ("korean-writing-editor",),
         )
         self.assertEqual(
-            targets_for_paths(["tests/contract/test_korean_package.py"]),
+            targets_for_paths(
+                ["tests/products/korean-writing-editor/test_package.py"]
+            ),
             ("korean-writing-editor",),
         )
 

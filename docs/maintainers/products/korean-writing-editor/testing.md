@@ -1,6 +1,6 @@
 # korean-writing-editor 테스트
 
-`tests/korean-writing-editor/offline/cases.json`과 `tests/korean-writing-editor/offline/run.py`에서 서른한 개 속성 케이스와 변이 검사를 정직하게 유지하세요.
+`tests/products/korean-writing-editor/offline/cases.json`과 `tests/products/korean-writing-editor/offline/run.py`에서 서른한 개 속성 케이스와 변이 검사를 정직하게 유지하세요.
 
 ## 결정적 픽스처
 
@@ -11,7 +11,7 @@
 - 과정 서문이 있는 후보는 교체된 `norm-spacing-can-01` 속성에 실패해야 합니다.
 - 픽스처 통과는 오프라인 오라클 계약만 증명합니다. 라이브 모델 품질을 증명하지 않습니다.
 
-라이브 하니스 변경은 `tests/korean-writing-editor/live/live_cases.json`, `live_matrix.py`, `test_live_matrix.py`, `tests/korean-writing-editor/live/README.md`를 함께 맞춥니다. 라이브 케이스는 합성입니다. 이 아티팩트에 비공개 원고나 전체 트랜스크립트를 넣지 않습니다.
+라이브 하니스 변경은 `tests/products/korean-writing-editor/live/live_cases.json`, `live_matrix.py`, `test_live_matrix.py`, `tests/products/korean-writing-editor/live/README.md`를 함께 맞춥니다. 라이브 케이스는 합성입니다. 이 아티팩트에 비공개 원고나 전체 트랜스크립트를 넣지 않습니다.
 
 라이브 예산 변경은 119-producer, 3-reviewer, 122-baseline, 38-remediation, 160-total dry-run과 파서 단언을 동기화합니다. 보고서가 있는 resume 변경은 보고서가 없던 첫 발행과, 보고서 발행 뒤 크래시에 대한 실제 임시 Git 테스트가 필요합니다.
 
@@ -34,8 +34,8 @@ Dispatcher 반환은 완료 주장일 뿐입니다. 반환된 영수증은 다�
 ```bash
 python3 scripts/verify.py --skill korean-writing-editor
 python3 scripts/verify.py
-python3 tests/korean-writing-editor/offline/run.py --scope full
-python3 tests/korean-writing-editor/live/live_matrix.py --dry-run
+python3 tests/products/korean-writing-editor/offline/run.py --scope full
+python3 tests/products/korean-writing-editor/live/live_matrix.py --dry-run
 git diff --check
 ```
 

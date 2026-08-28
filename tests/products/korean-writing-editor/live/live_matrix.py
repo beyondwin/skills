@@ -266,7 +266,7 @@ class LiveMatrixError(RuntimeError):
 
 
 def default_repository_root() -> pathlib.Path:
-    return pathlib.Path(__file__).resolve().parents[3]
+    return pathlib.Path(__file__).resolve().parents[4]
 
 
 def repository_root(start: pathlib.Path) -> pathlib.Path:
@@ -6017,9 +6017,9 @@ def build_report_input(
         approved_baseline_ceiling=BASELINE_CALL_CEILING,
         approved_total_ceiling=GLOBAL_CALL_CEILING,
         verification_results=(
-            ("python3 tests/korean-writing-editor/offline/run.py --self-test", "verified"),
+            ("python3 tests/products/korean-writing-editor/offline/run.py --self-test", "verified"),
             (
-                "python3 tests/korean-writing-editor/offline/run.py --scope full --skill-root skills/korean-writing-editor",
+                "python3 tests/products/korean-writing-editor/offline/run.py --scope full --skill-root skills/korean-writing-editor",
                 "verified",
             ),
             ("receipt identity and bounds", "verified"),

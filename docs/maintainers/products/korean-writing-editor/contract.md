@@ -28,8 +28,8 @@
 
 동작 변경을 한 파일에만 넣지 마세요.
 
-- trigger 또는 near-miss 변경: `skills/korean-writing-editor/SKILL.md` 활성화 문구, `tests/korean-writing-editor/offline/cases.json`의 긍정·near-miss 픽스처, 제품 README와 공유 공개 안내
+- trigger 또는 near-miss 변경: `skills/korean-writing-editor/SKILL.md` 활성화 문구, `tests/products/korean-writing-editor/offline/cases.json`의 긍정·near-miss 픽스처, 제품 README와 공유 공개 안내
 - mode 또는 output 계약 변경 (`diagnose`, `correct`, `polish`, 기본 편집문만 출력, hold 주): `SKILL.md`, `skills/korean-writing-editor/references/editorial-guide.md`, 픽스처, 공개 안내
-- 모델 tier 변경 (`fast`, `balanced`, `frontier`, 라우팅, 위임): `tests/korean-writing-editor/offline/cases.json` 라우팅 픽스처와 공개 안내. 공급자 모델 이름을 하드코딩하지 말고 분류 모델을 호출하지 않습니다.
+- 모델 tier 변경 (`fast`, `balanced`, `frontier`, 라우팅, 위임): `tests/products/korean-writing-editor/offline/cases.json` 라우팅 픽스처와 공개 안내. 공급자 모델 이름을 하드코딩하지 말고 분류 모델을 호출하지 않습니다.
 - 규범 주장 변경: `skills/korean-writing-editor/references/sources.md`의 권위 출처 위치와, 그 경계를 담는 픽스처
 - 외부 프로젝트 사용: `references/sources.md`에 고정 리비전, 라이선스, 확인 날짜, 채택/거절 경계를 기록합니다. 제3자 규칙 목록이나 코퍼스를 복사하지 않습니다.

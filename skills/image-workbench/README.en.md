@@ -53,6 +53,6 @@ Check the current version in `SKILL.md` `metadata.version` and [CHANGELOG](CHANG
 ## Changelog and maintainer docs
 
 - [CHANGELOG](CHANGELOG.md)
-- [Contract](../../docs/maintainers/image-workbench/contract.md)
-- [Testing](../../docs/maintainers/image-workbench/testing.md)
-- [Release](../../docs/maintainers/image-workbench/release.md)
+- [Contract](../../docs/maintainers/products/image-workbench/contract.md)
+- [Testing](../../docs/maintainers/products/image-workbench/testing.md)
+- [Release](../../docs/maintainers/products/image-workbench/release.md)

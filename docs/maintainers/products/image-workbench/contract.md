@@ -24,6 +24,6 @@ SVG, 벡터 마크, 아이콘, 네이티브 UI, 데이터 시각, 정확한 레�
 
 trigger, mode, 또는 authorization이 바뀌면 `skills/image-workbench/SKILL.md`, 긍정 픽스처, near-miss 픽스처, 제품 README와 공유 공개 안내를 같은 변경에서 고칩니다. `brief`/`audit`의 읽기 전용 경계와 generate/edit의 명시 승인을 픽스처로 다시 확인하세요.
 
-ImageSpec, 입력 역할, route 변경은 스킬, [ImageSpec 참조](../../../skills/image-workbench/references/image-spec.md), 픽스처를 맞춥니다. 수락 기준이 바뀌면 같은 변경에서 [품질 루브릭](../../../skills/image-workbench/references/quality-rubric.md)을 고칩니다. 상태나 핸드오프 변경은 루브릭, 평가기, 픽스처, 공개 안내를 함께 고칩니다.
+ImageSpec, 입력 역할, route 변경은 스킬, [ImageSpec 참조](../../../../skills/image-workbench/references/image-spec.md), 픽스처를 맞춥니다. 수락 기준이 바뀌면 같은 변경에서 [품질 루브릭](../../../../skills/image-workbench/references/quality-rubric.md)을 고칩니다. 상태나 핸드오프 변경은 루브릭, 평가기, 픽스처, 공개 안내를 함께 고칩니다.
 
-공급자 또는 출처 주장은 직접 권위 locator, 확인 날짜, 채택 아이디어, 거절 경계가 필요하며 런타임 동작을 자동으로 바꾸지 않습니다. 새 외부 저장소를 쓰려면 그 리비전의 불변 커밋, 그 리비전에서 읽은 라이선스 파일, 재사용 경계를 [sources.md](../../../skills/image-workbench/references/sources.md)에 기록합니다.
+공급자 또는 출처 주장은 직접 권위 locator, 확인 날짜, 채택 아이디어, 거절 경계가 필요하며 런타임 동작을 자동으로 바꾸지 않습니다. 새 외부 저장소를 쓰려면 그 리비전의 불변 커밋, 그 리비전에서 읽은 라이선스 파일, 재사용 경계를 [sources.md](../../../../skills/image-workbench/references/sources.md)에 기록합니다.

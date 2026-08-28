@@ -94,14 +94,14 @@ def _catalog() -> dict[str, Stage]:
         "korean-offline": Stage(
             "korean-offline",
             _python(
-                _posix("tests", "korean-writing-editor", "offline", "run.py"),
+                _posix("tests", "products", "korean-writing-editor", "offline", "run.py"),
                 "--scope",
                 "full",
             ),
         ),
         "image-contract": Stage(
             "image-contract",
-            _python(_posix("tests", "image-workbench", "run.py"), "--scope", "full"),
+            _python(_posix("tests", "products", "image-workbench", "run.py"), "--scope", "full"),
         ),
         "image-inspector": Stage(
             "image-inspector",
@@ -110,7 +110,7 @@ def _catalog() -> dict[str, Stage]:
                 "unittest",
                 "discover",
                 "-s",
-                _posix("tests", "image-workbench"),
+                _posix("tests", "products", "image-workbench"),
                 "-p",
                 "test_*.py",
             ),
@@ -122,7 +122,7 @@ def _catalog() -> dict[str, Stage]:
                 "unittest",
                 "discover",
                 "-s",
-                _posix("tests", "korean-writing-editor", "live"),
+                _posix("tests", "products", "korean-writing-editor", "live"),
                 "-p",
                 "test_*.py",
             ),
@@ -130,7 +130,7 @@ def _catalog() -> dict[str, Stage]:
         "korean-live-dry-run": Stage(
             "korean-live-dry-run",
             _python(
-                _posix("tests", "korean-writing-editor", "live", "live_matrix.py"),
+                _posix("tests", "products", "korean-writing-editor", "live", "live_matrix.py"),
                 "--dry-run",
             ),
         ),
@@ -144,11 +144,27 @@ def _catalog() -> dict[str, Stage]:
         ),
         "korean-package": Stage(
             "korean-package",
-            _python("-m", "unittest", "tests.contract.test_korean_package"),
+            _python(
+                "-m",
+                "unittest",
+                "discover",
+                "-s",
+                _posix("tests", "products", "korean-writing-editor"),
+                "-p",
+                "test_package.py",
+            ),
         ),
         "graspic-contract": Stage(
             "graspic-contract",
-            _python("-m", "unittest", "tests.contract.test_graspic"),
+            _python(
+                "-m",
+                "unittest",
+                "discover",
+                "-s",
+                _posix("tests", "products", "graspic"),
+                "-p",
+                "test_contract.py",
+            ),
         ),
         "catalog-contract": Stage(
             "catalog-contract",

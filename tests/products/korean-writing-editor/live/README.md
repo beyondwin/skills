@@ -71,7 +71,7 @@ not authorize or prove live execution; it verifies only the thirty-one synthetic
 offline fixtures and their mutation contract.
 
 ```bash
-python3 tests/korean-writing-editor/offline/run.py --scope full --skill-root skills/korean-writing-editor
+python3 tests/products/korean-writing-editor/offline/run.py --scope full --skill-root skills/korean-writing-editor
 ```
 
 ## Dry Run
@@ -79,7 +79,7 @@ python3 tests/korean-writing-editor/offline/run.py --scope full --skill-root ski
 This provider-free command prints only the approved call plan and budgets:
 
 ```bash
-python3 tests/korean-writing-editor/live/live_matrix.py --dry-run
+python3 tests/products/korean-writing-editor/live/live_matrix.py --dry-run
 ```
 
 The payload must show 119 producer calls, 3 reviewer calls, and 122 baseline
@@ -142,7 +142,7 @@ path only when resuming that exact interrupted cycle.
 
 ```bash
 RUN_ID="example-baseline-run"
-python3 tests/korean-writing-editor/live/live_matrix.py \
+python3 tests/products/korean-writing-editor/live/live_matrix.py \
   --preflight --scope baseline --run-id "$RUN_ID" --jobs 3 --max-calls 122 \
   --evidence-root .evidence/korean-writing-editor/live \
   --report reports/live-evaluation.md
@@ -158,7 +158,7 @@ the operation that may be billable.
 
 ```bash
 RUN_ID="example-baseline-run"
-python3 tests/korean-writing-editor/live/live_matrix.py \
+python3 tests/products/korean-writing-editor/live/live_matrix.py \
   --execute --scope baseline --run-id "$RUN_ID" --jobs 3 --max-calls 122 \
   --evidence-root .evidence/korean-writing-editor/live \
   --report reports/live-evaluation.md
@@ -204,7 +204,7 @@ publication.
 
 ```bash
 RUN_ID="example-baseline-run"
-python3 tests/korean-writing-editor/live/live_matrix.py \
+python3 tests/products/korean-writing-editor/live/live_matrix.py \
   --execute --resume --scope baseline --run-id "$RUN_ID" --jobs 3 --max-calls 122 \
   --evidence-root .evidence/korean-writing-editor/live \
   --report reports/live-evaluation.md
@@ -285,7 +285,7 @@ prior evidence; do not invent either value here. Repeat `--remediation-call`
 only for those exact IDs, in canonical plan order.
 
 ```bash
-python3 tests/korean-writing-editor/live/live_matrix.py \
+python3 tests/products/korean-writing-editor/live/live_matrix.py \
   --preflight --scope remediation --run-id "<approved remediation run ID>" \
   --jobs 3 --max-calls 38 \
   --remediation-call "<exact planned producer call ID>" \
@@ -293,7 +293,7 @@ python3 tests/korean-writing-editor/live/live_matrix.py \
 ```
 
 ```bash
-python3 tests/korean-writing-editor/live/live_matrix.py \
+python3 tests/products/korean-writing-editor/live/live_matrix.py \
   --execute --scope remediation --run-id "<approved remediation run ID>" \
   --jobs 3 --max-calls 38 \
   --remediation-call "<exact planned producer call ID>" \

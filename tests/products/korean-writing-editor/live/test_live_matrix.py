@@ -31,7 +31,7 @@ import live_matrix  # noqa: E402
 
 INSTALL_STATE_FIXTURE = HERE / "fixtures" / "task-7-install-state.json"
 PREFLIGHT_COMMIT_FIXTURE = HERE / "fixtures" / "task-7-preflight-commit.json"
-REPOSITORY_ROOT = pathlib.Path(__file__).resolve().parents[3]
+REPOSITORY_ROOT = pathlib.Path(__file__).resolve().parents[4]
 PUBLIC_SKILL_ROOT = REPOSITORY_ROOT / "skills" / "korean-writing-editor"
 EVIDENCE_ROOT = REPOSITORY_ROOT / ".evidence" / "korean-writing-editor" / "live"
 
@@ -751,29 +751,29 @@ def assert_live_guide_contract(markdown: str) -> None:
         ("##", "Limitations"),
     ]
     expected_bash_fences = [
-        "python3 tests/korean-writing-editor/offline/run.py --scope full --skill-root skills/korean-writing-editor",
-        "python3 tests/korean-writing-editor/live/live_matrix.py --dry-run",
+        "python3 tests/products/korean-writing-editor/offline/run.py --scope full --skill-root skills/korean-writing-editor",
+        "python3 tests/products/korean-writing-editor/live/live_matrix.py --dry-run",
         'RUN_ID="example-baseline-run"\n'
-        "python3 tests/korean-writing-editor/live/live_matrix.py \\\n"
+        "python3 tests/products/korean-writing-editor/live/live_matrix.py \\\n"
         '  --preflight --scope baseline --run-id "$RUN_ID" --jobs 3 --max-calls 122 \\\n'
         "  --evidence-root .evidence/korean-writing-editor/live \\\n"
         "  --report reports/live-evaluation.md",
         'RUN_ID="example-baseline-run"\n'
-        "python3 tests/korean-writing-editor/live/live_matrix.py \\\n"
+        "python3 tests/products/korean-writing-editor/live/live_matrix.py \\\n"
         '  --execute --scope baseline --run-id "$RUN_ID" --jobs 3 --max-calls 122 \\\n'
         "  --evidence-root .evidence/korean-writing-editor/live \\\n"
         "  --report reports/live-evaluation.md",
         'RUN_ID="example-baseline-run"\n'
-        "python3 tests/korean-writing-editor/live/live_matrix.py \\\n"
+        "python3 tests/products/korean-writing-editor/live/live_matrix.py \\\n"
         '  --execute --resume --scope baseline --run-id "$RUN_ID" --jobs 3 --max-calls 122 \\\n'
         "  --evidence-root .evidence/korean-writing-editor/live \\\n"
         "  --report reports/live-evaluation.md",
-        "python3 tests/korean-writing-editor/live/live_matrix.py \\\n"
+        "python3 tests/products/korean-writing-editor/live/live_matrix.py \\\n"
         '  --preflight --scope remediation --run-id "<approved remediation run ID>" \\\n'
         "  --jobs 3 --max-calls 38 \\\n"
         '  --remediation-call "<exact planned producer call ID>" \\\n'
         "  --evidence-root .evidence/korean-writing-editor/live",
-        "python3 tests/korean-writing-editor/live/live_matrix.py \\\n"
+        "python3 tests/products/korean-writing-editor/live/live_matrix.py \\\n"
         '  --execute --scope remediation --run-id "<approved remediation run ID>" \\\n'
         "  --jobs 3 --max-calls 38 \\\n"
         '  --remediation-call "<exact planned producer call ID>" \\\n'
@@ -899,7 +899,7 @@ class LiveDocumentationTests(unittest.TestCase):
                 )
             )
         for original, mutated in (
-            ("tests/korean-writing-editor/offline/run.py --scope full", "tests/korean-writing-editor/offline/run.py --scope fast"),
+            ("tests/products/korean-writing-editor/offline/run.py --scope full", "tests/products/korean-writing-editor/offline/run.py --scope fast"),
             ("does not call Codex, Cursor, or any provider", "may call Codex, Cursor, or another provider"),
             (
                 "A path swap cannot redirect bytes into a replacement or user inode.",
@@ -1035,7 +1035,7 @@ class LiveDocumentationTests(unittest.TestCase):
         dry_run = next(command for command in commands if "--dry-run" in command)
         self.assertEqual(
             dry_run.strip().split(),
-            ["python3", "tests/korean-writing-editor/live/live_matrix.py", "--dry-run"],
+            ["python3", "tests/products/korean-writing-editor/live/live_matrix.py", "--dry-run"],
         )
         self.assertIn(
             "119 producer calls, 3 reviewer calls, and "

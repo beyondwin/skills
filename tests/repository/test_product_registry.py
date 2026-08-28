@@ -93,18 +93,18 @@ class RegistryParsingTests(unittest.TestCase):
         self.assertEqual(product.name, "graspic")
         self.assertEqual(product.display_name, "graspic")
         self.assertEqual(product.skill_path, pathlib.PurePosixPath("skills/graspic"))
-        self.assertEqual(product.test_path, pathlib.PurePosixPath("tests/graspic"))
+        self.assertEqual(product.test_path, pathlib.PurePosixPath("tests/products/graspic"))
         self.assertEqual(
             product.maintainer_docs,
-            pathlib.PurePosixPath("docs/maintainers/graspic"),
+            pathlib.PurePosixPath("docs/maintainers/products/graspic"),
         )
         self.assertEqual(product.supported_hosts, ("codex",))
         self.assertEqual(
             product.owned_paths,
             (
                 pathlib.PurePosixPath("skills/graspic"),
-                pathlib.PurePosixPath("tests/graspic"),
-                pathlib.PurePosixPath("docs/maintainers/graspic"),
+                pathlib.PurePosixPath("tests/products/graspic"),
+                pathlib.PurePosixPath("docs/maintainers/products/graspic"),
             ),
         )
         self.assertEqual(
@@ -252,13 +252,36 @@ class RegistryRejectionTests(unittest.TestCase):
 
 
 class RegistryValidationTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.registry = load_registry(ROOT / "products.toml")
+
     def _declared_stages(self) -> set[str]:
-        registry = load_registry(ROOT / "products.toml")
         return {
             stage
-            for product in registry.products
+            for product in self.registry.products
             for stage in product.verify_stages
         }
+
+    def test_registry_exactly_covers_product_directories(self) -> None:
+        registry = load_registry(ROOT / "products.toml")
+        self.assertEqual(
+            {path.name for path in (ROOT / "skills").iterdir() if path.is_dir()},
+            set(registry.names),
+        )
+        self.assertEqual(
+            {path.name for path in (ROOT / "tests/products").iterdir() if path.is_dir()},
+            set(registry.names),
+        )
+        self.assertEqual(
+            {path.name for path in (ROOT / "docs/maintainers/products").iterdir() if path.is_dir()},
+            set(registry.names),
+        )
+
+    def test_each_product_has_four_maintainer_guides(self) -> None:
+        expected = {"contract.md", "testing.md", "compatibility.md", "release.md"}
+        for product in self.registry.products:
+            actual = {path.name for path in (ROOT / product.maintainer_docs).glob("*.md")}
+            self.assertEqual(actual, expected, product.name)
 
     def test_current_registry_has_no_validation_errors(self) -> None:
         registry = load_registry(ROOT / "products.toml")

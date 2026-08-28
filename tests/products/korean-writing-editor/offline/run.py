@@ -620,7 +620,7 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("one of --self-test or --scope is required")
 
     skill_root = args.skill_root or (
-        pathlib.Path(__file__).resolve().parents[3] / "skills" / "korean-writing-editor"
+        pathlib.Path(__file__).resolve().parents[4] / "skills" / "korean-writing-editor"
     )
     cases_path = pathlib.Path(__file__).with_name("cases.json")
 
