@@ -13,20 +13,18 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from scripts.lib.documentation import (  # noqa: E402
+    active_markdown_paths,
+    broken_markdown_links,
+    markdown_links,
+)
 from scripts.lib.product_contract import validate_product  # noqa: E402
 from scripts.lib.product_registry import load_registry  # noqa: E402
 
 REGISTRY = load_registry(ROOT / "products.toml")
 
 VERSION_LITERAL_RE = re.compile(r"\b[0-9]+\.[0-9]+\.[0-9]+\b")
-MARKDOWN_LINK_RE = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
-HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$", re.MULTILINE)
 
-PRODUCT_TITLES = {
-    "korean-writing-editor": "Korean Writing Editor",
-    "image-workbench": "Image Workbench",
-    "graspic": "graspic",
-}
 KOREAN_PRODUCT_HEADINGS = (
     "이 스킬이 해결하는 문제",
     "사용해야 할 때와 사용하지 말아야 할 때",
@@ -38,15 +36,11 @@ KOREAN_PRODUCT_HEADINGS = (
     "변경 이력과 관리자 문서",
 )
 INSTALLER_COMMANDS = {
-    "korean-writing-editor": (
-        "$skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor"
-    ),
-    "image-workbench": (
-        "$skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench"
-    ),
-    "graspic": (
-        "$skill-installer https://github.com/beyondwin/skills/tree/main/skills/graspic"
-    ),
+    product.name: (
+        "$skill-installer https://github.com/beyondwin/skills/tree/main/"
+        f"{product.skill_path.as_posix()}"
+    )
+    for product in REGISTRY.products
 }
 KOREAN_SUPPORT = (
     "korean-writing-editor: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke."
@@ -66,18 +60,18 @@ OFFLINE_EVIDENCE = "Offline fixtures: deterministic contract evidence only."
 LIVE_EVIDENCE = (
     "Live execution: local, explicit, optional, potentially billable, and never required by CI."
 )
-PRIMARY_INSTALL_PATHS = (
-    "https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor",
-    "https://github.com/beyondwin/skills/tree/main/skills/image-workbench",
-    "https://github.com/beyondwin/skills/tree/main/skills/graspic",
+PRIMARY_INSTALL_PATHS = tuple(
+    "https://github.com/beyondwin/skills/tree/main/"
+    f"{product.skill_path.as_posix()}"
+    for product in REGISTRY.products
 )
 OPTIONAL_NPX = "npx skills add beyondwin/skills --skill korean-writing-editor"
 GIT_CLONE = "git clone https://github.com/beyondwin/skills"
 LIVE_BUDGETS = ("119", "3", "122", "38", "160")
 README_PATHS = (ROOT / "README.md", ROOT / "README.en.md")
 PRODUCT_README_PATHS = tuple(
-    ROOT / "skills" / name / filename
-    for name in REGISTRY.names
+    ROOT / product.skill_path / filename
+    for product in REGISTRY.products
     for filename in ("README.md", "README.en.md")
 )
 USER_GUIDES = (
@@ -117,8 +111,8 @@ REGISTRY_SCHEMA_FIELDS = (
     "verify_stages",
 )
 MAINTAINER_DOCS = (MAINTAINER_INDEX,) + REPOSITORY_DOCS + tuple(
-    ROOT / "docs" / "maintainers" / "products" / name / filename
-    for name in REGISTRY.names
+    ROOT / product.maintainer_docs / filename
+    for product in REGISTRY.products
     for filename in PRODUCT_PROTOCOL_FILES
 )
 CATALOG_DOCS = (
@@ -157,13 +151,6 @@ ACTIVE_ROUTING_SURFACES = (
         ROOT / ".github" / "pull_request_template.md",
     )
 )
-FUTURE_COMMUNITY_FILES = frozenset(
-    {
-        "CONTRIBUTING.md",
-        "SECURITY.md",
-        "CODE_OF_CONDUCT.md",
-    }
-)
 UNSAFE_INSTALL = (
     "curl | sh",
     "curl|sh",
@@ -188,7 +175,7 @@ PERSONAL_MARKERS = ("/Users/", "source/private", "SKILLS_ARCHIVE_CHECKOUT")
 README_ORDER_EN = (
     "beyondwin-skills",
     "actions/workflows/verify.yml",
-    "korean-writing-editor",
+    REGISTRY.names[0],
     "$skill-installer",
     "python3 scripts/verify.py",
     "CONTRIBUTING.md",
@@ -196,7 +183,7 @@ README_ORDER_EN = (
 README_ORDER_KO = (
     "beyondwin-skills",
     "actions/workflows/verify.yml",
-    "korean-writing-editor",
+    REGISTRY.names[0],
     "$skill-installer",
     "python3 scripts/verify.py",
     "CONTRIBUTING.md",
@@ -211,65 +198,14 @@ def _assert_exists(test: unittest.TestCase, path: Path) -> None:
     test.assertTrue(path.is_file(), f"{path.relative_to(ROOT).as_posix()} is absent")
 
 
-def _heading_ids(text: str) -> set[str]:
-    seen: dict[str, int] = {}
-    ids: set[str] = set()
-    for match in HEADING_RE.finditer(text):
-        heading = match.group(2).replace("`", "")
-        slug = heading.strip().lower()
-        slug = re.sub(r"[^\w\s-]", "", slug, flags=re.UNICODE)
-        slug = re.sub(r"\s+", "-", slug)
-        count = seen.get(slug, 0)
-        seen[slug] = count + 1
-        ids.add(slug if count == 0 else f"{slug}-{count}")
-    return ids
-
-
-def _relative_link_errors(document: Path, text: str) -> list[str]:
-    errors: list[str] = []
-    base = document.parent
-    relative = document.relative_to(ROOT).as_posix()
-    heading_ids = _heading_ids(text)
-    for href in MARKDOWN_LINK_RE.findall(text):
-        target = href.strip()
-        if not target:
-            continue
-        if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", target):
-            continue
-        path_part, _, anchor = target.partition("#")
-        if not path_part:
-            if anchor and anchor not in heading_ids:
-                errors.append(f"missing anchor in {relative}: #{anchor}")
-            continue
-        resolved = (base / path_part).resolve()
-        try:
-            resolved.relative_to(ROOT.resolve())
-        except ValueError:
-            errors.append(f"link escapes repository in {relative}: {target}")
-            continue
-        if resolved.name in FUTURE_COMMUNITY_FILES and resolved.parent == ROOT.resolve():
-            continue
-        if not resolved.exists():
-            errors.append(f"broken relative link in {relative}: {target}")
-            continue
-        if anchor:
-            if resolved.is_file():
-                target_ids = _heading_ids(_read(resolved))
-            else:
-                target_ids = set()
-            if anchor not in target_ids:
-                errors.append(f"missing anchor in {relative}: {target}")
-    return errors
-
-
 class ProductReadmeOwnershipTests(unittest.TestCase):
     def test_every_product_owns_a_korean_english_readme_pair(self) -> None:
-        for name in REGISTRY.names:
-            korean = ROOT / "skills" / name / "README.md"
-            english = ROOT / "skills" / name / "README.en.md"
-            self.assertTrue(korean.is_file(), f"{name} missing README.md")
-            self.assertTrue(english.is_file(), f"{name} missing README.en.md")
-            self.assertRegex(_read(korean), r"[가-힣]")
+        for product in REGISTRY.products:
+            korean = ROOT / product.skill_path / "README.md"
+            english = ROOT / product.skill_path / "README.en.md"
+            self.assertTrue(korean.is_file(), f"{product.name} missing README.md")
+            self.assertTrue(english.is_file(), f"{product.name} missing README.en.md")
+            self.assertRegex(_read(korean), r"[가-힣]", product.name)
             english_text = _read(english)
             self.assertIn("[한국어](README.md)", english_text)
             self.assertNotRegex(
@@ -308,38 +244,42 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
     def test_every_product_is_reachable_in_one_link_from_root(self) -> None:
         korean = (ROOT / "README.md").read_text(encoding="utf-8")
         english = (ROOT / "README.en.md").read_text(encoding="utf-8")
-        for name in REGISTRY.names:
-            self.assertIn(f"skills/{name}/README.md", korean)
-            self.assertIn(f"skills/{name}/README.en.md", english)
+        for product in REGISTRY.products:
+            self.assertIn(f"{product.skill_path.as_posix()}/README.md", korean)
+            self.assertIn(f"{product.skill_path.as_posix()}/README.en.md", english)
 
     def test_korean_product_readmes_use_required_heading_order(self) -> None:
-        for name, title in PRODUCT_TITLES.items():
-            path = ROOT / "skills" / name / "README.md"
+        for product in REGISTRY.products:
+            path = ROOT / product.skill_path / "README.md"
             _assert_exists(self, path)
             text = _read(path)
-            self.assertTrue(text.startswith(f"# {title}\n"), f"{name} title")
+            self.assertTrue(
+                text.startswith(f"# {product.display_name}\n"),
+                f"{product.name} title",
+            )
             last = -1
             for heading in KOREAN_PRODUCT_HEADINGS:
                 marker = f"## {heading}"
                 pos = text.find(marker)
-                self.assertGreaterEqual(pos, 0, f"{name} missing {marker!r}")
-                self.assertGreater(pos, last, f"{name} out of order: {marker!r}")
+                self.assertGreaterEqual(pos, 0, f"{product.name} missing {marker!r}")
+                self.assertGreater(pos, last, f"{product.name} out of order: {marker!r}")
                 last = pos
 
     def test_product_readmes_include_installer_support_and_maintainer_link(self) -> None:
-        for name in REGISTRY.names:
+        for product in REGISTRY.products:
             for filename in ("README.md", "README.en.md"):
-                path = ROOT / "skills" / name / filename
+                path = ROOT / product.skill_path / filename
                 _assert_exists(self, path)
                 text = _read(path)
-                self.assertIn(INSTALLER_COMMANDS[name], text)
-                self.assertIn(SUPPORT_BY_PRODUCT[name], text)
+                self.assertIn(INSTALLER_COMMANDS[product.name], text)
+                self.assertIn(SUPPORT_BY_PRODUCT[product.name], text)
                 self.assertIn("CHANGELOG.md", text)
-                self.assertIn(f"docs/maintainers/products/{name}/contract.md", text)
-                self.assertIn(f"docs/maintainers/products/{name}/testing.md", text)
-                self.assertIn(f"docs/maintainers/products/{name}/compatibility.md", text)
-                self.assertIn(f"docs/maintainers/products/{name}/release.md", text)
-                self.assertNotIn(f"docs/maintainers/{name}.md", text)
+                maintainer = product.maintainer_docs.as_posix()
+                self.assertIn(f"{maintainer}/contract.md", text)
+                self.assertIn(f"{maintainer}/testing.md", text)
+                self.assertIn(f"{maintainer}/compatibility.md", text)
+                self.assertIn(f"{maintainer}/release.md", text)
+                self.assertNotIn(f"docs/maintainers/{product.name}.md", text)
                 self.assertTrue(
                     "inspect" in text.lower() or "확인" in text,
                     f"{path.relative_to(ROOT).as_posix()} must describe the update check",
@@ -416,8 +356,8 @@ class UserGuideFactTests(unittest.TestCase):
             text = _read(document)
             language = "en" if "docs/users/en/" in document.as_posix() else "ko"
             filename = "README.en.md" if language == "en" else "README.md"
-            for name in REGISTRY.names:
-                self.assertIn(f"skills/{name}/{filename}", text)
+            for product in REGISTRY.products:
+                self.assertIn(f"{product.skill_path.as_posix()}/{filename}", text)
 
     def test_compatibility_owns_the_three_support_sentences(self) -> None:
         for document in (
@@ -426,9 +366,8 @@ class UserGuideFactTests(unittest.TestCase):
         ):
             _assert_exists(self, document)
             text = _read(document)
-            self.assertIn(KOREAN_SUPPORT, text)
-            self.assertIn(IMAGE_SUPPORT, text)
-            self.assertIn(GRASPIC_SUPPORT, text)
+            for product in REGISTRY.products:
+                self.assertIn(SUPPORT_BY_PRODUCT[product.name], text)
 
     def test_installation_covers_install_update_and_inspection(self) -> None:
         for document in (
@@ -517,9 +456,9 @@ class DocumentationArchitectureTests(unittest.TestCase):
         text = _read(DOCS_INDEX)
         self.assertRegex(text, r"[가-힣]")
         self.assertIn("docs/users/", text)
-        for name in REGISTRY.names:
-            self.assertIn(f"skills/{name}/README.md", text)
-            self.assertIn(f"skills/{name}/README.en.md", text)
+        for product in REGISTRY.products:
+            self.assertIn(f"{product.skill_path.as_posix()}/README.md", text)
+            self.assertIn(f"{product.skill_path.as_posix()}/README.en.md", text)
         self.assertIn("docs/maintainers/", text)
         self.assertIn("docs/history/", text)
 
@@ -570,13 +509,116 @@ class DocumentationArchitectureTests(unittest.TestCase):
             self.assertIn(href, index)
 
 
+def _linked_path(document: Path, href: str) -> Path | None:
+    target = href.strip()
+    if not target or re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", target):
+        return None
+    path_part = target.split("#", 1)[0].split("?", 1)[0]
+    if not path_part:
+        return None
+    return (document.parent / path_part).resolve()
+
+
+class RegistryDrivenPublicDocTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.registry = load_registry(ROOT / "products.toml")
+
+    def test_root_readmes_cover_registered_products(self) -> None:
+        for relative in ("README.md", "README.en.md"):
+            text = (ROOT / relative).read_text(encoding="utf-8")
+            for product in self.registry.products:
+                self.assertIn(product.name, text, relative)
+                self.assertIn(product.skill_path.as_posix(), text, relative)
+
+    def test_product_readmes_match_registry_hosts(self) -> None:
+        for product in self.registry.products:
+            for filename in ("README.md", "README.en.md"):
+                text = (ROOT / product.skill_path / filename).read_text(encoding="utf-8")
+                for host in product.supported_hosts:
+                    self.assertIn(host, text.lower(), f"{product.name}/{filename}")
+
+    def test_all_active_markdown_links_resolve(self) -> None:
+        self.assertEqual(broken_markdown_links(ROOT, active_markdown_paths(ROOT)), [])
+
+    def test_active_markdown_paths_match_public_doc_inventory(self) -> None:
+        self.assertEqual(
+            {path.resolve() for path in active_markdown_paths(ROOT)},
+            {path.resolve() for path in PUBLIC_DOC_PATHS},
+        )
+
+
+class MarkdownLinkHelperTests(unittest.TestCase):
+    def test_markdown_links_extract_relative_angle_bracket_and_fragments(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "doc.md"
+            path.write_text(
+                "[a](../x.md) [b](<y z.md>) [c](https://example.com) "
+                "[d](#local) [e](found.md?raw=1#title)\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                markdown_links(path),
+                (
+                    "../x.md",
+                    "y z.md",
+                    "https://example.com",
+                    "#local",
+                    "found.md?raw=1#title",
+                ),
+            )
+
+    def test_broken_markdown_links_ignore_http_https_mailto_and_in_page(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "found.md").write_text("# Found\n", encoding="utf-8")
+            doc = root / "doc.md"
+            doc.write_text(
+                "[web](https://example.com/a) [plain](http://example.com) "
+                "[mail](mailto:a@b.com) [here](#missing) [ok](found.md)\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(broken_markdown_links(root, [doc]), [])
+
+    def test_broken_markdown_links_report_missing_files_in_sorted_order(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            doc = root / "doc.md"
+            doc.write_text("[z](z.md) [a](a.md)\n", encoding="utf-8")
+            self.assertEqual(
+                broken_markdown_links(root, [doc]),
+                [
+                    "broken relative link in doc.md: a.md",
+                    "broken relative link in doc.md: z.md",
+                ],
+            )
+
+    def test_broken_markdown_links_strip_query_and_fragment_and_resolve_angles(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "found.md").write_text("# Title\n", encoding="utf-8")
+            (root / "my file.md").write_text("# Hi\n", encoding="utf-8")
+            doc = root / "doc.md"
+            doc.write_text(
+                "[ok](found.md?raw=1#title) [space](<my file.md>)\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(broken_markdown_links(root, [doc]), [])
+
+    def test_broken_markdown_links_report_missing_fragments_on_relative_targets(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "found.md").write_text("# Title\n", encoding="utf-8")
+            doc = root / "doc.md"
+            doc.write_text("[bad](found.md#missing)\n", encoding="utf-8")
+            self.assertEqual(
+                broken_markdown_links(root, [doc]),
+                ["missing anchor in doc.md: found.md#missing"],
+            )
+
+
 class ReachabilityTests(unittest.TestCase):
     def test_public_relative_links_and_anchors_resolve(self) -> None:
-        errors: list[str] = []
-        for document in PUBLIC_DOC_PATHS:
-            _assert_exists(self, document)
-            errors.extend(_relative_link_errors(document, _read(document)))
-        self.assertEqual(errors, [])
+        self.assertEqual(broken_markdown_links(ROOT, PUBLIC_DOC_PATHS), [])
 
     def test_no_user_document_is_orphaned_from_the_root_catalog(self) -> None:
         targets = {path.resolve() for path in ACTIVE_USER_DOCS}
@@ -588,15 +630,9 @@ class ReachabilityTests(unittest.TestCase):
             if resolved in reachable or not resolved.is_file():
                 continue
             reachable.add(resolved)
-            for href in MARKDOWN_LINK_RE.findall(_read(resolved)):
-                target = href.strip()
-                if not target or re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", target):
-                    continue
-                path_part = target.split("#", 1)[0]
-                if not path_part:
-                    continue
-                linked = (resolved.parent / path_part).resolve()
-                if linked in targets and linked not in reachable:
+            for href in markdown_links(resolved):
+                linked = _linked_path(resolved, href)
+                if linked is not None and linked in targets and linked not in reachable:
                     stack.append(linked)
         missing = sorted(
             path.relative_to(ROOT).as_posix()
@@ -628,9 +664,9 @@ class InstallSafetyTests(unittest.TestCase):
 
 class MaintainerStructureTests(unittest.TestCase):
     def test_every_product_has_contract_testing_and_release(self) -> None:
-        for name in REGISTRY.names:
-            directory = ROOT / "docs" / "maintainers" / "products" / name
-            self.assertTrue(directory.is_dir(), f"{name} maintainer directory is absent")
+        for product in REGISTRY.products:
+            directory = ROOT / product.maintainer_docs
+            self.assertTrue(directory.is_dir(), f"{product.name} maintainer directory is absent")
             for filename in PRODUCT_PROTOCOL_FILES:
                 path = directory / filename
                 _assert_exists(self, path)
@@ -659,9 +695,9 @@ class MaintainerStructureTests(unittest.TestCase):
             "repository/migrations.md",
         ):
             self.assertIn(href, index)
-        for name in REGISTRY.names:
+        for product in REGISTRY.products:
             for filename in PRODUCT_PROTOCOL_FILES:
-                self.assertIn(f"{name}/{filename}", index)
+                self.assertIn(f"{product.name}/{filename}", index)
         targets = {path.resolve() for path in MAINTAINER_DOCS}
         reachable: set[Path] = set()
         stack = [MAINTAINER_INDEX]
@@ -671,15 +707,9 @@ class MaintainerStructureTests(unittest.TestCase):
             if resolved in reachable or not resolved.is_file():
                 continue
             reachable.add(resolved)
-            for href in MARKDOWN_LINK_RE.findall(_read(resolved)):
-                target = href.strip()
-                if not target or re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", target):
-                    continue
-                path_part = target.split("#", 1)[0]
-                if not path_part:
-                    continue
-                linked = (resolved.parent / path_part).resolve()
-                if linked in targets and linked not in reachable:
+            for href in markdown_links(resolved):
+                linked = _linked_path(resolved, href)
+                if linked is not None and linked in targets and linked not in reachable:
                     stack.append(linked)
         missing = sorted(
             path.relative_to(ROOT).as_posix()

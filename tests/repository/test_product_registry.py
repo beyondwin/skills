@@ -13,6 +13,9 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from scripts.lib.documentation import (  # noqa: E402
+    active_markdown_paths,
+)
 from scripts.lib.product_registry import (  # noqa: E402
     load_registry,
     normalize_repo_path,
@@ -303,3 +306,51 @@ class RegistryValidationTests(unittest.TestCase):
         self.assertTrue(errors)
         self.assertIn("korean-writing-editor", joined)
         self.assertIn("missing", joined)
+
+
+class RegistryDocumentationTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.registry = load_registry(ROOT / "products.toml")
+
+    def test_active_markdown_paths_include_registered_product_docs(self) -> None:
+        paths = {path.relative_to(ROOT).as_posix() for path in active_markdown_paths(ROOT)}
+        for product in self.registry.products:
+            self.assertIn(f"{product.skill_path.as_posix()}/README.md", paths)
+            self.assertIn(f"{product.skill_path.as_posix()}/README.en.md", paths)
+            for filename in ("contract.md", "testing.md", "compatibility.md", "release.md"):
+                self.assertIn(f"{product.maintainer_docs.as_posix()}/{filename}", paths, product.name)
+
+    def test_active_markdown_paths_exclude_historical_records(self) -> None:
+        extras = [
+            path.relative_to(ROOT).as_posix()
+            for path in active_markdown_paths(ROOT)
+            if path.relative_to(ROOT).as_posix().startswith("docs/history/")
+            and path.name != "README.md"
+        ]
+        self.assertEqual(extras, [])
+
+    def test_korean_and_english_docs_share_registry_install_and_host_facts(self) -> None:
+        github_root = "https://github.com/beyondwin/skills/tree/main"
+        for product in self.registry.products:
+            install = f"{github_root}/{product.skill_path.as_posix()}"
+            maintainer = product.maintainer_docs.as_posix()
+            for filename in ("README.md", "README.en.md"):
+                text = (ROOT / product.skill_path / filename).read_text(encoding="utf-8")
+                self.assertIn(product.name, text, filename)
+                self.assertIn(install, text, filename)
+                self.assertIn(maintainer, text, filename)
+                for host in product.supported_hosts:
+                    self.assertIn(host, text.lower(), f"{product.name}/{filename}")
+            for language, readme in (("ko", "README.md"), ("en", "README.en.md")):
+                for guide in (
+                    "installation.md",
+                    "compatibility.md",
+                    "safety-and-privacy.md",
+                    "verification.md",
+                ):
+                    text = (ROOT / "docs" / "users" / language / guide).read_text(
+                        encoding="utf-8"
+                    )
+                    label = f"{language}/{guide}"
+                    self.assertIn(product.name, text, label)
+                    self.assertIn(f"{product.skill_path.as_posix()}/{readme}", text, label)
