@@ -12,31 +12,45 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.release_contract import (  # noqa: E402
-    PRODUCT_NAMES,
+from scripts.lib.product_contract import (  # noqa: E402
     ProductRelease,
     load_product_release,
     payload_sha256,
     validate_product,
 )
+from scripts.lib.product_registry import load_registry  # noqa: E402
 
 EXPECTED = {
     "korean-writing-editor": "2.0.1",
     "image-workbench": "2.0.1",
     "graspic": "3.0.0",
 }
+REGISTRY = load_registry(ROOT / "products.toml")
 
 
 class ProductReleaseTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.root = ROOT
+        self.registry = REGISTRY
+
+    def test_unregistered_skill_is_rejected(self) -> None:
+        errors = validate_product(self.root / "skills" / "not-registered", self.registry)
+        self.assertIn("unlisted skill is not accepted: not-registered", errors)
+
+    def test_registered_names_come_only_from_products_toml(self) -> None:
+        source = (ROOT / "scripts/lib/product_contract.py").read_text(encoding="utf-8")
+        self.assertNotIn("PRODUCT_NAMES =", source)
+        self.assertEqual(self.registry.names, tuple(product.name for product in self.registry.products))
+
     def test_each_product_owns_an_independent_release_manifest(self) -> None:
-        self.assertEqual(set(PRODUCT_NAMES), set(EXPECTED))
+        self.assertEqual(set(self.registry.names), set(EXPECTED))
         for name, version in EXPECTED.items():
             release = load_product_release(ROOT / "skills" / name)
             self.assertIsInstance(release, ProductRelease)
             self.assertEqual(release.name, name)
             self.assertEqual(release.version, version)
             self.assertEqual(release.tag, f"{name}-v{version}")
-            self.assertEqual(validate_product(release.root), [])
+            self.assertEqual(validate_product(release.root, self.registry), [])
 
     def test_one_product_version_can_change_without_changing_neighbors(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -47,7 +61,7 @@ class ProductReleaseTests(unittest.TestCase):
                 manifest.read_text(encoding="utf-8").replace('version = "3.0.0"', 'version = "3.0.1"'),
                 encoding="utf-8",
             )
-            errors = validate_product(root)
+            errors = validate_product(root, self.registry)
             self.assertIn("release.toml version 3.0.1 != SKILL.md version 3.0.0", errors)
 
     def test_payload_hash_changes_with_bytes_but_is_stable_across_copies(self) -> None:
@@ -85,7 +99,7 @@ class ProductReleaseRejectionTests(unittest.TestCase):
             ),
             encoding="utf-8",
         )
-        errors = "\n".join(validate_product(root))
+        errors = "\n".join(validate_product(root, REGISTRY))
         self.assertIn("invalid SemVer: 2.0", errors)
 
     def test_rejects_mismatched_directory_name(self) -> None:
@@ -98,13 +112,13 @@ class ProductReleaseRejectionTests(unittest.TestCase):
             ),
             encoding="utf-8",
         )
-        errors = "\n".join(validate_product(root))
+        errors = "\n".join(validate_product(root, REGISTRY))
         self.assertIn("directory/release.toml name mismatch", errors)
 
     def test_rejects_missing_changelog(self) -> None:
         root = self._copy("graspic")
         (root / "CHANGELOG.md").unlink()
-        errors = "\n".join(validate_product(root))
+        errors = "\n".join(validate_product(root, REGISTRY))
         self.assertIn("missing CHANGELOG.md", errors)
 
     def test_rejects_missing_korean_readme(self) -> None:
@@ -112,7 +126,7 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         readme = root / "README.md"
         if readme.is_file():
             readme.unlink()
-        errors = "\n".join(validate_product(root))
+        errors = "\n".join(validate_product(root, REGISTRY))
         self.assertIn("missing README.md", errors)
 
     def test_rejects_missing_english_readme(self) -> None:
@@ -120,13 +134,13 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         readme = root / "README.en.md"
         if readme.is_file():
             readme.unlink()
-        errors = "\n".join(validate_product(root))
+        errors = "\n".join(validate_product(root, REGISTRY))
         self.assertIn("missing README.en.md", errors)
 
     def test_rejects_missing_license(self) -> None:
         root = self._copy("korean-writing-editor")
         (root / "LICENSE.txt").unlink()
-        errors = "\n".join(validate_product(root))
+        errors = "\n".join(validate_product(root, REGISTRY))
         self.assertIn("missing Apache license", errors)
 
     @unittest.skipIf(
@@ -137,7 +151,7 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         root = self._copy("graspic")
         (root / "link.md").symlink_to("SKILL.md")
         os.mkfifo(root / "pipe")
-        errors = "\n".join(validate_product(root))
+        errors = "\n".join(validate_product(root, REGISTRY))
         self.assertIn("symlink is not allowed: link.md", errors)
         self.assertIn("special file is not allowed: pipe", errors)
 
@@ -148,20 +162,20 @@ class ProductReleaseRejectionTests(unittest.TestCase):
             skill_md.read_text(encoding="utf-8") + "\n[escape](../LICENSE)\n",
             encoding="utf-8",
         )
-        errors = "\n".join(validate_product(root))
+        errors = "\n".join(validate_product(root, REGISTRY))
         self.assertIn("broken relative link", errors)
 
     def test_rejects_unexpected_top_level_file(self) -> None:
         root = self._copy("image-workbench")
         (root / "notes.txt").write_text("not part of the product\n", encoding="utf-8")
-        errors = "\n".join(validate_product(root))
+        errors = "\n".join(validate_product(root, REGISTRY))
         self.assertIn("unexpected top-level file: notes.txt", errors)
 
     def test_dated_release_validation_is_opt_in(self) -> None:
-        from scripts.release_contract import require_dated_changelog
+        from scripts.lib.product_contract import require_dated_changelog
 
         source = ROOT / "skills" / "graspic"
-        self.assertEqual(validate_product(source), [])
+        self.assertEqual(validate_product(source, REGISTRY), [])
         self.assertIn(
             "CHANGELOG.md missing dated release heading for 3.0.0",
             require_dated_changelog(source),
@@ -177,12 +191,12 @@ class ProductReleaseRejectionTests(unittest.TestCase):
             encoding="utf-8",
         )
         self.assertEqual(require_dated_changelog(root), [])
-        self.assertEqual(validate_product(root), [])
+        self.assertEqual(validate_product(root, REGISTRY), [])
 
 
 class PayloadEntryTests(unittest.TestCase):
     def test_payload_entries_are_sorted_with_normalized_modes(self) -> None:
-        from scripts.release_contract import payload_entries
+        from scripts.lib.product_contract import payload_entries
 
         entries = payload_entries(ROOT / "skills" / "image-workbench")
         paths = [entry["path"] for entry in entries]

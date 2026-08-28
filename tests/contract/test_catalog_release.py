@@ -31,8 +31,11 @@ from scripts.release_archive import (  # noqa: E402
     write_zip,
     zip_names,
 )
-from scripts.release_contract import payload_sha256  # noqa: E402
+from scripts.lib.product_contract import payload_sha256  # noqa: E402
+from scripts.lib.product_registry import load_registry  # noqa: E402
 from scripts import release  # noqa: E402
+
+REGISTRY = load_registry(ROOT / "products.toml")
 
 
 HASH_A = "a" * 64
@@ -223,12 +226,12 @@ class CatalogLegacyFixtureTests(unittest.TestCase):
 
     def test_catalog_inputs_reject_missing_locked_zip(self) -> None:
         (self.legacy_inputs / "korean-writing-editor-v2.0.0.zip").unlink()
-        errors = "\n".join(validate_catalog_inputs(ROOT, self.legacy_inputs))
+        errors = "\n".join(validate_catalog_inputs(ROOT, self.legacy_inputs, REGISTRY))
         self.assertIn("missing archive: korean-writing-editor-v2.0.0.zip", errors)
 
     def test_catalog_inputs_reject_extra_product(self) -> None:
         (self.legacy_inputs / "graspic-v3.0.0.zip").write_bytes(b"PK\x03\x04not-a-zip")
-        errors = "\n".join(validate_catalog_inputs(ROOT, self.legacy_inputs))
+        errors = "\n".join(validate_catalog_inputs(ROOT, self.legacy_inputs, REGISTRY))
         self.assertIn("unexpected zip in input directory: graspic-v3.0.0.zip", errors)
 
     def test_catalog_inputs_reject_wrong_source_version(self) -> None:
@@ -246,7 +249,7 @@ class CatalogLegacyFixtureTests(unittest.TestCase):
             self.legacy_inputs,
             ("image-workbench-v2.0.0.zip", "korean-writing-editor-v2.0.0.zip"),
         )
-        errors = "\n".join(validate_catalog_inputs(ROOT, self.legacy_inputs))
+        errors = "\n".join(validate_catalog_inputs(ROOT, self.legacy_inputs, REGISTRY))
         self.assertTrue(
             any("version" in error.lower() for error in errors.splitlines()),
             errors,
@@ -266,7 +269,7 @@ class CatalogLegacyFixtureTests(unittest.TestCase):
             self.legacy_inputs,
             ("image-workbench-v2.0.0.zip", "korean-writing-editor-v2.0.0.zip"),
         )
-        errors = "\n".join(validate_catalog_inputs(ROOT, self.legacy_inputs))
+        errors = "\n".join(validate_catalog_inputs(ROOT, self.legacy_inputs, REGISTRY))
         self.assertTrue(any("payload" in error.lower() for error in errors.splitlines()), errors)
 
     def test_catalog_inputs_reject_current_source_fallback(self) -> None:
@@ -289,7 +292,7 @@ class CatalogLegacyFixtureTests(unittest.TestCase):
             self.legacy_inputs,
             ("image-workbench-v2.0.0.zip", "korean-writing-editor-v2.0.0.zip"),
         )
-        errors = "\n".join(validate_catalog_inputs(ROOT, self.legacy_inputs))
+        errors = "\n".join(validate_catalog_inputs(ROOT, self.legacy_inputs, REGISTRY))
         self.assertTrue(
             any("payload" in error.lower() or "version" in error.lower() for error in errors.splitlines()),
             errors,
@@ -414,7 +417,7 @@ class CatalogSchemaInputTests(unittest.TestCase):
         input_dir = self.workspace / "inputs"
         input_dir.mkdir()
         (input_dir / "SHA256SUMS").write_text("", encoding="ascii")
-        errors = "\n".join(validate_catalog_inputs(root, input_dir))
+        errors = "\n".join(validate_catalog_inputs(root, input_dir, REGISTRY))
         self.assertIn("legacy-bundle", errors)
         self.assertIn("graspic", errors)
 
@@ -488,7 +491,7 @@ class CatalogIndependentFixtureTests(unittest.TestCase):
         )
         root = self._independent_root(archive)
         inputs = self._independent_inputs(archive)
-        self.assertEqual(validate_catalog_inputs(root, inputs), [])
+        self.assertEqual(validate_catalog_inputs(root, inputs, REGISTRY), [])
         output = self.workspace / "output"
         output.mkdir()
         artifacts = build_catalog(root, inputs, output)
@@ -517,7 +520,7 @@ class CatalogIndependentFixtureTests(unittest.TestCase):
         _rewrite_zip(archive, drop_release)
         root = self._independent_root(archive)
         inputs = self._independent_inputs(archive)
-        errors = "\n".join(validate_catalog_inputs(root, inputs))
+        errors = "\n".join(validate_catalog_inputs(root, inputs, REGISTRY))
         self.assertIn("release.toml", errors)
 
     def test_independent_inputs_reject_non_product_qualified_tag(self) -> None:
@@ -528,7 +531,7 @@ class CatalogIndependentFixtureTests(unittest.TestCase):
         )
         root = self._independent_root(archive, tag="v3.0.0")
         inputs = self._independent_inputs(archive)
-        errors = "\n".join(validate_catalog_inputs(root, inputs))
+        errors = "\n".join(validate_catalog_inputs(root, inputs, REGISTRY))
         self.assertIn("graspic-v3.0.0", errors)
 
 

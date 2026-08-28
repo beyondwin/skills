@@ -21,7 +21,7 @@ from scripts.catalog_contract import (  # noqa: E402
     validate_catalog,
 )
 from scripts.catalog_lock import import_legacy_release  # noqa: E402
-from scripts.release_contract import payload_sha256  # noqa: E402
+from scripts.lib.product_contract import payload_sha256  # noqa: E402
 from tests.contract.test_repository import EXPECTED_PLUGIN  # noqa: E402
 
 

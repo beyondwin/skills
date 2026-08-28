@@ -44,8 +44,7 @@ from scripts.release_archive import (  # noqa: E402
     write_checksums,
     write_zip,
 )
-from scripts.release_contract import (  # noqa: E402
-    PRODUCT_NAMES,
+from scripts.lib.product_contract import (  # noqa: E402
     SEMVER_RE,
     ProductRelease,
     load_product_release,
@@ -54,22 +53,24 @@ from scripts.release_contract import (  # noqa: E402
     require_dated_changelog as dated_changelog_errors,
     validate_product,
 )
+from scripts.lib.product_registry import load_registry  # noqa: E402
 
 
 REGULAR_FILE_MODES = frozenset({"100644", "100755"})
 SHARED_RELEASE_PATHS = (
     "scripts/release.py",
     "scripts/release_archive.py",
-    "scripts/release_contract.py",
+    "scripts/lib/product_contract.py",
 )
+REGISTRY = load_registry(ROOT / "products.toml")
 
 
 def check_product(root: Path, name: str, require_dated_changelog: bool) -> list[str]:
     root = Path(root)
-    if name not in PRODUCT_NAMES:
+    if name not in REGISTRY.names:
         return [f"unlisted skill is not accepted: {name}"]
     skill_root = root / "skills" / name
-    errors = validate_product(skill_root)
+    errors = validate_product(skill_root, REGISTRY)
     if require_dated_changelog:
         errors.extend(dated_changelog_errors(skill_root))
     errors.extend(_working_tree_errors(root, name))
@@ -113,7 +114,7 @@ def build_product(
     require_release_entry: bool = True,
 ) -> tuple[Path, Path]:
     root = Path(root)
-    if name not in PRODUCT_NAMES:
+    if name not in REGISTRY.names:
         raise ReleaseError(f"unlisted skill is not accepted: {name}")
     skill_root = root / "skills" / name
     try:
@@ -128,7 +129,7 @@ def build_product(
     members = _tracked_product_files(root, name)
     with tempfile.TemporaryDirectory() as directory:
         staged_root = _stage_members(members, Path(directory))
-        staged_errors = validate_product(staged_root)
+        staged_errors = validate_product(staged_root, REGISTRY)
         if staged_errors:
             raise ReleaseError("\n".join(staged_errors))
     archive = output / release_info.artifact_name
@@ -141,7 +142,7 @@ def build_product(
         extract_errors = extract_archive(archive, destination)
         if extract_errors:
             raise ReleaseError("\n".join(extract_errors))
-        extracted_errors = validate_product(destination / name)
+        extracted_errors = validate_product(destination / name, REGISTRY)
         if extracted_errors:
             raise ReleaseError("\n".join(extracted_errors))
     checksums = write_checksums((archive,), output / "SHA256SUMS")
@@ -151,7 +152,7 @@ def build_product(
 def verify_product_download(root: Path, name: str, directory: Path) -> list[str]:
     root = Path(root)
     directory = Path(directory)
-    if name not in PRODUCT_NAMES:
+    if name not in REGISTRY.names:
         return [f"unlisted skill is not accepted: {name}"]
     try:
         expected = load_product_release(root / "skills" / name)
@@ -176,7 +177,7 @@ def verify_product_download(root: Path, name: str, directory: Path) -> list[str]
         skill_root = destination / name
         if not skill_root.is_dir():
             return [f"missing extracted skill: {name}"]
-        extracted_errors = validate_product(skill_root)
+        extracted_errors = validate_product(skill_root, REGISTRY)
         if extracted_errors:
             return [f"{name}: {error}" for error in extracted_errors]
         version_errors = _extracted_version_errors(skill_root, expected)
@@ -188,7 +189,7 @@ def verify_product_download(root: Path, name: str, directory: Path) -> list[str]
 def build_catalog(root: Path, input_dir: Path, output: Path) -> tuple[Path, Path]:
     root = Path(root)
     input_dir = Path(input_dir)
-    errors = validate_catalog_inputs(root, input_dir)
+    errors = validate_catalog_inputs(root, input_dir, REGISTRY)
     if errors:
         raise ReleaseError("\n".join(errors))
     output = ensure_new_empty_directory(output)
@@ -278,7 +279,7 @@ def verify_catalog_download(root: Path, directory: Path) -> list[str]:
         collected: list[str] = []
         for item in lock.skills:
             skill_root = skills_root / item.name
-            item_errors = locked_extract_errors(root, skill_root, item)
+            item_errors = locked_extract_errors(root, skill_root, item, REGISTRY)
             for error in item_errors:
                 if error == f"payload hash mismatch: {item.name}":
                     collected.append(
@@ -313,7 +314,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.catalog:
             if args.input is None:
                 parser.error("check --catalog requires --input")
-            errors = validate_catalog_inputs(ROOT, args.input)
+            errors = validate_catalog_inputs(ROOT, args.input, REGISTRY)
         else:
             if args.input is not None:
                 parser.error("check --product does not accept --input")
@@ -355,7 +356,7 @@ def main(argv: list[str] | None = None) -> int:
 
 def _add_target_selector(parser: argparse.ArgumentParser) -> None:
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--product", choices=PRODUCT_NAMES)
+    group.add_argument("--product", choices=REGISTRY.names)
     group.add_argument("--catalog", action="store_true")
 
 

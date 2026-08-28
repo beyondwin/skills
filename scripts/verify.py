@@ -15,7 +15,9 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.release_contract import PRODUCT_NAMES  # noqa: E402
+from scripts.lib.product_registry import load_registry  # noqa: E402
+
+REGISTRY = load_registry(ROOT / "products.toml")
 
 PROFILES = ("full", "windows-portable")
 FULL_STAGE_NAMES = (
@@ -207,7 +209,7 @@ def main(argv: list[str] | None = None) -> int:
         help="verification profile (default: full)",
     )
     target = parser.add_mutually_exclusive_group()
-    target.add_argument("--skill", choices=PRODUCT_NAMES)
+    target.add_argument("--skill", choices=REGISTRY.names)
     target.add_argument("--catalog", action="store_true")
     args = parser.parse_args(argv)
     return run_stages(stages(args.profile, skill=args.skill, catalog=args.catalog))

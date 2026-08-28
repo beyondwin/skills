@@ -9,12 +9,9 @@ import stat
 import tomllib
 from pathlib import Path
 
+from scripts.lib.product_registry import ProductRegistry
 
-PRODUCT_NAMES = (
-    "korean-writing-editor",
-    "image-workbench",
-    "graspic",
-)
+
 SEMVER_RE = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
 ALLOWED_TOP_LEVEL = frozenset({
     "SKILL.md",
@@ -155,10 +152,10 @@ def require_dated_changelog(skill_root: Path) -> list[str]:
     return []
 
 
-def validate_product(skill_root: Path) -> list[str]:
+def validate_product(skill_root: Path, registry: ProductRegistry) -> list[str]:
     errors: list[str] = []
     skill_root = Path(skill_root)
-    if skill_root.name not in PRODUCT_NAMES:
+    if skill_root.name not in registry.names:
         errors.append(f"unlisted skill is not accepted: {skill_root.name}")
         return errors
 
@@ -268,9 +265,9 @@ def validate_product(skill_root: Path) -> list[str]:
     return errors
 
 
-def stage_product(skill_root: Path, destination: Path) -> Path:
+def stage_product(skill_root: Path, destination: Path, registry: ProductRegistry) -> Path:
     skill_root = Path(skill_root)
-    errors = validate_product(skill_root)
+    errors = validate_product(skill_root, registry)
     if errors:
         raise ValueError("\n".join(errors))
     target = Path(destination) / skill_root.name
@@ -280,7 +277,7 @@ def stage_product(skill_root: Path, destination: Path) -> Path:
         ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"),
         symlinks=False,
     )
-    staged_errors = validate_product(target)
+    staged_errors = validate_product(target, registry)
     if staged_errors:
         raise ValueError("\n".join(staged_errors))
     return target

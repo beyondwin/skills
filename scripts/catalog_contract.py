@@ -14,12 +14,13 @@ from scripts.release_archive import (
     verify_product_archive,
     _parse_checksums,
 )
-from scripts.release_contract import (
+from scripts.lib.product_contract import (
     load_product_release,
     parse_skill_frontmatter,
     payload_sha256,
     validate_product,
 )
+from scripts.lib.product_registry import ProductRegistry
 
 
 SEMVER_RE = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
@@ -219,7 +220,9 @@ def _validate_locked_skill(item: LockedSkill) -> list[str]:
     return errors
 
 
-def validate_catalog_inputs(root: Path, input_dir: Path) -> list[str]:
+def validate_catalog_inputs(
+    root: Path, input_dir: Path, registry: ProductRegistry
+) -> list[str]:
     root = Path(root)
     input_dir = Path(input_dir)
     errors = validate_catalog(root)
@@ -258,17 +261,19 @@ def validate_catalog_inputs(root: Path, input_dir: Path) -> list[str]:
         return errors
 
     for item in lock.skills:
-        errors.extend(_validate_locked_archive(root, input_dir / locked_artifact_name(item), item))
+        errors.extend(_validate_locked_archive(root, input_dir / locked_artifact_name(item), item, registry))
     return errors
 
 
-def locked_extract_errors(root: Path, skill_root: Path, item: LockedSkill) -> list[str]:
+def locked_extract_errors(
+    root: Path, skill_root: Path, item: LockedSkill, registry: ProductRegistry
+) -> list[str]:
     skill_root = Path(skill_root)
     errors: list[str] = []
     if item.release_kind == "legacy-bundle":
         errors.extend(_legacy_extract_errors(skill_root, item))
     elif item.release_kind == "independent":
-        errors.extend(_independent_extract_errors(root, skill_root, item))
+        errors.extend(_independent_extract_errors(root, skill_root, item, registry))
     else:
         errors.append(f"invalid release kind: {item.release_kind}")
     try:
@@ -295,7 +300,9 @@ def _input_directory_errors(directory: Path, expected: set[str]) -> list[str]:
     return errors
 
 
-def _validate_locked_archive(root: Path, archive: Path, item: LockedSkill) -> list[str]:
+def _validate_locked_archive(
+    root: Path, archive: Path, item: LockedSkill, registry: ProductRegistry
+) -> list[str]:
     errors = verify_product_archive(archive, item.name)
     if errors:
         return errors
@@ -307,7 +314,7 @@ def _validate_locked_archive(root: Path, archive: Path, item: LockedSkill) -> li
         skill_root = destination / item.name
         if not skill_root.is_dir():
             return [f"missing extracted skill: {item.name}"]
-        errors = locked_extract_errors(root, skill_root, item)
+        errors = locked_extract_errors(root, skill_root, item, registry)
         if errors:
             return errors
         if item.release_kind == "independent":
@@ -331,7 +338,9 @@ def _legacy_extract_errors(skill_root: Path, item: LockedSkill) -> list[str]:
     return errors
 
 
-def _independent_extract_errors(_root: Path, skill_root: Path, item: LockedSkill) -> list[str]:
+def _independent_extract_errors(
+    _root: Path, skill_root: Path, item: LockedSkill, registry: ProductRegistry
+) -> list[str]:
     errors: list[str] = []
     expected_tag = f"{item.name}-v{item.version}"
     if item.tag != expected_tag:
@@ -357,7 +366,7 @@ def _independent_extract_errors(_root: Path, skill_root: Path, item: LockedSkill
     version = _skill_version(skill_root)
     if version != item.version:
         errors.append(f"{item.name}: SKILL.md version {version} != {item.version}")
-    errors.extend(validate_product(skill_root))
+    errors.extend(validate_product(skill_root, registry))
     return errors
 
 

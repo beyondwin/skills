@@ -26,7 +26,7 @@ from scripts.release_archive import (  # noqa: E402
     verify_product_archive,
     _parse_checksums,
 )
-from scripts.release_contract import payload_sha256  # noqa: E402
+from scripts.lib.product_contract import payload_sha256  # noqa: E402
 
 
 REQUIRED_ZIPS = (

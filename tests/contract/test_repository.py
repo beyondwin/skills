@@ -14,13 +14,14 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.release_contract import (  # noqa: E402
-    PRODUCT_NAMES,
+from scripts.lib.product_contract import (  # noqa: E402
     stage_product,
     validate_product,
 )
+from scripts.lib.product_registry import load_registry  # noqa: E402
 
-SKILLS = tuple(ROOT / "skills" / name for name in PRODUCT_NAMES)
+REGISTRY = load_registry(ROOT / "products.toml")
+SKILLS = tuple(ROOT / "skills" / name for name in REGISTRY.names)
 PLUGIN_PATH = ROOT / "catalog" / "plugin" / ".codex-plugin" / "plugin.json"
 LICENSE_PATH = ROOT / "LICENSE"
 NOTICE_PATH = ROOT / "NOTICE"
@@ -171,7 +172,7 @@ class InstalledPayloadTests(unittest.TestCase):
                 (skill / "release.toml").is_file(),
                 f"{skill.name} release.toml is absent",
             )
-            self.assertEqual(validate_product(skill), [])
+            self.assertEqual(validate_product(skill, REGISTRY), [])
 
 
 class OpenAIMetadataTests(unittest.TestCase):
@@ -224,7 +225,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
                 encoding="utf-8",
             ),
         )
-        errors = "\n".join(validate_product(staged))
+        errors = "\n".join(validate_product(staged, REGISTRY))
         self.assertIn("directory/frontmatter name mismatch", errors)
 
     def test_rejects_version_mismatch(self) -> None:
@@ -240,7 +241,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
                 encoding="utf-8",
             ),
         )
-        errors = "\n".join(validate_product(staged))
+        errors = "\n".join(validate_product(staged, REGISTRY))
         self.assertIn(
             "release.toml version 2.0.1 != SKILL.md version 1.0.0",
             errors,
@@ -262,7 +263,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
                 (skill / "LICENSE.txt").unlink(missing_ok=True),
             ),
         )
-        errors = "\n".join(validate_product(staged))
+        errors = "\n".join(validate_product(staged, REGISTRY))
         self.assertIn("missing Apache declaration", errors)
         self.assertIn("missing Apache license", errors)
 
@@ -276,7 +277,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
                 encoding="utf-8",
             ),
         )
-        errors = "\n".join(validate_product(staged))
+        errors = "\n".join(validate_product(staged, REGISTRY))
         self.assertIn("broken relative link", errors)
 
     def test_rejects_personal_macos_home_prefix_path(self) -> None:
@@ -289,7 +290,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
                 encoding="utf-8",
             ),
         )
-        errors = "\n".join(validate_product(staged))
+        errors = "\n".join(validate_product(staged, REGISTRY))
         self.assertIn("personal macOS home-prefix path", errors)
 
     def test_rejects_archive_checkout_assumption(self) -> None:
@@ -302,7 +303,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
                 encoding="utf-8",
             ),
         )
-        errors = "\n".join(validate_product(staged))
+        errors = "\n".join(validate_product(staged, REGISTRY))
         self.assertIn("Archive checkout assumption", errors)
 
     def test_rejects_payload_test_eval_or_maintainer_file(self) -> None:
@@ -314,7 +315,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
                 (skill / "evals" / "case.json").write_text("{}\n", encoding="utf-8"),
             ),
         )
-        errors = "\n".join(validate_product(staged))
+        errors = "\n".join(validate_product(staged, REGISTRY))
         self.assertIn("payload test/eval/maintainer file", errors)
 
     def test_permits_readme_names(self) -> None:
@@ -326,7 +327,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
                 (skill / "README.en.md").write_text("# Korean Writing Editor\n", encoding="utf-8"),
             ),
         )
-        self.assertEqual(validate_product(staged), [])
+        self.assertEqual(validate_product(staged, REGISTRY), [])
 
     @unittest.skipIf(
         os.name == "nt" or not hasattr(os, "mkfifo"),
@@ -341,7 +342,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
                 os.mkfifo(skill / "pipe"),
             ),
         )
-        errors = "\n".join(validate_product(staged))
+        errors = "\n".join(validate_product(staged, REGISTRY))
         self.assertIn("symlink", errors)
         self.assertIn("special file", errors)
 
@@ -355,7 +356,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
                 encoding="utf-8",
             ),
         )
-        errors = "\n".join(validate_product(staged))
+        errors = "\n".join(validate_product(staged, REGISTRY))
         self.assertIn("credential-like token", errors)
 
     def test_rejects_a_third_skill(self) -> None:
@@ -375,7 +376,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
             "policy:\n  allow_implicit_invocation: true\n",
             encoding="utf-8",
         )
-        errors = "\n".join(validate_product(skill))
+        errors = "\n".join(validate_product(skill, REGISTRY))
         self.assertIn("unlisted skill", errors)
 
     def test_rejects_legacy_prefixed_identifier_in_payload(self) -> None:
@@ -388,7 +389,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
                 encoding="utf-8",
             ),
         )
-        errors = "\n".join(validate_product(staged))
+        errors = "\n".join(validate_product(staged, REGISTRY))
         self.assertIn("legacy prefixed identifier", errors)
 
 
@@ -400,7 +401,7 @@ class StageProductTests(unittest.TestCase):
             "korean-writing-editor LICENSE.txt is absent",
         )
         with tempfile.TemporaryDirectory() as directory:
-            staged = stage_product(source, Path(directory))
+            staged = stage_product(source, Path(directory), REGISTRY)
             self.assertEqual(staged.name, source.name)
             self.assertTrue((staged / "SKILL.md").is_file())
             self.assertTrue((staged / "LICENSE.txt").is_file())
@@ -410,7 +411,7 @@ class StageProductTests(unittest.TestCase):
             self.assertTrue((staged / "README.md").is_file())
             self.assertTrue((staged / "README.en.md").is_file())
             self.assertFalse((staged / "evals").exists())
-            self.assertEqual(validate_product(staged), [])
+            self.assertEqual(validate_product(staged, REGISTRY), [])
 
     def test_stage_product_rejects_invalid_payload(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -418,7 +419,7 @@ class StageProductTests(unittest.TestCase):
             mutated = _copy_skill(SKILLS[0], workspace / "source")
             (mutated / "notes.txt").write_text("not part of the product\n", encoding="utf-8")
             with self.assertRaises(ValueError) as raised:
-                stage_product(mutated, workspace / "dest")
+                stage_product(mutated, workspace / "dest", REGISTRY)
             self.assertIn("unexpected top-level file: notes.txt", str(raised.exception))
 
     def test_stage_product_permits_readme_names(self) -> None:
@@ -427,10 +428,10 @@ class StageProductTests(unittest.TestCase):
             mutated = _copy_skill(SKILLS[0], workspace / "source")
             (mutated / "README.md").write_text("# Korean Writing Editor\n", encoding="utf-8")
             (mutated / "README.en.md").write_text("# Korean Writing Editor\n", encoding="utf-8")
-            staged = stage_product(mutated, workspace / "dest")
+            staged = stage_product(mutated, workspace / "dest", REGISTRY)
             self.assertTrue((staged / "README.md").is_file())
             self.assertTrue((staged / "README.en.md").is_file())
-            self.assertEqual(validate_product(staged), [])
+            self.assertEqual(validate_product(staged, REGISTRY), [])
 
 
 class LegacyIdentifierAllowlistTests(unittest.TestCase):

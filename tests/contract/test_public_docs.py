@@ -13,7 +13,10 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.release_contract import PRODUCT_NAMES, validate_product  # noqa: E402
+from scripts.lib.product_contract import validate_product  # noqa: E402
+from scripts.lib.product_registry import load_registry  # noqa: E402
+
+REGISTRY = load_registry(ROOT / "products.toml")
 
 VERSION_LITERAL_RE = re.compile(r"\b[0-9]+\.[0-9]+\.[0-9]+\b")
 MARKDOWN_LINK_RE = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
@@ -74,7 +77,7 @@ LIVE_BUDGETS = ("119", "3", "122", "38", "160")
 README_PATHS = (ROOT / "README.md", ROOT / "README.en.md")
 PRODUCT_README_PATHS = tuple(
     ROOT / "skills" / name / filename
-    for name in PRODUCT_NAMES
+    for name in REGISTRY.names
     for filename in ("README.md", "README.en.md")
 )
 USER_GUIDES = (
@@ -128,7 +131,7 @@ ARCHIVE_MANIFEST = (
 PRODUCT_PROTOCOL_FILES = ("contract.md", "testing.md", "release.md")
 MAINTAINER_DOCS = (MAINTAINER_INDEX,) + REPOSITORY_DOCS + (ARCHIVE_MIGRATION,) + tuple(
     ROOT / "docs" / "maintainers" / name / filename
-    for name in PRODUCT_NAMES
+    for name in REGISTRY.names
     for filename in PRODUCT_PROTOCOL_FILES
 )
 CATALOG_DOCS = (
@@ -274,7 +277,7 @@ def _relative_link_errors(document: Path, text: str) -> list[str]:
 
 class ProductReadmeOwnershipTests(unittest.TestCase):
     def test_every_product_owns_a_korean_english_readme_pair(self) -> None:
-        for name in PRODUCT_NAMES:
+        for name in REGISTRY.names:
             korean = ROOT / "skills" / name / "README.md"
             english = ROOT / "skills" / name / "README.en.md"
             self.assertTrue(korean.is_file(), f"{name} missing README.md")
@@ -295,13 +298,13 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
             english = root / "README.en.md"
             if readme.is_file():
                 readme.unlink()
-            errors = "\n".join(validate_product(root))
+            errors = "\n".join(validate_product(root, REGISTRY))
             self.assertIn("missing README.md", errors)
             readme.write_text("# Korean Writing Editor\n", encoding="utf-8")
             if not english.is_file():
                 english.write_text("# Korean Writing Editor\n", encoding="utf-8")
             english.unlink()
-            errors = "\n".join(validate_product(root))
+            errors = "\n".join(validate_product(root, REGISTRY))
             self.assertIn("missing README.en.md", errors)
 
     def test_root_and_product_readmes_do_not_own_product_versions(self) -> None:
@@ -318,7 +321,7 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
     def test_every_product_is_reachable_in_one_link_from_root(self) -> None:
         korean = (ROOT / "README.md").read_text(encoding="utf-8")
         english = (ROOT / "README.en.md").read_text(encoding="utf-8")
-        for name in PRODUCT_NAMES:
+        for name in REGISTRY.names:
             self.assertIn(f"skills/{name}/README.md", korean)
             self.assertIn(f"skills/{name}/README.en.md", english)
 
@@ -337,7 +340,7 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
                 last = pos
 
     def test_product_readmes_include_installer_support_and_maintainer_link(self) -> None:
-        for name in PRODUCT_NAMES:
+        for name in REGISTRY.names:
             for filename in ("README.md", "README.en.md"):
                 path = ROOT / "skills" / name / filename
                 _assert_exists(self, path)
@@ -423,7 +426,7 @@ class UserGuideFactTests(unittest.TestCase):
             text = _read(document)
             language = "en" if "docs/users/en/" in document.as_posix() else "ko"
             filename = "README.en.md" if language == "en" else "README.md"
-            for name in PRODUCT_NAMES:
+            for name in REGISTRY.names:
                 self.assertIn(f"skills/{name}/{filename}", text)
 
     def test_compatibility_owns_the_three_support_sentences(self) -> None:
@@ -579,7 +582,7 @@ class InstallSafetyTests(unittest.TestCase):
 
 class MaintainerStructureTests(unittest.TestCase):
     def test_every_product_has_contract_testing_and_release(self) -> None:
-        for name in PRODUCT_NAMES:
+        for name in REGISTRY.names:
             directory = ROOT / "docs" / "maintainers" / name
             self.assertTrue(directory.is_dir(), f"{name} maintainer directory is absent")
             for filename in PRODUCT_PROTOCOL_FILES:
@@ -609,7 +612,7 @@ class MaintainerStructureTests(unittest.TestCase):
             "repository/archive-migration.md",
         ):
             self.assertIn(href, index)
-        for name in PRODUCT_NAMES:
+        for name in REGISTRY.names:
             for filename in PRODUCT_PROTOCOL_FILES:
                 self.assertIn(f"{name}/{filename}", index)
         targets = {path.resolve() for path in MAINTAINER_DOCS}
