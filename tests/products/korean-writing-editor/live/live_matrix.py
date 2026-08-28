@@ -279,7 +279,7 @@ def default_source_skill_root(repository_root: pathlib.Path) -> pathlib.Path:
 
 
 def default_offline_evaluator(repository_root: pathlib.Path) -> pathlib.Path:
-    return repository_root / "tests" / "korean-writing-editor" / "offline" / "run.py"
+    return repository_root / "tests" / "products" / "korean-writing-editor" / "offline" / "run.py"
 
 
 def default_live_cases_path() -> pathlib.Path:

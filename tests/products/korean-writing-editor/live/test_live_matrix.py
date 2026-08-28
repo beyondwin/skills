@@ -863,6 +863,14 @@ class PublicLayoutTests(unittest.TestCase):
             REPOSITORY_ROOT / "skills" / "korean-writing-editor",
         )
 
+    def test_default_offline_evaluator_uses_mirrored_product_tests(self) -> None:
+        evaluator = live_matrix.default_offline_evaluator(REPOSITORY_ROOT)
+        self.assertEqual(
+            evaluator,
+            REPOSITORY_ROOT / "tests" / "products" / "korean-writing-editor" / "offline" / "run.py",
+        )
+        self.assertTrue(evaluator.is_file())
+
     def test_default_report_must_stay_under_evidence_root(self) -> None:
         with self.assertRaisesRegex(live_matrix.LiveMatrixError, "evidence root"):
             live_matrix.validate_report_path(REPOSITORY_ROOT / "README.md", EVIDENCE_ROOT)
