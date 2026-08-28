@@ -75,7 +75,7 @@ IMAGE_SUPPORT = (
     "image-workbench: Codex-only; generate/edit requires Codex image generation and local image viewing."
 )
 HOW_IT_WORKS_SUPPORT = (
-    "how-it-works: Codex, Claude Code, Grok, and Cursor supported for local or repository-based use."
+    "how-it-works: Codex and Claude Code supported for local or repository-based use."
 )
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
@@ -329,7 +329,7 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
             positions = [text.index(marker) for marker in PRODUCT_README_HEADINGS[filename]]
             self.assertEqual(positions, sorted(positions), filename)
 
-    def test_how_it_works_readmes_include_four_host_install_call_and_result(self) -> None:
+    def test_how_it_works_readmes_include_supported_host_install_call_and_result(self) -> None:
         for filename in ("README.md", "README.en.md"):
             path = ROOT / "skills/how-it-works" / filename
             text = _read(path)
@@ -340,8 +340,8 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
             self.assertIn(HOW_IT_WORKS_UNLINK_CLAUDE, text)
             self.assertIn("$how-it-works", text)
             self.assertIn("/how-it-works", text)
-            self.assertIn("@how-it-works", text)
-            for host in ("codex", "claude-code", "grok", "cursor"):
+            self.assertNotIn("@how-it-works", text)
+            for host in ("codex", "claude-code"):
                 self.assertIn(host, text.lower(), f"{filename} {host}")
             for phrase in HOW_IT_WORKS_EXPECTED_EN:
                 self.assertIn(phrase, text, f"{filename} {phrase}")
@@ -385,8 +385,6 @@ class RootCatalogTests(unittest.TestCase):
         self.assertIn("현재 독립 제품", korean)
         for document in (korean, english):
             self.assertIn("Claude Code", document)
-            self.assertIn("Grok", document)
-            self.assertIn("Cursor", document)
             self.assertIn("Codex", document)
 
     def test_readmes_follow_catalog_section_order(self) -> None:
@@ -524,12 +522,12 @@ class UserGuideFactTests(unittest.TestCase):
             (
                 ROOT / "docs" / "users" / "en" / "installation.md",
                 "## Primary install (Codex)",
-                "## How It Works four-host links",
+                "## How It Works local links",
             ),
             (
                 ROOT / "docs" / "users" / "ko" / "installation.md",
                 "## 기본 설치 (Codex)",
-                "## How It Works 네 호스트 링크",
+                "## How It Works 로컬 링크",
             ),
         )
         for path, start, end in guides:
@@ -1014,7 +1012,7 @@ class MaintainerProtocolTests(unittest.TestCase):
             self.assertIn(token, contract_text.lower(), token)
         self.assertIn("$how-it-works", contract_text)
         self.assertIn("/how-it-works", contract_text)
-        self.assertIn("@how-it-works", contract_text)
+        self.assertNotIn("@how-it-works", contract_text)
         self.assertNotIn("artifact-design", contract_text)
         self.assertNotIn("chat-only", contract_text.lower())
         for phrase in HOW_IT_WORKS_EXPECTED_EN:
@@ -1030,7 +1028,8 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("~/.claude/skills/how-it-works", compatibility_text)
         self.assertIn("$how-it-works", compatibility_text)
         self.assertIn("/how-it-works", compatibility_text)
-        self.assertIn("@how-it-works", compatibility_text)
+        self.assertNotIn("@how-it-works", compatibility_text)
+        self.assertIn("tests/products/how-it-works/live/smoke-record.json", compatibility_text)
         self.assertIn("release.toml", release_text)
         self.assertIn("1.0.0", release_text)
         self.assertIn("python3 scripts/release.py check --product how-it-works", release_text)

@@ -1,6 +1,6 @@
 # Contributing
 
-This repository has three current standalone products: `korean-writing-editor`, `image-workbench`, and `how-it-works`. New skills are not accepted by default. A pull request that adds a fourth skill is out of scope unless repository governance is changed first. The immutable plugin bundle under `catalog/` is separate from those products and does not include `how-it-works`. Only `how-it-works` has the four-host claim. Do not broaden `korean-writing-editor` or `image-workbench` host support.
+This repository has three current standalone products: `korean-writing-editor`, `image-workbench`, and `how-it-works`. New skills are not accepted by default. A pull request that adds a fourth skill is out of scope unless repository governance is changed first. The immutable plugin bundle under `catalog/` is separate from those products and does not include `how-it-works`. `how-it-works` currently claims Codex and Claude Code only. Do not broaden `korean-writing-editor` or `image-workbench` host support.
 
 Host-support changes must update `products.toml`, the matching docs, and tests together.
 

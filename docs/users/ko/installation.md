@@ -15,9 +15,9 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-work
 
 설치 후 새 대화에서 제품 README의 첫 호출을 쓰세요.
 
-## How It Works 네 호스트 링크
+## How It Works 로컬 링크
 
-`how-it-works`는 로컬 또는 저장소 기준으로 Codex, Claude Code, Grok, Cursor를 지원합니다. 공개 GitHub 경로는 https://github.com/beyondwin/skills/tree/main/skills/how-it-works 입니다. 가장 짧은 저장소 설치는 클론 후 링크 두 개입니다. 첫 링크는 Codex, Grok, Cursor가 쓰고, 둘째는 Claude Code가 씁니다. Codex는 `~/.agents/skills/how-it-works`에서 발견합니다. `~/.codex`나 `~/.grok` 복사본을 만들지 마세요. `ln -s`는 이미 있는 대상을 덮어쓰지 않고 실패합니다.
+`how-it-works`는 로컬 또는 저장소 기준으로 Codex와 Claude Code를 지원합니다. 공개 GitHub 경로는 https://github.com/beyondwin/skills/tree/main/skills/how-it-works 입니다. 가장 짧은 저장소 설치는 클론 후 링크 두 개입니다. 첫 링크는 Codex가 쓰고, 둘째는 Claude Code가 씁니다. Codex는 `~/.agents/skills/how-it-works`에서 발견합니다. `~/.codex`나 `~/.grok` 복사본을 만들지 마세요. `ln -s`는 이미 있는 대상을 덮어쓰지 않고 실패합니다.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -37,7 +37,7 @@ ln -s "$PWD/skills/how-it-works" ~/.claude/skills/how-it-works
 npx skills add beyondwin/skills --skill korean-writing-editor
 ```
 
-이 `npx` 명령은 제3자 설치기이며 자체 릴리스와 텔레메트리 정책을 따릅니다. `image-workbench`는 Codex 전용이라 이 경로로 지원하지 않습니다. `how-it-works`는 위 네 호스트 링크를 씁니다.
+이 `npx` 명령은 제3자 설치기이며 자체 릴리스와 텔레메트리 정책을 따릅니다. `image-workbench`는 Codex 전용이라 이 경로로 지원하지 않습니다. `how-it-works`는 위 로컬 링크를 씁니다.
 
 ## Codex 전용 Git 클론
 

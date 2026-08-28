@@ -20,7 +20,7 @@ Do not activate on eli5, /eli5, or “explain like I’m 5”. That is a differe
 Do not use the rung picker, the four-slot gate, or this explanation flow on debugging, implementation, review, translation, one-line lookup, or eli5 requests.
 </HARD-GATE>
 
-Prefer explicit invocation: `$how-it-works` on Codex, `/how-it-works` on Claude Code and Grok, and `/how-it-works` or optional `@how-it-works` on Cursor.
+Prefer explicit invocation: `$how-it-works` on Codex and `/how-it-works` on Claude Code.
 
 ## Classify
 
@@ -74,6 +74,8 @@ request
   -> offer one next move
 ```
 
+Emit the complete required deliverable in the current reply even if you cannot read focused references this turn.
+
 ## After EXPLAIN
 
 One next move only:
@@ -114,6 +116,7 @@ Read `references/output.md`, then `references/visuals.md`. If Korean → `refere
 | Topic is obvious | Announce type+rung. If they specified both, 바로. |
 | I'll draw the boxes in HTML | Mermaid draws the map. Hand-authored boxes are not a diagram. |
 | I'll skip hops because a renderer will draw them | Source plus hop list is required. Rendering is enhancement only. |
+| I'll read the references first on a one-turn host | Emit the complete required deliverable in the current reply even if you cannot read focused references this turn. |
 | I'll add a preview first and fill chat later | Preview comes after the complete output, and only if useful. |
 | They asked 동물로 so use animals | Animals requested still means no animals. Map is mermaid + table. Analogy vehicle is not a mascot. |
 | Depth 그림 means simpler than true | 그림 is a smaller true map. False-simple is a bug. |

@@ -43,4 +43,4 @@ Korean live ceilings follow the 119 / 3 / 122 / 38 / 160 budgets in the maintain
 
 ## Limitations
 
-Report measured support and fixture results only. Do not claim plugin-directory availability, support on every host, general quality, live image quality, settled reuse rights, or a better provider. An offline `how-it-works` pass does not prove live quality on Codex, Claude Code, Grok, or Cursor. Live execution is local, explicit, optional, potentially billable, and never required by CI.
+Report measured support and fixture results only. Do not claim plugin-directory availability, support on every host, general quality, live image quality, settled reuse rights, or a better provider. An offline `how-it-works` pass does not prove live quality on Codex or Claude Code. Live execution is local, explicit, optional, potentially billable, and never required by CI.

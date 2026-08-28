@@ -43,4 +43,4 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 ## 한계
 
-측정된 지원과 픽스처 결과만 보고하세요. 플러그인 디렉터리 등록, 모든 호스트 지원, 일반 품질, 라이브 이미지 품질, 권리 확정, 공급자 우월을 주장하지 마세요. `how-it-works` 오프라인 통과는 Codex, Claude Code, Grok, Cursor 라이브 품질을 증명하지 않습니다. 라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있고 CI가 요구하지 않습니다.
+측정된 지원과 픽스처 결과만 보고하세요. 플러그인 디렉터리 등록, 모든 호스트 지원, 일반 품질, 라이브 이미지 품질, 권리 확정, 공급자 우월을 주장하지 마세요. `how-it-works` 오프라인 통과는 Codex나 Claude Code 라이브 품질을 증명하지 않습니다. 라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있고 CI가 요구하지 않습니다.

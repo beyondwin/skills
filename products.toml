@@ -41,7 +41,7 @@ display_name = "How It Works"
 skill_path = "skills/how-it-works"
 test_path = "tests/products/how-it-works"
 maintainer_docs = "docs/maintainers/products/how-it-works"
-supported_hosts = ["codex", "claude-code", "grok", "cursor"]
+supported_hosts = ["codex", "claude-code"]
 owned_paths = [
   "skills/how-it-works/",
   "tests/products/how-it-works/",

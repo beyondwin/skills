@@ -4,7 +4,7 @@
 
 ## 공급자 없는 증거
 
-필수 증거는 `python3 scripts/verify.py --skill how-it-works`입니다. `tests/products/how-it-works/cases.json`과 `tests/products/how-it-works/test_contract.py`는 형태와 페이로드 계약만 증명합니다. 라이브 모델 품질과 네 호스트 런타임 동등은 증명하지 않습니다.
+필수 증거는 `python3 scripts/verify.py --skill how-it-works`입니다. `tests/products/how-it-works/cases.json`과 `tests/products/how-it-works/test_contract.py`는 형태와 페이로드 계약만 증명합니다. 라이브 모델 품질과 지원 호스트 런타임 동등은 증명하지 않습니다.
 
 결정적 픽스처:
 

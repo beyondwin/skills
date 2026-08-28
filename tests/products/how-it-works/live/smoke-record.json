@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "executed_on": "2026-08-28",
+  "hosts": [
+    {
+      "host": "codex",
+      "client_version": "0.150.0",
+      "cases": {
+        "explicit-dns-path": "pass",
+        "implicit-dns-path": "pass",
+        "near-miss-debug": "pass"
+      },
+      "verdict": "supported"
+    },
+    {
+      "host": "claude-code",
+      "client_version": "2.1.247",
+      "cases": {
+        "explicit-dns-path": "pass",
+        "implicit-dns-path": "pass",
+        "near-miss-debug": "pass"
+      },
+      "verdict": "supported"
+    },
+    {
+      "host": "grok",
+      "client_version": "1.0.5",
+      "cases": {
+        "explicit-dns-path": "fail",
+        "implicit-dns-path": "fail",
+        "near-miss-debug": "pass"
+      },
+      "verdict": "unsupported"
+    },
+    {
+      "host": "cursor",
+      "client_version": "3.17.21",
+      "cases": {
+        "explicit-dns-path": "not_measured",
+        "implicit-dns-path": "not_measured",
+        "near-miss-debug": "not_measured"
+      },
+      "verdict": "not_measured"
+    }
+  ]
+}

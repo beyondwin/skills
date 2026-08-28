@@ -11,6 +11,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from scripts.lib.product_contract import parse_skill_frontmatter  # noqa: E402
+from scripts.lib.product_registry import load_registry  # noqa: E402
 
 SKILL = ROOT / "skills" / "how-it-works"
 CASES = ROOT / "tests" / "products" / "how-it-works" / "cases.json"
@@ -88,6 +89,72 @@ def _reference(name: str) -> str:
     return (SKILL / "references" / name).read_text(encoding="utf-8")
 
 
+LIVE = ROOT / "tests" / "products" / "how-it-works" / "live"
+LIVE_CASES = LIVE / "cases.json"
+LIVE_README = LIVE / "README.md"
+LIVE_RECORD = LIVE / "smoke-record.json"
+LIVE_CASE_IDS = ("explicit-dns-path", "implicit-dns-path", "near-miss-debug")
+LIVE_HOSTS = ("codex", "claude-code", "grok", "cursor")
+LIVE_CASE_FIELDS = {
+    "explicit-dns-path": {"id", "prompt_codex", "prompt_slash", "expect"},
+    "implicit-dns-path": {"id", "prompt", "expect"},
+    "near-miss-debug": {"id", "prompt", "expect"},
+}
+HOST_RECORD_FIELDS = {"host", "client_version", "cases", "verdict"}
+CASE_VERDICTS = {"pass", "fail", "not_measured"}
+HOST_VERDICTS = {"supported", "unsupported", "not_measured"}
+FORBIDDEN_LIVE_KEYS = {
+    "stdout",
+    "stderr",
+    "response",
+    "transcript",
+    "screenshot",
+    "receipt",
+    "credential",
+    "body",
+}
+LIVE_CASES_PAYLOAD = {
+    "schema_version": 1,
+    "cases": [
+        {
+            "id": "explicit-dns-path",
+            "prompt_codex": "$how-it-works DNS가 브라우저 요청에서 IP 주소가 되는 길을 보여줘",
+            "prompt_slash": "/how-it-works DNS가 브라우저 요청에서 IP 주소가 되는 길을 보여줘",
+            "expect": [
+                "discovered",
+                "explicit",
+                "claim",
+                "mermaid",
+                "numbered_hops",
+                "body",
+                "adjacent_slices",
+                "next_move",
+            ],
+        },
+        {
+            "id": "implicit-dns-path",
+            "prompt": "DNS 요청이 브라우저에서 어디를 거쳐 IP 주소가 되는지 길로 보여줘",
+            "expect": ["implicit", "claim", "mermaid", "numbered_hops"],
+        },
+        {
+            "id": "near-miss-debug",
+            "prompt": "DNS resolver 테스트 실패를 고쳐줘. 동작 설명은 하지 마.",
+            "expect": ["not_activated"],
+        },
+    ],
+}
+LIVE_README_MARKERS = (
+    "pass/fail from observable output",
+    "Do not use private or user prompts",
+    "Do not commit full responses",
+    "fresh session",
+    "subscription/API quota",
+    "unsupported",
+    "outside the repository",
+    "delete them after scoring",
+)
+
+
 class SectionHelperTests(unittest.TestCase):
     def test_section_requires_headings_in_order(self) -> None:
         text = "## Start\nbody\n## End\n"
@@ -112,16 +179,23 @@ class HowItWorksPayloadTests(unittest.TestCase):
         for forbidden in ("artifact", "canvas", "browser", "imagegen", "artifact" + "-design"):
             self.assertNotIn(forbidden, compatibility)
 
-    def test_documentation_includes_four_host_invocations(self) -> None:
+    def test_documentation_includes_supported_host_invocations(self) -> None:
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         body = text.split("---", 2)[-1]
         self.assertIn("$how-it-works", body)
         self.assertIn("/how-it-works", body)
-        self.assertIn("@how-it-works", body)
         self.assertIn("Codex", body)
         self.assertIn("Claude Code", body)
-        self.assertIn("Grok", body)
-        self.assertIn("Cursor", body)
+        self.assertNotIn("Grok", body)
+        self.assertNotIn("Cursor", body)
+        self.assertNotIn("@how-it-works", body)
+
+    def test_runtime_emits_complete_output_without_reference_reads(self) -> None:
+        text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn(
+            "Emit the complete required deliverable in the current reply even if you cannot read focused references this turn.",
+            text,
+        )
 
     def test_release_smoke_accepts_portable_frontmatter(self) -> None:
         from scripts.release import _smoke_how_it_works
@@ -321,6 +395,62 @@ class HowItWorksPayloadTests(unittest.TestCase):
         self.assertIn("complete chat output", text)
         for forbidden in HOST_TOOL_MARKERS:
             self.assertNotIn(forbidden, text)
+
+
+class HowItWorksLiveContractTests(unittest.TestCase):
+    def test_live_cases_lock_synthetic_dns_prompts_and_allowed_fields(self) -> None:
+        self.assertTrue(LIVE_CASES.is_file(), "live/cases.json is absent")
+        data = json.loads(LIVE_CASES.read_text(encoding="utf-8"))
+        self.assertEqual(data, LIVE_CASES_PAYLOAD)
+        self.assertEqual(set(data), {"schema_version", "cases"})
+        ids = [case["id"] for case in data["cases"]]
+        self.assertEqual(tuple(ids), LIVE_CASE_IDS)
+        for case in data["cases"]:
+            self.assertEqual(set(case), LIVE_CASE_FIELDS[case["id"]], case["id"])
+            self.assertTrue(FORBIDDEN_LIVE_KEYS.isdisjoint(case), case["id"])
+
+    def test_live_readme_defines_observable_fresh_private_quota_rules(self) -> None:
+        self.assertTrue(LIVE_README.is_file(), "live/README.md is absent")
+        text = LIVE_README.read_text(encoding="utf-8")
+        for marker in LIVE_README_MARKERS:
+            self.assertIn(marker, text, marker)
+        for case_id in LIVE_CASE_IDS:
+            self.assertIn(case_id, text)
+        self.assertNotIn("sk-", text)
+
+    @unittest.skipUnless(
+        LIVE_RECORD.is_file(),
+        "live/smoke-record.json is created after approved execution",
+    )
+    def test_live_smoke_record_contains_only_metadata_fields(self) -> None:
+        self.assertTrue(LIVE_RECORD.is_file(), "live/smoke-record.json is absent")
+        data = json.loads(LIVE_RECORD.read_text(encoding="utf-8"))
+        self.assertEqual(set(data), {"schema_version", "executed_on", "hosts"})
+        self.assertEqual(data["schema_version"], 1)
+        self.assertRegex(str(data["executed_on"]), r"^\d{4}-\d{2}-\d{2}$")
+        hosts = data["hosts"]
+        self.assertEqual([row["host"] for row in hosts], list(LIVE_HOSTS))
+        self.assertTrue(FORBIDDEN_LIVE_KEYS.isdisjoint(data))
+        for row in hosts:
+            self.assertEqual(set(row), HOST_RECORD_FIELDS, row["host"])
+            self.assertIsInstance(row["client_version"], str)
+            self.assertTrue(row["client_version"])
+            self.assertEqual(set(row["cases"]), set(LIVE_CASE_IDS))
+            for case_id, verdict in row["cases"].items():
+                self.assertIn(verdict, CASE_VERDICTS, f"{row['host']}:{case_id}")
+            self.assertIn(row["verdict"], HOST_VERDICTS, row["host"])
+            if row["verdict"] == "supported":
+                self.assertEqual(set(row["cases"].values()), {"pass"}, row["host"])
+            self.assertTrue(FORBIDDEN_LIVE_KEYS.isdisjoint(row), row["host"])
+            self.assertNotIn("prompt", row)
+            self.assertNotIn("transcript", row)
+        supported = {
+            row["host"] for row in hosts if row["verdict"] == "supported"
+        }
+        self.assertEqual(
+            supported,
+            set(load_registry(ROOT / "products.toml").require("how-it-works").supported_hosts),
+        )
 
 
 if __name__ == "__main__":

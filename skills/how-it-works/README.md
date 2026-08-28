@@ -21,13 +21,13 @@
 
 ## 지원 호스트
 
-how-it-works: Codex, Claude Code, Grok, and Cursor supported for local or repository-based use.
+how-it-works: Codex and Claude Code supported for local or repository-based use.
 
-지원 호스트 id는 `codex`, `claude-code`, `grok`, `cursor`입니다. 네 호스트 주장은 이 제품뿐입니다. Claude.ai, Cowork, Skills API 업로드, marketplace 게시는 지원하지 않습니다. 공유 한계는 [호환성](../../docs/users/ko/compatibility.md)을 따릅니다.
+지원 호스트 id는 `codex`, `claude-code`입니다. Grok와 Cursor는 이 빌드의 라이브 smoke가 통과하지 않아 지원하지 않습니다. Claude.ai, Cowork, Skills API 업로드, marketplace 게시는 지원하지 않습니다. 공유 한계는 [호환성](../../docs/users/ko/compatibility.md)을 따릅니다.
 
 ## 설치
 
-가장 짧은 저장소 설치는 클론 후 링크 두 개입니다. 첫 링크는 Codex, Grok, Cursor가 쓰고, 둘째는 Claude Code가 씁니다. `ln -s`는 이미 있는 대상을 덮어쓰지 않고 실패합니다.
+가장 짧은 저장소 설치는 클론 후 링크 두 개입니다. 첫 링크는 Codex가 쓰고, 둘째는 Claude Code가 씁니다. `ln -s`는 이미 있는 대상을 덮어쓰지 않고 실패합니다.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -47,7 +47,7 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-wor
 
 ## 첫 호출
 
-명시 호출은 Codex에서 `$how-it-works`, Claude Code와 Grok에서 `/how-it-works`, Cursor에서 `/how-it-works` 또는 선택적 `@how-it-works`입니다.
+명시 호출은 Codex에서 `$how-it-works`, Claude Code에서 `/how-it-works`입니다.
 
 ```text
 $how-it-works DNS 길

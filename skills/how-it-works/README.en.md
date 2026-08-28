@@ -21,13 +21,13 @@ Do not use `how-it-works` for debugging, implementing, reviewing, translating, o
 
 ## Supported hosts
 
-how-it-works: Codex, Claude Code, Grok, and Cursor supported for local or repository-based use.
+how-it-works: Codex and Claude Code supported for local or repository-based use.
 
-The supported host ids are `codex`, `claude-code`, `grok`, and `cursor`. Only this product has the four-host claim. Claude.ai, Cowork, Skills API upload, and marketplace publication are not supported. Shared limits are in [Compatibility](../../docs/users/en/compatibility.md).
+The supported host ids are `codex` and `claude-code`. Grok and Cursor are not supported on this build because live smoke did not pass. Claude.ai, Cowork, Skills API upload, and marketplace publication are not supported. Shared limits are in [Compatibility](../../docs/users/en/compatibility.md).
 
 ## Install
 
-The shortest repository-based install is a clone plus two links. The first link serves Codex, Grok, and Cursor; the second serves Claude Code. `ln -s` fails instead of overwriting an existing target.
+The shortest repository-based install is a clone plus two links. The first link serves Codex; the second serves Claude Code. `ln -s` fails instead of overwriting an existing target.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -47,7 +47,7 @@ Shared install, update, and uninstall steps are in [Installation](../../docs/use
 
 ## First call
 
-Explicit calls are `$how-it-works` on Codex, `/how-it-works` on Claude Code and Grok, and `/how-it-works` or optional `@how-it-works` on Cursor.
+Explicit calls are `$how-it-works` on Codex and `/how-it-works` on Claude Code.
 
 ```text
 $how-it-works Explain DNS as a path.

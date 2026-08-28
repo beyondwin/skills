@@ -79,10 +79,10 @@ class RegistryParsingTests(unittest.TestCase):
             ("korean-writing-editor", "image-workbench", "how-it-works"),
         )
 
-    def test_explanation_product_has_four_supported_hosts(self) -> None:
+    def test_explanation_product_has_measured_supported_hosts(self) -> None:
         product = load_registry(ROOT / "products.toml").require("how-it-works")
         self.assertEqual(product.display_name, "How It Works")
-        self.assertEqual(product.supported_hosts, ("codex", "claude-code", "grok", "cursor"))
+        self.assertEqual(product.supported_hosts, ("codex", "claude-code"))
 
     def test_registry_contains_no_version_or_command_fields(self) -> None:
         raw = tomllib.loads((ROOT / "products.toml").read_text(encoding="utf-8"))
@@ -107,7 +107,7 @@ class RegistryParsingTests(unittest.TestCase):
             product.maintainer_docs,
             pathlib.PurePosixPath("docs/maintainers/products/how-it-works"),
         )
-        self.assertEqual(product.supported_hosts, ("codex", "claude-code", "grok", "cursor"))
+        self.assertEqual(product.supported_hosts, ("codex", "claude-code"))
         self.assertEqual(
             product.owned_paths,
             (

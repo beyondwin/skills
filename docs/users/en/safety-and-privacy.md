@@ -12,7 +12,7 @@ Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/
 
 ## Explanation topics
 
-`how-it-works` does not persist user topics as fixtures or logs, including when it is installed locally for Codex, Claude Code, Grok, or Cursor. Citations are user-visible URLs from the current turn, not a private corpus. Medical, legal, or financial slices explain mechanism only; they are not advice.
+`how-it-works` does not persist user topics as fixtures or logs, including when it is installed locally for Codex or Claude Code. Citations are user-visible URLs from the current turn, not a private corpus. Medical, legal, or financial slices explain mechanism only; they are not advice.
 
 ## Image references and consent
 

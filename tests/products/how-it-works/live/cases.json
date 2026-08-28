@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {"id":"explicit-dns-path","prompt_codex":"$how-it-works DNS가 브라우저 요청에서 IP 주소가 되는 길을 보여줘","prompt_slash":"/how-it-works DNS가 브라우저 요청에서 IP 주소가 되는 길을 보여줘","expect":["discovered","explicit","claim","mermaid","numbered_hops","body","adjacent_slices","next_move"]},
+    {"id":"implicit-dns-path","prompt":"DNS 요청이 브라우저에서 어디를 거쳐 IP 주소가 되는지 길로 보여줘","expect":["implicit","claim","mermaid","numbered_hops"]},
+    {"id":"near-miss-debug","prompt":"DNS resolver 테스트 실패를 고쳐줘. 동작 설명은 하지 마.","expect":["not_activated"]}
+  ]
+}

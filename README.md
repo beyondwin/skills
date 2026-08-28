@@ -2,7 +2,7 @@
 
 [English](README.en.md)
 
-이 저장소는 현재 독립 제품 세 개를 모아 둡니다. Korean Writing Editor와 Image Workbench는 Codex에서 설치합니다. How It Works는 Codex, Claude Code, Grok, Cursor에서 로컬 또는 저장소 기준으로 설치합니다.
+이 저장소는 현재 독립 제품 세 개를 모아 둡니다. Korean Writing Editor와 Image Workbench는 Codex에서 설치합니다. How It Works는 Codex와 Claude Code에서 로컬 또는 저장소 기준으로 설치합니다.
 
 [![CI](https://github.com/beyondwin/skills/actions/workflows/verify.yml/badge.svg)](https://github.com/beyondwin/skills/actions/workflows/verify.yml)
 [![Release](https://img.shields.io/github/v/release/beyondwin/skills)](https://github.com/beyondwin/skills/releases)
@@ -18,9 +18,9 @@
 | --- | --- | --- |
 | [`korean-writing-editor`](skills/korean-writing-editor/README.md) | 있는 한국어 글을 받아, 뜻은 그대로 두고 맞춤법과 문장을 고칩니다. | Codex |
 | [`image-workbench`](skills/image-workbench/README.md) | 이 프로젝트에 넣을 PNG·JPG 같은 이미지를 기획하고 만들고 고칩니다. | Codex |
-| [`how-it-works`](skills/how-it-works/README.md) | 한 기계가 어떻게 도는지, 고른 깊이로 그림과 글로 설명합니다. | Codex, Claude Code, Grok, Cursor |
+| [`how-it-works`](skills/how-it-works/README.md) | 한 기계가 어떻게 도는지, 고른 깊이로 그림과 글로 설명합니다. | Codex, Claude Code |
 
-사용·설치·첫 호출은 각 제품 README를 따릅니다. How It Works의 네 호스트 링크는 제품 README와 [설치](docs/users/ko/installation.md)에 있습니다.
+사용·설치·첫 호출은 각 제품 README를 따릅니다. How It Works의 로컬 링크는 제품 README와 [설치](docs/users/ko/installation.md)에 있습니다.
 
 ## 설치
 
@@ -31,7 +31,7 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-wri
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
 ```
 
-How It Works는 `~/.agents/skills/how-it-works`(Codex, Grok, Cursor)와 `~/.claude/skills/how-it-works`(Claude Code)에 설치합니다. 공개 GitHub 경로는 https://github.com/beyondwin/skills/tree/main/skills/how-it-works 입니다. `~/.codex` 복사본을 만들지 마세요.
+How It Works는 `~/.agents/skills/how-it-works`(Codex)와 `~/.claude/skills/how-it-works`(Claude Code)에 설치합니다. 공개 GitHub 경로는 https://github.com/beyondwin/skills/tree/main/skills/how-it-works 입니다. `~/.codex` 복사본을 만들지 마세요.
 
 설치·갱신·제거와 제3자 설치기는 [설치](docs/users/ko/installation.md)를 따릅니다.
 

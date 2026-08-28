@@ -15,9 +15,9 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-work
 
 Invoke on a new turn after install using the product README.
 
-## How It Works four-host links
+## How It Works local links
 
-`how-it-works` supports Codex, Claude Code, Grok, and Cursor for local or repository-based use. The public GitHub path is https://github.com/beyondwin/skills/tree/main/skills/how-it-works. The shortest repository-based install is a clone plus two links. The first link serves Codex, Grok, and Cursor; the second serves Claude Code. Codex discovers `~/.agents/skills/how-it-works`. Do not create a `~/.codex` or `~/.grok` duplicate. `ln -s` fails instead of overwriting an existing target.
+`how-it-works` supports Codex and Claude Code for local or repository-based use. The public GitHub path is https://github.com/beyondwin/skills/tree/main/skills/how-it-works. The shortest repository-based install is a clone plus two links. The first link serves Codex; the second serves Claude Code. Codex discovers `~/.agents/skills/how-it-works`. Do not create a `~/.codex` or `~/.grok` duplicate. `ln -s` fails instead of overwriting an existing target.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -37,7 +37,7 @@ This path applies to the Korean editor only.
 npx skills add beyondwin/skills --skill korean-writing-editor
 ```
 
-That `npx` command is a third-party installer with its own release and telemetry policy. `image-workbench` is Codex-only and is not supported on this path. `how-it-works` uses the four-host links above.
+That `npx` command is a third-party installer with its own release and telemetry policy. `image-workbench` is Codex-only and is not supported on this path. `how-it-works` uses the local links above.
 
 ## Codex-only git clone
 

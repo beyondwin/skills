@@ -4,7 +4,7 @@
 
 ## 트리거와 기본값
 
-명시 호출은 Codex에서 `$how-it-works`, Claude Code와 Grok에서 `/how-it-works`, Cursor에서 `/how-it-works` 또는 선택적 `@how-it-works`입니다. 원리부터, 그림으로, 어떻게 돌아가, 감이 안 와도 활성화입니다. `/eli5`와 “explain like I’m 5”는 다른 스킬이며 이 스킬에서 no-op입니다.
+명시 호출은 Codex에서 `$how-it-works`, Claude Code에서 `/how-it-works`입니다. 원리부터, 그림으로, 어떻게 돌아가, 감이 안 와도 활성화입니다. `/eli5`와 “explain like I’m 5”는 다른 스킬이며 이 스킬에서 no-op입니다.
 
 설명 전에 `slice`, `type`, `rung`, `language`를 채웁니다. 칸은 그림, 길, 뼈대, 허점입니다. 기본 칸은 길입니다. jargon(`rebase`, `TTL`, `Raft`)은 그림이라는 단어를 쓰지 않는 한 뼈대입니다. `쉽게`는 그림이 아닙니다. 한 번에 질문 하나, 채워진 칸은 다시 묻지 않습니다.
 
@@ -31,7 +31,7 @@
 
 동작 변경을 한 파일에만 넣지 마세요.
 
-- trigger 또는 near-miss 변경 (`$how-it-works`, `/how-it-works`, `@how-it-works`, 원리부터, `/eli5` no-op): `skills/how-it-works/SKILL.md` 활성화 문구, `tests/products/how-it-works/cases.json`, `tests/products/how-it-works/test_contract.py`, 제품 README와 공유 공개 안내
+- trigger 또는 near-miss 변경 (`$how-it-works`, `/how-it-works`, 원리부터, `/eli5` no-op): `skills/how-it-works/SKILL.md` 활성화 문구, `tests/products/how-it-works/cases.json`, `tests/products/how-it-works/test_contract.py`, 제품 README와 공유 공개 안내
 - 칸 기본값 또는 별칭 변경 (`slice`, `type`, `rung`, `language`, 길 default, jargon to 뼈대, 쉽게 is not 그림): `SKILL.md` dump gate, 픽스처, 공개 안내
 - 출력 크롬, 유형 레시피, 홉 ID: `skills/how-it-works/references/output.md`와 해당 픽스처 id
 - 시각 채널: `skills/how-it-works/references/visuals.md`. mermaid 소스와 번호 있는 홉 목록을 유지합니다.

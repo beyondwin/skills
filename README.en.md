@@ -2,7 +2,7 @@
 
 [한국어](README.md)
 
-This repository collects three current standalone products. Korean Writing Editor and Image Workbench install in Codex. How It Works installs for local or repository-based use in Codex, Claude Code, Grok, and Cursor.
+This repository collects three current standalone products. Korean Writing Editor and Image Workbench install in Codex. How It Works installs for local or repository-based use in Codex and Claude Code.
 
 [![CI](https://github.com/beyondwin/skills/actions/workflows/verify.yml/badge.svg)](https://github.com/beyondwin/skills/actions/workflows/verify.yml)
 [![Release](https://img.shields.io/github/v/release/beyondwin/skills)](https://github.com/beyondwin/skills/releases)
@@ -18,9 +18,9 @@ The current standalone products are these three. A fourth product is out of scop
 | --- | --- | --- |
 | [`korean-writing-editor`](skills/korean-writing-editor/README.en.md) | Takes Korean text you already have and fixes spelling and sentences without changing the meaning. | Codex |
 | [`image-workbench`](skills/image-workbench/README.en.md) | Plans, makes, or edits PNG/JPG images that belong in this project. | Codex |
-| [`how-it-works`](skills/how-it-works/README.en.md) | Explains how one machine works, at a depth you pick, in writing and diagrams. | Codex, Claude Code, Grok, Cursor |
+| [`how-it-works`](skills/how-it-works/README.en.md) | Explains how one machine works, at a depth you pick, in writing and diagrams. | Codex, Claude Code |
 
-Use each product README for install and first invocation. How It Works four-host links are in the product README and [Installation](docs/users/en/installation.md).
+Use each product README for install and first invocation. How It Works local links are in the product README and [Installation](docs/users/en/installation.md).
 
 ## Install
 
@@ -31,7 +31,7 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-wri
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
 ```
 
-How It Works installs at `~/.agents/skills/how-it-works` (Codex, Grok, Cursor) and `~/.claude/skills/how-it-works` (Claude Code). The public GitHub path is https://github.com/beyondwin/skills/tree/main/skills/how-it-works. Do not create a `~/.codex` duplicate.
+How It Works installs at `~/.agents/skills/how-it-works` (Codex) and `~/.claude/skills/how-it-works` (Claude Code). The public GitHub path is https://github.com/beyondwin/skills/tree/main/skills/how-it-works. Do not create a `~/.codex` duplicate.
 
 Install, update, uninstall, and the third-party installer are in [Installation](docs/users/en/installation.md).
 
