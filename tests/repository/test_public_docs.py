@@ -281,17 +281,59 @@ def _append_to_owned_section(text: str, heading: str, contradiction: str) -> str
     return text.replace(owned, replacement, 1)
 
 
+def _strip_html_comments_outside_inline_code(
+    line: str,
+    in_comment: bool,
+) -> tuple[str, bool]:
+    visible: list[str] = []
+    cursor = 0
+    while cursor < len(line):
+        if in_comment:
+            comment_end = line.find("-->", cursor)
+            if comment_end == -1:
+                visible.append(" " * (len(line) - cursor))
+                return "".join(visible), True
+            visible.append(" " * (comment_end + 3 - cursor))
+            cursor = comment_end + 3
+            in_comment = False
+            continue
+
+        comment_start = line.find("<!--", cursor)
+        code_start = re.search(r"`+", line[cursor:])
+        code_offset = cursor + code_start.start() if code_start is not None else -1
+        if comment_start != -1 and (code_offset == -1 or comment_start < code_offset):
+            visible.append(line[cursor:comment_start])
+            visible.append(" " * len("<!--"))
+            cursor = comment_start + len("<!--")
+            in_comment = True
+            continue
+        if code_start is not None:
+            visible.append(line[cursor:code_offset])
+            delimiter = code_start.group(0)
+            delimiter_end = code_offset + len(delimiter)
+            closing = re.search(
+                rf"(?<!`){re.escape(delimiter)}(?!`)",
+                line[delimiter_end:],
+            )
+            if closing is None:
+                visible.append(delimiter)
+                cursor = delimiter_end
+                continue
+            closing_end = delimiter_end + closing.end()
+            visible.append(line[code_offset:closing_end])
+            cursor = closing_end
+            continue
+        visible.append(line[cursor:])
+        break
+    return "".join(visible), in_comment
+
+
 def _rendered_markdown_lines(text: str) -> tuple[str, ...]:
-    without_comments = re.sub(
-        r"<!--.*?(?:-->|\Z)",
-        lambda match: "\n" * match.group(0).count("\n"),
-        text,
-        flags=re.DOTALL,
-    )
     visible: list[str] = []
     fence_marker: str | None = None
     fence_width = 0
-    for line in without_comments.splitlines():
+    in_comment = False
+    for line in text.splitlines():
         if fence_marker is not None:
             closing = re.match(r"^ {0,3}(`{3,}|~{3,})\s*$", line)
             if (
@@ -302,11 +344,12 @@ def _rendered_markdown_lines(text: str) -> tuple[str, ...]:
                 fence_marker = None
                 fence_width = 0
             continue
-        opening = re.match(r"^ {0,3}(`{3,}|~{3,})", line)
+        opening = None if in_comment else re.match(r"^ {0,3}(`{3,}|~{3,})", line)
         if opening is not None:
             fence_marker = opening.group(1)[0]
             fence_width = len(opening.group(1))
             continue
+        line, in_comment = _strip_html_comments_outside_inline_code(line, in_comment)
         visible.append(line)
     return tuple(visible)
 
@@ -1173,7 +1216,10 @@ class MaintainerStructureTests(unittest.TestCase):
         )
         hidden_blocks = (
             "<!--\n# 숨겨진 한국어 제목\n이 문서는 숨겨진 한국어 설명을 제공합니다.\n-->\n",
+            "<!--\n# 숨겨진 한국어 제목\n이 문서는 숨겨진 한국어 설명을 제공합니다.\n",
             "```text\n# 숨겨진 한국어 제목\n이 문서는 숨겨진 한국어 설명을 제공합니다.\n```\n",
+            "```text\n# 숨겨진 한국어 제목\n이 문서는 숨겨진 한국어 설명을 제공합니다.\n",
+            "~~~text\n# 숨겨진 한국어 제목\n이 문서는 숨겨진 한국어 설명을 제공합니다.\n",
         )
         expected = (
             "maintainer H1 must include a substantive Korean label",
@@ -1191,6 +1237,45 @@ class MaintainerStructureTests(unittest.TestCase):
                 with self.subTest(path=path, hidden=hidden_block.splitlines()[0]):
                     mutation = hidden_block + rendered_english
                     self.assertEqual(maintainer_korean_source_errors(mutation), expected)
+
+    def test_korean_source_validator_accepts_korean_after_literal_comment_fences(self) -> None:
+        documents = (
+            ROOT / "docs/maintainers/products/pre-sdd-review/testing.md",
+            ROOT / "docs/maintainers/products/pre-sdd-review/compatibility.md",
+            ROOT / "docs/maintainers/products/how-it-works/testing.md",
+        )
+        fenced_examples = (
+            "```html\n<!-- literal comment -->\n```\n\n",
+            "```text\n<!-- literal unclosed comment\n```\n\n",
+            "~~~html\n<!-- literal comment -->\n~~~\n\n",
+            "~~~text\n<!-- literal unclosed comment\n~~~\n\n",
+        )
+        for path in documents:
+            source = _read(path)
+            for fenced_example in fenced_examples:
+                with self.subTest(path=path, fence=fenced_example.splitlines()[0]):
+                    self.assertEqual(
+                        maintainer_korean_source_errors(fenced_example + source),
+                        (),
+                    )
+
+    def test_korean_source_validator_accepts_inline_code_comment_literal(self) -> None:
+        documents = (
+            ROOT / "docs/maintainers/products/pre-sdd-review/testing.md",
+            ROOT / "docs/maintainers/products/pre-sdd-review/compatibility.md",
+            ROOT / "docs/maintainers/products/how-it-works/testing.md",
+        )
+        for path in documents:
+            source = _read(path)
+            h1, remainder = source.split("\n", 1)
+            _, following_sections = remainder.lstrip("\n").split("\n\n", 1)
+            mutation = (
+                f"{h1}\n\n"
+                "이 문서는 inline code의 `<!--` 리터럴을 설명하며 한국어 원문을 유지합니다.\n\n"
+                f"{following_sections}"
+            )
+            with self.subTest(path=path):
+                self.assertEqual(maintainer_korean_source_errors(mutation), ())
 
     def test_repository_trio_and_archive_evidence_live_under_repository(self) -> None:
         for path in REPOSITORY_DOCS:
