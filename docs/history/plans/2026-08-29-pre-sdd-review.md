@@ -270,11 +270,17 @@ Run:
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest \
-  tests.repository.test_product_registry \
-  tests.repository.test_release_contract -v
+  tests.repository.test_product_registry.RegistryParsingTests \
+  tests.repository.test_product_registry.ProductRegistryTests \
+  tests.repository.test_release_contract.ProductReleaseTests -v
 ```
 
-Expected: PASS. If public-document tests fail because the new README content is not complete, leave those failures for Task 4 and do not weaken their assertions.
+Expected: PASS. This command covers the new registry order and Codex-only
+identity plus the independent release identity and `validate_product()`
+acceptance. The full `tests.repository.test_product_registry` module remains
+expected RED until Task 5 registers `pre-sdd-review-contract` and adds the
+shared user-document references. Do not weaken those repository assertions or
+move their Task 5-owned files into Task 1.
 
 - [ ] **Step 6: Commit the registered product scaffold**
 
