@@ -1,4 +1,4 @@
-# graspic
+# How It Works
 
 [English](README.en.md)
 
@@ -24,13 +24,13 @@
 기본 경로는 Codex `$skill-installer`와 공개 GitHub 스킬 경로입니다. 대상 디렉터리가 이미 있으면 설치기는 중단하며, 기존 설치를 자동으로 바꾸지 않습니다.
 
 ```text
-$skill-installer https://github.com/beyondwin/skills/tree/main/skills/graspic
+$skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-works
 ```
 
 설치 후 다음 턴에서 명시 호출합니다.
 
 ```text
-$graspic DNS 길
+$how-it-works DNS 길
 ```
 
 공유 설치·갱신·제거는 [설치](../../docs/users/ko/installation.md)를 따릅니다.
@@ -47,7 +47,9 @@ $graspic DNS 길
 
 ## 호환성과 검증 수준
 
-graspic: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
+how-it-works: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
+
+Registered hosts: `codex`, `claude-code`, `grok`, `cursor`.
 
 공유 지원 문장과 호스트 한계는 [호환성](../../docs/users/ko/compatibility.md)을 따릅니다. 증거 한계는 [검증](../../docs/users/ko/verification.md)을 따릅니다.
 
@@ -60,7 +62,7 @@ graspic: Codex supported; Agent Skills contract portable; other hosts only suppo
 ## 변경 이력과 관리자 문서
 
 - [CHANGELOG](CHANGELOG.md)
-- [계약](../../docs/maintainers/products/graspic/contract.md)
-- [테스트](../../docs/maintainers/products/graspic/testing.md)
-- [호환성](../../docs/maintainers/products/graspic/compatibility.md)
-- [릴리스](../../docs/maintainers/products/graspic/release.md)
+- [계약](../../docs/maintainers/products/how-it-works/contract.md)
+- [테스트](../../docs/maintainers/products/how-it-works/testing.md)
+- [호환성](../../docs/maintainers/products/how-it-works/compatibility.md)
+- [릴리스](../../docs/maintainers/products/how-it-works/release.md)

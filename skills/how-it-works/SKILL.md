@@ -1,15 +1,15 @@
 ---
-name: graspic
-description: Use when the user wants to grasp how something works, asks for a visual or flow explanation, types /graspic, names a rung 그림/길/뼈대/허점, or asks in Korean to 원리부터 / 그림으로 / 어떻게 돌아가 / 감이 안 와. Do not use for debugging, implementing, reviewing, translating, one-line factual lookups, or child-register explainers.
+name: how-it-works
+description: Use when the user wants to grasp how something works, asks for a visual or flow explanation, types /how-it-works, names a rung 그림/길/뼈대/허점, or asks in Korean to 원리부터 / 그림으로 / 어떻게 돌아가 / 감이 안 와. Do not use for debugging, implementing, reviewing, translating, one-line factual lookups, or child-register explainers.
 license: Apache-2.0
 compatibility: Requires local Agent Skills file access and the Artifact tool. The map ships as mermaid: artifacts draw it, terminals print it as source, so the hop list must read on its own.
 argument-hint: "<topic> [그림|길|뼈대|허점]"
 metadata:
-  version: "3.0.0"
+  version: "1.0.0"
   updated_at: "2026-08-27"
 ---
 
-# graspic
+# how-it-works
 
 Same machine, chosen rung. The picture holds. Age does not go down.
 

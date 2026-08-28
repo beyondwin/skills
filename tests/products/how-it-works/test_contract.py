@@ -6,15 +6,15 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[3]
-SKILL = ROOT / "skills" / "graspic"
-CASES = ROOT / "tests" / "products" / "graspic" / "cases.json"
+SKILL = ROOT / "skills" / "how-it-works"
+CASES = ROOT / "tests" / "products" / "how-it-works" / "cases.json"
 
 
-class GraspicPayloadTests(unittest.TestCase):
+class HowItWorksPayloadTests(unittest.TestCase):
     def test_name_matches_directory(self) -> None:
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
-        self.assertIn("name: graspic\n", text.split("---")[1])
-        self.assertEqual(SKILL.name, "graspic")
+        self.assertIn("name: how-it-works\n", text.split("---")[1])
+        self.assertEqual(SKILL.name, "how-it-works")
 
     def test_description_excludes_eli5_and_workflow(self) -> None:
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -22,7 +22,7 @@ class GraspicPayloadTests(unittest.TestCase):
         self.assertNotIn("eli5", fm.lower())
         self.assertNotIn("바로 / 하나", fm)
         self.assertIn("Use when", fm)
-        self.assertIn("/graspic", fm)
+        self.assertIn("/how-it-works", fm)
 
     def test_payload_files_exist(self) -> None:
         for rel in (

@@ -18,7 +18,7 @@
 | --- | --- |
 | [`korean-writing-editor`](skills/korean-writing-editor/README.md) | 있는 한국어 글을 받아, 뜻은 그대로 두고 맞춤법과 문장을 고칩니다. |
 | [`image-workbench`](skills/image-workbench/README.md) | 이 프로젝트에 넣을 PNG·JPG 같은 이미지를 기획하고 만들고 고칩니다. |
-| [`graspic`](skills/graspic/README.md) | 한 기계가 어떻게 도는지, 고른 깊이로 그림과 글로 설명합니다. |
+| [`how-it-works`](skills/how-it-works/README.md) | 한 기계가 어떻게 도는지, 고른 깊이로 그림과 글로 설명합니다. |
 
 각 제품 README에서 설치와 첫 호출을 확인하세요.
 
@@ -29,7 +29,7 @@
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
-$skill-installer https://github.com/beyondwin/skills/tree/main/skills/graspic
+$skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-works
 ```
 
 설치·갱신·제거와 제3자 설치기는 [설치](docs/users/ko/installation.md)를 따릅니다.
@@ -46,7 +46,7 @@ python3 scripts/verify.py
 
 이 저장소는 텔레메트리를 넣지 않습니다. 필수 CI는 자격 증명·모델·원격 이미지 호출을 하지 않습니다. 플러그인 디렉터리 등록을 주장하지 않습니다.
 
-`korean-writing-editor`는 번역, 초안, 요약, 코드 리뷰, 일상 대화, 저작자 검출, 검출 회피에 쓰지 않습니다. `image-workbench`는 재미용 일회성 이미지, SVG·네이티브 UI, 실제 프론트엔드 구현, 외부 프롬프트 갤러리 복제에 쓰지 않습니다. `graspic`은 디버깅, 구현, 리뷰, 번역, 한 줄 사실 조회, 어린이 말투 설명, `/eli5` 대행에 쓰지 않습니다.
+`korean-writing-editor`는 번역, 초안, 요약, 코드 리뷰, 일상 대화, 저작자 검출, 검출 회피에 쓰지 않습니다. `image-workbench`는 재미용 일회성 이미지, SVG·네이티브 UI, 실제 프론트엔드 구현, 외부 프롬프트 갤러리 복제에 쓰지 않습니다. `how-it-works`은 디버깅, 구현, 리뷰, 번역, 한 줄 사실 조회, 어린이 말투 설명, `/eli5` 대행에 쓰지 않습니다.
 
 설치·갱신·제거는 정확한 대상만 다룹니다. 원격 스크립트를 셸에 파이프하거나, 대상을 확인하지 않고 덮어쓰거나, 상위 스킬 디렉터리를 지우거나, 기존 설치를 자동으로 바꾸지 마세요.
 

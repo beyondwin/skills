@@ -34,7 +34,7 @@ FULL_STAGE_NAMES = (
     "korean-live-dry-run",
     "image-contract",
     "image-inspector",
-    "graspic-contract",
+    "how-it-works-contract",
     "python-compile",
 )
 WINDOWS_STAGE_NAMES = (
@@ -43,7 +43,7 @@ WINDOWS_STAGE_NAMES = (
     "korean-offline",
     "korean-live-unit",
     "korean-live-dry-run",
-    "graspic-contract",
+    "how-it-works-contract",
     "python-compile",
 )
 LIVE_TEST_PATH = (
@@ -103,23 +103,23 @@ class VerifyStageTests(unittest.TestCase):
         return stages(ROOT, profile, self.registry, skill=skill, catalog=catalog)
 
     def test_product_stage_order_comes_from_registry(self) -> None:
-        product = self.registry.require("graspic")
-        selected = stages(ROOT, "full", self.registry, skill="graspic")
+        product = self.registry.require("how-it-works")
+        selected = stages(ROOT, "full", self.registry, skill="how-it-works")
         self.assertEqual(tuple(stage.name for stage in selected), product.verify_stages)
 
     def test_product_stage_order_follows_replaced_registry_entry(self) -> None:
         product = dataclasses.replace(
-            self.registry.require("graspic"),
-            verify_stages=("python-compile", "graspic-contract"),
+            self.registry.require("how-it-works"),
+            verify_stages=("python-compile", "how-it-works-contract"),
         )
         replaced = dataclasses.replace(
             self.registry,
             products=tuple(
-                product if item.name == "graspic" else item
+                product if item.name == "how-it-works" else item
                 for item in self.registry.products
             ),
         )
-        selected = stages(ROOT, "full", replaced, skill="graspic")
+        selected = stages(ROOT, "full", replaced, skill="how-it-works")
         self.assertEqual(tuple(stage.name for stage in selected), product.verify_stages)
 
     def test_full_profile_contains_all_provider_free_gates(self) -> None:
@@ -261,9 +261,9 @@ class VerifyStageTests(unittest.TestCase):
             self.assertIn("korean-offline", stderr.getvalue())
             self.assertFalse(marker.exists())
 
-    def test_graspic_selection_runs_only_shared_and_graspic_gates(self) -> None:
-        names = [stage.name for stage in self._selected("full", skill="graspic")]
-        self.assertEqual(names, ["product-contract", "graspic-contract", "python-compile"])
+    def test_how_it_works_selection_runs_only_shared_and_how_it_works_gates(self) -> None:
+        names = [stage.name for stage in self._selected("full", skill="how-it-works")]
+        self.assertEqual(names, ["product-contract", "how-it-works-contract", "python-compile"])
 
     def test_catalog_selection_runs_catalog_gates_only(self) -> None:
         names = [stage.name for stage in self._selected("full", catalog=True)]
@@ -279,7 +279,7 @@ class VerifyStageTests(unittest.TestCase):
 
     def test_skill_and_catalog_are_mutually_exclusive(self) -> None:
         with self.assertRaises(ValueError):
-            stages(ROOT, "full", self.registry, skill="graspic", catalog=True)
+            stages(ROOT, "full", self.registry, skill="how-it-works", catalog=True)
 
     def test_korean_selection_runs_only_shared_and_korean_gates(self) -> None:
         names = [
@@ -322,7 +322,7 @@ class VerifyStageTests(unittest.TestCase):
         self.assertNotIn("image-inspector", names)
 
     def test_product_contract_runs_release_contract_module(self) -> None:
-        stage = self._stage("full", "product-contract", skill="graspic")
+        stage = self._stage("full", "product-contract", skill="how-it-works")
         self.assertEqual(stage.argv[0], sys.executable)
         self.assertEqual(
             stage.argv[1:4],
@@ -364,15 +364,15 @@ class VerifyStageTests(unittest.TestCase):
         self.assertIn("tests/products/korean-writing-editor", stage.argv)
         self.assertIn("test_package.py", stage.argv)
 
-    def test_graspic_contract_runs_graspic_module(self) -> None:
-        stage = self._stage("full", "graspic-contract", skill="graspic")
+    def test_how_it_works_contract_runs_how_it_works_module(self) -> None:
+        stage = self._stage("full", "how-it-works-contract", skill="how-it-works")
         self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
-        self.assertIn("tests/products/graspic", stage.argv)
+        self.assertIn("tests/products/how-it-works", stage.argv)
         self.assertIn("test_contract.py", stage.argv)
 
     def test_selected_stages_use_sys_executable_and_tuple_argv(self) -> None:
         selections = (
-            ("full", "graspic", False),
+            ("full", "how-it-works", False),
             ("full", "korean-writing-editor", False),
             ("full", "image-workbench", False),
             ("windows-portable", "image-workbench", False),
@@ -410,7 +410,7 @@ class VerifyStageTests(unittest.TestCase):
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):
             with self.assertRaises(SystemExit) as raised:
-                verify.main(["--skill", "graspic", "--catalog"])
+                verify.main(["--skill", "how-it-works", "--catalog"])
         self.assertNotEqual(raised.exception.code, 0)
 
     def test_cli_defaults_to_full_profile(self) -> None:
@@ -452,10 +452,10 @@ class VerifyStageTests(unittest.TestCase):
 
         verify.stages = fake_stages  # type: ignore[method-assign]
         try:
-            self.assertEqual(verify.main(["--skill", "graspic"]), 0)
+            self.assertEqual(verify.main(["--skill", "how-it-works"]), 0)
         finally:
             verify.stages = original  # type: ignore[method-assign]
-        self.assertEqual(recorded, [("full", "graspic", False)])
+        self.assertEqual(recorded, [("full", "how-it-works", False)])
 
     def test_cli_passes_catalog_selector(self) -> None:
         verify = self._load()

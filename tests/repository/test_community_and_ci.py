@@ -242,7 +242,7 @@ class CommunityPolicyTests(unittest.TestCase):
             text = _read(path)
             self.assertIn("korean-writing-editor", text)
             self.assertIn("image-workbench", text)
-            self.assertIn("graspic", text)
+            self.assertIn("how-it-works", text)
             lowered = text.lower()
             self.assertNotIn("two curated skills", lowered)
             self.assertNotIn("two skills only", lowered)

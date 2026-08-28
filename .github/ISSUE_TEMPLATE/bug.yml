@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Report a defect in `korean-writing-editor`, `image-workbench`, or
-        `graspic` only.
+        `how-it-works` only.
 
         Do not include personal Korean text, a private prompt, a private image,
         credentials, provider receipts, or generated media.
@@ -21,7 +21,7 @@ body:
       options:
         - korean-writing-editor
         - image-workbench
-        - graspic
+        - how-it-works
     validations:
       required: true
   - type: textarea

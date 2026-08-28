@@ -2,7 +2,7 @@
 
 [English](../en/installation.md) · [호환성](compatibility.md) · [안전과 개인정보](safety-and-privacy.md) · [검증](verification.md)
 
-설치 가능한 페이로드는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`graspic`](../../../skills/graspic/README.md)입니다. 라이선스는 Apache-2.0입니다.
+설치 가능한 페이로드는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md)입니다. 라이선스는 Apache-2.0입니다.
 
 ## 기본 설치 (Codex)
 
@@ -11,7 +11,7 @@
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
-$skill-installer https://github.com/beyondwin/skills/tree/main/skills/graspic
+$skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-works
 ```
 
 기본 설치 위치는 `$CODEX_HOME/skills/<skill-name>`이며, `CODEX_HOME`이 없으면 `~/.codex/skills`입니다. 설치 후 새 대화에서 제품 README의 첫 호출을 쓰세요.
@@ -38,7 +38,7 @@ ls -ld "$SKILL_SOURCE"
 ls -ld "$SKILL_TARGET"
 ```
 
-`$SKILL_TARGET`이 없거나, 이 스킬을 가리키는 안전한 링크임이 확인된 경우에만 복사하세요. 이미 있는 실제 디렉터리는 덮어쓰지 말고 중단하세요. `image-workbench`와 `graspic`도 같은 방식으로 정확한 폴더만 다룹니다.
+`$SKILL_TARGET`이 없거나, 이 스킬을 가리키는 안전한 링크임이 확인된 경우에만 복사하세요. 이미 있는 실제 디렉터리는 덮어쓰지 말고 중단하세요. `image-workbench`와 `how-it-works`도 같은 방식으로 정확한 폴더만 다룹니다.
 
 다른 호스트 폴더는 `korean-writing-editor`의 Agent Skills 계약 이식 대상일 뿐입니다. 기록된 smoke가 있기 전에는 지원이라고 말하지 마세요.
 
@@ -59,7 +59,7 @@ ls -ld "$SKILL_TARGET"
 
 이 스킬임이 확인된 뒤에만 호스트의 일반 제거 방법으로 그 경로만 지우거나, 대상을 치운 뒤 `$skill-installer`로 다시 설치하세요. 상위 `skills` 디렉터리나 홈 디렉터리를 지우지 마세요. 기존 설치를 확인 없이 교체하지 마세요.
 
-`image-workbench`와 `graspic`도 같은 확인 순서를 `.../skills/image-workbench`와 `.../skills/graspic`에 적용합니다.
+`image-workbench`와 `how-it-works`도 같은 확인 순서를 `.../skills/image-workbench`와 `.../skills/how-it-works`에 적용합니다.
 
 설치·갱신·제거는 정확한 대상만 다룹니다. 원격 스크립트를 셸에 파이프하거나, 대상을 확인하지 않고 덮어쓰거나, 상위 스킬 디렉터리를 지우거나, 기존 설치를 자동으로 바꾸지 마세요.
 

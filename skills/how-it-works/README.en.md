@@ -1,4 +1,4 @@
-# graspic
+# How It Works
 
 [한국어](README.md)
 
@@ -17,20 +17,20 @@ It does not swap the content for a cute analogy, and it does not talk down in a 
 
 Use it to explain how one machine works at a depth you pick.
 
-Do not use `graspic` for debugging, implementing, reviewing, translating, one-line factual lookups, child-register explainers, or as a stand-in for `/eli5`.
+Do not use `how-it-works` for debugging, implementing, reviewing, translating, one-line factual lookups, child-register explainers, or as a stand-in for `/eli5`.
 
 ## One-minute install and first invocation
 
 The primary Codex path is `$skill-installer` with the public GitHub skill path. The installer stops if the destination already exists; it does not replace an existing install.
 
 ```text
-$skill-installer https://github.com/beyondwin/skills/tree/main/skills/graspic
+$skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-works
 ```
 
 After install, invoke explicitly on the next turn:
 
 ```text
-$graspic Explain DNS as a path.
+$how-it-works Explain DNS as a path.
 ```
 
 Shared install, update, and uninstall steps are in [Installation](../../docs/users/en/installation.md).
@@ -47,7 +47,9 @@ Details are in [Safety and privacy](../../docs/users/en/safety-and-privacy.md).
 
 ## Compatibility and verification
 
-graspic: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
+how-it-works: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
+
+Registered hosts: `codex`, `claude-code`, `grok`, `cursor`.
 
 Shared support policy is in [Compatibility](../../docs/users/en/compatibility.md). Evidence limits are in [Verification](../../docs/users/en/verification.md).
 
@@ -60,7 +62,7 @@ Check the current version in `SKILL.md` `metadata.version` and [CHANGELOG](CHANG
 ## Changelog and maintainer docs
 
 - [CHANGELOG](CHANGELOG.md)
-- [Contract](../../docs/maintainers/products/graspic/contract.md)
-- [Testing](../../docs/maintainers/products/graspic/testing.md)
-- [Compatibility](../../docs/maintainers/products/graspic/compatibility.md)
-- [Release](../../docs/maintainers/products/graspic/release.md)
+- [Contract](../../docs/maintainers/products/how-it-works/contract.md)
+- [Testing](../../docs/maintainers/products/how-it-works/testing.md)
+- [Compatibility](../../docs/maintainers/products/how-it-works/compatibility.md)
+- [Release](../../docs/maintainers/products/how-it-works/release.md)

@@ -23,7 +23,7 @@ from scripts.lib.product_registry import load_registry  # noqa: E402
 EXPECTED = {
     "korean-writing-editor": "2.0.1",
     "image-workbench": "2.0.1",
-    "graspic": "3.0.0",
+    "how-it-works": "1.0.0",
 }
 REGISTRY = load_registry(ROOT / "products.toml")
 
@@ -54,15 +54,15 @@ class ProductReleaseTests(unittest.TestCase):
 
     def test_one_product_version_can_change_without_changing_neighbors(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory) / "graspic"
-            shutil.copytree(ROOT / "skills" / "graspic", root)
+            root = Path(directory) / "how-it-works"
+            shutil.copytree(ROOT / "skills" / "how-it-works", root)
             manifest = root / "release.toml"
             manifest.write_text(
-                manifest.read_text(encoding="utf-8").replace('version = "3.0.0"', 'version = "3.0.1"'),
+                manifest.read_text(encoding="utf-8").replace('version = "1.0.0"', 'version = "1.0.1"'),
                 encoding="utf-8",
             )
             errors = validate_product(root, self.registry)
-            self.assertIn("release.toml version 3.0.1 != SKILL.md version 3.0.0", errors)
+            self.assertIn("release.toml version 1.0.1 != SKILL.md version 1.0.0", errors)
 
     def test_payload_hash_changes_with_bytes_but_is_stable_across_copies(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -116,13 +116,13 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         self.assertIn("directory/release.toml name mismatch", errors)
 
     def test_rejects_missing_changelog(self) -> None:
-        root = self._copy("graspic")
+        root = self._copy("how-it-works")
         (root / "CHANGELOG.md").unlink()
         errors = "\n".join(validate_product(root, REGISTRY))
         self.assertIn("missing CHANGELOG.md", errors)
 
     def test_rejects_missing_korean_readme(self) -> None:
-        root = self._copy("graspic")
+        root = self._copy("how-it-works")
         readme = root / "README.md"
         if readme.is_file():
             readme.unlink()
@@ -148,7 +148,7 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         "symlink and FIFO fixtures require Unix",
     )
     def test_rejects_symlink_and_special_file(self) -> None:
-        root = self._copy("graspic")
+        root = self._copy("how-it-works")
         (root / "link.md").symlink_to("SKILL.md")
         os.mkfifo(root / "pipe")
         errors = "\n".join(validate_product(root, REGISTRY))
@@ -174,18 +174,18 @@ class ProductReleaseRejectionTests(unittest.TestCase):
     def test_dated_release_validation_is_opt_in(self) -> None:
         from scripts.lib.product_contract import require_dated_changelog
 
-        source = ROOT / "skills" / "graspic"
+        source = ROOT / "skills" / "how-it-works"
         self.assertEqual(validate_product(source, REGISTRY), [])
         self.assertIn(
-            "CHANGELOG.md missing dated release heading for 3.0.0",
+            "CHANGELOG.md missing dated release heading for 1.0.0",
             require_dated_changelog(source),
         )
-        root = self._copy("graspic")
+        root = self._copy("how-it-works")
         changelog = root / "CHANGELOG.md"
         changelog.write_text(
             changelog.read_text(encoding="utf-8").replace(
                 "## Unreleased\n",
-                "## Unreleased\n\n## 3.0.0 - 2026-08-27\n",
+                "## Unreleased\n\n## 1.0.0 - 2026-08-27\n",
                 1,
             ),
             encoding="utf-8",

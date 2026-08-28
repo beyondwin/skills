@@ -2,7 +2,7 @@
 
 [English](../en/compatibility.md) · [설치](installation.md)
 
-Codex가 현재 독립 제품의 1급 런타임입니다. 현재 독립 제품은 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`graspic`](../../../skills/graspic/README.md)입니다.
+Codex가 현재 독립 제품의 1급 런타임입니다. 현재 독립 제품은 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md)입니다.
 
 ## 공유 지원 문장
 
@@ -10,7 +10,7 @@ korean-writing-editor: Codex supported; Agent Skills contract portable; other ho
 
 image-workbench: Codex-only; generate/edit requires Codex image generation and local image viewing.
 
-graspic: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
+how-it-works: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
 
 ## 계약 이식과 측정된 지원
 
@@ -18,7 +18,7 @@ graspic: Codex supported; Agent Skills contract portable; other hosts only suppo
 
 `image-workbench`는 Codex 전용입니다. 다른 호스트의 비슷한 이미지 도구가 있어도 호환이 되지는 않습니다. `brief`와 `audit`은 읽기 전용일 수 있지만, 생성·편집은 Codex 내장 이미지 생성과 로컬 이미지 보기가 필요합니다.
 
-`graspic`은 열린 Agent Skills 디렉터리 형식을 따릅니다. 출력은 GitHub-flavored markdown과 mermaid입니다. 그 계약 이식은 다른 호스트가 지금 지원된다는 뜻이 아닙니다.
+`how-it-works`은 열린 Agent Skills 디렉터리 형식을 따릅니다. 출력은 GitHub-flavored markdown과 mermaid입니다. 그 계약 이식은 다른 호스트가 지금 지원된다는 뜻이 아닙니다.
 
 플러그인 이름 `beyondwin-skills`는 저장소가 플러그인으로 패키징되어 있다는 뜻입니다. 플러그인 디렉터리에 올라 있다고 주장하지 않습니다.
 

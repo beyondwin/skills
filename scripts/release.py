@@ -528,12 +528,12 @@ def _run_product_smoke(root: Path, name: str, skill_root: Path) -> list[str]:
         errors = _run_image(root, skill_root)
         errors.extend(_run_inspector(root, inspector))
         return errors
-    if name == "graspic":
-        return _smoke_graspic(skill_root)
+    if name == "how-it-works":
+        return _smoke_how_it_works(skill_root)
     return [f"unlisted skill is not accepted: {name}"]
 
 
-def _smoke_graspic(skill_root: Path) -> list[str]:
+def _smoke_how_it_works(skill_root: Path) -> list[str]:
     errors: list[str] = []
     skill_md = skill_root / "SKILL.md"
     if skill_md.is_file():
@@ -541,13 +541,13 @@ def _smoke_graspic(skill_root: Path) -> list[str]:
         parts = text.split("---", 2)
         frontmatter = parts[1] if len(parts) > 2 else ""
         if "eli5" in frontmatter.lower():
-            errors.append("graspic: SKILL.md description contains eli5")
+            errors.append("how-it-works: SKILL.md description contains eli5")
         if "바로 / 하나" in frontmatter:
-            errors.append("graspic: SKILL.md description contains workflow shorthand")
+            errors.append("how-it-works: SKILL.md description contains workflow shorthand")
         if "Use when" not in frontmatter:
-            errors.append("graspic: SKILL.md missing Use when")
-        if "/graspic" not in frontmatter:
-            errors.append("graspic: SKILL.md missing /graspic")
+            errors.append("how-it-works: SKILL.md missing Use when")
+        if "/how-it-works" not in frontmatter:
+            errors.append("how-it-works: SKILL.md missing /how-it-works")
     for relative in (
         "SKILL.md",
         "LICENSE.txt",
@@ -559,12 +559,12 @@ def _smoke_graspic(skill_root: Path) -> list[str]:
         "references/sources.md",
     ):
         if not (skill_root / relative).is_file():
-            errors.append(f"graspic: missing {relative}")
+            errors.append(f"how-it-works: missing {relative}")
     names = {path.name for path in skill_root.rglob("*") if path.is_file()}
     if "test_contract.py" in names:
-        errors.append("graspic: payload includes test_contract.py")
+        errors.append("how-it-works: payload includes test_contract.py")
     if "cases.json" in names:
-        errors.append("graspic: payload includes cases.json")
+        errors.append("how-it-works: payload includes cases.json")
     markdown: list[str] = []
     for path in skill_root.rglob("*.md"):
         try:
@@ -572,7 +572,7 @@ def _smoke_graspic(skill_root: Path) -> list[str]:
         except OSError:
             continue
     if "<html" in "\n".join(markdown).lower():
-        errors.append("graspic: payload includes html template")
+        errors.append("how-it-works: payload includes html template")
     return errors
 
 

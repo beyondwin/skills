@@ -1,6 +1,6 @@
-# graspic 호환성
+# how-it-works 호환성
 
-현재 지원 호스트는 제품 레지스트리의 `codex`뿐입니다. 다른 호스트를 지원한다고 쓰지 마세요.
+현재 지원 호스트는 제품 레지스트리의 `codex`, `claude-code`, `grok`, `cursor`입니다. 다른 호스트를 지원한다고 쓰지 마세요.
 
 ## 필요한 호스트 능력
 
@@ -10,7 +10,7 @@
 
 ## 공급자 없는 증거
 
-필수 증거는 `python3 scripts/verify.py --skill graspic`입니다. `tests/products/graspic/cases.json`과 `tests/products/graspic/test_contract.py`는 형태와 페이로드 계약만 증명합니다. 라이브 모델 품질은 증명하지 않습니다.
+필수 증거는 `python3 scripts/verify.py --skill how-it-works`입니다. `tests/products/how-it-works/cases.json`과 `tests/products/how-it-works/test_contract.py`는 형태와 페이로드 계약만 증명합니다. 라이브 모델 품질은 증명하지 않습니다.
 
 ## 라이브 증거 경계
 

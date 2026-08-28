@@ -19,7 +19,7 @@ This page only routes readers. Product contracts live in each product README and
 
 - [`korean-writing-editor`](../skills/korean-writing-editor/README.md) · [English](../skills/korean-writing-editor/README.en.md)
 - [`image-workbench`](../skills/image-workbench/README.md) · [English](../skills/image-workbench/README.en.md)
-- [`graspic`](../skills/graspic/README.md) · [English](../skills/graspic/README.en.md)
+- [`how-it-works`](../skills/how-it-works/README.md) · [English](../skills/how-it-works/README.en.md)
 
 ## 유지·변경·릴리스 / Maintain, change, or release
 

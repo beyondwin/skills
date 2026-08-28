@@ -1,6 +1,0 @@
-interface:
-  display_name: "graspic"
-  short_description: "Explain how something works at a chosen rung"
-  default_prompt: "Use $graspic to explain how this works at 그림, 길, 뼈대, or 허점."
-policy:
-  allow_implicit_invocation: true

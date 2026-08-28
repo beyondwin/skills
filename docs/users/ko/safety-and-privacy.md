@@ -4,7 +4,7 @@
 
 이 프로젝트 자체는 텔레메트리를 넣지 않습니다. 필수 CI와 `python3 scripts/verify.py`는 자격 증명, 모델 호출, 원격 업로드를 하지 않습니다. 선택적 제3자 설치기 `npx skills add beyondwin/skills --skill korean-writing-editor`는 제3자이며 자체 정책을 따릅니다.
 
-제품 안내는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`graspic`](../../../skills/graspic/README.md)를 보세요.
+제품 안내는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md)를 보세요.
 
 ## 한국어 원문
 
@@ -12,7 +12,7 @@
 
 ## 설명 주제
 
-`graspic`은 사용자 주제를 픽스처나 로그로 저장하지 않습니다. 인용은 그 턴에서 가져온 URL만 보이며, 비공개 코퍼스가 아닙니다. 의료·법률·금융 슬라이스는 메커니즘만 설명하고 조언이 아닙니다.
+`how-it-works`은 사용자 주제를 픽스처나 로그로 저장하지 않습니다. 인용은 그 턴에서 가져온 URL만 보이며, 비공개 코퍼스가 아닙니다. 의료·법률·금융 슬라이스는 메커니즘만 설명하고 조언이 아닙니다.
 
 ## 이미지 참조와 동의
 
@@ -20,7 +20,7 @@
 
 ## 이해관계가 큰 요청
 
-법률·의료·금융처럼 이해관계가 큰 한국어 글은 기계적 `correct` 또는 `diagnose`가 기본입니다. `graspic`의 해당 슬라이스는 메커니즘만 설명합니다. `image-workbench`는 권리·개인정보가 불명이면 보류합니다.
+법률·의료·금융처럼 이해관계가 큰 한국어 글은 기계적 `correct` 또는 `diagnose`가 기본입니다. `how-it-works`의 해당 슬라이스는 메커니즘만 설명합니다. `image-workbench`는 권리·개인정보가 불명이면 보류합니다.
 
 ## hash, provenance, consent, 권리
 

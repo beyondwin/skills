@@ -18,7 +18,7 @@ GitHub Release가 있다고 말하지 마세요. 공개 증명은 원격 다운�
 - `catalog/CHANGELOG.md`
 - 필요한 카탈로그 버전과 `catalog/plugin/.codex-plugin/plugin.json` 복제 값
 
-`release_kind`는 `independent` 또는 `legacy-bundle`입니다. 새 릴리스는 `independent`만 사용합니다. `legacy-bundle`은 기존 `v2.0.0` 두 제품 이관에만 허용합니다. `graspic`은 공개 `v2.0.0`에 포함되지 않았고, 현재 lock에도 없습니다.
+`release_kind`는 `independent` 또는 `legacy-bundle`입니다. 새 릴리스는 `independent`만 사용합니다. `legacy-bundle`은 기존 `v2.0.0` 두 제품 이관에만 허용합니다. `how-it-works`은 공개 `v2.0.0`에 포함되지 않았고, 현재 lock에도 없습니다.
 
 ## 로컬 게이트
 
@@ -41,7 +41,7 @@ image-workbench-v2.0.0.zip
 SHA256SUMS
 ```
 
-`catalog.lock.json`은 두 standalone 스킬 ZIP을 태그 `v2.0.0`의 `legacy-bundle` 입력으로 고정합니다. 현재 `skills/` 개발과 미공개 `graspic`은 카탈로그 ZIP에 복사되지 않습니다. 공유 버전 번들 빌더 `python3 scripts/build_release.py`는 폐기되었고 실패로 닫힙니다.
+`catalog.lock.json`은 두 standalone 스킬 ZIP을 태그 `v2.0.0`의 `legacy-bundle` 입력으로 고정합니다. 현재 `skills/` 개발과 미공개 `how-it-works`은 카탈로그 ZIP에 복사되지 않습니다. 공유 버전 번들 빌더 `python3 scripts/build_release.py`는 폐기되었고 실패로 닫힙니다.
 
 카탈로그 플러그인 메타데이터는 `catalog/plugin/.codex-plugin/plugin.json`에서 읽어 ZIP 루트 `.codex-plugin/plugin.json`으로 복사합니다. 각 standalone ZIP은 `LICENSE.txt`가 있는 최상위 스킬 디렉터리 하나입니다. 테스트, 라이브 하니스, 관리자 문서, 캐시, 증거는 목적 빌드 스킬 ZIP의 멤버가 아닙니다.
 

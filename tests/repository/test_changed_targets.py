@@ -61,15 +61,15 @@ class TargetMappingTests(RegistryRoutingTestCase):
 
     def test_windows_separator_routes_to_product(self) -> None:
         self.assertEqual(
-            targets_for_paths([r"tests\\products\\graspic\\cases.json"], self.registry),
-            ("graspic",),
+            targets_for_paths([r"tests\\products\\how-it-works\\cases.json"], self.registry),
+            ("how-it-works",),
         )
 
     def test_unmatched_path_selects_full_matrix(self) -> None:
         self.assertEqual(targets_for_paths(["products.toml"], self.registry), ("catalog", *self.registry.names))
 
     def test_product_path_selects_only_that_product(self) -> None:
-        self.assertEqual(targets_for_paths(["skills/graspic/SKILL.md"], self.registry), ("graspic",))
+        self.assertEqual(targets_for_paths(["skills/how-it-works/SKILL.md"], self.registry), ("how-it-works",))
 
     def test_shared_release_code_selects_every_target(self) -> None:
         self.assertEqual(
@@ -85,16 +85,16 @@ class TargetMappingTests(RegistryRoutingTestCase):
 
     def test_product_docs_and_tests_select_that_product(self) -> None:
         self.assertEqual(
-            targets_for_paths(["docs/maintainers/products/graspic/contract.md"], self.registry),
-            ("graspic",),
+            targets_for_paths(["docs/maintainers/products/how-it-works/contract.md"], self.registry),
+            ("how-it-works",),
         )
         self.assertEqual(
-            targets_for_paths(["tests/products/graspic/cases.json"], self.registry),
-            ("graspic",),
+            targets_for_paths(["tests/products/how-it-works/cases.json"], self.registry),
+            ("how-it-works",),
         )
         self.assertEqual(
-            targets_for_paths(["tests/products/graspic/test_contract.py"], self.registry),
-            ("graspic",),
+            targets_for_paths(["tests/products/how-it-works/test_contract.py"], self.registry),
+            ("how-it-works",),
         )
         self.assertEqual(
             targets_for_paths(
@@ -163,8 +163,8 @@ class TargetMappingTests(RegistryRoutingTestCase):
 
     def test_windows_paths_are_normalized(self) -> None:
         self.assertEqual(
-            targets_for_paths(["skills\\graspic\\SKILL.md"], self.registry),
-            ("graspic",),
+            targets_for_paths(["skills\\how-it-works\\SKILL.md"], self.registry),
+            ("how-it-works",),
         )
 
     def test_multiple_product_paths_union_in_deterministic_order(self) -> None:
@@ -173,56 +173,56 @@ class TargetMappingTests(RegistryRoutingTestCase):
                 [
                     "skills/korean-writing-editor/SKILL.md",
                     "catalog/README.md",
-                    "skills/graspic/SKILL.md",
+                    "skills/how-it-works/SKILL.md",
                 ],
                 self.registry,
             ),
-            ("catalog", "korean-writing-editor", "graspic"),
+            ("catalog", "korean-writing-editor", "how-it-works"),
         )
 
     def test_product_plus_unknown_fails_safe_to_every_target(self) -> None:
         self.assertEqual(
-            targets_for_paths(["skills/graspic/SKILL.md", "unexpected.txt"], self.registry),
+            targets_for_paths(["skills/how-it-works/SKILL.md", "unexpected.txt"], self.registry),
             self.all_targets,
         )
 
     def test_all_targets_follow_catalog_then_registry_order(self) -> None:
         self.assertEqual(self.all_targets, ("catalog", *self.registry.names))
-        self.assertEqual(self.registry.names, ("korean-writing-editor", "image-workbench", "graspic"))
+        self.assertEqual(self.registry.names, ("korean-writing-editor", "image-workbench", "how-it-works"))
 
     def test_routing_follows_replaced_owned_paths(self) -> None:
-        original = self.registry.require("graspic")
+        original = self.registry.require("how-it-works")
         replaced = dataclasses.replace(
             original,
-            owned_paths=(pathlib.PurePosixPath("alternate/graspic"),),
+            owned_paths=(pathlib.PurePosixPath("alternate/how-it-works"),),
         )
         registry = dataclasses.replace(
             self.registry,
             products=tuple(
-                replaced if product.name == "graspic" else product
+                replaced if product.name == "how-it-works" else product
                 for product in self.registry.products
             ),
         )
         self.assertEqual(
-            targets_for_paths(["alternate/graspic/SKILL.md"], registry),
-            ("graspic",),
+            targets_for_paths(["alternate/how-it-works/SKILL.md"], registry),
+            ("how-it-works",),
         )
         self.assertEqual(
-            targets_for_paths(["skills/graspic/SKILL.md"], registry),
+            targets_for_paths(["skills/how-it-works/SKILL.md"], registry),
             ("catalog", *registry.names),
         )
 
 
 class MatrixSerializationTests(RegistryRoutingTestCase):
     def test_each_target_runs_ubuntu_macos_full_and_windows_portable(self) -> None:
-        matrix = matrix_for_targets(["graspic"], self.registry)
+        matrix = matrix_for_targets(["how-it-works"], self.registry)
         rows = matrix["include"]
         self.assertEqual(
             [(row["os"], row["profile"], row["selector"], row["target"]) for row in rows],
             [
-                ("ubuntu-latest", "full", "--skill graspic", "graspic"),
-                ("macos-latest", "full", "--skill graspic", "graspic"),
-                ("windows-latest", "windows-portable", "--skill graspic", "graspic"),
+                ("ubuntu-latest", "full", "--skill how-it-works", "how-it-works"),
+                ("macos-latest", "full", "--skill how-it-works", "how-it-works"),
+                ("windows-latest", "windows-portable", "--skill how-it-works", "how-it-works"),
             ],
         )
 
@@ -235,7 +235,7 @@ class MatrixSerializationTests(RegistryRoutingTestCase):
                 ("catalog", "windows-portable", "--catalog"),
                 ("korean-writing-editor", "windows-portable", "--skill korean-writing-editor"),
                 ("image-workbench", "windows-portable", "--skill image-workbench"),
-                ("graspic", "windows-portable", "--skill graspic"),
+                ("how-it-works", "windows-portable", "--skill how-it-works"),
             ],
         )
 
@@ -256,7 +256,7 @@ class MatrixSerializationTests(RegistryRoutingTestCase):
         self.assertEqual(by_target, expected)
 
     def test_json_serialization_is_canonical_and_compact(self) -> None:
-        matrix = matrix_for_targets(["catalog", "graspic"], self.registry)
+        matrix = matrix_for_targets(["catalog", "how-it-works"], self.registry)
         encoded = serialize_matrix(matrix)
         self.assertEqual(
             encoded,
@@ -299,7 +299,7 @@ class ChangedPathAndCliTests(RegistryRoutingTestCase):
         with tempfile.TemporaryDirectory() as directory:
             repository = Path(directory)
             init_repository(repository)
-            first = repository / "skills" / "graspic" / "SKILL.md"
+            first = repository / "skills" / "how-it-works" / "SKILL.md"
             first.parent.mkdir(parents=True)
             first.write_text("one\n", encoding="utf-8")
             (repository / "LICENSE").write_text("license\n", encoding="utf-8")
@@ -315,7 +315,7 @@ class ChangedPathAndCliTests(RegistryRoutingTestCase):
             head = run_git(repository, "rev-parse", "HEAD")
             self.assertEqual(
                 tuple(sorted(changed_paths(repository, base, head))),
-                ("catalog/release.toml", "skills/graspic/SKILL.md"),
+                ("catalog/release.toml", "skills/how-it-works/SKILL.md"),
             )
 
     def test_empty_git_diff_is_empty_path_list(self) -> None:
@@ -427,7 +427,7 @@ class ChangedPathAndCliTests(RegistryRoutingTestCase):
         routing = (ROOT / "scripts" / "lib" / "change_routing.py").read_text(encoding="utf-8")
         self.assertNotIn("PRODUCT_PREFIXES", routing)
         self.assertNotIn("PRODUCT_EXACT_PATHS", routing)
-        self.assertNotIn("skills/graspic/", routing)
+        self.assertNotIn("skills/how-it-works/", routing)
 
 
 if __name__ == "__main__":

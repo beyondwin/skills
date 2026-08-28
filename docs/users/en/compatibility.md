@@ -2,7 +2,7 @@
 
 [한국어](../ko/compatibility.md) · [Installation](installation.md)
 
-Codex is the first-class runtime for the current standalone products. The current standalone products are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), and [`graspic`](../../../skills/graspic/README.en.md).
+Codex is the first-class runtime for the current standalone products. The current standalone products are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), and [`how-it-works`](../../../skills/how-it-works/README.en.md).
 
 ## Shared support sentences
 
@@ -10,7 +10,7 @@ korean-writing-editor: Codex supported; Agent Skills contract portable; other ho
 
 image-workbench: Codex-only; generate/edit requires Codex image generation and local image viewing.
 
-graspic: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
+how-it-works: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
 
 ## Contract portability versus measured support
 
@@ -18,7 +18,7 @@ graspic: Codex supported; Agent Skills contract portable; other hosts only suppo
 
 `image-workbench` is Codex-only. Similar tools in another host do not establish compatibility. `brief` and `audit` can run read-only, but generate or edit requires Codex built-in image generation and local image viewing.
 
-`graspic` follows the open Agent Skills directory format. Output is GitHub-flavored markdown and mermaid. That contract portability does not mean another host is supported today.
+`how-it-works` follows the open Agent Skills directory format. Output is GitHub-flavored markdown and mermaid. That contract portability does not mean another host is supported today.
 
 The plugin name `beyondwin-skills` means the repository is packaged as one plugin. It does not mean the plugin is listed in a plugin directory.
 

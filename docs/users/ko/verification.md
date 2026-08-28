@@ -15,7 +15,7 @@ python3 scripts/verify.py --profile full
 python3 scripts/verify.py --profile windows-portable
 ```
 
-제품 안내는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`graspic`](../../../skills/graspic/README.md)를 보세요.
+제품 안내는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md)를 보세요.
 
 ## 공유 증거 문장
 
@@ -29,7 +29,7 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 - `korean-writing-editor`: `tests/products/korean-writing-editor/offline/`의 트리거·모드·보존·출력 픽스처
 - `image-workbench`: `tests/products/image-workbench/`의 라우팅·권한·ImageSpec·핸드오프·inspector 픽스처
-- `graspic`: `tests/products/graspic/cases.json` 형태 픽스처와 `tests/products/graspic/test_contract.py` 페이로드 계약
+- `how-it-works`: `tests/products/how-it-works/cases.json` 형태 픽스처와 `tests/products/how-it-works/test_contract.py` 페이로드 계약
 
 통과는 일반 한국어 편집 품질, 의미 동등, 라이브 이미지 품질, 상업 허가, 더 나은 공급자, 런타임 동등성을 증명하지 않습니다. 라이선스는 Apache-2.0입니다.
 

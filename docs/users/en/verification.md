@@ -15,7 +15,7 @@ python3 scripts/verify.py --profile full
 python3 scripts/verify.py --profile windows-portable
 ```
 
-Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`graspic`](../../../skills/graspic/README.en.md).
+Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md).
 
 ## Shared evidence sentences
 
@@ -29,7 +29,7 @@ The offline suites prove the deterministic contract only.
 
 - `korean-writing-editor`: trigger, mode, preservation, and output fixtures under `tests/products/korean-writing-editor/offline/`
 - `image-workbench`: routing, authorization, ImageSpec, handoff, and inspector fixtures under `tests/products/image-workbench/`
-- `graspic`: shape fixtures in `tests/products/graspic/cases.json` and payload contracts in `tests/products/graspic/test_contract.py`
+- `how-it-works`: shape fixtures in `tests/products/how-it-works/cases.json` and payload contracts in `tests/products/how-it-works/test_contract.py`
 
 A pass does not prove general Korean editing quality, semantic equivalence, live image quality, commercial permission, a better provider, or runtime parity. The license is Apache-2.0.
 

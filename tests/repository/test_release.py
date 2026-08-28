@@ -76,14 +76,14 @@ class ProductBuildTests(unittest.TestCase):
         self._tempdir.cleanup()
 
     def test_build_product_emits_only_requested_product_and_checksums(self) -> None:
-        artifacts = release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
+        artifacts = release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
         self.assertEqual(
             {path.name for path in artifacts},
-            {"graspic-v3.0.0.zip", "SHA256SUMS"},
+            {"how-it-works-v1.0.0.zip", "SHA256SUMS"},
         )
-        names = zip_names(self.output / "graspic-v3.0.0.zip")
-        self.assertTrue(all(name.startswith("graspic/") for name in names))
-        self.assertIn("graspic/release.toml", names)
+        names = zip_names(self.output / "how-it-works-v1.0.0.zip")
+        self.assertTrue(all(name.startswith("how-it-works/") for name in names))
+        self.assertIn("how-it-works/release.toml", names)
         self.assertNotIn("korean-writing-editor/SKILL.md", names)
 
     def test_build_rejects_nonempty_output(self) -> None:
@@ -93,7 +93,7 @@ class ProductBuildTests(unittest.TestCase):
 
     def test_build_requires_dated_changelog_by_default(self) -> None:
         with self.assertRaises(ReleaseError) as raised:
-            release.build_product(ROOT, "graspic", self.output)
+            release.build_product(ROOT, "how-it-works", self.output)
         self.assertIn("dated release heading", str(raised.exception))
         self.assertEqual(list(self.output.iterdir()), [])
 
@@ -111,8 +111,8 @@ class ReleaseReproducibilityTests(unittest.TestCase):
         self._tempdir.cleanup()
 
     def test_two_builds_are_byte_identical(self) -> None:
-        first = release.build_product(ROOT, "graspic", self.one, require_release_entry=False)
-        second = release.build_product(ROOT, "graspic", self.two, require_release_entry=False)
+        first = release.build_product(ROOT, "how-it-works", self.one, require_release_entry=False)
+        second = release.build_product(ROOT, "how-it-works", self.two, require_release_entry=False)
         self.assertEqual(hashes(first), hashes(second))
 
     def test_zip_members_are_sorted_epoch_stamped_and_mode_normalized(self) -> None:
@@ -126,7 +126,7 @@ class ReleaseReproducibilityTests(unittest.TestCase):
             names = archive.namelist()
             self.assertEqual(names, sorted(names))
             self.assertTrue(all(name.startswith("image-workbench/") for name in names))
-            self.assertNotIn("graspic/SKILL.md", names)
+            self.assertNotIn("how-it-works/SKILL.md", names)
             for info in archive.infolist():
                 self.assertEqual(info.date_time, ZIP_EPOCH)
                 self.assertEqual(info.compress_type, zipfile.ZIP_DEFLATED)
@@ -148,7 +148,7 @@ class ArchiveSafetyTests(unittest.TestCase):
         self._tempdir.cleanup()
 
     def _zip(self, members: list[str], payload: bytes = b"x\n") -> Path:
-        path = self.output / "graspic-v3.0.0.zip"
+        path = self.output / "how-it-works-v1.0.0.zip"
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", UserWarning)
             with zipfile.ZipFile(path, "w") as archive:
@@ -157,23 +157,23 @@ class ArchiveSafetyTests(unittest.TestCase):
         return path
 
     def test_verify_product_archive_rejects_absolute_paths(self) -> None:
-        path = self._zip(["/tmp/evil", "graspic/SKILL.md", "graspic/LICENSE.txt"])
-        errors = "\n".join(verify_product_archive(path, "graspic"))
+        path = self._zip(["/tmp/evil", "how-it-works/SKILL.md", "how-it-works/LICENSE.txt"])
+        errors = "\n".join(verify_product_archive(path, "how-it-works"))
         self.assertIn("absolute", errors.lower())
 
     def test_verify_product_archive_rejects_parent_segments(self) -> None:
-        path = self._zip(["graspic/../etc/passwd"])
-        errors = "\n".join(verify_product_archive(path, "graspic"))
+        path = self._zip(["how-it-works/../etc/passwd"])
+        errors = "\n".join(verify_product_archive(path, "how-it-works"))
         self.assertIn("..", errors)
 
     def test_verify_product_archive_rejects_duplicates(self) -> None:
-        path = self._zip(["graspic/SKILL.md", "graspic/SKILL.md"])
-        errors = "\n".join(verify_product_archive(path, "graspic"))
+        path = self._zip(["how-it-works/SKILL.md", "how-it-works/SKILL.md"])
+        errors = "\n".join(verify_product_archive(path, "how-it-works"))
         self.assertIn("duplicate", errors.lower())
 
     def test_verify_product_archive_rejects_case_fold_collisions(self) -> None:
-        path = self._zip(["graspic/SKILL.md", "graspic/skill.md", "graspic/LICENSE.txt"])
-        errors = "\n".join(verify_product_archive(path, "graspic"))
+        path = self._zip(["how-it-works/SKILL.md", "how-it-works/skill.md", "how-it-works/LICENSE.txt"])
+        errors = "\n".join(verify_product_archive(path, "how-it-works"))
         self.assertIn("case-fold", errors.lower())
 
     def test_write_zip_rejects_absolute_paths(self) -> None:
@@ -187,7 +187,7 @@ class ArchiveSafetyTests(unittest.TestCase):
         with self.assertRaises(ReleaseError):
             write_zip(
                 self.output / "out.zip",
-                [ArchiveMember("graspic/../SKILL.md", b"x\n", False)],
+                [ArchiveMember("how-it-works/../SKILL.md", b"x\n", False)],
             )
 
     def test_write_zip_rejects_duplicates_and_case_fold_collisions(self) -> None:
@@ -195,16 +195,16 @@ class ArchiveSafetyTests(unittest.TestCase):
             write_zip(
                 self.output / "dup.zip",
                 [
-                    ArchiveMember("graspic/SKILL.md", b"one\n", False),
-                    ArchiveMember("graspic/SKILL.md", b"two\n", False),
+                    ArchiveMember("how-it-works/SKILL.md", b"one\n", False),
+                    ArchiveMember("how-it-works/SKILL.md", b"two\n", False),
                 ],
             )
         with self.assertRaises(ReleaseError):
             write_zip(
                 self.output / "fold.zip",
                 [
-                    ArchiveMember("graspic/SKILL.md", b"one\n", False),
-                    ArchiveMember("graspic/skill.md", b"two\n", False),
+                    ArchiveMember("how-it-works/SKILL.md", b"one\n", False),
+                    ArchiveMember("how-it-works/skill.md", b"two\n", False),
                 ],
             )
 
@@ -215,30 +215,30 @@ class ArchiveSafetyTests(unittest.TestCase):
     def test_verify_product_archive_rejects_symlink_and_special_file_members(self) -> None:
         symlink = self.output / "symlink.zip"
         with zipfile.ZipFile(symlink, "w") as archive:
-            skill = zipfile.ZipInfo("graspic/SKILL.md")
+            skill = zipfile.ZipInfo("how-it-works/SKILL.md")
             skill.external_attr = (stat.S_IFREG | 0o644) << 16
             archive.writestr(skill, b"# skill\n")
-            license_info = zipfile.ZipInfo("graspic/LICENSE.txt")
+            license_info = zipfile.ZipInfo("how-it-works/LICENSE.txt")
             license_info.external_attr = (stat.S_IFREG | 0o644) << 16
             archive.writestr(license_info, b"Apache License\nVersion 2.0\n")
-            link = zipfile.ZipInfo("graspic/link.md")
+            link = zipfile.ZipInfo("how-it-works/link.md")
             link.external_attr = (stat.S_IFLNK | 0o644) << 16
             archive.writestr(link, b"SKILL.md")
-        errors = "\n".join(verify_product_archive(symlink, "graspic"))
+        errors = "\n".join(verify_product_archive(symlink, "how-it-works"))
         self.assertIn("symlink", errors.lower())
 
         fifo = self.output / "fifo.zip"
         with zipfile.ZipFile(fifo, "w") as archive:
-            skill = zipfile.ZipInfo("graspic/SKILL.md")
+            skill = zipfile.ZipInfo("how-it-works/SKILL.md")
             skill.external_attr = (stat.S_IFREG | 0o644) << 16
             archive.writestr(skill, b"# skill\n")
-            license_info = zipfile.ZipInfo("graspic/LICENSE.txt")
+            license_info = zipfile.ZipInfo("how-it-works/LICENSE.txt")
             license_info.external_attr = (stat.S_IFREG | 0o644) << 16
             archive.writestr(license_info, b"Apache License\nVersion 2.0\n")
-            pipe = zipfile.ZipInfo("graspic/pipe")
+            pipe = zipfile.ZipInfo("how-it-works/pipe")
             pipe.external_attr = (stat.S_IFIFO | 0o644) << 16
             archive.writestr(pipe, b"")
-        fifo_errors = "\n".join(verify_product_archive(fifo, "graspic"))
+        fifo_errors = "\n".join(verify_product_archive(fifo, "how-it-works"))
         self.assertIn("special", fifo_errors.lower())
 
 
@@ -265,12 +265,12 @@ class ProductDownloadTests(unittest.TestCase):
                 dest.writestr(info, data)
 
     def test_verify_product_download_accepts_valid_two_file_directory(self) -> None:
-        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
+        release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
         self.assertEqual(
             {path.name for path in self.output.iterdir()},
-            {"graspic-v3.0.0.zip", "SHA256SUMS"},
+            {"how-it-works-v1.0.0.zip", "SHA256SUMS"},
         )
-        self.assertEqual(release.verify_product_download(ROOT, "graspic", self.output), [])
+        self.assertEqual(release.verify_product_download(ROOT, "how-it-works", self.output), [])
 
     def test_verify_product_download_runs_korean_and_image_smokes(self) -> None:
         for name in ("korean-writing-editor", "image-workbench"):
@@ -280,61 +280,61 @@ class ProductDownloadTests(unittest.TestCase):
                 self.assertEqual(release.verify_product_download(ROOT, name, output), [])
 
     def test_verify_product_download_rejects_missing_checksum(self) -> None:
-        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
+        release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
         (self.output / "SHA256SUMS").unlink()
-        errors = release.verify_product_download(ROOT, "graspic", self.output)
+        errors = release.verify_product_download(ROOT, "how-it-works", self.output)
         self.assertIn("missing SHA256SUMS", errors)
 
     def test_verify_product_download_rejects_malformed_digest(self) -> None:
-        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
+        release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
         (self.output / "SHA256SUMS").write_text(
-            "not-a-digest  graspic-v3.0.0.zip\n",
+            "not-a-digest  how-it-works-v1.0.0.zip\n",
             encoding="ascii",
         )
-        errors = release.verify_product_download(ROOT, "graspic", self.output)
+        errors = release.verify_product_download(ROOT, "how-it-works", self.output)
         self.assertTrue(any("malformed digest" in error for error in errors), errors)
 
     def test_verify_product_download_rejects_another_products_zip(self) -> None:
-        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
+        release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
         (self.output / "image-workbench-v2.0.1.zip").write_bytes(b"not a zip")
-        errors = release.verify_product_download(ROOT, "graspic", self.output)
+        errors = release.verify_product_download(ROOT, "how-it-works", self.output)
         self.assertIn("unexpected zip in download directory: image-workbench-v2.0.1.zip", errors)
 
     def test_verify_product_download_rejects_renamed_zip(self) -> None:
-        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
-        (self.output / "graspic-v3.0.0.zip").rename(self.output / "graspic-renamed.zip")
-        errors = release.verify_product_download(ROOT, "graspic", self.output)
-        self.assertIn("unexpected zip in download directory: graspic-renamed.zip", errors)
+        release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
+        (self.output / "how-it-works-v1.0.0.zip").rename(self.output / "how-it-works-renamed.zip")
+        errors = release.verify_product_download(ROOT, "how-it-works", self.output)
+        self.assertIn("unexpected zip in download directory: how-it-works-renamed.zip", errors)
 
     def test_verify_product_download_rejects_checksum_mismatch(self) -> None:
-        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
-        archive = self.output / "graspic-v3.0.0.zip"
+        release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
+        archive = self.output / "how-it-works-v1.0.0.zip"
         archive.write_bytes(archive.read_bytes() + b"\x00")
-        errors = release.verify_product_download(ROOT, "graspic", self.output)
+        errors = release.verify_product_download(ROOT, "how-it-works", self.output)
         self.assertTrue(any("checksum mismatch" in error for error in errors), errors)
 
     def test_verify_product_download_rejects_unexpected_file(self) -> None:
-        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
+        release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
         (self.output / "notes.txt").write_text("extra\n", encoding="utf-8")
-        errors = release.verify_product_download(ROOT, "graspic", self.output)
+        errors = release.verify_product_download(ROOT, "how-it-works", self.output)
         self.assertIn("unexpected file in download directory: notes.txt", errors)
 
     def test_verify_product_download_rejects_extra_checksum_row(self) -> None:
-        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
+        release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
         checksums = self.output / "SHA256SUMS"
         checksums.write_text(
             checksums.read_text(encoding="ascii") + ("0" * 64) + "  extra.zip\n",
             encoding="ascii",
         )
-        errors = release.verify_product_download(ROOT, "graspic", self.output)
+        errors = release.verify_product_download(ROOT, "how-it-works", self.output)
         self.assertTrue(
             any("SHA256SUMS must list exactly the expected product zip" in error for error in errors),
             errors,
         )
 
     def test_verify_product_download_rejects_unsafe_member(self) -> None:
-        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
-        archive = self.output / "graspic-v3.0.0.zip"
+        release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
+        archive = self.output / "how-it-works-v1.0.0.zip"
 
         def add_absolute(items):
             yield from items
@@ -346,42 +346,42 @@ class ProductDownloadTests(unittest.TestCase):
             warnings.simplefilter("ignore", UserWarning)
             self._rewrite_zip(archive, add_absolute)
         self._checksums(archive)
-        errors = "\n".join(release.verify_product_download(ROOT, "graspic", self.output))
+        errors = "\n".join(release.verify_product_download(ROOT, "how-it-works", self.output))
         self.assertIn("absolute", errors.lower())
 
     def test_verify_product_download_rejects_metadata_version_mismatch(self) -> None:
-        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
-        archive = self.output / "graspic-v3.0.0.zip"
+        release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
+        archive = self.output / "how-it-works-v1.0.0.zip"
 
         def bump_version(items):
             for info, data in items:
                 text = data.decode("utf-8")
-                if info.filename == "graspic/release.toml":
-                    text = text.replace('version = "3.0.0"', 'version = "9.9.9"')
+                if info.filename == "how-it-works/release.toml":
+                    text = text.replace('version = "1.0.0"', 'version = "9.9.9"')
                     data = text.encode("utf-8")
-                elif info.filename == "graspic/SKILL.md":
-                    text = text.replace('version: "3.0.0"', 'version: "9.9.9"')
+                elif info.filename == "how-it-works/SKILL.md":
+                    text = text.replace('version: "1.0.0"', 'version: "9.9.9"')
                     data = text.encode("utf-8")
                 yield info, data
 
         self._rewrite_zip(archive, bump_version)
         self._checksums(archive)
-        errors = release.verify_product_download(ROOT, "graspic", self.output)
+        errors = release.verify_product_download(ROOT, "how-it-works", self.output)
         self.assertTrue(any("metadata version mismatch" in error for error in errors), errors)
 
     def test_verify_product_download_rejects_extracted_validation_failure(self) -> None:
-        release.build_product(ROOT, "graspic", self.output, require_release_entry=False)
-        archive = self.output / "graspic-v3.0.0.zip"
+        release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
+        archive = self.output / "how-it-works-v1.0.0.zip"
 
         def drop_changelog(items):
             for info, data in items:
-                if info.filename == "graspic/CHANGELOG.md":
+                if info.filename == "how-it-works/CHANGELOG.md":
                     continue
                 yield info, data
 
         self._rewrite_zip(archive, drop_changelog)
         self._checksums(archive)
-        errors = "\n".join(release.verify_product_download(ROOT, "graspic", self.output))
+        errors = "\n".join(release.verify_product_download(ROOT, "how-it-works", self.output))
         self.assertIn("CHANGELOG", errors)
 
     def test_extract_archive_restores_executable_mode(self) -> None:
@@ -405,7 +405,7 @@ class ProductDownloadTests(unittest.TestCase):
     def test_verify_download_cli_requires_input_and_rejects_output(self) -> None:
         script = ROOT / "scripts" / "release.py"
         missing_input = subprocess.run(
-            [sys.executable, str(script), "verify-download", "--product", "graspic"],
+            [sys.executable, str(script), "verify-download", "--product", "how-it-works"],
             cwd=ROOT,
             check=False,
             capture_output=True,
@@ -418,7 +418,7 @@ class ProductDownloadTests(unittest.TestCase):
                 str(script),
                 "verify-download",
                 "--product",
-                "graspic",
+                "how-it-works",
                 "--output",
                 str(self.output),
             ],
@@ -434,7 +434,7 @@ class ProductDownloadTests(unittest.TestCase):
                 str(script),
                 "build",
                 "--product",
-                "graspic",
+                "how-it-works",
                 "--input",
                 str(self.output),
             ],

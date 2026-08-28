@@ -1,0 +1,6 @@
+interface:
+  display_name: "How It Works"
+  short_description: "Explain how something works at a chosen rung"
+  default_prompt: "Use $how-it-works to explain how this works at 그림, 길, 뼈대, or 허점."
+policy:
+  allow_implicit_invocation: true

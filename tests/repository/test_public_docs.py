@@ -48,13 +48,13 @@ KOREAN_SUPPORT = (
 IMAGE_SUPPORT = (
     "image-workbench: Codex-only; generate/edit requires Codex image generation and local image viewing."
 )
-GRASPIC_SUPPORT = (
-    "graspic: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke."
+HOW_IT_WORKS_SUPPORT = (
+    "how-it-works: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke."
 )
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
     "image-workbench": IMAGE_SUPPORT,
-    "graspic": GRASPIC_SUPPORT,
+    "how-it-works": HOW_IT_WORKS_SUPPORT,
 }
 OFFLINE_EVIDENCE = "Offline fixtures: deterministic contract evidence only."
 LIVE_EVIDENCE = (
@@ -816,10 +816,10 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("release.toml", release_text)
         self.assertIn("python3 scripts/release.py check --product image-workbench", release_text)
 
-    def test_graspic_protocol_preserves_rung_fixtures_and_artifact_page(self) -> None:
-        contract = ROOT / "docs" / "maintainers" / "products" / "graspic" / "contract.md"
-        testing = ROOT / "docs" / "maintainers" / "products" / "graspic" / "testing.md"
-        release = ROOT / "docs" / "maintainers" / "products" / "graspic" / "release.md"
+    def test_how_it_works_protocol_preserves_rung_fixtures_and_artifact_page(self) -> None:
+        contract = ROOT / "docs" / "maintainers" / "products" / "how-it-works" / "contract.md"
+        testing = ROOT / "docs" / "maintainers" / "products" / "how-it-works" / "testing.md"
+        release = ROOT / "docs" / "maintainers" / "products" / "how-it-works" / "release.md"
         for path in (contract, testing, release):
             _assert_exists(self, path)
         contract_text = _read(contract)
@@ -839,7 +839,7 @@ class MaintainerProtocolTests(unittest.TestCase):
             self.assertIn(fixture_id, testing_text)
         self.assertIn("/eli5", testing_text)
         self.assertIn("release.toml", release_text)
-        self.assertIn("python3 scripts/release.py check --product graspic", release_text)
+        self.assertIn("python3 scripts/release.py check --product how-it-works", release_text)
 
     def test_archive_migration_freeze_record_is_preserved(self) -> None:
         path = ROOT / "docs" / "maintainers" / "repository" / "migrations.md"

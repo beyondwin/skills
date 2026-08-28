@@ -94,12 +94,18 @@ class PluginManifestTests(unittest.TestCase):
         self.assertEqual(manifest["name"], "beyondwin-skills")
         self.assertEqual(manifest["version"], "2.0.0")
         self.assertEqual(manifest["skills"], "./skills/")
-        self.assertNotIn("graspic", json.dumps(manifest))
+        from scripts.lib.catalog import load_catalog_lock
+
+        lock_names = {
+            item.name for item in load_catalog_lock(ROOT / "catalog" / "catalog.lock.json").skills
+        }
+        for name in set(REGISTRY.names) - lock_names:
+            self.assertNotIn(name, json.dumps(manifest))
 
     def test_skill_directories_include_unpublished_current_products(self) -> None:
         self.assertEqual(
             {path.name for path in (ROOT / "skills").iterdir() if path.is_dir()},
-            {"graspic", "image-workbench", "korean-writing-editor"},
+            set(REGISTRY.names),
         )
 
     def test_plugin_manifest_matches_curated_bundle(self) -> None:

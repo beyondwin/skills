@@ -183,8 +183,8 @@ class CatalogLegacyFixtureTests(unittest.TestCase):
                 and len(parts) > 1
             }
         )
-        self.assertEqual(skill_dirs, ["image-workbench", "korean-writing-editor"])
-        self.assertFalse(any("graspic" in name for name in names))
+        lock = load_catalog_lock(ROOT / "catalog" / "catalog.lock.json")
+        self.assertEqual(skill_dirs, [item.name for item in lock.skills])
         self.assertIn(".codex-plugin/plugin.json", names)
         self.assertIn("LICENSE", names)
         self.assertIn("NOTICE", names)
@@ -230,9 +230,9 @@ class CatalogLegacyFixtureTests(unittest.TestCase):
         self.assertIn("missing archive: korean-writing-editor-v2.0.0.zip", errors)
 
     def test_catalog_inputs_reject_extra_product(self) -> None:
-        (self.legacy_inputs / "graspic-v3.0.0.zip").write_bytes(b"PK\x03\x04not-a-zip")
+        (self.legacy_inputs / "extra-product-v9.9.9.zip").write_bytes(b"PK\x03\x04not-a-zip")
         errors = "\n".join(validate_catalog_inputs(ROOT, self.legacy_inputs, REGISTRY))
-        self.assertIn("unexpected zip in input directory: graspic-v3.0.0.zip", errors)
+        self.assertIn("unexpected zip in input directory: extra-product-v9.9.9.zip", errors)
 
     def test_catalog_inputs_reject_wrong_source_version(self) -> None:
         archive = self.legacy_inputs / "korean-writing-editor-v2.0.0.zip"
@@ -315,17 +315,20 @@ class CatalogLegacyFixtureTests(unittest.TestCase):
     def test_verify_catalog_download_rejects_plugin_members_not_equal_to_lock(self) -> None:
         archive, _checksums = build_catalog(ROOT, self.legacy_inputs, self.output_one)
 
-        def add_graspic(items):
+        def add_extra_product(items):
             yield from items
-            info = zipfile.ZipInfo("skills/graspic/SKILL.md")
+            info = zipfile.ZipInfo("skills/extra-product/SKILL.md")
             info.external_attr = (stat.S_IFREG | 0o644) << 16
-            yield info, b"---\nname: graspic\n---\n"
+            yield info, b"---\nname: extra-product\n---\n"
 
-        _rewrite_zip(archive, add_graspic)
+        _rewrite_zip(archive, add_extra_product)
         write_checksums((archive,), self.output_one / "SHA256SUMS")
         errors = "\n".join(verify_catalog_download(ROOT, self.output_one))
         self.assertTrue(
-            any("lock" in error.lower() or "graspic" in error.lower() for error in errors.splitlines()),
+            any(
+                "lock" in error.lower() or "extra-product" in error.lower()
+                for error in errors.splitlines()
+            ),
             errors,
         )
 
@@ -388,9 +391,9 @@ class CatalogSchemaInputTests(unittest.TestCase):
         _write_json(catalog / "catalog.lock.json", {"schema_version": 1, "skills": skills})
         return root
 
-    def test_catalog_inputs_reject_legacy_bundle_graspic(self) -> None:
-        graspic = {
-            "name": "graspic",
+    def test_catalog_inputs_reject_legacy_bundle_extra_product(self) -> None:
+        extra = {
+            "name": "extra-product",
             "version": "2.0.0",
             "tag": "v2.0.0",
             "release_kind": "legacy-bundle",
@@ -413,13 +416,13 @@ class CatalogSchemaInputTests(unittest.TestCase):
             "source_commit": PINNED_SOURCE_COMMIT,
             "payload_sha256": HASH_B,
         }
-        root = self._catalog_root(skills=[graspic, image, korean])
+        root = self._catalog_root(skills=[extra, image, korean])
         input_dir = self.workspace / "inputs"
         input_dir.mkdir()
         (input_dir / "SHA256SUMS").write_text("", encoding="ascii")
         errors = "\n".join(validate_catalog_inputs(root, input_dir, REGISTRY))
         self.assertIn("legacy-bundle", errors)
-        self.assertIn("graspic", errors)
+        self.assertIn("extra-product", errors)
 
 
 class CatalogIndependentFixtureTests(unittest.TestCase):
@@ -430,13 +433,13 @@ class CatalogIndependentFixtureTests(unittest.TestCase):
     def tearDown(self) -> None:
         self._tempdir.cleanup()
 
-    def _independent_root(self, archive: Path, *, tag: str = "graspic-v3.0.0") -> Path:
+    def _independent_root(self, archive: Path, *, tag: str = "how-it-works-v1.0.0") -> Path:
         with tempfile.TemporaryDirectory() as directory:
             extracted = Path(directory)
             errors = extract_archive(archive, extracted)
             if errors:
                 raise RuntimeError("\n".join(errors))
-            digest = payload_sha256(extracted / "graspic")
+            digest = payload_sha256(extracted / "how-it-works")
         root = self.workspace / "root"
         catalog = root / "catalog"
         (catalog / "plugin" / ".codex-plugin").mkdir(parents=True)
@@ -464,8 +467,8 @@ class CatalogIndependentFixtureTests(unittest.TestCase):
                 "schema_version": 1,
                 "skills": [
                     {
-                        "name": "graspic",
-                        "version": "3.0.0",
+                        "name": "how-it-works",
+                        "version": "1.0.0",
                         "tag": tag,
                         "release_kind": "independent",
                         "source_commit": COMMIT_C,
@@ -487,7 +490,7 @@ class CatalogIndependentFixtureTests(unittest.TestCase):
         product_dir = self.workspace / "product"
         product_dir.mkdir()
         archive, _checksums = release.build_product(
-            ROOT, "graspic", product_dir, require_release_entry=False
+            ROOT, "how-it-works", product_dir, require_release_entry=False
         )
         root = self._independent_root(archive)
         inputs = self._independent_inputs(archive)
@@ -500,7 +503,7 @@ class CatalogIndependentFixtureTests(unittest.TestCase):
             {"beyondwin-skills-v2.1.0.zip", "SHA256SUMS"},
         )
         names = zip_names(output / "beyondwin-skills-v2.1.0.zip")
-        self.assertIn("skills/graspic/release.toml", names)
+        self.assertIn("skills/how-it-works/release.toml", names)
         self.assertIn(".codex-plugin/plugin.json", names)
         self.assertEqual(verify_catalog_download(root, output), [])
 
@@ -508,12 +511,12 @@ class CatalogIndependentFixtureTests(unittest.TestCase):
         product_dir = self.workspace / "product"
         product_dir.mkdir()
         archive, _checksums = release.build_product(
-            ROOT, "graspic", product_dir, require_release_entry=False
+            ROOT, "how-it-works", product_dir, require_release_entry=False
         )
 
         def drop_release(items):
             for info, data in items:
-                if info.filename == "graspic/release.toml":
+                if info.filename == "how-it-works/release.toml":
                     continue
                 yield info, data
 
@@ -527,12 +530,12 @@ class CatalogIndependentFixtureTests(unittest.TestCase):
         product_dir = self.workspace / "product"
         product_dir.mkdir()
         archive, _checksums = release.build_product(
-            ROOT, "graspic", product_dir, require_release_entry=False
+            ROOT, "how-it-works", product_dir, require_release_entry=False
         )
-        root = self._independent_root(archive, tag="v3.0.0")
+        root = self._independent_root(archive, tag="v1.0.0")
         inputs = self._independent_inputs(archive)
         errors = "\n".join(validate_catalog_inputs(root, inputs, REGISTRY))
-        self.assertIn("graspic-v3.0.0", errors)
+        self.assertIn("how-it-works-v1.0.0", errors)
 
 
 class CatalogCLITests(unittest.TestCase):
@@ -555,7 +558,7 @@ class CatalogCLITests(unittest.TestCase):
                 str(SCRIPT),
                 "check",
                 "--product",
-                "graspic",
+                "how-it-works",
                 "--catalog",
                 "--input",
                 str(self.legacy_inputs),

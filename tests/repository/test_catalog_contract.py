@@ -200,7 +200,11 @@ class CatalogContractTests(unittest.TestCase):
         self.assertEqual(release.tag_prefix, "beyondwin-skills-v")
         plugin = json.loads(PLUGIN_PATH.read_text(encoding="utf-8"))
         self.assertEqual(plugin, EXPECTED_PLUGIN)
-        self.assertNotIn("graspic", json.dumps(plugin))
+        lock = load_catalog_lock(ROOT / "catalog" / "catalog.lock.json")
+        self.assertEqual(
+            [item.name for item in lock.skills],
+            ["image-workbench", "korean-writing-editor"],
+        )
         self.assertEqual(validate_catalog(ROOT), [])
 
     def test_catalog_readme_states_artifact_and_root_roles(self) -> None:
@@ -209,12 +213,16 @@ class CatalogContractTests(unittest.TestCase):
         self.assertIn("repository root is for individual skill installs", text)
 
     def test_current_skill_directories_are_not_described_by_catalog_plugin(self) -> None:
+        from scripts.lib.product_registry import load_registry
+
         plugin = json.loads(PLUGIN_PATH.read_text(encoding="utf-8"))
-        self.assertNotIn("graspic", json.dumps(plugin))
-        self.assertEqual(
-            {path.name for path in (ROOT / "skills").iterdir() if path.is_dir()},
-            {"graspic", "image-workbench", "korean-writing-editor"},
-        )
+        lock = load_catalog_lock(ROOT / "catalog" / "catalog.lock.json")
+        lock_names = {item.name for item in lock.skills}
+        current_names = {path.name for path in (ROOT / "skills").iterdir() if path.is_dir()}
+        self.assertEqual(current_names, set(load_registry(ROOT / "products.toml").names))
+        plugin_text = json.dumps(plugin)
+        for name in current_names - lock_names:
+            self.assertNotIn(name, plugin_text)
 
 
 class CatalogSchemaRejectionTests(unittest.TestCase):
@@ -261,30 +269,30 @@ class CatalogSchemaRejectionTests(unittest.TestCase):
         self.assertIn("source_commit", errors)
         self.assertIn("payload_sha256", errors)
 
-    def test_rejects_legacy_entry_for_graspic(self) -> None:
-        graspic = {
-            "name": "graspic",
+    def test_rejects_legacy_entry_for_extra_product(self) -> None:
+        extra = {
+            "name": "extra-product",
             "version": "2.0.0",
             "tag": "v2.0.0",
             "release_kind": "legacy-bundle",
             "source_commit": PINNED_SOURCE_COMMIT,
             "payload_sha256": HASH_C,
         }
-        errors = self._errors(skills=[graspic, LEGACY_IMAGE, LEGACY_KOREAN])
+        errors = self._errors(skills=[extra, LEGACY_IMAGE, LEGACY_KOREAN])
         self.assertIn("legacy-bundle", errors)
-        self.assertIn("graspic", errors)
+        self.assertIn("extra-product", errors)
 
     def test_rejects_independent_entry_without_product_qualified_tag(self) -> None:
-        graspic = {
-            "name": "graspic",
+        extra = {
+            "name": "extra-product",
             "version": "3.0.0",
             "tag": "v3.0.0",
             "release_kind": "independent",
             "source_commit": COMMIT_C,
             "payload_sha256": HASH_C,
         }
-        errors = self._errors(skills=[graspic, LEGACY_IMAGE, LEGACY_KOREAN])
-        self.assertIn("graspic-v3.0.0", errors)
+        errors = self._errors(skills=[extra, LEGACY_IMAGE, LEGACY_KOREAN])
+        self.assertIn("extra-product-v3.0.0", errors)
 
     def test_rejects_catalog_plugin_version_mismatch_and_invalid_semver(self) -> None:
         mismatch = self._errors(plugin_version="2.1.0")
@@ -339,7 +347,7 @@ class CatalogLockImportTests(unittest.TestCase):
 
     def test_import_rejects_a_third_local_zip_or_unexpected_file(self) -> None:
         release_dir = _legacy_release_dir(self.workspace)
-        (release_dir / "graspic-v2.0.0.zip").write_bytes(b"PK\x03\x04not-a-real-zip")
+        (release_dir / "extra-product-v2.0.0.zip").write_bytes(b"PK\x03\x04not-a-real-zip")
         with self.assertRaises(ValueError) as extra_zip:
             import_legacy_release(
                 release_dir,
@@ -347,7 +355,7 @@ class CatalogLockImportTests(unittest.TestCase):
                 self.workspace / "lock.json",
             )
         self.assertIn("unexpected", str(extra_zip.exception).lower())
-        (release_dir / "graspic-v2.0.0.zip").unlink()
+        (release_dir / "extra-product-v2.0.0.zip").unlink()
         (release_dir / "notes.txt").write_text("nope\n", encoding="utf-8")
         with self.assertRaises(ValueError) as extra_file:
             import_legacy_release(

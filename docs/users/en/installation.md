@@ -2,7 +2,7 @@
 
 [한국어](../ko/installation.md) · [Compatibility](compatibility.md) · [Safety and privacy](safety-and-privacy.md) · [Verification](verification.md)
 
-The installable payloads are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), and [`graspic`](../../../skills/graspic/README.en.md). The license is Apache-2.0.
+The installable payloads are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), and [`how-it-works`](../../../skills/how-it-works/README.en.md). The license is Apache-2.0.
 
 ## Primary install (Codex)
 
@@ -11,7 +11,7 @@ Use `$skill-installer` with the public GitHub skill path. The installer stops if
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
-$skill-installer https://github.com/beyondwin/skills/tree/main/skills/graspic
+$skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-works
 ```
 
 The default destination is `$CODEX_HOME/skills/<skill-name>`, or `~/.codex/skills` when `CODEX_HOME` is unset. Invoke on a new turn after install using the product README.
@@ -38,7 +38,7 @@ ls -ld "$SKILL_SOURCE"
 ls -ld "$SKILL_TARGET"
 ```
 
-Copy only when `$SKILL_TARGET` is absent or is a confirmed safe link to this skill. If a real directory already exists, stop; do not copy over it. Use the same exact-folder rule for `image-workbench` and `graspic`.
+Copy only when `$SKILL_TARGET` is absent or is a confirmed safe link to this skill. If a real directory already exists, stop; do not copy over it. Use the same exact-folder rule for `image-workbench` and `how-it-works`.
 
 Other host folders are an Agent Skills portability target for `korean-writing-editor` only. Do not call those hosts supported until a recorded smoke exists.
 
@@ -59,7 +59,7 @@ Confirm all of the following:
 
 Only after that confirmation, remove that exact path with the host's ordinary uninstall, or clear that exact destination and reinstall with `$skill-installer`. Do not delete the parent `skills` directory or a home directory. Do not replace an existing install without that inspection.
 
-Apply the same inspection sequence to `.../skills/image-workbench` and `.../skills/graspic`.
+Apply the same inspection sequence to `.../skills/image-workbench` and `.../skills/how-it-works`.
 
 Install, update, and uninstall touch only an inspected exact target. Do not pipe remote scripts into a shell, copy without inspecting the destination, delete parent skill directories, or replace an existing install by default.
 

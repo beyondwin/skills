@@ -1,6 +1,6 @@
-# graspic 테스트
+# how-it-works 테스트
 
-`tests/products/graspic/cases.json`과 `tests/products/graspic/test_contract.py`에서 다섯 형태 케이스를 정직하게 유지하세요. 사용자 주제, 압박 트랜스크립트, 비공개 로그를 Git 픽스처로 커밋하지 마세요.
+`tests/products/how-it-works/cases.json`과 `tests/products/how-it-works/test_contract.py`에서 다섯 형태 케이스를 정직하게 유지하세요. 사용자 주제, 압박 트랜스크립트, 비공개 로그를 Git 픽스처로 커밋하지 마세요.
 
 ## 결정적 픽스처
 
@@ -15,9 +15,9 @@
 ## 명령
 
 ```bash
-python3 scripts/verify.py --skill graspic
+python3 scripts/verify.py --skill how-it-works
 python3 scripts/verify.py
-python3 -m unittest discover -s tests/products/graspic -p 'test_contract.py'
+python3 -m unittest discover -s tests/products/how-it-works -p 'test_contract.py'
 git diff --check
 ```
 

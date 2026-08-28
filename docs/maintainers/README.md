@@ -46,9 +46,9 @@
 - [호환성](products/image-workbench/compatibility.md) — 현재 호스트, 능력, 증거 경계, 새 지원 규칙
 - [릴리스](products/image-workbench/release.md) — 버전 원본, SemVer 예시, check/build/download, 실패 복구
 
-### graspic
+### how-it-works
 
-- [계약](products/graspic/contract.md) — 트리거, 기본값, 출력, 안전, 함께 고칠 파일
-- [테스트](products/graspic/testing.md) — 결정적 픽스처, 명령, 증거 한계
-- [호환성](products/graspic/compatibility.md) — 현재 호스트, 능력, 증거 경계, 새 지원 규칙
-- [릴리스](products/graspic/release.md) — 버전 원본, SemVer 예시, check/build/download, 실패 복구
+- [계약](products/how-it-works/contract.md) — 트리거, 기본값, 출력, 안전, 함께 고칠 파일
+- [테스트](products/how-it-works/testing.md) — 결정적 픽스처, 명령, 증거 한계
+- [호환성](products/how-it-works/compatibility.md) — 현재 호스트, 능력, 증거 경계, 새 지원 규칙
+- [릴리스](products/how-it-works/release.md) — 버전 원본, SemVer 예시, check/build/download, 실패 복구

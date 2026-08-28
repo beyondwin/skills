@@ -4,7 +4,7 @@
 
 This project itself has no telemetry. Required CI and `python3 scripts/verify.py` do not use credentials, model calls, or remote uploads. The optional third-party installer `npx skills add beyondwin/skills --skill korean-writing-editor` is third-party and follows its own policy.
 
-Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`graspic`](../../../skills/graspic/README.en.md).
+Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md).
 
 ## Korean source text
 
@@ -12,7 +12,7 @@ Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/
 
 ## Explanation topics
 
-`graspic` does not persist user topics as fixtures or logs. Citations are user-visible URLs from the current turn, not a private corpus. Medical, legal, or financial slices explain mechanism only; they are not advice.
+`how-it-works` does not persist user topics as fixtures or logs. Citations are user-visible URLs from the current turn, not a private corpus. Medical, legal, or financial slices explain mechanism only; they are not advice.
 
 ## Image references and consent
 

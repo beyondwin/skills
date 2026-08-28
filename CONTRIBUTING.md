@@ -1,6 +1,6 @@
 # Contributing
 
-This repository has three current standalone products: `korean-writing-editor`, `image-workbench`, and `graspic`. New skills are not accepted by default. A pull request that adds a fourth skill is out of scope unless repository governance is changed first. The immutable plugin bundle under `catalog/` is separate from those products.
+This repository has three current standalone products: `korean-writing-editor`, `image-workbench`, and `how-it-works`. New skills are not accepted by default. A pull request that adds a fourth skill is out of scope unless repository governance is changed first. The immutable plugin bundle under `catalog/` is separate from those products.
 
 ## What we accept
 

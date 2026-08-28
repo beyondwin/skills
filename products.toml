@@ -36,15 +36,15 @@ owned_paths = [
 verify_stages = ["product-contract", "image-contract", "image-inspector", "python-compile"]
 
 [[products]]
-name = "graspic"
-display_name = "graspic"
-skill_path = "skills/graspic"
-test_path = "tests/products/graspic"
-maintainer_docs = "docs/maintainers/products/graspic"
-supported_hosts = ["codex"]
+name = "how-it-works"
+display_name = "How It Works"
+skill_path = "skills/how-it-works"
+test_path = "tests/products/how-it-works"
+maintainer_docs = "docs/maintainers/products/how-it-works"
+supported_hosts = ["codex", "claude-code", "grok", "cursor"]
 owned_paths = [
-  "skills/graspic/",
-  "tests/products/graspic/",
-  "docs/maintainers/products/graspic/",
+  "skills/how-it-works/",
+  "tests/products/how-it-works/",
+  "docs/maintainers/products/how-it-works/",
 ]
-verify_stages = ["product-contract", "graspic-contract", "python-compile"]
+verify_stages = ["product-contract", "how-it-works-contract", "python-compile"]

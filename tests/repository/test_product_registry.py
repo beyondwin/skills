@@ -76,8 +76,13 @@ class RegistryParsingTests(unittest.TestCase):
         registry = load_registry(ROOT / "products.toml")
         self.assertEqual(
             registry.names,
-            ("korean-writing-editor", "image-workbench", "graspic"),
+            ("korean-writing-editor", "image-workbench", "how-it-works"),
         )
+
+    def test_explanation_product_has_four_supported_hosts(self) -> None:
+        product = load_registry(ROOT / "products.toml").require("how-it-works")
+        self.assertEqual(product.display_name, "How It Works")
+        self.assertEqual(product.supported_hosts, ("codex", "claude-code", "grok", "cursor"))
 
     def test_registry_contains_no_version_or_command_fields(self) -> None:
         raw = tomllib.loads((ROOT / "products.toml").read_text(encoding="utf-8"))
@@ -88,32 +93,32 @@ class RegistryParsingTests(unittest.TestCase):
 
     def test_windows_paths_are_normalized(self) -> None:
         self.assertEqual(
-            normalize_repo_path(r"tests\\products\\graspic\\cases.json"),
-            "tests/products/graspic/cases.json",
+            normalize_repo_path(r"tests\\products\\how-it-works\\cases.json"),
+            "tests/products/how-it-works/cases.json",
         )
 
     def test_require_returns_the_named_product(self) -> None:
-        product = load_registry(ROOT / "products.toml").require("graspic")
-        self.assertEqual(product.name, "graspic")
-        self.assertEqual(product.display_name, "graspic")
-        self.assertEqual(product.skill_path, pathlib.PurePosixPath("skills/graspic"))
-        self.assertEqual(product.test_path, pathlib.PurePosixPath("tests/products/graspic"))
+        product = load_registry(ROOT / "products.toml").require("how-it-works")
+        self.assertEqual(product.name, "how-it-works")
+        self.assertEqual(product.display_name, "How It Works")
+        self.assertEqual(product.skill_path, pathlib.PurePosixPath("skills/how-it-works"))
+        self.assertEqual(product.test_path, pathlib.PurePosixPath("tests/products/how-it-works"))
         self.assertEqual(
             product.maintainer_docs,
-            pathlib.PurePosixPath("docs/maintainers/products/graspic"),
+            pathlib.PurePosixPath("docs/maintainers/products/how-it-works"),
         )
-        self.assertEqual(product.supported_hosts, ("codex",))
+        self.assertEqual(product.supported_hosts, ("codex", "claude-code", "grok", "cursor"))
         self.assertEqual(
             product.owned_paths,
             (
-                pathlib.PurePosixPath("skills/graspic"),
-                pathlib.PurePosixPath("tests/products/graspic"),
-                pathlib.PurePosixPath("docs/maintainers/products/graspic"),
+                pathlib.PurePosixPath("skills/how-it-works"),
+                pathlib.PurePosixPath("tests/products/how-it-works"),
+                pathlib.PurePosixPath("docs/maintainers/products/how-it-works"),
             ),
         )
         self.assertEqual(
             product.verify_stages,
-            ("product-contract", "graspic-contract", "python-compile"),
+            ("product-contract", "how-it-works-contract", "python-compile"),
         )
 
     def test_registry_types_are_frozen(self) -> None:

@@ -126,14 +126,14 @@ def _stage_catalog(root: pathlib.Path) -> dict[str, Stage]:
             ),
             cwd=root,
         ),
-        "graspic-contract": Stage(
-            "graspic-contract",
+        "how-it-works-contract": Stage(
+            "how-it-works-contract",
             _python(
                 "-m",
                 "unittest",
                 "discover",
                 "-s",
-                _posix("tests", "products", "graspic"),
+                _posix("tests", "products", "how-it-works"),
                 "-p",
                 "test_contract.py",
             ),
