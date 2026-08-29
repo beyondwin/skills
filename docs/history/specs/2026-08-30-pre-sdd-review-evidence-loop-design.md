@@ -93,7 +93,13 @@ The recorder follows the skill identity instead of introducing a generic
 | Initial receipt schema | `1` |
 
 The CLI resolves `~` with the current user's home directory on macOS, Linux,
-and Windows. `PRE_SDD_REVIEW_HOME` is the only supported override. Client- or
+and Windows. `PRE_SDD_REVIEW_HOME` is the only supported override. The
+override must be non-empty and absolute after user expansion. Before any
+mutation, the CLI canonicalizes it so the same existing symlink alias selects
+the same root from every working directory; it rejects a relative value and
+symlinked configuration, identity, run, receipt, export root, or candidate
+export entries. Every mutable descendant must resolve inside the canonical
+evidence root. Client- or
 vendor-specific roots such as `~/.codex/` and `~/.claude/` are forbidden.
 
 The default layout is:
@@ -165,6 +171,12 @@ The CLI reads the loaded `SKILL.md`, `references/reviewer-protocol.md`, and
 but not the absolute skill-root path. This exposes drift when two clients use
 different copies under the same nominal skill version.
 
+`pre-sdd-review-evidence --version` emits one canonical JSON object containing
+`cli_version`, `schema_version`, and `skill_name`. A skill copy is compatible
+only when the command reports `skill_name=pre-sdd-review`, schema `1`, and CLI
+major version `1`; an unavailable, malformed, or incompatible response is a
+visible non-recording reason and never triggers installation.
+
 Supported client identifiers initially are:
 
 ```text
@@ -210,19 +222,50 @@ JSON on standard input:
 ```bash
 pre-sdd-review-evidence finish-review \
   --run-id <run-id> \
+  --repo . \
   --verdict READY \
   --mode default \
-  --protocol full \
+  --execution full \
   --reviewer-count 2 \
+  --fresh-reviewer true \
+  --read-only-enforced true \
+  --conditional-trigger data-boundary \
   --review-passes 2 \
   --repair-passes 1
 ```
 
-`finish-review` reloads the pending state, recomputes final document and Git
-facts, validates the supplied findings, writes `review.json` to a temporary
-file in the run directory, atomically renames it into place, and removes the
+`finish-review` reloads the pending state, discovers the Git root from the
+required `--repo` locator, recomputes its HMAC repository ID, and rejects a
+wrong repository before resolving only the relative plan and design paths
+recorded in the pending state. It then recomputes final document and Git facts,
+validates the supplied findings, writes canonical bytes to a temporary
+file in the run directory, publishes it with the atomic no-replace primitive
+defined below, and removes the
 pending file. Existing `review.json` files are never overwritten. An exact
 idempotent retry returns the existing receipt hash; a conflicting retry fails.
+The repository locator is used only for this invocation and is never persisted
+or echoed in an error.
+
+`finish-review` accepts either the documented scalar arguments plus repeatable
+`--finding-json` objects, or one exact equivalent object through
+`--from-stdin`; mixed forms are rejected. `start` returns `status`, `run_id`,
+`resolution_status`, and the nullable repository-relative `plan_path` and
+`design_path`.
+
+The finish semantic object is flat and has exactly `mode`, `execution`,
+`reviewer_count`, `fresh_reviewer`, `read_only_enforced`, nullable
+`conditional_trigger`, `degraded_reasons`, `verdict`, nullable `block_reason`,
+`review_passes`, `repair_passes`, `findings`, and nullable `token_usage`.
+Argument form maps these one-to-one to `--mode`, `--execution`,
+`--reviewer-count`, `--fresh-reviewer true|false`,
+`--read-only-enforced true|false`, optional `--conditional-trigger`, repeatable
+`--degraded-reason`, `--verdict`, optional `--block-reason`,
+`--review-passes`, `--repair-passes`, repeatable `--finding-json`, and optional
+`--token-usage-json`. Optional scalar fields default to null and repeatable
+fields default to empty arrays; every other flag is required. The protocol
+example's `--protocol full` is the spelling `--execution full` in the final
+CLI. A frozen-clock normalization fixture proves argument and stdin forms
+produce identical semantic objects before deterministic facts are merged.
 
 The final skill report includes one explicit line:
 
@@ -265,16 +308,33 @@ does not guess that the newest review was the handoff authority.
 ```bash
 pre-sdd-review-evidence record-outcome \
   --run-id <run-id> \
+  --repo . \
+  --client claude-code \
   --status implementation-completed \
   --basis verified-repository-evidence \
-  --confidence high \
-  --escaped-finding coverage
+  --confidence high
 ```
 
-The CLI validates the current plan hash, enumerations, receipt relationship,
-and logical combinations before creating the outcome. For example,
+As with finalization, `record-outcome` requires a current repository locator,
+verifies its HMAC repository ID, and resolves the recorded relative plan path
+before validating the current plan hash. It accepts equivalent bounded
+argument and `--from-stdin` forms and rejects mixed input. The CLI validates
+enumerations, receipt relationship, and logical combinations before creating
+the outcome. For example,
 `false-ready` is possible only when the original verdict was `READY` and a
 material escaped finding was recorded.
+
+The outcome semantic object has exactly `recorder`, `status`, `replan_count`,
+`evaluated_finding_ids`, `escaped_findings`, `disputed_findings`,
+`prevented_rework`, `basis`, and `confidence`. `recorder` has the exact client
+fields defined below. Argument form maps these to required `--client`, optional
+`--client-version`/`--model`, required `--status`, optional `--replan-count`
+(default `0`), repeatable `--evaluated-finding`,
+`--escaped-finding-json`, `--disputed-finding-json`, and
+`--prevented-rework-json`, plus required `--basis` and `--confidence`.
+Repeatable fields default to empty arrays. Repository identity and
+`plan_hash_matched=true` are computed facts and are accepted from neither
+input form. A normalization fixture proves canonical parity.
 
 ### 5. Review receipt schema
 
@@ -299,9 +359,10 @@ material escaped finding was recorded.
 
 #### Skill and client
 
-`skill` records the skill name, declared version, `SKILL.md` fingerprint,
-reviewer-protocol fingerprint, CLI version, and schema version. `client`
-records the client identifier plus nullable client and model versions.
+`skill` records the skill name, matching declared/release versions,
+`SKILL.md`, reviewer-protocol, and `release.toml` fingerprints, CLI version,
+and schema version. `client` records the client identifier plus nullable client
+and model versions.
 
 #### Protocol
 
@@ -352,6 +413,8 @@ Each finding contains:
   "id": "PSDR-001",
   "severity": "IMPORTANT",
   "class": "verification-gap",
+  "pattern_key": "build-only-acceptance",
+  "consequence_category": "escaped-material-defect",
   "status": "repaired",
   "location": {
     "path": "docs/plan.md",
@@ -390,6 +453,79 @@ stored inside the receipt that determines that size. Token usage is optional
 and accepted only when the client exposes a trustworthy measured value with
 provenance.
 
+#### Exact schema 1 contract
+
+All objects reject unknown keys. All strings are UTF-8, single-line, free of
+control characters, and bounded as stated below. SHA-256 values are 64
+lowercase hexadecimal characters; Git object IDs are `unborn` or 40/64
+lowercase hexadecimal characters; times use UTC RFC 3339 with a `Z` suffix;
+and run IDs are canonical lowercase UUIDs. Paths and evidence references are
+at most 500 characters, locators 200, client/model/provenance values 100, and
+`pattern_key` 80 characters matching `[a-z0-9][a-z0-9._-]*`.
+Finding IDs match `PSDR-[0-9]{3,}`, and a non-null block reason is a bounded
+100-character reason code using the same lowercase slug alphabet.
+
+| Object | Exact fields |
+| --- | --- |
+| `skill` | `name`, `declared_version`, `release_version`, `skill_sha256`, `reviewer_protocol_sha256`, `release_manifest_sha256`, `cli_version`, `schema_version` |
+| `client` | `id`, nullable `version`, nullable `model` |
+| `protocol` | `mode`, `execution`, `reviewer_count`, `fresh_reviewer`, `read_only_enforced`, nullable `conditional_trigger`, `degraded_reasons` |
+| `target` | nullable `repo_id`, nullable `initial_head`, nullable `initial_dirty`, nullable `plan_path`, nullable `plan_initial_sha256`, nullable `design_path`, nullable `design_initial_sha256`, `resolution_status` |
+| `result` | `completion`, nullable `verdict`, nullable `block_reason`, `review_passes`, `repair_passes`, `findings` |
+| `freshness` | nullable `final_head`, nullable `final_dirty`, nullable `plan_final_sha256`, nullable `design_final_sha256` |
+| `metrics` | `elapsed_ms`, `recorder_elapsed_ms`, `reviewer_count`, `review_passes`, `repair_passes`, nullable `token_usage` |
+| `token_usage` | `input`, `output`, `total`, `provenance` |
+
+Client IDs and resolution statuses are the exact values already listed in
+this design. Modes are `default` and `review-only`. Protocol execution is
+`full`, `degraded`, `blocked`, or `unknown`. Conditional triggers are null or
+`runtime-removal`, `schema-migration`, `auth-boundary`, `data-boundary`, or
+`external-side-effect`. Degraded reasons are deduplicated values from
+`fresh-reviewer-unavailable`, `read-only-unavailable`,
+`conditional-reviewer-unavailable`, `host-capability-unknown`, and `other`.
+Completion is `completed` or `abandoned`.
+
+Each finding has exactly `id`, `severity`, `class`, `pattern_key`,
+`consequence_category`, `status`, `location`, `evidence_refs`, `consequence`,
+`minimal_fix`, and nullable `repair_pass`. `location` has exactly `path` and
+`locator`. Consequence categories are `escaped-material-defect`,
+`avoidable-rework`, `false-block`, `protocol-degradation`,
+`input-resolution-failure`, and `other`. Finding IDs are unique in one review;
+lists are deduplicated by exact canonical value while preserving first-seen
+order.
+
+Schema validation enforces these relationships:
+
+- `skill.name` is `pre-sdd-review`; declared and release versions are equal;
+  embedded CLI/schema versions equal the running recorder.
+- `protocol.execution=full` requires a fresh reviewer, enforced read-only
+  behavior, no degraded reason, one reviewer normally, and two reviewers when
+  a conditional trigger is present. `degraded` requires at least one reason.
+- `result.completion=abandoned` requires a null verdict and zero review/repair
+  passes. `completed` requires one verdict and at least one review pass.
+- `READY` permits only `repaired` findings. `REVISE` requires at least one
+  `unresolved` finding. `BLOCKED` requires a block reason. Repair passes are 0
+  through 2; review passes are 0 through 3; a non-null finding repair pass is
+  within the recorded range.
+- Resolution nullability is exact:
+  - `resolved`: repository/Git facts, both relative paths, and all document
+    hashes are non-null.
+  - `plan-missing`: repository/Git facts and a safe normalized relative plan
+    path are non-null; all document hashes and design fields are null.
+  - `spec-field-missing` or `spec-path-invalid`: repository/Git facts plus the
+    plan path/hash are non-null; design path/hash are null.
+  - `design-missing`: repository/Git facts, plan path/hash, and a safe relative
+    design path are non-null; the design hash is null.
+  - `outside-repository`: repository/Git facts are non-null. An offending plan
+    path makes every path/hash null; an offending Spec value retains only the
+    already validated plan path/hash. The offending value is never retained.
+  - `not-git-repository`: repository/Git facts and every path/hash are null.
+  Final freshness mirrors the same availability after recomputation; it never
+  fabricates a repository ID, Git state, path, or hash.
+- Mirrored reviewer and pass counts in `protocol`, `result`, and `metrics`
+  are equal. Durations and token counts are non-negative, token totals equal
+  input plus output, and token provenance is non-empty when token usage exists.
+
 ### 6. Outcome receipt schema
 
 `outcome.json` is a separate create-only record:
@@ -409,8 +545,10 @@ provenance.
     "status": "implementation-completed",
     "plan_hash_matched": true,
     "replan_count": 0,
+    "evaluated_finding_ids": [],
     "escaped_findings": [],
-    "disputed_findings": []
+    "disputed_findings": [],
+    "prevented_rework": []
   },
   "assessment": {
     "label": "good",
@@ -419,6 +557,52 @@ provenance.
   }
 }
 ```
+
+Schema 1 terminal downstream statuses are `sdd-completed`,
+`implementation-completed`, `implementation-abandoned`, and `cancelled`.
+Confidence is `low`, `medium`, or `high`. `plan_hash_matched` must be true to
+create an outcome; a stale plan is reported as a command failure, not written
+as a false value.
+
+The outcome top level has exactly `schema_version`, `record_type`, `run_id`,
+`recorded_at`, `recorder`, `downstream`, and `assessment`. `recorder` has
+exactly `client`, nullable `version`, and nullable `model`, using the same
+client and bounded-string rules as the review receipt.
+
+`downstream` has exactly `status`, `plan_hash_matched`, `replan_count`,
+`evaluated_finding_ids`, `escaped_findings`, `disputed_findings`, and
+`prevented_rework`. Evaluated IDs refer to findings in the immutable review.
+Every disputed or prevented-rework ID must also be evaluated. Escaped findings
+have exactly `severity`, `class`, `pattern_key`, `consequence_category`, and
+`basis`; disputed findings have exactly `finding_id`, `class`, `pattern_key`,
+`consequence_category`, and `basis`; prevention records have exactly
+`finding_id`, `pattern_key`, `consequence_category`, and `basis`. IDs and
+structured records are unique, and `replan_count` is a non-negative integer.
+These fields let reporting calculate evaluated denominators and stable pattern
+groups without parsing consequence prose.
+
+Disputed and prevention records must copy the referenced immutable finding's
+class, pattern key, and consequence category exactly. A prevention record may
+reference only a finding whose review-time status is `repaired`; an unresolved
+or authority-blocked finding cannot become prevented rework. The validation
+suite includes both mismatch and unresolved-finding counterexamples.
+
+`assessment` has exactly `label`, `basis`, and `confidence`. The recorder
+derives `false-ready` from a `READY` review plus a material escaped finding;
+`noisy` from a disputed material finding; `prevented-rework` from a prevention
+record; `good` only for a completed downstream status with no escaped or
+disputed material finding; `abandoned` only for an abandoned/cancelled status;
+and otherwise `inconclusive`. The mixed-result precedence below applies after
+the abandoned-status rule.
+
+For `false-ready`, `noisy`, and `prevented-rework`, assessment basis is derived
+from the independently sufficient triggering records using this trust order:
+`verified-repository-evidence`, `user-reported`, `agent-observed`,
+`agent-inferred`, then `unknown`; the strongest available sufficient record is
+used, and a caller-supplied different basis is rejected. For `good`,
+`inconclusive`, and `abandoned`, there is no triggering finding record, so the
+bounded recorder observation supplies the basis without promotion. Confidence
+remains an explicit observation and never changes the basis.
 
 Assessment labels are:
 
@@ -463,18 +647,35 @@ The limits are:
 | `outcome.json` | 4 KiB | 8 KiB |
 | Completed run | 20 KiB | 40 KiB |
 
-The CLI removes duplicate structured values before rejecting an oversized
-record. It never truncates a finding into an ambiguous or malformed record.
+The CLI removes exact duplicate list values by their canonical JSON bytes,
+preserving first-seen order, before rejecting an oversized record. It never
+merges distinct findings or truncates a finding into an ambiguous or malformed
+record. Standard-input and on-disk reads are bounded to the applicable hard
+limit plus one byte before JSON decoding so an oversized or corrupt file
+cannot force an unbounded allocation.
+
+One shared bounded binary/JSON reader owns that rule. Pending, review,
+outcome, config, scan, doctor, resolve, summary, candidate, and prune paths
+must call it; direct `read_bytes()` or an unbounded `read()` of an evidence
+record is forbidden. Scanners report an oversized record as corrupt and
+continue within their documented exclusion policy.
 
 Forbidden persisted content includes:
 
 - absolute repository and skill paths;
-- document, ADR, code, or test bodies;
+- fields dedicated to document, ADR, code, or test bodies, plus multiline or
+  control-character-bearing values in bounded semantic prose;
 - prompts and full model responses;
 - provider transcripts;
 - environment-variable values and credentials;
 - arbitrary command output; and
 - data outside the approved receipt fields.
+
+The validator can prove the closed field set, bounds, path rules, and obvious
+credential/absolute-path rejection. The controller remains responsible for
+paraphrasing bounded `consequence` and `minimal_fix` values rather than placing
+source excerpts in them; the CLI does not make an impossible claim that an
+arbitrary short prose value can be identified as copied source content.
 
 Repository-relative paths use POSIX separators, may not contain `..`, and must
 resolve inside the repository. The CLI rejects path and symlink escapes.
@@ -497,18 +698,41 @@ platform exposes Unix-style permissions. The repository ID is an HMAC of the
 canonical repository root with that local key. The root path and key are never
 written to a receipt or transmitted.
 
-When neither configuration nor key exists, the first successful setup creates
-both. If configuration exists but the key disappears, the CLI fails with
-`identity-key-missing` and does not generate a replacement automatically,
-because a new key would prevent automatic matching with earlier runs. Existing
-receipts remain readable. Backing up the complete evidence root preserves
-identity continuity.
+Identity initialization is create-only and race-safe without a persistent
+global lock:
+
+1. Validate that the root and any existing identity entries are private
+   regular files/directories, never symlinks.
+2. When neither file exists, generate a candidate key and create
+   `identity.key` with exclusive creation and owner-only mode. Exactly one
+   concurrent initializer wins; losers discard their candidates and read the
+   winning key.
+3. Derive the config fingerprint from that exact key. Derive `created_at`
+   deterministically from the winning key file's initial modification time, then
+   publish matching canonical `config.json` create-only.
+4. A valid key-only state is recoverable by creating the matching config
+   without replacing the key. Config-only, malformed, wrong-length,
+   mismatched, or symlinked states fail closed. No state regenerates or
+   replaces an existing key automatically.
+5. Flush each new file and its containing directory before reporting setup
+   success.
+
+Concurrent first starts must all observe the same key fingerprint and derive
+the same repository ID. Existing receipts remain readable when identity
+validation fails. Backing up the complete evidence root preserves identity
+continuity.
 
 ### 9. Atomicity, concurrency, and interruption
 
 Each run owns its directory. There is no shared append-only JSONL file and no
-global write lock. Files are written to private temporary paths in their final
-directory and atomically renamed after validation and flush.
+long-lived global write lock. Files are written to private sibling temporary
+paths and flushed, then published with an atomic no-replace operation. The
+reference operation hard-links the temporary file to the absent final name,
+handles `FileExistsError` as an idempotent/conflicting retry, flushes the
+directory, and removes the temporary name. A platform/filesystem without a
+safe no-replace primitive fails with `atomic-create-unsupported`; it never
+falls back to `os.replace()` or another overwriting rename. Per-run locks
+serialize cooperating transitions but are not the immutability guarantee.
 
 Pending-age classifications are:
 
@@ -543,12 +767,18 @@ Deletion is explicit and previewed:
 
 ```bash
 pre-sdd-review-evidence prune --older-than 730d --dry-run
-pre-sdd-review-evidence prune --older-than 730d --confirm
+pre-sdd-review-evidence prune --older-than 730d \
+  --confirm-selection <selection-digest> --from-stdin
 ```
 
 Reviews without outcomes are excluded unless the user supplies a separate
-explicit include flag. The command reports exact run IDs and record counts
-before deletion.
+explicit include flag. Dry-run reports exact run IDs, record fingerprints,
+selection options, counts, and a SHA-256 digest of that canonical selection.
+Confirmation supplies the exact previewed selection object on standard input
+and its digest. The CLI locks those run IDs in sorted order, revalidates every
+fingerprint and eligibility condition, and deletes only that listed set; any
+change aborts the entire operation. Newly eligible runs that were absent from
+the preview are never added implicitly.
 
 ### 11. Quality measures
 
@@ -601,9 +831,29 @@ Repeated-pattern candidates are:
 - the same input-resolution failure in at least five runs.
 
 Thresholds select items for inspection; they do not authorize an automatic
-change. `candidates export` creates a blank synthetic-fixture template with
-case metadata, finding class, consequence category, and required reproduction
-fields. It never copies source document content.
+change. Finding `pattern_key`, protocol `degraded_reasons`, outcome
+`prevented_rework`, `evaluated_finding_ids`, and structured consequence
+categories are the only grouping inputs; the CLI never clusters free prose.
+Candidates use one discriminated schema:
+
+- common fields: `schema_version`, `candidate_id`, `kind`,
+  `source_run_count`, `group`, and `required_synthetic_files`;
+- `kind=finding-pattern`: `group` has exactly `finding_class`, `pattern_key`,
+  and `consequence_category`;
+- `kind=degraded-reason`: `group` has exactly `client` and
+  `degraded_reason`; and
+- `kind=resolution-failure`: `group` has exactly `resolution_status`.
+
+Candidate IDs are SHA-256 hashes of the canonical tuple `(schema_version,
+kind, group)`. No sentinel finding values are used for non-finding candidates.
+
+`candidates export` creates exactly one new
+`exports/<candidate-id>/` directory containing `candidate.json`, `design.md`,
+`plan.md`, `repository.json`, and `expected.json`. The JSON metadata records
+only the common fields and the kind-specific `group`. The four fixture files contain fixed blank
+section/object templates; `plan.md` contains only the relative
+`**Spec:** ./design.md` link and blank task headings. Export is create-only and
+never copies receipt prose or source document content.
 
 Forbidden-data attempts and internally inconsistent `full` protocol claims are
 rejected before a valid receipt exists. They are immediate CLI or test
@@ -644,6 +894,12 @@ already-finalized
 outcome-already-recorded
 ambiguous-run
 identity-key-missing
+identity-state-invalid
+wrong-repository
+invalid-evidence-home
+atomic-create-unsupported
+selection-changed
+incompatible-cli
 unsupported-schema-version
 ```
 
@@ -662,6 +918,10 @@ Every live run records protocol execution as full, degraded, blocked, or
 unknown. The current Codex support claim remains unchanged until host-specific
 evidence justifies a documented update. Unmeasured hosts remain
 `not_measured`; degraded runs are useful observations, not full support proof.
+Path-rendering and `.cmd` unit tests on a non-Windows host prove only portable
+construction. Native Windows CLI portability remains `not_measured` until the
+evidence and installer stages pass under Python 3.11 on a native Windows
+runner; no closeout converts the portable profile into that claim.
 
 ## Package architecture
 
@@ -685,6 +945,7 @@ skills/pre-sdd-review/
     ├── install.py
     └── pre_sdd_review_evidence/
         ├── __init__.py
+        ├── __main__.py
         ├── cli.py
         ├── schema.py
         ├── storage.py
@@ -695,11 +956,15 @@ tests/products/pre-sdd-review/
 ├── cases.json
 ├── test_contract.py
 ├── evidence/
+│   ├── __init__.py
+│   ├── support.py
 │   ├── test_cli.py
 │   ├── test_schema.py
 │   ├── test_storage.py
 │   ├── test_repository.py
-│   └── test_reporting.py
+│   ├── test_outcome.py
+│   ├── test_reporting.py
+│   └── test_install.py
 └── fixtures/
     ├── existing review fixtures
     └── evidence lifecycle fixtures
@@ -710,6 +975,13 @@ The release payload and product-contract allowlist must be updated explicitly;
 the current eight-file payload contract cannot be bypassed by appending an
 unverified runtime tree.
 
+The installer uses the same explicit runtime-file manifest as the product and
+archive checks. It copies only listed regular files, rejects symlinks and
+unexpected package entries, and verifies release, CLI, and schema identities
+by parsing data and literal constants without importing the supplied package
+before writing a launcher. It never recursively stages or executes an
+arbitrary caller-supplied package directory during validation.
+
 ## Verification design
 
 ### Provider-free schema tests
@@ -717,6 +989,9 @@ unverified runtime tree.
 Tests cover required and unknown fields, enumerations, nullable boundaries,
 timestamps, SHA-256 syntax, path traversal, absolute paths, forbidden fields,
 size boundaries, and logically invalid verdict/outcome combinations.
+An AST-backed payload contract rejects network-capable imports, provider SDK
+identifiers, shell execution, and non-Git subprocess executables from the
+runtime package.
 
 ### Repository and privacy tests
 
@@ -724,6 +999,12 @@ Synthetic repositories cover valid and missing `**Spec:**` fields, missing
 plans and designs, dirty state, document changes, outside-repository paths,
 symlink escapes, stable local HMAC identity, and absence of absolute roots or
 fixture body content in receipts and logs.
+
+Concurrent empty-root setup additionally proves one winning identity key,
+matching config fingerprint, and identical repository IDs across all starts.
+Finalization and outcome tests run from a second repository and a changed
+skill copy to prove wrong-checkout rejection and complete skill fingerprint
+capture.
 
 ### Lifecycle tests
 
@@ -761,6 +1042,11 @@ existing synthetic review fixtures and record fixture ID, client, fingerprints,
 protocol level, verdict, finding IDs/classes, and duration. Full responses are
 not retained. Identical fixtures are run separately in Codex, Claude Code,
 Cursor, and Grok as available; unavailable clients remain `not_measured`.
+
+Native Windows execution is a separate optional evidence row. When no native
+runner is authorized or available, provider-free implementation work can
+close with that row explicitly open as `not_measured`, but cannot claim
+Windows CLI portability as satisfied.
 
 ## Rollout
 
@@ -810,12 +1096,14 @@ The design is satisfied when:
 5. Missing or stale plans, ambiguous matches, interrupted runs, concurrent
    writers, and persistence errors have explicit safe behavior.
 6. Evidence failure is visible but cannot change the original review verdict.
-7. No receipt, test log, or export contains prohibited source content,
-   credentials, absolute paths, prompts, or full model responses.
+7. Receipts, logs, and exports reject prohibited raw-body fields, multiline
+   source bodies, credential-shaped values, absolute paths, prompts, and full
+   model responses; bounded semantic prose remains a controller responsibility.
 8. Summary and candidate generation require no model or network call and keep
    verified, reported, inferred, full, degraded, and unmeasured results
    distinct.
 9. No log directly modifies the skill; every improvement passes through a
    reviewed synthetic regression fixture and the complete existing suite.
 10. CLI portability claims and semantic review-host support claims remain
-    separate and evidence-backed.
+    separate and evidence-backed; native Windows stays `not_measured` until a
+    native Python 3.11 run passes.
