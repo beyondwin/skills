@@ -163,7 +163,8 @@ the root of the skill copy it actually loaded:
 pre-sdd-review-evidence start \
   --skill-root /path/to/pre-sdd-review \
   --plan docs/plans/example.md \
-  --client cursor
+  --client cursor \
+  --mode default
 ```
 
 The CLI reads the loaded `SKILL.md`, `references/reviewer-protocol.md`, and
@@ -176,6 +177,11 @@ different copies under the same nominal skill version.
 only when the command reports `skill_name=pre-sdd-review`, schema `1`, and CLI
 major version `1`; an unavailable, malformed, or incompatible response is a
 visible non-recording reason and never triggers installation.
+
+The exact bytes for version `1.0.0` are
+`{"cli_version":"1.0.0","schema_version":1,"skill_name":"pre-sdd-review"}\n`.
+`--version` accepts no other command or semantic arguments, performs no
+evidence-home discovery or mutation, and emits no additional key or stderr.
 
 Supported client identifiers initially are:
 
@@ -756,7 +762,8 @@ global lock:
 Concurrent first starts must all observe the same key fingerprint and derive
 the same repository ID. Existing receipts remain readable when identity
 validation fails: direct receipt loading, `show`, pending classification,
-`summary`, and `candidates` validate only the bounded receipt bytes they need.
+`summary`, `candidates`, and `prune --dry-run` validate only the bounded
+receipt bytes they need.
 Identity-dependent mutation and repository-matching commands (`start`,
 `finish-review`, `resolve`, `record-outcome`, and confirmed `prune`) fail
 closed, while `doctor` reports the identity fault. Backing up the complete
@@ -773,6 +780,34 @@ directory, and removes the temporary name. A platform/filesystem without a
 safe no-replace primitive fails with `atomic-create-unsupported`; it never
 falls back to `os.replace()` or another overwriting rename. Per-run locks
 serialize cooperating transitions but are not the immutability guarantee.
+
+Pending creation is the bounded exception to the sibling-file shape because
+pending bytes contain `start_locator_binding`. `start` creates a private
+`runs/.staging-<run-id>/` directory, writes and flushes its only record as
+`.pending.json`, then atomically renames that staging directory to the absent
+`runs/YYYY/MM/<run-id>/` destination and flushes the parent directories. It
+never writes a sibling pending temp file and never writes the raw canonical
+locator. A crash after pending fsync but before directory publication may
+leave exactly that private staging directory; no normal run scan treats it as
+a run.
+
+Before any later evidence-home mutation, internal recovery scans only exact
+`.staging-<canonical-uuid>` names. A private, symlink-free staging directory
+containing one bounded, schema-valid `.pending.json` is promoted to its exact
+absent final run path. If that path already contains byte-identical pending
+state, recovery removes the staging container after validation; any conflict,
+extra entry, corruption, or unsafe path is left unchanged and reported by
+`doctor`. This promotion/cleanup completes an interrupted create-only write;
+it is not receipt pruning. Read-only commands never mutate staging state and
+never project its binding or intended-mode values.
+
+If `finish-review` or `abandon` crashes after final receipt publication but
+before pending unlink, the terminal receipt is authoritative and public scans
+ignore the coexisting pending record. An exact idempotent retry validates the
+existing final bytes, removes `.pending.json` and matching private temp/lock
+artifacts, flushes the run directory, and returns the existing receipt hash. A
+conflicting retry changes nothing. This reconciliation is identical for both
+terminal transitions; it can never rewrite the final receipt.
 
 Pending-age classifications are:
 
@@ -811,9 +846,11 @@ the caller:
 
 An abandoned receipt is the sole exception to resolution-based final
 freshness availability: its nulls mean not recomputed, never fabricated. The
-private `intended_mode`, `start_locator_binding`, canonical locator, and every
-other pending-only key are excluded from the exact final schema. Only the
-private `.pending.json` may contain the binding, and either successful
+canonical locator is invocation-local, has no pending field, and is discarded
+immediately after deriving the HMAC binding; it is never persisted anywhere.
+The private `intended_mode`, `start_locator_binding`, and every other
+pending-only key are excluded from the exact final schema. Only the private
+`.pending.json` may contain the binding, and either successful
 `finish-review` or `abandon` removes that file after create-only publication.
 Public `start`, `pending`, `doctor`, scan/error, final receipt, export,
 summary, and candidate projections never include pending-only key names or

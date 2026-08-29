@@ -97,6 +97,8 @@
 - Modify: `tests/products/pre-sdd-review/test_contract.py`
 - Modify: `tests/repository/test_release.py`
 - Modify: `tests/repository/test_release_contract.py`
+- Modify: `tests/repository/test_product_registry.py`
+- Modify: `tests/repository/test_verify.py`
 - Modify: `skills/pre-sdd-review/SKILL.md`
 - Modify: `skills/pre-sdd-review/CHANGELOG.md`
 - Modify: `skills/pre-sdd-review/release.toml`
@@ -219,6 +221,10 @@ Update expected payload inventories to include only the two new runtime files.
 Add a verification-routing test expecting `pre-sdd-review-evidence` in the
 product's stage list and asserting that `_compile_paths()` includes the new
 evidence package rather than only `skills/*/scripts`.
+Update the exact consumers in `tests/repository/test_product_registry.py` and
+`tests/repository/test_verify.py`: the pre-SDD product stage tuple, full and
+Windows-portable stage order, selected pre-SDD stage tuple, exact evidence
+stage unittest argv, and Python compile-path expectation.
 
 - [ ] **Step 6: Run product tests to verify RED**
 
@@ -229,6 +235,10 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest \
   tests.repository.test_release_contract -v
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest \
   tests.repository.test_release -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest \
+  tests.repository.test_product_registry -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest \
+  tests.repository.test_verify -v
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
   -s tests/products/pre-sdd-review -p 'test_contract.py' -v
 ```
@@ -248,11 +258,19 @@ if skill_root.name == "pre-sdd-review":
 ```
 
 Register `pre-sdd-review-evidence` as its own unittest-discovery stage and
-append it to the pre-SDD `verify_stages`. Extend `_compile_paths()` with the
+set the pre-SDD `verify_stages` tuple exactly to `product-contract`,
+`pre-sdd-review-contract`, `pre-sdd-review-evidence`, `python-compile`. In full
+and Windows-portable profiles place `pre-sdd-review-evidence` immediately
+after `pre-sdd-review-contract` and before `python-compile`; its argv is exactly
+the portable `python -m unittest discover -s
+tests/products/pre-sdd-review/evidence -p test_*.py -v` form used by the other
+product stages. Extend `_compile_paths()` with the
 exact pre-SDD evidence package so syntax coverage does not depend on a module
 being imported by a test. Extend both copies of
 `PRE_SDD_REVIEW_PAYLOAD_FILES` with the exact present evidence files. Keep
 arbitrary extra files rejected.
+Update both repository test modules named in this task at the same time as the
+producer changes; no later task repairs stale stage or compile expectations.
 
 - [ ] **Step 8: Advance the product identity to 1.2.0**
 
@@ -268,6 +286,8 @@ instruction/document digests with the existing `whole_document_digest()` and
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 scripts/verify.py --skill pre-sdd-review
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest \
+  tests.repository.test_product_registry tests.repository.test_verify -v
 git diff --check
 ```
 
@@ -279,6 +299,7 @@ Expected: all pre-SDD stages PASS; no whitespace errors.
 git add products.toml scripts/lib/product_contract.py scripts/lib/verification.py \
   scripts/release.py skills/pre-sdd-review tests/products/pre-sdd-review \
   tests/repository/test_release.py tests/repository/test_release_contract.py \
+  tests/repository/test_product_registry.py tests/repository/test_verify.py \
   docs/maintainers/products/pre-sdd-review/release.md
 git commit -m "feat: define pre-sdd evidence schema"
 ```
@@ -312,10 +333,11 @@ def test_root_relative_spec_resolves_and_stores_only_relative_paths(self) -> Non
     self.assertNotIn(str(repo), repr(target))
 ```
 
-Cover both accepted single-line forms: the repository-root-relative plain
-`**Spec:** docs/design.md` value and the plan-directory-relative inline-code
-value whose unwrapped path is `./design.md`. Assert inline-code delimiters are
-removed before resolution. Reject empty values, duplicate fields, multiple
+Use a table-driven positive matrix whose syntax and resolution axes are
+independent: plain and inline-code `docs/design.md` both resolve from the
+repository root, while plain and inline-code `./design.md` both resolve from
+the plan directory. Assert inline-code delimiters are removed before
+resolution. Reject empty values, duplicate fields, multiple
 path tokens, trailing prose, multiline/fenced values, malformed or nested
 backticks, missing plan, missing field, missing design, absolute/outside paths,
 `..`, symlink escape, unborn HEAD,
@@ -423,7 +445,7 @@ git commit -m "feat: capture pre-sdd repository evidence"
 
 **Interfaces:**
 - Consumes: schema validation, the shared bounded reader, `TargetSnapshot`, identity initialization, filesystem.
-- Produces: `EvidencePaths`, `RunHandle`, `WriteResult`, `evidence_home()`, `create_pending()`, `finish_review()`, `abandon_run()`, `load_review()`, `scan_runs()`, and CLI commands `start`, `finish-review`, `show`, `pending`, `abandon`, `doctor`.
+- Produces: `EvidencePaths`, `RunHandle`, `WriteResult`, `evidence_home()`, `create_pending()`, `finish_review()`, `abandon_run()`, `load_review()`, `scan_runs()`, exact CLI `--version`, and CLI commands `start`, `finish-review`, `show`, `pending`, `abandon`, `doctor`.
 
 - [ ] **Step 1: Write failing storage lifecycle tests**
 
@@ -444,6 +466,13 @@ lock, per-run lock conflicts, pending cleanup after finalization,
 interrupted/stale age classes, abandon to null-verdict durable review with a
 required bounded `completion_reason`, same-reason idempotency and
 different-reason conflict, corrupt JSON exclusion, and no automatic deletion.
+Add deterministic interruption hooks for (1) pending `.pending.json` fsync in
+its private staging directory before directory publication and (2) final
+`review.json` publication before pending unlink, separately for
+`finish-review` and `abandon`. Restart storage after each hook. Prove valid
+staging promotion, exact final-byte preservation, idempotent hash return,
+pending/staging/temp/lock cleanup after recovery, conflicting-retry refusal,
+and no raw locator bytes on disk at any point.
 Use an exact whole-record abandoned fixture from the design: pending
 skill/client/target and intended mode, abandon clock, canonical unknown/zero
 protocol and metrics, all-null freshness, null verdict/block/token usage,
@@ -502,6 +531,17 @@ Flush the directory, unlink the temp, and remove the lock in `finally`;
 Add a deterministic hook test that creates the final file between temp flush
 and publication and proves it is not overwritten.
 
+For pending creation, implement the design's private
+`runs/.staging-<run-id>/.pending.json` directory-publication exception instead
+of a sibling pending temp. Flush the file and staging directory, rename the
+whole staging directory only to its absent dated run path, and flush both
+parents. Before later mutations, promote only exact schema-valid safe staging
+directories; leave conflicts/corruption unchanged for `doctor`. On an exact
+terminal retry after a crash between final publication and pending unlink,
+validate the existing final bytes, remove the coexisting pending and matching
+private temp/lock artifacts, flush, and return the original hash. Public scans
+treat the terminal receipt as authoritative while cleanup is interrupted.
+
 Import the Task 1 shared bounded reader for every pending/review consumer;
 storage must not define another reader or use `Path.read_bytes()`,
 `Path.read_text()`, or unbounded `read()`.
@@ -525,6 +565,11 @@ def test_start_then_finish_reports_run_and_writes_review(self) -> None:
     finished = run_cli(["finish-review", "--run-id", run_id, "--repo", str(REPO), "--from-stdin"], stdin=semantic_result_json())
     self.assertEqual(finished.json, {"status": "recorded", "run_id": run_id, "sha256": finished.json["sha256"]})
 ```
+
+Before lifecycle tests, assert `--version` writes exactly
+`{"cli_version":"1.0.0","schema_version":1,"skill_name":"pre-sdd-review"}\n`
+to stdout, writes empty stderr, rejects mixed command/semantic arguments, and
+does not discover, validate, create, or read the evidence home.
 
 The exact successful start value is `status="started"`; the object has only
 `status`, `run_id`, `resolution_status`, nullable repository-relative
@@ -571,7 +616,9 @@ def main(
 Successful commands write one canonical JSON object to stdout. Failures write one object shaped as `{"error":{"code":"...","message":"..."}}` to stderr and return nonzero. `__main__.py` calls this `main()` only.
 
 `start` stores a domain-separated HMAC `start_locator_binding` of its canonical
-Git-discovery anchor only in the private pending record. `finish-review`
+Git-discovery anchor only in the private pending record, then discards the raw
+canonical locator. The pending schema has no locator field or locator value.
+`finish-review`
 requires `--repo`; when the pending run has a repository identity, it discovers
 that Git root, verifies the pending HMAC `repo_id`, and resolves only pending
 repository-relative paths. For `not-git-repository`, `--repo` must resolve to
@@ -584,11 +631,15 @@ and locator never enter `review.json` or output.
 Seed distinctive canonical-locator and binding markers and exercise every
 pending consumer: `start`, `pending`, direct scan, `doctor` including corrupt
 and error paths, `finish-review`, and `abandon`. Assert exact public key sets
-and absence of both marker values and the names `start_locator_binding` and
-`intended_mode` from stdout, stderr, final receipts, exports, summaries, and
-candidates. Assert only `.pending.json` contains the binding, and that it is
-removed after either terminal transition. Assert the complete canonical
+and absence of both marker values and the pending-only key names from stdout,
+stderr, and final receipts. Assert `.pending.json` contains the binding but no
+raw locator field or locator value, and that the pending file is removed after
+either terminal transition. Task 5 owns the corresponding summary, candidate,
+and export assertions. Assert the complete canonical
 abandoned `review.json` projection and rejected alternatives from the design.
+Repeat these projection checks in both interruption states: staged pending
+before directory promotion, and terminal receipt beside pending before exact
+idempotent cleanup. Recovery must not rewrite final bytes or expose markers.
 It accepts either bounded scalar flags plus repeatable structured JSON flags,
 or the exact flat semantic object defined by the design through
 `--from-stdin`; mixed forms fail. The CLI merges semantic input with pending
@@ -603,6 +654,8 @@ Implement the design's exact flat finish object and one-to-one flags:
 `--block-reason`, `--review-passes`, `--repair-passes`, repeatable
 `--finding-json`, and optional `--token-usage-json`. Apply only the documented
 null/empty-list defaults; no client gets an implicit semantic default.
+Implement `--version` in this task with the exact bytes and evidence-home-free
+behavior proved in Step 4; packaging tasks consume this already closed command.
 
 - [ ] **Step 7: Add the three runtime files to exact payload checks**
 
@@ -782,15 +835,23 @@ Test outcome coverage, evaluated-finding denominators, prevented-rework records,
 immediate candidates, repeated `pattern_key`/degraded-reason/input-resolution
 thresholds across distinct run IDs, no automatic skill edit, exact blank
 sanitized export, small-sample warning, full/degraded client slices, pending
-age classes, and default exclusion of review-only-without-outcome records.
+age classes. For summary, include every completed default and review-only run
+in outcome-coverage denominators and report missing outcomes as `not_measured`.
+For prune, exclude both default and review-only reviews without outcomes unless
+the explicit include-without-outcome flag is present.
 For prune, test a canonical preview selection and digest, exact confirmation,
 changed fingerprints, an outcome recorded between preview and confirmation,
 and refusal to delete any unpreviewed run. Run summary, candidates, and both
 prune phases under the shared bounded-reader spy. With identity state
 separately missing, malformed, and fingerprint-mismatched, prove direct
 review/outcome loading, `show`, pending, summary, and candidates remain
-available; prove `start`, `finish-review`, `resolve`, `record-outcome`, and
-confirmed prune fail closed, and `doctor` reports the identity fault.
+available. For each broken identity state, prove `prune --dry-run` returns the
+exact canonical selection/digest without mutation, then prove confirmation of
+that selection fails closed. Also prove `start`, `finish-review`, `resolve`,
+and `record-outcome` fail closed, and `doctor` reports the identity fault.
+Seed distinctive raw-locator and binding markers in Task 5 fixtures and assert
+exact public key sets plus absence of both marker values and pending-only key
+names from summary, candidates, candidate exports, and both prune outputs.
 
 - [ ] **Step 2: Run reporting tests to verify RED**
 
@@ -905,7 +966,11 @@ def test_posix_install_creates_executable_zipapp_command(self) -> None:
     self.assertTrue(command.stat().st_mode & stat.S_IXUSR)
     completed = subprocess.run([str(command), "--version"], capture_output=True, text=True, check=False)
     self.assertEqual(completed.returncode, 0)
-    self.assertIn('"cli_version":"1.0.0"', completed.stdout)
+    self.assertEqual(
+        completed.stdout,
+        '{"cli_version":"1.0.0","schema_version":1,"skill_name":"pre-sdd-review"}\n',
+    )
+    self.assertEqual(completed.stderr, "")
 
 def test_installer_refuses_nonidentical_existing_launcher(self) -> None:
     target = self.bin_dir / "pre-sdd-review-evidence"
@@ -919,6 +984,9 @@ paths, Windows `.pyz` plus `.cmd` quoting, no shell-profile mutation, and no
 automatic PATH changes. Also copy a skill root and prove rejection of an extra
 runtime module, a symlinked source module, mismatched release/CLI/schema
 versions, and missing manifest members.
+Both POSIX and Windows launcher/zipapp tests parse the complete exact version
+object, reject added/missing keys, and prove invocation does not touch the
+configured evidence home.
 
 - [ ] **Step 2: Run installer tests to verify RED**
 
@@ -966,7 +1034,8 @@ inventories. Keep packaged source files non-executable; the
 installer-generated POSIX command is executable outside the ZIP. Extend
 `tests/repository/test_release.py` so verify-download imports the extracted
 package, checks exact runtime manifest parity, and runs canonical JSON
-`--version` without touching the user's real evidence home.
+`--version` without touching the user's real evidence home. Assert the exact
+three-key object and canonical bytes, not a substring or CLI-version fragment.
 
 - [ ] **Step 6: Run the task gate**
 
@@ -1136,7 +1205,12 @@ excerpt placed in otherwise valid bounded semantic prose.
 Repeat with distinctive canonical-locator and pending-binding markers across
 all pending consumers and both terminal transitions. Assert exact public
 projections, that pending-only key names and values appear only in the private
-pending file, and that no terminal transition leaves that file behind.
+pending file (including the staged file before promotion), and that internal
+recovery removes the staging container while exact terminal retries remove
+coexisting pending/temp/lock artifacts without changing final receipt bytes.
+Exercise crash hooks after staged pending fsync and after final publication for
+both `finish-review` and `abandon`; assert raw locator bytes never appear in
+any on-disk entry or output.
 
 Add an AST-backed product contract that rejects network-capable imports,
 provider SDK identifiers, `os.system`, `shell=True`, and non-Git subprocess
