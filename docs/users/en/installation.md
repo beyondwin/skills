@@ -2,7 +2,7 @@
 
 [한국어](../ko/installation.md) · [Compatibility](compatibility.md) · [Safety and privacy](safety-and-privacy.md) · [Verification](verification.md)
 
-The installable payloads are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), and [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md). The license is Apache-2.0.
+The skills you can install are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), and [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md). The license is Apache-2.0.
 
 ## Primary install (Codex)
 
@@ -14,11 +14,11 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-work
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-review
 ```
 
-Invoke on a new turn after install using the product README.
+After install, invoke on a new turn using the product README.
 
 ## How It Works local links
 
-`how-it-works` supports Codex and Claude Code for local or repository-based use. The public GitHub path is https://github.com/beyondwin/skills/tree/main/skills/how-it-works. The shortest repository-based install is a clone plus two links. The first link serves Codex; the second serves Claude Code. Codex discovers `~/.agents/skills/how-it-works`. Do not create a `~/.codex` or `~/.grok` duplicate. `ln -s` fails instead of overwriting an existing target.
+`how-it-works` supports Codex and Claude Code for local or repository-based use. The public GitHub path is https://github.com/beyondwin/skills/tree/main/skills/how-it-works. Clone the repo, then make two links. The first link serves Codex; the second serves Claude Code. Codex discovers `~/.agents/skills/how-it-works`. Do not create a `~/.codex` or `~/.grok` duplicate. `ln -s` fails instead of overwriting an existing target.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -28,7 +28,7 @@ ln -s "$PWD/skills/how-it-works" ~/.agents/skills/how-it-works
 ln -s "$PWD/skills/how-it-works" ~/.claude/skills/how-it-works
 ```
 
-Do not create host-specific payload copies. First-call examples are in the [`how-it-works` README](../../../skills/how-it-works/README.en.md).
+Do not create host-specific copies. First-call examples are in the [`how-it-works` README](../../../skills/how-it-works/README.en.md).
 
 ## Optional third-party installer
 
@@ -42,7 +42,7 @@ That `npx` command is a third-party installer with its own release and telemetry
 
 ## Codex-only git clone
 
-`korean-writing-editor`, `image-workbench`, and `pre-sdd-review` are Codex-only. The non-`npx` alternative is a verified clone plus a Codex folder copy.
+`korean-writing-editor`, `image-workbench`, and `pre-sdd-review` are Codex-only. If you skip `npx`, clone the repo and copy only a verified directory into the Codex skill folder.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -87,7 +87,7 @@ Install, update, and uninstall touch only an inspected exact target. Do not pipe
 
 ## Verify
 
-Provider-free repository verification:
+To check the repo without a model:
 
 ```bash
 python3 scripts/verify.py

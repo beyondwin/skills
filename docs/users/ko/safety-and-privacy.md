@@ -37,6 +37,6 @@
 | source URL | 자료를 읽은 위치 | 재사용 권리 |
 | C2PA 또는 기타 provenance 메타데이터 | 선언된 출처 주장 | 진실, 동의, 상업 허가 |
 
-규범 출처와 pin은 각 스킬 `references/sources.md`에 있습니다. 외부 프로젝트의 license file은 그 코드 조건일 수 있으나 prompt·gallery·example image 권리를 자동으로 주지 않습니다.
+출처 위치와 pin은 각 스킬 `references/sources.md`에 있습니다. 외부 프로젝트의 license file은 그 코드 조건일 수 있으나 prompt·gallery·example image 권리를 자동으로 주지 않습니다.
 
 취약점은 [SECURITY.md](../../../SECURITY.md)의 비공개 보고 경로를 따릅니다.

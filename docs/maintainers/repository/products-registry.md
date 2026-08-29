@@ -13,7 +13,7 @@
 | `schema_version` | 최상위 | 반드시 `1` |
 | `name` | 제품 | 디렉터리·`SKILL.md` `name`·`release.toml` 이름과 같은 제품 ID. `^[a-z0-9]+(?:-[a-z0-9]+)*$` |
 | `display_name` | 제품 | 사람이 읽는 이름 |
-| `skill_path` | 제품 | 설치 페이로드 디렉터리. 저장소 상대, `..`와 절대 경로 금지 |
+| `skill_path` | 제품 | 설치 파일 디렉터리. 저장소 상대, `..`와 절대 경로 금지 |
 | `test_path` | 제품 | 제품 테스트 디렉터리 |
 | `maintainer_docs` | 제품 | 제품 관리자 문서 디렉터리 |
 | `supported_hosts` | 제품 | 허용 값: `codex`, `claude-code`, `grok`, `cursor` |

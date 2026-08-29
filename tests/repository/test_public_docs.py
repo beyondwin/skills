@@ -516,31 +516,30 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
             self.assertIn(f"{product.skill_path.as_posix()}/README.md", korean)
             self.assertIn(f"{product.skill_path.as_posix()}/README.en.md", english)
 
-    def test_korean_product_readmes_use_required_heading_order(self) -> None:
+    def test_product_readmes_follow_common_information_order(self) -> None:
         for product in REGISTRY.products:
-            if product.name == "how-it-works":
-                continue
-            path = ROOT / product.skill_path / "README.md"
-            _assert_exists(self, path)
-            text = _read(path)
-            self.assertTrue(
-                text.startswith(f"# {product.display_name}\n"),
-                f"{product.name} title",
-            )
-            last = -1
-            for heading in KOREAN_PRODUCT_HEADINGS:
-                marker = f"## {heading}"
-                pos = text.find(marker)
-                self.assertGreaterEqual(pos, 0, f"{product.name} missing {marker!r}")
-                self.assertGreater(pos, last, f"{product.name} out of order: {marker!r}")
-                last = pos
-
-    def test_how_it_works_readmes_follow_common_information_order(self) -> None:
-        for filename in ("README.md", "README.en.md"):
-            text = (ROOT / "skills/how-it-works" / filename).read_text(encoding="utf-8")
-            self.assertTrue(text.startswith("# How It Works\n"), filename)
-            positions = [text.index(marker) for marker in PRODUCT_README_HEADINGS[filename]]
-            self.assertEqual(positions, sorted(positions), filename)
+            for filename in ("README.md", "README.en.md"):
+                path = ROOT / product.skill_path / filename
+                _assert_exists(self, path)
+                text = _read(path)
+                self.assertTrue(
+                    text.startswith(f"# {product.display_name}\n"),
+                    f"{product.name}/{filename} title",
+                )
+                if product.name == "pre-sdd-review" and filename == "README.md":
+                    headings = tuple(f"## {heading}" for heading in KOREAN_PRODUCT_HEADINGS)
+                else:
+                    headings = PRODUCT_README_HEADINGS[filename]
+                last = -1
+                for heading in headings:
+                    pos = text.find(heading)
+                    self.assertGreaterEqual(
+                        pos, 0, f"{product.name}/{filename} missing {heading!r}"
+                    )
+                    self.assertGreater(
+                        pos, last, f"{product.name}/{filename} out of order: {heading!r}"
+                    )
+                    last = pos
 
     def test_how_it_works_readmes_include_supported_host_install_call_and_result(self) -> None:
         for filename in ("README.md", "README.en.md"):

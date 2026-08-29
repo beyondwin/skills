@@ -23,11 +23,11 @@
 
 how-it-works: Codex and Claude Code supported for local or repository-based use.
 
-지원 호스트 id는 `codex`, `claude-code`입니다. Grok는 라이브 smoke에서 측정되었고 실패했습니다. Cursor는 실행하지 않아 지원을 주장하지 않습니다. Claude.ai, Cowork, Skills API 업로드, marketplace 게시는 지원하지 않습니다. 공유 한계는 [호환성](../../docs/users/ko/compatibility.md)을 따릅니다.
+지원 호스트 id는 `codex`, `claude-code`입니다. Grok는 라이브 smoke에서 측정되었고 실패했습니다. Cursor는 실행하지 않아 지원을 주장하지 않습니다. Claude.ai, Cowork, Skills API 업로드, marketplace 게시는 지원하지 않습니다. 공유 한계는 [호환성](../../docs/users/ko/compatibility.md)을 보세요.
 
 ## 설치
 
-가장 짧은 저장소 설치는 클론 후 링크 두 개입니다. 첫 링크는 Codex가 쓰고, 둘째는 Claude Code가 씁니다. `ln -s`는 이미 있는 대상을 덮어쓰지 않고 실패합니다.
+저장소를 클론한 뒤 링크 두 개를 걸면 됩니다. 첫 링크는 Codex, 둘째는 Claude Code입니다. `ln -s`는 이미 있는 대상을 덮어쓰지 않고 실패합니다.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -37,13 +37,13 @@ ln -s "$PWD/skills/how-it-works" ~/.agents/skills/how-it-works
 ln -s "$PWD/skills/how-it-works" ~/.claude/skills/how-it-works
 ```
 
-`$skill-installer`는 공개 GitHub 경로를 가리킵니다. Codex는 `~/.agents/skills/how-it-works`에서 발견합니다. `~/.codex` 복사본을 만들지 마세요. 대상 디렉터리가 이미 있으면 설치기는 중단하며, 기존 설치를 자동으로 바꾸지 않습니다.
+`$skill-installer`는 공개 GitHub 경로를 가리킵니다. Codex는 `~/.agents/skills/how-it-works`에서 찾습니다. `~/.codex` 복사본을 만들지 마세요. 같은 폴더가 이미 있으면 설치기는 멈춥니다. 있는 설치를 자동으로 바꾸지 않습니다.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-works
 ```
 
-공유 설치·갱신·제거는 [설치](../../docs/users/ko/installation.md)를 따릅니다.
+설치·갱신·제거는 [설치](../../docs/users/ko/installation.md)를 보세요.
 
 ## 첫 호출
 
@@ -93,13 +93,13 @@ $how-it-works DNS 길
 
 이 저장소는 텔레메트리를 넣지 않습니다. 사용자 주제를 픽스처나 로그로 저장하지 않습니다. 인용은 그 턴에서 가져온 URL만 보이며, 비공개 코퍼스가 아닙니다. 의료·법률·금융 슬라이스는 메커니즘만 설명하고 조언이 아닙니다.
 
-자세한 경계는 [안전과 개인정보](../../docs/users/ko/safety-and-privacy.md)를 따릅니다.
+자세한 내용은 [안전과 개인정보](../../docs/users/ko/safety-and-privacy.md)를 보세요.
 
 ## 검증
 
-공급자 없는 검증은 `python3 scripts/verify.py --skill how-it-works`입니다. 오프라인 픽스처는 결정적 계약만 증명하며 라이브 호스트 품질을 증명하지 않습니다.
+모델 없는 검증은 `python3 scripts/verify.py --skill how-it-works`입니다. 오프라인 픽스처는 결정적 계약만 증명하며 라이브 호스트 품질을 증명하지 않습니다.
 
-공유 증거 한계는 [검증](../../docs/users/ko/verification.md)을 따릅니다.
+공유 증거 한계는 [검증](../../docs/users/ko/verification.md)을 보세요.
 
 ## 업데이트와 제거
 

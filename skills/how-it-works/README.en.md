@@ -27,7 +27,7 @@ The supported host ids are `codex` and `claude-code`. Grok was measured and fail
 
 ## Install
 
-The shortest repository-based install is a clone plus two links. The first link serves Codex; the second serves Claude Code. `ln -s` fails instead of overwriting an existing target.
+Clone the repo, then make two links. The first link serves Codex; the second serves Claude Code. `ln -s` fails instead of overwriting an existing target.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -37,7 +37,7 @@ ln -s "$PWD/skills/how-it-works" ~/.agents/skills/how-it-works
 ln -s "$PWD/skills/how-it-works" ~/.claude/skills/how-it-works
 ```
 
-`$skill-installer` names the public GitHub path. Codex still discovers `~/.agents/skills/how-it-works`; do not create a `~/.codex` duplicate. The installer stops if the destination already exists; it does not replace an existing install.
+`$skill-installer` names the public GitHub path. Codex still discovers `~/.agents/skills/how-it-works`; do not create a `~/.codex` duplicate. The installer stops if the destination already exists. It does not replace an existing install.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-works

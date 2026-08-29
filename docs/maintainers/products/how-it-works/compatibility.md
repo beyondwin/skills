@@ -1,6 +1,6 @@
 # how-it-works 호환성
 
-현재 지원 호스트는 제품 레지스트리의 `codex`, `claude-code`입니다. 이 두 호스트만 로컬 또는 저장소 기준으로 지원합니다. Grok는 `--max-turns 1` 라이브 smoke에서 필수 산출을 내지 못해 지원하지 않습니다. Cursor는 이 하네스에 Computer Use(`node_repl` / `@oai/sky`)가 없어 실행하지 못했고 지원하지 않습니다. Claude.ai, Cowork, Skills API 업로드, marketplace 게시, 클라우드 동기화는 지원하지 않습니다. 호스트별 페이로드 복사본을 만들지 마세요.
+현재 지원 호스트는 제품 레지스트리의 `codex`, `claude-code`입니다. 이 두 호스트만 로컬 또는 저장소 기준으로 지원합니다. Grok는 `--max-turns 1` 라이브 smoke에서 필수 산출을 내지 못해 지원하지 않습니다. Cursor는 이 하네스에 Computer Use(`node_repl` / `@oai/sky`)가 없어 실행하지 못했고 지원하지 않습니다. Claude.ai, Cowork, Skills API 업로드, marketplace 게시, 클라우드 동기화는 지원하지 않습니다. 호스트마다 따로 복사하지 마세요.
 
 ## 발견 경로
 

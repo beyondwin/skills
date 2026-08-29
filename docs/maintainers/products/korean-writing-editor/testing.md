@@ -1,6 +1,6 @@
 # korean-writing-editor 테스트
 
-`tests/products/korean-writing-editor/offline/cases.json`과 `tests/products/korean-writing-editor/offline/run.py`에서 서른한 개 속성 케이스와 변이 검사를 정직하게 유지하세요.
+`tests/products/korean-writing-editor/offline/cases.json`과 `tests/products/korean-writing-editor/offline/run.py`에서 서른한 개 속성 케이스와 변이 검사를 그대로 유지하세요.
 
 ## 결정적 픽스처
 

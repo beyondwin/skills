@@ -2,23 +2,31 @@
 
 [한국어](README.md)
 
-## The problem this skill solves
+## Purpose
 
 It plans, makes, edits, compares, or checks bitmap images (PNG, JPG, and similar) that will actually go into this project. It does not keep a result that does not fit the project or that breaks a given constraint.
 
-## When to use it and when not to
+## When to use and not use
 
 Use it when you need an image that belongs in the project.
 
 Do not use `image-workbench` for a casual one-off picture, SVG or code-drawn UI, actual screen implementation, or copying an external prompt gallery.
 
-## One-minute install and first invocation
+## Supported hosts
 
-The primary Codex path is `$skill-installer` with the public GitHub skill path. The installer stops if the destination already exists; it does not replace an existing install.
+image-workbench: Codex-only; generate/edit requires Codex image generation and local image viewing.
+
+Codex is the measured host today. Shared support policy is in [Compatibility](../../docs/users/en/compatibility.md).
+
+## Install
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
 ```
+
+The installer stops if the destination already exists. It does not replace an existing install. Shared install, update, and uninstall steps are in [Installation](../../docs/users/en/installation.md).
+
+## First call
 
 After install, invoke explicitly on the next turn:
 
@@ -26,9 +34,7 @@ After install, invoke explicitly on the next turn:
 $image-workbench Make a landing-page hero image for this project.
 ```
 
-Shared install, update, and uninstall steps are in [Installation](../../docs/users/en/installation.md).
-
-## Main workflow
+## Expected result
 
 Choose one mode first. `brief` only writes down what image is needed and does not create one. `generate` makes a new image. `edit` changes an existing image. `audit` only inspects and does not create. `brief` and `audit` are read-only. An image is created only when the generate or edit request is clear. For a final project file, run `python3 scripts/inspect_asset.py` from this skill folder to check the file format and size.
 
@@ -38,13 +44,11 @@ This repository has no telemetry. Every input image has exactly one role: `edit_
 
 Details are in [Safety and privacy](../../docs/users/en/safety-and-privacy.md).
 
-## Compatibility and verification
+## Verification
 
-image-workbench: Codex-only; generate/edit requires Codex image generation and local image viewing.
+Offline checks cover the contract only. They do not prove live image quality. Evidence limits are in [Verification](../../docs/users/en/verification.md).
 
-Shared support policy is in [Compatibility](../../docs/users/en/compatibility.md). Evidence limits are in [Verification](../../docs/users/en/verification.md).
-
-## Updates and version checks
+## Update and remove
 
 Inspect the exact install target before update. Confirm the path matches this skill name, whether it is a real directory, and that `SKILL.md` `name` and `metadata.version` are the expected values. Do not replace an existing install without that inspection.
 

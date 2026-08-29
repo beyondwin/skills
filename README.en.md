@@ -2,7 +2,7 @@
 
 [한국어](README.md)
 
-This repository collects four current standalone products. Korean Writing Editor, Image Workbench, and Pre-SDD Review install in Codex. How It Works installs for local or repository-based use in Codex and Claude Code.
+Four skills live here. Korean Writing Editor, Image Workbench, and Pre-SDD Review install in Codex. How It Works installs for local or repository-based use in Codex and Claude Code.
 
 [![CI](https://github.com/beyondwin/skills/actions/workflows/verify.yml/badge.svg)](https://github.com/beyondwin/skills/actions/workflows/verify.yml)
 [![Release](https://img.shields.io/github/v/release/beyondwin/skills)](https://github.com/beyondwin/skills/releases)
@@ -21,11 +21,11 @@ The current standalone products are these four. The immutable catalog `v2.0.0` b
 | [`how-it-works`](skills/how-it-works/README.en.md) | Explains how one machine works, at a depth you pick, in writing and diagrams. | Codex, Claude Code |
 | [`pre-sdd-review`](skills/pre-sdd-review/README.en.md) | Checks an approved design and implementation plan against repository reality immediately before SDD, repairs the documents, and re-reviews them. | Codex |
 
-Use each product README for install and first invocation. How It Works local links are in the product README and [Installation](docs/users/en/installation.md).
+Each product README has install and first-call steps. How It Works local links are in the product README and [Installation](docs/users/en/installation.md).
 
 ## Install
 
-The primary Codex path for Korean Writing Editor, Image Workbench, and Pre-SDD Review is `$skill-installer` with the public GitHub skill path. The installer stops if the destination already exists; it does not replace an existing install.
+For Korean Writing Editor, Image Workbench, and Pre-SDD Review, use `$skill-installer` with the public GitHub skill path. The installer stops if the destination already exists. It does not replace an existing install.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
@@ -37,7 +37,7 @@ How It Works installs at `~/.agents/skills/how-it-works` (Codex) and `~/.claude/
 
 Install, update, uninstall, and the third-party installer are in [Installation](docs/users/en/installation.md).
 
-Provider-free verification:
+To check the repo without a model:
 
 ```bash
 python3 scripts/verify.py

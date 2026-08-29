@@ -4,7 +4,7 @@
 
 Files here are point-in-time records. They may contain old names and paths, and they do not define the current contract.
 
-현재 안내와 계약은 [`docs/README.md`](../README.md), [`docs/users/`](../users/), [`docs/maintainers/`](../maintainers/), 각 제품 README를 보세요.
+지금 쓰는 안내와 계약은 [`docs/README.md`](../README.md), [`docs/users/`](../users/), [`docs/maintainers/`](../maintainers/), 각 제품 README를 보세요.
 
 - [스펙](specs/)
 - [계획](plans/)

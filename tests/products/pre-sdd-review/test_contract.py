@@ -355,8 +355,8 @@ README_CONTRACT = (
 )
 README_CANONICAL_SECTION_DIGESTS = {
     "ko": (
-        ("## 이 스킬이 해결하는 문제", "61494f97e736054a77440487a2662f0d1b3dc9446d1dac2595ed495a2c755510"),
-        ("## 사용해야 할 때와 사용하지 말아야 할 때", "6c985feb1d0d2a5cc33e1b7eb3553a72d436007f55623c0af55bb99eae7e9523"),
+        ("## 이 스킬이 해결하는 문제", "059b67628c9931409945145dd628468f62853ad2f502183bad164f15984abb2e"),
+        ("## 사용해야 할 때와 사용하지 말아야 할 때", "e561f24683695a2a081dbee9911821fce3a3ccbbbc52a607d96bfe76185e4d8c"),
         ("## 1분 설치와 첫 호출", "20d4ac5b06601ac16c4fd995a652fca8e9162dee28a0278108f7c94fa760d4aa"),
         ("## 주요 흐름", "9afd9373fdc996a0b96b07fc58450b3e92c950696776c6a334a07798faa0a29a"),
         ("## 안전과 개인정보", "dea164c33a94794be32109070c22cfcb05245b599e8bb8712018df995f036845"),
@@ -378,7 +378,7 @@ README_CANONICAL_SECTION_DIGESTS = {
     ),
 }
 README_CANONICAL_DOCUMENT_DIGESTS = {
-    "ko": "39fa2df5b99d91e87aabb0cf95e25489621ff6d8688195b54c05a5093c99c02f",
+    "ko": "03374b87d0b99bf60ffad48867e23785b60ba9bd031efa2e27a0e1ee3e9f945c",
     "en": "986634ed74054f7ef7f1f72d8843789652a5babc3acf3069ead49d17e636db5d",
 }
 MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (

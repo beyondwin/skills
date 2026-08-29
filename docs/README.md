@@ -1,12 +1,12 @@
 # 문서 / Documentation
 
-이 페이지는 읽는 사람만 가릅니다. 제품 계약은 각 제품 README와 관리자 문서가 정의합니다.
+어디를 보면 되는지 가리킵니다. 제품 규칙은 각 제품 README와 관리자 문서에 있습니다.
 
 This page only routes readers. Product contracts live in each product README and the maintainer docs.
 
 ## 설치하거나 고를 때 / Install or choose
 
-공유 설치, 호환성, 안전, 검증 안내는 [`docs/users/`](users/)에 있습니다.
+설치, 호환성, 안전, 검증은 [`docs/users/`](users/)에 있습니다.
 
 - [한국어 설치](users/ko/installation.md) · [English installation](users/en/installation.md)
 - [호환성](users/ko/compatibility.md) · [Compatibility](users/en/compatibility.md)

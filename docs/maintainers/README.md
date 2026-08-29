@@ -21,7 +21,7 @@
 
 | 문서 | 소유 |
 | --- | --- |
-| [구조](repository/architecture.md) | 설치 페이로드와 개발 증거 경계 |
+| [구조](repository/architecture.md) | 설치 파일과 개발 증거 경계 |
 | [제품 레지스트리](repository/products-registry.md) | `products.toml` 스키마와 등록 |
 | [버저닝](repository/versioning.md) | 제품·카탈로그 SemVer 판정표 |
 | [릴리스](repository/release.md) | 독립 제품 check/build/verify-download |

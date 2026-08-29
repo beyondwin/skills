@@ -1,6 +1,6 @@
 # 마이그레이션과 Archive
 
-이 문서는 Archive에서 공개 저장소로 가져온 출처 pin과 캡처 절차를 보존합니다. 현재 제품 계약을 바꾸지 않습니다.
+Archive에서 공개 저장소로 가져온 출처 pin과 캡처 절차를 적습니다. 현재 제품 계약을 바꾸지 않습니다.
 
 # Archive skill migration provenance
 
