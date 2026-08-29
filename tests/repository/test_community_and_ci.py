@@ -150,7 +150,7 @@ class CiWorkflowTests(unittest.TestCase):
 
 
 class CommunityPolicyTests(unittest.TestCase):
-    def test_contributions_reject_third_skill_by_default(self) -> None:
+    def test_contributions_reject_new_skills_by_default(self) -> None:
         _assert_exists(self, CONTRIBUTING_PATH)
         text = CONTRIBUTING_PATH.read_text()
         self.assertIn("new skills are not accepted by default", text.lower())
@@ -167,9 +167,8 @@ class CommunityPolicyTests(unittest.TestCase):
         self.assertIn("apache-2.0", lowered)
         self.assertIn("reproduction", lowered)
         self.assertIn("deterministic", lowered)
-        self.assertIn("korean-writing-editor", text)
-        self.assertIn("image-workbench", text)
-        self.assertIn("how-it-works", text)
+        for name in REGISTRY.names:
+            self.assertIn(name, text)
         self.assertIn("products.toml", text)
         self.assertIn("host-support", lowered)
         self.assertIn("private", lowered)
@@ -239,16 +238,16 @@ class CommunityPolicyTests(unittest.TestCase):
             "issue config must route security away from public issues",
         )
 
-    def test_issue_dropdowns_list_all_three_products(self) -> None:
+    def test_issue_dropdowns_list_all_registered_products(self) -> None:
         for path in (BUG_TEMPLATE_PATH, DOCS_TEMPLATE_PATH):
             _assert_exists(self, path)
             text = _read(path)
-            self.assertIn("korean-writing-editor", text)
-            self.assertIn("image-workbench", text)
-            self.assertIn("how-it-works", text)
+            for name in REGISTRY.names:
+                self.assertIn(name, text)
             lowered = text.lower()
             self.assertNotIn("two curated skills", lowered)
             self.assertNotIn("two skills only", lowered)
+            self.assertNotIn("three curated products", lowered)
 
     def test_pull_request_template_requires_curated_evidence(self) -> None:
         _assert_exists(self, PR_TEMPLATE_PATH)
@@ -264,8 +263,11 @@ class CommunityPolicyTests(unittest.TestCase):
             "host-support changes update the product registry, docs, and tests together",
             text,
         )
+        for name in REGISTRY.names:
+            self.assertIn(name, text)
         self.assertNotIn("two curated skills", text)
         self.assertNotIn("two skills only", text)
+        self.assertNotIn("three curated products", text)
 
     def test_governance_files_omit_personal_paths_and_credentials(self) -> None:
         paths = (

@@ -24,7 +24,7 @@ pre-sdd-review: Codex supported; other hosts not_measured.
 
 `pre-sdd-review` is measured only on Codex with a local Git repository and independent subagent review. A portable Markdown package shape does not prove reviewer independence or equivalent repository inspection on another host, so those hosts remain `not_measured`.
 
-The immutable catalog `v2.0.0` plugin bundle does not include How It Works. The plugin name `beyondwin-skills` means the repository is packaged as one plugin. It does not mean the plugin is listed in a plugin directory.
+The immutable catalog `v2.0.0` plugin bundle does not include How It Works or Pre-SDD Review. The plugin name `beyondwin-skills` means the repository is packaged as one plugin. It does not mean the plugin is listed in a plugin directory.
 
 ## Install paths and hosts
 

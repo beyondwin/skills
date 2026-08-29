@@ -24,7 +24,7 @@ pre-sdd-review: Codex supported; other hosts not_measured.
 
 `pre-sdd-review`는 로컬 Git 저장소와 독립 서브에이전트 검토를 제공하는 Codex에서만 측정했습니다. 이식 가능한 Markdown 패키지 모양은 다른 호스트의 리뷰어 독립성이나 저장소 검사 동작을 증명하지 않으므로 그 상태는 `not_measured`입니다.
 
-불변 카탈로그 `v2.0.0` 플러그인 번들에는 How It Works가 들어 있지 않습니다. 플러그인 이름 `beyondwin-skills`는 저장소가 플러그인으로 패키징되어 있다는 뜻입니다. 플러그인 디렉터리에 올라 있다고 주장하지 않습니다.
+불변 카탈로그 `v2.0.0` 플러그인 번들에는 How It Works와 Pre-SDD Review가 들어 있지 않습니다. 플러그인 이름 `beyondwin-skills`는 저장소가 플러그인으로 패키징되어 있다는 뜻입니다. 플러그인 디렉터리에 올라 있다고 주장하지 않습니다.
 
 ## 설치 경로와 호스트
 

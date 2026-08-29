@@ -52,7 +52,7 @@ ls -ld "$SKILL_SOURCE"
 ls -ld "$SKILL_TARGET"
 ```
 
-Copy only when `$SKILL_TARGET` is absent or is a confirmed safe link to this skill. If a real directory already exists, stop; do not copy over it. Use the same exact-folder rule for `image-workbench`.
+Copy only when `$SKILL_TARGET` is absent or is a confirmed safe link to this skill. If a real directory already exists, stop; do not copy over it. Use the same exact-folder rule for `image-workbench` and `pre-sdd-review`.
 
 Other host folders are an Agent Skills portability target for `korean-writing-editor` only. Do not call those hosts supported until a recorded smoke exists.
 

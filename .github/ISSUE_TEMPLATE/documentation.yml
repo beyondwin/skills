@@ -1,5 +1,5 @@
 name: Documentation
-description: Report a documentation or guidance defect for the three curated products
+description: Report a documentation or guidance defect for a current standalone product
 title: "[Docs]: "
 labels: ["documentation"]
 body:
@@ -7,8 +7,9 @@ body:
     attributes:
       value: |
         Report a documentation issue for `korean-writing-editor`,
-        `image-workbench`, or `how-it-works` only. Host-support claims must
-        match `products.toml`, the docs, and the tests.
+        `image-workbench`, `how-it-works`, or `pre-sdd-review` only.
+        Host-support claims must match `products.toml`, the docs, and the
+        tests.
 
         Do not include personal Korean text, a private prompt, a private image,
         credentials, provider receipts, or generated media.
@@ -23,6 +24,7 @@ body:
         - korean-writing-editor
         - image-workbench
         - how-it-works
+        - pre-sdd-review
         - repository docs
     validations:
       required: true

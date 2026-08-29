@@ -237,6 +237,11 @@ STALE_TWO_SKILL = (
     "two curated skills",
     "two skills only",
 )
+STALE_THREE_PRODUCT = (
+    "three current standalone products",
+    "three curated products",
+    "adds a fourth skill",
+)
 PERSONAL_MARKERS = ("/Users/", "source/private", "SKILLS_ARCHIVE_CHECKOUT")
 README_ORDER_EN = (
     "beyondwin-skills",
@@ -1470,6 +1475,9 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("docs/history/", text)
         self.assertIn("catalog.md", text)
         self.assertIn("migrations.md", text)
+        for product in REGISTRY.products:
+            self.assertIn(product.name, text)
+            self.assertIn(f"tests/products/{product.name}/", text)
 
     def test_versioning_owns_the_semver_table(self) -> None:
         path = ROOT / "docs" / "maintainers" / "repository" / "versioning.md"
@@ -1637,7 +1645,7 @@ class PublicClaimTests(unittest.TestCase):
         for document in ACTIVE_USER_DOCS:
             _assert_exists(self, document)
             lowered = _read(document).lower()
-            for claim in STALE_TWO_SKILL:
+            for claim in STALE_TWO_SKILL + STALE_THREE_PRODUCT:
                 self.assertNotIn(claim, lowered)
 
     def test_active_surfaces_omit_stale_two_skill_claims_and_obsolete_paths(self) -> None:
@@ -1645,7 +1653,7 @@ class PublicClaimTests(unittest.TestCase):
             _assert_exists(self, document)
             text = _read(document)
             lowered = text.lower()
-            for claim in STALE_TWO_SKILL:
+            for claim in STALE_TWO_SKILL + STALE_THREE_PRODUCT:
                 self.assertNotIn(claim, lowered)
             for relative in OBSOLETE_MAINTAINER_RELATIVE:
                 self.assertNotIn(relative, text)

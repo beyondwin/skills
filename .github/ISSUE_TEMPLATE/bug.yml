@@ -1,14 +1,14 @@
 name: Bug
-description: Report a behavior defect in one of the three curated products
+description: Report a behavior defect in one current standalone product
 title: "[Bug]: "
 labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Report a defect in `korean-writing-editor`, `image-workbench`, or
-        `how-it-works` only. Host-support claims must match `products.toml`,
-        the docs, and the tests.
+        Report a defect in `korean-writing-editor`, `image-workbench`,
+        `how-it-works`, or `pre-sdd-review` only. Host-support claims must
+        match `products.toml`, the docs, and the tests.
 
         Do not include personal Korean text, a private prompt, a private image,
         credentials, provider receipts, or generated media.
@@ -23,6 +23,7 @@ body:
         - korean-writing-editor
         - image-workbench
         - how-it-works
+        - pre-sdd-review
     validations:
       required: true
   - type: textarea

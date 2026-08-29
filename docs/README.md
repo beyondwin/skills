@@ -17,10 +17,10 @@ This page only routes readers. Product contracts live in each product README and
 
 각 현재 독립 제품의 한국어·영어 README를 읽습니다.
 
-- [`korean-writing-editor`](../skills/korean-writing-editor/README.md) · [English](../skills/korean-writing-editor/README.en.md)
-- [`image-workbench`](../skills/image-workbench/README.md) · [English](../skills/image-workbench/README.en.md)
-- [`how-it-works`](../skills/how-it-works/README.md) · [English](../skills/how-it-works/README.en.md) — Codex, Claude Code 로컬 설치
-- [`pre-sdd-review`](../skills/pre-sdd-review/README.md) · [English](../skills/pre-sdd-review/README.en.md) — Codex에서 SDD 전 문서 준비 검토
+- [`korean-writing-editor`](../skills/korean-writing-editor/README.md) · [English](../skills/korean-writing-editor/README.en.md) — Codex
+- [`image-workbench`](../skills/image-workbench/README.md) · [English](../skills/image-workbench/README.en.md) — Codex
+- [`how-it-works`](../skills/how-it-works/README.md) · [English](../skills/how-it-works/README.en.md) — Codex, Claude Code
+- [`pre-sdd-review`](../skills/pre-sdd-review/README.md) · [English](../skills/pre-sdd-review/README.en.md) — Codex, SDD 전 문서 검토
 
 ## 유지·변경·릴리스 / Maintain, change, or release
 

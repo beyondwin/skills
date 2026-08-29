@@ -49,7 +49,12 @@ The default is `--profile full`. Windows portable verification is `python3 scrip
 
 This repository has no telemetry. Required CI does not use credentials, models, or remote image calls. This plugin is not claimed to be listed in a plugin directory.
 
-Do not use `korean-writing-editor` for translation, drafting, summarization, code review, casual conversation, authorship detection, or detector evasion. Do not use `image-workbench` for casual one-off images, SVG or native UI, actual frontend implementation, or copying an external prompt gallery. Do not use `how-it-works` for debugging, implementing, reviewing, translating, one-line factual lookups, child-register explainers, or as a stand-in for `/eli5`. Do not use `pre-sdd-review` to write the first design or plan, review code, or review a release; it never starts implementation without an explicit outer request.
+Do not use the skills outside these bounds:
+
+- `korean-writing-editor`: translation, drafting, summarization, code review, casual conversation, authorship detection, or detector evasion
+- `image-workbench`: casual one-off images, SVG or native UI, actual frontend implementation, or copying an external prompt gallery
+- `how-it-works`: debugging, implementing, reviewing, translating, one-line factual lookups, child-register explainers, or as a stand-in for `/eli5`
+- `pre-sdd-review`: writing the first design or plan, reviewing code, or reviewing a release. It never starts implementation without an explicit outer request.
 
 Install, update, and uninstall touch only an inspected exact target. Do not pipe remote scripts into a shell, copy without inspecting the destination, delete parent skill directories, or replace an existing install by default.
 
