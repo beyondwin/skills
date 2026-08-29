@@ -375,7 +375,8 @@ class ProductDownloadTests(unittest.TestCase):
         self._checksums(archive)
         errors = release.verify_product_download(ROOT, "pre-sdd-review", self.output)
         self.assertIn(
-            "pre-sdd-review: extracted payload does not match current source payload",
+            "pre-sdd-review: unexpected executable archive member: "
+            "pre-sdd-review/references/reviewer-protocol.md",
             errors,
         )
 

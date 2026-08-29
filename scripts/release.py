@@ -617,6 +617,16 @@ def _pre_sdd_review_archive_errors(archive: Path) -> list[str]:
                 "pre-sdd-review: archive member type mismatch: "
                 f"{info.filename} is not a regular file"
             )
+        unix_mode = (info.external_attr >> 16) & 0o777
+        if (
+            info.filename in expected
+            and file_type == stat.S_IFREG
+            and unix_mode & 0o111
+        ):
+            errors.append(
+                "pre-sdd-review: unexpected executable archive member: "
+                f"{info.filename}"
+            )
     return errors
 
 
