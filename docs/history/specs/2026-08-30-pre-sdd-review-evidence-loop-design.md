@@ -214,6 +214,26 @@ The plan remains the primary input. The CLI resolves the design from the
 plan's `**Spec:**` field and does not let a separately supplied design path
 override it.
 
+The field grammar is exact. A field occupies one physical Markdown line and
+has `**Spec:**`, optional horizontal whitespace, then either one non-whitespace
+plain path token or one balanced single-backtick inline-code path, followed
+only by optional horizontal whitespace. The extractor unwraps the inline-code
+form before path resolution. It rejects an empty value, more than one field,
+multiple path tokens, trailing prose, multiline or fenced-code values,
+unbalanced or nested backticks, and any value that fails the path rules below.
+A plain relative value is repository-root-relative; only a value beginning
+`./` is plan-directory-relative.
+
+`start` requires `--mode default|review-only` and stores that intended mode
+only in the private pending record; a later `finish-review` mode must match it.
+Every created pending run returns exactly `status="started"`, `run_id`,
+`resolution_status`, and nullable `plan_path` and `design_path`; failed target
+resolution still uses `status="started"` because the run was durably created.
+The private pending record also stores a domain-separated HMAC
+`start_locator_binding` of the canonical directory used as the Git-discovery
+anchor. The canonical locator and binding are never copied to a final receipt
+or emitted in command output or errors.
+
 #### Finish review
 
 The agent supplies the bounded semantic result through command arguments or
@@ -234,10 +254,16 @@ pre-sdd-review-evidence finish-review \
   --repair-passes 1
 ```
 
-`finish-review` reloads the pending state, discovers the Git root from the
-required `--repo` locator, recomputes its HMAC repository ID, and rejects a
-wrong repository before resolving only the relative plan and design paths
-recorded in the pending state. It then recomputes final document and Git facts,
+`finish-review` reloads the pending state. For every status with a repository
+identity, it discovers the Git root from the required `--repo` locator,
+recomputes its HMAC repository ID, and rejects a wrong repository before
+resolving only the relative plan and design paths recorded in the pending
+state. For `not-git-repository`, the required `--repo` locator must resolve to
+the same canonical non-Git directory and reproduce the private pending-only
+`start_locator_binding`; a different locator or a locator that now resolves to
+a Git repository fails closed. A matching locator finalizes the blocked review
+with all repository, Git, path, and hash fields still null. It then recomputes
+available final document and Git facts,
 validates the supplied findings, writes canonical bytes to a temporary
 file in the run directory, publishes it with the atomic no-replace primitive
 defined below, and removes the
@@ -250,7 +276,7 @@ or echoed in an error.
 `--finding-json` objects, or one exact equivalent object through
 `--from-stdin`; mixed forms are rejected. `start` returns `status`, `run_id`,
 `resolution_status`, and the nullable repository-relative `plan_path` and
-`design_path`.
+`design_path`. The exact successful value of `status` is `started`.
 
 The finish semantic object is flat and has exactly `mode`, `execution`,
 `reviewer_count`, `fresh_reviewer`, `read_only_enforced`, nullable
@@ -401,10 +427,11 @@ is recorded.
 
 #### Result and findings
 
-`result` records completion, verdict, block reason when applicable, review and
-repair pass counts, and an array of bounded findings. A completed review uses
-the existing verdicts `READY`, `REVISE`, or `BLOCKED`. An abandoned run has a
-null verdict and an explicit completion reason.
+`result` records completion, verdict, block reason when applicable, a nullable
+completion reason, review and repair pass counts, and an array of bounded
+findings. A completed review uses the existing verdicts `READY`, `REVISE`, or
+`BLOCKED`. An abandoned run has a null verdict and an explicit completion
+reason.
 
 Each finding contains:
 
@@ -471,7 +498,7 @@ Finding IDs match `PSDR-[0-9]{3,}`, and a non-null block reason is a bounded
 | `client` | `id`, nullable `version`, nullable `model` |
 | `protocol` | `mode`, `execution`, `reviewer_count`, `fresh_reviewer`, `read_only_enforced`, nullable `conditional_trigger`, `degraded_reasons` |
 | `target` | nullable `repo_id`, nullable `initial_head`, nullable `initial_dirty`, nullable `plan_path`, nullable `plan_initial_sha256`, nullable `design_path`, nullable `design_initial_sha256`, `resolution_status` |
-| `result` | `completion`, nullable `verdict`, nullable `block_reason`, `review_passes`, `repair_passes`, `findings` |
+| `result` | `completion`, nullable `verdict`, nullable `block_reason`, nullable `completion_reason`, `review_passes`, `repair_passes`, `findings` |
 | `freshness` | nullable `final_head`, nullable `final_dirty`, nullable `plan_final_sha256`, nullable `design_final_sha256` |
 | `metrics` | `elapsed_ms`, `recorder_elapsed_ms`, `reviewer_count`, `review_passes`, `repair_passes`, nullable `token_usage` |
 | `token_usage` | `input`, `output`, `total`, `provenance` |
@@ -483,7 +510,9 @@ this design. Modes are `default` and `review-only`. Protocol execution is
 `external-side-effect`. Degraded reasons are deduplicated values from
 `fresh-reviewer-unavailable`, `read-only-unavailable`,
 `conditional-reviewer-unavailable`, `host-capability-unknown`, and `other`.
-Completion is `completed` or `abandoned`.
+Completion is `completed` or `abandoned`. A non-null `completion_reason`
+matches the literal grammar `[a-z0-9][a-z0-9._-]{0,99}`; `block_reason` uses
+the same grammar.
 
 Each finding has exactly `id`, `severity`, `class`, `pattern_key`,
 `consequence_category`, `status`, `location`, `evidence_refs`, `consequence`,
@@ -501,8 +530,10 @@ Schema validation enforces these relationships:
 - `protocol.execution=full` requires a fresh reviewer, enforced read-only
   behavior, no degraded reason, one reviewer normally, and two reviewers when
   a conditional trigger is present. `degraded` requires at least one reason.
-- `result.completion=abandoned` requires a null verdict and zero review/repair
-  passes. `completed` requires one verdict and at least one review pass.
+- `result.completion=abandoned` requires a null verdict, null block reason, a
+  non-null completion reason, zero review/repair passes, and no findings.
+  `completed` requires one verdict, a null completion reason, and at least one
+  review pass.
 - `READY` permits only `repaired` findings. `REVISE` requires at least one
   `unresolved` finding. `BLOCKED` requires a block reason. Repair passes are 0
   through 2; review passes are 0 through 3; a non-null finding repair pass is
@@ -520,11 +551,16 @@ Schema validation enforces these relationships:
     path makes every path/hash null; an offending Spec value retains only the
     already validated plan path/hash. The offending value is never retained.
   - `not-git-repository`: repository/Git facts and every path/hash are null.
-  Final freshness mirrors the same availability after recomputation; it never
-  fabricates a repository ID, Git state, path, or hash.
-- Mirrored reviewer and pass counts in `protocol`, `result`, and `metrics`
-  are equal. Durations and token counts are non-negative, token totals equal
-  input plus output, and token provenance is non-empty when token usage exists.
+  For completed reviews, final freshness mirrors the same availability after
+  recomputation; it never fabricates a repository ID, Git state, path, or hash.
+  Canonically abandoned reviews instead use the all-null freshness projection
+  defined below because `abandon` accepts no repository locator.
+- Mirrored counts use three exact pairwise invariants:
+  `protocol.reviewer_count == metrics.reviewer_count`,
+  `result.review_passes == metrics.review_passes`, and
+  `result.repair_passes == metrics.repair_passes`. Durations and token counts
+  are non-negative, token totals equal input plus output, and token provenance
+  is non-empty when token usage exists.
 
 ### 6. Outcome receipt schema
 
@@ -719,8 +755,12 @@ global lock:
 
 Concurrent first starts must all observe the same key fingerprint and derive
 the same repository ID. Existing receipts remain readable when identity
-validation fails. Backing up the complete evidence root preserves identity
-continuity.
+validation fails: direct receipt loading, `show`, pending classification,
+`summary`, and `candidates` validate only the bounded receipt bytes they need.
+Identity-dependent mutation and repository-matching commands (`start`,
+`finish-review`, `resolve`, `record-outcome`, and confirmed `prune`) fail
+closed, while `doctor` reports the identity fault. Backing up the complete
+evidence root preserves identity continuity.
 
 ### 9. Atomicity, concurrency, and interruption
 
@@ -745,7 +785,39 @@ over 7 days: stale pending
 `pre-sdd-review-evidence pending` reports them. It does not delete or mutate
 them. The explicit `abandon` command converts a pending run into a durable
 review record with null verdict, `abandoned` completion, and a bounded reason
-such as `client-interrupted`.
+such as `client-interrupted`. Its input is exactly `abandon --run-id <id>
+--reason <slug>`; it maps the slug to `result.completion_reason`. An exact
+idempotent retry returns `{"status":"abandoned","run_id":<id>,"sha256":<hash>}`;
+a different reason is a conflicting retry. The durable receipt contains no
+private start-locator binding.
+
+The abandoned `review.json` projection is canonical rather than supplied by
+the caller:
+
+- top-level schema/record/run IDs, `started_at`, `skill`, `client`, and
+  `target` come unchanged from validated pending state; `completed_at` is the
+  abandon clock;
+- `protocol` is exactly the pending intended `mode`, `execution="unknown"`,
+  `reviewer_count=0`, `fresh_reviewer=false`, `read_only_enforced=false`,
+  `conditional_trigger=null`, and an empty `degraded_reasons` list;
+- `result` is exactly `completion="abandoned"`, `verdict=null`,
+  `block_reason=null`, the caller's validated `completion_reason`, zero review
+  and repair passes, and no findings;
+- every `freshness` field is null because abandon has no repository locator
+  from which to recompute final facts;
+- `metrics.elapsed_ms` is the non-negative wall-clock interval from
+  `started_at`, `recorder_elapsed_ms` is the measured abandon-command time,
+  reviewer/review/repair counts are zero, and `token_usage=null`.
+
+An abandoned receipt is the sole exception to resolution-based final
+freshness availability: its nulls mean not recomputed, never fabricated. The
+private `intended_mode`, `start_locator_binding`, canonical locator, and every
+other pending-only key are excluded from the exact final schema. Only the
+private `.pending.json` may contain the binding, and either successful
+`finish-review` or `abandon` removes that file after create-only publication.
+Public `start`, `pending`, `doctor`, scan/error, final receipt, export,
+summary, and candidate projections never include pending-only key names or
+values.
 
 Corrupt records are reported and excluded from aggregate metrics. The CLI does
 not delete or silently repair them. `doctor` checks data-root permissions,

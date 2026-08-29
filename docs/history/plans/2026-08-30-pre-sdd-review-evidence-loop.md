@@ -104,7 +104,7 @@
 
 **Interfaces:**
 - Consumes: current `ProductRelease`, `validate_product()`, exact pre-SDD payload checks, and `pre-sdd-review-contract` stage.
-- Produces: `SCHEMA_VERSION: int`, `CLI_VERSION: str`, `EvidenceError`, `canonical_json_bytes(value) -> bytes`, `validate_review(value) -> dict[str, object]`, `validate_outcome(value, review) -> dict[str, object]`, and `derive_assessment(review, downstream) -> str`.
+- Produces: `SCHEMA_VERSION: int`, `CLI_VERSION: str`, `EvidenceError`, `canonical_json_bytes(value) -> bytes`, `read_bounded_bytes(path, limit) -> bytes`, `read_bounded_json(path, limit) -> object`, `validate_review(value) -> dict[str, object]`, `validate_outcome(value, review) -> dict[str, object]`, and `derive_assessment(review, downstream) -> str`.
 
 - [ ] **Step 1: Write failing schema tests**
 
@@ -133,13 +133,18 @@ Cover every nested required/nullable field, enum, length bound, timestamp/hash
 shape, canonical UUID, duplicate normalization, and cross-field invariant.
 Include `full` without a fresh read-only reviewer, triggered `full` without the
 second reviewer, `degraded` without a reason, `READY` with an unresolved
-finding, invalid abandoned/completed combinations, mismatched mirrored counts,
+finding, exact `completion_reason` accepted/rejected abandoned/completed
+combinations, one mismatch fixture for each of
+`protocol.reviewer_count == metrics.reviewer_count`,
+`result.review_passes == metrics.review_passes`, and
+`result.repair_passes == metrics.repair_passes`,
 invalid token totals, and every resolution-status nullability row including
 fully null repository/Git/path fields for `not-git-repository`. Also cover
 300-character bounded finding prose,
 forbidden absolute paths, `..`, prohibited content-bearing keys (`prompt`,
 `response`, `document_body`, `code`, `environment`), canonical sorted UTF-8
-JSON, bounded reads, and hard-size rejection.
+JSON, bounded reader primitives using exactly `limit + 1`, and hard-size
+rejection.
 
 - [ ] **Step 2: Run the schema tests to verify RED**
 
@@ -176,6 +181,12 @@ def canonical_json_bytes(value: object) -> bytes:
         + "\n"
     ).encode("utf-8")
 ```
+
+Implement the one shared bounded reader in `schema.py` now, before Task 2
+loads identity/config state. `read_bounded_bytes()` opens in binary mode and
+performs exactly `stream.read(limit + 1)` before rejecting oversize;
+`read_bounded_json()` decodes only accepted bytes. Later tasks import these
+functions; they never define another evidence/config reader.
 
 Implement the exact nested objects and invariants from the design rather than
 accepting generic dictionaries. The assessment derivation order must be
@@ -282,7 +293,7 @@ git commit -m "feat: define pre-sdd evidence schema"
 - Modify: `tests/products/pre-sdd-review/test_contract.py`
 
 **Interfaces:**
-- Consumes: `EvidenceError`, schema path rules, Git CLI, skill root, plan argument, evidence home.
+- Consumes: `EvidenceError`, the shared bounded reader, schema path rules, Git CLI, skill root, plan argument, evidence home.
 - Produces: `GitSnapshot(head: str, dirty: bool)`, `SkillSnapshot`, `TargetSnapshot`, `git_snapshot(repo_root)`, `resolve_target(repo_root, plan_argument, identity_key)`, `load_or_create_identity(evidence_home)`, and `repository_id(repo_root, identity_key)`.
 
 - [ ] **Step 1: Write failing repository-resolution tests**
@@ -292,7 +303,7 @@ Use isolated temporary Git repositories and assert:
 ```python
 def test_root_relative_spec_resolves_and_stores_only_relative_paths(self) -> None:
     repo = make_git_repo(self.workspace)
-    write(repo / "docs/plan.md", "# Plan\n\n**Spec:** docs/design.md\n")
+    write(repo / "docs/plan.md", "# Plan\n\n**Spec:** `docs/design.md`\n")
     write(repo / "docs/design.md", "# Design\n")
     target = repository.resolve_target(repo, Path("docs/plan.md"), b"k" * 32)
     self.assertEqual(target.resolution_status, "resolved")
@@ -301,9 +312,13 @@ def test_root_relative_spec_resolves_and_stores_only_relative_paths(self) -> Non
     self.assertNotIn(str(repo), repr(target))
 ```
 
-Cover `./design.md` as plan-directory-relative, plain paths as
-repository-root-relative, duplicate `**Spec:**`, missing plan, missing field,
-missing design, absolute/outside paths, `..`, symlink escape, unborn HEAD,
+Cover both accepted single-line forms: the repository-root-relative plain
+`**Spec:** docs/design.md` value and the plan-directory-relative inline-code
+value whose unwrapped path is `./design.md`. Assert inline-code delimiters are
+removed before resolution. Reject empty values, duplicate fields, multiple
+path tokens, trailing prose, multiline/fenced values, malformed or nested
+backticks, missing plan, missing field, missing design, absolute/outside paths,
+`..`, symlink escape, unborn HEAD,
 tracked/untracked dirty state, SHA-256, and stable/different HMAC IDs. Assert
 the exact loaded-skill snapshot: matching declared/release versions and the
 SHA-256 fingerprints of `SKILL.md`, `references/reviewer-protocol.md`, and
@@ -336,9 +351,14 @@ Resolution rules are exact:
 
 1. Locate the Git root with `git rev-parse --show-toplevel`.
 2. Accept an absolute plan input only when its resolved path is inside that root; persist only its relative path.
-3. Resolve `**Spec:** ./name` from the plan directory.
-4. Resolve every other relative `**Spec:**` value from the repository root.
-5. Reject zero or multiple `**Spec:**` fields, absolute/tilde values, `..`, missing files, and post-resolution escapes.
+3. Parse exactly one physical field line as either one plain path token or one
+   balanced single-backtick inline-code path, with only horizontal whitespace
+   after it; unwrap only the latter.
+4. Resolve an unwrapped value beginning `./` from the plan directory.
+5. Resolve every other relative value from the repository root.
+6. Reject zero or multiple fields, empty/multiple/trailing/multiline/fenced or
+   malformed-backtick values, absolute/tilde values, `..`, missing files, and
+   post-resolution escapes.
 
 Use `git rev-parse --verify HEAD` with `unborn` fallback and `git status --porcelain=v1 --untracked-files=normal` for dirty state.
 
@@ -361,7 +381,9 @@ def repository_id(repo_root: Path, identity_key: bytes) -> str:
 
 Add interruption tests after key publication and before config publication,
 plus a multi-process empty-root test asserting one key fingerprint and one
-`repo_id` across every caller.
+`repo_id` across every caller. Inject the bounded-reader spy into identity and
+config loading and fail on `Path.read_bytes()`, `Path.read_text()`, unbounded
+`read()`, or any read other than exactly `limit + 1`.
 
 - [ ] **Step 5: Update exact payload inventories**
 
@@ -400,8 +422,8 @@ git commit -m "feat: capture pre-sdd repository evidence"
 - Modify: `tests/products/pre-sdd-review/test_contract.py`
 
 **Interfaces:**
-- Consumes: schema validation, `TargetSnapshot`, identity initialization, filesystem.
-- Produces: `EvidencePaths`, `RunHandle`, `WriteResult`, `evidence_home()`, `read_bounded_bytes(path, limit)`, `read_bounded_json(path, limit)`, `create_pending()`, `finish_review()`, `abandon_run()`, `load_review()`, `scan_runs()`, and CLI commands `start`, `finish-review`, `show`, `pending`, `abandon`, `doctor`.
+- Consumes: schema validation, the shared bounded reader, `TargetSnapshot`, identity initialization, filesystem.
+- Produces: `EvidencePaths`, `RunHandle`, `WriteResult`, `evidence_home()`, `create_pending()`, `finish_review()`, `abandon_run()`, `load_review()`, `scan_runs()`, and CLI commands `start`, `finish-review`, `show`, `pending`, `abandon`, `doctor`.
 
 - [ ] **Step 1: Write failing storage lifecycle tests**
 
@@ -419,11 +441,20 @@ def test_finish_review_is_atomic_create_only_and_idempotent(self) -> None:
 
 Also test `YYYY/MM/<uuid>/`, private file modes where supported, no global
 lock, per-run lock conflicts, pending cleanup after finalization,
-interrupted/stale age classes, abandon to null-verdict durable review, corrupt
-JSON exclusion, and no automatic deletion. Inject a reader spy that fails on
-`read()` without `limit + 1` or any `Path.read_bytes()` call, and exercise
-pending load, direct review/outcome load, scan, doctor, resolve, summary,
-candidate, and prune consumers through the shared bounded reader.
+interrupted/stale age classes, abandon to null-verdict durable review with a
+required bounded `completion_reason`, same-reason idempotency and
+different-reason conflict, corrupt JSON exclusion, and no automatic deletion.
+Use an exact whole-record abandoned fixture from the design: pending
+skill/client/target and intended mode, abandon clock, canonical unknown/zero
+protocol and metrics, all-null freshness, null verdict/block/token usage,
+literal `[a-z0-9][a-z0-9._-]{0,99}` completion reason, zero passes, and no
+findings. Reject every alternative protocol value, non-null freshness or token
+usage, count, pass, finding, missing/invalid reason, and extra field.
+Inject a reader spy that fails on `read()` without `limit + 1`, any
+`Path.read_bytes()`/`Path.read_text()` call, and exercise the consumers that
+exist in this task: pending load, direct review load, scan, and doctor. Task 4
+adds the same spy coverage for outcome load and resolve; Task 5 adds summary,
+candidates, and prune; Task 8 performs the final whole-runtime bypass check.
 
 - [ ] **Step 2: Run storage tests to verify RED**
 
@@ -471,10 +502,9 @@ Flush the directory, unlink the temp, and remove the lock in `finally`;
 Add a deterministic hook test that creates the final file between temp flush
 and publication and proves it is not overwritten.
 
-`read_bounded_bytes()` opens in binary mode and performs exactly
-`stream.read(limit + 1)` before rejecting oversize; `read_bounded_json()`
-decodes only accepted bytes. Every evidence/config consumer uses these helpers
-instead of `Path.read_bytes()`, `Path.read_text()`, or unbounded `read()`.
+Import the Task 1 shared bounded reader for every pending/review consumer;
+storage must not define another reader or use `Path.read_bytes()`,
+`Path.read_text()`, or unbounded `read()`.
 
 - [ ] **Step 4: Write failing core CLI tests**
 
@@ -482,22 +512,35 @@ Invoke `cli.main()` with injected streams/environment/cwd and test exact JSON st
 
 ```python
 def test_start_then_finish_reports_run_and_writes_review(self) -> None:
-    started = run_cli(["start", "--skill-root", str(SKILL), "--plan", "docs/plan.md", "--client", "cursor"])
+    started = run_cli(["start", "--skill-root", str(SKILL), "--plan", "docs/plan.md", "--client", "cursor", "--mode", "default"])
     self.assertEqual(started.code, 0)
     run_id = started.json["run_id"]
-    self.assertEqual(started.json["plan_path"], "docs/plan.md")
-    self.assertEqual(started.json["design_path"], "docs/design.md")
+    self.assertEqual(started.json, {
+        "status": "started",
+        "run_id": run_id,
+        "resolution_status": "resolved",
+        "plan_path": "docs/plan.md",
+        "design_path": "docs/design.md",
+    })
     finished = run_cli(["finish-review", "--run-id", run_id, "--repo", str(REPO), "--from-stdin"], stdin=semantic_result_json())
     self.assertEqual(finished.json, {"status": "recorded", "run_id": run_id, "sha256": finished.json["sha256"]})
 ```
 
-The exact start object contains `status`, `run_id`, `resolution_status`,
-nullable repository-relative `plan_path`, and nullable repository-relative
-`design_path`. Cover unavailable/invalid home, resolution-status `BLOCKED`
-capture, invalid or mixed stdin/arguments, bounded input reads, oversized
-records, missing run, exact retry, conflicting retry, wrong repository,
-changed skill bytes, `show`, `pending`, `abandon`, and `doctor`. Error JSON may
-include stable codes and bounded messages but never absolute paths.
+The exact successful start value is `status="started"`; the object has only
+`status`, `run_id`, `resolution_status`, nullable repository-relative
+`plan_path`, and nullable repository-relative `design_path`. Assert exact
+object equality and exact nullability for `resolved` and every failed
+resolution status, including `not-git-repository`; no response may add a key.
+Cover unavailable/invalid home, invalid or mixed stdin/arguments, bounded input
+reads, oversized records, missing run, exact retry, conflicting retry, wrong
+repository, changed skill bytes, `show`, `pending`, `abandon`, and `doctor`.
+For `abandon`, require exactly `--run-id` and `--reason`, map the bounded slug
+to `result.completion_reason`, assert the exact
+`{"status":"abandoned","run_id":...,"sha256":...}` output, and reject
+missing/invalid reasons and conflicting retries. `start` requires
+`--mode default|review-only`, stores it only in pending state, and
+`finish-review` rejects a mismatched mode. Error JSON may include stable
+codes and bounded messages but never absolute paths.
 
 - [ ] **Step 5: Run CLI tests to verify RED**
 
@@ -527,8 +570,25 @@ def main(
 
 Successful commands write one canonical JSON object to stdout. Failures write one object shaped as `{"error":{"code":"...","message":"..."}}` to stderr and return nonzero. `__main__.py` calls this `main()` only.
 
-`finish-review` requires `--repo`; it discovers that Git root, verifies the
-pending HMAC `repo_id`, and resolves only pending repository-relative paths.
+`start` stores a domain-separated HMAC `start_locator_binding` of its canonical
+Git-discovery anchor only in the private pending record. `finish-review`
+requires `--repo`; when the pending run has a repository identity, it discovers
+that Git root, verifies the pending HMAC `repo_id`, and resolves only pending
+repository-relative paths. For `not-git-repository`, `--repo` must resolve to
+the same canonical non-Git directory and reproduce the pending locator binding;
+a different locator or a locator that now discovers Git fails closed. A match
+permits only a `BLOCKED` completed receipt with all target/freshness
+repository, Git, path, and hash fields null. Add exact successful match,
+wrong-locator, became-Git, and receipt/stdout/stderr privacy tests; the binding
+and locator never enter `review.json` or output.
+Seed distinctive canonical-locator and binding markers and exercise every
+pending consumer: `start`, `pending`, direct scan, `doctor` including corrupt
+and error paths, `finish-review`, and `abandon`. Assert exact public key sets
+and absence of both marker values and the names `start_locator_binding` and
+`intended_mode` from stdout, stderr, final receipts, exports, summaries, and
+candidates. Assert only `.pending.json` contains the binding, and that it is
+removed after either terminal transition. Assert the complete canonical
+abandoned `review.json` projection and rejected alternatives from the design.
 It accepts either bounded scalar flags plus repeatable structured JSON flags,
 or the exact flat semantic object defined by the design through
 `--from-stdin`; mixed forms fail. The CLI merges semantic input with pending
@@ -649,6 +709,8 @@ record-outcome --run-id <id> --repo <path> --from-stdin
 relative plan hash. It accepts either the design's scalar/repeatable arguments
 or one exact equivalent stdin object and rejects mixed forms. Add canonical
 parity, wrong-repository, stale-plan, and absolute-path-safe error tests.
+Exercise outcome loading and `resolve` through the shared bounded-reader spy;
+no Task 4 consumer may bypass it.
 Reject an existing outcome and document that schema `1` has no amendment
 command.
 
@@ -723,7 +785,12 @@ sanitized export, small-sample warning, full/degraded client slices, pending
 age classes, and default exclusion of review-only-without-outcome records.
 For prune, test a canonical preview selection and digest, exact confirmation,
 changed fingerprints, an outcome recorded between preview and confirmation,
-and refusal to delete any unpreviewed run.
+and refusal to delete any unpreviewed run. Run summary, candidates, and both
+prune phases under the shared bounded-reader spy. With identity state
+separately missing, malformed, and fingerprint-mismatched, prove direct
+review/outcome loading, `show`, pending, summary, and candidates remain
+available; prove `start`, `finish-review`, `resolve`, `record-outcome`, and
+confirmed prune fail closed, and `doctor` reports the identity fault.
 
 - [ ] **Step 2: Run reporting tests to verify RED**
 
@@ -1066,11 +1133,19 @@ run-ID collisions, and Windows separators. Assert that stdout, stderr,
 receipts, exports, and summary output contain none of those rejected fixture
 markers. Do not claim that the CLI can identify an arbitrary short source
 excerpt placed in otherwise valid bounded semantic prose.
+Repeat with distinctive canonical-locator and pending-binding markers across
+all pending consumers and both terminal transitions. Assert exact public
+projections, that pending-only key names and values appear only in the private
+pending file, and that no terminal transition leaves that file behind.
 
 Add an AST-backed product contract that rejects network-capable imports,
 provider SDK identifiers, `os.system`, `shell=True`, and non-Git subprocess
 executables in the runtime package. This makes the no-network/no-provider
 boundary executable instead of relying only on whole-branch inspection.
+Add a whole-runtime bounded-I/O bypass contract that rejects direct
+`Path.read_bytes()`, `Path.read_text()`, or unbounded evidence/config `read()`
+outside the single shared reader, and rerun reader-spy coverage for identity,
+pending, review, outcome, scan, doctor, resolve, summary, candidates, and prune.
 
 - [ ] **Step 2: Prove adversarial test sensitivity without requiring a real defect**
 
