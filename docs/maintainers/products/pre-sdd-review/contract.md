@@ -14,6 +14,12 @@ resolved design specification을 찾고, 명시적으로 binding인 참조, 저�
 루트, 현재 Git 상태를 차례로 확인합니다. `**Spec:**` 경로가 없거나 해석할
 수 없으면 `BLOCKED`이며, 주변 파일을 추측해 선택하지 않습니다.
 
+한 호출은 구현 계획 하나만 검토합니다. 여러 계획 중 어느 것인지 분명하지
+않으면 정확한 계획 경로를 다시 받아야 하며, 받을 수 없으면 `BLOCKED`입니다.
+계획을 나눠 여러 번 호출해도 전체를 묶은 `READY`는 만들지 않습니다. 공유
+설계가 나중 호출에서 바뀌면, 이전 설계 지문에 의존한 계획 판정을 다시
+검토합니다.
+
 ## Authority order
 
 충돌은 아래의 machine-readable 순서로 해석합니다.
@@ -97,10 +103,17 @@ A second reviewer is conditional only, never routine.
 
 ## Default flow, verdicts, and freshness
 
-기본 모드는 review, repair documents, scoped re-review입니다. 수정 패스는
-최대 두 번이며, 두 번째 패스 뒤에도 material issue가 남으면 severity를
-낮추지 않고 `REVISE`로 유지합니다. `review-only`는 파일을 바꾸지 않고 첫
-검토 verdict만 반환합니다.
+기본 모드는 review, repair documents, scoped re-review입니다. 수리가 스키마,
+타입, 인터페이스, 상태 전이, 조건부 수정 면, 작업 간 계약, 검증 의미,
+공개/비공개 경계를 바꾸면 제어 에이전트가 짧은 영향 범위 표를 만듭니다. 표에는
+바뀐 주장, 바뀐 심볼·상태·경로·명령, 직접 소비자, 이웃 작업 인터페이스,
+`modify | verified-no-change | unresolved` 처리, 검증 반례를 적습니다. 이
+조건에 해당하지 않는 단순 값·문구 수정은 표를 만들지 않습니다.
+
+새 검토자는 수리된 최종 문서, 원래 발견, 영향 범위 표를 받아 원래 발견의
+해결과 제한된 영향 회귀를 순서대로 수행합니다. 수정 패스는 최대 두 번이며,
+두 번째 패스 뒤에도 중요한 문제가 남으면 심각도를 낮추지 않습니다.
+`review-only`는 파일을 바꾸지 않고 첫 검토 판정만 반환합니다.
 
 ### Verdicts
 
@@ -119,6 +132,11 @@ A second reviewer is conditional only, never routine.
 - review timestamp
 - final verdict
 - Any content change to either resolved document invalidates `READY`.
+
+최종 보고는 입력·최종 문서 해시, 패스 번호, 발견 ID/분류, 영향 범위 트리거,
+바뀐 문서 해시, 판정을 담은 짧은 패스 영수증을 포함합니다. `REVISE`와
+`BLOCKED`는 미해결 발견과 다음 범위를 담은 인계 묶음을 반환합니다. 새 권위가
+필요하면 판정은 `BLOCKED`입니다.
 
 ## Handoff
 

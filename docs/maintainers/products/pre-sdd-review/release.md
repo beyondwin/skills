@@ -1,15 +1,16 @@
 # pre-sdd-review 릴리스
 
 이 문서는 Pre-SDD Review의 독립 패키징 절차를 소유합니다.
-version source is `skills/pre-sdd-review/release.toml`; `SKILL.md`의 `metadata.version`은 검증된
-복사본이고 `CHANGELOG.md`는 사람이 읽는 계약 이력을 기록합니다.
+version source is `skills/pre-sdd-review/release.toml`. `SKILL.md`의
+`metadata.version`은 검증된 복사본이고 `CHANGELOG.md`는 사람이 읽는 계약
+이력입니다.
 
-제품 식별자는 `release.toml`의 `pre-sdd-review` `version 1.0.0`입니다.
+제품 식별자는 `release.toml`의 `pre-sdd-review` `version 1.1.0`입니다.
 
 ## Check, build, and verify download
 
-provider-free 제품 검증을 실행한 뒤 새 빈 디렉터리에 패키징하고, 별도의
-fresh download directory에서 바이트를 검증합니다.
+공급자 없는 제품 검증을 실행한 뒤 새 빈 디렉터리에 패키징하고, 따로 받은
+디렉터리에서 바이트를 검증합니다.
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
@@ -29,7 +30,7 @@ No tag or GitHub Release is created by these commands.
 
 ## Failure recovery
 
-제품 파일, version decision, changelog, test를 고치고 실패한 명령을 다시
-실행합니다. partial artifact를 재사용하지 말고 새 빈 디렉터리에서만 다시
-빌드합니다. tagging과 publishing은 별도의 explicit release operation이며 이
-절차의 범위 밖입니다.
+제품 파일, 버전 결정, changelog, 테스트를 고치고 실패한 명령을 다시
+실행합니다. 부분 산출물을 재사용하지 말고 새 빈 디렉터리에서만 다시
+빌드합니다. 태그와 공개는 별도의 명시적 릴리스 작업이며 이 절차의 범위
+밖입니다.

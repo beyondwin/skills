@@ -6,6 +6,23 @@ All notable changes to this product are documented in this file.
 
 No unreleased behavior change is recorded.
 
+## 1.1.0 - 2026-08-29
+
+### Changed
+
+- One invocation reviews exactly one implementation plan. Separate plan-local
+  reviews never produce an aggregate `READY`.
+- Structural document repairs now record a repair-impact map and receive a
+  bounded regression re-review. The two-pass repair limit is unchanged.
+- Final `REVISE` and `BLOCKED` reports include an unresolved handoff packet
+  and a compact pass receipt. User documents and full model responses are not
+  stored.
+
+### Verification
+
+- Added synthetic fixtures for schema-consumer drift, vacuous state
+  verification, and conditional edit-surface drift.
+
 ## 1.0.0 - 2026-08-29
 
 ### Notes

@@ -12,6 +12,10 @@ SDD 또는 계획 실행 직전에 검토합니다. 기본 흐름은 **검토 �
 경로를 찾습니다. `**Spec:**` 경로를 해석할 수 없으면 가까운 파일을 추측하지 않고
 `BLOCKED`를 반환합니다.
 
+한 번의 호출은 구현 계획 하나만 검토합니다. 여러 계획 중 어느 것인지 분명하지
+않으면 `BLOCKED`입니다. 계획을 나눠 여러 번 호출해도 전체를 묶은 `READY`는 내지
+않습니다.
+
 ## 사용해야 할 때와 사용하지 말아야 할 때
 
 승인된 설계 명세와 구현 계획이 이미 있고, SDD 또는 계획 실행 전에 두 문서와
@@ -48,6 +52,11 @@ $pre-sdd-review docs/history/specs/<design>.md docs/history/plans/<plan>.md
 호출은 이 두 문서만 변경합니다. `review-only`는 같은 검토를 하지만 아무 파일도
 변경하지 않습니다.
 
+문서 수리가 스키마, 타입, 상태 전이, 조건부 수정, 작업 인터페이스, 검증 의미,
+데이터 경계를 바꾸면 직접 쓰는 쪽과 이웃 작업만 적은 영향 범위 표를 만듭니다.
+새 검토자는 기존 발견이 닫혔는지와 이 범위만 다시 확인합니다. 문구·값만 고친
+경우에는 이 표를 만들지 않습니다.
+
 수정 패스는 최대 두 번입니다. 최종 판정은 다음 중 하나입니다.
 
 - `READY`: 기록된 증거로 구현을 시작할 수 있습니다.
@@ -60,17 +69,23 @@ $pre-sdd-review docs/history/specs/<design>.md docs/history/plans/<plan>.md
 무효화되어 다시 검토해야 합니다. 문서 밖 Git 변경도 경로·명령·인터페이스·영향 범위
 근거를 바꾸면 다시 검토합니다.
 
+`REVISE`와 `BLOCKED`는 남은 문제와 다음에 볼 범위를 짧게 남깁니다. 새 제품 결정이
+필요하면 `BLOCKED`입니다.
+
 ### Contract
 
 - `primary-input`: `plan-primary`, `spec-resolves-design`
+- `plan-cardinality`: `one-plan-per-invocation`, `no-aggregate-ready`
 - `editable-surfaces`: `resolved-design-specification`, `resolved-implementation-plan`
 - `review-only`: `no-mutation`
-- `repair-flow`: `review-repair-scoped-re-review`
+- `repair-flow`: `review-repair-bounded-impact-re-review`
+- `repair-impact`: `structural-trigger-only`, `direct-consumers`
 - `repair-passes`: `at-most-two`
 - `verdicts`: `READY`, `REVISE`, `BLOCKED`
 - `second-reviewer`: `conditional-only`
 - `risk-triggers`: `framework-runtime-removal`, `schema-data-deletion`, `auth-security-boundary`, `data-boundary-change`, `external-side-effects`
 - `freshness`: `fingerprints`, `content-change-invalidates`
+- `handoff`: `unresolved-packet`
 - `sdd`: `outer-request-implementation-only`
 
 `review-only`는 명시 모드이며 아무 파일도 변경하지 않습니다.

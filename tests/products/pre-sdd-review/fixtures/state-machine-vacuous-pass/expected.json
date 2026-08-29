@@ -1,0 +1,12 @@
+{
+  "verdict": "REVISE",
+  "findings": [
+    {
+      "id": "PSDR-001",
+      "severity": "IMPORTANT",
+      "class": "verification-gap",
+      "evidence": "the approved-only loop does not prove coverage of the review-ready producer domain",
+      "consequence": "zero approved entries can pass without proving that ready items became approved or hold"
+    }
+  ]
+}

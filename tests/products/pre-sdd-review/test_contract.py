@@ -35,9 +35,9 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "613907b32f4c0a41839ed8bfe9c9215187a90a4b2d26a6fa7fc062aa7f19c8ac",
+    "SKILL.md": "3a9bc8e55d85001f01810ec82d69df353df2c9647a3a880fa0bb1bb8dd563725",
     "references/reviewer-protocol.md": (
-        "a5986fb5ec8c32b43c3dbf6dfc7eea2eda697fa8d4fc56d8a3bdcb13b661520a"
+        "e8a361b36bb261c98887bef8df549b9d6c59519dfdb618cfb7e54646e052aa6d"
     ),
 }
 CASE_IDS = (
@@ -51,16 +51,20 @@ CASE_IDS = (
     "task-interface-order",
     "runtime-removal-risk-review",
     "stale-document-hash",
+    "ambiguous-multiple-plans",
     "near-miss-write-spec",
     "near-miss-write-plan",
     "near-miss-code-review",
     "near-miss-release-review",
 )
 FIXTURE_NAMES = (
+    "conditional-edit-surface",
+    "repair-induced-schema-consumer",
     "ready",
     "missing-coverage",
     "false-verification",
     "runtime-removal",
+    "state-machine-vacuous-pass",
 )
 FIXTURE_FILES = (
     "design.md",
@@ -215,6 +219,11 @@ FIXTURE_CONTENTS = {
 """,
     },
 }
+V1_1_FIXTURE_SHA256 = {
+    "conditional-edit-surface": "a4f112034ee3173dcfcef723d73f2c493e45469dcd886931ee91710a62f242f2",
+    "repair-induced-schema-consumer": "f96f0462b738542a14ce27db28be219884440613d0c24262a34036d262685e0c",
+    "state-machine-vacuous-pass": "dd490c6a092c1ff180e599076372e2006661b22ffbebacfccccf48b44f71d8c0",
+}
 REQUIRED_SECTIONS = (
     "# Pre-SDD Review",
     "## Hard gate",
@@ -322,9 +331,11 @@ DEFAULT_FIRST_CALL = (
 )
 README_CONTRACT = (
     ("primary-input", ("plan-primary", "spec-resolves-design")),
+    ("plan-cardinality", ("one-plan-per-invocation", "no-aggregate-ready")),
     ("editable-surfaces", ("resolved-design-specification", "resolved-implementation-plan")),
     ("review-only", ("no-mutation",)),
-    ("repair-flow", ("review-repair-scoped-re-review",)),
+    ("repair-flow", ("review-repair-bounded-impact-re-review",)),
+    ("repair-impact", ("structural-trigger-only", "direct-consumers")),
     ("repair-passes", ("at-most-two",)),
     ("verdicts", ("READY", "REVISE", "BLOCKED")),
     ("second-reviewer", ("conditional-only",)),
@@ -339,26 +350,27 @@ README_CONTRACT = (
         ),
     ),
     ("freshness", ("fingerprints", "content-change-invalidates")),
+    ("handoff", ("unresolved-packet",)),
     ("sdd", ("outer-request-implementation-only",)),
 )
 README_CANONICAL_SECTION_DIGESTS = {
     "ko": (
-        ("## 이 스킬이 해결하는 문제", "89e5d01a28d670a82baeff38428807bc0fe44b0e746cca2d1313b48242d82a19"),
+        ("## 이 스킬이 해결하는 문제", "61494f97e736054a77440487a2662f0d1b3dc9446d1dac2595ed495a2c755510"),
         ("## 사용해야 할 때와 사용하지 말아야 할 때", "6c985feb1d0d2a5cc33e1b7eb3553a72d436007f55623c0af55bb99eae7e9523"),
         ("## 1분 설치와 첫 호출", "20d4ac5b06601ac16c4fd995a652fca8e9162dee28a0278108f7c94fa760d4aa"),
-        ("## 주요 흐름", "30aae191b48aa49bd55707cc20e4994480f57112a1160d48bbfbf5026cb3f651"),
+        ("## 주요 흐름", "9afd9373fdc996a0b96b07fc58450b3e92c950696776c6a334a07798faa0a29a"),
         ("## 안전과 개인정보", "dea164c33a94794be32109070c22cfcb05245b599e8bb8712018df995f036845"),
         ("## 호환성과 검증 수준", "32ae6efc3bd8d980262a975e41958de4f49688744e719f4f2a92b85b6e6a5ef1"),
         ("## 갱신과 버전 확인", "cdba0c18b5fa475a30d52f3b8dec1cbeba902873bcfe2ccd64ad1a93a4aa457e"),
         ("## 변경 이력과 관리자 문서", "7e1cb70139ec2f47b67004352fdd0ca739f19515c2c715095501268c5b7405ac"),
     ),
     "en": (
-        ("## Purpose", "2439dba5bafeba4c05041c3b6569f6fb6b920e6e83c70ce27f9d8229b3a20737"),
+        ("## Purpose", "6a0b1a1ed183aa142b9df51b9c2c8a13696df6ddff410d9e198bbb79bc441c1e"),
         ("## When to use and not use", "7133b17ed84bc5f8e1721b63ec5ffbf63f462f0816014c2bbfd4aeef58925d4d"),
         ("## Supported hosts", "adb46f35ba78974f2c3f4df43deca598c9558480606022f07ccce3626b70edc6"),
         ("## Install", "d5163949c27feaa36279e4bfebb1f6cc9dd269079567b5c96ec1314cf08035b7"),
         ("## First call", "27b7d3681619789c1e0fadff8d1dd802cdc387b70bddde1457adfbead72caff2"),
-        ("## Expected result", "9c16d9c02b79a6d64514d36b3e263a91c0bbc7affd303447545b7d4d1ce79d8a"),
+        ("## Expected result", "df01c48b84b5cf87c7367e20bd7a23bfcd0d92e259d0dff0d12445d1454ca4eb"),
         ("## Safety and privacy", "e654b5ffb7381e162c135673b092b27a62eac49fc2d372c75d840dcd16f9c756"),
         ("## Verification", "602a43f5501e8cb0d77254324bbf8fe72c1de9251a11263e902d02bf0edf791b"),
         ("## Update and remove", "3041985025dea4c4e636368de6d72f214b14f37e2e74b58431fdc74d25d4fb83"),
@@ -366,8 +378,8 @@ README_CANONICAL_SECTION_DIGESTS = {
     ),
 }
 README_CANONICAL_DOCUMENT_DIGESTS = {
-    "ko": "1106bf4012eabef711b434c21302e4e04a16939ddf6975ed437c007dc844bf57",
-    "en": "aa518bbaf55dbf0c418e4d3077715aae809b23cc6f9e96fb713c430797e96cb7",
+    "ko": "39fa2df5b99d91e87aabb0cf95e25489621ff6d8688195b54c05a5093c99c02f",
+    "en": "986634ed74054f7ef7f1f72d8843789652a5babc3acf3069ead49d17e636db5d",
 }
 MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Authority order", "3156a43d665d21723ce61b333c7c34f30abd2e6d288c472d5eec5878e5ef8321"),
@@ -378,13 +390,13 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Finding classes", "2a0892a5aad034ceaf1218606d657f4b22bac89c0d2b67065b7018e811a44352"),
     ("### Conditional risk triggers", "beb83c2728bf4bcc9ee15a353a1391971daa10bd59c45fea6a6fd641333db10c"),
     ("### Verdicts", "6bbc48d01219299cd47b1ae4f6f44952ce497012736b0785551fdb0995aacb00"),
-    ("### Freshness", "d11924689bcb72cc82cefbef5ed84201ccc73d5b29bb896fedffdad1b0932d94"),
+    ("### Freshness", "0aeb0ada39c01280c13124db6cadb057a1748837991e10ceee85e93415e7e3a6"),
     ("### SDD handoff", "8a629dd12d78e2c08e77e7c1d057d0e450b135bc0633d5b62c8c926665976bca"),
 )
-MAINTAINER_CANONICAL_DIGEST = "54bc00bbdabf23dd20bc31b8d2d57c4a5fdc69e1da453a1ed8f6008c58a1fa34"
-TESTING_CANONICAL_DIGEST = "cdd51cddf5acbaa58ed1a36bf0275c1f9215c80cb946f071f0a2d9f5609b02c3"
-COMPATIBILITY_CANONICAL_DIGEST = "5155b790d834e242079a6ab68ef396f8c1185eaa9f0af922ff0f78c988e0dc1e"
-RELEASE_CANONICAL_DIGEST = "9dc0088c21c5c311caa0938d7c64d0c1c98632f4c60ef70e99a589e5a87d2abd"
+MAINTAINER_CANONICAL_DIGEST = "1e44e3610721ae1a66b925dc3fefea370dd82564126a45cb84eb1ec8477246b2"
+TESTING_CANONICAL_DIGEST = "e119980c8a7c1b7fa20e31aa539e3312aae73a7776076531c8b7cba2b613bec2"
+COMPATIBILITY_CANONICAL_DIGEST = "3c40b77eb9a96892a07132d62b99cb43321b87516a0bdc4b0a33d033430828c6"
+RELEASE_CANONICAL_DIGEST = "8491ceb8648de55e4b82fb1462a8e7eb3061b1ec3f64533eb8a350b2beea74ca"
 
 
 def section(text: str, start: str, end: str) -> str:
@@ -736,6 +748,43 @@ class PreSddReviewContractTests(unittest.TestCase):
         ):
             self.assertIn(phrase, body)
 
+    def test_v1_1_bounds_plan_cardinality_and_repair_impact_review(self) -> None:
+        body = re.sub(
+            r"\s+",
+            " ",
+            (SKILL / "SKILL.md").read_text(encoding="utf-8"),
+        )
+        for phrase in (
+            "One invocation reviews exactly one implementation plan",
+            "return `BLOCKED` instead of inventing an aggregate verdict",
+            "repair-impact map",
+            "modified claim",
+            "direct consumers",
+            "adjacent task interfaces",
+            "verified-no-change",
+            "bounded repair-impact regression",
+            "final repaired documents",
+            "unresolved handoff packet",
+        ):
+            self.assertIn(phrase, body)
+        self.assertNotIn("program mode", body.lower())
+
+    def test_v1_1_protocol_closes_structural_repairs_without_forcing_nonempty_results(self) -> None:
+        protocol = re.sub(
+            r"\s+",
+            " ",
+            (SKILL / "references/reviewer-protocol.md").read_text(encoding="utf-8"),
+        )
+        for phrase in (
+            "introduces or changes a state machine",
+            "producer domain",
+            "partition completeness",
+            "An empty domain is valid when the producer proves it is empty",
+            "bounded path pattern",
+            "modify`, `verified-no-change`, or `unresolved",
+        ):
+            self.assertIn(phrase, protocol)
+
     def test_reviewer_is_read_only_and_controller_owns_repairs(self) -> None:
         protocol = (SKILL / "references/reviewer-protocol.md").read_text(
             encoding="utf-8"
@@ -772,8 +821,9 @@ class PreSddReviewContractTests(unittest.TestCase):
                 r"resolve plan -> resolve plan \*\*Spec:\*\* -> read binding references\s*"
                 r"-> hash design and plan -> record HEAD and dirty state\s*"
                 r"-> fresh read-only review -> controller deduplication\s*"
-                r"-> authority-preserving document repair -> scoped re-review\s*"
-                r"-> optional second repair -> fresh scoped re-review\s*"
+                r"-> authority-preserving document repair -> original closure review\s*"
+                r"-> conditional bounded repair-impact regression -> optional second repair\s*"
+                r"-> fresh original closure review \+ conditional bounded repair-impact regression\s*"
                 r"-> READY \| REVISE \| BLOCKED"
             ),
         )
@@ -1041,8 +1091,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         for fact in (
             "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover",
             "provider-free",
-            "exactly fourteen",
-            "`ready`, `missing-coverage`, `false-verification`, and",
+            "exactly fifteen",
+            "`ready`, `missing-coverage`, `false-verification`, `runtime-removal`,",
             "`runtime-removal`",
             "`design.md`, `plan.md`,",
             "`repository.json`, and `expected.json`",
@@ -1402,7 +1452,16 @@ class PreSddReviewFixtureTests(unittest.TestCase):
             manifest = json.loads(
                 (fixture / "repository.json").read_text(encoding="utf-8")
             )
-            self.assertEqual(manifest, REPOSITORY_MANIFEST)
+            expected_manifest = dict(REPOSITORY_MANIFEST)
+            if name == "repair-induced-schema-consumer":
+                expected_manifest["typedConsumers"] = [
+                    {
+                        "path": "tests/app.test.ts",
+                        "type": "PublicMessageRecord",
+                        "shape": "missing required displayName",
+                    }
+                ]
+            self.assertEqual(manifest, expected_manifest)
 
     def test_fixture_content_is_the_bounded_review_contract(self) -> None:
         for name, expected_files in FIXTURE_CONTENTS.items():
@@ -1426,6 +1485,39 @@ class PreSddReviewFixtureTests(unittest.TestCase):
                 "risk_reviewer_required": True,
                 "risk_trigger": "framework-or-runtime-removal",
             },
+        )
+
+    def test_v1_1_regression_fixtures_have_a_scorable_material_consequence(self) -> None:
+        for name, expected_digest in V1_1_FIXTURE_SHA256.items():
+            with self.subTest(name=name):
+                digest = hashlib.sha256()
+                for path in sorted((FIXTURES / name).iterdir()):
+                    digest.update(path.name.encode("utf-8"))
+                    digest.update(b"\0")
+                    digest.update(path.read_bytes())
+                self.assertEqual(digest.hexdigest(), expected_digest)
+                expected = json.loads(
+                    (FIXTURES / name / "expected.json").read_text(encoding="utf-8")
+                )
+                self.assertEqual(expected["verdict"], "REVISE")
+                self.assertEqual(len(expected["findings"]), 1)
+                finding = expected["findings"][0]
+                self.assertTrue(finding["evidence"])
+                self.assertTrue(finding["consequence"])
+        schema_repository = json.loads(
+            (FIXTURES / "repair-induced-schema-consumer/repository.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(
+            schema_repository["typedConsumers"],
+            [
+                {
+                    "path": "tests/app.test.ts",
+                    "type": "PublicMessageRecord",
+                    "shape": "missing required displayName",
+                }
+            ],
         )
 
     def test_fixtures_contain_no_private_or_model_response_payload(self) -> None:

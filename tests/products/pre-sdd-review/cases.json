@@ -51,6 +51,11 @@
       "expect": ["stale_fingerprints", "re-review"]
     },
     {
+      "id": "ambiguous-multiple-plans",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan-a.md sample-app/plan-b.md",
+      "expect": ["BLOCKED", "one_plan_per_invocation"]
+    },
+    {
       "id": "near-miss-write-spec",
       "request": "Write a design specification for sample-app.",
       "expect": ["not_activated"]

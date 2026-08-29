@@ -1268,7 +1268,7 @@ class MaintainerStructureTests(unittest.TestCase):
                 ROOT / "docs/maintainers/products/pre-sdd-review/compatibility.md",
                 "# pre-sdd-review 호환성",
                 "# pre-sdd-review compatibility",
-                "이 문서는 Pre-SDD Review의 measured-host 경계를 소유합니다.",
+                "이 문서는 Pre-SDD Review의 측정된 호스트 경계를 소유합니다.",
                 "This document owns the measured-host boundary.",
             ),
             (

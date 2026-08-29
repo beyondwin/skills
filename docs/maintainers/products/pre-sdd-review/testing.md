@@ -19,11 +19,12 @@ documented contract fact를 확인합니다. live review, semantic quality, 다�
 
 ## Exact fixture boundary
 
-`cases.json`은 exactly fourteen개의 activation, default-flow, review-only,
+`cases.json`은 exactly fifteen개의 activation, default-flow, review-only,
 verdict, risk, freshness, near-miss 사례를 소유합니다. `fixtures/`는 정확히
-`ready`, `missing-coverage`, `false-verification`, and `runtime-removal` 네 합성
-저장소를 소유합니다. 각 저장소에는 `design.md`, `plan.md`,
-`repository.json`, and `expected.json`만 둡니다.
+`ready`, `missing-coverage`, `false-verification`, `runtime-removal`,
+`repair-induced-schema-consumer`, `state-machine-vacuous-pass`, and
+`conditional-edit-surface` 일곱 합성 저장소를 소유합니다. 각 저장소에는
+`design.md`, `plan.md`, `repository.json`, and `expected.json`만 둡니다.
 
 픽스처는 bounded synthetic contract이지 corpus가 아닙니다. user documents,
 private prompts, credentials, transcripts, full model responses를 픽스처,
@@ -41,6 +42,7 @@ private prompts, credentials, transcripts, full model responses를 픽스처,
 - `task-interface-order`
 - `runtime-removal-risk-review`
 - `stale-document-hash`
+- `ambiguous-multiple-plans`
 - `near-miss-write-spec`
 - `near-miss-write-plan`
 - `near-miss-code-review`
@@ -48,10 +50,13 @@ private prompts, credentials, transcripts, full model responses를 픽스처,
 
 ### Fixture inventory
 
+- `conditional-edit-surface`: `design.md`, `expected.json`, `plan.md`, `repository.json`
 - `false-verification`: `design.md`, `expected.json`, `plan.md`, `repository.json`
 - `missing-coverage`: `design.md`, `expected.json`, `plan.md`, `repository.json`
 - `ready`: `design.md`, `expected.json`, `plan.md`, `repository.json`
+- `repair-induced-schema-consumer`: `design.md`, `expected.json`, `plan.md`, `repository.json`
 - `runtime-removal`: `design.md`, `expected.json`, `plan.md`, `repository.json`
+- `state-machine-vacuous-pass`: `design.md`, `expected.json`, `plan.md`, `repository.json`
 
 ## Optional fresh-session live checks
 
@@ -60,3 +65,9 @@ requires it. fresh Codex session과 non-sensitive synthetic design and plan만
 사용하고, record only host, client version, date, case identifier, and verdict.
 provider-free 결과를 live quality 주장으로 바꾸지 않으며 user documents나
 full model responses를 저장하지 않습니다.
+
+v1.1 전진 확인은 정답을 숨긴 채 `repair-induced-schema-consumer`,
+`state-machine-vacuous-pass`, `conditional-edit-surface`를 각각 따로 호출합니다.
+각 호출은 그 계획만의 판정을 유지하고, 잘못된 `READY`, 관련 없는 수정, 권위
+이탈이 없어야 합니다. 기존 `ready` 픽스처는 공급자 없는 긍정 대조입니다. 이
+점검은 반복 평가나 일반 품질 측정을 대신하지 않습니다.

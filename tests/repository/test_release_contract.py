@@ -24,7 +24,7 @@ EXPECTED = {
     "korean-writing-editor": "2.0.1",
     "image-workbench": "2.0.1",
     "how-it-works": "1.0.0",
-    "pre-sdd-review": "1.0.0",
+    "pre-sdd-review": "1.1.0",
 }
 REGISTRY = load_registry(ROOT / "products.toml")
 
@@ -49,11 +49,11 @@ class ProductReleaseTests(unittest.TestCase):
         self.assertEqual(product.tag, "how-it-works-v1.0.0")
         self.assertEqual(product.artifact_name, "how-it-works-v1.0.0.zip")
 
-    def test_pre_sdd_review_first_archive_identity(self) -> None:
+    def test_pre_sdd_review_current_archive_identity(self) -> None:
         product = load_product_release(ROOT / "skills/pre-sdd-review")
-        self.assertEqual(product.version, "1.0.0")
-        self.assertEqual(product.tag, "pre-sdd-review-v1.0.0")
-        self.assertEqual(product.artifact_name, "pre-sdd-review-v1.0.0.zip")
+        self.assertEqual(product.version, "1.1.0")
+        self.assertEqual(product.tag, "pre-sdd-review-v1.1.0")
+        self.assertEqual(product.artifact_name, "pre-sdd-review-v1.1.0.zip")
 
     def test_each_product_owns_an_independent_release_manifest(self) -> None:
         self.assertEqual(set(self.registry.names), set(EXPECTED))

@@ -1,0 +1,12 @@
+{
+  "verdict": "REVISE",
+  "findings": [
+    {
+      "id": "PSDR-001",
+      "severity": "IMPORTANT",
+      "class": "coverage",
+      "evidence": "tests/app.test.ts is a typed consumer but is absent from the plan impact disposition",
+      "consequence": "the required field can break the planned build outside the declared edit surface"
+    }
+  ]
+}

@@ -13,6 +13,10 @@ The plan path is primary. The skill resolves the resolved design specification
 from that plan's `**Spec:**` field. If the `**Spec:**` path cannot be resolved,
 it returns `BLOCKED` instead of guessing among nearby documents.
 
+One invocation reviews one implementation plan. If several plans are named and
+the target is unclear, the result is `BLOCKED`. Separate plan-local reviews
+never imply an aggregate `READY`.
+
 ## When to use and not use
 
 Use this only when an approved design specification and implementation plan
@@ -62,6 +66,12 @@ In default mode, a fresh read-only reviewer returns evidence-backed findings,
 then the controller obtains a scoped re-review. `review-only` changes nothing
 and returns the first review verdict.
 
+If a repair changes a schema, type, state transition, conditional mutation,
+task interface, verification meaning, or data boundary, the controller records
+that impact for direct consumers and adjacent tasks. The next reviewer checks
+that original findings closed and that this bounded impact still holds.
+Wording or scalar value corrections skip this map.
+
 There are at most two repair passes. The final verdict is one of:
 
 - `READY`: no unresolved issue requires invention or permits a materially
@@ -77,17 +87,23 @@ Changing either document invalidates its fingerprints and requires re-review.
 A repository change also requires re-review when it changes evidence for a
 path, command, interface, or blast-radius claim.
 
+`REVISE` and `BLOCKED` return a short packet of unresolved findings and the
+next document scope. A new product decision is always `BLOCKED`.
+
 ### Contract
 
 - `primary-input`: `plan-primary`, `spec-resolves-design`
+- `plan-cardinality`: `one-plan-per-invocation`, `no-aggregate-ready`
 - `editable-surfaces`: `resolved-design-specification`, `resolved-implementation-plan`
 - `review-only`: `no-mutation`
-- `repair-flow`: `review-repair-scoped-re-review`
+- `repair-flow`: `review-repair-bounded-impact-re-review`
+- `repair-impact`: `structural-trigger-only`, `direct-consumers`
 - `repair-passes`: `at-most-two`
 - `verdicts`: `READY`, `REVISE`, `BLOCKED`
 - `second-reviewer`: `conditional-only`
 - `risk-triggers`: `framework-runtime-removal`, `schema-data-deletion`, `auth-security-boundary`, `data-boundary-change`, `external-side-effects`
 - `freshness`: `fingerprints`, `content-change-invalidates`
+- `handoff`: `unresolved-packet`
 - `sdd`: `outer-request-implementation-only`
 
 ```text

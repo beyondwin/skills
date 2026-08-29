@@ -1,0 +1,12 @@
+{
+  "verdict": "REVISE",
+  "findings": [
+    {
+      "id": "PSDR-001",
+      "severity": "IMPORTANT",
+      "class": "coverage",
+      "evidence": "the conditional mutation targets src/app.ts but the Files section marks it read-only",
+      "consequence": "the worker must either skip the branch or modify a file outside the declared surface"
+    }
+  ]
+}

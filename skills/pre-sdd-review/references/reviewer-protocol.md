@@ -64,6 +64,24 @@ paths, state transitions, migration order, destructive targets and safe
 prerequisites. Reject placeholders, implied work, and steps that leave an
 implementer to choose among materially different designs.
 
+Apply these checks only when their observable trigger is present:
+
+- When a plan or repair introduces or changes a state machine, trace each
+  producer, transition, consumer, and failure state. Assertions over selected
+  items must prove the `producer domain` and its `partition completeness`, not
+  merely loop over one terminal subset. An empty domain is valid when the
+  producer proves it is empty. Never require a nonzero approval or success
+  count without approved authority.
+- Conditional mutations must appear in the task's edit surface as an exact
+  path or a bounded path pattern, together with the mutation condition and the
+  exact verification command.
+- For a new required type or schema field, search direct consumers and
+  fixtures. Classify each as `modify`, `verified-no-change`, or `unresolved`.
+  Only consumers that require a change belong in the edit surface.
+- For a changed public/private boundary, trace the private producer, the
+  public projection, serializer, reader, validator, and emitted-output
+  rejection.
+
 ### Pass 4: verification falsification
 
 For every planned acceptance check, name a concrete materially wrong
@@ -85,4 +103,7 @@ Return only material findings and exactly one verdict:
 
 The controller, not the reviewer, decides whether a documented correction is
 within the mutation allowlist and performs any repair. For scoped re-review,
-evaluate the changed sections and original findings afresh.
+read the final complete documents, evaluate the original findings afresh, and
+use the repair-impact map to run a bounded regression over direct consumers
+and adjacent task interfaces. Do not expand this into an unrelated full
+review.

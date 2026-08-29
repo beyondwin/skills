@@ -340,7 +340,7 @@ class ProductDownloadTests(unittest.TestCase):
             self.output,
             require_release_entry=False,
         )
-        archive = self.output / "pre-sdd-review-v1.0.0.zip"
+        archive = self.output / "pre-sdd-review-v1.1.0.zip"
 
         def change_protocol_bytes(items):
             for info, data in items:
@@ -363,7 +363,7 @@ class ProductDownloadTests(unittest.TestCase):
             self.output,
             require_release_entry=False,
         )
-        archive = self.output / "pre-sdd-review-v1.0.0.zip"
+        archive = self.output / "pre-sdd-review-v1.1.0.zip"
 
         def make_protocol_executable(items):
             for info, data in items:
@@ -402,7 +402,7 @@ class ProductDownloadTests(unittest.TestCase):
                     output,
                     require_release_entry=False,
                 )
-                archive = output / "pre-sdd-review-v1.0.0.zip"
+                archive = output / "pre-sdd-review-v1.1.0.zip"
 
                 def add_member(items):
                     yield from items
@@ -426,7 +426,7 @@ class ProductDownloadTests(unittest.TestCase):
             self.output,
             require_release_entry=False,
         )
-        archive = self.output / "pre-sdd-review-v1.0.0.zip"
+        archive = self.output / "pre-sdd-review-v1.1.0.zip"
 
         def add_directory(items):
             yield from items
@@ -453,7 +453,7 @@ class ProductDownloadTests(unittest.TestCase):
             self.output,
             require_release_entry=False,
         )
-        archive = self.output / "pre-sdd-review-v1.0.0.zip"
+        archive = self.output / "pre-sdd-review-v1.1.0.zip"
 
         def change_required_member_type(items):
             for info, data in items:
@@ -477,7 +477,7 @@ class ProductDownloadTests(unittest.TestCase):
             self.output,
             require_release_entry=False,
         )
-        archive = self.output / "pre-sdd-review-v1.0.0.zip"
+        archive = self.output / "pre-sdd-review-v1.1.0.zip"
 
         def change_required_member_creator(items):
             for info, data in items:
@@ -511,7 +511,7 @@ class ProductDownloadTests(unittest.TestCase):
             self.output,
             require_release_entry=False,
         )
-        archive = self.output / "pre-sdd-review-v1.0.0.zip"
+        archive = self.output / "pre-sdd-review-v1.1.0.zip"
 
         def drop_member(items):
             for info, data in items:
