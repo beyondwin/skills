@@ -47,7 +47,6 @@ WINDOWS_STAGE_NAMES = (
     "korean-live-dry-run",
     "how-it-works-contract",
     "pre-sdd-review-contract",
-    "pre-sdd-review-evidence",
     "python-compile",
 )
 LIVE_TEST_PATH = (
@@ -130,10 +129,11 @@ class VerifyStageTests(unittest.TestCase):
         names = [stage.name for stage in self._selected("full")]
         self.assertEqual(names, list(FULL_STAGE_NAMES))
 
-    def test_windows_profile_excludes_codex_only_image_gate(self) -> None:
+    def test_windows_profile_excludes_unmeasured_native_gates(self) -> None:
         names = [stage.name for stage in self._selected("windows-portable")]
         self.assertNotIn("image-contract", names)
         self.assertNotIn("image-inspector", names)
+        self.assertNotIn("pre-sdd-review-evidence", names)
 
     def test_windows_profile_contains_portable_gates_in_order(self) -> None:
         names = [stage.name for stage in self._selected("windows-portable")]
@@ -394,12 +394,21 @@ class VerifyStageTests(unittest.TestCase):
             self.assertIn("tests/products/pre-sdd-review", stage.argv)
             self.assertIn("test_contract.py", stage.argv)
 
-    def test_pre_sdd_review_evidence_is_portable_unittest_discovery(self) -> None:
-        for profile in ("full", "windows-portable"):
-            stage = self._stage(profile, "pre-sdd-review-evidence", skill="pre-sdd-review")
-            self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
-            self.assertIn("tests/products/pre-sdd-review/evidence", stage.argv)
-            self.assertIn("test_*.py", stage.argv)
+    def test_pre_sdd_review_evidence_full_gate_uses_unittest_discovery(self) -> None:
+        stage = self._stage("full", "pre-sdd-review-evidence", skill="pre-sdd-review")
+        self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
+        self.assertIn("tests/products/pre-sdd-review/evidence", stage.argv)
+        self.assertIn("test_*.py", stage.argv)
+
+    def test_windows_pre_sdd_review_selection_keeps_only_portable_gates(self) -> None:
+        names = [
+            stage.name
+            for stage in self._selected("windows-portable", skill="pre-sdd-review")
+        ]
+        self.assertEqual(
+            names,
+            ["product-contract", "pre-sdd-review-contract", "python-compile"],
+        )
 
     def test_selected_stages_use_sys_executable_and_tuple_argv(self) -> None:
         selections = (
