@@ -355,13 +355,49 @@ class ReportingTests(unittest.TestCase):
             "pattern_key": "escaped-threshold",
             "consequence_category": "avoidable-rework",
         }
-        one_escape_review = _review(
+        same_run_review = _review(
             run_number=240,
+            verdict="REVISE",
+            findings=[_finding(
+                finding_class="coverage",
+                pattern_key="escaped-threshold",
+                consequence_category="avoidable-rework",
+                status="unresolved",
+            )],
+        )
+        same_run_outcome = schema.validate_outcome(_outcome(
+            same_run_review,
+            label="noisy",
+            basis="agent-observed",
+            escaped=[_escaped(
+                finding_class="coverage",
+                pattern_key="escaped-threshold",
+                consequence_category="avoidable-rework",
+                basis="agent-observed",
+            )],
+            disputed=[_disputed(
+                finding_class="coverage",
+                pattern_key="escaped-threshold",
+                consequence_category="avoidable-rework",
+                basis="agent-observed",
+            )],
+            evaluated=["PSDR-001"],
+        ), same_run_review)
+        self.persist(same_run_review, same_run_outcome)
+        same_run_records = reporting.load_records(self.paths)
+        self.assertEqual(len(same_run_records), 1)
+        self.assertFalse(any(
+            item.group == escaped_group
+            for item in reporting.select_candidates(same_run_records)
+        ))
+
+        second_escape_review = _review(
+            run_number=241,
             verdict="REVISE",
             findings=[_finding(status="unresolved")],
         )
-        one_escape = self.record(one_escape_review, _outcome(
-            one_escape_review,
+        second_escape_outcome = schema.validate_outcome(_outcome(
+            second_escape_review,
             label="inconclusive",
             basis="agent-observed",
             escaped=[_escaped(
@@ -370,26 +406,12 @@ class ReportingTests(unittest.TestCase):
                 consequence_category="avoidable-rework",
                 basis="agent-observed",
             )],
-        ))
-        duplicate_observation = self.record(one_escape_review, _outcome(
-            one_escape_review,
-            label="inconclusive",
-            basis="agent-observed",
-            escaped=[
-                _escaped(finding_class="coverage", pattern_key="escaped-threshold", consequence_category="avoidable-rework", basis="agent-observed"),
-                _escaped(finding_class="coverage", pattern_key="escaped-threshold", consequence_category="avoidable-rework", basis="agent-observed"),
-            ],
-        ))
-        self.assertFalse(any(item.group == escaped_group for item in reporting.select_candidates([one_escape])))
-        self.assertFalse(any(item.group == escaped_group for item in reporting.select_candidates([duplicate_observation])))
-        second_escape_review = _review(run_number=241, verdict="REVISE", findings=[_finding(status="unresolved")])
-        second_escape = self.record(second_escape_review, _outcome(
-            second_escape_review,
-            label="inconclusive",
-            basis="agent-observed",
-            escaped=[_escaped(finding_class="coverage", pattern_key="escaped-threshold", consequence_category="avoidable-rework", basis="agent-observed")],
-        ))
-        escaped_candidate = next(item for item in reporting.select_candidates([one_escape, second_escape]) if item.group == escaped_group)
+        ), second_escape_review)
+        self.persist(second_escape_review, second_escape_outcome)
+        escaped_candidate = next(
+            item for item in reporting.select_candidates(reporting.load_records(self.paths))
+            if item.group == escaped_group
+        )
         self.assertEqual(escaped_candidate.source_run_count, 2)
 
         authority_review = _review(run_number=242, verdict="REVISE", findings=[_finding(status="unresolved")])
