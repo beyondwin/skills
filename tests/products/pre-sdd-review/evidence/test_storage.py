@@ -200,8 +200,12 @@ class StorageLifecycleTests(unittest.TestCase):
         for record in (active, interrupted, stale):
             storage.create_pending(self.paths, record)
         corrupt = self.paths.runs / "2026/08/00000000-0000-4000-8000-000000000000"
-        corrupt.mkdir(parents=True)
+        corrupt.mkdir(mode=0o700, parents=True)
+        if os.name == "posix":
+            corrupt.chmod(0o700)
         (corrupt / "review.json").write_bytes(b"{broken")
+        if os.name == "posix":
+            (corrupt / "review.json").chmod(0o600)
         scan = storage.scan_runs(self.paths, now="2026-08-30T10:00:00Z")
         self.assertEqual(
             sorted(item.age_class for item in scan.pending),
@@ -284,6 +288,79 @@ class StorageLifecycleTests(unittest.TestCase):
         )
         self.assertFalse((paths.runs / f".staging-{pending['run_id']}").exists())
 
+    def test_start_collision_never_follows_symlinked_destination(self) -> None:
+        paths = storage.EvidencePaths.from_home(self.root / "start-symlink-race")
+        pending = pending_record()
+        outside = self.root / "outside-start"
+        outside.mkdir(mode=0o700)
+        external = outside / ".pending.json"
+        external.write_bytes(canonical_json_bytes(pending))
+        if os.name == "posix":
+            external.chmod(0o600)
+        original_publish = storage.publish_directory_no_replace
+
+        def race(source: Path, destination: Path) -> None:
+            destination.symlink_to(outside, target_is_directory=True)
+            original_publish(source, destination)
+
+        with mock.patch.object(storage, "publish_directory_no_replace", side_effect=race):
+            with self.assertRaisesRegex(EvidenceError, "unsafe"):
+                storage.create_pending(paths, pending)
+        destination = paths.run_directory(str(pending["run_id"]), str(pending["started_at"]))
+        self.assertTrue(destination.is_symlink())
+        self.assertEqual(external.read_bytes(), canonical_json_bytes(pending))
+        self.assertTrue((paths.runs / f".staging-{pending['run_id']}").exists())
+
+    def test_recovery_never_follows_symlinked_destination(self) -> None:
+        paths = storage.EvidencePaths.from_home(self.root / "recovery-symlink-race")
+        pending = pending_record()
+        with self.assertRaises(RuntimeError):
+            storage.create_pending(
+                paths, pending,
+                interruption_hook=lambda point, _path: (
+                    (_ for _ in ()).throw(RuntimeError("stop"))
+                    if point == "pending-fsynced" else None
+                ),
+            )
+        outside = self.root / "outside-recovery"
+        outside.mkdir(mode=0o700)
+        external = outside / ".pending.json"
+        external.write_bytes(canonical_json_bytes(pending))
+        if os.name == "posix":
+            external.chmod(0o600)
+        destination = paths.run_directory(str(pending["run_id"]), str(pending["started_at"]))
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if os.name == "posix":
+            destination.parent.parent.chmod(0o700)
+            destination.parent.chmod(0o700)
+        destination.symlink_to(outside, target_is_directory=True)
+
+        unresolved = storage.recover_staging(paths)
+
+        self.assertEqual(unresolved, (pending["run_id"],))
+        self.assertTrue(destination.is_symlink())
+        self.assertEqual(external.read_bytes(), canonical_json_bytes(pending))
+        self.assertTrue((paths.runs / f".staging-{pending['run_id']}").exists())
+
+    def test_terminal_reconciliation_never_follows_symlinked_review(self) -> None:
+        pending = pending_record()
+        handle = storage.create_pending(self.paths, pending)
+        review = completed_review(pending)
+        outside = self.root / "outside-review.json"
+        outside.write_bytes(canonical_json_bytes(review))
+        if os.name == "posix":
+            outside.chmod(0o600)
+        final = handle.directory / "review.json"
+        final.symlink_to(outside)
+
+        with self.assertRaises(EvidenceError) as caught:
+            storage.finish_review(self.paths, handle.run_id, review)
+        self.assertEqual(caught.exception.code, "unsafe-evidence-path")
+
+        self.assertTrue(final.is_symlink())
+        self.assertEqual(outside.read_bytes(), canonical_json_bytes(review))
+        self.assertTrue((handle.directory / ".pending.json").exists())
+
     def test_injected_linux_binding_uses_renameat2_noreplace(self) -> None:
         calls: list[tuple[object, ...]] = []
 
@@ -345,6 +422,186 @@ class StorageLifecycleTests(unittest.TestCase):
             storage.scan_runs(self.paths)
             storage.doctor(self.paths)
         self.assertGreaterEqual(reader.call_count, 3)
+
+    def test_pending_review_scan_and_doctor_read_exactly_limit_plus_one(self) -> None:
+        pending_only = pending_record()
+        pending_handle = storage.create_pending(self.paths, pending_only)
+        completed_pending = pending_record()
+        completed_handle = storage.create_pending(self.paths, completed_pending)
+        storage.finish_review(
+            self.paths, completed_handle.run_id, completed_review(completed_pending)
+        )
+        original_open = Path.open
+        reads: list[tuple[str, int]] = []
+
+        class StreamProxy:
+            def __init__(self, stream: object, name: str) -> None:
+                self.stream = stream
+                self.name = name
+
+            def __enter__(self) -> "StreamProxy":
+                self.stream.__enter__()
+                return self
+
+            def __exit__(self, *args: object) -> object:
+                return self.stream.__exit__(*args)
+
+            def read(self, size: int = -1) -> bytes:
+                if size != storage.REVIEW_HARD_LIMIT + 1:
+                    raise AssertionError(f"unbounded or wrong read size: {size}")
+                reads.append((self.name, size))
+                return self.stream.read(size)
+
+            def __getattr__(self, name: str) -> object:
+                return getattr(self.stream, name)
+
+        def spy_open(path: Path, *args: object, **kwargs: object) -> StreamProxy:
+            return StreamProxy(original_open(path, *args, **kwargs), path.name)
+
+        with mock.patch.object(Path, "open", spy_open), mock.patch.object(
+            Path, "read_bytes", side_effect=AssertionError("Path.read_bytes forbidden")
+        ), mock.patch.object(
+            Path, "read_text", side_effect=AssertionError("Path.read_text forbidden")
+        ):
+            storage.load_pending(self.paths, pending_handle.run_id)
+            storage.load_review(self.paths, completed_handle.run_id)
+            storage.scan_runs(self.paths)
+            storage.doctor(self.paths)
+
+        self.assertIn((".pending.json", storage.REVIEW_HARD_LIMIT + 1), reads)
+        self.assertIn(("review.json", storage.REVIEW_HARD_LIMIT + 1), reads)
+        self.assertTrue(all(size == storage.REVIEW_HARD_LIMIT + 1 for _, size in reads))
+
+    def test_recovery_promotion_races_preserve_empty_corrupt_and_nonempty_destinations(self) -> None:
+        original_publish = storage.publish_directory_no_replace
+        for case in ("empty", "corrupt", "nonempty"):
+            with self.subTest(case=case):
+                paths = storage.EvidencePaths.from_home(self.root / f"recover-race-{case}")
+                pending = pending_record()
+                with self.assertRaises(RuntimeError):
+                    storage.create_pending(
+                        paths, pending,
+                        interruption_hook=lambda point, _path: (
+                            (_ for _ in ()).throw(RuntimeError("stop"))
+                            if point == "pending-fsynced" else None
+                        ),
+                    )
+                captured: dict[str, object] = {}
+
+                def race(source: Path, destination: Path) -> None:
+                    destination.mkdir(mode=0o700)
+                    if case == "corrupt":
+                        file = destination / ".pending.json"
+                        file.write_bytes(b"{broken")
+                        if os.name == "posix":
+                            file.chmod(0o600)
+                    elif case == "nonempty":
+                        file = destination / "winner"
+                        file.write_bytes(b"preserve")
+                        if os.name == "posix":
+                            file.chmod(0o600)
+                    captured["destination"] = destination
+                    captured["before"] = sorted(
+                        (item.name, item.read_bytes()) for item in destination.iterdir()
+                    )
+                    original_publish(source, destination)
+
+                with mock.patch.object(storage, "publish_directory_no_replace", side_effect=race):
+                    unresolved = storage.recover_staging(paths)
+                destination = captured["destination"]
+                assert isinstance(destination, Path)
+                self.assertEqual(unresolved, (pending["run_id"],))
+                self.assertEqual(
+                    sorted((item.name, item.read_bytes()) for item in destination.iterdir()),
+                    captured["before"],
+                )
+                self.assertTrue((paths.runs / f".staging-{pending['run_id']}").exists())
+
+    def test_doctor_reports_safety_staleness_and_compatibility_without_repair(self) -> None:
+        if os.name == "posix":
+            unsafe_home = self.root / "doctor-unsafe-home"
+            unsafe_home.mkdir(mode=0o755)
+            unsafe_home.chmod(0o755)
+            home_mode = stat.S_IMODE(unsafe_home.stat().st_mode)
+            home_codes = {
+                item["code"]
+                for item in storage.doctor(storage.EvidencePaths.from_home(unsafe_home))
+            }
+            self.assertIn("unsafe-evidence-home", home_codes)
+            self.assertEqual(stat.S_IMODE(unsafe_home.stat().st_mode), home_mode)
+
+            unsafe_runs_home = self.root / "doctor-unsafe-runs"
+            unsafe_runs_home.mkdir(mode=0o700)
+            unsafe_runs = unsafe_runs_home / "runs"
+            unsafe_runs.mkdir(mode=0o755)
+            unsafe_runs.chmod(0o755)
+            runs_mode = stat.S_IMODE(unsafe_runs.stat().st_mode)
+            runs_codes = {
+                item["code"]
+                for item in storage.doctor(storage.EvidencePaths.from_home(unsafe_runs_home))
+            }
+            self.assertIn("unsafe-runs-root", runs_codes)
+            self.assertEqual(stat.S_IMODE(unsafe_runs.stat().st_mode), runs_mode)
+
+        unsafe_entry_paths = storage.EvidencePaths.from_home(self.root / "doctor-run-link")
+        storage._ensure_roots(unsafe_entry_paths)
+        month = unsafe_entry_paths.runs / "2026/08"
+        month.mkdir(parents=True)
+        if os.name == "posix":
+            month.parent.chmod(0o700)
+            month.chmod(0o700)
+        outside = self.root / "doctor-outside-run"
+        outside.mkdir(mode=0o700)
+        run_id = "00000000-0000-4000-8000-000000000000"
+        (month / run_id).symlink_to(outside, target_is_directory=True)
+        link_codes = {item["code"] for item in storage.doctor(unsafe_entry_paths)}
+        self.assertIn("unsafe-run-entry", link_codes)
+        self.assertTrue((month / run_id).is_symlink())
+
+        stale_paths = storage.EvidencePaths.from_home(self.root / "doctor-stale")
+        stale = pending_record(started_at="2000-01-01T00:00:00Z")
+        stale_handle = storage.create_pending(stale_paths, stale)
+        stale_bytes = (stale_handle.directory / ".pending.json").read_bytes()
+        stale_codes = {item["code"] for item in storage.doctor(stale_paths)}
+        self.assertIn("stale-pending", stale_codes)
+        self.assertEqual((stale_handle.directory / ".pending.json").read_bytes(), stale_bytes)
+
+        for label, mutation, expected_code in (
+            ("schema", lambda review: review.__setitem__("schema_version", 2), "unsupported-schema-version"),
+            ("cli", lambda review: review["skill"].__setitem__("cli_version", "2.0.0"), "incompatible-cli"),
+        ):
+            with self.subTest(label=label):
+                paths = storage.EvidencePaths.from_home(self.root / f"doctor-{label}")
+                pending = pending_record()
+                handle = storage.create_pending(paths, pending)
+                review = completed_review(pending)
+                mutation(review)
+                final = handle.directory / "review.json"
+                final.write_bytes(canonical_json_bytes(review))
+                if os.name == "posix":
+                    final.chmod(0o600)
+                before = final.read_bytes()
+                codes = {item["code"] for item in storage.doctor(paths)}
+                self.assertIn(expected_code, codes)
+                self.assertEqual(final.read_bytes(), before)
+
+        for label, mutation, expected_code in (
+            ("pending-schema", lambda pending: pending.__setitem__("schema_version", 2), "unsupported-schema-version"),
+            ("pending-cli", lambda pending: pending["skill"].__setitem__("cli_version", "2.0.0"), "incompatible-cli"),
+        ):
+            with self.subTest(label=label):
+                paths = storage.EvidencePaths.from_home(self.root / f"doctor-{label}")
+                pending = pending_record()
+                handle = storage.create_pending(paths, pending)
+                mutation(pending)
+                pending_path = handle.directory / ".pending.json"
+                pending_path.write_bytes(canonical_json_bytes(pending))
+                if os.name == "posix":
+                    pending_path.chmod(0o600)
+                before = pending_path.read_bytes()
+                codes = {item["code"] for item in storage.doctor(paths)}
+                self.assertIn(expected_code, codes)
+                self.assertEqual(pending_path.read_bytes(), before)
 
 
 if __name__ == "__main__":

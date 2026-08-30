@@ -16,7 +16,7 @@ import uuid
 from collections.abc import Callable, Mapping
 from pathlib import Path
 
-from . import SCHEMA_VERSION
+from . import CLI_VERSION, SCHEMA_VERSION
 from .schema import (
     REVIEW_HARD_LIMIT,
     EvidenceError,
@@ -142,6 +142,13 @@ def _validate_regular(path: Path, *, private: bool = True) -> os.stat_result:
     info = path.lstat()
     if stat.S_ISLNK(info.st_mode) or not stat.S_ISREG(info.st_mode) or (private and not _is_private(info)):
         _fail("unsafe-evidence-path", "evidence records must be private regular files")
+    return info
+
+
+def _validate_run_directory(path: Path) -> os.stat_result:
+    info = path.lstat()
+    if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode) or not _is_private(info):
+        _fail("unsafe-evidence-path", "run destination is unsafe")
     return info
 
 
@@ -337,6 +344,7 @@ def create_pending(
         except EvidenceError as exc:
             if exc.code != "already-exists":
                 raise
+            _validate_run_directory(destination)
             existing = destination / ".pending.json"
             if _lstat(existing) is not None and canonical_json_bytes(_load_pending_path(existing)) == canonical_json_bytes(record):
                 shutil.rmtree(staging)
@@ -383,6 +391,7 @@ def recover_staging(paths: EvidencePaths) -> tuple[str, ...]:
             except EvidenceError as exc:
                 if exc.code != "already-exists":
                     raise
+                _validate_run_directory(destination)
                 existing = destination / ".pending.json"
                 if _lstat(existing) is None:
                     raise
@@ -436,6 +445,7 @@ def _existing_review_result(paths: EvidencePaths, run_id: str, payload: bytes | 
     final = directory / "review.json"
     if _lstat(final) is None:
         return None
+    _validate_regular(final)
     existing = validate_review(read_bounded_json(final, REVIEW_HARD_LIMIT))
     existing_bytes = canonical_json_bytes(existing)
     matches = payload is not None and hmac.compare_digest(existing_bytes, payload)
@@ -574,17 +584,44 @@ def _now(value: str | None) -> dt.datetime:
 
 
 def _run_directories(paths: EvidencePaths) -> list[Path]:
-    if _lstat(paths.runs) is None:
+    runs_info = _lstat(paths.runs)
+    if runs_info is None:
+        return []
+    if (
+        stat.S_ISLNK(runs_info.st_mode)
+        or not stat.S_ISDIR(runs_info.st_mode)
+        or not _is_private(runs_info)
+    ):
         return []
     result: list[Path] = []
     for year in paths.runs.iterdir():
-        if year.name.startswith(".") or year.is_symlink() or not year.is_dir():
+        year_info = _lstat(year)
+        if (
+            year.name.startswith(".")
+            or year_info is None
+            or stat.S_ISLNK(year_info.st_mode)
+            or not stat.S_ISDIR(year_info.st_mode)
+            or not _is_private(year_info)
+        ):
             continue
         for month in year.iterdir():
-            if month.is_symlink() or not month.is_dir():
+            month_info = _lstat(month)
+            if (
+                month_info is None
+                or stat.S_ISLNK(month_info.st_mode)
+                or not stat.S_ISDIR(month_info.st_mode)
+                or not _is_private(month_info)
+            ):
                 continue
             for run in month.iterdir():
-                if not run.is_symlink() and run.is_dir() and _RUN_ID.fullmatch(run.name):
+                run_info = _lstat(run)
+                if (
+                    run_info is not None
+                    and not stat.S_ISLNK(run_info.st_mode)
+                    and stat.S_ISDIR(run_info.st_mode)
+                    and _is_private(run_info)
+                    and _RUN_ID.fullmatch(run.name)
+                ):
                     result.append(run)
     return sorted(result)
 
@@ -615,14 +652,91 @@ def scan_runs(paths: EvidencePaths, *, now: str | None = None) -> ScanResult:
 
 def doctor(paths: EvidencePaths) -> tuple[dict[str, str], ...]:
     issues: list[dict[str, str]] = []
-    for entry in scan_runs(paths).corrupt:
-        issues.append({"code": "corrupt-record", "run_id": entry})
-    if _lstat(paths.runs) is not None:
-        for item in paths.runs.iterdir():
-            if item.name.startswith(".staging-"):
-                issues.append({"code": "stranded-staging", "run_id": item.name[9:]})
-        for directory in _run_directories(paths):
-            for item in directory.iterdir():
-                if item.name == ".write.lock" or item.name.endswith(".tmp"):
-                    issues.append({"code": "abandoned-artifact", "run_id": directory.name})
+
+    home_info = _lstat(paths.home)
+    if home_info is None:
+        return ()
+    if (
+        stat.S_ISLNK(home_info.st_mode)
+        or not stat.S_ISDIR(home_info.st_mode)
+        or not _is_private(home_info)
+    ):
+        return ({"code": "unsafe-evidence-home", "run_id": "evidence-home"},)
+    runs_info = _lstat(paths.runs)
+    if runs_info is None:
+        return ()
+    if (
+        stat.S_ISLNK(runs_info.st_mode)
+        or not stat.S_ISDIR(runs_info.st_mode)
+        or not _is_private(runs_info)
+    ):
+        return ({"code": "unsafe-runs-root", "run_id": "runs"},)
+
+    safe_runs: list[Path] = []
+    for year in sorted(paths.runs.iterdir(), key=lambda item: item.name):
+        if year.name.startswith(".staging-"):
+            staging_info = _lstat(year)
+            if staging_info is None or stat.S_ISLNK(staging_info.st_mode) or not stat.S_ISDIR(staging_info.st_mode) or not _is_private(staging_info):
+                issues.append({"code": "unsafe-run-entry", "run_id": year.name[9:]})
+            else:
+                issues.append({"code": "stranded-staging", "run_id": year.name[9:]})
+            continue
+        year_info = _lstat(year)
+        if year_info is None or stat.S_ISLNK(year_info.st_mode) or not stat.S_ISDIR(year_info.st_mode) or not _is_private(year_info) or re.fullmatch(r"[0-9]{4}", year.name) is None:
+            issues.append({"code": "unsafe-run-entry", "run_id": year.name})
+            continue
+        for month in sorted(year.iterdir(), key=lambda item: item.name):
+            month_info = _lstat(month)
+            if month_info is None or stat.S_ISLNK(month_info.st_mode) or not stat.S_ISDIR(month_info.st_mode) or not _is_private(month_info) or re.fullmatch(r"(?:0[1-9]|1[0-2])", month.name) is None:
+                issues.append({"code": "unsafe-run-entry", "run_id": month.name})
+                continue
+            for run in sorted(month.iterdir(), key=lambda item: item.name):
+                run_info = _lstat(run)
+                if run_info is None or stat.S_ISLNK(run_info.st_mode) or not stat.S_ISDIR(run_info.st_mode) or not _is_private(run_info) or _RUN_ID.fullmatch(run.name) is None:
+                    issues.append({"code": "unsafe-run-entry", "run_id": run.name})
+                    continue
+                safe_runs.append(run)
+
+    instant = dt.datetime.now(dt.timezone.utc)
+    for directory in safe_runs:
+        run_id = directory.name
+        final = directory / "review.json"
+        pending_path = directory / ".pending.json"
+        try:
+            if _lstat(final) is not None:
+                _validate_regular(final)
+                raw = read_bounded_json(final, REVIEW_HARD_LIMIT)
+                if not isinstance(raw, dict):
+                    raise EvidenceError("invalid-json", "review is not an object")
+                if raw.get("schema_version") != SCHEMA_VERSION:
+                    issues.append({"code": "unsupported-schema-version", "run_id": run_id})
+                    continue
+                skill = raw.get("skill")
+                if not isinstance(skill, dict) or skill.get("cli_version") != CLI_VERSION:
+                    issues.append({"code": "incompatible-cli", "run_id": run_id})
+                    continue
+                validate_review(raw)
+            elif _lstat(pending_path) is not None:
+                _validate_regular(pending_path)
+                raw_pending = read_bounded_json(pending_path, PENDING_HARD_LIMIT)
+                if not isinstance(raw_pending, dict):
+                    raise EvidenceError("invalid-json", "pending record is not an object")
+                if raw_pending.get("schema_version") != SCHEMA_VERSION:
+                    issues.append({"code": "unsupported-schema-version", "run_id": run_id})
+                    continue
+                pending_skill = raw_pending.get("skill")
+                if not isinstance(pending_skill, dict) or pending_skill.get("cli_version") != CLI_VERSION:
+                    issues.append({"code": "incompatible-cli", "run_id": run_id})
+                    continue
+                pending = _validate_pending(raw_pending)
+                if instant - _parse_time(str(pending["started_at"])) > dt.timedelta(days=7):
+                    issues.append({"code": "stale-pending", "run_id": run_id})
+        except EvidenceError as exc:
+            code = "unsafe-receipt-entry" if exc.code == "unsafe-evidence-path" else "corrupt-record"
+            issues.append({"code": code, "run_id": run_id})
+        except (OSError, ValueError):
+            issues.append({"code": "corrupt-record", "run_id": run_id})
+        for item in directory.iterdir():
+            if item.name == ".write.lock" or item.name.endswith(".tmp"):
+                issues.append({"code": "abandoned-artifact", "run_id": run_id})
     return tuple(issues)

@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 import io
+import hashlib
 import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
-from support import make_git_repo, write
+from support import make_git_repo, pending_record, write
 
 from pre_sdd_review_evidence import cli
+from pre_sdd_review_evidence import storage
 
 
 class CliTests(unittest.TestCase):
@@ -75,6 +78,33 @@ class CliTests(unittest.TestCase):
         self.assertEqual((code, error), (0, ""))
         self.assertEqual(result, {"status": "recorded", "run_id": run_id, "sha256": result["sha256"]})
 
+    def test_finish_hashes_persisted_design_path_when_plan_spec_changes(self) -> None:
+        first_design = b"# Original design\n"
+        second_design = b"# Replacement design\n"
+        (self.repo / "docs/design-a.md").write_bytes(first_design)
+        (self.repo / "docs/design-b.md").write_bytes(second_design)
+        write(self.repo / "docs/plan.md", "# Plan\n\n**Spec:** docs/design-a.md\n")
+        started = self.start()
+        self.assertEqual(started["design_path"], "docs/design-a.md")
+        write(self.repo / "docs/plan.md", "# Plan\n\n**Spec:** docs/design-b.md\n")
+
+        code, output, error = self.run_cli([
+            "finish-review", "--run-id", str(started["run_id"]),
+            "--repo", str(self.repo), "--from-stdin",
+        ], json.dumps(self.semantic()))
+
+        self.assertEqual((code, error), (0, ""))
+        self.assertEqual(json.loads(output)["status"], "recorded")
+        review = json.loads(self.run_cli(["show", "--run-id", str(started["run_id"])])[1])
+        self.assertEqual(
+            review["freshness"]["design_final_sha256"],
+            hashlib.sha256(first_design).hexdigest(),
+        )
+        self.assertNotEqual(
+            review["freshness"]["design_final_sha256"],
+            hashlib.sha256(second_design).hexdigest(),
+        )
+
     def test_argument_and_stdin_semantics_share_one_normalization_path(self) -> None:
         first = self.start()
         second = self.start()
@@ -96,6 +126,75 @@ class CliTests(unittest.TestCase):
             record["metrics"].pop("elapsed_ms")
             record["metrics"].pop("recorder_elapsed_ms")
         self.assertEqual(first_review, second_review)
+
+    def test_finish_public_retry_uses_semantics_not_regenerated_times(self) -> None:
+        started = self.start()
+        command = [
+            "finish-review", "--run-id", str(started["run_id"]),
+            "--repo", str(self.repo), "--from-stdin",
+        ]
+        first_code, first_output, first_error = self.run_cli(
+            command, json.dumps(self.semantic())
+        )
+        self.assertEqual((first_code, first_error), (0, ""))
+        first = json.loads(first_output)
+
+        second_code, second_output, second_error = self.run_cli(
+            command, json.dumps(self.semantic())
+        )
+
+        self.assertEqual((second_code, second_error), (0, ""))
+        self.assertEqual(json.loads(second_output), first)
+        other_workspace = self.workspace / "retry-other"
+        other_workspace.mkdir()
+        other_repo = make_git_repo(other_workspace)
+        wrong_repo_command = command.copy()
+        wrong_repo_command[wrong_repo_command.index(str(self.repo))] = str(other_repo)
+        code, output, error = self.run_cli(
+            wrong_repo_command, json.dumps(self.semantic())
+        )
+        self.assertNotEqual(code, 0)
+        self.assertEqual(output, "")
+        self.assertEqual(json.loads(error)["error"]["code"], "wrong-repository")
+        conflict = self.semantic()
+        conflict["review_passes"] = 2
+        code, output, error = self.run_cli(command, json.dumps(conflict))
+        self.assertNotEqual(code, 0)
+        self.assertEqual(output, "")
+        self.assertEqual(json.loads(error)["error"]["code"], "already-finalized")
+
+    def test_finish_retry_reconciles_final_beside_pending_after_interruption(self) -> None:
+        started = self.start()
+        command = [
+            "finish-review", "--run-id", str(started["run_id"]),
+            "--repo", str(self.repo), "--from-stdin",
+        ]
+        real_finish = storage.finish_review
+
+        def interrupted(paths: storage.EvidencePaths, run_id: str, review: object) -> object:
+            return real_finish(
+                paths,
+                run_id,
+                review,
+                interruption_hook=lambda point, _path: (
+                    (_ for _ in ()).throw(RuntimeError("interrupted"))
+                    if point == "review-published"
+                    else None
+                ),
+            )
+
+        with mock.patch.object(cli.storage, "finish_review", side_effect=interrupted):
+            with self.assertRaisesRegex(RuntimeError, "interrupted"):
+                self.run_cli(command, json.dumps(self.semantic()))
+        run_dir = next(self.home.glob(f"runs/*/*/{started['run_id']}"))
+        self.assertTrue((run_dir / "review.json").exists())
+        self.assertTrue((run_dir / ".pending.json").exists())
+
+        code, output, error = self.run_cli(command, json.dumps(self.semantic()))
+
+        self.assertEqual((code, error), (0, ""))
+        self.assertEqual(json.loads(output)["status"], "recorded")
+        self.assertFalse((run_dir / ".pending.json").exists())
 
     def test_mixed_or_oversized_input_and_mode_mismatch_fail(self) -> None:
         started = self.start(mode="review-only")
@@ -240,6 +339,68 @@ class CliTests(unittest.TestCase):
         self.assertIn("identity-state-invalid", {item["code"] for item in report["issues"]})
         self.assertEqual(key.read_bytes(), b"short")
         self.assertNotEqual(key.read_bytes(), original)
+
+    def test_mutators_recover_staging_and_read_only_commands_leave_it_unchanged(self) -> None:
+        def strand(paths: storage.EvidencePaths) -> tuple[dict[str, object], Path, Path, bytes]:
+            record = pending_record()
+            with self.assertRaises(RuntimeError):
+                storage.create_pending(
+                    paths,
+                    record,
+                    interruption_hook=lambda point, _path: (
+                        (_ for _ in ()).throw(RuntimeError("stop"))
+                        if point == "pending-fsynced" else None
+                    ),
+                )
+            staging = paths.runs / f".staging-{record['run_id']}"
+            destination = paths.run_directory(str(record["run_id"]), str(record["started_at"]))
+            return record, staging, destination, (staging / ".pending.json").read_bytes()
+
+        for command in ("start", "finish-review", "abandon"):
+            with self.subTest(mutator=command):
+                self.home = self.workspace / f"mutator-{command}"
+                target = self.start()
+                paths = storage.EvidencePaths.from_home(self.home)
+                _record, staging, destination, _bytes = strand(paths)
+                if command == "start":
+                    code, _output, error = self.run_cli([
+                        "start", "--skill-root", str(self.skill), "--plan", "docs/plan.md",
+                        "--client", "cursor", "--mode", "default",
+                    ])
+                elif command == "finish-review":
+                    code, _output, error = self.run_cli([
+                        "finish-review", "--run-id", str(target["run_id"]),
+                        "--repo", str(self.repo), "--from-stdin",
+                    ], json.dumps(self.semantic()))
+                else:
+                    code, _output, error = self.run_cli([
+                        "abandon", "--run-id", str(target["run_id"]),
+                        "--reason", "client-interrupted",
+                    ])
+                self.assertEqual((code, error), (0, ""))
+                self.assertFalse(staging.exists())
+                self.assertTrue((destination / ".pending.json").exists())
+
+        self.home = self.workspace / "read-only-matrix"
+        target = self.start()
+        paths = storage.EvidencePaths.from_home(self.home)
+        _record, staging, destination, staged_bytes = strand(paths)
+        read_commands = (
+            ["--version"],
+            ["show", "--run-id", str(target["run_id"])],
+            ["pending"],
+            ["doctor"],
+        )
+        for command in read_commands:
+            with self.subTest(read_only=command[0]):
+                self.run_cli(command)
+                self.assertTrue(staging.exists())
+                self.assertFalse(destination.exists())
+                self.assertEqual((staging / ".pending.json").read_bytes(), staged_bytes)
+        storage.scan_runs(paths)
+        self.assertTrue(staging.exists())
+        self.assertFalse(destination.exists())
+        self.assertEqual((staging / ".pending.json").read_bytes(), staged_bytes)
 
     def test_failures_are_one_bounded_json_object_without_absolute_paths(self) -> None:
         code, output, error = self.run_cli(["show", "--run-id", "00000000-0000-4000-8000-000000000000"])

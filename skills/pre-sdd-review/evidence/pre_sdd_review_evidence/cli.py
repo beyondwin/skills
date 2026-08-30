@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import dataclasses
 import datetime as dt
 import hashlib
@@ -16,7 +17,14 @@ from typing import TextIO
 
 from . import CLI_VERSION, SCHEMA_VERSION
 from . import repository, storage
-from .schema import CLIENT_IDS, REVIEW_HARD_LIMIT, EvidenceError, canonical_json_bytes
+from .schema import (
+    CLIENT_IDS,
+    REVIEW_HARD_LIMIT,
+    EvidenceError,
+    canonical_json_bytes,
+    read_bounded_bytes,
+    validate_review,
+)
 
 
 _FINISH_FIELDS = {
@@ -191,6 +199,47 @@ def _verified_freshness(
 ) -> dict[str, object]:
     target = pending["target"]
     assert isinstance(target, dict)
+    _verify_repository(target, repo_locator, key, pending=pending)
+    if target["resolution_status"] == "not-git-repository":
+        return {"final_head": None, "final_dirty": None, "plan_final_sha256": None, "design_final_sha256": None}
+    root = repository._git_root(repo_locator)
+    git = repository.git_snapshot(root)
+
+    def persisted_hash(path_value: object, initial_hash: object) -> str | None:
+        if initial_hash is None:
+            return None
+        if not isinstance(path_value, str):
+            raise EvidenceError("schema-invalid", "recorded document path is unavailable")
+        candidate = (root / Path(path_value)).resolve()
+        try:
+            candidate.relative_to(root)
+        except ValueError as exc:
+            raise EvidenceError("outside-repository", "recorded document escaped the repository") from exc
+        if not candidate.is_file():
+            raise EvidenceError("target-unavailable", "recorded document is unavailable")
+        return hashlib.sha256(
+            read_bounded_bytes(candidate, repository.DOCUMENT_LIMIT)
+        ).hexdigest()
+
+    return {
+        "final_head": git.head,
+        "final_dirty": git.dirty,
+        "plan_final_sha256": persisted_hash(
+            target["plan_path"], target["plan_initial_sha256"]
+        ),
+        "design_final_sha256": persisted_hash(
+            target["design_path"], target["design_initial_sha256"]
+        ),
+    }
+
+
+def _verify_repository(
+    target: dict[str, object],
+    repo_locator: Path,
+    key: bytes,
+    *,
+    pending: dict[str, object] | None,
+) -> None:
     if target["resolution_status"] == "not-git-repository":
         try:
             repository._git_root(repo_locator)
@@ -199,32 +248,90 @@ def _verified_freshness(
                 raise
         else:
             raise EvidenceError("wrong-repository", "repository identity does not match")
-        if not hmac.compare_digest(str(pending["start_locator_binding"]), _locator_binding(key, repo_locator)):
+        if pending is not None and not hmac.compare_digest(
+            str(pending["start_locator_binding"]), _locator_binding(key, repo_locator)
+        ):
             raise EvidenceError("wrong-repository", "repository identity does not match")
-        return {"final_head": None, "final_dirty": None, "plan_final_sha256": None, "design_final_sha256": None}
+        return
     try:
         root = repository._git_root(repo_locator)
     except EvidenceError as exc:
         raise EvidenceError("wrong-repository", "repository identity does not match") from exc
     if not hmac.compare_digest(str(target["repo_id"]), repository.repository_id(root, key)):
         raise EvidenceError("wrong-repository", "repository identity does not match")
-    plan_path = target["plan_path"]
-    current = repository.resolve_target(root, Path(str(plan_path)) if plan_path is not None else Path("."), key)
-    git = repository.git_snapshot(root)
+
+
+def _review_semantics(review: dict[str, object]) -> dict[str, object]:
+    protocol = review["protocol"]
+    result = review["result"]
+    metrics = review["metrics"]
+    assert isinstance(protocol, dict) and isinstance(result, dict) and isinstance(metrics, dict)
     return {
-        "final_head": git.head,
-        "final_dirty": git.dirty,
-        "plan_final_sha256": current.plan_initial_sha256 if target["plan_initial_sha256"] is not None else None,
-        "design_final_sha256": current.design_initial_sha256 if target["design_initial_sha256"] is not None else None,
+        "mode": protocol["mode"],
+        "execution": protocol["execution"],
+        "reviewer_count": protocol["reviewer_count"],
+        "fresh_reviewer": protocol["fresh_reviewer"],
+        "read_only_enforced": protocol["read_only_enforced"],
+        "conditional_trigger": protocol["conditional_trigger"],
+        "degraded_reasons": protocol["degraded_reasons"],
+        "verdict": result["verdict"],
+        "block_reason": result["block_reason"],
+        "review_passes": result["review_passes"],
+        "repair_passes": result["repair_passes"],
+        "findings": result["findings"],
+        "token_usage": metrics["token_usage"],
     }
+
+
+def _candidate_retry_review(
+    existing: dict[str, object], semantic: dict[str, object]
+) -> dict[str, object]:
+    candidate = copy.deepcopy(existing)
+    protocol = candidate["protocol"]
+    result = candidate["result"]
+    metrics = candidate["metrics"]
+    assert isinstance(protocol, dict) and isinstance(result, dict) and isinstance(metrics, dict)
+    for key in (
+        "mode", "execution", "reviewer_count", "fresh_reviewer",
+        "read_only_enforced", "conditional_trigger", "degraded_reasons",
+    ):
+        protocol[key] = semantic[key]
+    for key in ("verdict", "block_reason", "review_passes", "repair_passes", "findings"):
+        result[key] = semantic[key]
+    for key in ("reviewer_count", "review_passes", "repair_passes", "token_usage"):
+        metrics[key] = semantic[key]
+    return validate_review(candidate)
 
 
 def _finish(args: argparse.Namespace, paths: storage.EvidencePaths, input_stream: TextIO) -> dict[str, object]:
     started = time.monotonic_ns()
     key = repository.load_or_create_identity(paths.home)
     storage.recover_staging(paths)
-    pending = storage.load_pending(paths, args.run_id)
     semantic = _normalize_finish(args, input_stream)
+    try:
+        existing = storage.load_review(paths, args.run_id)
+    except EvidenceError as exc:
+        if exc.code != "run-not-found":
+            raise
+        existing = None
+    if existing is not None:
+        try:
+            pending_for_retry = storage.load_pending(paths, args.run_id)
+        except EvidenceError as exc:
+            if exc.code != "run-not-found":
+                raise
+            pending_for_retry = None
+        target = existing["target"]
+        assert isinstance(target, dict)
+        _verify_repository(
+            target, Path(args.repo), key, pending=pending_for_retry
+        )
+        candidate = _candidate_retry_review(existing, semantic)
+        if _review_semantics(candidate) != _review_semantics(existing):
+            raise EvidenceError("already-finalized", "conflicting retry")
+        result = storage.finish_review(paths, args.run_id, existing)
+        return {"status": "recorded", "run_id": args.run_id, "sha256": result.sha256}
+    pending = storage.load_pending(paths, args.run_id)
     if semantic["mode"] != pending["intended_mode"]:
         raise EvidenceError("schema-invalid", "finish mode does not match pending mode")
     freshness = _verified_freshness(pending, Path(args.repo), key)
