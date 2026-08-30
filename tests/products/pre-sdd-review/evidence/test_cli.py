@@ -695,6 +695,27 @@ class CliTests(unittest.TestCase):
                 self.assertLessEqual(len(error.encode("utf-8")), 1024)
                 self.assertFalse((run_dir / "outcome.json").exists())
 
+    def test_unknown_surrogate_object_key_has_bounded_error_and_no_outcome(self) -> None:
+        started = self.finalized()
+        semantic = self.outcome_semantic()
+        semantic["recorder"]["\ud800"] = "private"  # type: ignore[index]
+        code, output, error = self.run_cli([
+            "record-outcome", "--run-id", str(started["run_id"]),
+            "--repo", str(self.repo), "--from-stdin",
+        ], json.dumps(semantic))
+
+        self.assertEqual(code, 2)
+        self.assertEqual(output, "")
+        self.assertEqual(json.loads(error), {
+            "error": {
+                "code": "invalid-keys",
+                "message": "recorder has unknown keys",
+            },
+        })
+        self.assertLessEqual(len(error.encode("utf-8")), 1024)
+        run_dir = next(self.home.glob(f"runs/*/*/{started['run_id']}"))
+        self.assertFalse((run_dir / "outcome.json").exists())
+
     def test_doctor_reports_identity_damage_without_repairing_it(self) -> None:
         self.start()
         key = self.home / "identity.key"

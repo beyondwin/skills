@@ -115,9 +115,11 @@ def _object(value: object, name: str, keys: set[str]) -> dict[str, Any]:
         _fail("invalid-type", f"{name} must be an object")
     actual = set(value)
     if actual != keys:
-        unknown = sorted(actual - keys)
-        missing = sorted(keys - actual)
-        detail = f"unknown keys: {', '.join(unknown)}" if unknown else f"missing keys: {', '.join(missing)}"
+        detail = (
+            "unknown keys"
+            if actual - keys
+            else f"missing keys: {', '.join(sorted(keys - actual))}"
+        )
         _fail("invalid-keys", f"{name} has {detail}")
     return value
 
