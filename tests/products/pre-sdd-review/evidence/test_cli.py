@@ -14,8 +14,7 @@ from unittest import mock
 
 from support import make_git_repo, pending_record, write
 
-from pre_sdd_review_evidence import cli
-from pre_sdd_review_evidence import storage
+from pre_sdd_review_evidence import cli, storage
 
 
 class CliTests(unittest.TestCase):
@@ -86,6 +85,15 @@ class CliTests(unittest.TestCase):
         self.assertNotEqual(code, 0)
         self.assertEqual(output, "")
 
+    def test_json_line_bypasses_text_newline_translation(self) -> None:
+        raw = io.BytesIO()
+        stream = io.TextIOWrapper(raw, encoding="utf-8", newline="\r\n")
+
+        cli._json_line(stream, {"status": "ok"})
+        stream.flush()
+
+        self.assertEqual(raw.getvalue(), b'{"status":"ok"}\n')
+
     def test_twenty_independent_starts_share_one_identity_without_sharing_runs(self) -> None:
         environment = {
             **{
@@ -126,7 +134,12 @@ class CliTests(unittest.TestCase):
         with ThreadPoolExecutor(max_workers=20) as pool:
             completed = tuple(pool.map(launch, range(20)))
 
-        self.assertTrue(all(item.returncode == 0 for item in completed))
+        failures = tuple(
+            (item.returncode, item.stdout, item.stderr)
+            for item in completed
+            if item.returncode != 0
+        )
+        self.assertEqual(failures, ())
         self.assertTrue(all(item.stderr == "" for item in completed))
         results = tuple(json.loads(item.stdout) for item in completed)
         run_ids = {str(item["run_id"]) for item in results}
@@ -1147,18 +1160,13 @@ class CliTests(unittest.TestCase):
             destination = paths.run_directory(str(record["run_id"]), str(record["started_at"]))
             return record, staging, destination, (staging / ".pending.json").read_bytes()
 
-        for command in ("start", "finish-review", "abandon"):
+        for command in ("finish-review", "abandon"):
             with self.subTest(mutator=command):
                 self.home = self.workspace / f"mutator-{command}"
                 target = self.start()
                 paths = storage.EvidencePaths.from_home(self.home)
                 _record, staging, destination, _bytes = strand(paths)
-                if command == "start":
-                    code, _output, error = self.run_cli([
-                        "start", "--skill-root", str(self.skill), "--plan", "docs/plan.md",
-                        "--client", "cursor", "--mode", "default",
-                    ])
-                elif command == "finish-review":
+                if command == "finish-review":
                     code, _output, error = self.run_cli([
                         "finish-review", "--run-id", str(target["run_id"]),
                         "--repo", str(self.repo), "--from-stdin",
@@ -1192,6 +1200,36 @@ class CliTests(unittest.TestCase):
         self.assertTrue(staging.exists())
         self.assertFalse(destination.exists())
         self.assertEqual((staging / ".pending.json").read_bytes(), staged_bytes)
+
+    def test_start_leaves_another_start_staging_for_terminal_recovery(self) -> None:
+        self.start()
+        paths = storage.EvidencePaths.from_home(self.home)
+        record = pending_record()
+        with self.assertRaises(RuntimeError):
+            storage.create_pending(
+                paths,
+                record,
+                interruption_hook=lambda point, _path: (
+                    (_ for _ in ()).throw(RuntimeError("stop"))
+                    if point == "pending-fsynced" else None
+                ),
+            )
+        staging = paths.runs / f".staging-{record['run_id']}"
+        staged_bytes = (staging / ".pending.json").read_bytes()
+        destination = paths.run_directory(
+            str(record["run_id"]), str(record["started_at"])
+        )
+
+        code, output, error = self.run_cli([
+            "start", "--skill-root", str(self.skill), "--plan", "docs/plan.md",
+            "--client", "cursor", "--mode", "default",
+        ])
+
+        self.assertEqual((code, error), (0, ""))
+        self.assertEqual(json.loads(output)["status"], "started")
+        self.assertTrue(staging.exists())
+        self.assertEqual((staging / ".pending.json").read_bytes(), staged_bytes)
+        self.assertFalse(destination.exists())
 
     def test_failures_are_one_bounded_json_object_without_absolute_paths(self) -> None:
         code, output, error = self.run_cli(["show", "--run-id", "00000000-0000-4000-8000-000000000000"])

@@ -60,7 +60,13 @@ def _milliseconds(started_at: str, completed_at: str) -> int:
 
 
 def _json_line(stream: TextIO, value: object) -> None:
-    stream.write(canonical_json_bytes(value).decode("utf-8"))
+    payload = canonical_json_bytes(value)
+    binary = getattr(stream, "buffer", None)
+    if binary is not None:
+        binary.write(payload)
+        binary.flush()
+        return
+    stream.write(payload.decode("utf-8"))
 
 
 def _bool(value: str) -> bool:
@@ -279,7 +285,6 @@ def _start(args: argparse.Namespace, paths: storage.EvidencePaths, cwd: Path) ->
         key = repository.load_or_create_identity(paths.home)
     else:
         key = reporting.load_existing_identity(paths)
-    storage.recover_staging(paths)
     skill = repository.load_skill_snapshot(Path(args.skill_root))
     target = repository.resolve_target(cwd, Path(args.plan), key)
     run_id = str(uuid.uuid4())
