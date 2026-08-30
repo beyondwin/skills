@@ -18,8 +18,6 @@ from .schema import (
     CONSEQUENCE_CATEGORIES,
     DEGRADED_REASONS,
     FINDING_CLASSES,
-    OUTCOME_HARD_LIMIT,
-    REVIEW_HARD_LIMIT,
     RESOLUTION_STATUSES,
     EvidenceError,
     canonical_json_bytes,
@@ -172,8 +170,7 @@ def resolve_review(
     return _not_found()
 
 
-def _fingerprint(path: Path, limit: int) -> tuple[str, int]:
-    payload = read_bounded_bytes(path, limit)
+def _fingerprint(payload: bytes) -> tuple[str, int]:
     return hashlib.sha256(payload).hexdigest(), len(payload)
 
 
@@ -182,8 +179,8 @@ def load_records(paths: storage.EvidencePaths) -> tuple[Record, ...]:
     records: list[Record] = []
     for directory in storage._run_directories(paths):
         try:
-            review = storage.load_review(paths, directory.name)
-            review_sha, review_bytes = _fingerprint(directory / "review.json", REVIEW_HARD_LIMIT)
+            review, review_payload = storage._load_review_path(directory / "review.json")
+            review_sha, review_bytes = _fingerprint(review_payload)
         except (EvidenceError, OSError):
             continue
         outcome: dict[str, object] | None = None
@@ -192,8 +189,8 @@ def load_records(paths: storage.EvidencePaths) -> tuple[Record, ...]:
         outcome_path = directory / "outcome.json"
         if storage._lstat(outcome_path) is not None:
             try:
-                outcome = storage.load_outcome(paths, directory.name)
-                outcome_sha, outcome_bytes = _fingerprint(outcome_path, OUTCOME_HARD_LIMIT)
+                outcome, outcome_payload = storage._load_outcome_path(outcome_path, review)
+                outcome_sha, outcome_bytes = _fingerprint(outcome_payload)
             except (EvidenceError, OSError):
                 continue
         records.append(
@@ -614,8 +611,8 @@ def _current_selected_record(paths: storage.EvidencePaths, expected: dict[str, o
     run_id = str(expected["run_id"])
     try:
         directory = storage._find_run_directory(paths, run_id)
-        review = storage.load_review(paths, run_id)
-        review_sha, review_bytes = _fingerprint(directory / "review.json", REVIEW_HARD_LIMIT)
+        review, review_payload = storage._load_review_path(directory / "review.json")
+        review_sha, review_bytes = _fingerprint(review_payload)
     except (EvidenceError, OSError) as exc:
         raise EvidenceError("selection-changed", "prune selection changed") from exc
     outcome: dict[str, object] | None = None
@@ -624,8 +621,8 @@ def _current_selected_record(paths: storage.EvidencePaths, expected: dict[str, o
     outcome_path = directory / "outcome.json"
     if storage._lstat(outcome_path) is not None:
         try:
-            outcome = storage.load_outcome(paths, run_id)
-            outcome_sha, outcome_bytes = _fingerprint(outcome_path, OUTCOME_HARD_LIMIT)
+            outcome, outcome_payload = storage._load_outcome_path(outcome_path, review)
+            outcome_sha, outcome_bytes = _fingerprint(outcome_payload)
         except (EvidenceError, OSError) as exc:
             raise EvidenceError("selection-changed", "prune selection changed") from exc
     record = Record(

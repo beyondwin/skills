@@ -22,7 +22,8 @@ from .schema import (
     REVIEW_HARD_LIMIT,
     EvidenceError,
     canonical_json_bytes,
-    read_bounded_json,
+    parse_json_bytes,
+    read_bounded_bytes,
     validate_outcome,
     validate_review,
 )
@@ -96,6 +97,10 @@ class ScanResult:
 
 def _fail(code: str, message: str) -> None:
     raise EvidenceError(code, message)
+
+
+def _read_bounded_json(path: Path, limit: int) -> object:
+    return parse_json_bytes(read_bounded_bytes(path, limit), name="file")
 
 
 def sha256_payload(payload: bytes) -> str:
@@ -218,7 +223,7 @@ def _validate_pending(value: object) -> dict[str, object]:
 
 def _load_pending_path(path: Path) -> dict[str, object]:
     _validate_regular(path)
-    return _validate_pending(read_bounded_json(path, PENDING_HARD_LIMIT))
+    return _validate_pending(_read_bounded_json(path, PENDING_HARD_LIMIT))
 
 
 def _load_exact_pending_destination(path: Path) -> dict[str, object]:
@@ -451,7 +456,7 @@ def _existing_review_result(paths: EvidencePaths, run_id: str, payload: bytes | 
     if _lstat(final) is None:
         return None
     _validate_regular(final)
-    existing = validate_review(read_bounded_json(final, REVIEW_HARD_LIMIT))
+    existing = validate_review(_read_bounded_json(final, REVIEW_HARD_LIMIT))
     existing_bytes = canonical_json_bytes(existing)
     matches = payload is not None and hmac.compare_digest(existing_bytes, payload)
     if reason is not None:
@@ -572,21 +577,33 @@ def load_review(paths: EvidencePaths, run_id: str) -> dict[str, object]:
     directory = _find_run_directory(paths, run_id)
     final = directory / "review.json"
     try:
-        _validate_regular(final)
-        return validate_review(read_bounded_json(final, REVIEW_HARD_LIMIT))
+        review, _payload = _load_review_path(final)
+        return review
     except FileNotFoundError as exc:
         raise EvidenceError("run-not-found", "review was not found") from exc
 
 
+def _load_review_path(path: Path) -> tuple[dict[str, object], bytes]:
+    _validate_regular(path)
+    payload = read_bounded_bytes(path, REVIEW_HARD_LIMIT)
+    return validate_review(parse_json_bytes(payload, name="file")), payload
+
+
+def _load_outcome_path(
+    path: Path, review: dict[str, object]
+) -> tuple[dict[str, object], bytes]:
+    _validate_regular(path)
+    payload = read_bounded_bytes(path, OUTCOME_HARD_LIMIT)
+    return validate_outcome(parse_json_bytes(payload, name="file"), review), payload
+
+
 def load_outcome(paths: EvidencePaths, run_id: str) -> dict[str, object]:
     directory = _find_run_directory(paths, run_id)
-    review = load_review(paths, run_id)
     final = directory / "outcome.json"
     try:
-        _validate_regular(final)
-        return validate_outcome(
-            read_bounded_json(final, OUTCOME_HARD_LIMIT), review
-        )
+        review, _review_payload = _load_review_path(directory / "review.json")
+        outcome, _outcome_payload = _load_outcome_path(final, review)
+        return outcome
     except FileNotFoundError as exc:
         raise EvidenceError("run-not-found", "outcome was not found") from exc
 
@@ -755,7 +772,7 @@ def doctor(paths: EvidencePaths) -> tuple[dict[str, str], ...]:
         try:
             if _lstat(final) is not None:
                 _validate_regular(final)
-                raw = read_bounded_json(final, REVIEW_HARD_LIMIT)
+                raw = _read_bounded_json(final, REVIEW_HARD_LIMIT)
                 if not isinstance(raw, dict):
                     raise EvidenceError("invalid-json", "review is not an object")
                 if raw.get("schema_version") != SCHEMA_VERSION:
@@ -769,7 +786,7 @@ def doctor(paths: EvidencePaths) -> tuple[dict[str, str], ...]:
                 outcome_path = directory / "outcome.json"
                 if _lstat(outcome_path) is not None:
                     _validate_regular(outcome_path)
-                    raw_outcome = read_bounded_json(outcome_path, OUTCOME_HARD_LIMIT)
+                    raw_outcome = _read_bounded_json(outcome_path, OUTCOME_HARD_LIMIT)
                     if not isinstance(raw_outcome, dict):
                         raise EvidenceError("invalid-json", "outcome is not an object")
                     if raw_outcome.get("schema_version") != SCHEMA_VERSION:
@@ -778,7 +795,7 @@ def doctor(paths: EvidencePaths) -> tuple[dict[str, str], ...]:
                     validate_outcome(raw_outcome, review)
             elif _lstat(pending_path) is not None:
                 _validate_regular(pending_path)
-                raw_pending = read_bounded_json(pending_path, PENDING_HARD_LIMIT)
+                raw_pending = _read_bounded_json(pending_path, PENDING_HARD_LIMIT)
                 if not isinstance(raw_pending, dict):
                     raise EvidenceError("invalid-json", "pending record is not an object")
                 if raw_pending.get("schema_version") != SCHEMA_VERSION:

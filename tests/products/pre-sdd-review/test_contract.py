@@ -325,23 +325,23 @@ ENGLISH_FACTS = (
 KOREAN_README_HEADINGS = (
     "## 이 스킬이 해결하는 문제",
     "## 사용해야 할 때와 사용하지 말아야 할 때",
-    "## 1분 설치와 첫 호출",
-    "## 주요 흐름",
+    "## 설치",
+    "## 첫 호출",
+    "## 결과와 기본 흐름",
     "## 안전과 개인정보",
+    "## 운영과 한계",
     "## 호환성과 검증 수준",
-    "## 갱신과 버전 확인",
     "## 변경 이력과 관리자 문서",
 )
 ENGLISH_README_HEADINGS = (
     "## Purpose",
     "## When to use and not use",
-    "## Supported hosts",
     "## Install",
     "## First call",
     "## Expected result",
     "## Safety and privacy",
-    "## Verification",
-    "## Update and remove",
+    "## Operations and limits",
+    "## Supported hosts and verification",
     "## Changelog and maintainer docs",
 )
 MAINTAINERS = ROOT / "docs" / "maintainers" / "products" / "pre-sdd-review"
@@ -376,31 +376,31 @@ README_CONTRACT = (
 )
 README_CANONICAL_SECTION_DIGESTS = {
     "ko": (
-        ("## 이 스킬이 해결하는 문제", "059b67628c9931409945145dd628468f62853ad2f502183bad164f15984abb2e"),
-        ("## 사용해야 할 때와 사용하지 말아야 할 때", "e561f24683695a2a081dbee9911821fce3a3ccbbbc52a607d96bfe76185e4d8c"),
-        ("## 1분 설치와 첫 호출", "727e2949a54cb8283308bf75413d8a85c1c9e4ad6d776bf4446da8a44084bdc6"),
-        ("## 주요 흐름", "2391c3d4e2b9a4ba079a896871c0ca44f428c55bc59522f3180315bc7e35d77a"),
-        ("## 안전과 개인정보", "3fe21a1a7f4da0c47da53b9be788b363f606db4581a29e510cf33ce6c00e84e6"),
-        ("## 호환성과 검증 수준", "eff1413f282b1c62c164b0d09b0bf883588d2a45e1436abc62f64b5e7db44eb8"),
-        ("## 갱신과 버전 확인", "729d001215438d41e78677312cd6fa01e844b8578cee986c24007e3a24dfb26e"),
+        ("## 이 스킬이 해결하는 문제", "b88192b94e7fc267bfe59880a7a44c5d15bc32915b4ec52cd88729a9464a85f4"),
+        ("## 사용해야 할 때와 사용하지 말아야 할 때", "63634fe6e87d9b53d0d13d628ab18747c164c33aa432c03e6ab095e7fd94e2b4"),
+        ("## 설치", "a2a93e6a3dc7cf933377cee0ca7573c45f3d87afc819a5aa36bb0ed07fe39f3a"),
+        ("## 첫 호출", "67982d6dac2b6cc91d6625f95b0a3c3c60937c07754746b0e7d83f41e374f606"),
+        ("## 결과와 기본 흐름", "f3aea1ed24700cbbdcf2fa7426e5c284cbd5f52cfd73a17d109b3be64432fb02"),
+        ("## 안전과 개인정보", "62341d0462a00708bc0a22c59a92705a3570e5666714add87588ff37c79cbaf9"),
+        ("## 운영과 한계", "3bab749b55fdd2b932497764fe7b415cfefe71ad7f0d83466eea6ec8bf9ff08f"),
+        ("## 호환성과 검증 수준", "a497ceab7ac795adce2a1d4fc9163102c8e068dc74175b2d6229ac4790eb932d"),
         ("## 변경 이력과 관리자 문서", "7e1cb70139ec2f47b67004352fdd0ca739f19515c2c715095501268c5b7405ac"),
     ),
     "en": (
-        ("## Purpose", "6a0b1a1ed183aa142b9df51b9c2c8a13696df6ddff410d9e198bbb79bc441c1e"),
-        ("## When to use and not use", "7133b17ed84bc5f8e1721b63ec5ffbf63f462f0816014c2bbfd4aeef58925d4d"),
-        ("## Supported hosts", "adb46f35ba78974f2c3f4df43deca598c9558480606022f07ccce3626b70edc6"),
-        ("## Install", "07a437d944916099f4fb335281e4ebb344a567f038966fd86318f9acb913dcb8"),
-        ("## First call", "27b7d3681619789c1e0fadff8d1dd802cdc387b70bddde1457adfbead72caff2"),
-        ("## Expected result", "148a537bdb2b194dcbdb72e9d13deea6a25047043184aeffcf15992d20c9b9cd"),
-        ("## Safety and privacy", "bfeda4413b2f6a62cf797b30f1eb9565b11eaf3ec081fbd890d8ab49e18741ad"),
-        ("## Verification", "b89fc0050f0479597cf9b493add1058b3a5c93534495221bacfcebc755f3b88b"),
-        ("## Update and remove", "0d7e28c0b836d92dae03040909d93e609a54a91316e47ccfb02bdc24de3542c4"),
+        ("## Purpose", "cb23c6901e6861c95a61afafa163fe57231ea053f9c68db9491d1c6bffa9af87"),
+        ("## When to use and not use", "2daaa6de8f1623ab571cc1639b7b5097241c02e5f420b92ed48ecf1a401d926e"),
+        ("## Install", "e9283708d71e494288bd89a3fce3c5b1af467885e882da0cba56c3610b554785"),
+        ("## First call", "304e4697f6a40a2d522f18757ed7e464c4a8fde253c885fdf82ac1152ebb5b2a"),
+        ("## Expected result", "df755934bd7da0ee5c1760066579191b255958ead5b8c91eaef7dfa9101f5ce7"),
+        ("## Safety and privacy", "a45d1b73274f6fbc0a253274c389079c7656885d1dfce496a8b5af48ab5a5f53"),
+        ("## Operations and limits", "968203b2f2603549347ecc24715f9e2f38ab1108a346e72fbc8f18d0ec0fdb04"),
+        ("## Supported hosts and verification", "02a6dbd83e7268ffa9ba58160d099610aed2ba69688277a6f05c2a8b93ae45a1"),
         ("## Changelog and maintainer docs", "7a5611089ddaf6819881da0ae7d96ec6ce36107f2c0076e9528499437749e7b1"),
     ),
 }
 README_CANONICAL_DOCUMENT_DIGESTS = {
-    "ko": "4d76e6b24b5c1bfb357eabbcdee3bb17c7683a2dc5a29d398c31cddf327c7a0e",
-    "en": "e97bf4efe2c66b84921cb7e2eee1cd7dcbda04b14d9040a86e9eadc263fa2283",
+    "ko": "4377629fb5d0fef9799135800ba2b2a48c001c44dc455085fe1bd53b81601f5d",
+    "en": "122488dd0e8d252e3d1296381da9a29bb303efb3ac52d60e5d4b31946796d6a8",
 }
 MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Authority order", "3156a43d665d21723ce61b333c7c34f30abd2e6d288c472d5eec5878e5ef8321"),
@@ -528,7 +528,7 @@ def readme_contract_errors(text: str) -> tuple[str, ...]:
         for heading, digest in canonical_sections
     ):
         errors.append("README sensitive sections differ from the canonical contract")
-    first_call_heading = "## First call" if language == "en" else "## 1분 설치와 첫 호출"
+    first_call_heading = "## First call" if language == "en" else "## 첫 호출"
     first_call = markdown_section(text, first_call_heading)
     if not first_call:
         errors.append("missing First call section")

@@ -4,7 +4,15 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
-No unreleased behavior change is recorded.
+### Changed
+
+- Reporting now validates each receipt from the same bounded byte snapshot used
+  for its size and SHA-256, avoiding repeated reads of one review/outcome pair.
+- Source installation ignores only an ordinary `__pycache__` containing regular
+  `.pyc` files; unsafe cache entries and runtime-manifest drift still fail.
+- User and evidence guides now lead with installation and the basic workflow,
+  then separate safety boundaries, operations, measured support, and residual
+  limits.
 
 ## 1.2.0 - 2026-08-30
 

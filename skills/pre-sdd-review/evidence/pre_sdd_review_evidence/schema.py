@@ -76,11 +76,15 @@ def read_bounded_bytes(path: Path, limit: int) -> bytes:
 
 def read_bounded_json(path: Path, limit: int) -> object:
     data = read_bounded_bytes(path, limit)
+    return parse_json_bytes(data, name="file")
+
+
+def parse_json_bytes(data: bytes, *, name: str = "value") -> object:
     try:
         text = data.decode("utf-8")
     except UnicodeDecodeError as exc:
-        raise EvidenceError("invalid-json", "file is not valid UTF-8 JSON") from exc
-    return parse_json_text(text, name="file")
+        raise EvidenceError("invalid-json", f"{name} is not valid UTF-8 JSON") from exc
+    return parse_json_text(text, name=name)
 
 
 def parse_json_text(

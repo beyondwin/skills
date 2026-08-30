@@ -102,9 +102,23 @@ def _validate_source(skill_root: Path) -> Path:
         package_entries = tuple(package.iterdir())
     except OSError as exc:
         raise EvidenceError("schema-invalid", "runtime package cannot be inspected") from exc
-    entries = tuple(sorted(path.name for path in package_entries))
+    cache = package / "__pycache__"
+    source_entries = tuple(path for path in package_entries if path.name != "__pycache__")
+    entries = tuple(sorted(path.name for path in source_entries))
     if entries != tuple(sorted(RUNTIME_PACKAGE_FILES)):
         raise EvidenceError("schema-invalid", "runtime package manifest mismatch")
+    if len(source_entries) != len(package_entries):
+        if cache.is_symlink() or not cache.is_dir():
+            raise EvidenceError("schema-invalid", "runtime package manifest mismatch")
+        try:
+            cached_entries = tuple(cache.iterdir())
+        except OSError as exc:
+            raise EvidenceError("schema-invalid", "runtime package manifest mismatch") from exc
+        if any(
+            entry.is_symlink() or not entry.is_file() or entry.suffix != ".pyc"
+            for entry in cached_entries
+        ):
+            raise EvidenceError("schema-invalid", "runtime package manifest mismatch")
     for name in RUNTIME_PACKAGE_FILES:
         _require_regular(package / name, f"runtime package member {name}")
     constants = _literal_constants(package / "__init__.py")

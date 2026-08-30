@@ -145,13 +145,13 @@ class OutcomeTests(unittest.TestCase):
         if os.name == "posix":
             (corrupt / "review.json").chmod(0o600)
         calls: list[tuple[Path, int]] = []
-        real_reader = schema.read_bounded_json
+        real_reader = schema.read_bounded_bytes
 
-        def spy(path: Path, limit: int) -> object:
+        def spy(path: Path, limit: int) -> bytes:
             calls.append((Path(path), limit))
             return real_reader(path, limit)
 
-        with mock.patch.object(storage, "read_bounded_json", side_effect=spy):
+        with mock.patch.object(storage, "read_bounded_bytes", side_effect=spy):
             result = reporting.resolve_review(
                 self.paths, self.repo, Path("docs/plan.md")
             )
@@ -422,10 +422,10 @@ class OutcomeTests(unittest.TestCase):
         self.assertEqual(first.path.read_bytes(), schema.canonical_json_bytes(record))
 
         calls: list[tuple[Path, int]] = []
-        real_reader = schema.read_bounded_json
+        real_reader = schema.read_bounded_bytes
         with mock.patch.object(
             storage,
-            "read_bounded_json",
+            "read_bounded_bytes",
             side_effect=lambda path, limit: (
                 calls.append((Path(path), limit)), real_reader(path, limit)
             )[1],

@@ -279,6 +279,44 @@ class ReportingTests(unittest.TestCase):
             with self.subTest(run_id=run_id):
                 self.assertEqual(issues[run_id], expected_code)
 
+    def test_receipt_pair_uses_one_consistent_review_snapshot(self) -> None:
+        review = _review(run_number=900)
+        outcome = _outcome(review, label="false-ready", escaped=[_escaped()])
+        self.persist(review, outcome)
+        run_dir = next(self.paths.runs.glob(f"*/*/{review['run_id']}"))
+        review_path = run_dir / "review.json"
+        original_bytes = review_path.read_bytes()
+        changed = _review(
+            run_number=900,
+            verdict="REVISE",
+            findings=[_finding(status="unresolved")],
+        )
+        changed_bytes = schema.canonical_json_bytes(changed)
+        original_open = Path.open
+        review_reads = 0
+
+        def mutate_before_a_second_review_read(path: Path, *args: object, **kwargs: object):
+            nonlocal review_reads
+            mode = args[0] if args else kwargs.get("mode", "r")
+            if path == review_path and mode == "rb":
+                review_reads += 1
+                if review_reads == 2:
+                    descriptor = os.open(review_path, os.O_WRONLY | os.O_TRUNC)
+                    try:
+                        os.write(descriptor, changed_bytes)
+                    finally:
+                        os.close(descriptor)
+            return original_open(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "open", mutate_before_a_second_review_read):
+            records = reporting.load_records(self.paths)
+
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0].review, review)
+        self.assertEqual(records[0].outcome, schema.validate_outcome(outcome, review))
+        self.assertEqual(records[0].review_sha256, hashlib.sha256(original_bytes).hexdigest())
+        self.assertEqual(records[0].review_bytes, len(original_bytes))
+
     def test_prune_extreme_day_durations_are_stable_invalid_arguments(self) -> None:
         values = (
             "9" * 5_000,
@@ -740,12 +778,12 @@ class ReportingTests(unittest.TestCase):
         )
         events: list[str] = []
         bounded_calls: list[tuple[str, int]] = []
-        real_reader = schema.read_bounded_json
+        real_reader = schema.read_bounded_bytes
         real_lock = storage._acquire_lock
         real_validate = reporting._current_selected_record
         real_delete = reporting.shutil.rmtree
 
-        def reader(path: Path, limit: int) -> object:
+        def reader(path: Path, limit: int) -> bytes:
             bounded_calls.append((Path(path).name, limit))
             return real_reader(path, limit)
 
@@ -761,7 +799,7 @@ class ReportingTests(unittest.TestCase):
             events.append(f"delete:{Path(path).name}")
             real_delete(path)
 
-        with mock.patch.object(storage, "read_bounded_json", side_effect=reader), mock.patch.object(
+        with mock.patch.object(storage, "read_bounded_bytes", side_effect=reader), mock.patch.object(
             storage, "_acquire_lock", side_effect=lock
         ), mock.patch.object(
             reporting, "_current_selected_record", side_effect=validate
@@ -827,13 +865,13 @@ class ReportingTests(unittest.TestCase):
         _pending, staging, destination, staged_bytes = self.strand(run_number=501)
         before = self._tree()
         calls: list[tuple[str, int]] = []
-        real_reader = schema.read_bounded_json
+        real_reader = schema.read_bounded_bytes
 
-        def spy(path: Path, limit: int) -> object:
+        def spy(path: Path, limit: int) -> bytes:
             calls.append((Path(path).name, limit))
             return real_reader(path, limit)
 
-        with mock.patch.object(storage, "read_bounded_json", side_effect=spy):
+        with mock.patch.object(storage, "read_bounded_bytes", side_effect=spy):
             for command in (["summary"], ["candidates"], ["prune", "--older-than", "730d", "--dry-run"]):
                 code, output, error = self.run_cli(list(command))
                 self.assertEqual((code, error), (0, None))

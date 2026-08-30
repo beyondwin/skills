@@ -347,10 +347,61 @@ module.install(Path(skill_root), Path(windows_bin), "windows", Path(sys.executab
         for name in (".profile", ".bash_profile", ".bashrc", ".zprofile", ".zshrc"):
             self.assertFalse((fake_home / name).exists())
 
-    def test_generated_bytecode_cache_is_rejected_as_an_unexpected_package_entry(self) -> None:
+    def test_generated_bytecode_cache_is_ignored_without_changing_the_runtime_manifest(self) -> None:
         cache = self.skill / "evidence/pre_sdd_review_evidence/__pycache__"
         cache.mkdir()
         (cache / "cli.cpython-311.pyc").write_bytes(b"generated-bytecode")
+        installed = installer.install(
+            self.skill,
+            self.bin_dir,
+            platform="posix",
+            python_executable=Path(sys.executable),
+        )
+        with zipfile.ZipFile(installed[0]) as archive:
+            self.assertNotIn("pre_sdd_review_evidence/__pycache__/cli.cpython-311.pyc", archive.namelist())
+
+    def test_bytecode_cache_exceptions_do_not_admit_unsafe_or_non_bytecode_entries(self) -> None:
+        cache = self.skill / "evidence/pre_sdd_review_evidence/__pycache__"
+        cache.mkdir()
+        cases = (
+            ("source", lambda: (cache / "hidden.py").write_text("# unexpected\n", encoding="utf-8")),
+            ("nested", lambda: (cache / "nested").mkdir()),
+        )
+        for label, mutate in cases:
+            with self.subTest(label=label):
+                mutate()
+                with self.assertRaisesRegex(EvidenceError, "runtime package manifest"):
+                    installer.install(
+                        self.skill,
+                        self.bin_dir,
+                        platform="posix",
+                        python_executable=Path(sys.executable),
+                    )
+                shutil.rmtree(cache)
+                cache.mkdir()
+
+    @unittest.skipIf(os.name == "nt", "symlink fixture requires POSIX semantics")
+    def test_bytecode_cache_exception_rejects_a_symlinked_cache(self) -> None:
+        package = self.skill / "evidence/pre_sdd_review_evidence"
+        external = self.workspace / "external-cache"
+        external.mkdir()
+        (external / "cli.cpython-311.pyc").write_bytes(b"generated-bytecode")
+        (package / "__pycache__").symlink_to(external, target_is_directory=True)
+        with self.assertRaisesRegex(EvidenceError, "runtime package manifest"):
+            installer.install(
+                self.skill,
+                self.bin_dir,
+                platform="posix",
+                python_executable=Path(sys.executable),
+            )
+
+    @unittest.skipIf(os.name == "nt", "symlink fixture requires POSIX semantics")
+    def test_bytecode_cache_exception_rejects_a_symlinked_bytecode_entry(self) -> None:
+        cache = self.skill / "evidence/pre_sdd_review_evidence/__pycache__"
+        cache.mkdir()
+        external = self.workspace / "external.pyc"
+        external.write_bytes(b"generated-bytecode")
+        (cache / "cli.cpython-311.pyc").symlink_to(external)
         with self.assertRaisesRegex(EvidenceError, "runtime package manifest"):
             installer.install(
                 self.skill,

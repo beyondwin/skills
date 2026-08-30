@@ -26,16 +26,30 @@ REGISTRY = load_registry(ROOT / "products.toml")
 
 VERSION_LITERAL_RE = re.compile(r"\b[0-9]+\.[0-9]+\.[0-9]+\b")
 
-KOREAN_PRODUCT_HEADINGS = (
-    "이 스킬이 해결하는 문제",
-    "사용해야 할 때와 사용하지 말아야 할 때",
-    "1분 설치와 첫 호출",
-    "주요 흐름",
-    "안전과 개인정보",
-    "호환성과 검증 수준",
-    "갱신과 버전 확인",
-    "변경 이력과 관리자 문서",
-)
+PRE_SDD_PRODUCT_HEADINGS = {
+    "README.md": (
+        "## 이 스킬이 해결하는 문제",
+        "## 사용해야 할 때와 사용하지 말아야 할 때",
+        "## 설치",
+        "## 첫 호출",
+        "## 결과와 기본 흐름",
+        "## 안전과 개인정보",
+        "## 운영과 한계",
+        "## 호환성과 검증 수준",
+        "## 변경 이력과 관리자 문서",
+    ),
+    "README.en.md": (
+        "## Purpose",
+        "## When to use and not use",
+        "## Install",
+        "## First call",
+        "## Expected result",
+        "## Safety and privacy",
+        "## Operations and limits",
+        "## Supported hosts and verification",
+        "## Changelog and maintainer docs",
+    ),
+}
 PRODUCT_README_HEADINGS = {
     "README.md": (
         "## 목적",
@@ -530,8 +544,8 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
                     text.startswith(f"# {product.display_name}\n"),
                     f"{product.name}/{filename} title",
                 )
-                if product.name == "pre-sdd-review" and filename == "README.md":
-                    headings = tuple(f"## {heading}" for heading in KOREAN_PRODUCT_HEADINGS)
+                if product.name == "pre-sdd-review":
+                    headings = PRE_SDD_PRODUCT_HEADINGS[filename]
                 else:
                     headings = PRODUCT_README_HEADINGS[filename]
                 last = -1

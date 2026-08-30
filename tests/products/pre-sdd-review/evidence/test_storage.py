@@ -525,7 +525,7 @@ class StorageLifecycleTests(unittest.TestCase):
         handle = storage.create_pending(self.paths, pending)
         review = completed_review(pending)
         storage.finish_review(self.paths, handle.run_id, review)
-        with mock.patch("pre_sdd_review_evidence.storage.read_bounded_json", wraps=storage.read_bounded_json) as reader:
+        with mock.patch("pre_sdd_review_evidence.storage.read_bounded_bytes", wraps=storage.read_bounded_bytes) as reader:
             self.assertEqual(storage.load_review(self.paths, handle.run_id)["run_id"], handle.run_id)
             storage.scan_runs(self.paths)
             storage.doctor(self.paths)
