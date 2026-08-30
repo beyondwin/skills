@@ -89,6 +89,29 @@ class ProductReleaseTests(unittest.TestCase):
             skill_md.write_text(skill_md.read_text(encoding="utf-8") + "\n", encoding="utf-8")
             self.assertNotEqual(before, payload_sha256(copy))
 
+    def test_pre_sdd_installer_sources_remain_non_executable(self) -> None:
+        from scripts.lib.product_contract import payload_entries
+
+        entries = {
+            entry["path"]: entry
+            for entry in payload_entries(ROOT / "skills/pre-sdd-review")
+        }
+        self.assertEqual(entries["evidence/install.py"]["mode"], "0644")
+        self.assertEqual(entries["evidence/README.md"]["mode"], "0644")
+        for name in (
+            "__init__.py",
+            "__main__.py",
+            "cli.py",
+            "schema.py",
+            "repository.py",
+            "storage.py",
+            "reporting.py",
+        ):
+            self.assertEqual(
+                entries[f"evidence/pre_sdd_review_evidence/{name}"]["mode"],
+                "0644",
+            )
+
 
 class ProductReleaseRejectionTests(unittest.TestCase):
     def setUp(self) -> None:

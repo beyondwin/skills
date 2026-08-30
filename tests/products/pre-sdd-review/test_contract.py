@@ -30,6 +30,8 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
         "README.md",
         "SKILL.md",
         "agents/openai.yaml",
+        "evidence/README.md",
+        "evidence/install.py",
         "evidence/pre_sdd_review_evidence/__init__.py",
         "evidence/pre_sdd_review_evidence/__main__.py",
         "evidence/pre_sdd_review_evidence/cli.py",

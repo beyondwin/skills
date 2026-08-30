@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 import warnings
 import zipfile
 from pathlib import Path
@@ -529,24 +530,13 @@ class ProductDownloadTests(unittest.TestCase):
         )
 
     def test_pre_sdd_review_extracted_smoke_retains_exact_allowlist(self) -> None:
-        approved = (
-            "CHANGELOG.md",
-            "LICENSE.txt",
-            "README.en.md",
-            "README.md",
-            "SKILL.md",
-            "agents/openai.yaml",
-            "evidence/pre_sdd_review_evidence/__init__.py",
-            "evidence/pre_sdd_review_evidence/schema.py",
-            "references/reviewer-protocol.md",
-            "release.toml",
-        )
         with tempfile.TemporaryDirectory() as directory:
             skill_root = Path(directory) / "pre-sdd-review"
-            for relative in approved:
-                path = skill_root / relative
-                path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_text("fixture\n", encoding="utf-8")
+            shutil.copytree(
+                ROOT / "skills/pre-sdd-review",
+                skill_root,
+                ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
+            )
             self.assertEqual(release._smoke_pre_sdd_review(skill_root), [])
 
             (skill_root / "agents/openai.yaml").unlink()
@@ -560,6 +550,30 @@ class ProductDownloadTests(unittest.TestCase):
                     "pre-sdd-review: unexpected runtime/scripts payload member: "
                     "scripts/runtime.py",
                 ],
+            )
+
+    def test_pre_sdd_review_extracted_smoke_checks_runtime_and_avoids_configured_home(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            skill_root = workspace / "pre-sdd-review"
+            shutil.copytree(
+                ROOT / "skills/pre-sdd-review",
+                skill_root,
+                ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
+            )
+            configured_home = workspace / "configured-home-must-stay-absent"
+            with mock.patch.dict(
+                os.environ,
+                {"PRE_SDD_REVIEW_HOME": str(configured_home)},
+            ):
+                self.assertEqual(release._smoke_pre_sdd_review(skill_root), [])
+            self.assertFalse(configured_home.exists())
+
+            runtime = skill_root / "evidence/pre_sdd_review_evidence"
+            (runtime / "network.py").write_text("# extra\n", encoding="utf-8")
+            self.assertIn(
+                "pre-sdd-review: runtime package manifest mismatch",
+                release._smoke_pre_sdd_review(skill_root),
             )
 
     def test_verify_product_download_rejects_missing_checksum(self) -> None:
