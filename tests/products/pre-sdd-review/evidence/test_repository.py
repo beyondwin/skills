@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime as dt
 import hashlib
 import json
 import multiprocessing
@@ -21,6 +22,12 @@ def _identity_worker(arguments: tuple[str, str]) -> tuple[str, str]:
     evidence_home, repo_root = arguments
     key = repository.load_or_create_identity(Path(evidence_home))
     return hashlib.sha256(key).hexdigest(), repository.repository_id(Path(repo_root), key)
+
+
+def _write_private(path: Path, payload: bytes) -> None:
+    path.write_bytes(payload)
+    if os.name == "posix":
+        path.chmod(0o600)
 
 
 class RepositoryResolutionTests(unittest.TestCase):
@@ -320,16 +327,59 @@ class IdentityInitializationTests(unittest.TestCase):
         self.assertEqual(self._config()["identity_key_sha256"], hashlib.sha256(winning_key).hexdigest())
 
     def test_config_only_malformed_wrong_length_mismatch_and_symlinks_fail_closed(self) -> None:
-        cases = ("config-only", "malformed-config", "wrong-length", "mismatch", "key-symlink", "config-symlink")
-        for name in cases:
+        cases = {
+            "config-only": (
+                "identity-key-missing",
+                "identity config exists without an identity key",
+            ),
+            "malformed-config": (
+                "identity-state-invalid",
+                "identity config is unreadable or malformed",
+            ),
+            "wrong-length": (
+                "identity-state-invalid",
+                "identity key must contain exactly 32 bytes",
+            ),
+            "mismatch": (
+                "identity-state-invalid",
+                "identity config does not match the active key",
+            ),
+            "key-symlink": (
+                "identity-state-invalid",
+                "identity.key must be a private regular file",
+            ),
+            "config-symlink": (
+                "identity-state-invalid",
+                "config.json must be a private regular file",
+            ),
+        }
+        for name, (expected_code, expected_message) in cases.items():
             with self.subTest(name=name):
                 home = self.workspace / name
                 home.mkdir()
                 home.chmod(0o700)
                 key = b"k" * 32
+                key_path = home / "identity.key"
+                if name != "config-only":
+                    key_payload = b"short" if name == "wrong-length" else key
+                    key_target = home / "key-target"
+                    if name == "key-symlink":
+                        _write_private(key_target, key_payload)
+                        key_path.symlink_to(key_target)
+                    else:
+                        _write_private(key_path, key_payload)
+                if key_path.is_file() and not key_path.is_symlink():
+                    timestamp = dt.datetime(
+                        1970, 1, 1, tzinfo=dt.timezone.utc
+                    ) + dt.timedelta(microseconds=key_path.stat().st_mtime_ns // 1_000)
+                    created_at = timestamp.isoformat(timespec="microseconds").replace(
+                        "+00:00", "Z"
+                    )
+                else:
+                    created_at = "2026-08-30T00:00:00.000000Z"
                 valid_config = {
                     "schema_version": 1,
-                    "created_at": "2026-08-30T00:00:00Z",
+                    "created_at": created_at,
                     "identity_key_sha256": hashlib.sha256(key).hexdigest(),
                 }
                 if name in {"config-only", "malformed-config", "mismatch", "config-symlink"}:
@@ -342,26 +392,32 @@ class IdentityInitializationTests(unittest.TestCase):
                         )
                     config_target = home / "config-target.json"
                     if name == "config-symlink":
-                        config_target.write_bytes(payload)
+                        _write_private(config_target, payload)
                         (home / "config.json").symlink_to(config_target)
                     else:
-                        (home / "config.json").write_bytes(payload)
-                if name not in {"config-only", "malformed-config"}:
-                    key_payload = b"short" if name == "wrong-length" else key
-                    key_target = home / "key-target"
-                    if name == "key-symlink":
-                        key_target.write_bytes(key_payload)
-                        (home / "identity.key").symlink_to(key_target)
-                    else:
-                        (home / "identity.key").write_bytes(key_payload)
+                        _write_private(home / "config.json", payload)
 
                 with self.assertRaises(EvidenceError) as raised:
                     repository.load_or_create_identity(home)
 
-                self.assertIn(
-                    raised.exception.code,
-                    {"identity-key-missing", "identity-state-invalid"},
-                )
+                self.assertEqual(raised.exception.code, expected_code)
+                self.assertEqual(raised.exception.message, expected_message)
+
+    @unittest.skipUnless(os.name == "posix", "POSIX permission proof")
+    def test_non_private_identity_entry_has_its_own_explicit_row(self) -> None:
+        self.evidence_home.mkdir(mode=0o700)
+        key_path = self.evidence_home / "identity.key"
+        key_path.write_bytes(b"k" * 32)
+        key_path.chmod(0o644)
+
+        with self.assertRaises(EvidenceError) as raised:
+            repository.load_or_create_identity(self.evidence_home)
+
+        self.assertEqual(raised.exception.code, "identity-state-invalid")
+        self.assertEqual(
+            raised.exception.message,
+            "identity.key must be a private regular file",
+        )
 
     def test_corrupt_existing_identity_uses_stable_state_error(self) -> None:
         cases = (
@@ -388,33 +444,60 @@ class IdentityInitializationTests(unittest.TestCase):
 
     def test_existing_identity_loads_only_through_shared_bounded_readers(self) -> None:
         expected = repository.load_or_create_identity(self.evidence_home)
-        real_bytes = repository.read_bounded_bytes
-        real_json = repository.read_bounded_json
+        real_open = Path.open
         calls: list[tuple[str, int]] = []
 
-        def bytes_spy(path: Path, limit: int) -> bytes:
-            calls.append((Path(path).name, limit))
-            self.assertEqual(limit, repository.IDENTITY_KEY_LIMIT)
-            return real_bytes(path, limit)
+        class BoundedReadProxy:
+            def __init__(self, path: Path, stream: object, expected_size: int) -> None:
+                self.path = path
+                self.stream = stream
+                self.expected_size = expected_size
+                self.read_count = 0
 
-        def json_spy(path: Path, limit: int) -> object:
-            calls.append((Path(path).name, limit))
-            self.assertEqual(limit, repository.IDENTITY_CONFIG_LIMIT)
-            return real_json(path, limit)
+            def __enter__(self) -> "BoundedReadProxy":
+                self.stream.__enter__()  # type: ignore[attr-defined]
+                return self
+
+            def __exit__(self, *args: object) -> object:
+                return self.stream.__exit__(*args)  # type: ignore[attr-defined]
+
+            def read(self, size: int = -1) -> bytes:
+                self.read_count += 1
+                self.assert_single_exact_read(size)
+                calls.append((self.path.name, size))
+                return self.stream.read(size)  # type: ignore[attr-defined,no-any-return]
+
+            def assert_single_exact_read(self, size: int) -> None:
+                if self.read_count != 1:
+                    raise AssertionError(f"{self.path.name} was read more than once")
+                if size != self.expected_size:
+                    raise AssertionError(
+                        f"{self.path.name} read({size}) != read({self.expected_size})"
+                    )
+
+        expected_sizes = {
+            "identity.key": repository.IDENTITY_KEY_LIMIT + 1,
+            "config.json": repository.IDENTITY_CONFIG_LIMIT + 1,
+        }
+
+        def open_spy(path: Path, *args: object, **kwargs: object) -> object:
+            stream = real_open(path, *args, **kwargs)
+            expected_size = expected_sizes.get(Path(path).name)
+            if expected_size is None:
+                raise AssertionError(f"unexpected identity read: {path}")
+            return BoundedReadProxy(Path(path), stream, expected_size)
 
         with mock.patch.object(Path, "read_bytes", side_effect=AssertionError("unbounded read_bytes")), mock.patch.object(
             Path, "read_text", side_effect=AssertionError("unbounded read_text")
-        ), mock.patch.object(repository, "read_bounded_bytes", side_effect=bytes_spy), mock.patch.object(
-            repository, "read_bounded_json", side_effect=json_spy
-        ):
+        ), mock.patch.object(Path, "open", new=open_spy):
             loaded = repository.load_or_create_identity(self.evidence_home)
 
         self.assertEqual(loaded, expected)
         self.assertCountEqual(
             calls,
             [
-                ("identity.key", repository.IDENTITY_KEY_LIMIT),
-                ("config.json", repository.IDENTITY_CONFIG_LIMIT),
+                ("identity.key", repository.IDENTITY_KEY_LIMIT + 1),
+                ("config.json", repository.IDENTITY_CONFIG_LIMIT + 1),
             ],
         )
 
