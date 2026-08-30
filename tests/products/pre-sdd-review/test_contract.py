@@ -740,13 +740,24 @@ def evidence_runtime_contract_errors(runtime: Path) -> tuple[str, ...]:
             return None
 
         for assignment in sorted(
-            (node for node in ast.walk(tree) if isinstance(node, ast.Assign)),
+            (
+                node
+                for node in ast.walk(tree)
+                if isinstance(node, (ast.Assign, ast.AnnAssign))
+            ),
             key=lambda node: node.lineno,
         ):
+            if assignment.value is None:
+                continue
             resolved = qualified_name(assignment.value)
             if resolved is None:
                 continue
-            for target in assignment.targets:
+            targets = (
+                assignment.targets
+                if isinstance(assignment, ast.Assign)
+                else (assignment.target,)
+            )
+            for target in targets:
                 if isinstance(target, ast.Name):
                     aliases[target.id] = resolved
 
@@ -774,7 +785,8 @@ def evidence_runtime_contract_errors(runtime: Path) -> tuple[str, ...]:
                 if identifier in provider_identifiers:
                     errors.append(f"{path.name} embeds provider identifier {identifier}")
             elif (
-                isinstance(node, ast.Assign)
+                isinstance(node, (ast.Assign, ast.AnnAssign))
+                and node.value is not None
                 and isinstance(node.value, ast.Attribute)
                 and node.value.attr in {"read", "read_bytes", "read_text"}
             ):
@@ -871,6 +883,21 @@ class PreSddReviewContractTests(unittest.TestCase):
             (
                 "reader-method-alias",
                 "\ndef bypass(stream):\n    reader = stream.read\n    return reader()\n",
+                "bypasses the single bounded reader path",
+            ),
+            (
+                "annotated-subprocess-alias",
+                "\nimport subprocess as sp\ninvoke: object = sp.run\ninvoke(['python3', '-c', 'pass'])\n",
+                "launches a non-Git subprocess",
+            ),
+            (
+                "annotated-os-alias",
+                "\nimport os as operating\ninvoke: object = operating.system\ninvoke('git status')\n",
+                "may not call os.system",
+            ),
+            (
+                "annotated-reader-alias",
+                "\ndef bypass(stream):\n    reader: object = stream.read\n    return reader()\n",
                 "bypasses the single bounded reader path",
             ),
         )
