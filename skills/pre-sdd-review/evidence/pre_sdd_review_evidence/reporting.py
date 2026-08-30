@@ -195,9 +195,7 @@ def load_records(paths: storage.EvidencePaths) -> tuple[Record, ...]:
                 outcome = storage.load_outcome(paths, directory.name)
                 outcome_sha, outcome_bytes = _fingerprint(outcome_path, OUTCOME_HARD_LIMIT)
             except (EvidenceError, OSError):
-                outcome = None
-                outcome_sha = None
-                outcome_bytes = None
+                continue
         records.append(
             Record(
                 review, outcome, directory, review_sha, outcome_sha,

@@ -239,6 +239,67 @@ class ReportingTests(unittest.TestCase):
         self.assertEqual(summary["missing_outcomes"], {"count": 1, "interpretation": "not_measured"})
         self.assertEqual(summary["protocol_by_client"]["codex"], {"full": 3, "degraded": 1, "blocked": 0, "unknown": 0})
 
+    def test_present_invalid_outcomes_are_reported_and_exclude_the_entire_run(self) -> None:
+        cases: tuple[tuple[str, str], ...] = (
+            ("malformed", "corrupt-record"),
+            ("oversized", "corrupt-record"),
+            ("symlinked", "unsafe-receipt-entry"),
+            ("unsupported", "unsupported-schema-version"),
+            ("wrong-review", "corrupt-record"),
+        )
+        expected_codes: dict[str, str] = {}
+        for offset, (label, expected_code) in enumerate(cases, start=1):
+            review = _review(run_number=800 + offset)
+            self.persist(review)
+            run_id = str(review["run_id"])
+            run_dir = next(self.paths.runs.glob(f"*/*/{run_id}"))
+            outcome_path = run_dir / "outcome.json"
+            outcome = _outcome(review)
+            if label == "malformed":
+                outcome_path.write_bytes(b"{broken")
+            elif label == "oversized":
+                outcome_path.write_bytes(b"x" * (schema.OUTCOME_HARD_LIMIT + 1))
+            elif label == "symlinked":
+                external = self.root / f"outside-{offset}.json"
+                external.write_bytes(schema.canonical_json_bytes(outcome))
+                outcome_path.symlink_to(external)
+            elif label == "unsupported":
+                outcome["schema_version"] = 2
+                outcome_path.write_bytes(schema.canonical_json_bytes(outcome))
+            else:
+                outcome["run_id"] = "00000000-0000-4000-8000-999999999999"
+                outcome_path.write_bytes(schema.canonical_json_bytes(outcome))
+            if os.name == "posix" and not outcome_path.is_symlink():
+                outcome_path.chmod(0o600)
+            expected_codes[run_id] = expected_code
+
+        self.assertEqual(reporting.load_records(self.paths), ())
+        issues = {item["run_id"]: item["code"] for item in storage.doctor(self.paths)}
+        for run_id, expected_code in expected_codes.items():
+            with self.subTest(run_id=run_id):
+                self.assertEqual(issues[run_id], expected_code)
+
+    def test_prune_extreme_day_durations_are_stable_invalid_arguments(self) -> None:
+        values = (
+            "9" * 5_000,
+            "1000000000",
+            "999999999",
+        )
+        for days in values:
+            try:
+                code, output, error = self.run_cli([
+                    "prune", "--older-than", f"{days}d", "--dry-run",
+                ])
+            except (OverflowError, ValueError) as exc:
+                self.fail(f"prune leaked {type(exc).__name__} for {len(days)} digits")
+            with self.subTest(digits=len(days)):
+                self.assertEqual(code, 2)
+                self.assertIsNone(output)
+                self.assertEqual(error["error"], {
+                    "code": "invalid-arguments",
+                    "message": "older-than must be a positive day duration",
+                })
+
     def test_summary_uses_evaluated_findings_and_structured_prevention_only(self) -> None:
         finding = _finding()
         review = _review(run_number=10, findings=[finding])

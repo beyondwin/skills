@@ -669,8 +669,15 @@ def _prune_cutoff(older_than: str) -> str:
     match = re.fullmatch(r"([1-9][0-9]*)d", older_than)
     if match is None:
         raise EvidenceError("invalid-arguments", "older-than must be a positive day duration")
-    now = dt.datetime.fromisoformat(_utc_now()[:-1] + "+00:00")
-    return (now - dt.timedelta(days=int(match.group(1)))).isoformat(timespec="microseconds").replace("+00:00", "Z")
+    try:
+        days = int(match.group(1))
+        now = dt.datetime.fromisoformat(_utc_now()[:-1] + "+00:00")
+        cutoff = now - dt.timedelta(days=days)
+    except (ValueError, OverflowError) as exc:
+        raise EvidenceError(
+            "invalid-arguments", "older-than must be a positive day duration"
+        ) from exc
+    return cutoff.isoformat(timespec="microseconds").replace("+00:00", "Z")
 
 
 def _prune(

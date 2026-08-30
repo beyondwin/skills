@@ -44,7 +44,7 @@ _GIT = re.compile(r"(?:unborn|[0-9a-f]{40}|[0-9a-f]{64})\Z")
 _REASON = re.compile(r"[a-z0-9][a-z0-9._-]{0,99}\Z")
 _PATTERN = re.compile(r"[a-z0-9][a-z0-9._-]*\Z")
 _FINDING_ID = re.compile(r"PSDR-[0-9]{3,}\Z")
-_CONTROL = re.compile(r"[\x00-\x1f\x7f]")
+_CONTROL = re.compile(r"[\x00-\x1f\x7f-\x9f\u2028\u2029]")
 _RFC3339_UTC = re.compile(
     r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?Z\Z"
 )
@@ -228,7 +228,7 @@ def _client(value: object, name: str, *, key: str = "id") -> dict[str, Any]:
 
 def _validate_target(value: object) -> dict[str, Any]:
     data = _object(value, "target", {"repo_id", "initial_head", "initial_dirty", "plan_path", "plan_initial_sha256", "design_path", "design_initial_sha256", "resolution_status"})
-    _string(data["repo_id"], "target.repo_id", 200, nullable=True)
+    _sha(data["repo_id"], "target.repo_id", nullable=True)
     head = _string(data["initial_head"], "target.initial_head", 64, nullable=True)
     if head is not None and not _GIT.fullmatch(head): _fail("invalid-git", "target.initial_head is invalid")
     _boolean(data["initial_dirty"], "target.initial_dirty", nullable=True)
@@ -354,6 +354,8 @@ def validate_review(value: object) -> dict[str, object]:
     if len({item["id"] for item in findings}) != len(findings): _fail("duplicate-finding", "finding IDs must be unique")
     if completion == "abandoned":
         if verdict is not None or block is not None or reason is None or review_passes != 0 or repair_passes != 0 or findings: _fail("completion-invariant", "abandoned review has invalid result fields")
+        if execution != "unknown" or reviewer_count != 0 or fresh or readonly or trigger is not None or reasons:
+            _fail("completion-invariant", "abandoned review requires the canonical protocol projection")
     else:
         if verdict is None or reason is not None or review_passes < 1: _fail("completion-invariant", "completed review has invalid result fields")
         if verdict == "READY" and any(item["status"] != "repaired" for item in findings): _fail("verdict-invariant", "READY permits only repaired findings")
@@ -371,6 +373,8 @@ def validate_review(value: object) -> dict[str, object]:
     _integer(metrics["review_passes"], "metrics.review_passes", 0, 3)
     _integer(metrics["repair_passes"], "metrics.repair_passes", 0, 2)
     token_usage = metrics["token_usage"]
+    if completion == "abandoned" and token_usage is not None:
+        _fail("completion-invariant", "abandoned review requires null token usage")
     if token_usage is not None:
         token = _object(token_usage, "metrics.token_usage", {"input", "output", "total", "provenance"})
         if _integer(token["total"], "metrics.token_usage.total") != _integer(token["input"], "metrics.token_usage.input") + _integer(token["output"], "metrics.token_usage.output"): _fail("token-total", "token total must equal input plus output")

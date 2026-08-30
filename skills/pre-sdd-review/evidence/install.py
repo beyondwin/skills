@@ -138,6 +138,22 @@ def _validate_interpreter(python_executable: Path) -> str:
     return value
 
 
+def _validate_posix_interpreter(python_executable: Path) -> str:
+    path = Path(python_executable)
+    value = _validate_interpreter(path)
+    if (
+        not path.is_absolute()
+        or any(character.isspace() for character in value)
+        or not path.is_file()
+        or not os.access(path, os.X_OK)
+    ):
+        raise EvidenceError(
+            "schema-invalid",
+            "POSIX interpreter must be an absolute executable path without whitespace",
+        )
+    return value
+
+
 def _create_deterministic_zipapp(
     app_root: Path,
     target: Path,
@@ -190,7 +206,7 @@ def build_posix_launcher(staging_root: Path, python_executable: Path) -> Path:
     _create_deterministic_zipapp(
         staging_root / "app",
         target,
-        interpreter=_validate_interpreter(python_executable),
+        interpreter=_validate_posix_interpreter(python_executable),
     )
     target.chmod(0o755)
     return target

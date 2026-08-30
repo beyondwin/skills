@@ -62,7 +62,7 @@ def valid_review(**changes: object) -> dict[str, object]:
             "degraded_reasons": [],
         },
         "target": {
-            "repo_id": "repo-123",
+            "repo_id": "d" * 64,
             "initial_head": "b" * 40,
             "initial_dirty": False,
             "plan_path": "docs/plan.md",
@@ -137,6 +137,43 @@ def valid_outcome(**changes: object) -> dict[str, object]:
     return outcome
 
 
+def valid_abandoned_review() -> dict[str, object]:
+    review = valid_review()
+    review["protocol"] = {
+        "mode": "default",
+        "execution": "unknown",
+        "reviewer_count": 0,
+        "fresh_reviewer": False,
+        "read_only_enforced": False,
+        "conditional_trigger": None,
+        "degraded_reasons": [],
+    }
+    review["result"] = {
+        "completion": "abandoned",
+        "verdict": None,
+        "block_reason": None,
+        "completion_reason": "client-interrupted",
+        "review_passes": 0,
+        "repair_passes": 0,
+        "findings": [],
+    }
+    review["freshness"] = {
+        "final_head": None,
+        "final_dirty": None,
+        "plan_final_sha256": None,
+        "design_final_sha256": None,
+    }
+    review["metrics"] = {
+        "elapsed_ms": 252000,
+        "recorder_elapsed_ms": 12,
+        "reviewer_count": 0,
+        "review_passes": 0,
+        "repair_passes": 0,
+        "token_usage": None,
+    }
+    return review
+
+
 class SchemaContractTests(unittest.TestCase):
     def test_review_limits_and_enums_are_exact(self) -> None:
         self.assertEqual(schema.SCHEMA_VERSION, 1)
@@ -190,6 +227,10 @@ class SchemaContractTests(unittest.TestCase):
             ("run_id", "not-a-uuid"), ("started_at", "2026-08-30T10:00:00+00:00"),
             ("skill.skill_sha256", "A" * 64), ("target.plan_path", "/private/plan.md"),
             ("target.design_path", "docs/../design.md"), ("target.plan_path", "line\nbreak"),
+            ("target.repo_id", "/absolute/repository"),
+            ("target.repo_id", "repo-123"),
+            ("target.repo_id", "g" * 64),
+            ("target.repo_id", "A" * 64),
         )
         for name, value in mutations:
             review = valid_review()
@@ -200,6 +241,53 @@ class SchemaContractTests(unittest.TestCase):
                 review[parent] = value
             with self.subTest(name=name), self.assertRaises(schema.EvidenceError):
                 schema.validate_review(review)
+
+    def test_abandoned_review_requires_the_canonical_protocol_result_freshness_and_metrics_projection(self) -> None:
+        self.assertIsInstance(schema.validate_review(valid_abandoned_review()), dict)
+        mutations: tuple[tuple[str, str, object, tuple[str, str, object] | None], ...] = (
+            ("protocol", "execution", "blocked", None),
+            ("protocol", "reviewer_count", 1, ("metrics", "reviewer_count", 1)),
+            ("protocol", "fresh_reviewer", True, None),
+            ("protocol", "read_only_enforced", True, None),
+            ("protocol", "conditional_trigger", "auth-boundary", None),
+            ("protocol", "degraded_reasons", ["other"], None),
+            ("result", "verdict", "READY", None),
+            ("result", "block_reason", "repository-unavailable", None),
+            ("result", "completion_reason", None, None),
+            ("result", "review_passes", 1, ("metrics", "review_passes", 1)),
+            ("result", "repair_passes", 1, ("metrics", "repair_passes", 1)),
+            ("result", "findings", [valid_finding()], None),
+            ("freshness", "final_head", "b" * 40, None),
+            ("freshness", "final_dirty", False, None),
+            ("freshness", "plan_final_sha256", SHA, None),
+            ("freshness", "design_final_sha256", SHA, None),
+            (
+                "metrics",
+                "token_usage",
+                {"input": 1, "output": 2, "total": 3, "provenance": "measured"},
+                None,
+            ),
+        )
+        for section, key, value, paired in mutations:
+            review = valid_abandoned_review()
+            review[section][key] = value  # type: ignore[index]
+            if paired is not None:
+                pair_section, pair_key, pair_value = paired
+                review[pair_section][pair_key] = pair_value  # type: ignore[index]
+            with self.subTest(section=section, key=key), self.assertRaises(schema.EvidenceError):
+                schema.validate_review(review)
+
+    def test_all_string_envelopes_reject_c1_and_unicode_line_separators(self) -> None:
+        for character in ("\u0080", "\u0085", "\u009f", "\u2028", "\u2029"):
+            review = valid_review()
+            review["result"]["findings"][0]["consequence"] = f"before{character}after"  # type: ignore[index]
+            with self.subTest(record="review", codepoint=ord(character)), self.assertRaises(schema.EvidenceError):
+                schema.validate_review(review)
+
+            outcome = valid_outcome()
+            outcome["recorder"]["model"] = f"before{character}after"  # type: ignore[index]
+            with self.subTest(record="outcome", codepoint=ord(character)), self.assertRaises(schema.EvidenceError):
+                schema.validate_outcome(outcome, valid_review())
 
     def test_finding_bounds_duplicate_normalization_and_ready_invariants(self) -> None:
         review = valid_review()
@@ -226,8 +314,7 @@ class SchemaContractTests(unittest.TestCase):
         cases.append(degraded)
         revise = valid_review(); revise["result"]["verdict"] = "REVISE"; revise["result"]["findings"] = []  # type: ignore[index]
         cases.append(revise)
-        abandoned = valid_review(); abandoned["result"].update({"completion": "abandoned", "verdict": None, "completion_reason": "client-interrupted", "review_passes": 0, "repair_passes": 0, "findings": []}); abandoned["metrics"].update({"review_passes": 0, "repair_passes": 0})  # type: ignore[index]
-        abandoned["freshness"] = {"final_head": None, "final_dirty": None, "plan_final_sha256": None, "design_final_sha256": None}
+        abandoned = valid_abandoned_review()
         self.assertIsInstance(schema.validate_review(abandoned), dict)
         abandoned["result"]["completion_reason"] = None  # type: ignore[index]
         cases.append(abandoned)
@@ -243,10 +330,7 @@ class SchemaContractTests(unittest.TestCase):
         completed = valid_review(completion_reason="client-interrupted")
         with self.assertRaises(schema.EvidenceError):
             schema.validate_review(completed)
-        abandoned = valid_review()
-        abandoned["result"].update({"completion": "abandoned", "verdict": None, "block_reason": None, "completion_reason": "client-interrupted", "review_passes": 0, "repair_passes": 0, "findings": []})  # type: ignore[index]
-        abandoned["metrics"].update({"review_passes": 0, "repair_passes": 0})  # type: ignore[index]
-        abandoned["freshness"] = {"final_head": None, "final_dirty": None, "plan_final_sha256": None, "design_final_sha256": None}
+        abandoned = valid_abandoned_review()
         self.assertIsInstance(schema.validate_review(abandoned), dict)
         abandoned["result"]["completion_reason"] = "Uppercase"  # type: ignore[index]
         with self.assertRaises(schema.EvidenceError):
@@ -413,10 +497,7 @@ class SchemaContractTests(unittest.TestCase):
             mutate(review)
             with self.subTest(field=name):
                 self.assertIsInstance(schema.validate_review(review), dict)
-        abandoned = valid_review()
-        abandoned["result"].update({"completion": "abandoned", "verdict": None, "block_reason": None, "completion_reason": "client-interrupted", "review_passes": 0, "repair_passes": 0, "findings": []})  # type: ignore[index]
-        abandoned["metrics"].update({"review_passes": 0, "repair_passes": 0})  # type: ignore[index]
-        abandoned["freshness"] = {"final_head": None, "final_dirty": None, "plan_final_sha256": None, "design_final_sha256": None}
+        abandoned = valid_abandoned_review()
         self.assertIsInstance(schema.validate_review(abandoned), dict)
         outcome = valid_outcome()
         for key in ("version", "model"):

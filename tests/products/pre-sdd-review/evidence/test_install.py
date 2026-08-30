@@ -115,6 +115,51 @@ class EvidenceInstallerTests(unittest.TestCase):
         self.assertTrue(command.stat().st_mode & stat.S_IXUSR)
         self._run_version(str(command), "--version")
 
+    @unittest.skipIf(os.name == "nt", "POSIX executable validation requires POSIX modes and symlinks")
+    def test_posix_install_rejects_unrepresentable_or_unexecutable_interpreters_before_publication(self) -> None:
+        spaced_directory = self.workspace / "actual interpreter with spaces"
+        spaced_directory.mkdir()
+        spaced_interpreter = spaced_directory / "python"
+        spaced_interpreter.symlink_to(Path(sys.executable))
+        non_executable = self.workspace / "python-nonexec"
+        non_executable.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        non_executable.chmod(0o600)
+        cases = (
+            ("relative", Path("python3")),
+            ("missing", self.workspace / "missing-python"),
+            ("non-executable", non_executable),
+            ("whitespace", spaced_interpreter),
+        )
+        target = self.bin_dir / "pre-sdd-review-evidence"
+        for label, executable in cases:
+            with self.subTest(label=label), self.assertRaisesRegex(
+                EvidenceError, "POSIX interpreter"
+            ):
+                installer.install(
+                    self.skill,
+                    self.bin_dir,
+                    platform="posix",
+                    python_executable=executable,
+                )
+            self.assertFalse(target.exists())
+
+    @unittest.skipIf(os.name == "nt", "symlink fixture requires POSIX host semantics")
+    def test_windows_launcher_preserves_quoted_interpreter_paths_with_spaces(self) -> None:
+        directory = self.workspace / "windows interpreter with spaces"
+        directory.mkdir()
+        interpreter = directory / "python"
+        interpreter.symlink_to(Path(sys.executable))
+        installed = installer.install(
+            self.skill,
+            self.bin_dir,
+            platform="windows",
+            python_executable=interpreter,
+        )
+        self.assertEqual(
+            installed[1].read_bytes(),
+            f'@"{interpreter}" "%~dp0pre-sdd-review-evidence.pyz" %*\r\n'.encode("utf-8"),
+        )
+
     def test_windows_install_creates_quoted_wrapper_and_runnable_zipapp(self) -> None:
         installed = installer.install(
             self.skill,

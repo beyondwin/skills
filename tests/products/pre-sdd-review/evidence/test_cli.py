@@ -333,6 +333,50 @@ class CliTests(unittest.TestCase):
             record["metrics"].pop("recorder_elapsed_ms")
         self.assertEqual(first_review, second_review)
 
+    def test_cli_never_persists_c1_or_unicode_line_separator_strings(self) -> None:
+        def finding(character: str) -> dict[str, object]:
+            return {
+                "id": "PSDR-001",
+                "severity": "IMPORTANT",
+                "class": "verification-gap",
+                "pattern_key": "control-character",
+                "consequence_category": "other",
+                "status": "repaired",
+                "location": {"path": "docs/plan.md", "locator": "Validation"},
+                "evidence_refs": ["docs/plan.md#validation"],
+                "consequence": f"before{character}after",
+                "minimal_fix": "Reject the invalid string centrally.",
+                "repair_pass": 1,
+            }
+
+        for character in ("\u0080", "\u0085", "\u009f", "\u2028", "\u2029"):
+            started = self.start()
+            semantic = self.semantic()
+            semantic["findings"] = [finding(character)]
+            semantic["repair_passes"] = 1
+            code, output, error = self.run_cli([
+                "finish-review", "--run-id", str(started["run_id"]),
+                "--repo", str(self.repo), "--from-stdin",
+            ], json.dumps(semantic))
+            self.assertEqual(code, 2)
+            self.assertEqual(output, "")
+            self.assertEqual(json.loads(error)["error"]["code"], "invalid-string")
+            run_dir = next(self.home.glob(f"runs/*/*/{started['run_id']}"))
+            self.assertFalse((run_dir / "review.json").exists())
+
+            finalized = self.finalized()
+            outcome = self.outcome_semantic()
+            outcome["recorder"]["model"] = f"before{character}after"  # type: ignore[index]
+            code, output, error = self.run_cli([
+                "record-outcome", "--run-id", str(finalized["run_id"]),
+                "--repo", str(self.repo), "--from-stdin",
+            ], json.dumps(outcome))
+            self.assertEqual(code, 2)
+            self.assertEqual(output, "")
+            self.assertEqual(json.loads(error)["error"]["code"], "invalid-string")
+            run_dir = next(self.home.glob(f"runs/*/*/{finalized['run_id']}"))
+            self.assertFalse((run_dir / "outcome.json").exists())
+
     def test_finish_public_retry_uses_semantics_not_regenerated_times(self) -> None:
         started = self.start()
         command = [

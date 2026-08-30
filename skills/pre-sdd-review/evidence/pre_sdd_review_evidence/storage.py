@@ -765,7 +765,17 @@ def doctor(paths: EvidencePaths) -> tuple[dict[str, str], ...]:
                 if not isinstance(skill, dict) or skill.get("cli_version") != CLI_VERSION:
                     issues.append({"code": "incompatible-cli", "run_id": run_id})
                     continue
-                validate_review(raw)
+                review = validate_review(raw)
+                outcome_path = directory / "outcome.json"
+                if _lstat(outcome_path) is not None:
+                    _validate_regular(outcome_path)
+                    raw_outcome = read_bounded_json(outcome_path, OUTCOME_HARD_LIMIT)
+                    if not isinstance(raw_outcome, dict):
+                        raise EvidenceError("invalid-json", "outcome is not an object")
+                    if raw_outcome.get("schema_version") != SCHEMA_VERSION:
+                        issues.append({"code": "unsupported-schema-version", "run_id": run_id})
+                        continue
+                    validate_outcome(raw_outcome, review)
             elif _lstat(pending_path) is not None:
                 _validate_regular(pending_path)
                 raw_pending = read_bounded_json(pending_path, PENDING_HARD_LIMIT)

@@ -59,6 +59,16 @@ class StorageLifecycleTests(unittest.TestCase):
         self.assertFalse((handle.directory / "review.json").exists())
         self.assertTrue((handle.directory / ".pending.json").exists())
 
+    def test_finish_review_cannot_change_the_pending_mode(self) -> None:
+        pending = pending_record(mode="default")
+        handle = storage.create_pending(self.paths, pending)
+        changed = completed_review(pending)
+        changed["protocol"]["mode"] = "review-only"
+        with self.assertRaisesRegex(EvidenceError, "pending"):
+            storage.finish_review(self.paths, handle.run_id, changed)
+        self.assertFalse((handle.directory / "review.json").exists())
+        self.assertTrue((handle.directory / ".pending.json").exists())
+
     def test_final_file_race_never_overwrites_winning_bytes(self) -> None:
         pending = pending_record()
         handle = storage.create_pending(self.paths, pending)
