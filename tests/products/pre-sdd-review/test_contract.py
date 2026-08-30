@@ -471,6 +471,7 @@ def product_payload_contract_errors(skill_root: Path) -> tuple[str, ...]:
         path.relative_to(skill_root).as_posix()
         for path in skill_root.rglob("*")
         if path.is_file()
+        and "__pycache__" not in path.relative_to(skill_root).parts
     }
     errors = [
         f"missing payload member: {relative}"
@@ -683,6 +684,18 @@ def second_review_risk_triggers(reviewers: str) -> tuple[str, ...]:
 
 
 class PreSddReviewContractTests(unittest.TestCase):
+    def test_source_payload_contract_ignores_generated_python_cache(self) -> None:
+        validator = globals().get("product_payload_contract_errors")
+        self.assertIsNotNone(validator)
+        assert validator is not None
+        with tempfile.TemporaryDirectory() as directory:
+            copied = Path(directory) / "pre-sdd-review"
+            shutil.copytree(SKILL, copied)
+            cache = copied / "evidence/pre_sdd_review_evidence/__pycache__"
+            cache.mkdir()
+            (cache / "schema.cpython-314.pyc").write_bytes(b"bytecode")
+            self.assertEqual(validator(copied), ())
+
     def test_pre_sdd_review_evidence_payload_is_allowed_only_for_pre_sdd(self) -> None:
         registry = load_registry(ROOT / "products.toml")
         self.assertEqual(validate_product(SKILL, registry), [])

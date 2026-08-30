@@ -5,6 +5,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import support  # noqa: F401
 from pre_sdd_review_evidence import schema
@@ -143,6 +144,18 @@ class SchemaContractTests(unittest.TestCase):
         self.assertEqual(schema.OUTCOME_HARD_LIMIT, 8 * 1024)
         self.assertEqual(schema.VERDICTS, frozenset({"READY", "REVISE", "BLOCKED"}))
         self.assertEqual(schema.FINDING_CLASSES, frozenset({"authority-drift", "repo-reality", "coverage", "ordering", "verification-gap"}))
+        self.assertEqual(schema.CLIENT_IDS, frozenset({"codex", "claude-code", "cursor", "grok", "other", "unknown"}))
+        self.assertEqual(schema.MODES, frozenset({"default", "review-only"}))
+        self.assertEqual(schema.EXECUTIONS, frozenset({"full", "degraded", "blocked", "unknown"}))
+        self.assertEqual(schema.CONDITIONAL_TRIGGERS, frozenset({"runtime-removal", "schema-migration", "auth-boundary", "data-boundary", "external-side-effect"}))
+        self.assertEqual(schema.DEGRADED_REASONS, frozenset({"fresh-reviewer-unavailable", "read-only-unavailable", "conditional-reviewer-unavailable", "host-capability-unknown", "other"}))
+        self.assertEqual(schema.RESOLUTION_STATUSES, frozenset({"resolved", "plan-missing", "spec-field-missing", "spec-path-invalid", "design-missing", "outside-repository", "not-git-repository"}))
+        self.assertEqual(schema.FINDING_STATUSES, frozenset({"repaired", "unresolved", "blocked-by-authority", "accepted-as-is"}))
+        self.assertEqual(schema.CONSEQUENCE_CATEGORIES, frozenset({"escaped-material-defect", "avoidable-rework", "false-block", "protocol-degradation", "input-resolution-failure", "other"}))
+        self.assertEqual(schema.DOWNSTREAM_STATUSES, frozenset({"sdd-completed", "implementation-completed", "implementation-abandoned", "cancelled"}))
+        self.assertEqual(schema.ASSESSMENT_LABELS, frozenset({"good", "false-ready", "noisy", "prevented-rework", "inconclusive", "abandoned"}))
+        self.assertEqual(schema.EVIDENCE_BASES, frozenset({"verified-repository-evidence", "user-reported", "agent-observed", "agent-inferred", "unknown"}))
+        self.assertEqual(schema.CONFIDENCES, frozenset({"low", "medium", "high"}))
 
     def test_accepts_and_normalizes_a_complete_review_without_mutating_caller(self) -> None:
         review = valid_review()
@@ -222,6 +235,23 @@ class SchemaContractTests(unittest.TestCase):
             with self.subTest(review=review["result"]), self.assertRaises(schema.EvidenceError):
                 schema.validate_review(review)
 
+    def test_completion_reason_and_nullable_rows_are_exact(self) -> None:
+        review = valid_review()
+        review["metrics"]["token_usage"] = None  # type: ignore[index]
+        review["result"]["findings"][0]["repair_pass"] = None  # type: ignore[index]
+        self.assertIsInstance(schema.validate_review(review), dict)
+        completed = valid_review(completion_reason="client-interrupted")
+        with self.assertRaises(schema.EvidenceError):
+            schema.validate_review(completed)
+        abandoned = valid_review()
+        abandoned["result"].update({"completion": "abandoned", "verdict": None, "block_reason": None, "completion_reason": "client-interrupted", "review_passes": 0, "repair_passes": 0, "findings": []})  # type: ignore[index]
+        abandoned["metrics"].update({"review_passes": 0, "repair_passes": 0})  # type: ignore[index]
+        abandoned["freshness"] = {"final_head": None, "final_dirty": None, "plan_final_sha256": None, "design_final_sha256": None}
+        self.assertIsInstance(schema.validate_review(abandoned), dict)
+        abandoned["result"]["completion_reason"] = "Uppercase"  # type: ignore[index]
+        with self.assertRaises(schema.EvidenceError):
+            schema.validate_review(abandoned)
+
     def test_mirrored_counts_token_totals_and_resolution_rows_are_enforced(self) -> None:
         for section, key, value in (("metrics", "reviewer_count", 2), ("metrics", "review_passes", 3), ("metrics", "repair_passes", 0), ("metrics", "token_usage", {"input": 1, "output": 2, "total": 9, "provenance": "measured"})):
             review = valid_review(); review[section][key] = value  # type: ignore[index]
@@ -268,3 +298,130 @@ class SchemaContractTests(unittest.TestCase):
         too_large = valid_review(); too_large["result"]["findings"] = [valid_finding(consequence="x" * 300, minimal_fix="y" * 300) for _ in range(60)]  # type: ignore[index]
         for index, finding in enumerate(too_large["result"]["findings"]): finding["id"] = f"PSDR-{index:03d}"  # type: ignore[index]
         with self.assertRaises(schema.EvidenceError): schema.validate_review(too_large)
+
+    def test_references_require_canonical_posix_relative_forms(self) -> None:
+        for path in ("docs\\plan.md", "./docs/plan.md", "docs//plan.md", "docs/./plan.md"):
+            review = valid_review()
+            review["target"]["plan_path"] = path  # type: ignore[index]
+            with self.subTest(path=path), self.assertRaises(schema.EvidenceError):
+                schema.validate_review(review)
+        review = valid_review()
+        review["result"]["findings"][0]["evidence_refs"] = ["src\\app.py#symbol"]  # type: ignore[index]
+        with self.assertRaises(schema.EvidenceError):
+            schema.validate_review(review)
+
+    def test_times_require_extended_utc_rfc3339_seconds(self) -> None:
+        for value in ("20260830T100000Z", "2026-08-30T10:00Z", "2026-08-30 10:00:00Z", "2026-08-30T10:00:00. Z"):
+            review = valid_review()
+            review["started_at"] = value
+            with self.subTest(value=value), self.assertRaises(schema.EvidenceError):
+                schema.validate_review(review)
+        review = valid_review()
+        review["started_at"] = "2026-08-30T10:00:00.123Z"
+        self.assertIsInstance(schema.validate_review(review), dict)
+
+    def test_every_required_review_and_outcome_key_is_closed(self) -> None:
+        review_sections = {
+            "skill": ("name", "declared_version", "release_version", "skill_sha256", "reviewer_protocol_sha256", "release_manifest_sha256", "cli_version", "schema_version"),
+            "client": ("id", "version", "model"),
+            "protocol": ("mode", "execution", "reviewer_count", "fresh_reviewer", "read_only_enforced", "conditional_trigger", "degraded_reasons"),
+            "target": ("repo_id", "initial_head", "initial_dirty", "plan_path", "plan_initial_sha256", "design_path", "design_initial_sha256", "resolution_status"),
+            "result": ("completion", "verdict", "block_reason", "completion_reason", "review_passes", "repair_passes", "findings"),
+            "freshness": ("final_head", "final_dirty", "plan_final_sha256", "design_final_sha256"),
+            "metrics": ("elapsed_ms", "recorder_elapsed_ms", "reviewer_count", "review_passes", "repair_passes", "token_usage"),
+        }
+        for section, keys in review_sections.items():
+            for key in keys:
+                review = valid_review()
+                del review[section][key]  # type: ignore[index]
+                with self.subTest(record="review", section=section, key=key), self.assertRaises(schema.EvidenceError):
+                    schema.validate_review(review)
+        outcome_sections = {
+            "recorder": ("client", "version", "model"),
+            "downstream": ("status", "plan_hash_matched", "replan_count", "evaluated_finding_ids", "escaped_findings", "disputed_findings", "prevented_rework"),
+            "assessment": ("label", "basis", "confidence"),
+        }
+        for section, keys in outcome_sections.items():
+            for key in keys:
+                outcome = valid_outcome()
+                del outcome[section][key]  # type: ignore[index]
+                with self.subTest(record="outcome", section=section, key=key), self.assertRaises(schema.EvidenceError):
+                    schema.validate_outcome(outcome, valid_review())
+
+    def test_every_outcome_nested_record_key_is_closed(self) -> None:
+        escaped = {"severity": "BLOCKER", "class": "coverage", "pattern_key": "missed-coverage", "consequence_category": "escaped-material-defect", "basis": "user-reported"}
+        escaped_outcome = valid_outcome(downstream=valid_downstream(escaped_findings=[escaped]), assessment={"label": "false-ready", "basis": "user-reported", "confidence": "high"})
+        for key in tuple(escaped):
+            broken = copy.deepcopy(escaped_outcome)
+            del broken["downstream"]["escaped_findings"][0][key]  # type: ignore[index]
+            with self.subTest(record="escaped", key=key), self.assertRaises(schema.EvidenceError):
+                schema.validate_outcome(broken, valid_review())
+        review = valid_review()
+        review["result"]["findings"][0]["severity"] = "BLOCKER"  # type: ignore[index]
+        disputed = {"finding_id": "PSDR-001", "class": "verification-gap", "pattern_key": "build-only-acceptance", "consequence_category": "avoidable-rework", "basis": "agent-observed"}
+        disputed_outcome = valid_outcome(downstream=valid_downstream(disputed_findings=[disputed]), assessment={"label": "noisy", "basis": "agent-observed", "confidence": "medium"})
+        for key in tuple(disputed):
+            broken = copy.deepcopy(disputed_outcome)
+            del broken["downstream"]["disputed_findings"][0][key]  # type: ignore[index]
+            with self.subTest(record="disputed", key=key), self.assertRaises(schema.EvidenceError):
+                schema.validate_outcome(broken, review)
+        prevented = {"finding_id": "PSDR-001", "pattern_key": "build-only-acceptance", "consequence_category": "avoidable-rework", "basis": "agent-observed"}
+        prevented_outcome = valid_outcome(downstream=valid_downstream(prevented_rework=[prevented]), assessment={"label": "prevented-rework", "basis": "agent-observed", "confidence": "medium"})
+        for key in tuple(prevented):
+            broken = copy.deepcopy(prevented_outcome)
+            del broken["downstream"]["prevented_rework"][0][key]  # type: ignore[index]
+            with self.subTest(record="prevented", key=key), self.assertRaises(schema.EvidenceError):
+                schema.validate_outcome(broken, valid_review())
+
+    def test_every_resolution_status_has_its_exact_nullability_projection(self) -> None:
+        cases = {
+            "resolved": ({}, {}),
+            "plan-missing": ({"plan_initial_sha256": None, "design_path": None, "design_initial_sha256": None}, {"plan_final_sha256": None, "design_final_sha256": None}),
+            "spec-field-missing": ({"design_path": None, "design_initial_sha256": None}, {"design_final_sha256": None}),
+            "spec-path-invalid": ({"design_path": None, "design_initial_sha256": None}, {"design_final_sha256": None}),
+            "design-missing": ({"design_initial_sha256": None}, {"design_final_sha256": None}),
+            "outside-repository": ({"plan_path": None, "plan_initial_sha256": None, "design_path": None, "design_initial_sha256": None}, {"plan_final_sha256": None, "design_final_sha256": None}),
+            "not-git-repository": ({"repo_id": None, "initial_head": None, "initial_dirty": None, "plan_path": None, "plan_initial_sha256": None, "design_path": None, "design_initial_sha256": None}, {"final_head": None, "final_dirty": None, "plan_final_sha256": None, "design_final_sha256": None}),
+        }
+        for status, (target_changes, freshness_changes) in cases.items():
+            review = valid_review()
+            review["target"]["resolution_status"] = status  # type: ignore[index]
+            review["target"].update(target_changes)  # type: ignore[index]
+            review["freshness"].update(freshness_changes)  # type: ignore[index]
+            with self.subTest(status=status):
+                self.assertIsInstance(schema.validate_review(review), dict)
+
+    def test_bounded_reader_requests_exactly_limit_plus_one_bytes(self) -> None:
+        class RecordingStream:
+            def __init__(self) -> None:
+                self.calls: list[int] = []
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args: object) -> None:
+                return None
+
+            def read(self, amount: int) -> bytes:
+                self.calls.append(amount)
+                return b"{}"
+
+        stream = RecordingStream()
+        with mock.patch.object(Path, "open", return_value=stream):
+            self.assertEqual(schema.read_bounded_bytes(Path("ignored"), 7), b"{}")
+        self.assertEqual(stream.calls, [8])
+
+    def test_review_and_outcome_hard_size_limits_reject_records(self) -> None:
+        too_large = valid_review()
+        too_large["result"]["findings"] = [valid_finding(consequence="x" * 300, minimal_fix="y" * 300) for _ in range(60)]  # type: ignore[index]
+        for index, finding in enumerate(too_large["result"]["findings"]):
+            finding["id"] = f"PSDR-{index:03d}"
+        with self.assertRaises(schema.EvidenceError):
+            schema.validate_review(too_large)
+        escaped = [
+            {"severity": "BLOCKER", "class": "coverage", "pattern_key": f"escape-{index:03d}-{'x' * 65}", "consequence_category": "escaped-material-defect", "basis": "user-reported"}
+            for index in range(50)
+        ]
+        outcome = valid_outcome(downstream=valid_downstream(escaped_findings=escaped), assessment={"label": "false-ready", "basis": "user-reported", "confidence": "high"})
+        with self.assertRaises(schema.EvidenceError):
+            schema.validate_outcome(outcome, valid_review())

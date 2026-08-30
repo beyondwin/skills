@@ -45,6 +45,9 @@ _REASON = re.compile(r"[a-z0-9][a-z0-9._-]{0,99}\Z")
 _PATTERN = re.compile(r"[a-z0-9][a-z0-9._-]*\Z")
 _FINDING_ID = re.compile(r"PSDR-[0-9]{3,}\Z")
 _CONTROL = re.compile(r"[\x00-\x1f\x7f]")
+_RFC3339_UTC = re.compile(
+    r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?Z\Z"
+)
 
 
 class EvidenceError(ValueError):
@@ -136,8 +139,8 @@ def _sha(value: object, name: str, *, nullable: bool = False) -> str | None:
 def _timestamp(value: object, name: str) -> str:
     result = _string(value, name, 30)
     assert result is not None
-    if not result.endswith("Z"):
-        _fail("invalid-time", f"{name} must use a UTC Z suffix")
+    if not _RFC3339_UTC.fullmatch(result):
+        _fail("invalid-time", f"{name} must be an extended UTC RFC 3339 timestamp")
     try:
         dt.datetime.fromisoformat(result[:-1] + "+00:00")
     except ValueError as exc:
@@ -161,8 +164,13 @@ def _safe_reference(value: object, name: str, maximum: int = 500, *, nullable: b
     result = _string(value, name, maximum, nullable=nullable)
     if result is None:
         return None
-    portable = result.replace("\\", "/")
-    if portable.startswith("/") or re.match(r"^[A-Za-z]:/", portable) or ".." in portable.split("/"):
+    components = result.split("/")
+    if (
+        "\\" in result
+        or result.startswith("/")
+        or re.match(r"^[A-Za-z]:/", result)
+        or any(component in {"", ".", ".."} for component in components)
+    ):
         _fail("unsafe-path", f"{name} must be a safe relative reference")
     return result
 
@@ -276,7 +284,9 @@ def _resolution_invariants(target: dict[str, Any], freshness: dict[str, Any], *,
 def validate_review(value: object) -> dict[str, object]:
     data = _object(value, "review", {"schema_version", "record_type", "run_id", "started_at", "completed_at", "skill", "client", "protocol", "target", "result", "freshness", "metrics"})
     if data["schema_version"] != SCHEMA_VERSION or data["record_type"] != "review": _fail("schema-version", "review schema identity is invalid")
-    _run_id(data["run_id"]); _timestamp(data["started_at"], "started_at"); _timestamp(data["completed_at"], "completed_at")
+    _run_id(data["run_id"])
+    _timestamp(data["started_at"], "started_at")
+    _timestamp(data["completed_at"], "completed_at")
     skill = _object(data["skill"], "skill", {"name", "declared_version", "release_version", "skill_sha256", "reviewer_protocol_sha256", "release_manifest_sha256", "cli_version", "schema_version"})
     if skill["name"] != "pre-sdd-review" or skill["declared_version"] != skill["release_version"] or skill["cli_version"] != CLI_VERSION or skill["schema_version"] != SCHEMA_VERSION:
         _fail("skill-identity", "skill identity does not match the running recorder")
@@ -284,9 +294,11 @@ def validate_review(value: object) -> dict[str, object]:
     for key in ("skill_sha256", "reviewer_protocol_sha256", "release_manifest_sha256"): _sha(skill[key], f"skill.{key}")
     client = _client(data["client"], "client")
     protocol = _object(data["protocol"], "protocol", {"mode", "execution", "reviewer_count", "fresh_reviewer", "read_only_enforced", "conditional_trigger", "degraded_reasons"})
-    _enum(protocol["mode"], "protocol.mode", MODES); execution = _enum(protocol["execution"], "protocol.execution", EXECUTIONS)
+    _enum(protocol["mode"], "protocol.mode", MODES)
+    execution = _enum(protocol["execution"], "protocol.execution", EXECUTIONS)
     reviewer_count = _integer(protocol["reviewer_count"], "protocol.reviewer_count", 0, 2)
-    fresh = _boolean(protocol["fresh_reviewer"], "protocol.fresh_reviewer"); readonly = _boolean(protocol["read_only_enforced"], "protocol.read_only_enforced")
+    fresh = _boolean(protocol["fresh_reviewer"], "protocol.fresh_reviewer")
+    readonly = _boolean(protocol["read_only_enforced"], "protocol.read_only_enforced")
     trigger = _enum(protocol["conditional_trigger"], "protocol.conditional_trigger", CONDITIONAL_TRIGGERS, nullable=True)
     if not isinstance(protocol["degraded_reasons"], list): _fail("invalid-type", "protocol.degraded_reasons must be a list")
     reasons = [_enum(item, "protocol.degraded_reasons[]", DEGRADED_REASONS) for item in protocol["degraded_reasons"]]
@@ -294,7 +306,8 @@ def validate_review(value: object) -> dict[str, object]:
     if execution == "full" and (not fresh or not readonly or reasons or reviewer_count != (2 if trigger is not None else 1)):
         _fail("protocol-invariant", "full protocol requires fresh read-only reviewers and no degraded reasons")
     if execution == "degraded" and not reasons: _fail("protocol-invariant", "degraded protocol requires a reason")
-    target = _validate_target(data["target"]); freshness = _validate_freshness(data["freshness"])
+    target = _validate_target(data["target"])
+    freshness = _validate_freshness(data["freshness"])
     result = _object(data["result"], "result", {"completion", "verdict", "block_reason", "completion_reason", "review_passes", "repair_passes", "findings"})
     completion = _enum(result["completion"], "result.completion", frozenset({"completed", "abandoned"}))
     verdict = _enum(result["verdict"], "result.verdict", VERDICTS, nullable=True)
@@ -302,7 +315,8 @@ def validate_review(value: object) -> dict[str, object]:
     reason = _string(result["completion_reason"], "result.completion_reason", 100, nullable=True)
     for name, item in (("result.block_reason", block), ("result.completion_reason", reason)):
         if item is not None and not _REASON.fullmatch(item): _fail("invalid-reason", f"{name} is invalid")
-    review_passes = _integer(result["review_passes"], "result.review_passes", 0, 3); repair_passes = _integer(result["repair_passes"], "result.repair_passes", 0, 2)
+    review_passes = _integer(result["review_passes"], "result.review_passes", 0, 3)
+    repair_passes = _integer(result["repair_passes"], "result.repair_passes", 0, 2)
     if not isinstance(result["findings"], list): _fail("invalid-type", "result.findings must be a list")
     findings = [_validate_finding(item) for item in result["findings"]]
     if len({item["id"] for item in findings}) != len(findings): _fail("duplicate-finding", "finding IDs must be unique")
@@ -317,10 +331,13 @@ def validate_review(value: object) -> dict[str, object]:
         repair = finding["repair_pass"]
         if repair is not None and repair > repair_passes: _fail("repair-pass", "finding repair pass exceeds recorded repair passes")
     metrics = _object(data["metrics"], "metrics", {"elapsed_ms", "recorder_elapsed_ms", "reviewer_count", "review_passes", "repair_passes", "token_usage"})
-    _integer(metrics["elapsed_ms"], "metrics.elapsed_ms"); _integer(metrics["recorder_elapsed_ms"], "metrics.recorder_elapsed_ms")
+    _integer(metrics["elapsed_ms"], "metrics.elapsed_ms")
+    _integer(metrics["recorder_elapsed_ms"], "metrics.recorder_elapsed_ms")
     if metrics["reviewer_count"] != reviewer_count or metrics["review_passes"] != review_passes or metrics["repair_passes"] != repair_passes:
         _fail("mirrored-count", "review and metric counts must match")
-    _integer(metrics["reviewer_count"], "metrics.reviewer_count", 0, 2); _integer(metrics["review_passes"], "metrics.review_passes", 0, 3); _integer(metrics["repair_passes"], "metrics.repair_passes", 0, 2)
+    _integer(metrics["reviewer_count"], "metrics.reviewer_count", 0, 2)
+    _integer(metrics["review_passes"], "metrics.review_passes", 0, 3)
+    _integer(metrics["repair_passes"], "metrics.repair_passes", 0, 2)
     token_usage = metrics["token_usage"]
     if token_usage is not None:
         token = _object(token_usage, "metrics.token_usage", {"input", "output", "total", "provenance"})
@@ -328,15 +345,15 @@ def validate_review(value: object) -> dict[str, object]:
         _string(token["provenance"], "metrics.token_usage.provenance", 100)
     _resolution_invariants(target, freshness, abandoned=completion == "abandoned")
     normalized = copy.deepcopy(data)
-    normalized["client"] = client; normalized["target"] = target; normalized["freshness"] = freshness
-    normalized["protocol"] = copy.deepcopy(protocol); normalized["protocol"]["degraded_reasons"] = reasons
-    normalized["result"] = copy.deepcopy(result); normalized["result"]["findings"] = findings
+    normalized["client"] = client
+    normalized["target"] = target
+    normalized["freshness"] = freshness
+    normalized["protocol"] = copy.deepcopy(protocol)
+    normalized["protocol"]["degraded_reasons"] = reasons
+    normalized["result"] = copy.deepcopy(result)
+    normalized["result"]["findings"] = findings
     if len(canonical_json_bytes(normalized)) > REVIEW_HARD_LIMIT: _fail("record-too-large", "review exceeds the hard size limit")
     return normalized
-
-
-def _material_escaped(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    return [item for item in items if item["severity"] == "BLOCKER"]
 
 
 def derive_assessment(review: dict[str, object], downstream: dict[str, object]) -> str:
@@ -362,7 +379,6 @@ def validate_outcome(value: object, review: object) -> dict[str, object]:
     normalized_review = validate_review(review)
     data = _object(value, "outcome", {"schema_version", "record_type", "run_id", "recorded_at", "recorder", "downstream", "assessment"})
     if data["schema_version"] != SCHEMA_VERSION or data["record_type"] != "outcome": _fail("schema-version", "outcome schema identity is invalid")
-    if _run_id(data["run_id"]) != normalized_review["run_id"]: _fail("run-link", "outcome run_id must match the review")
     _timestamp(data["recorded_at"], "recorded_at")
     if (
         isinstance(data["assessment"], dict)
@@ -383,10 +399,12 @@ def validate_outcome(value: object, review: object) -> dict[str, object]:
     if not isinstance(downstream["escaped_findings"], list): _fail("invalid-type", "escaped_findings must be a list")
     for item in downstream["escaped_findings"]:
         record = _object(item, "escaped_finding", {"severity", "class", "pattern_key", "consequence_category", "basis"})
-        _enum(record["severity"], "escaped_finding.severity", FINDING_SEVERITIES); _enum(record["class"], "escaped_finding.class", FINDING_CLASSES)
+        _enum(record["severity"], "escaped_finding.severity", FINDING_SEVERITIES)
+        _enum(record["class"], "escaped_finding.class", FINDING_CLASSES)
         pattern = _string(record["pattern_key"], "escaped_finding.pattern_key", 80)
         if pattern is None or not _PATTERN.fullmatch(pattern): _fail("invalid-pattern-key", "escaped_finding.pattern_key is invalid")
-        _enum(record["consequence_category"], "escaped_finding.consequence_category", CONSEQUENCE_CATEGORIES); _enum(record["basis"], "escaped_finding.basis", EVIDENCE_BASES)
+        _enum(record["consequence_category"], "escaped_finding.consequence_category", CONSEQUENCE_CATEGORIES)
+        _enum(record["basis"], "escaped_finding.basis", EVIDENCE_BASES)
         escaped.append(copy.deepcopy(record))
     disputed: list[dict[str, Any]] = []
     prevented: list[dict[str, Any]] = []
@@ -404,13 +422,21 @@ def validate_outcome(value: object, review: object) -> dict[str, object]:
             _enum(record["basis"], f"{field}.basis", EVIDENCE_BASES)
             destination.append(copy.deepcopy(record))
     if len(_deduplicate(escaped)) != len(escaped) or len(_deduplicate(disputed)) != len(disputed) or len(_deduplicate(prevented)) != len(prevented): _fail("duplicate-record", "downstream records must be unique")
-    normalized_downstream = copy.deepcopy(downstream); normalized_downstream["evaluated_finding_ids"] = _deduplicate(evaluated); normalized_downstream["escaped_findings"] = _deduplicate(escaped); normalized_downstream["disputed_findings"] = _deduplicate(disputed); normalized_downstream["prevented_rework"] = _deduplicate(prevented)
+    normalized_downstream = copy.deepcopy(downstream)
+    normalized_downstream["evaluated_finding_ids"] = _deduplicate(evaluated)
+    normalized_downstream["escaped_findings"] = _deduplicate(escaped)
+    normalized_downstream["disputed_findings"] = _deduplicate(disputed)
+    normalized_downstream["prevented_rework"] = _deduplicate(prevented)
     label = derive_assessment(normalized_review, normalized_downstream)
     assessment = _object(data["assessment"], "assessment", {"label", "basis", "confidence"})
     if assessment["label"] != label: _fail("assessment-label", f"{assessment['label']} assessment is not derived as {label}")
-    _enum(assessment["label"], "assessment.label", ASSESSMENT_LABELS); basis = _enum(assessment["basis"], "assessment.basis", EVIDENCE_BASES); _enum(assessment["confidence"], "assessment.confidence", CONFIDENCES)
+    _enum(assessment["label"], "assessment.label", ASSESSMENT_LABELS)
+    basis = _enum(assessment["basis"], "assessment.basis", EVIDENCE_BASES)
+    _enum(assessment["confidence"], "assessment.confidence", CONFIDENCES)
     sufficient = escaped if label == "false-ready" else disputed if label == "noisy" else prevented if label == "prevented-rework" else []
     if sufficient and basis != _strongest_basis(sufficient): _fail("assessment-basis", "assessment basis must use the strongest triggering evidence")
-    normalized = copy.deepcopy(data); normalized["recorder"] = recorder; normalized["downstream"] = normalized_downstream
+    normalized = copy.deepcopy(data)
+    normalized["recorder"] = recorder
+    normalized["downstream"] = normalized_downstream
     if len(canonical_json_bytes(normalized)) > OUTCOME_HARD_LIMIT: _fail("record-too-large", "outcome exceeds the hard size limit")
     return normalized
