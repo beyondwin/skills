@@ -143,11 +143,15 @@ observation, assessment basis, confidence는 관찰자가 입력합니다. `good
 `false-ready`, `noisy`, `prevented-rework` label은 CLI가 그 observation에서
 결정적으로 파생합니다. 입력과 파생 label은 모두 자기개선용 evidence이며
 객관적·감사 등급 증거가 아닙니다. `record-outcome` 전에 알려진 모든 이견과
-불확실성을 한 번의 outcome 입력에 담아야 합니다. finding 이견은
-`disputed_findings`에, 불확실성은 observation·basis·confidence에 담아 파생
-assessment가 `inconclusive`로 남게 하세요. create-only outcome이 기록된 뒤에는
-schema 1에서 정정하거나 amend할 수 없습니다. 잘못 기록한 outcome은 정정
-경로가 아니라 이번 schema의 잔여 위험입니다.
+불확실성을 한 번의 구조화한 outcome 입력에 정직하게 담아야 합니다. finding
+이견은 `disputed_findings`에, 그 밖의 불확실성은 해당하는 구조화 observation
+필드에 담으세요. confidence와 assessment basis는 결정적 label을 바꾸지
+않습니다. `inconclusive`는 구조화한 downstream observation이 승인된 파생
+fallback에 도달할 때만 나옵니다. 예를 들어 완료된 outcome에 escaped,
+disputed, prevented-rework observation이 없으면 confidence가 낮아도 `good`을
+파생합니다. create-only outcome이 기록된 뒤에는 schema 1에서 정정하거나
+amend할 수 없습니다. 잘못 기록한 outcome은 정정 경로가 아니라 이번 schema의
+잔여 위험입니다.
 `candidates` 임계값은 사람이 볼 후보를 고르는 휴리스틱이며 스킬 자동 변경,
 자동 품질 판정, client/model ranking을 허가하지 않습니다.
 

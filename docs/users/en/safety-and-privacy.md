@@ -36,14 +36,18 @@ Structured downstream observations, assessment basis, and confidence are
 observer-supplied. The CLI derives `good`, `false-ready`, `noisy`, and
 `prevented-rework` deterministically from those observations. Inputs and derived
 labels are self-improvement evidence, not objective quality judgments or
-audit-grade proof. Before `record-outcome`, encode every known dispute and
-uncertainty in the single outcome input. Put finding disputes in
-`disputed_findings`; encode uncertainty in observations, basis, and confidence
-so the derived assessment remains `inconclusive`. After the create-only outcome
-is recorded, schema 1 cannot correct or amend it. An erroneous recorded outcome
-is an uncorrectable residual risk, not a correction path. Treat candidate
-thresholds as human-inspection heuristics, never automatic skill mutation or
-client/model ranking.
+audit-grade proof. Before `record-outcome`, represent every known dispute and
+uncertainty honestly in the single structured outcome input. Put finding
+disputes in `disputed_findings` and other uncertainty in the applicable
+structured observation fields. Confidence and assessment basis do not alter
+the deterministic label. `inconclusive` occurs only when the structured
+downstream observations reach the approved derivation fallback. A completed
+outcome without escaped, disputed, or prevented-rework observations derives
+`good` even when confidence is low. After the create-only outcome is recorded,
+schema 1 cannot correct or amend it. An erroneous recorded outcome is an
+uncorrectable residual risk, not a correction path. Treat candidate thresholds
+as human-inspection heuristics, never automatic skill mutation or client/model
+ranking.
 
 ## High-stakes requests
 

@@ -82,8 +82,8 @@ PRE_SDD_REVIEW_SUPPORT = (
     "pre-sdd-review: Codex supported; other hosts not_measured."
 )
 PRE_SDD_SHARED_SECTION_DIGESTS = {
-    ("ko", "safety"): "3fbd61bfb0ba5ddf1e31b9381027421e669115ce8e04cb059b94aa0de640611f",
-    ("en", "safety"): "be32d36d796bfbf24005c27b2289c213d7424c033b3a0ca40afc85f3cee464f5",
+    ("ko", "safety"): "5108fefbf450a8c9b5f630f819519569f64f2491e23ad587284325269e92ea49",
+    ("en", "safety"): "4c3685b930608523cdddc430fdb9547943079086105ff70eee7d909ddfa4a616",
     ("ko", "verification"): "7b29404e45ed79d812f37c9d81775774804f34ce1012b4bfbc6e735de8172878",
     ("en", "verification"): "2db145d6d09e59abe2d0e9a0c5293b93fcaaccd60cf1e5e1dc08247985d04b01",
 }
@@ -896,7 +896,9 @@ class UserGuideFactTests(unittest.TestCase):
         for phrase in (
             "Structured downstream observations, assessment basis, and confidence are observer-supplied.",
             "The CLI derives `good`, `false-ready`, `noisy`, and `prevented-rework` deterministically from those observations.",
-            "Before `record-outcome`, encode every known dispute and uncertainty in the single outcome input.",
+            "Before `record-outcome`, represent every known dispute and uncertainty honestly in the single structured outcome input.",
+            "Confidence and assessment basis do not alter the deterministic label.",
+            "`inconclusive` occurs only when the structured downstream observations reach the approved derivation fallback.",
             "After the create-only outcome is recorded, schema 1 cannot correct or amend it.",
         ):
             self.assertIn(phrase, re.sub(r"\s+", " ", english))

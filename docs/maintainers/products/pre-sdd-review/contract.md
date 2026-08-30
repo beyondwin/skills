@@ -166,14 +166,17 @@ detection. Local atomic storage is not a signed audit log. Structured downstream
 observations, assessment basis, and confidence are observer-supplied. The CLI
 derives `good`, `false-ready`, `noisy`, and `prevented-rework` deterministically
 from those observations. Inputs and derived labels are self-improvement evidence
-rather than objective or audit-grade proof. Before `record-outcome`, encode
-every known dispute and uncertainty in the single outcome input. Disputes stay
-in `disputed_findings`; uncertainty is encoded in observations, basis, and
-confidence so the derived assessment stays `inconclusive`. After the create-only
-outcome is recorded, schema 1 cannot correct or amend it. An erroneous recorded
-outcome is an uncorrectable residual risk, not a correction path. Candidate
-thresholds remain human-inspection heuristics with no automatic mutation or
-ranking.
+rather than objective or audit-grade proof. Before `record-outcome`, represent
+every known dispute and uncertainty honestly in the single structured outcome
+input. Disputes stay in `disputed_findings`; other uncertainty belongs in the
+applicable structured observation fields. Confidence and assessment basis do
+not alter the deterministic label. `inconclusive` occurs only when the
+structured downstream observations reach the approved derivation fallback. A
+completed outcome without escaped, disputed, or prevented-rework observations
+derives `good` even when confidence is low. After the create-only outcome is
+recorded, schema 1 cannot correct or amend it. An erroneous recorded outcome is
+an uncorrectable residual risk, not a correction path. Candidate thresholds
+remain human-inspection heuristics with no automatic mutation or ranking.
 
 ## Handoff
 

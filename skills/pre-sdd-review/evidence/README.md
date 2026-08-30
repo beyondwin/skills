@@ -128,12 +128,16 @@ and derived labels are self-improvement evidence rather than objective or
 audit-grade proof.
 
 Schema 1 records one immutable review and at most one immutable terminal
-outcome. Before `record-outcome`, encode every known dispute and uncertainty in
-the single outcome input. Record finding disputes only in the bounded
-`disputed_findings` field; encode uncertainty in the observations, basis, and
-confidence so the derived assessment remains `inconclusive`. After the
-create-only outcome is recorded, schema 1 cannot correct or amend it. It has no
-correction or amendment command; an erroneous recorded outcome is an
-uncorrectable residual risk, not a correction path. Candidate thresholds are
-inspection heuristics: they do not mutate the skill, judge quality
-automatically, or rank clients or models.
+outcome. Before `record-outcome`, represent every known dispute and uncertainty
+honestly in the single structured outcome input. Record finding disputes only
+in the bounded `disputed_findings` field and use the applicable structured
+observation fields for other uncertainty. Confidence and assessment basis do
+not alter the deterministic label. `inconclusive` occurs only when the
+structured downstream observations reach the approved derivation fallback. A
+completed outcome with no escaped, disputed, or prevented-rework observation,
+for example, derives `good` even when confidence is low. After the create-only
+outcome is recorded, schema 1 cannot correct or amend it. It has no correction
+or amendment command; an erroneous recorded outcome is an uncorrectable
+residual risk, not a correction path. Candidate thresholds are inspection
+heuristics: they do not mutate the skill, judge quality automatically, or rank
+clients or models.
