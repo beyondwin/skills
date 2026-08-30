@@ -12,7 +12,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from support import completed_review, pending_record
+from support import completed_review, make_git_repo, pending_record, write
 
 from pre_sdd_review_evidence import cli, reporting, repository, schema, storage
 
@@ -122,6 +122,22 @@ def _escaped(
 ) -> dict[str, object]:
     return {
         "severity": "IMPORTANT",
+        "class": finding_class,
+        "pattern_key": pattern_key,
+        "consequence_category": consequence_category,
+        "basis": basis,
+    }
+
+
+def _disputed(
+    *,
+    basis: str = "agent-observed",
+    finding_class: str = "verification-gap",
+    pattern_key: str = "build-only-acceptance",
+    consequence_category: str = "escaped-material-defect",
+) -> dict[str, object]:
+    return {
+        "finding_id": "PSDR-001",
         "class": finding_class,
         "pattern_key": pattern_key,
         "consequence_category": consequence_category,
@@ -308,6 +324,128 @@ class ReportingTests(unittest.TestCase):
         self.assertNotIn("finding_class", degraded.group)
         self.assertNotIn("pattern_key", resolution.group)
 
+    def test_summary_always_counts_structured_degraded_reasons_below_candidate_threshold(self) -> None:
+        records = [
+            self.record(_review(
+                run_number=230 + number,
+                execution="degraded",
+                client="cursor",
+                degraded_reasons=["read-only-unavailable", "fresh-reviewer-unavailable"],
+            ))
+            for number in range(2)
+        ]
+
+        summary = reporting.summarize(records)
+
+        self.assertEqual(summary["degraded_reason_counts"], {
+            "fresh-reviewer-unavailable": 2,
+            "read-only-unavailable": 2,
+        })
+        self.assertEqual(summary["degraded_reasons_by_client"], {
+            "cursor": {
+                "fresh-reviewer-unavailable": 2,
+                "read-only-unavailable": 2,
+            }
+        })
+        self.assertFalse(any(item.kind == "degraded-reason" for item in reporting.select_candidates(records)))
+
+    def test_candidate_threshold_matrix_uses_distinct_run_boundaries(self) -> None:
+        escaped_group = {
+            "finding_class": "coverage",
+            "pattern_key": "escaped-threshold",
+            "consequence_category": "avoidable-rework",
+        }
+        one_escape_review = _review(
+            run_number=240,
+            verdict="REVISE",
+            findings=[_finding(status="unresolved")],
+        )
+        one_escape = self.record(one_escape_review, _outcome(
+            one_escape_review,
+            label="inconclusive",
+            basis="agent-observed",
+            escaped=[_escaped(
+                finding_class="coverage",
+                pattern_key="escaped-threshold",
+                consequence_category="avoidable-rework",
+                basis="agent-observed",
+            )],
+        ))
+        duplicate_observation = self.record(one_escape_review, _outcome(
+            one_escape_review,
+            label="inconclusive",
+            basis="agent-observed",
+            escaped=[
+                _escaped(finding_class="coverage", pattern_key="escaped-threshold", consequence_category="avoidable-rework", basis="agent-observed"),
+                _escaped(finding_class="coverage", pattern_key="escaped-threshold", consequence_category="avoidable-rework", basis="agent-observed"),
+            ],
+        ))
+        self.assertFalse(any(item.group == escaped_group for item in reporting.select_candidates([one_escape])))
+        self.assertFalse(any(item.group == escaped_group for item in reporting.select_candidates([duplicate_observation])))
+        second_escape_review = _review(run_number=241, verdict="REVISE", findings=[_finding(status="unresolved")])
+        second_escape = self.record(second_escape_review, _outcome(
+            second_escape_review,
+            label="inconclusive",
+            basis="agent-observed",
+            escaped=[_escaped(finding_class="coverage", pattern_key="escaped-threshold", consequence_category="avoidable-rework", basis="agent-observed")],
+        ))
+        escaped_candidate = next(item for item in reporting.select_candidates([one_escape, second_escape]) if item.group == escaped_group)
+        self.assertEqual(escaped_candidate.source_run_count, 2)
+
+        authority_review = _review(run_number=242, verdict="REVISE", findings=[_finding(status="unresolved")])
+        authority = self.record(authority_review, _outcome(
+            authority_review,
+            label="inconclusive",
+            basis="agent-observed",
+            escaped=[_escaped(finding_class="authority-drift", pattern_key="authority-immediate", basis="agent-observed")],
+        ))
+        self.assertTrue(any(
+            item.kind == "finding-pattern" and item.group["finding_class"] == "authority-drift"
+            for item in reporting.select_candidates([authority])
+        ))
+
+        for immediate_basis in ("verified-repository-evidence", "user-reported"):
+            with self.subTest(disputed_immediate=immediate_basis):
+                review = _review(run_number=243 if immediate_basis.startswith("verified") else 244, findings=[_finding()])
+                record = self.record(review, _outcome(
+                    review,
+                    label="noisy",
+                    basis=immediate_basis,
+                    evaluated=["PSDR-001"],
+                    disputed=[_disputed(basis=immediate_basis)],
+                ))
+                self.assertTrue(any(item.kind == "finding-pattern" for item in reporting.select_candidates([record])))
+
+        disputed_records: list[reporting.Record] = []
+        for number in range(3):
+            review = _review(run_number=245 + number, findings=[_finding(pattern_key="disputed-threshold")])
+            disputed_records.append(self.record(review, _outcome(
+                review,
+                label="noisy",
+                basis="agent-observed",
+                evaluated=["PSDR-001"],
+                disputed=[_disputed(pattern_key="disputed-threshold")],
+            )))
+        self.assertFalse(any(item.group.get("pattern_key") == "disputed-threshold" for item in reporting.select_candidates(disputed_records[:2])))
+        disputed_candidate = next(item for item in reporting.select_candidates(disputed_records) if item.group.get("pattern_key") == "disputed-threshold")
+        self.assertEqual(disputed_candidate.source_run_count, 3)
+
+        degraded_records = [self.record(_review(
+            run_number=248 + number,
+            execution="degraded",
+            client="cursor",
+            degraded_reasons=["host-capability-unknown"],
+        )) for number in range(3)]
+        self.assertFalse(any(item.kind == "degraded-reason" for item in reporting.select_candidates(degraded_records[:2])))
+        self.assertEqual(next(item for item in reporting.select_candidates(degraded_records) if item.kind == "degraded-reason").source_run_count, 3)
+
+        resolution_records = [self.record(_review(
+            run_number=251 + number,
+            resolution_status="design-missing",
+        )) for number in range(5)]
+        self.assertFalse(any(item.kind == "resolution-failure" for item in reporting.select_candidates(resolution_records[:4])))
+        self.assertEqual(next(item for item in reporting.select_candidates(resolution_records) if item.kind == "resolution-failure").source_run_count, 5)
+
     def test_summary_reports_operational_trigger_finding_and_basis_provenance(self) -> None:
         finding = _finding()
         review = _review(run_number=250, findings=[finding])
@@ -438,6 +576,85 @@ class ReportingTests(unittest.TestCase):
         self.assertEqual(deleted, (str(selected["run_id"]),))
         self.assertIsNone(next(self.paths.runs.glob(f"*/*/{selected['run_id']}"), None))
         self.assertIsNotNone(next(self.paths.runs.glob(f"*/*/{unpreviewed['run_id']}"), None))
+
+    def test_prune_outcomeless_default_and_review_only_require_explicit_inclusion(self) -> None:
+        default = _review(run_number=414)
+        review_only = _review(run_number=415, mode="review-only")
+        self.persist(default)
+        self.persist(review_only)
+        records = reporting.load_records(self.paths)
+
+        excluded = reporting.preview_prune(records, "2024-01-01T00:00:00Z", False)
+        included = reporting.preview_prune(records, "2024-01-01T00:00:00Z", True)
+
+        self.assertEqual(excluded.runs, ())
+        self.assertEqual(excluded.counts, {"selected": 0, "excluded_without_outcome": 2})
+        self.assertEqual(
+            [item["run_id"] for item in included.runs],
+            [default["run_id"], review_only["run_id"]],
+        )
+
+    def test_confirmed_prune_bounds_reads_locks_sorted_and_revalidates_all_before_delete(self) -> None:
+        first = _review(run_number=416)
+        second = _review(run_number=417)
+        self.persist(first, _outcome(first))
+        self.persist(second, _outcome(second))
+        selection = reporting.preview_prune(
+            reporting.load_records(self.paths), "2024-01-01T00:00:00Z", False
+        )
+        events: list[str] = []
+        bounded_calls: list[tuple[str, int]] = []
+        real_reader = schema.read_bounded_json
+        real_lock = storage._acquire_lock
+        real_validate = reporting._current_selected_record
+        real_delete = reporting.shutil.rmtree
+
+        def reader(path: Path, limit: int) -> object:
+            bounded_calls.append((Path(path).name, limit))
+            return real_reader(path, limit)
+
+        def lock(directory: Path) -> Path:
+            events.append(f"lock:{directory.name}")
+            return real_lock(directory)
+
+        def validate(paths: storage.EvidencePaths, expected: dict[str, object], cutoff: dt.datetime, include: bool) -> reporting.Record:
+            events.append(f"validate:{expected['run_id']}")
+            return real_validate(paths, expected, cutoff, include)
+
+        def delete(path: Path) -> None:
+            events.append(f"delete:{Path(path).name}")
+            real_delete(path)
+
+        with mock.patch.object(storage, "read_bounded_json", side_effect=reader), mock.patch.object(
+            storage, "_acquire_lock", side_effect=lock
+        ), mock.patch.object(
+            reporting, "_current_selected_record", side_effect=validate
+        ), mock.patch.object(reporting.shutil, "rmtree", side_effect=delete):
+            deleted = reporting.confirm_prune(self.paths, selection.payload(), selection.digest)
+
+        expected_ids = [str(first["run_id"]), str(second["run_id"])]
+        self.assertEqual(list(deleted), expected_ids)
+        self.assertEqual(events, [
+            *(f"lock:{run_id}" for run_id in expected_ids),
+            *(f"validate:{run_id}" for run_id in expected_ids),
+            *(f"delete:{run_id}" for run_id in expected_ids),
+        ])
+        self.assertIn(("review.json", schema.REVIEW_HARD_LIMIT), bounded_calls)
+        self.assertIn(("outcome.json", schema.OUTCOME_HARD_LIMIT), bounded_calls)
+
+    def test_review_fingerprint_change_aborts_confirmed_prune(self) -> None:
+        review = _review(run_number=418)
+        self.persist(review, _outcome(review))
+        selection = reporting.preview_prune(
+            reporting.load_records(self.paths), "2024-01-01T00:00:00Z", False
+        )
+        review_path = next(self.paths.runs.glob(f"*/*/{review['run_id']}/review.json"))
+        review_path.write_bytes(review_path.read_bytes() + b" ")
+
+        with self.assertRaisesRegex(schema.EvidenceError, "selection changed"):
+            reporting.confirm_prune(self.paths, selection.payload(), selection.digest)
+
+        self.assertTrue(review_path.exists())
 
     def test_outcome_added_between_preview_and_confirmation_aborts_without_deletion(self) -> None:
         review = _review(run_number=412)
@@ -621,6 +838,32 @@ class ReportingTests(unittest.TestCase):
         self.assertFalse(staging2.exists())
         self.assertTrue((destination2 / ".pending.json").exists())
 
+    def test_valid_identity_resolve_preserves_stranded_staging_bytes(self) -> None:
+        workspace = self.root / "resolve-workspace"
+        repo = make_git_repo(workspace)
+        write(repo / "docs/plan.md", "# Plan\n\n**Spec:** ./design.md\n")
+        write(repo / "docs/design.md", "# Design\n")
+        key = repository.load_or_create_identity(self.paths.home)
+        review = _review(run_number=619)
+        target = dataclasses.asdict(repository.resolve_target(repo, Path("docs/plan.md"), key))
+        review["target"] = target
+        review["freshness"] = {
+            "final_head": target["initial_head"],
+            "final_dirty": target["initial_dirty"],
+            "plan_final_sha256": target["plan_initial_sha256"],
+            "design_final_sha256": target["design_initial_sha256"],
+        }
+        review = schema.validate_review(review)
+        self.persist(review)
+        _pending, staging, destination, staged_bytes = self.strand(run_number=618)
+
+        resolved = reporting.resolve_review(self.paths, repo, Path("docs/plan.md"))
+
+        self.assertEqual(resolved.status, "matched")
+        self.assertTrue(staging.exists())
+        self.assertFalse(destination.exists())
+        self.assertEqual((staging / ".pending.json").read_bytes(), staged_bytes)
+
     def test_cli_candidate_export_rejects_symlink_without_leaking_target(self) -> None:
         review = _review(run_number=623)
         self.persist(review, _outcome(review, label="false-ready", escaped=[_escaped()]))
@@ -682,6 +925,9 @@ class ReportingTests(unittest.TestCase):
             with self.assertRaisesRegex(schema.EvidenceError, "selection changed"):
                 reporting.confirm_prune(self.paths, selection.payload(), selection.digest)
 
+        self.assertEqual({item.name: item.read_bytes() for item in destination.iterdir()}, before)
+        self.assertTrue(staging.exists())
+        self.assertIn(str(review["run_id"]), storage.recover_staging(self.paths))
         self.assertEqual({item.name: item.read_bytes() for item in destination.iterdir()}, before)
         self.assertTrue(staging.exists())
 

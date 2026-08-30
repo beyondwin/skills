@@ -260,6 +260,8 @@ def summarize(
     client_slices: dict[str, dict[str, Counter[str]]] = defaultdict(lambda: defaultdict(Counter))
     repository_slices: Counter[str] = Counter()
     trigger_counts: Counter[str] = Counter()
+    degraded_reason_counts: Counter[str] = Counter()
+    degraded_reasons_by_client: dict[str, Counter[str]] = defaultdict(Counter)
     basis_counts: Counter[str] = Counter()
     finding_counts: Counter[tuple[str, str, str]] = Counter()
     elapsed_values: list[int] = []
@@ -277,6 +279,10 @@ def summarize(
         client_id = str(client["id"])
         protocol_counts[execution] += 1
         protocol_by_client[client_id][execution] += 1
+        for reason in protocol["degraded_reasons"]:
+            degraded_reason = str(reason)
+            degraded_reason_counts[degraded_reason] += 1
+            degraded_reasons_by_client[client_id][degraded_reason] += 1
         repo_id = target.get("repo_id")
         repository_slices["unavailable" if repo_id is None else str(repo_id)] += 1
         trigger = protocol["conditional_trigger"]
@@ -336,6 +342,11 @@ def summarize(
         },
         "anonymous_repository_counts": dict(sorted(repository_slices.items())),
         "conditional_trigger_counts": dict(sorted(trigger_counts.items())),
+        "degraded_reason_counts": dict(sorted(degraded_reason_counts.items())),
+        "degraded_reasons_by_client": {
+            client: dict(sorted(counts.items()))
+            for client, counts in sorted(degraded_reasons_by_client.items())
+        },
         "assessment_basis_counts": dict(sorted(basis_counts.items())),
         "finding_groups": [
             {
