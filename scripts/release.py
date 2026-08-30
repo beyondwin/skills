@@ -75,6 +75,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
         "SKILL.md",
         "agents/openai.yaml",
         "evidence/pre_sdd_review_evidence/__init__.py",
+        "evidence/pre_sdd_review_evidence/repository.py",
         "evidence/pre_sdd_review_evidence/schema.py",
         "references/reviewer-protocol.md",
         "release.toml",

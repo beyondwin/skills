@@ -31,6 +31,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
         "SKILL.md",
         "agents/openai.yaml",
         "evidence/pre_sdd_review_evidence/__init__.py",
+        "evidence/pre_sdd_review_evidence/repository.py",
         "evidence/pre_sdd_review_evidence/schema.py",
         "references/reviewer-protocol.md",
         "release.toml",
@@ -740,6 +741,12 @@ class PreSddReviewContractTests(unittest.TestCase):
                 "scripts/runtime.py",
                 "#!/usr/bin/env python3\n",
                 "unexpected payload member: scripts/runtime.py",
+            ),
+            (
+                "unlisted-evidence-sibling",
+                "evidence/pre_sdd_review_evidence/network.py",
+                "# Network access is not part of this product.\n",
+                "unexpected payload member: evidence/pre_sdd_review_evidence/network.py",
             ),
         )
         for name, relative, content, expected_error in mutations:
