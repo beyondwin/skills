@@ -34,6 +34,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
         "evidence/pre_sdd_review_evidence/__main__.py",
         "evidence/pre_sdd_review_evidence/cli.py",
         "evidence/pre_sdd_review_evidence/repository.py",
+        "evidence/pre_sdd_review_evidence/reporting.py",
         "evidence/pre_sdd_review_evidence/schema.py",
         "evidence/pre_sdd_review_evidence/storage.py",
         "references/reviewer-protocol.md",
@@ -750,6 +751,12 @@ class PreSddReviewContractTests(unittest.TestCase):
                 "evidence/pre_sdd_review_evidence/network.py",
                 "# Network access is not part of this product.\n",
                 "unexpected payload member: evidence/pre_sdd_review_evidence/network.py",
+            ),
+            (
+                "unlisted-report-sibling",
+                "evidence/pre_sdd_review_evidence/report.py",
+                "# Undeclared report modules are not part of the payload.\n",
+                "unexpected payload member: evidence/pre_sdd_review_evidence/report.py",
             ),
         )
         for name, relative, content, expected_error in mutations:

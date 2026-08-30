@@ -16,12 +16,14 @@ from pathlib import Path
 from typing import TextIO
 
 from . import CLI_VERSION, SCHEMA_VERSION
-from . import repository, storage
+from . import reporting, repository, storage
 from .schema import (
     CLIENT_IDS,
+    OUTCOME_HARD_LIMIT,
     REVIEW_HARD_LIMIT,
     EvidenceError,
     canonical_json_bytes,
+    derive_assessment,
     read_bounded_bytes,
     validate_review,
 )
@@ -31,6 +33,11 @@ _FINISH_FIELDS = {
     "mode", "execution", "reviewer_count", "fresh_reviewer",
     "read_only_enforced", "conditional_trigger", "degraded_reasons", "verdict",
     "block_reason", "review_passes", "repair_passes", "findings", "token_usage",
+}
+_OUTCOME_FIELDS = {
+    "recorder", "status", "replan_count", "evaluated_finding_ids",
+    "escaped_findings", "disputed_findings", "prevented_rework", "basis",
+    "confidence",
 }
 
 
@@ -98,12 +105,42 @@ def _parser() -> _Parser:
     abandon.add_argument("--run-id", required=True)
     abandon.add_argument("--reason", required=True)
     subparsers.add_parser("doctor")
+    resolve = subparsers.add_parser("resolve")
+    resolve.add_argument("--repo", required=True)
+    resolve.add_argument("--plan", required=True)
+    outcome = subparsers.add_parser("record-outcome")
+    outcome.add_argument("--run-id", required=True)
+    outcome.add_argument("--repo", required=True)
+    outcome.add_argument("--from-stdin", action="store_true")
+    outcome.add_argument("--client", choices=sorted(CLIENT_IDS))
+    outcome.add_argument("--client-version")
+    outcome.add_argument("--model")
+    outcome.add_argument(
+        "--status",
+        choices=(
+            "sdd-completed", "implementation-completed",
+            "implementation-abandoned", "cancelled",
+        ),
+    )
+    outcome.add_argument("--replan-count", type=int)
+    outcome.add_argument("--evaluated-finding", action="append")
+    outcome.add_argument("--escaped-finding-json", action="append")
+    outcome.add_argument("--disputed-finding-json", action="append")
+    outcome.add_argument("--prevented-rework-json", action="append")
+    outcome.add_argument(
+        "--basis",
+        choices=(
+            "verified-repository-evidence", "user-reported", "agent-observed",
+            "agent-inferred", "unknown",
+        ),
+    )
+    outcome.add_argument("--confidence", choices=("low", "medium", "high"))
     return parser
 
 
-def _read_stdin(stream: TextIO) -> object:
-    payload = stream.read(REVIEW_HARD_LIMIT + 1)
-    if len(payload.encode("utf-8")) > REVIEW_HARD_LIMIT:
+def _read_stdin(stream: TextIO, limit: int) -> object:
+    payload = stream.read(limit + 1)
+    if len(payload.encode("utf-8")) > limit:
         raise EvidenceError("record-too-large", "standard input exceeds the hard size limit")
     try:
         return json.loads(payload)
@@ -128,7 +165,7 @@ def _normalize_finish(args: argparse.Namespace, input_stream: TextIO) -> dict[st
     if args.from_stdin:
         if has_scalar:
             raise EvidenceError("invalid-arguments", "stdin and scalar semantic arguments cannot be mixed")
-        value = _read_stdin(input_stream)
+        value = _read_stdin(input_stream, REVIEW_HARD_LIMIT)
         if not isinstance(value, dict) or set(value) != _FINISH_FIELDS:
             raise EvidenceError("schema-invalid", "finish input must contain the exact semantic fields")
         return value.copy()
@@ -151,6 +188,62 @@ def _normalize_finish(args: argparse.Namespace, input_stream: TextIO) -> dict[st
         "token_usage": None if args.token_usage_json is None else _structured(args.token_usage_json, "token usage"),
     }
     return value
+
+
+def _normalize_outcome(
+    args: argparse.Namespace, input_stream: TextIO
+) -> dict[str, object]:
+    scalar_names = (
+        "client", "client_version", "model", "status", "replan_count",
+        "evaluated_finding", "escaped_finding_json", "disputed_finding_json",
+        "prevented_rework_json", "basis", "confidence",
+    )
+    has_scalar = any(getattr(args, name) is not None for name in scalar_names)
+    if args.from_stdin:
+        if has_scalar:
+            raise EvidenceError(
+                "invalid-arguments",
+                "stdin and scalar semantic arguments cannot be mixed",
+            )
+        value = _read_stdin(input_stream, OUTCOME_HARD_LIMIT)
+        if not isinstance(value, dict) or set(value) != _OUTCOME_FIELDS:
+            raise EvidenceError(
+                "schema-invalid",
+                "outcome input must contain the exact semantic fields",
+            )
+        return value.copy()
+    if any(
+        getattr(args, name) is None
+        for name in ("client", "status", "basis", "confidence")
+    ):
+        raise EvidenceError(
+            "invalid-arguments",
+            "all required outcome semantic arguments must be supplied",
+        )
+    return {
+        "recorder": {
+            "client": args.client,
+            "version": args.client_version,
+            "model": args.model,
+        },
+        "status": args.status,
+        "replan_count": 0 if args.replan_count is None else args.replan_count,
+        "evaluated_finding_ids": args.evaluated_finding or [],
+        "escaped_findings": [
+            _structured(item, "escaped finding")
+            for item in (args.escaped_finding_json or [])
+        ],
+        "disputed_findings": [
+            _structured(item, "disputed finding")
+            for item in (args.disputed_finding_json or [])
+        ],
+        "prevented_rework": [
+            _structured(item, "prevented rework")
+            for item in (args.prevented_rework_json or [])
+        ],
+        "basis": args.basis,
+        "confidence": args.confidence,
+    }
 
 
 def _locator_binding(key: bytes, locator: Path) -> str:
@@ -397,6 +490,76 @@ def _abandon(args: argparse.Namespace, paths: storage.EvidencePaths) -> dict[str
     return {"status": "abandoned", "run_id": args.run_id, "sha256": result.sha256}
 
 
+def _resolve(args: argparse.Namespace, paths: storage.EvidencePaths) -> dict[str, object]:
+    return dataclasses.asdict(
+        reporting.resolve_review(paths, Path(args.repo), Path(args.plan))
+    )
+
+
+def _require_current_plan(
+    review: dict[str, object], repo_locator: Path
+) -> None:
+    target = review["target"]
+    freshness = review["freshness"]
+    assert isinstance(target, dict) and isinstance(freshness, dict)
+    plan_path = target["plan_path"]
+    recorded_hash = freshness["plan_final_sha256"]
+    if not isinstance(plan_path, str) or not isinstance(recorded_hash, str):
+        raise EvidenceError("stale-plan", "recorded plan is unavailable")
+    root = repository._git_root(repo_locator)
+    candidate = (root / Path(plan_path)).resolve()
+    try:
+        candidate.relative_to(root)
+    except ValueError as exc:
+        raise EvidenceError("stale-plan", "recorded plan is unavailable") from exc
+    if not candidate.is_file():
+        raise EvidenceError("stale-plan", "recorded plan is unavailable")
+    current_hash = hashlib.sha256(
+        read_bounded_bytes(candidate, repository.DOCUMENT_LIMIT)
+    ).hexdigest()
+    if not hmac.compare_digest(recorded_hash, current_hash):
+        raise EvidenceError("stale-plan", "current plan does not match the review")
+
+
+def _record_outcome(
+    args: argparse.Namespace,
+    paths: storage.EvidencePaths,
+    input_stream: TextIO,
+) -> dict[str, object]:
+    key = repository.load_or_create_identity(paths.home)
+    storage.recover_staging(paths)
+    semantic = _normalize_outcome(args, input_stream)
+    review = storage.load_review(paths, args.run_id)
+    target = review["target"]
+    assert isinstance(target, dict)
+    _verify_repository(target, Path(args.repo), key, pending=None)
+    _require_current_plan(review, Path(args.repo))
+    downstream = {
+        "status": semantic["status"],
+        "plan_hash_matched": True,
+        "replan_count": semantic["replan_count"],
+        "evaluated_finding_ids": semantic["evaluated_finding_ids"],
+        "escaped_findings": semantic["escaped_findings"],
+        "disputed_findings": semantic["disputed_findings"],
+        "prevented_rework": semantic["prevented_rework"],
+    }
+    outcome = {
+        "schema_version": SCHEMA_VERSION,
+        "record_type": "outcome",
+        "run_id": args.run_id,
+        "recorded_at": _utc_now(),
+        "recorder": semantic["recorder"],
+        "downstream": downstream,
+        "assessment": {
+            "label": derive_assessment(review, downstream),
+            "basis": semantic["basis"],
+            "confidence": semantic["confidence"],
+        },
+    }
+    result = storage.record_outcome(paths, args.run_id, outcome)
+    return {"status": "recorded", "run_id": args.run_id, "sha256": result.sha256}
+
+
 def _pending(paths: storage.EvidencePaths) -> dict[str, object]:
     scan = storage.scan_runs(paths)
     runs = [
@@ -470,6 +633,10 @@ def main(
             result = _abandon(args, paths)
         elif args.command == "doctor":
             result = _doctor(paths)
+        elif args.command == "resolve":
+            result = _resolve(args, paths)
+        elif args.command == "record-outcome":
+            result = _record_outcome(args, paths, input_stream)
         else:
             raise EvidenceError("invalid-arguments", "unknown command")
         _json_line(output_stream, result)

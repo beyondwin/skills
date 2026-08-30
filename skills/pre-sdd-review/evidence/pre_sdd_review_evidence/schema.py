@@ -358,15 +358,14 @@ def validate_review(value: object) -> dict[str, object]:
 
 def derive_assessment(review: dict[str, object], downstream: dict[str, object]) -> str:
     status = downstream.get("status")
-    if status in {"implementation-abandoned", "cancelled"}: return "abandoned"
+    if status in ("implementation-abandoned", "cancelled"): return "abandoned"
     escaped = downstream.get("escaped_findings", [])
     disputed = downstream.get("disputed_findings", [])
     prevented = downstream.get("prevented_rework", [])
-    if review.get("result", {}).get("verdict") == "READY" and any(item.get("severity") == "BLOCKER" for item in escaped): return "false-ready"
-    findings = {item["id"]: item for item in review.get("result", {}).get("findings", [])}
-    if any(findings.get(item.get("finding_id"), {}).get("severity") == "BLOCKER" for item in disputed): return "noisy"
+    if review.get("result", {}).get("verdict") == "READY" and escaped: return "false-ready"
+    if disputed: return "noisy"
     if prevented: return "prevented-rework"
-    if status in {"sdd-completed", "implementation-completed"} and not any(item.get("severity") == "BLOCKER" for item in escaped) and not any(findings.get(item.get("finding_id"), {}).get("severity") == "BLOCKER" for item in disputed): return "good"
+    if status in ("sdd-completed", "implementation-completed") and not escaped and not disputed: return "good"
     return "inconclusive"
 
 
@@ -379,6 +378,9 @@ def validate_outcome(value: object, review: object) -> dict[str, object]:
     normalized_review = validate_review(review)
     data = _object(value, "outcome", {"schema_version", "record_type", "run_id", "recorded_at", "recorder", "downstream", "assessment"})
     if data["schema_version"] != SCHEMA_VERSION or data["record_type"] != "outcome": _fail("schema-version", "outcome schema identity is invalid")
+    outcome_run_id = _run_id(data["run_id"])
+    if outcome_run_id != normalized_review["run_id"]:
+        _fail("schema-invalid", "outcome run ID must match the review")
     _timestamp(data["recorded_at"], "recorded_at")
     if (
         isinstance(data["assessment"], dict)

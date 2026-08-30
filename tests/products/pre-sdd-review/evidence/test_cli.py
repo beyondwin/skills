@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import hashlib
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -53,6 +54,24 @@ class CliTests(unittest.TestCase):
             "verdict": verdict, "block_reason": None, "review_passes": 1,
             "repair_passes": 0, "findings": [], "token_usage": None,
         }
+
+    def outcome_semantic(self) -> dict[str, object]:
+        return {
+            "recorder": {"client": "codex", "version": None, "model": None},
+            "status": "implementation-completed", "replan_count": 0,
+            "evaluated_finding_ids": [], "escaped_findings": [],
+            "disputed_findings": [], "prevented_rework": [],
+            "basis": "agent-inferred", "confidence": "medium",
+        }
+
+    def finalized(self) -> dict[str, object]:
+        started = self.start()
+        code, _output, error = self.run_cli([
+            "finish-review", "--run-id", str(started["run_id"]),
+            "--repo", str(self.repo), "--from-stdin",
+        ], json.dumps(self.semantic()))
+        self.assertEqual((code, error), (0, ""))
+        return started
 
     def test_version_is_exact_and_does_not_touch_home(self) -> None:
         code, output, error = self.run_cli(["--version"])
@@ -418,6 +437,220 @@ class CliTests(unittest.TestCase):
         code, output, error = self.run_cli(["doctor"])
         self.assertEqual((code, error), (0, ""))
         self.assertEqual(set(json.loads(output)), {"status", "issues"})
+
+    def test_resolve_and_record_outcome_stdin_have_exact_public_shapes(self) -> None:
+        started = self.finalized()
+        code, output, error = self.run_cli([
+            "resolve", "--repo", str(self.repo), "--plan", "docs/plan.md",
+        ])
+        self.assertEqual((code, error), (0, ""))
+        resolved = json.loads(output)
+        self.assertEqual(resolved["status"], "matched")
+        self.assertEqual(resolved["run_id"], started["run_id"])
+        self.assertEqual(resolved["candidate_run_ids"], [started["run_id"]])
+
+        code, output, error = self.run_cli([
+            "record-outcome", "--run-id", str(started["run_id"]),
+            "--repo", str(self.repo), "--from-stdin",
+        ], json.dumps(self.outcome_semantic()))
+        recorded = json.loads(output)
+        self.assertEqual((code, error), (0, ""))
+        self.assertEqual(recorded, {
+            "status": "recorded", "run_id": started["run_id"],
+            "sha256": recorded["sha256"],
+        })
+        run_dir = next(self.home.glob(f"runs/*/*/{started['run_id']}"))
+        self.assertTrue((run_dir / "outcome.json").is_file())
+        self.assertTrue((run_dir / "review.json").is_file())
+
+    def test_record_outcome_scalar_and_stdin_share_one_normalization_path(self) -> None:
+        first = self.finalized()
+        second = self.finalized()
+        scalar = [
+            "record-outcome", "--run-id", str(first["run_id"]),
+            "--repo", str(self.repo), "--client", "codex",
+            "--status", "implementation-completed", "--basis", "agent-inferred",
+            "--confidence", "medium",
+        ]
+        self.assertEqual(self.run_cli(scalar)[0], 0)
+        self.assertEqual(self.run_cli([
+            "record-outcome", "--run-id", str(second["run_id"]),
+            "--repo", str(self.repo), "--from-stdin",
+        ], json.dumps(self.outcome_semantic()))[0], 0)
+        first_record = json.loads(next(self.home.glob(f"runs/*/*/{first['run_id']}/outcome.json")).read_text())
+        second_record = json.loads(next(self.home.glob(f"runs/*/*/{second['run_id']}/outcome.json")).read_text())
+        for record in (first_record, second_record):
+            record.pop("run_id")
+            record.pop("recorded_at")
+        self.assertEqual(first_record, second_record)
+
+    def test_record_outcome_scalar_repeatables_map_to_one_exact_schema_path(self) -> None:
+        started = self.start()
+        finding = {
+            "id": "PSDR-001", "severity": "IMPORTANT",
+            "class": "verification-gap", "pattern_key": "build-only-acceptance",
+            "consequence_category": "avoidable-rework", "status": "repaired",
+            "location": {"path": "docs/plan.md", "locator": "Verification"},
+            "evidence_refs": ["docs/plan.md#verification"],
+            "consequence": "Behavioral proof was missing.",
+            "minimal_fix": "Add focused behavioral proof.", "repair_pass": 1,
+        }
+        semantic = self.semantic()
+        semantic["repair_passes"] = 1
+        semantic["findings"] = [finding]
+        self.assertEqual(self.run_cli([
+            "finish-review", "--run-id", str(started["run_id"]),
+            "--repo", str(self.repo), "--from-stdin",
+        ], json.dumps(semantic))[0], 0)
+        escaped = {
+            "severity": "IMPORTANT", "class": "coverage",
+            "pattern_key": "missing-acceptance",
+            "consequence_category": "escaped-material-defect",
+            "basis": "user-reported",
+        }
+        disputed = {
+            "finding_id": "PSDR-001", "class": "verification-gap",
+            "pattern_key": "build-only-acceptance",
+            "consequence_category": "avoidable-rework",
+            "basis": "user-reported",
+        }
+        prevented = {
+            "finding_id": "PSDR-001", "pattern_key": "build-only-acceptance",
+            "consequence_category": "avoidable-rework",
+            "basis": "user-reported",
+        }
+        code, _output, error = self.run_cli([
+            "record-outcome", "--run-id", str(started["run_id"]),
+            "--repo", str(self.repo), "--client", "codex",
+            "--client-version", "1", "--model", "model-a",
+            "--status", "sdd-completed", "--replan-count", "2",
+            "--evaluated-finding", "PSDR-001",
+            "--escaped-finding-json", json.dumps(escaped),
+            "--disputed-finding-json", json.dumps(disputed),
+            "--prevented-rework-json", json.dumps(prevented),
+            "--basis", "user-reported", "--confidence", "high",
+        ])
+        self.assertEqual((code, error), (0, ""))
+        outcome = json.loads(next(
+            self.home.glob(f"runs/*/*/{started['run_id']}/outcome.json")
+        ).read_text())
+        self.assertEqual(outcome["recorder"], {
+            "client": "codex", "version": "1", "model": "model-a",
+        })
+        self.assertEqual(outcome["downstream"], {
+            "status": "sdd-completed", "plan_hash_matched": True,
+            "replan_count": 2, "evaluated_finding_ids": ["PSDR-001"],
+            "escaped_findings": [escaped], "disputed_findings": [disputed],
+            "prevented_rework": [prevented],
+        })
+        self.assertEqual(outcome["assessment"], {
+            "label": "false-ready", "basis": "user-reported",
+            "confidence": "high",
+        })
+
+    def test_record_outcome_rejects_mixed_wrong_repository_stale_plan_and_duplicate(self) -> None:
+        started = self.finalized()
+        command = [
+            "record-outcome", "--run-id", str(started["run_id"]),
+            "--repo", str(self.repo), "--from-stdin",
+        ]
+        code, output, error = self.run_cli(
+            command + ["--client", "codex"], json.dumps(self.outcome_semantic())
+        )
+        self.assertNotEqual(code, 0); self.assertEqual(output, "")
+        self.assertEqual(json.loads(error)["error"]["code"], "invalid-arguments")
+
+        other_workspace = self.workspace / "other-outcome"
+        other_workspace.mkdir()
+        other_repo = make_git_repo(other_workspace)
+        wrong = command.copy(); wrong[wrong.index(str(self.repo))] = str(other_repo)
+        code, output, error = self.run_cli(wrong, json.dumps(self.outcome_semantic()))
+        self.assertNotEqual(code, 0); self.assertEqual(output, "")
+        self.assertEqual(json.loads(error)["error"]["code"], "wrong-repository")
+        self.assertNotIn(str(other_repo), error)
+
+        write(self.repo / "docs/plan.md", "# Changed\n\n**Spec:** `docs/design.md`\n")
+        code, output, error = self.run_cli(command, json.dumps(self.outcome_semantic()))
+        self.assertNotEqual(code, 0); self.assertEqual(output, "")
+        self.assertEqual(json.loads(error)["error"]["code"], "stale-plan")
+        self.assertNotIn(str(self.repo), error)
+
+        write(self.repo / "docs/plan.md", "# Plan\n\n**Spec:** `docs/design.md`\n")
+        self.assertEqual(self.run_cli(command, json.dumps(self.outcome_semantic()))[0], 0)
+        code, output, error = self.run_cli(command, json.dumps(self.outcome_semantic()))
+        self.assertNotEqual(code, 0); self.assertEqual(output, "")
+        self.assertEqual(json.loads(error)["error"]["code"], "outcome-already-recorded")
+
+    def test_record_outcome_validates_identity_before_recovery_then_recovers(self) -> None:
+        started = self.finalized()
+        paths = storage.EvidencePaths.from_home(self.home)
+        record = pending_record()
+        with self.assertRaises(RuntimeError):
+            storage.create_pending(
+                paths, record,
+                interruption_hook=lambda point, _path: (
+                    (_ for _ in ()).throw(RuntimeError("stop"))
+                    if point == "pending-fsynced" else None
+                ),
+            )
+        staging = paths.runs / f".staging-{record['run_id']}"
+        staged_bytes = (staging / ".pending.json").read_bytes()
+        command = [
+            "record-outcome", "--run-id", str(started["run_id"]),
+            "--repo", str(self.repo), "--from-stdin",
+        ]
+        key = self.home / "identity.key"
+        original_key = key.read_bytes()
+        original_times = (key.stat().st_atime_ns, key.stat().st_mtime_ns)
+        key.write_bytes(b"short")
+        if hasattr(key, "chmod"):
+            key.chmod(0o600)
+        code, output, error = self.run_cli(command, json.dumps(self.outcome_semantic()))
+        self.assertNotEqual(code, 0); self.assertEqual(output, "")
+        self.assertEqual((staging / ".pending.json").read_bytes(), staged_bytes)
+        self.assertFalse(paths.run_directory(str(record["run_id"]), str(record["started_at"])).exists())
+
+        key.write_bytes(original_key)
+        os.utime(key, ns=original_times)
+        if hasattr(key, "chmod"):
+            key.chmod(0o600)
+        code, output, error = self.run_cli(command, json.dumps(self.outcome_semantic()))
+        self.assertEqual((code, error), (0, ""))
+        self.assertFalse(staging.exists())
+        self.assertTrue(paths.run_directory(str(record["run_id"]), str(record["started_at"])).exists())
+
+    def test_outcome_stdin_rejects_computed_fields_and_no_amendment_command_exists(self) -> None:
+        started = self.finalized()
+        semantic = self.outcome_semantic()
+        for field, value in (("repo_id", "x"), ("plan_hash_matched", True)):
+            changed = dict(semantic); changed[field] = value
+            code, output, error = self.run_cli([
+                "record-outcome", "--run-id", str(started["run_id"]),
+                "--repo", str(self.repo), "--from-stdin",
+            ], json.dumps(changed))
+            self.assertNotEqual(code, 0); self.assertEqual(output, "")
+            self.assertEqual(json.loads(error)["error"]["code"], "schema-invalid")
+        code, output, error = self.run_cli(["amend-outcome", "--run-id", str(started["run_id"])])
+        self.assertNotEqual(code, 0); self.assertEqual(output, "")
+        self.assertEqual(json.loads(error)["error"]["code"], "invalid-arguments")
+
+    def test_malformed_outcome_stdin_reaches_bounded_schema_failure(self) -> None:
+        started = self.finalized()
+        for field, value in (
+            ("status", []),
+            ("escaped_findings", None),
+            ("recorder", "not-an-object"),
+        ):
+            semantic = self.outcome_semantic()
+            semantic[field] = value
+            with self.subTest(field=field):
+                code, output, error = self.run_cli([
+                    "record-outcome", "--run-id", str(started["run_id"]),
+                    "--repo", str(self.repo), "--from-stdin",
+                ], json.dumps(semantic))
+                self.assertNotEqual(code, 0)
+                self.assertEqual(output, "")
+                self.assertEqual(set(json.loads(error)), {"error"})
 
     def test_doctor_reports_identity_damage_without_repairing_it(self) -> None:
         self.start()

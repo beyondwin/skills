@@ -18,10 +18,12 @@ from pathlib import Path
 
 from . import CLI_VERSION, SCHEMA_VERSION
 from .schema import (
+    OUTCOME_HARD_LIMIT,
     REVIEW_HARD_LIMIT,
     EvidenceError,
     canonical_json_bytes,
     read_bounded_json,
+    validate_outcome,
     validate_review,
 )
 
@@ -424,7 +426,7 @@ def _publish_file_no_replace(path: Path, payload: bytes, hook: _Hook | None) -> 
     temp = path.parent / f".{path.name}.{os.getpid()}.{secrets.token_hex(8)}.tmp"
     _write_private(temp, payload)
     if hook is not None:
-        hook("review-temp-fsynced", temp)
+        hook(f"{path.stem}-temp-fsynced", temp)
     try:
         try:
             os.link(temp, path, follow_symlinks=False)
@@ -574,6 +576,51 @@ def load_review(paths: EvidencePaths, run_id: str) -> dict[str, object]:
         return validate_review(read_bounded_json(final, REVIEW_HARD_LIMIT))
     except FileNotFoundError as exc:
         raise EvidenceError("run-not-found", "review was not found") from exc
+
+
+def load_outcome(paths: EvidencePaths, run_id: str) -> dict[str, object]:
+    directory = _find_run_directory(paths, run_id)
+    review = load_review(paths, run_id)
+    final = directory / "outcome.json"
+    try:
+        _validate_regular(final)
+        return validate_outcome(
+            read_bounded_json(final, OUTCOME_HARD_LIMIT), review
+        )
+    except FileNotFoundError as exc:
+        raise EvidenceError("run-not-found", "outcome was not found") from exc
+
+
+def record_outcome(
+    paths: EvidencePaths,
+    run_id: str,
+    outcome: object,
+    *,
+    interruption_hook: _Hook | None = None,
+) -> WriteResult:
+    review = load_review(paths, run_id)
+    normalized = validate_outcome(outcome, review)
+    if normalized["run_id"] != run_id:
+        _fail("schema-invalid", "outcome run ID does not match")
+    directory = _find_run_directory(paths, run_id)
+    final = directory / "outcome.json"
+    if _lstat(final) is not None:
+        load_outcome(paths, run_id)
+        _fail("outcome-already-recorded", "outcome is already recorded")
+    payload = canonical_json_bytes(normalized)
+    lock = _acquire_lock(directory)
+    try:
+        if not _publish_file_no_replace(final, payload, interruption_hook):
+            _fail("outcome-already-recorded", "outcome is already recorded")
+        if interruption_hook is not None:
+            interruption_hook("outcome-published", final)
+        return WriteResult(run_id, sha256_payload(payload), final)
+    finally:
+        try:
+            lock.unlink()
+        except FileNotFoundError:
+            pass
+        _fsync_directory(directory)
 
 
 def _parse_time(value: str) -> dt.datetime:
