@@ -379,7 +379,7 @@ README_CANONICAL_SECTION_DIGESTS = {
         ("## 사용해야 할 때와 사용하지 말아야 할 때", "e561f24683695a2a081dbee9911821fce3a3ccbbbc52a607d96bfe76185e4d8c"),
         ("## 1분 설치와 첫 호출", "727e2949a54cb8283308bf75413d8a85c1c9e4ad6d776bf4446da8a44084bdc6"),
         ("## 주요 흐름", "2391c3d4e2b9a4ba079a896871c0ca44f428c55bc59522f3180315bc7e35d77a"),
-        ("## 안전과 개인정보", "b4d680a79f8252537f60cbda47526480cf8ea0673e7d767febb2383ff536e9cb"),
+        ("## 안전과 개인정보", "a85eebc1ea6e1058f2bf6a0d474b2a4fcae3a740db97454ab72563dc76efa48d"),
         ("## 호환성과 검증 수준", "eff1413f282b1c62c164b0d09b0bf883588d2a45e1436abc62f64b5e7db44eb8"),
         ("## 갱신과 버전 확인", "729d001215438d41e78677312cd6fa01e844b8578cee986c24007e3a24dfb26e"),
         ("## 변경 이력과 관리자 문서", "7e1cb70139ec2f47b67004352fdd0ca739f19515c2c715095501268c5b7405ac"),
@@ -391,15 +391,15 @@ README_CANONICAL_SECTION_DIGESTS = {
         ("## Install", "07a437d944916099f4fb335281e4ebb344a567f038966fd86318f9acb913dcb8"),
         ("## First call", "27b7d3681619789c1e0fadff8d1dd802cdc387b70bddde1457adfbead72caff2"),
         ("## Expected result", "148a537bdb2b194dcbdb72e9d13deea6a25047043184aeffcf15992d20c9b9cd"),
-        ("## Safety and privacy", "6124fa783bdbfc495b3e3c3e1106db4a288551c631d0ced723151c7ed3dd9321"),
+        ("## Safety and privacy", "93b510784d5f68943870b184a8d7863fc363877848e3ed487b26dc4bac03d0d8"),
         ("## Verification", "b89fc0050f0479597cf9b493add1058b3a5c93534495221bacfcebc755f3b88b"),
         ("## Update and remove", "0d7e28c0b836d92dae03040909d93e609a54a91316e47ccfb02bdc24de3542c4"),
         ("## Changelog and maintainer docs", "7a5611089ddaf6819881da0ae7d96ec6ce36107f2c0076e9528499437749e7b1"),
     ),
 }
 README_CANONICAL_DOCUMENT_DIGESTS = {
-    "ko": "94ff1ff5ff987635ed3dfe175d01f5ba03b8905d5eafb13c2f120c37158af71c",
-    "en": "118c2c4bd03c04778a308a936855f73a6272b69d04d25661ff99fa8b6e7f8ab6",
+    "ko": "265e5f067340a9f90ac8688e4212ca4e680dea85df5d171dded0df02f028a006",
+    "en": "e33c50829f4de206365c9c9418b0179ca43fdf8cf15ef8a1bffadbfbf9704eb5",
 }
 MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Authority order", "3156a43d665d21723ce61b333c7c34f30abd2e6d288c472d5eec5878e5ef8321"),
@@ -413,7 +413,7 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Freshness", "0aeb0ada39c01280c13124db6cadb057a1748837991e10ceee85e93415e7e3a6"),
     ("### SDD handoff", "8a629dd12d78e2c08e77e7c1d057d0e450b135bc0633d5b62c8c926665976bca"),
 )
-MAINTAINER_CANONICAL_DIGEST = "eb2c7c5ae9c4dbe104489eddfe9d00d2571c7b090c4a6817a472247317fade39"
+MAINTAINER_CANONICAL_DIGEST = "b72aafa8a98cb1241cfa58abdd919504e41b8b5135d0500f32e6ea3801f5dca0"
 TESTING_CANONICAL_DIGEST = "ec7f352cd9b132581975bbee39b16f11471754c54903cee9419363a70fe7831a"
 COMPATIBILITY_CANONICAL_DIGEST = "8df097a3b3e0786f176f1d8b5c131bf005f2738e047d0cd5e5f6a7aed7fb7395"
 RELEASE_CANONICAL_DIGEST = "0e6635cc8a847aa9442b5d45dc5ac6b5b45b59712ab25bd2abdbd2f1d2f2da1a"
@@ -1277,11 +1277,47 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "prompts",
             "transcripts",
             "credentials",
-            "no outcome amendment",
+            "cannot correct or amend",
             "automatic skill mutation",
             "client/model ranking",
         ):
             self.assertIn(phrase, combined)
+
+    def test_v1_2_docs_distinguish_observations_from_derived_labels_and_pre_record_disputes(self) -> None:
+        english_documents = (
+            (SKILL / "README.en.md").read_text(encoding="utf-8"),
+            (SKILL / "evidence/README.md").read_text(encoding="utf-8"),
+            (MAINTAINERS / "contract.md").read_text(encoding="utf-8"),
+            (ROOT / "docs/users/en/safety-and-privacy.md").read_text(encoding="utf-8"),
+        )
+        korean_documents = (
+            (SKILL / "README.md").read_text(encoding="utf-8"),
+            (ROOT / "docs/users/ko/safety-and-privacy.md").read_text(encoding="utf-8"),
+        )
+        english_required = (
+            "Structured downstream observations, assessment basis, and confidence are observer-supplied.",
+            "The CLI derives `good`, `false-ready`, `noisy`, and `prevented-rework` deterministically from those observations.",
+            "Before `record-outcome`, encode every known dispute and uncertainty in the single outcome input.",
+            "After the create-only outcome is recorded, schema 1 cannot correct or amend it.",
+        )
+        korean_required = (
+            "구조화한 downstream observation, assessment basis, confidence는 관찰자가 입력합니다.",
+            "`good`, `false-ready`, `noisy`, `prevented-rework` label은 CLI가 그 observation에서 결정적으로 파생합니다.",
+            "`record-outcome` 전에 알려진 모든 이견과 불확실성을 한 번의 outcome 입력에 담아야 합니다.",
+            "create-only outcome이 기록된 뒤에는 schema 1에서 정정하거나 amend할 수 없습니다.",
+        )
+        for document in english_documents:
+            normalized = re.sub(r"\s+", " ", document)
+            for phrase in english_required:
+                self.assertIn(phrase, normalized)
+            self.assertNotIn(
+                "Outcome labels such as `good`, `false-ready`, `noisy`, and `prevented-rework`, together with confidence, are observer-supplied",
+                normalized,
+            )
+        for document in korean_documents:
+            normalized = re.sub(r"\s+", " ", document)
+            for phrase in korean_required:
+                self.assertIn(phrase, normalized)
 
     def test_changelog_records_the_first_independent_release_without_publication_claim(self) -> None:
         changelog = (SKILL / "CHANGELOG.md").read_text(encoding="utf-8")

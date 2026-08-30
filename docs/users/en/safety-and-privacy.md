@@ -31,13 +31,19 @@ Even bounded reasons and findings must use paraphrases rather than raw text,
 paths, prompts, transcripts, or credentials. The CLI does not promise
 automatic secret detection.
 
-Atomic local storage gives cooperating clients consistency; it is not a signed audit log resistant to malicious local tampering. `good`,
-`false-ready`, `noisy`, `prevented-rework`, and confidence are observer-supplied
-self-improvement evidence, not objective quality judgments or audit-grade
-proof. A schema 1 outcome cannot be corrected or amended. Put a finding
-dispute in `disputed_findings`, keep uncertain conclusions `inconclusive`, and
-treat candidate thresholds as human-inspection heuristics, never automatic
-skill mutation or client/model ranking.
+Atomic local storage gives cooperating clients consistency; it is not a signed audit log resistant to malicious local tampering.
+Structured downstream observations, assessment basis, and confidence are
+observer-supplied. The CLI derives `good`, `false-ready`, `noisy`, and
+`prevented-rework` deterministically from those observations. Inputs and derived
+labels are self-improvement evidence, not objective quality judgments or
+audit-grade proof. Before `record-outcome`, encode every known dispute and
+uncertainty in the single outcome input. Put finding disputes in
+`disputed_findings`; encode uncertainty in observations, basis, and confidence
+so the derived assessment remains `inconclusive`. After the create-only outcome
+is recorded, schema 1 cannot correct or amend it. An erroneous recorded outcome
+is an uncorrectable residual risk, not a correction path. Treat candidate
+thresholds as human-inspection heuristics, never automatic skill mutation or
+client/model ranking.
 
 ## High-stakes requests
 

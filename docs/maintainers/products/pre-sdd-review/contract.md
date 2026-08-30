@@ -162,11 +162,18 @@ Receipts contain bounded paraphrases, never source or document text, absolute
 paths, prompts, provider transcripts, command output, environment values, or
 credentials. Bounded reason/finding fields do not make raw input safe; the
 controller must paraphrase them. The CLI does not add automatic secret
-detection. Local atomic storage is not a signed audit log, and observer-entered
-assessment labels or confidence are self-improvement evidence rather than
-objective proof. Schema 1 has no outcome amendment; disputes stay in
-`disputed_findings`, uncertainty stays `inconclusive`, and candidate thresholds
-remain human-inspection heuristics with no automatic mutation or ranking.
+detection. Local atomic storage is not a signed audit log. Structured downstream
+observations, assessment basis, and confidence are observer-supplied. The CLI
+derives `good`, `false-ready`, `noisy`, and `prevented-rework` deterministically
+from those observations. Inputs and derived labels are self-improvement evidence
+rather than objective or audit-grade proof. Before `record-outcome`, encode
+every known dispute and uncertainty in the single outcome input. Disputes stay
+in `disputed_findings`; uncertainty is encoded in observations, basis, and
+confidence so the derived assessment stays `inconclusive`. After the create-only
+outcome is recorded, schema 1 cannot correct or amend it. An erroneous recorded
+outcome is an uncorrectable residual risk, not a correction path. Candidate
+thresholds remain human-inspection heuristics with no automatic mutation or
+ranking.
 
 ## Handoff
 

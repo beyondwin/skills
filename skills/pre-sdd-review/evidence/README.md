@@ -121,14 +121,19 @@ dry-run and confirm only its exact selection.
 
 Create-only local storage provides atomicity and consistency for cooperating
 clients. It is not a signed audit log and does not prevent malicious local
-tampering. Outcome labels such as `good`, `false-ready`, `noisy`, and
-`prevented-rework`, together with confidence, are observer-supplied
-self-improvement evidence rather than objective or audit-grade proof.
+tampering. Structured downstream observations, assessment basis, and confidence
+are observer-supplied. The CLI derives `good`, `false-ready`, `noisy`, and
+`prevented-rework` deterministically from those observations. Both the inputs
+and derived labels are self-improvement evidence rather than objective or
+audit-grade proof.
 
 Schema 1 records one immutable review and at most one immutable terminal
-outcome. It has no correction or amendment command; an erroneous terminal
-outcome cannot be rewritten in this version. Downstream finding disputes are
-recorded only in the bounded `disputed_findings` field, and uncertain evidence
-should remain `inconclusive`. Candidate thresholds are inspection heuristics:
-they do not mutate the skill, judge quality automatically, or rank clients or
-models.
+outcome. Before `record-outcome`, encode every known dispute and uncertainty in
+the single outcome input. Record finding disputes only in the bounded
+`disputed_findings` field; encode uncertainty in the observations, basis, and
+confidence so the derived assessment remains `inconclusive`. After the
+create-only outcome is recorded, schema 1 cannot correct or amend it. It has no
+correction or amendment command; an erroneous recorded outcome is an
+uncorrectable residual risk, not a correction path. Candidate thresholds are
+inspection heuristics: they do not mutate the skill, judge quality
+automatically, or rank clients or models.

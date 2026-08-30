@@ -29,11 +29,16 @@ prompt, provider transcript, command output, credential, 환경 변수 값은 �
 마세요. 짧게 제한된 reason이나 finding에도 원문·경로·프롬프트·transcript·credential을
 입력하지 말고 paraphrase만 사용하세요. CLI는 자동 비밀 탐지를 약속하지 않습니다.
 
-원자적 로컬 저장은 협력하는 client 사이의 일관성을 제공할 뿐, 악의적인 로컬 변조를 막는 서명된 audit log가 아닙니다. `good`, `false-ready`, `noisy`,
-`prevented-rework`, confidence는 관찰자가 입력한 자기개선 evidence이지 객관적
-품질 판정이나 감사 등급 증거가 아닙니다. schema 1 outcome은 정정하거나 amend할
-수 없습니다. finding 이견은 `disputed_findings`, 결론이 불확실하면
-`inconclusive`로 남기며, candidate 임계값은 자동 skill 변경이나 client/model
+원자적 로컬 저장은 협력하는 client 사이의 일관성을 제공할 뿐, 악의적인 로컬 변조를 막는 서명된 audit log가 아닙니다. 구조화한 downstream observation,
+assessment basis, confidence는 관찰자가 입력합니다. `good`, `false-ready`,
+`noisy`, `prevented-rework` label은 CLI가 그 observation에서 결정적으로
+파생합니다. 입력과 파생 label은 자기개선 evidence이지 객관적 품질 판정이나
+감사 등급 증거가 아닙니다. `record-outcome` 전에 알려진 모든 이견과 불확실성을
+한 번의 outcome 입력에 담아야 합니다. finding 이견은 `disputed_findings`에,
+불확실성은 observation·basis·confidence에 담아 파생 assessment가
+`inconclusive`로 남게 하세요. create-only outcome이 기록된 뒤에는 schema 1에서
+정정하거나 amend할 수 없습니다. 잘못 기록한 outcome은 정정 경로가 아니라 이번
+schema의 잔여 위험입니다. candidate 임계값은 자동 skill 변경이나 client/model
 ranking이 아닌 사람이 검토할 휴리스틱입니다.
 
 ## 이해관계가 큰 요청

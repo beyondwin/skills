@@ -138,11 +138,16 @@ hard limit입니다. bounded reason이나 finding에도 원문, 경로, 프롬�
 transcript, credential을 넣지 말고 짧게 바꿔 쓰세요.
 
 create-only 저장은 협력하는 로컬 클라이언트의 원자성과 일관성을 제공하지만,
-악의적인 로컬 변조를 막는 서명된 audit log는 아닙니다. `good`, `false-ready`,
-`noisy`, `prevented-rework`, confidence는 관찰자가 입력한 자기개선용 evidence이며
-객관적·감사 등급 증거가 아닙니다. schema 1은 outcome 정정이나 amendment를
-지원하지 않습니다. 잘못 입력했다면 덮어쓰지 말고 finding은
-`disputed_findings`, 불확실한 평가는 `inconclusive` 경계를 사용하세요.
+악의적인 로컬 변조를 막는 서명된 audit log는 아닙니다. 구조화한 downstream
+observation, assessment basis, confidence는 관찰자가 입력합니다. `good`,
+`false-ready`, `noisy`, `prevented-rework` label은 CLI가 그 observation에서
+결정적으로 파생합니다. 입력과 파생 label은 모두 자기개선용 evidence이며
+객관적·감사 등급 증거가 아닙니다. `record-outcome` 전에 알려진 모든 이견과
+불확실성을 한 번의 outcome 입력에 담아야 합니다. finding 이견은
+`disputed_findings`에, 불확실성은 observation·basis·confidence에 담아 파생
+assessment가 `inconclusive`로 남게 하세요. create-only outcome이 기록된 뒤에는
+schema 1에서 정정하거나 amend할 수 없습니다. 잘못 기록한 outcome은 정정
+경로가 아니라 이번 schema의 잔여 위험입니다.
 `candidates` 임계값은 사람이 볼 후보를 고르는 휴리스틱이며 스킬 자동 변경,
 자동 품질 판정, client/model ranking을 허가하지 않습니다.
 

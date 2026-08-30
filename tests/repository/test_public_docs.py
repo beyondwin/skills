@@ -82,8 +82,8 @@ PRE_SDD_REVIEW_SUPPORT = (
     "pre-sdd-review: Codex supported; other hosts not_measured."
 )
 PRE_SDD_SHARED_SECTION_DIGESTS = {
-    ("ko", "safety"): "a62f2f31486729298a7e0902d82bbb4f8c96db0a2d9c96ccbdbd9fc9de77c04f",
-    ("en", "safety"): "7333a243bfd93cca56e1c8580d6740147083bb4caf1270b7dbfef42a928f6db9",
+    ("ko", "safety"): "3fbd61bfb0ba5ddf1e31b9381027421e669115ce8e04cb059b94aa0de640611f",
+    ("en", "safety"): "be32d36d796bfbf24005c27b2289c213d7424c033b3a0ca40afc85f3cee464f5",
     ("ko", "verification"): "7b29404e45ed79d812f37c9d81775774804f34ce1012b4bfbc6e735de8172878",
     ("en", "verification"): "2db145d6d09e59abe2d0e9a0c5293b93fcaaccd60cf1e5e1dc08247985d04b01",
 }
@@ -886,13 +886,20 @@ class UserGuideFactTests(unittest.TestCase):
             "automatic secret detection",
             "not a signed audit log",
             "observer-supplied",
-            "cannot be corrected or amended",
+            "cannot correct or amend",
             "disputed_findings",
             "inconclusive",
             "automatic skill mutation",
             "client/model ranking",
         ):
             self.assertIn(phrase, combined)
+        for phrase in (
+            "Structured downstream observations, assessment basis, and confidence are observer-supplied.",
+            "The CLI derives `good`, `false-ready`, `noisy`, and `prevented-rework` deterministically from those observations.",
+            "Before `record-outcome`, encode every known dispute and uncertainty in the single outcome input.",
+            "After the create-only outcome is recorded, schema 1 cannot correct or amend it.",
+        ):
+            self.assertIn(phrase, re.sub(r"\s+", " ", english))
 
     def test_pre_sdd_shared_clause_validator_rejects_reversed_polarities(self) -> None:
         cases = (
