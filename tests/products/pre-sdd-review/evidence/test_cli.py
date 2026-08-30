@@ -549,35 +549,205 @@ class CliTests(unittest.TestCase):
         self.assertEqual(json.loads(output)["status"], "recorded")
         self.assertFalse((run_dir / ".pending.json").exists())
 
-    def test_private_locator_binding_never_leaks_from_pending_consumers_or_final(self) -> None:
-        nongit = self.workspace / "DISTINCTIVE-RAW-LOCATOR-MARKER"
-        nongit.mkdir()
-        code, output, error = self.run_cli([
+    def test_non_git_interruption_recovery_keeps_locator_binding_private(self) -> None:
+        paths = storage.EvidencePaths.from_home(self.home)
+        start_locator = self.workspace / "DISTINCTIVE-RAW-START-LOCATOR-MARKER"
+        start_locator.mkdir()
+        start_command = [
             "start", "--skill-root", str(self.skill), "--plan", "docs/plan.md",
             "--client", "cursor", "--mode", "default",
-        ], cwd=nongit)
-        self.assertEqual((code, error), (0, ""))
-        started = json.loads(output)
-        pending_path = next(self.home.glob("runs/*/*/*/.pending.json"))
-        pending = json.loads(pending_path.read_text(encoding="utf-8"))
-        binding = pending["start_locator_binding"]
-        self.assertNotIn(str(nongit).encode(), pending_path.read_bytes())
-        self.assertNotIn("locator", {key for key in pending if key != "start_locator_binding"})
+        ]
+        real_create = storage.create_pending
+
+        def interrupted_create(
+            evidence_paths: storage.EvidencePaths, pending: object
+        ) -> object:
+            return real_create(
+                evidence_paths,
+                pending,
+                interruption_hook=lambda point, _path: (
+                    (_ for _ in ()).throw(RuntimeError("interrupted-start"))
+                    if point == "pending-fsynced" else None
+                ),
+            )
+
+        start_output = io.StringIO()
+        start_error = io.StringIO()
+        with mock.patch.object(cli.storage, "create_pending", side_effect=interrupted_create):
+            with self.assertRaisesRegex(RuntimeError, "interrupted-start"):
+                cli.main(
+                    start_command,
+                    input_stream=io.StringIO(),
+                    output_stream=start_output,
+                    error_stream=start_error,
+                    environ={"PRE_SDD_REVIEW_HOME": str(self.home)},
+                    cwd=start_locator,
+                )
+        self.assertEqual((start_output.getvalue(), start_error.getvalue()), ("", ""))
+
+        staging = next(paths.runs.glob(".staging-*"))
+        staged_entries = tuple(sorted(staging.rglob("*")))
+        self.assertEqual(
+            tuple(path.relative_to(staging).as_posix() for path in staged_entries),
+            (".pending.json",),
+        )
+        self.assertTrue(staged_entries[0].is_file())
+        self.assertFalse(staged_entries[0].is_symlink())
+        staged_bytes = staged_entries[0].read_bytes()
+        staged_pending = json.loads(staged_bytes)
+        run_id = str(staged_pending["run_id"])
+        binding = str(staged_pending["start_locator_binding"])
+        self.assertIn(binding.encode("utf-8"), staged_bytes)
+        self.assertNotIn(str(start_locator).encode("utf-8"), staged_bytes)
+        self.assertNotIn(str(start_locator).encode("utf-8"), str(staging).encode("utf-8"))
+
+        self.assertEqual(storage.recover_staging(paths), ())
+        run_dir = paths.run_directory(run_id, str(staged_pending["started_at"]))
+        self.assertEqual((run_dir / ".pending.json").read_bytes(), staged_bytes)
+        self.assertFalse(staging.exists())
+
+        public_output = [start_output.getvalue(), start_error.getvalue()]
         for command in (["pending"], ["doctor"]):
-            code, public, error = self.run_cli(command, cwd=nongit)
+            code, output, error = self.run_cli(command, cwd=start_locator)
             self.assertEqual((code, error), (0, ""))
-            self.assertNotIn(str(nongit), public)
-            self.assertNotIn(str(binding), public)
-            self.assertNotIn("start_locator_binding", public)
-        code, output, error = self.run_cli([
-            "abandon", "--run-id", str(started["run_id"]), "--reason", "client-interrupted"
-        ], cwd=nongit)
-        self.assertEqual((code, error), (0, ""))
-        review_path = next(self.home.glob("runs/*/*/*/review.json"))
-        final = review_path.read_bytes()
-        self.assertNotIn(str(nongit).encode(), final)
-        self.assertNotIn(str(binding).encode(), final)
-        self.assertNotIn(b"start_locator_binding", final)
+            public_output.append(output)
+
+        for transition in ("finish", "abandon"):
+            with self.subTest(transition=transition):
+                if transition == "finish":
+                    locator = start_locator
+                    current_run_id = run_id
+                    current_binding = binding
+                    semantic = self.semantic(verdict="BLOCKED")
+                    semantic.update({
+                        "execution": "blocked", "reviewer_count": 0,
+                        "fresh_reviewer": False, "read_only_enforced": False,
+                        "block_reason": "repository-unavailable",
+                    })
+                    command = [
+                        "finish-review", "--run-id", current_run_id,
+                        "--repo", str(locator), "--from-stdin",
+                    ]
+                    stdin = json.dumps(semantic)
+                    real_terminal = storage.finish_review
+
+                    def interrupted_terminal(
+                        evidence_paths: storage.EvidencePaths,
+                        terminal_run_id: str,
+                        review: object,
+                    ) -> object:
+                        return real_terminal(
+                            evidence_paths,
+                            terminal_run_id,
+                            review,
+                            interruption_hook=lambda point, _path: (
+                                (_ for _ in ()).throw(RuntimeError("interrupted-final"))
+                                if point == "review-published" else None
+                            ),
+                        )
+
+                    patcher = mock.patch.object(
+                        cli.storage, "finish_review", side_effect=interrupted_terminal
+                    )
+                else:
+                    locator = self.workspace / "DISTINCTIVE-RAW-ABANDON-LOCATOR-MARKER"
+                    locator.mkdir()
+                    code, output, error = self.run_cli(start_command, cwd=locator)
+                    self.assertEqual((code, error), (0, ""))
+                    public_output.append(output)
+                    current_run_id = str(json.loads(output)["run_id"])
+                    current_pending_path = next(
+                        self.home.glob(f"runs/*/*/{current_run_id}/.pending.json")
+                    )
+                    current_binding = str(
+                        json.loads(current_pending_path.read_bytes())["start_locator_binding"]
+                    )
+                    command = [
+                        "abandon", "--run-id", current_run_id,
+                        "--reason", "client-interrupted",
+                    ]
+                    stdin = ""
+                    real_terminal = storage.abandon_run
+
+                    def interrupted_abandon(
+                        evidence_paths: storage.EvidencePaths,
+                        terminal_run_id: str,
+                        reason: str,
+                        *,
+                        completed_at: str,
+                        recorder_elapsed_ms: int,
+                    ) -> object:
+                        return real_terminal(
+                            evidence_paths,
+                            terminal_run_id,
+                            reason,
+                            completed_at=completed_at,
+                            recorder_elapsed_ms=recorder_elapsed_ms,
+                            interruption_hook=lambda point, _path: (
+                                (_ for _ in ()).throw(RuntimeError("interrupted-final"))
+                                if point == "review-published" else None
+                            ),
+                        )
+
+                    patcher = mock.patch.object(
+                        cli.storage, "abandon_run", side_effect=interrupted_abandon
+                    )
+
+                output_stream = io.StringIO()
+                error_stream = io.StringIO()
+                with patcher, self.assertRaisesRegex(RuntimeError, "interrupted-final"):
+                    cli.main(
+                        command,
+                        input_stream=io.StringIO(stdin),
+                        output_stream=output_stream,
+                        error_stream=error_stream,
+                        environ={"PRE_SDD_REVIEW_HOME": str(self.home)},
+                        cwd=locator,
+                    )
+                self.assertEqual((output_stream.getvalue(), error_stream.getvalue()), ("", ""))
+                public_output.extend((output_stream.getvalue(), error_stream.getvalue()))
+
+                terminal_dir = next(self.home.glob(f"runs/*/*/{current_run_id}"))
+                final_path = terminal_dir / "review.json"
+                final_bytes = final_path.read_bytes()
+                self.assertTrue((terminal_dir / ".pending.json").exists())
+                self.assertNotIn(str(locator).encode("utf-8"), final_bytes)
+                self.assertNotIn(current_binding.encode("utf-8"), final_bytes)
+                self.assertNotIn(b"start_locator_binding", final_bytes)
+
+                for public_command in (
+                    ["show", "--run-id", current_run_id],
+                    ["pending"],
+                    ["doctor"],
+                    ["summary"],
+                    ["candidates"],
+                ):
+                    code, output, error = self.run_cli(public_command, cwd=locator)
+                    self.assertEqual((code, error), (0, ""))
+                    public_output.append(output)
+
+                (terminal_dir / ".write.lock").write_bytes(b"")
+                (terminal_dir / ".review.json.interrupted.tmp").write_bytes(b"")
+                if os.name == "posix":
+                    (terminal_dir / ".write.lock").chmod(0o600)
+                    (terminal_dir / ".review.json.interrupted.tmp").chmod(0o600)
+                code, output, error = self.run_cli(command, stdin, cwd=locator)
+                self.assertEqual((code, error), (0, ""))
+                public_output.append(output)
+                self.assertEqual(final_path.read_bytes(), final_bytes)
+                self.assertFalse((terminal_dir / ".pending.json").exists())
+                self.assertFalse((terminal_dir / ".write.lock").exists())
+                self.assertFalse((terminal_dir / ".review.json.interrupted.tmp").exists())
+
+                combined_public = "".join(public_output).encode("utf-8")
+                for private_value in (
+                    str(start_locator).encode("utf-8"),
+                    str(locator).encode("utf-8"),
+                    binding.encode("utf-8"),
+                    current_binding.encode("utf-8"),
+                    b"start_locator_binding",
+                ):
+                    self.assertNotIn(private_value, combined_public)
 
     def test_start_failed_resolution_statuses_have_exact_public_shape(self) -> None:
         cases: list[tuple[str, str, str | None, str | None]] = []

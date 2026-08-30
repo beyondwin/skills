@@ -702,105 +702,201 @@ def second_review_risk_triggers(reviewers: str) -> tuple[str, ...]:
     )
 
 
+def evidence_runtime_contract_errors(runtime: Path) -> tuple[str, ...]:
+    network_imports = {
+        "ftplib", "http", "imaplib", "poplib", "requests", "smtplib",
+        "socket", "urllib", "websockets",
+    }
+    provider_identifiers = {
+        "anthropic", "cohere", "mistralai", "openai", "telemetry",
+    }
+    subprocess_calls = {"call", "check_call", "check_output", "Popen", "run"}
+    errors: list[str] = []
+
+    for path in sorted(runtime.glob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        functions = tuple(
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        )
+        aliases: dict[str, str] = {}
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for item in node.names:
+                    local = item.asname or item.name.split(".", 1)[0]
+                    aliases[local] = item.name
+            elif isinstance(node, ast.ImportFrom) and node.module is not None:
+                for item in node.names:
+                    if item.name != "*":
+                        aliases[item.asname or item.name] = f"{node.module}.{item.name}"
+
+        def qualified_name(expression: ast.expr) -> str | None:
+            if isinstance(expression, ast.Name):
+                return aliases.get(expression.id, expression.id)
+            if isinstance(expression, ast.Attribute):
+                owner = qualified_name(expression.value)
+                return None if owner is None else f"{owner}.{expression.attr}"
+            return None
+
+        for assignment in sorted(
+            (node for node in ast.walk(tree) if isinstance(node, ast.Assign)),
+            key=lambda node: node.lineno,
+        ):
+            resolved = qualified_name(assignment.value)
+            if resolved is None:
+                continue
+            for target in assignment.targets:
+                if isinstance(target, ast.Name):
+                    aliases[target.id] = resolved
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                imported = {item.name.split(".", 1)[0] for item in node.names}
+                for name in sorted(imported & network_imports):
+                    errors.append(f"{path.name} imports network module {name}")
+                for name in sorted(imported & provider_identifiers):
+                    errors.append(f"{path.name} imports provider identifier {name}")
+            elif isinstance(node, ast.ImportFrom):
+                imported = (node.module or "").split(".", 1)[0]
+                if imported in network_imports:
+                    errors.append(f"{path.name} imports network module {imported}")
+                if imported in provider_identifiers:
+                    errors.append(f"{path.name} imports provider identifier {imported}")
+            elif isinstance(node, ast.Name) and node.id.lower() in provider_identifiers:
+                errors.append(f"{path.name} references provider identifier {node.id}")
+            elif isinstance(node, ast.Attribute) and node.attr.lower() in provider_identifiers:
+                errors.append(f"{path.name} references provider identifier {node.attr}")
+            elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+                identifier = node.value.lower().split(".", 1)[0]
+                if identifier in network_imports:
+                    errors.append(f"{path.name} embeds network identifier {identifier}")
+                if identifier in provider_identifiers:
+                    errors.append(f"{path.name} embeds provider identifier {identifier}")
+            elif (
+                isinstance(node, ast.Assign)
+                and isinstance(node.value, ast.Attribute)
+                and node.value.attr in {"read", "read_bytes", "read_text"}
+            ):
+                errors.append(f"{path.name} bypasses the single bounded reader path")
+            elif isinstance(node, ast.Call):
+                function = node.func
+                qualified = qualified_name(function)
+                if isinstance(function, ast.Attribute):
+                    if function.attr in {"read_bytes", "read_text"}:
+                        errors.append(f"{path.name} bypasses the shared bounded reader")
+                if qualified == "os.system":
+                    errors.append(f"{path.name} may not call os.system")
+                is_read = (
+                    (isinstance(function, ast.Attribute) and function.attr == "read")
+                    or (isinstance(function, ast.Name) and qualified is not None and qualified.endswith(".read"))
+                )
+                if is_read:
+                    if not isinstance(function, ast.Attribute):
+                        errors.append(f"{path.name} bypasses the single bounded reader path")
+                    else:
+                        owners = tuple(
+                            item.name
+                            for item in functions
+                            if item.lineno <= node.lineno <= (item.end_lineno or item.lineno)
+                        )
+                        owner = owners[-1] if owners else None
+                        if (path.name, owner) not in {
+                            ("cli.py", "_read_stdin"),
+                            ("schema.py", "read_bounded_bytes"),
+                        }:
+                            errors.append(f"{path.name} bypasses the single bounded reader path")
+                        elif len(node.args) != 1:
+                            errors.append(f"{path.name} contains an unbounded read()")
+                        else:
+                            size = node.args[0]
+                            if not (
+                                isinstance(size, ast.BinOp)
+                                and isinstance(size.op, ast.Add)
+                                and isinstance(size.left, ast.Name)
+                                and size.left.id == "limit"
+                                and isinstance(size.right, ast.Constant)
+                                and size.right.value == 1
+                            ):
+                                errors.append(f"{path.name} read() does not enforce limit + 1")
+                if qualified in {f"subprocess.{name}" for name in subprocess_calls}:
+                    if not node.args:
+                        errors.append(f"{path.name} subprocess call has no argv")
+                    else:
+                        argv = node.args[0]
+                        if not (
+                            isinstance(argv, (ast.List, ast.Tuple))
+                            and argv.elts
+                            and isinstance(argv.elts[0], ast.Constant)
+                            and argv.elts[0].value == "git"
+                        ):
+                            errors.append(f"{path.name} launches a non-Git subprocess")
+                if any(
+                    keyword.arg == "shell"
+                    and isinstance(keyword.value, ast.Constant)
+                    and keyword.value.value is True
+                    for keyword in node.keywords
+                ):
+                    errors.append(f"{path.name} enables shell=True")
+    return tuple(errors)
+
+
 class PreSddReviewContractTests(unittest.TestCase):
     def test_evidence_runtime_is_offline_provider_free_and_uses_bounded_reads(self) -> None:
         runtime = SKILL / "evidence/pre_sdd_review_evidence"
-        network_imports = {
-            "ftplib", "http", "imaplib", "poplib", "requests", "smtplib",
-            "socket", "urllib", "websockets",
-        }
-        provider_identifiers = {
-            "anthropic", "cohere", "mistralai", "openai", "telemetry",
-        }
-        subprocess_calls = {"call", "check_call", "check_output", "Popen", "run"}
+        self.assertEqual(evidence_runtime_contract_errors(runtime), ())
 
-        for path in sorted(runtime.glob("*.py")):
-            with self.subTest(module=path.name):
-                tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-                functions = tuple(
-                    node
-                    for node in ast.walk(tree)
-                    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    def test_evidence_runtime_contract_detects_aliased_offline_and_reader_bypasses(self) -> None:
+        mutations = (
+            (
+                "subprocess-module-alias",
+                "\nimport subprocess as sp\nsp.run(['python3', '-c', 'pass'])\n",
+                "launches a non-Git subprocess",
+            ),
+            (
+                "subprocess-symbol-alias",
+                "\nfrom subprocess import run as invoke\ninvoke(['python3', '-c', 'pass'])\n",
+                "launches a non-Git subprocess",
+            ),
+            (
+                "os-module-alias",
+                "\nimport os as operating\noperating.system('git status')\n",
+                "may not call os.system",
+            ),
+            (
+                "os-symbol-alias",
+                "\nfrom os import system as invoke\ninvoke('git status')\n",
+                "may not call os.system",
+            ),
+            (
+                "reader-method-alias",
+                "\ndef bypass(stream):\n    reader = stream.read\n    return reader()\n",
+                "bypasses the single bounded reader path",
+            ),
+        )
+        for name, content, expected in mutations:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as directory:
+                copied = Path(directory) / "runtime"
+                shutil.copytree(SKILL / "evidence/pre_sdd_review_evidence", copied)
+                repository_module = copied / "repository.py"
+                repository_module.write_text(
+                    repository_module.read_text(encoding="utf-8") + content,
+                    encoding="utf-8",
                 )
-                for node in ast.walk(tree):
-                    if isinstance(node, ast.Import):
-                        imported = {item.name.split(".", 1)[0] for item in node.names}
-                        self.assertTrue(imported.isdisjoint(network_imports))
-                        self.assertTrue(imported.isdisjoint(provider_identifiers))
-                    elif isinstance(node, ast.ImportFrom):
-                        imported = (node.module or "").split(".", 1)[0]
-                        self.assertNotIn(imported, network_imports)
-                        self.assertNotIn(imported, provider_identifiers)
-                    elif isinstance(node, ast.Name):
-                        self.assertNotIn(node.id.lower(), provider_identifiers)
-                    elif isinstance(node, ast.Attribute):
-                        self.assertNotIn(node.attr.lower(), provider_identifiers)
-                    elif isinstance(node, ast.Constant) and isinstance(node.value, str):
-                        identifier = node.value.lower().split(".", 1)[0]
-                        self.assertNotIn(identifier, network_imports)
-                        self.assertNotIn(identifier, provider_identifiers)
-                    elif isinstance(node, ast.Call):
-                        function = node.func
-                        if isinstance(function, ast.Attribute):
-                            if (
-                                isinstance(function.value, ast.Name)
-                                and function.value.id == "os"
-                                and function.attr == "system"
-                            ):
-                                self.fail(f"{path.name} may not call os.system")
-                            if function.attr in {"read_bytes", "read_text"}:
-                                self.fail(
-                                    f"{path.name} bypasses the shared bounded reader"
-                                )
-                            if function.attr == "read":
-                                owners = tuple(
-                                    item.name
-                                    for item in functions
-                                    if item.lineno <= node.lineno <= (item.end_lineno or item.lineno)
-                                )
-                                self.assertIn(
-                                    (path.name, owners[-1] if owners else None),
-                                    {
-                                        ("cli.py", "_read_stdin"),
-                                        ("schema.py", "read_bounded_bytes"),
-                                    },
-                                    f"{path.name} bypasses the single bounded reader path",
-                                )
-                                self.assertEqual(
-                                    len(node.args), 1,
-                                    f"{path.name} contains an unbounded read()",
-                                )
-                                size = node.args[0]
-                                self.assertIsInstance(size, ast.BinOp)
-                                assert isinstance(size, ast.BinOp)
-                                self.assertIsInstance(size.op, ast.Add)
-                                self.assertIsInstance(size.left, ast.Name)
-                                self.assertEqual(size.left.id, "limit")
-                                self.assertIsInstance(size.right, ast.Constant)
-                                self.assertEqual(size.right.value, 1)
-                            if (
-                                isinstance(function.value, ast.Name)
-                                and function.value.id == "subprocess"
-                                and function.attr in subprocess_calls
-                            ):
-                                self.assertTrue(node.args, "subprocess call has no argv")
-                                argv = node.args[0]
-                                self.assertIsInstance(argv, (ast.List, ast.Tuple))
-                                assert isinstance(argv, (ast.List, ast.Tuple))
-                                self.assertTrue(argv.elts, "subprocess argv is empty")
-                                first = argv.elts[0]
-                                self.assertIsInstance(first, ast.Constant)
-                                assert isinstance(first, ast.Constant)
-                                self.assertEqual(first.value, "git")
-                        self.assertFalse(
-                            any(
-                                keyword.arg == "shell"
-                                and isinstance(keyword.value, ast.Constant)
-                                and keyword.value.value is True
-                                for keyword in node.keywords
-                            ),
-                            f"{path.name} enables shell=True",
-                        )
+                self.assertTrue(
+                    any(expected in error for error in evidence_runtime_contract_errors(copied))
+                )
+
+        with tempfile.TemporaryDirectory() as directory:
+            copied = Path(directory) / "runtime"
+            shutil.copytree(SKILL / "evidence/pre_sdd_review_evidence", copied)
+            repository_module = copied / "repository.py"
+            repository_module.write_text(
+                repository_module.read_text(encoding="utf-8")
+                + "\nimport subprocess as sp\nsp.run(['git', 'status'])\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(evidence_runtime_contract_errors(copied), ())
 
     def test_source_payload_contract_ignores_generated_python_cache(self) -> None:
         validator = globals().get("product_payload_contract_errors")

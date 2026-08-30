@@ -455,6 +455,9 @@ def validate_outcome(value: object, review: object) -> dict[str, object]:
             if field == "prevented_rework" and source["status"] != "repaired": _fail("prevention-status", "prevented rework requires a repaired finding")
             _enum(record["basis"], f"{field}.basis", EVIDENCE_BASES)
             destination.append(copy.deepcopy(record))
+        finding_ids = [str(record["finding_id"]) for record in destination]
+        if len(set(finding_ids)) != len(finding_ids):
+            _fail("duplicate-record", f"{field} finding IDs must be unique")
     if len(_deduplicate(escaped)) != len(escaped) or len(_deduplicate(disputed)) != len(disputed) or len(_deduplicate(prevented)) != len(prevented): _fail("duplicate-record", "downstream records must be unique")
     normalized_downstream = copy.deepcopy(downstream)
     normalized_downstream["evaluated_finding_ids"] = _deduplicate(evaluated)

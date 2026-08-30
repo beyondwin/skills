@@ -272,6 +272,59 @@ class ReportingTests(unittest.TestCase):
         self.assertEqual(result["prevented_rework"], {"records": 1, "runs": 1})
         self.assertEqual(result["assessment_boundary"], "observer-supplied-self-improvement-evidence-not-audit-grade")
 
+    def test_outcome_rejects_duplicate_finding_ids_before_reporting(self) -> None:
+        review = _review(run_number=11, findings=[_finding()])
+        prevention = {
+            "finding_id": "PSDR-001",
+            "pattern_key": "build-only-acceptance",
+            "consequence_category": "escaped-material-defect",
+            "basis": "agent-observed",
+        }
+        duplicates = (
+            _outcome(
+                review,
+                label="noisy",
+                basis="user-reported",
+                disputed=[
+                    _disputed(basis="agent-observed"),
+                    _disputed(basis="user-reported"),
+                ],
+                evaluated=["PSDR-001"],
+            ),
+            _outcome(
+                review,
+                label="prevented-rework",
+                basis="user-reported",
+                prevented=[
+                    prevention,
+                    {**prevention, "basis": "user-reported"},
+                ],
+                evaluated=["PSDR-001"],
+            ),
+        )
+
+        for outcome in duplicates:
+            with self.subTest(field=outcome["assessment"]["label"]):  # type: ignore[index]
+                with self.assertRaisesRegex(schema.EvidenceError, "finding IDs must be unique"):
+                    schema.validate_outcome(outcome, review)
+
+        valid = schema.validate_outcome(
+            _outcome(
+                review,
+                label="noisy",
+                basis="user-reported",
+                disputed=[_disputed(basis="user-reported")],
+                evaluated=["PSDR-001"],
+            ),
+            review,
+        )
+        summary = reporting.summarize([self.record(review, valid)])
+        self.assertEqual(
+            summary["noisy_findings"],
+            {"numerator": 1, "denominator": 1, "interpretation": "insufficient-sample"},
+        )
+        self.assertEqual(summary["assessment_basis_counts"], {"user-reported": 1})
+
     def test_candidate_thresholds_use_exact_structured_tuple_and_distinct_runs(self) -> None:
         records: list[reporting.Record] = []
         for number in range(1, 3):

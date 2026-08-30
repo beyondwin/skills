@@ -92,7 +92,6 @@ class StorageLifecycleTests(unittest.TestCase):
 
     def test_interruption_after_pending_fsync_recovers_exact_bytes(self) -> None:
         pending = pending_record()
-        raw_locator = "/private/RAW-LOCATOR-MUST-NEVER-BE-PERSISTED"
         pending["start_locator_binding"] = "b" * 64
         with self.assertRaisesRegex(RuntimeError, "interrupt"):
             storage.create_pending(
@@ -104,7 +103,6 @@ class StorageLifecycleTests(unittest.TestCase):
         expected = canonical_json_bytes(pending)
         self.assertEqual((staging / ".pending.json").read_bytes(), expected)
         self.assertIn(b'"start_locator_binding":"' + b"b" * 64 + b'"', expected)
-        self.assertNotIn(raw_locator.encode("utf-8"), expected)
         reports = storage.recover_staging(self.paths)
         self.assertEqual(reports, ())
         run_dir = self.paths.run_directory(str(pending["run_id"]), str(pending["started_at"]))
