@@ -692,7 +692,7 @@ class PreSddReviewContractTests(unittest.TestCase):
             copied = Path(directory) / "pre-sdd-review"
             shutil.copytree(SKILL, copied)
             cache = copied / "evidence/pre_sdd_review_evidence/__pycache__"
-            cache.mkdir()
+            cache.mkdir(exist_ok=True)
             (cache / "schema.cpython-314.pyc").write_bytes(b"bytecode")
             self.assertEqual(validator(copied), ())
 

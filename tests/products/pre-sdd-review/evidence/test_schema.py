@@ -348,6 +348,83 @@ class SchemaContractTests(unittest.TestCase):
                 with self.subTest(record="outcome", section=section, key=key), self.assertRaises(schema.EvidenceError):
                     schema.validate_outcome(outcome, valid_review())
 
+    def test_every_finding_and_location_required_key_is_closed(self) -> None:
+        finding_keys = (
+            "id", "severity", "class", "pattern_key", "consequence_category",
+            "status", "location", "evidence_refs", "consequence", "minimal_fix",
+            "repair_pass",
+        )
+        for key in finding_keys:
+            review = valid_review()
+            del review["result"]["findings"][0][key]  # type: ignore[index]
+            with self.subTest(object="finding", key=key), self.assertRaises(schema.EvidenceError) as raised:
+                schema.validate_review(review)
+            self.assertEqual(raised.exception.code, "invalid-keys")
+        for key in ("path", "locator"):
+            review = valid_review()
+            del review["result"]["findings"][0]["location"][key]  # type: ignore[index]
+            with self.subTest(object="finding.location", key=key), self.assertRaises(schema.EvidenceError) as raised:
+                schema.validate_review(review)
+            self.assertEqual(raised.exception.code, "invalid-keys")
+
+    def test_every_nullable_review_and_outcome_field_has_an_isolated_row(self) -> None:
+        def not_git_review() -> dict[str, object]:
+            review = valid_review()
+            review["target"].update({  # type: ignore[index]
+                "repo_id": None,
+                "initial_head": None,
+                "initial_dirty": None,
+                "plan_path": None,
+                "plan_initial_sha256": None,
+                "design_path": None,
+                "design_initial_sha256": None,
+                "resolution_status": "not-git-repository",
+            })
+            review["freshness"] = {  # type: ignore[index]
+                "final_head": None,
+                "final_dirty": None,
+                "plan_final_sha256": None,
+                "design_final_sha256": None,
+            }
+            return review
+
+        accepted_review_cases = (
+            ("client.version", valid_review, lambda item: item["client"].__setitem__("version", None)),
+            ("client.model", valid_review, lambda item: item["client"].__setitem__("model", None)),
+            ("protocol.conditional_trigger", valid_review, lambda item: item["protocol"].__setitem__("conditional_trigger", None)),
+            ("result.block_reason", valid_review, lambda item: item["result"].__setitem__("block_reason", None)),
+            ("result.completion_reason", valid_review, lambda item: item["result"].__setitem__("completion_reason", None)),
+            ("finding.repair_pass", valid_review, lambda item: item["result"]["findings"][0].__setitem__("repair_pass", None)),
+            ("metrics.token_usage", valid_review, lambda item: item["metrics"].__setitem__("token_usage", None)),
+            ("target.repo_id", not_git_review, lambda item: item["target"].__setitem__("repo_id", None)),
+            ("target.initial_head", not_git_review, lambda item: item["target"].__setitem__("initial_head", None)),
+            ("target.initial_dirty", not_git_review, lambda item: item["target"].__setitem__("initial_dirty", None)),
+            ("target.plan_path", not_git_review, lambda item: item["target"].__setitem__("plan_path", None)),
+            ("target.plan_initial_sha256", not_git_review, lambda item: item["target"].__setitem__("plan_initial_sha256", None)),
+            ("target.design_path", not_git_review, lambda item: item["target"].__setitem__("design_path", None)),
+            ("target.design_initial_sha256", not_git_review, lambda item: item["target"].__setitem__("design_initial_sha256", None)),
+            ("freshness.final_head", not_git_review, lambda item: item["freshness"].__setitem__("final_head", None)),
+            ("freshness.final_dirty", not_git_review, lambda item: item["freshness"].__setitem__("final_dirty", None)),
+            ("freshness.plan_final_sha256", not_git_review, lambda item: item["freshness"].__setitem__("plan_final_sha256", None)),
+            ("freshness.design_final_sha256", not_git_review, lambda item: item["freshness"].__setitem__("design_final_sha256", None)),
+        )
+        for name, factory, mutate in accepted_review_cases:
+            review = factory()
+            mutate(review)
+            with self.subTest(field=name):
+                self.assertIsInstance(schema.validate_review(review), dict)
+        abandoned = valid_review()
+        abandoned["result"].update({"completion": "abandoned", "verdict": None, "block_reason": None, "completion_reason": "client-interrupted", "review_passes": 0, "repair_passes": 0, "findings": []})  # type: ignore[index]
+        abandoned["metrics"].update({"review_passes": 0, "repair_passes": 0})  # type: ignore[index]
+        abandoned["freshness"] = {"final_head": None, "final_dirty": None, "plan_final_sha256": None, "design_final_sha256": None}
+        self.assertIsInstance(schema.validate_review(abandoned), dict)
+        outcome = valid_outcome()
+        for key in ("version", "model"):
+            isolated = copy.deepcopy(outcome)
+            isolated["recorder"][key] = None  # type: ignore[index]
+            with self.subTest(field=f"recorder.{key}"):
+                self.assertIsInstance(schema.validate_outcome(isolated, valid_review()), dict)
+
     def test_every_outcome_nested_record_key_is_closed(self) -> None:
         escaped = {"severity": "BLOCKER", "class": "coverage", "pattern_key": "missed-coverage", "consequence_category": "escaped-material-defect", "basis": "user-reported"}
         escaped_outcome = valid_outcome(downstream=valid_downstream(escaped_findings=[escaped]), assessment={"label": "false-ready", "basis": "user-reported", "confidence": "high"})
