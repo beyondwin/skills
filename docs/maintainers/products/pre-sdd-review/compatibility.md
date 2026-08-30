@@ -20,6 +20,25 @@ Markdown 패키지를 읽을 수 있어도 같은 검토자 격리와 저장소 
 | `claude-code` | `not_measured` |
 | `codex` | `supported` |
 
+## Evidence CLI compatibility
+
+Evidence CLI portability is independent of the semantic host matrix. Codex,
+Claude Code, Cursor, and Grok use one installed
+`pre-sdd-review-evidence` command and one `~/.pre-sdd-review/` data root when
+the command is available. A CLI pass does not prove independent read-only
+review or semantic quality on that host.
+
+### CLI matrix
+
+| Runtime | Status | Evidence boundary |
+| --- | --- | --- |
+| macOS / Python 3.11+ | `verified` | current native atomic no-replace and provider-free suite |
+| Linux / Python 3.11+ | `not_measured` | binding selection is tested; native execution has no run evidence |
+| Windows / Python 3.11+ | `not_measured` | portable `.cmd`/zipapp construction is tested; native execution has no run evidence |
+
+An injected native binding or a `windows-portable` run on another OS verifies
+selection and rendering only. It must not be promoted to native support.
+
 ## Evidence limit
 
 필수 공급자 없는 명령은 [testing](testing.md)에 있습니다. 이 명령은 결정적

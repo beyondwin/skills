@@ -82,10 +82,10 @@ PRE_SDD_REVIEW_SUPPORT = (
     "pre-sdd-review: Codex supported; other hosts not_measured."
 )
 PRE_SDD_SHARED_SECTION_DIGESTS = {
-    ("ko", "safety"): "a714e5bee17c4f294241fdeac8b3ecdf9a95f8de1440cc8a7c352f4a9471889c",
-    ("en", "safety"): "235f585ae1156133e0f06bc21b9b6218799f4c9527e94b7dadf2ee49f83f7dce",
-    ("ko", "verification"): "eb4dbd7356163a0d28f361f8b2e6cd3dd00c134cf2901b5be9fc4186d2b14507",
-    ("en", "verification"): "daf31490f6ccc9dedd39218681523ce812e9be09b33c737e075bc65156c4b19a",
+    ("ko", "safety"): "a62f2f31486729298a7e0902d82bbb4f8c96db0a2d9c96ccbdbd9fc9de77c04f",
+    ("en", "safety"): "7333a243bfd93cca56e1c8580d6740147083bb4caf1270b7dbfef42a928f6db9",
+    ("ko", "verification"): "7b29404e45ed79d812f37c9d81775774804f34ce1012b4bfbc6e735de8172878",
+    ("en", "verification"): "2db145d6d09e59abe2d0e9a0c5293b93fcaaccd60cf1e5e1dc08247985d04b01",
 }
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
@@ -436,6 +436,7 @@ def pre_sdd_shared_contract_errors(
             "이 제품은 텔레메트리나 업로드 경로를 추가하지 않습니다.",
             "라이브 처리와 보존은 Codex 호스트의 데이터 제어를 따릅니다.",
             "명시적인 외부 요청 없이는 구현이나 SDD를 시작하지 않습니다.",
+            "원자적 로컬 저장은 협력하는 client 사이의 일관성을 제공할 뿐, 악의적인 로컬 변조를 막는 서명된 audit log가 아닙니다.",
         ),
         ("en", "safety"): (
             "`pre-sdd-review` reads local design, implementation plan, referenced ADR, and repository files.",
@@ -444,14 +445,17 @@ def pre_sdd_shared_contract_errors(
             "This product adds no telemetry or upload path.",
             "Live processing and retention follow the Codex host's data controls.",
             "It never starts implementation or SDD without an explicit outer request.",
+            "Atomic local storage gives cooperating clients consistency; it is not a signed audit log resistant to malicious local tampering.",
         ),
         ("ko", "verification"): (
             "`pre-sdd-review`의 공급자 없는 픽스처는 지시와 패키지 계약만 검증합니다.",
             "리뷰어 독립성, 의미 완전성, 라이브 리뷰 품질을 증명하지 않습니다.",
+            "비-Windows의 `windows-portable` 통과는 native Windows 지원을 증명하지 않습니다.",
         ),
         ("en", "verification"): (
             "Provider-free fixtures validate only instruction and package contracts.",
             "They do not prove reviewer independence, semantic completeness, or live review quality.",
+            "A non-Windows `windows-portable` pass does not prove native Windows support.",
         ),
     }
     key = (language, document)
@@ -829,6 +833,11 @@ class UserGuideFactTests(unittest.TestCase):
         installer = INSTALLER_COMMANDS["pre-sdd-review"]
         self.assertIn(installer, korean_installation)
         self.assertIn(installer, english_installation)
+        for text in (korean_installation, english_installation):
+            self.assertIn("pre-sdd-review-evidence", text)
+            self.assertIn("--bin-dir", text)
+            self.assertIn("~/.pre-sdd-review/", text)
+            self.assertIn("command -v pre-sdd-review-evidence", text)
 
         korean_safety = _read(ROOT / "docs/users/ko/safety-and-privacy.md")
         english_safety = _read(ROOT / "docs/users/en/safety-and-privacy.md")
@@ -845,6 +854,8 @@ class UserGuideFactTests(unittest.TestCase):
         english_verification = _read(ROOT / "docs/users/en/verification.md")
         self.assertIn("python3 scripts/verify.py --skill pre-sdd-review", korean_verification)
         self.assertIn("python3 scripts/verify.py --skill pre-sdd-review", english_verification)
+        self.assertIn("pre-sdd-review-evidence", korean_verification)
+        self.assertIn("pre-sdd-review-evidence", english_verification)
         self.assertEqual(
             pre_sdd_shared_contract_errors(
                 korean_verification,
@@ -861,6 +872,27 @@ class UserGuideFactTests(unittest.TestCase):
             ),
             (),
         )
+
+    def test_pre_sdd_evidence_docs_forbid_sensitive_bounded_values_and_audit_claims(self) -> None:
+        korean = _read(ROOT / "docs/users/ko/safety-and-privacy.md")
+        english = _read(ROOT / "docs/users/en/safety-and-privacy.md")
+        combined = re.sub(r"\s+", " ", korean + "\n" + english)
+        for phrase in (
+            "source text",
+            "absolute paths",
+            "prompts",
+            "provider transcripts",
+            "credentials",
+            "automatic secret detection",
+            "not a signed audit log",
+            "observer-supplied",
+            "cannot be corrected or amended",
+            "disputed_findings",
+            "inconclusive",
+            "automatic skill mutation",
+            "client/model ranking",
+        ):
+            self.assertIn(phrase, combined)
 
     def test_pre_sdd_shared_clause_validator_rejects_reversed_polarities(self) -> None:
         cases = (

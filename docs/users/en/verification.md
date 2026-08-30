@@ -8,7 +8,7 @@ Required verification runs without credentials or models.
 python3 scripts/verify.py
 ```
 
-That command is `--profile full`. Stages run in this order: repository-contract, korean-package, korean-offline, korean-live-unit, korean-live-dry-run, image-contract, image-inspector, how-it-works-contract, pre-sdd-review-contract, python-compile. The first failing stage stops the command. `windows-portable` excludes the Codex-only `image-contract` and `image-inspector` stages but keeps the portable `pre-sdd-review-contract`. Live `--execute` is not included.
+That command is `--profile full`. Stages run in this order: repository-contract, korean-package, korean-offline, korean-live-unit, korean-live-dry-run, image-contract, image-inspector, how-it-works-contract, pre-sdd-review-contract, pre-sdd-review-evidence, python-compile. The first failing stage stops the command. `windows-portable` excludes the Codex-only `image-contract` and `image-inspector` stages but keeps the portable `pre-sdd-review-contract` and `pre-sdd-review-evidence`. Live `--execute` is not included.
 
 ```bash
 python3 scripts/verify.py --profile full
@@ -37,6 +37,18 @@ The offline suites prove the deterministic contract only.
 - `image-workbench`: routing, authorization, ImageSpec, handoff, and inspector fixtures under `tests/products/image-workbench/`
 - `how-it-works`: synthetic DNS and rebase contract fixtures in `tests/products/how-it-works/cases.json` and payload contracts in `tests/products/how-it-works/test_contract.py`. They lock the in-chat required deliverable (one-sentence claim, Mermaid, numbered hop list, rung-specific body, adjacent slices, one next move).
 - `pre-sdd-review`: synthetic cases and document fixtures under `tests/products/pre-sdd-review/`. Provider-free fixtures validate only instruction and package contracts. They do not prove reviewer independence, semantic completeness, or live review quality.
+
+The evidence stage under `tests/products/pre-sdd-review/evidence/` validates
+schema, bounded reads, repository identity, create-only storage, interruption
+recovery, outcomes, summary/candidates, retention, and installer behavior. It
+makes no network, model, provider, or telemetry call. The thousands-of-receipts
+scale check uses no database or index.
+
+The current host's native atomic path and portable launcher rendering are
+different evidence. A non-Windows `windows-portable` pass does not prove native Windows support. Native Windows and Linux remain `not_measured` until the
+evidence and installer stages run under Python 3.11 there. Semantic review on
+Claude Code, Cursor, and Grok also remains `not_measured` without a separate
+validated live receipt.
 
 A pass does not prove general Korean editing quality, semantic equivalence, live image quality, commercial permission, a better provider, or runtime parity. The license is Apache-2.0.
 

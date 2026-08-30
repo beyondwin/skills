@@ -13,6 +13,12 @@ No unreleased behavior change is recorded.
 - The optional local `pre-sdd-review-evidence` CLI records provider-neutral,
   content-bounded review and outcome receipts. Recording is non-blocking and
   never changes a review verdict.
+- The skill now starts compatible evidence before semantic review, finalizes
+  it after the verdict, and hands a controller-local run ID only to an
+  explicitly combined SDD flow.
+- Product and maintainer guidance now documents explicit launcher install,
+  local receipt privacy, immutable outcome limits, heuristic candidates, and
+  the native-platform `not_measured` boundary.
 
 ## 1.1.0 - 2026-08-29
 

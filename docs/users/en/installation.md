@@ -16,6 +16,33 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-re
 
 After install, invoke on a new turn using the product README.
 
+## Pre-SDD Review evidence CLI
+
+Semantic review support for `pre-sdd-review` remains Codex-only. The separate
+optional local recorder lets Codex, Claude Code, Cursor, and Grok call the same
+`pre-sdd-review-evidence` command. That does not make the other hosts supported
+for semantic review.
+
+Use Python 3.11+ and an inspected skill copy. The installer does not create
+`--bin-dir`; it must already exist and be intended for `PATH`. Inspect the
+exact directory and installer before execution, and never pipe a remote script
+into a shell.
+
+```bash
+ls -ld "$HOME/.local/bin"
+ls -l skills/pre-sdd-review/evidence/install.py
+python3 skills/pre-sdd-review/evidence/install.py \
+  --bin-dir "$HOME/.local/bin"
+command -v pre-sdd-review-evidence
+pre-sdd-review-evidence --version
+```
+
+Receipts default to `~/.pre-sdd-review/` and are separate from the launcher.
+Before update or removal, inspect `command -v pre-sdd-review-evidence` and the
+exact launcher file. Removing it does not delete receipts. To preserve identity
+continuity, back up the whole data root including `identity.key` and
+`config.json`. On Windows, inspect the exact `.cmd` and `.pyz` targets.
+
 ## How It Works local links
 
 `how-it-works` supports Codex and Claude Code for local or repository-based use. The public GitHub path is https://github.com/beyondwin/skills/tree/main/skills/how-it-works. Clone the repo, then make two links. The first link serves Codex; the second serves Claude Code. Codex discovers `~/.agents/skills/how-it-works`. Do not create a `~/.codex` or `~/.grok` duplicate. `ln -s` fails instead of overwriting an existing target.

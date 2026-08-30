@@ -64,6 +64,27 @@ Any content change to the resolved design or plan invalidates an earlier
 `READY` verdict. A Git change elsewhere requires a new review when it changes
 a path, command, interface, or blast-radius claim used as review evidence.
 
+## Optional local evidence
+
+Run `pre-sdd-review-evidence --version` without installing anything. Parse its
+canonical JSON and accept only `skill_name=pre-sdd-review`,
+`schema_version=1`, and CLI major version 1. When compatible, call `start`
+with the actual loaded skill root and primary plan, keep the returned `run_id`
+controller-local and out of user documents, then perform the semantic review.
+The same evidence lifecycle applies to default and `review-only` mode.
+
+After the verdict and any repairs are final, call `finish-review` with the
+current repository locator and print exactly one `Evidence:` line:
+`Evidence: recorded; run_id=<run-id>` or
+`Evidence: not_recorded; reason=<code>`. An unavailable, malformed,
+incompatible, or permission-failing recorder must continue the review and
+never changes the semantic verdict.
+
+Only for an explicitly requested combined SDD flow, hand the recorded
+`run_id` to that worker. At terminal downstream status, it may call
+`record-outcome` with the current repository locator. Never store a full
+reviewer response or source body in evidence; use bounded paraphrases only.
+
 ## Select reviewers
 
 Dispatch one fresh, independent, read-only reviewer using the

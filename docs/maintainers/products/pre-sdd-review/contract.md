@@ -138,6 +138,36 @@ A second reviewer is conditional only, never routine.
 `BLOCKED`는 미해결 발견과 다음 범위를 담은 인계 묶음을 반환합니다. 새 권위가
 필요하면 판정은 `BLOCKED`입니다.
 
+## Optional evidence contract
+
+Evidence recording is a separate optional contract and does not change the
+authority order, reviewer protocol, repair allowlist, or verdict rules. The
+controller checks canonical `pre-sdd-review-evidence --version` output, calls
+`start` before semantic review only when CLI major 1/schema 1 matches this
+product, and calls `finish-review` only after the verdict and repairs are
+final. It prints exactly one `Evidence:` line. Any unavailable, malformed,
+incompatible, or permission-failing recorder remains visible as
+`not_recorded` and cannot change `READY`, `REVISE`, or `BLOCKED`.
+
+`run_id` stays controller-local and outside the reviewed documents. It is
+given only to an explicitly requested combined SDD worker; a separate worker
+must resolve the exact current repository and plan hash. Downstream recording
+uses the current repository locator and occurs only at a terminal status.
+The CLI owns deterministic paths, hashes, Git facts, identity, validation,
+create-only persistence, matching, and aggregation. The reviewer and
+controller remain the only owners of semantic findings, repairs, protocol
+observations, and verdicts.
+
+Receipts contain bounded paraphrases, never source or document text, absolute
+paths, prompts, provider transcripts, command output, environment values, or
+credentials. Bounded reason/finding fields do not make raw input safe; the
+controller must paraphrase them. The CLI does not add automatic secret
+detection. Local atomic storage is not a signed audit log, and observer-entered
+assessment labels or confidence are self-improvement evidence rather than
+objective proof. Schema 1 has no outcome amendment; disputes stay in
+`disputed_findings`, uncertainty stays `inconclusive`, and candidate thresholds
+remain human-inspection heuristics with no automatic mutation or ranking.
+
 ## Handoff
 
 `READY`이면 resolved design과 plan의 정확한 경로와 final fingerprints를

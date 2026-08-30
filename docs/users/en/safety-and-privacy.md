@@ -22,6 +22,23 @@ In `image-workbench`, every input image has exactly one role: `edit_target`, `su
 
 `pre-sdd-review` reads local design, implementation plan, referenced ADR, and repository files. In default mode it edits only the resolved design and plan. Repository-owned tests do not transmit, persist, or capture user documents as fixtures. This product adds no telemetry or upload path. Live processing and retention follow the Codex host's data controls. It never starts implementation or SDD without an explicit outer request.
 
+The optional `pre-sdd-review-evidence` command uses only the Python standard
+library and keeps receipts under `~/.pre-sdd-review/` or an explicit absolute
+`PRE_SDD_REVIEW_HOME`. Reviews and outcomes are bounded, create-only local
+records. Do not store source text, absolute paths, prompts, provider
+transcripts, command output, credentials, or environment-variable values.
+Even bounded reasons and findings must use paraphrases rather than raw text,
+paths, prompts, transcripts, or credentials. The CLI does not promise
+automatic secret detection.
+
+Atomic local storage gives cooperating clients consistency; it is not a signed audit log resistant to malicious local tampering. `good`,
+`false-ready`, `noisy`, `prevented-rework`, and confidence are observer-supplied
+self-improvement evidence, not objective quality judgments or audit-grade
+proof. A schema 1 outcome cannot be corrected or amended. Put a finding
+dispute in `disputed_findings`, keep uncertain conclusions `inconclusive`, and
+treat candidate thresholds as human-inspection heuristics, never automatic
+skill mutation or client/model ranking.
+
 ## High-stakes requests
 
 For high-stakes legal, medical, or financial Korean text, default to mechanical `correct` or `diagnose`. `how-it-works` slices in those domains explain mechanism only. Image Workbench holds when material rights or privacy are unknown.

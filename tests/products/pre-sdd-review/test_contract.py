@@ -44,7 +44,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "1471ddc7b09c80803f51908277d1f4196419ad48996a9ebffdbafc2cce6e67b6",
+    "SKILL.md": "9b490e8bea79254c9401af17800120d79de1a2d33153bd49908ad80ac58f0990",
     "references/reviewer-protocol.md": (
         "e8a361b36bb261c98887bef8df549b9d6c59519dfdb618cfb7e54646e052aa6d"
     ),
@@ -61,6 +61,11 @@ CASE_IDS = (
     "runtime-removal-risk-review",
     "stale-document-hash",
     "ambiguous-multiple-plans",
+    "evidence-cli-recorded",
+    "evidence-cli-unavailable",
+    "evidence-review-only",
+    "evidence-resolution-blocked",
+    "evidence-combined-sdd-outcome",
     "near-miss-write-spec",
     "near-miss-write-plan",
     "near-miss-code-review",
@@ -238,6 +243,7 @@ REQUIRED_SECTIONS = (
     "## Hard gate",
     "## Resolve authoritative inputs",
     "## Capture freshness",
+    "## Optional local evidence",
     "## Select reviewers",
     "## Default mode: review -> repair documents -> scoped re-review",
     "## Review-only mode",
@@ -299,6 +305,8 @@ KOREAN_FACTS = (
     "BLOCKED",
     "Codex",
     "not_measured",
+    "pre-sdd-review-evidence",
+    "~/.pre-sdd-review/",
 )
 ENGLISH_FACTS = (
     "$pre-sdd-review",
@@ -310,6 +318,8 @@ ENGLISH_FACTS = (
     "BLOCKED",
     "Codex",
     "not_measured",
+    "pre-sdd-review-evidence",
+    "~/.pre-sdd-review/",
 )
 KOREAN_README_HEADINGS = (
     "## 이 스킬이 해결하는 문제",
@@ -361,34 +371,35 @@ README_CONTRACT = (
     ("freshness", ("fingerprints", "content-change-invalidates")),
     ("handoff", ("unresolved-packet",)),
     ("sdd", ("outer-request-implementation-only",)),
+    ("evidence", ("optional", "non-blocking", "controller-local-run-id")),
 )
 README_CANONICAL_SECTION_DIGESTS = {
     "ko": (
         ("## 이 스킬이 해결하는 문제", "059b67628c9931409945145dd628468f62853ad2f502183bad164f15984abb2e"),
         ("## 사용해야 할 때와 사용하지 말아야 할 때", "e561f24683695a2a081dbee9911821fce3a3ccbbbc52a607d96bfe76185e4d8c"),
-        ("## 1분 설치와 첫 호출", "20d4ac5b06601ac16c4fd995a652fca8e9162dee28a0278108f7c94fa760d4aa"),
-        ("## 주요 흐름", "9afd9373fdc996a0b96b07fc58450b3e92c950696776c6a334a07798faa0a29a"),
-        ("## 안전과 개인정보", "dea164c33a94794be32109070c22cfcb05245b599e8bb8712018df995f036845"),
-        ("## 호환성과 검증 수준", "32ae6efc3bd8d980262a975e41958de4f49688744e719f4f2a92b85b6e6a5ef1"),
-        ("## 갱신과 버전 확인", "cdba0c18b5fa475a30d52f3b8dec1cbeba902873bcfe2ccd64ad1a93a4aa457e"),
+        ("## 1분 설치와 첫 호출", "727e2949a54cb8283308bf75413d8a85c1c9e4ad6d776bf4446da8a44084bdc6"),
+        ("## 주요 흐름", "2391c3d4e2b9a4ba079a896871c0ca44f428c55bc59522f3180315bc7e35d77a"),
+        ("## 안전과 개인정보", "b4d680a79f8252537f60cbda47526480cf8ea0673e7d767febb2383ff536e9cb"),
+        ("## 호환성과 검증 수준", "eff1413f282b1c62c164b0d09b0bf883588d2a45e1436abc62f64b5e7db44eb8"),
+        ("## 갱신과 버전 확인", "729d001215438d41e78677312cd6fa01e844b8578cee986c24007e3a24dfb26e"),
         ("## 변경 이력과 관리자 문서", "7e1cb70139ec2f47b67004352fdd0ca739f19515c2c715095501268c5b7405ac"),
     ),
     "en": (
         ("## Purpose", "6a0b1a1ed183aa142b9df51b9c2c8a13696df6ddff410d9e198bbb79bc441c1e"),
         ("## When to use and not use", "7133b17ed84bc5f8e1721b63ec5ffbf63f462f0816014c2bbfd4aeef58925d4d"),
         ("## Supported hosts", "adb46f35ba78974f2c3f4df43deca598c9558480606022f07ccce3626b70edc6"),
-        ("## Install", "d5163949c27feaa36279e4bfebb1f6cc9dd269079567b5c96ec1314cf08035b7"),
+        ("## Install", "07a437d944916099f4fb335281e4ebb344a567f038966fd86318f9acb913dcb8"),
         ("## First call", "27b7d3681619789c1e0fadff8d1dd802cdc387b70bddde1457adfbead72caff2"),
-        ("## Expected result", "df01c48b84b5cf87c7367e20bd7a23bfcd0d92e259d0dff0d12445d1454ca4eb"),
-        ("## Safety and privacy", "e654b5ffb7381e162c135673b092b27a62eac49fc2d372c75d840dcd16f9c756"),
-        ("## Verification", "602a43f5501e8cb0d77254324bbf8fe72c1de9251a11263e902d02bf0edf791b"),
-        ("## Update and remove", "3041985025dea4c4e636368de6d72f214b14f37e2e74b58431fdc74d25d4fb83"),
+        ("## Expected result", "148a537bdb2b194dcbdb72e9d13deea6a25047043184aeffcf15992d20c9b9cd"),
+        ("## Safety and privacy", "6124fa783bdbfc495b3e3c3e1106db4a288551c631d0ced723151c7ed3dd9321"),
+        ("## Verification", "b89fc0050f0479597cf9b493add1058b3a5c93534495221bacfcebc755f3b88b"),
+        ("## Update and remove", "0d7e28c0b836d92dae03040909d93e609a54a91316e47ccfb02bdc24de3542c4"),
         ("## Changelog and maintainer docs", "7a5611089ddaf6819881da0ae7d96ec6ce36107f2c0076e9528499437749e7b1"),
     ),
 }
 README_CANONICAL_DOCUMENT_DIGESTS = {
-    "ko": "03374b87d0b99bf60ffad48867e23785b60ba9bd031efa2e27a0e1ee3e9f945c",
-    "en": "986634ed74054f7ef7f1f72d8843789652a5babc3acf3069ead49d17e636db5d",
+    "ko": "94ff1ff5ff987635ed3dfe175d01f5ba03b8905d5eafb13c2f120c37158af71c",
+    "en": "118c2c4bd03c04778a308a936855f73a6272b69d04d25661ff99fa8b6e7f8ab6",
 }
 MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Authority order", "3156a43d665d21723ce61b333c7c34f30abd2e6d288c472d5eec5878e5ef8321"),
@@ -402,10 +413,10 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Freshness", "0aeb0ada39c01280c13124db6cadb057a1748837991e10ceee85e93415e7e3a6"),
     ("### SDD handoff", "8a629dd12d78e2c08e77e7c1d057d0e450b135bc0633d5b62c8c926665976bca"),
 )
-MAINTAINER_CANONICAL_DIGEST = "1e44e3610721ae1a66b925dc3fefea370dd82564126a45cb84eb1ec8477246b2"
-TESTING_CANONICAL_DIGEST = "e119980c8a7c1b7fa20e31aa539e3312aae73a7776076531c8b7cba2b613bec2"
-COMPATIBILITY_CANONICAL_DIGEST = "3c40b77eb9a96892a07132d62b99cb43321b87516a0bdc4b0a33d033430828c6"
-RELEASE_CANONICAL_DIGEST = "f20fa8ef3504d16125a766433bd7a84686340949ea7704f1946dc8c740006981"
+MAINTAINER_CANONICAL_DIGEST = "eb2c7c5ae9c4dbe104489eddfe9d00d2571c7b090c4a6817a472247317fade39"
+TESTING_CANONICAL_DIGEST = "ec7f352cd9b132581975bbee39b16f11471754c54903cee9419363a70fe7831a"
+COMPATIBILITY_CANONICAL_DIGEST = "8df097a3b3e0786f176f1d8b5c131bf005f2738e047d0cd5e5f6a7aed7fb7395"
+RELEASE_CANONICAL_DIGEST = "0e6635cc8a847aa9442b5d45dc5ac6b5b45b59712ab25bd2abdbd2f1d2f2da1a"
 
 
 def section(text: str, start: str, end: str) -> str:
@@ -872,6 +883,74 @@ class PreSddReviewContractTests(unittest.TestCase):
             ),
         )
 
+    def test_optional_evidence_lifecycle_is_ordered_and_non_blocking(self) -> None:
+        body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        evidence = section(body, "## Optional local evidence", "## Select reviewers")
+        normalized = re.sub(r"\s+", " ", evidence)
+
+        ordered = (
+            "pre-sdd-review-evidence --version",
+            "start",
+            "semantic review",
+            "finish-review",
+            "Evidence:",
+            "combined SDD",
+            "terminal",
+            "record-outcome",
+        )
+        positions = tuple(normalized.index(item) for item in ordered)
+        self.assertEqual(positions, tuple(sorted(positions)))
+        for fact in (
+            "without installing anything",
+            "skill_name=pre-sdd-review",
+            "schema_version=1",
+            "CLI major version 1",
+            "actual loaded skill root",
+            "primary plan",
+            "controller-local",
+            "default and `review-only` mode",
+            "current repository locator",
+            "exactly one `Evidence:` line",
+            "never changes the semantic verdict",
+            "explicitly requested combined SDD",
+            "full reviewer response",
+            "source body",
+        ):
+            self.assertIn(fact, normalized)
+        self.assertIn("Evidence: recorded; run_id=<run-id>", evidence)
+        self.assertIn("Evidence: not_recorded; reason=<code>", evidence)
+        self.assertRegex(
+            normalized,
+            re.compile(
+                r"unavailable, malformed, incompatible, or permission.*continue.*review",
+                re.IGNORECASE,
+            ),
+        )
+
+    def test_evidence_cases_cover_recorded_failure_review_only_blocked_and_handoff(self) -> None:
+        data = json.loads(CASES.read_text(encoding="utf-8"))
+        cases = {case["id"]: tuple(case["expect"]) for case in data["cases"]}
+        self.assertEqual(
+            cases["evidence-cli-recorded"],
+            ("start_before_review", "finish_after_verdict", "Evidence_recorded"),
+        )
+        self.assertEqual(
+            cases["evidence-cli-unavailable"],
+            ("continue_review", "Evidence_not_recorded"),
+        )
+        self.assertEqual(
+            cases["evidence-review-only"],
+            ("review_only_receipt", "no_document_mutation"),
+        )
+        self.assertEqual(
+            cases["evidence-resolution-blocked"],
+            ("BLOCKED", "resolution_failure_recorded"),
+        )
+        self.assertEqual(
+            cases["evidence-combined-sdd-outcome"],
+            ("recorded_run_id_handoff", "terminal_outcome", "verdict_unchanged"),
+        )
+
     def test_authority_and_risk_selection_are_ordered_and_conditional(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         inputs = section(body, "## Resolve authoritative inputs", "## Capture freshness")
@@ -974,6 +1053,17 @@ class PreSddReviewContractTests(unittest.TestCase):
             "Do not start SDD unless the outer request explicitly asks for implementation",
             normalized_handoff,
         )
+
+    def test_evidence_guidance_stays_out_of_reviewer_protocol_and_mutation_authority(self) -> None:
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        protocol = (SKILL / "references/reviewer-protocol.md").read_text(encoding="utf-8")
+        evidence = section(skill, "## Optional local evidence", "## Select reviewers")
+        self.assertNotIn("pre-sdd-review-evidence", protocol)
+        self.assertNotIn("schema field", evidence.lower())
+        self.assertNotIn("atomic", evidence.lower())
+        self.assertNotIn("recovery", evidence.lower())
+        repair_rules = section(skill, "## Repair rules", "## Verdict and handoff")
+        self.assertNotIn("pre-sdd-review-evidence", repair_rules)
 
 
 class PreSddReviewDocumentationTests(unittest.TestCase):
@@ -1135,7 +1225,7 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         for fact in (
             "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover",
             "provider-free",
-            "exactly fifteen",
+            "exactly twenty",
             "`ready`, `missing-coverage`, `false-verification`, `runtime-removal`,",
             "`runtime-removal`",
             "`design.md`, `plan.md`,",
@@ -1148,10 +1238,15 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "CI never",
             "user documents",
             "full model responses",
+            "pre-sdd-review-evidence",
+            "not_measured",
         ):
             self.assertIn(fact, normalized_testing)
         self.assertIn("Codex is supported", compatibility)
         self.assertIn("Every other host is `not_measured`", compatibility)
+        self.assertIn("## Evidence CLI compatibility", compatibility)
+        self.assertIn("| Linux / Python 3.11+ | `not_measured` |", compatibility)
+        self.assertIn("| Windows / Python 3.11+ | `not_measured` |", compatibility)
         normalized_release = re.sub(r"\s+", " ", release).lower()
         for fact in (
             "version source is `skills/pre-sdd-review/release.toml`",
@@ -1161,6 +1256,32 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         ):
             self.assertIn(fact, release)
         self.assertIn("no tag or github release is created by these commands.", normalized_release)
+
+    def test_v1_2_docs_keep_evidence_local_bounded_non_audit_and_non_mutating(self) -> None:
+        documents = (
+            (SKILL / "README.md").read_text(encoding="utf-8"),
+            (SKILL / "README.en.md").read_text(encoding="utf-8"),
+            (MAINTAINERS / "contract.md").read_text(encoding="utf-8"),
+        )
+        normalized = tuple(re.sub(r"\s+", " ", text) for text in documents)
+        for text in normalized:
+            self.assertIn("pre-sdd-review-evidence", text)
+            self.assertIn("audit log", text)
+            self.assertIn("disputed_findings", text)
+            self.assertIn("inconclusive", text)
+        combined = " ".join(normalized)
+        for phrase in (
+            "~/.pre-sdd-review/",
+            "not a signed audit log",
+            "source text",
+            "prompts",
+            "transcripts",
+            "credentials",
+            "no outcome amendment",
+            "automatic skill mutation",
+            "client/model ranking",
+        ):
+            self.assertIn(phrase, combined)
 
     def test_changelog_records_the_first_independent_release_without_publication_claim(self) -> None:
         changelog = (SKILL / "CHANGELOG.md").read_text(encoding="utf-8")

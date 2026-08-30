@@ -56,6 +56,31 @@
       "expect": ["BLOCKED", "one_plan_per_invocation"]
     },
     {
+      "id": "evidence-cli-recorded",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md with a compatible local evidence CLI",
+      "expect": ["start_before_review", "finish_after_verdict", "Evidence_recorded"]
+    },
+    {
+      "id": "evidence-cli-unavailable",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md without a compatible local evidence CLI",
+      "expect": ["continue_review", "Evidence_not_recorded"]
+    },
+    {
+      "id": "evidence-review-only",
+      "request": "$pre-sdd-review review-only sample-app/design.md sample-app/plan.md with a compatible local evidence CLI",
+      "expect": ["review_only_receipt", "no_document_mutation"]
+    },
+    {
+      "id": "evidence-resolution-blocked",
+      "request": "$pre-sdd-review sample-app/plan-without-spec.md with a compatible local evidence CLI",
+      "expect": ["BLOCKED", "resolution_failure_recorded"]
+    },
+    {
+      "id": "evidence-combined-sdd-outcome",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md and implement it with SDD",
+      "expect": ["recorded_run_id_handoff", "terminal_outcome", "verdict_unchanged"]
+    },
+    {
       "id": "near-miss-write-spec",
       "request": "Write a design specification for sample-app.",
       "expect": ["not_activated"]

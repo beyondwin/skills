@@ -16,6 +16,32 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-re
 
 설치한 뒤 새 대화에서 제품 README의 첫 호출을 쓰세요.
 
+## Pre-SDD Review evidence CLI
+
+`pre-sdd-review`의 의미 검토 지원은 Codex로 유지됩니다. 별도의 선택적 로컬
+recorder는 Codex, Claude Code, Cursor, Grok이 모두 같은
+`pre-sdd-review-evidence` 명령을 호출할 수 있게 합니다. 이는 다른 호스트의
+의미 검토 지원을 뜻하지 않습니다.
+
+검사한 스킬 복사본과 Python 3.11+를 사용하세요. `--bin-dir`은 설치기가 만들지
+않으며 이미 `PATH` 용도로 정한 기존 디렉터리여야 합니다. 실행 전에 정확한
+디렉터리와 내용을 확인하고 원격 스크립트를 셸로 파이프하지 마세요.
+
+```bash
+ls -ld "$HOME/.local/bin"
+ls -l skills/pre-sdd-review/evidence/install.py
+python3 skills/pre-sdd-review/evidence/install.py \
+  --bin-dir "$HOME/.local/bin"
+command -v pre-sdd-review-evidence
+pre-sdd-review-evidence --version
+```
+
+영수증은 기본적으로 `~/.pre-sdd-review/`에 있으며, launcher와 분리되어
+있습니다. 갱신이나 제거 전에는 `command -v pre-sdd-review-evidence`와 정확한
+launcher 파일을 확인하세요. launcher를 제거해도 receipt는 지워지지 않습니다.
+identity 연속성이 필요하면 `identity.key`와 `config.json`을 포함한 전체 data
+root를 백업합니다. Windows는 정확한 `.cmd`와 `.pyz` 두 대상을 검사합니다.
+
 ## How It Works 로컬 링크
 
 `how-it-works`는 로컬 또는 저장소 기준으로 Codex와 Claude Code를 지원합니다. 공개 GitHub 경로는 https://github.com/beyondwin/skills/tree/main/skills/how-it-works 입니다. 저장소를 클론한 뒤 링크 두 개를 걸면 됩니다. 첫 링크는 Codex, 둘째는 Claude Code입니다. Codex는 `~/.agents/skills/how-it-works`에서 찾습니다. `~/.codex`나 `~/.grok` 복사본을 만들지 마세요. `ln -s`는 이미 있는 대상을 덮어쓰지 않고 실패합니다.

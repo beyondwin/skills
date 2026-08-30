@@ -17,10 +17,23 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
 documented contract fact를 확인합니다. live review, semantic quality, 다른
 호스트의 동등 지원은 증명하지 않습니다.
 
+공유 evidence CLI의 schema, repository identity, create-only storage,
+outcome, reporting, installer 계약은 별도 provider-free 단계로 실행합니다.
+Installed command identity is `pre-sdd-review-evidence`.
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
+  -s tests/products/pre-sdd-review/evidence -p 'test_*.py' -v
+```
+
+이 단계는 네트워크나 provider를 호출하지 않습니다. 수천 개의 bounded 합성
+receipt를 사용한 summary/candidates 규모 검사도 Python 표준 라이브러리 안에서
+실행하며 DB나 index를 추가하지 않습니다.
+
 ## Exact fixture boundary
 
-`cases.json`은 exactly fifteen개의 activation, default-flow, review-only,
-verdict, risk, freshness, near-miss 사례를 소유합니다. `fixtures/`는 정확히
+`cases.json`은 exactly twenty개의 activation, default-flow, review-only,
+verdict, risk, freshness, evidence, near-miss 사례를 소유합니다. `fixtures/`는 정확히
 `ready`, `missing-coverage`, `false-verification`, `runtime-removal`,
 `repair-induced-schema-consumer`, `state-machine-vacuous-pass`, and
 `conditional-edit-surface` 일곱 합성 저장소를 소유합니다. 각 저장소에는
@@ -43,6 +56,11 @@ private prompts, credentials, transcripts, full model responses를 픽스처,
 - `runtime-removal-risk-review`
 - `stale-document-hash`
 - `ambiguous-multiple-plans`
+- `evidence-cli-recorded`
+- `evidence-cli-unavailable`
+- `evidence-review-only`
+- `evidence-resolution-blocked`
+- `evidence-combined-sdd-outcome`
 - `near-miss-write-spec`
 - `near-miss-write-plan`
 - `near-miss-code-review`
@@ -71,3 +89,9 @@ v1.1 전진 확인은 정답을 숨긴 채 `repair-induced-schema-consumer`,
 각 호출은 그 계획만의 판정을 유지하고, 잘못된 `READY`, 관련 없는 수정, 권위
 이탈이 없어야 합니다. 기존 `ready` 픽스처는 공급자 없는 긍정 대조입니다. 이
 점검은 반복 평가나 일반 품질 측정을 대신하지 않습니다.
+
+Evidence lifecycle 픽스처는 source text, raw path, prompt, transcript,
+credential을 bounded reason/finding에 넣지 않고 짧은 합성 paraphrase만
+사용합니다. Outcome label과 confidence는 관찰자 입력이며 audit-grade proof가
+아닙니다. native Windows, Linux, Claude Code, Cursor, Grok은 각 native 또는
+live 단계가 별도로 실행되기 전까지 `not_measured`입니다.
