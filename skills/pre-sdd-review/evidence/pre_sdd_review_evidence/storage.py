@@ -219,6 +219,14 @@ def _load_pending_path(path: Path) -> dict[str, object]:
     return _validate_pending(read_bounded_json(path, PENDING_HARD_LIMIT))
 
 
+def _load_exact_pending_destination(path: Path) -> dict[str, object]:
+    _validate_run_directory(path)
+    entries = list(path.iterdir())
+    if len(entries) != 1 or entries[0].name != ".pending.json":
+        _fail("conflicting-retry", "run destination has unexpected entries")
+    return _load_pending_path(entries[0])
+
+
 def _find_run_directory(paths: EvidencePaths, run_id: str) -> Path:
     _validate_run_id(run_id)
     info = _lstat(paths.runs)
@@ -344,9 +352,8 @@ def create_pending(
         except EvidenceError as exc:
             if exc.code != "already-exists":
                 raise
-            _validate_run_directory(destination)
-            existing = destination / ".pending.json"
-            if _lstat(existing) is not None and canonical_json_bytes(_load_pending_path(existing)) == canonical_json_bytes(record):
+            existing = _load_exact_pending_destination(destination)
+            if canonical_json_bytes(existing) == canonical_json_bytes(record):
                 shutil.rmtree(staging)
                 _fsync_directory(paths.runs)
                 return RunHandle(run_id, destination)
@@ -391,11 +398,7 @@ def recover_staging(paths: EvidencePaths) -> tuple[str, ...]:
             except EvidenceError as exc:
                 if exc.code != "already-exists":
                     raise
-                _validate_run_directory(destination)
-                existing = destination / ".pending.json"
-                if _lstat(existing) is None:
-                    raise
-                current = _load_pending_path(existing)
+                current = _load_exact_pending_destination(destination)
                 if canonical_json_bytes(current) != canonical_json_bytes(pending):
                     raise EvidenceError("conflicting-retry", "staging conflicts with existing run")
                 shutil.rmtree(staging)

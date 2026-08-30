@@ -248,7 +248,11 @@ def _verify_repository(
                 raise
         else:
             raise EvidenceError("wrong-repository", "repository identity does not match")
-        if pending is not None and not hmac.compare_digest(
+        if pending is None:
+            raise EvidenceError(
+                "wrong-repository", "repository identity cannot be authenticated"
+            )
+        if not hmac.compare_digest(
             str(pending["start_locator_binding"]), _locator_binding(key, repo_locator)
         ):
             raise EvidenceError("wrong-repository", "repository identity does not match")

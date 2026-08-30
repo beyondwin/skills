@@ -250,6 +250,99 @@ class CliTests(unittest.TestCase):
         self.assertNotIn("start_locator_binding", serialized)
         self.assertNotIn(str(nongit), serialized)
 
+    def test_clean_final_non_git_retry_fails_closed_for_same_and_different_locator(self) -> None:
+        nongit = self.workspace / "nongit-clean-retry"
+        other_nongit = self.workspace / "nongit-clean-retry-other"
+        nongit.mkdir()
+        other_nongit.mkdir()
+        code, output, error = self.run_cli([
+            "start", "--skill-root", str(self.skill), "--plan", "docs/plan.md",
+            "--client", "cursor", "--mode", "default",
+        ], cwd=nongit)
+        self.assertEqual((code, error), (0, ""))
+        started = json.loads(output)
+        semantic = self.semantic(verdict="BLOCKED")
+        semantic.update({
+            "execution": "blocked", "reviewer_count": 0,
+            "fresh_reviewer": False, "read_only_enforced": False,
+            "block_reason": "repository-unavailable",
+        })
+        command = [
+            "finish-review", "--run-id", str(started["run_id"]),
+            "--repo", str(nongit), "--from-stdin",
+        ]
+        code, _output, error = self.run_cli(
+            command, json.dumps(semantic), cwd=nongit
+        )
+        self.assertEqual((code, error), (0, ""))
+
+        for label, locator in (("same", nongit), ("different", other_nongit)):
+            with self.subTest(locator=label):
+                retry = command.copy()
+                retry[retry.index(str(nongit))] = str(locator)
+                code, output, error = self.run_cli(
+                    retry, json.dumps(semantic), cwd=nongit
+                )
+                self.assertNotEqual(code, 0)
+                self.assertEqual(output, "")
+                self.assertEqual(
+                    json.loads(error)["error"]["code"], "wrong-repository"
+                )
+
+    def test_interrupted_final_non_git_retry_authenticates_pending_locator(self) -> None:
+        nongit = self.workspace / "nongit-interrupted-retry"
+        other_nongit = self.workspace / "nongit-interrupted-retry-other"
+        nongit.mkdir()
+        other_nongit.mkdir()
+        code, output, error = self.run_cli([
+            "start", "--skill-root", str(self.skill), "--plan", "docs/plan.md",
+            "--client", "cursor", "--mode", "default",
+        ], cwd=nongit)
+        self.assertEqual((code, error), (0, ""))
+        started = json.loads(output)
+        semantic = self.semantic(verdict="BLOCKED")
+        semantic.update({
+            "execution": "blocked", "reviewer_count": 0,
+            "fresh_reviewer": False, "read_only_enforced": False,
+            "block_reason": "repository-unavailable",
+        })
+        command = [
+            "finish-review", "--run-id", str(started["run_id"]),
+            "--repo", str(nongit), "--from-stdin",
+        ]
+        real_finish = storage.finish_review
+
+        def interrupted(paths: storage.EvidencePaths, run_id: str, review: object) -> object:
+            return real_finish(
+                paths, run_id, review,
+                interruption_hook=lambda point, _path: (
+                    (_ for _ in ()).throw(RuntimeError("interrupted"))
+                    if point == "review-published" else None
+                ),
+            )
+
+        with mock.patch.object(cli.storage, "finish_review", side_effect=interrupted):
+            with self.assertRaisesRegex(RuntimeError, "interrupted"):
+                self.run_cli(command, json.dumps(semantic), cwd=nongit)
+        run_dir = next(self.home.glob(f"runs/*/*/{started['run_id']}"))
+        self.assertTrue((run_dir / ".pending.json").exists())
+        wrong = command.copy()
+        wrong[wrong.index(str(nongit))] = str(other_nongit)
+        code, output, error = self.run_cli(
+            wrong, json.dumps(semantic), cwd=nongit
+        )
+        self.assertNotEqual(code, 0)
+        self.assertEqual(output, "")
+        self.assertEqual(json.loads(error)["error"]["code"], "wrong-repository")
+        self.assertTrue((run_dir / ".pending.json").exists())
+
+        code, output, error = self.run_cli(
+            command, json.dumps(semantic), cwd=nongit
+        )
+        self.assertEqual((code, error), (0, ""))
+        self.assertEqual(json.loads(output)["status"], "recorded")
+        self.assertFalse((run_dir / ".pending.json").exists())
+
     def test_private_locator_binding_never_leaks_from_pending_consumers_or_final(self) -> None:
         nongit = self.workspace / "DISTINCTIVE-RAW-LOCATOR-MARKER"
         nongit.mkdir()

@@ -288,6 +288,77 @@ class StorageLifecycleTests(unittest.TestCase):
         )
         self.assertFalse((paths.runs / f".staging-{pending['run_id']}").exists())
 
+    def test_start_collision_preserves_matching_pending_destination_with_extra_entry(self) -> None:
+        paths = storage.EvidencePaths.from_home(self.root / "start-race-identical-extra")
+        pending = pending_record()
+        original_publish = storage.publish_directory_no_replace
+        captured: dict[str, object] = {}
+
+        def race(source: Path, destination: Path) -> None:
+            destination.mkdir(mode=0o700)
+            pending_path = destination / ".pending.json"
+            extra_path = destination / "extra"
+            pending_path.write_bytes(canonical_json_bytes(pending))
+            extra_path.write_bytes(b"preserve-extra")
+            if os.name == "posix":
+                pending_path.chmod(0o600)
+                extra_path.chmod(0o600)
+            captured["destination"] = destination
+            captured["before"] = sorted(
+                (entry.name, entry.read_bytes()) for entry in destination.iterdir()
+            )
+            original_publish(source, destination)
+
+        with mock.patch.object(storage, "publish_directory_no_replace", side_effect=race):
+            with self.assertRaises(EvidenceError):
+                storage.create_pending(paths, pending)
+
+        destination = captured["destination"]
+        assert isinstance(destination, Path)
+        self.assertEqual(
+            sorted((entry.name, entry.read_bytes()) for entry in destination.iterdir()),
+            captured["before"],
+        )
+        self.assertTrue((paths.runs / f".staging-{pending['run_id']}").exists())
+
+    def test_recovery_preserves_matching_pending_destination_with_extra_entry(self) -> None:
+        paths = storage.EvidencePaths.from_home(self.root / "recovery-identical-extra")
+        pending = pending_record()
+        with self.assertRaises(RuntimeError):
+            storage.create_pending(
+                paths, pending,
+                interruption_hook=lambda point, _path: (
+                    (_ for _ in ()).throw(RuntimeError("stop"))
+                    if point == "pending-fsynced" else None
+                ),
+            )
+        staging = paths.runs / f".staging-{pending['run_id']}"
+        destination = paths.run_directory(str(pending["run_id"]), str(pending["started_at"]))
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if os.name == "posix":
+            destination.parent.parent.chmod(0o700)
+            destination.parent.chmod(0o700)
+        destination.mkdir(mode=0o700)
+        pending_path = destination / ".pending.json"
+        extra_path = destination / "extra"
+        pending_path.write_bytes(canonical_json_bytes(pending))
+        extra_path.write_bytes(b"preserve-extra")
+        if os.name == "posix":
+            pending_path.chmod(0o600)
+            extra_path.chmod(0o600)
+        before = sorted(
+            (entry.name, entry.read_bytes()) for entry in destination.iterdir()
+        )
+
+        unresolved = storage.recover_staging(paths)
+
+        self.assertEqual(unresolved, (pending["run_id"],))
+        self.assertTrue(staging.exists())
+        self.assertEqual(
+            sorted((entry.name, entry.read_bytes()) for entry in destination.iterdir()),
+            before,
+        )
+
     def test_start_collision_never_follows_symlinked_destination(self) -> None:
         paths = storage.EvidencePaths.from_home(self.root / "start-symlink-race")
         pending = pending_record()
