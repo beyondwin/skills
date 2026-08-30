@@ -652,6 +652,49 @@ class CliTests(unittest.TestCase):
                 self.assertEqual(output, "")
                 self.assertEqual(set(json.loads(error)), {"error"})
 
+    def test_json_and_utf8_failures_are_bounded_and_create_no_outcome(self) -> None:
+        started = self.finalized()
+        command = [
+            "record-outcome", "--run-id", str(started["run_id"]),
+            "--repo", str(self.repo), "--from-stdin",
+        ]
+        oversized_integer = "1" * 5000
+        huge_stdin = json.dumps(self.outcome_semantic()).replace(
+            '"implementation-completed"', oversized_integer
+        )
+        surrogate_semantic = self.outcome_semantic()
+        surrogate_semantic["recorder"]["model"] = "\ud800"  # type: ignore[index]
+        surrogate_stdin = json.dumps(surrogate_semantic, ensure_ascii=False)
+        scalar_base = [
+            "record-outcome", "--run-id", str(started["run_id"]),
+            "--repo", str(self.repo), "--client", "codex",
+            "--status", "implementation-completed", "--basis", "agent-inferred",
+            "--confidence", "low",
+        ]
+        cases = (
+            (command, huge_stdin, "invalid-json"),
+            (command, surrogate_stdin, "invalid-json"),
+            (
+                scalar_base + [
+                    "--escaped-finding-json",
+                    '{"extra":' + oversized_integer + "}",
+                ],
+                "",
+                "invalid-json",
+            ),
+            (scalar_base + ["--model", "\ud800"], "", "invalid-string"),
+        )
+        run_dir = next(self.home.glob(f"runs/*/*/{started['run_id']}"))
+        for argv, stdin, expected_code in cases:
+            with self.subTest(expected_code=expected_code, argv=argv[-2:]):
+                code, output, error = self.run_cli(argv, stdin)
+                self.assertNotEqual(code, 0)
+                self.assertEqual(output, "")
+                failure = json.loads(error)
+                self.assertEqual(failure["error"]["code"], expected_code)
+                self.assertLessEqual(len(error.encode("utf-8")), 1024)
+                self.assertFalse((run_dir / "outcome.json").exists())
+
     def test_doctor_reports_identity_damage_without_repairing_it(self) -> None:
         self.start()
         key = self.home / "identity.key"

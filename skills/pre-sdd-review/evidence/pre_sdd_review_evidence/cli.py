@@ -6,7 +6,6 @@ import dataclasses
 import datetime as dt
 import hashlib
 import hmac
-import json
 import os
 import sys
 import time
@@ -24,6 +23,7 @@ from .schema import (
     EvidenceError,
     canonical_json_bytes,
     derive_assessment,
+    parse_json_text,
     read_bounded_bytes,
     validate_review,
 )
@@ -140,19 +140,11 @@ def _parser() -> _Parser:
 
 def _read_stdin(stream: TextIO, limit: int) -> object:
     payload = stream.read(limit + 1)
-    if len(payload.encode("utf-8")) > limit:
-        raise EvidenceError("record-too-large", "standard input exceeds the hard size limit")
-    try:
-        return json.loads(payload)
-    except (UnicodeError, json.JSONDecodeError) as exc:
-        raise EvidenceError("invalid-json", "standard input is not valid JSON") from exc
+    return parse_json_text(payload, byte_limit=limit, name="standard input")
 
 
 def _structured(value: str, name: str) -> object:
-    try:
-        return json.loads(value)
-    except json.JSONDecodeError as exc:
-        raise EvidenceError("invalid-json", f"{name} is not valid JSON") from exc
+    return parse_json_text(value, name=name)
 
 
 def _normalize_finish(args: argparse.Namespace, input_stream: TextIO) -> dict[str, object]:

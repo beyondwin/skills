@@ -247,6 +247,99 @@ class OutcomeTests(unittest.TestCase):
         with self.assertRaisesRegex(schema.EvidenceError, "repaired"):
             schema.validate_outcome(invalid, revise)
 
+    def test_every_dispute_and_prevention_copy_field_has_an_isolated_mismatch_row(self) -> None:
+        review = self.finalize(finding=repaired_finding())
+        dispute = {
+            "finding_id": "PSDR-001", "class": "verification-gap",
+            "pattern_key": "build-only-acceptance",
+            "consequence_category": "avoidable-rework", "basis": "agent-observed",
+        }
+        prevention = {
+            "finding_id": "PSDR-001", "pattern_key": "build-only-acceptance",
+            "consequence_category": "avoidable-rework", "basis": "agent-observed",
+        }
+        rows = (
+            ("disputed", dispute, "class", "coverage"),
+            ("disputed", dispute, "pattern_key", "wrong-pattern"),
+            ("disputed", dispute, "consequence_category", "false-block"),
+            ("prevented", prevention, "pattern_key", "wrong-pattern"),
+            ("prevented", prevention, "consequence_category", "false-block"),
+        )
+        for kind, original, field, value in rows:
+            changed = copy.deepcopy(original)
+            changed[field] = value
+            record = outcome_for(
+                review,
+                evaluated=["PSDR-001"],
+                disputed=[changed] if kind == "disputed" else None,
+                prevented=[changed] if kind == "prevented" else None,
+                basis="agent-observed",
+                label="noisy" if kind == "disputed" else "prevented-rework",
+            )
+            with self.subTest(kind=kind, field=field), self.assertRaisesRegex(
+                schema.EvidenceError, "copy|match"
+            ):
+                schema.validate_outcome(record, review)
+
+    def test_non_ready_escape_is_durably_inconclusive_until_matching_dispute(self) -> None:
+        unresolved = repaired_finding()
+        unresolved.update({"status": "unresolved", "repair_pass": None})
+        escaped = [{
+            "severity": "IMPORTANT", "class": "coverage",
+            "pattern_key": "downstream-escape",
+            "consequence_category": "escaped-material-defect",
+            "basis": "verified-repository-evidence",
+        }]
+
+        first_review = self.finalize(verdict="REVISE", finding=unresolved)
+        inconclusive = outcome_for(
+            first_review,
+            evaluated=["PSDR-001"],
+            escaped=escaped,
+            basis="agent-inferred",
+            label="inconclusive",
+        )
+        storage.record_outcome(
+            self.paths, str(first_review["run_id"]), inconclusive
+        )
+        self.assertEqual(
+            storage.load_outcome(
+                self.paths, str(first_review["run_id"])
+            )["assessment"]["label"],
+            "inconclusive",
+        )
+
+        second_review = self.finalize(verdict="REVISE", finding=unresolved)
+        dispute = [{
+            "finding_id": "PSDR-001", "class": "verification-gap",
+            "pattern_key": "build-only-acceptance",
+            "consequence_category": "avoidable-rework",
+            "basis": "user-reported",
+        }]
+        noisy = outcome_for(
+            second_review,
+            evaluated=["PSDR-001"],
+            escaped=escaped,
+            disputed=dispute,
+            basis="user-reported",
+            label="noisy",
+        )
+        storage.record_outcome(self.paths, str(second_review["run_id"]), noisy)
+        self.assertEqual(
+            storage.load_outcome(
+                self.paths, str(second_review["run_id"])
+            )["assessment"]["label"],
+            "noisy",
+        )
+
+    def test_direct_bounded_json_normalizes_large_integer_value_error(self) -> None:
+        path = self.workspace / "large-integer.json"
+        path.write_bytes(b'{"value":' + b"1" * 5000 + b"}")
+        self.assertLess(path.stat().st_size, schema.OUTCOME_HARD_LIMIT)
+        with self.assertRaises(schema.EvidenceError) as raised:
+            schema.read_bounded_json(path, schema.OUTCOME_HARD_LIMIT)
+        self.assertEqual(raised.exception.code, "invalid-json")
+
     def test_outcome_run_id_must_be_canonical_and_match_the_review(self) -> None:
         review = self.finalize()
         for run_id in (

@@ -77,9 +77,33 @@ def read_bounded_bytes(path: Path, limit: int) -> bytes:
 def read_bounded_json(path: Path, limit: int) -> object:
     data = read_bounded_bytes(path, limit)
     try:
-        return json.loads(data.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError as exc:
         raise EvidenceError("invalid-json", "file is not valid UTF-8 JSON") from exc
+    return parse_json_text(text, name="file")
+
+
+def parse_json_text(
+    value: str, *, byte_limit: int | None = None, name: str = "value"
+) -> object:
+    if not isinstance(value, str):
+        raise EvidenceError("invalid-json", f"{name} is not valid UTF-8 JSON")
+    try:
+        encoded = value.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise EvidenceError(
+            "invalid-json", f"{name} is not valid UTF-8 JSON"
+        ) from exc
+    if byte_limit is not None and len(encoded) > byte_limit:
+        raise EvidenceError(
+            "record-too-large", f"{name} exceeds the hard size limit"
+        )
+    try:
+        return json.loads(value)
+    except (UnicodeError, ValueError) as exc:
+        raise EvidenceError(
+            "invalid-json", f"{name} is not valid UTF-8 JSON"
+        ) from exc
 
 
 def _fail(code: str, message: str) -> None:
@@ -103,6 +127,12 @@ def _string(value: object, name: str, maximum: int, *, nullable: bool = False) -
         return None
     if not isinstance(value, str):
         _fail("invalid-type", f"{name} must be a string")
+    try:
+        value.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise EvidenceError(
+            "invalid-string", f"{name} must be valid UTF-8"
+        ) from exc
     if not value or len(value) > maximum or _CONTROL.search(value):
         _fail("invalid-string", f"{name} must be a non-empty single-line string within {maximum} characters")
     return value
