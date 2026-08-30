@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import zipfile
 from contextlib import redirect_stderr
 from unittest import mock
 from pathlib import Path
@@ -132,6 +133,76 @@ class EvidenceInstallerTests(unittest.TestCase):
         )
         self._run_version(sys.executable, str(archive), "--version")
 
+    @unittest.skipIf(os.name == "nt", "TZ and POSIX umask matrix requires POSIX")
+    def test_zipapp_bytes_are_independent_of_timezone_and_umask(self) -> None:
+        script = """
+import importlib.util
+import os
+import sys
+from pathlib import Path
+
+installer_path, skill_root, posix_bin, windows_bin, mask = sys.argv[1:]
+os.umask(int(mask, 8))
+spec = importlib.util.spec_from_file_location("isolated_installer", installer_path)
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+module.install(Path(skill_root), Path(posix_bin), "posix", Path(sys.executable))
+module.install(Path(skill_root), Path(windows_bin), "windows", Path(sys.executable))
+"""
+        posix_bytes: list[bytes] = []
+        windows_bytes: list[bytes] = []
+        commands: list[Path] = []
+        archives: list[Path] = []
+        for timezone in ("UTC", "Asia/Seoul"):
+            for mask in ("022", "077"):
+                label = f"{timezone.replace('/', '-')}-{mask}"
+                posix_bin = self.workspace / f"posix-{label}"
+                windows_bin = self.workspace / f"windows-{label}"
+                posix_bin.mkdir()
+                windows_bin.mkdir()
+                completed = subprocess.run(
+                    [
+                        sys.executable,
+                        "-c",
+                        script,
+                        str(INSTALL_PATH),
+                        str(self.skill),
+                        str(posix_bin),
+                        str(windows_bin),
+                        mask,
+                    ],
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                    env={
+                        **os.environ,
+                        "TZ": timezone,
+                        "PYTHONDONTWRITEBYTECODE": "1",
+                    },
+                )
+                self.assertEqual(completed.returncode, 0, completed.stderr)
+                command = posix_bin / "pre-sdd-review-evidence"
+                archive = windows_bin / "pre-sdd-review-evidence.pyz"
+                commands.append(command)
+                archives.append(archive)
+                posix_bytes.append(command.read_bytes())
+                windows_bytes.append(archive.read_bytes())
+        self.assertEqual(len(set(posix_bytes)), 1)
+        self.assertEqual(len(set(windows_bytes)), 1)
+        expected_names = [
+            "__main__.py",
+            *(f"pre_sdd_review_evidence/{name}" for name in installer.RUNTIME_PACKAGE_FILES),
+        ]
+        with zipfile.ZipFile(commands[0]) as archive:
+            self.assertEqual(archive.namelist(), expected_names)
+            for info in archive.infolist():
+                self.assertEqual(info.date_time, (1980, 1, 1, 0, 0, 0))
+                self.assertEqual(info.create_system, 3)
+                self.assertEqual((info.external_attr >> 16) & 0o170000, stat.S_IFREG)
+                self.assertEqual((info.external_attr >> 16) & 0o777, 0o644)
+        self._run_version(str(commands[0]), "--version")
+        self._run_version(sys.executable, str(archives[0]), "--version")
+
     def test_identical_reinstall_is_idempotent(self) -> None:
         first = installer.install(
             self.skill,
@@ -231,17 +302,17 @@ class EvidenceInstallerTests(unittest.TestCase):
         for name in (".profile", ".bash_profile", ".bashrc", ".zprofile", ".zshrc"):
             self.assertFalse((fake_home / name).exists())
 
-    def test_generated_bytecode_cache_is_not_a_runtime_source_member(self) -> None:
+    def test_generated_bytecode_cache_is_rejected_as_an_unexpected_package_entry(self) -> None:
         cache = self.skill / "evidence/pre_sdd_review_evidence/__pycache__"
         cache.mkdir()
         (cache / "cli.cpython-311.pyc").write_bytes(b"generated-bytecode")
-        installed = installer.install(
-            self.skill,
-            self.bin_dir,
-            platform="posix",
-            python_executable=Path(sys.executable),
-        )
-        self.assertEqual(installed, (self.bin_dir / "pre-sdd-review-evidence",))
+        with self.assertRaisesRegex(EvidenceError, "runtime package manifest"):
+            installer.install(
+                self.skill,
+                self.bin_dir,
+                platform="posix",
+                python_executable=Path(sys.executable),
+            )
 
     def test_source_validation_rejects_manifest_and_identity_drift(self) -> None:
         mutations = (

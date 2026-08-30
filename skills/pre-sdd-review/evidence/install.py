@@ -11,6 +11,7 @@ import sys
 import tempfile
 import tomllib
 import zipapp
+import zipfile
 from pathlib import Path
 
 
@@ -29,7 +30,6 @@ _SKILL_VERSION = "1.2.0"
 _CLI_VERSION = "1.0.0"
 _SCHEMA_VERSION = 1
 _COMMAND = "pre-sdd-review-evidence"
-_ARCHIVE_TIMESTAMP = 315_532_800
 _ENTRYPOINT = (
     "from pre_sdd_review_evidence.cli import main\n"
     "raise SystemExit(main())\n"
@@ -102,17 +102,7 @@ def _validate_source(skill_root: Path) -> Path:
         package_entries = tuple(package.iterdir())
     except OSError as exc:
         raise EvidenceError("schema-invalid", "runtime package cannot be inspected") from exc
-    entries = tuple(
-        sorted(
-            path.name
-            for path in package_entries
-            if not (
-                path.name == "__pycache__"
-                and not path.is_symlink()
-                and path.is_dir()
-            )
-        )
-    )
+    entries = tuple(sorted(path.name for path in package_entries))
     if entries != tuple(sorted(RUNTIME_PACKAGE_FILES)):
         raise EvidenceError("schema-invalid", "runtime package manifest mismatch")
     for name in RUNTIME_PACKAGE_FILES:
@@ -128,10 +118,6 @@ def _validate_source(skill_root: Path) -> Path:
     return package
 
 
-def _set_archive_timestamp(path: Path) -> None:
-    os.utime(path, (_ARCHIVE_TIMESTAMP, _ARCHIVE_TIMESTAMP), follow_symlinks=False)
-
-
 def _stage_runtime(package: Path, staging_root: Path) -> None:
     app_root = staging_root / "app"
     staged_package = app_root / "pre_sdd_review_evidence"
@@ -140,13 +126,9 @@ def _stage_runtime(package: Path, staging_root: Path) -> None:
         destination = staged_package / name
         shutil.copyfile(package / name, destination, follow_symlinks=False)
         destination.chmod(0o644)
-        _set_archive_timestamp(destination)
     entrypoint = app_root / "__main__.py"
     entrypoint.write_text(_ENTRYPOINT, encoding="utf-8", newline="\n")
     entrypoint.chmod(0o644)
-    _set_archive_timestamp(entrypoint)
-    _set_archive_timestamp(staged_package)
-    _set_archive_timestamp(app_root)
 
 
 def _validate_interpreter(python_executable: Path) -> str:
@@ -156,16 +138,59 @@ def _validate_interpreter(python_executable: Path) -> str:
     return value
 
 
+def _create_deterministic_zipapp(
+    app_root: Path,
+    target: Path,
+    *,
+    interpreter: str | None,
+) -> None:
+    source_archive = target.parent / f".{target.name}.runtime.pyz"
+    members = [
+        ("__main__.py", app_root / "__main__.py"),
+        *(
+            (
+                f"pre_sdd_review_evidence/{name}",
+                app_root / "pre_sdd_review_evidence" / name,
+            )
+            for name in RUNTIME_PACKAGE_FILES
+        ),
+    ]
+    try:
+        with zipfile.ZipFile(source_archive, "w") as archive:
+            for archive_name, source in members:
+                info = zipfile.ZipInfo(archive_name, (1980, 1, 1, 0, 0, 0))
+                info.create_system = 3
+                info.compress_type = zipfile.ZIP_DEFLATED
+                info.external_attr = (stat.S_IFREG | 0o644) << 16
+                with source.open("rb") as stream:
+                    data = stream.read()
+                archive.writestr(
+                    info,
+                    data,
+                    compress_type=zipfile.ZIP_DEFLATED,
+                    compresslevel=9,
+                )
+        zipapp.create_archive(
+            source_archive,
+            target=target,
+            interpreter=interpreter,
+        )
+    finally:
+        try:
+            source_archive.unlink()
+        except FileNotFoundError:
+            pass
+
+
 def build_posix_launcher(staging_root: Path, python_executable: Path) -> Path:
     """Build the executable POSIX zipapp from a validated staged application."""
 
     staging_root = Path(staging_root)
     target = staging_root / _COMMAND
-    zipapp.create_archive(
+    _create_deterministic_zipapp(
         staging_root / "app",
-        target=target,
+        target,
         interpreter=_validate_interpreter(python_executable),
-        compressed=True,
     )
     target.chmod(0o755)
     return target
@@ -181,10 +206,10 @@ def build_windows_launcher(
     executable = _validate_interpreter(python_executable)
     archive = staging_root / f"{_COMMAND}.pyz"
     wrapper = staging_root / f"{_COMMAND}.cmd"
-    zipapp.create_archive(
+    _create_deterministic_zipapp(
         staging_root / "app",
-        target=archive,
-        compressed=True,
+        archive,
+        interpreter=None,
     )
     wrapper.write_bytes(
         f'@"{executable}" "%~dp0{_COMMAND}.pyz" %*\r\n'.encode("utf-8")
