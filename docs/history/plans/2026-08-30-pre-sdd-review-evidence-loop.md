@@ -6,7 +6,7 @@
 
 **Architecture:** Bundle a Python-standard-library evidence package inside `skills/pre-sdd-review/evidence/`, install one self-contained launcher explicitly, and store create-only run records under `~/.pre-sdd-review/` or `PRE_SDD_REVIEW_HOME`. The skill remains the semantic controller; the CLI owns Git facts, hashes, identity, validation, atomic persistence, matching, and aggregation. Product payload, archive, documentation, and verification contracts stay exact and fail closed as the runtime surface expands.
 
-**Tech Stack:** Python 3.11+ standard library (`argparse`, `dataclasses`, `hashlib`, `hmac`, `json`, `pathlib`, `secrets`, `subprocess`, `tempfile`, `uuid`, `zipapp`), `unittest`, Git CLI, Markdown/TOML product contracts
+**Tech Stack:** Python 3.11+ standard library (`argparse`, `ctypes`, `dataclasses`, `hashlib`, `hmac`, `json`, `pathlib`, `secrets`, `subprocess`, `tempfile`, `uuid`, `zipapp`), `unittest`, Git CLI, Markdown/TOML product contracts
 
 **Spec:** `docs/history/specs/2026-08-30-pre-sdd-review-evidence-loop-design.md`
 
@@ -445,7 +445,7 @@ git commit -m "feat: capture pre-sdd repository evidence"
 
 **Interfaces:**
 - Consumes: schema validation, the shared bounded reader, `TargetSnapshot`, identity initialization, filesystem.
-- Produces: `EvidencePaths`, `RunHandle`, `WriteResult`, `evidence_home()`, `create_pending()`, `finish_review()`, `abandon_run()`, `load_review()`, `scan_runs()`, exact CLI `--version`, and CLI commands `start`, `finish-review`, `show`, `pending`, `abandon`, `doctor`.
+- Produces: `EvidencePaths`, `RunHandle`, `WriteResult`, `evidence_home()`, `publish_directory_no_replace(source, destination)`, `recover_staging(paths)`, `create_pending()`, `finish_review()`, `abandon_run()`, `load_review()`, `scan_runs()`, exact CLI `--version`, and CLI commands `start`, `finish-review`, `show`, `pending`, `abandon`, `doctor`.
 
 - [ ] **Step 1: Write failing storage lifecycle tests**
 
@@ -473,6 +473,15 @@ its private staging directory before directory publication and (2) final
 staging promotion, exact final-byte preservation, idempotent hash return,
 pending/staging/temp/lock cleanup after recovery, conflicting-retry refusal,
 and no raw locator bytes on disk at any point.
+Add deterministic directory-publication races for both initial start and
+recovery promotion: create empty, corrupt, nonempty, and conflicting
+destinations immediately before the native call and prove every destination
+remains byte-for-byte unchanged. Only a separately validated byte-identical
+destination permits staging cleanup. On this Darwin host, execute the real
+`renamex_np(..., RENAME_EXCL)` path and prove collision refusal; use injected
+native bindings to contract-test Linux `renameat2(RENAME_NOREPLACE)` and
+Windows `MoveFileExW(..., 0)`, leaving native Linux/Windows execution
+`not_measured` when no such runner exists.
 Use an exact whole-record abandoned fixture from the design: pending
 skill/client/target and intended mode, abandon clock, canonical unknown/zero
 protocol and metrics, all-null freshness, null verdict/block/token usage,
@@ -533,14 +542,28 @@ and publication and proves it is not overwritten.
 
 For pending creation, implement the design's private
 `runs/.staging-<run-id>/.pending.json` directory-publication exception instead
-of a sibling pending temp. Flush the file and staging directory, rename the
-whole staging directory only to its absent dated run path, and flush both
-parents. Before later mutations, promote only exact schema-valid safe staging
+of a sibling pending temp. Flush the file and staging directory, publish the
+whole staging directory only through `publish_directory_no_replace()`, and
+flush both parents. Implement that helper with `ctypes` exactly as specified by
+the design: Darwin `renamex_np` plus `RENAME_EXCL=0x4`, Linux `renameat2` plus
+`RENAME_NOREPLACE=1`, and Windows `MoveFileExW` with zero flags. Fail with
+`atomic-create-unsupported` for missing symbols, unsupported
+filesystems/platforms, or cross-volume moves; never fall back to an existence
+check plus `os.rename()`. Before later mutations, promote only exact
+schema-valid safe staging
 directories; leave conflicts/corruption unchanged for `doctor`. On an exact
 terminal retry after a crash between final publication and pending unlink,
 validate the existing final bytes, remove the coexisting pending and matching
 private temp/lock artifacts, flush, and return the original hash. Public scans
 treat the terminal receipt as authoritative while cleanup is interrupted.
+
+Implement one `recover_staging(paths)` orchestration precondition after safe
+home/identity validation. In this task, table-test that `start`,
+`finish-review`, and `abandon` recover one valid stranded stage before their
+own mutation, while `--version`, `show`, `pending`, `doctor`, and direct scans
+leave staged bytes unchanged. Task 4 extends the mutator row to
+`record-outcome`; Task 5 extends it to candidate export and confirmed prune and
+adds `resolve`, `summary`, candidate listing, and prune dry-run read-only rows.
 
 Import the Task 1 shared bounded reader for every pending/review consumer;
 storage must not define another reader or use `Path.read_bytes()`,
@@ -762,6 +785,9 @@ record-outcome --run-id <id> --repo <path> --from-stdin
 relative plan hash. It accepts either the design's scalar/repeatable arguments
 or one exact equivalent stdin object and rejects mixed forms. Add canonical
 parity, wrong-repository, stale-plan, and absolute-path-safe error tests.
+Seed a valid stranded staging directory and prove `record-outcome` validates
+home/identity, runs `recover_staging()`, then records its outcome; broken
+identity must fail before recovery and leave staged bytes unchanged.
 Exercise outcome loading and `resolve` through the shared bounded-reader spy;
 no Task 4 consumer may bypass it.
 Reject an existing outcome and document that schema `1` has no amendment
@@ -832,8 +858,10 @@ def test_summary_keeps_unknown_and_degraded_out_of_verified_rates(self) -> None:
 ```
 
 Test outcome coverage, evaluated-finding denominators, prevented-rework records,
-immediate candidates, repeated `pattern_key`/degraded-reason/input-resolution
-thresholds across distinct run IDs, no automatic skill edit, exact blank
+immediate candidates, repeated exact
+`(finding_class,pattern_key,consequence_category)` escaped/disputed groups,
+degraded-reason/input-resolution thresholds across distinct run IDs, no
+automatic skill edit, exact blank
 sanitized export, small-sample warning, full/degraded client slices, pending
 age classes. For summary, include every completed default and review-only run
 in outcome-coverage denominators and report missing outcomes as `not_measured`.
@@ -852,6 +880,29 @@ and `record-outcome` fail closed, and `doctor` reports the identity fault.
 Seed distinctive raw-locator and binding markers in Task 5 fixtures and assert
 exact public key sets plus absence of both marker values and pending-only key
 names from summary, candidates, candidate exports, and both prune outputs.
+For finding-pattern eligibility, add positive threshold fixtures and negative
+fixtures varying each of class, pattern key, and consequence category
+independently; grouping and candidate ID always use the same exact three-field
+tuple.
+
+Extend the orchestration matrix with a valid stranded stage. Candidate export
+and confirmed prune must validate home/identity and run `recover_staging()`
+before their own mutation. `resolve`, `summary`, candidate listing, and
+`prune --dry-run` must leave staged bytes unchanged. Confirmed prune ordering
+is exact: identity validation, staging recovery, unresolved-staging conflict
+check, sorted preview-ID locks, fingerprint/eligibility revalidation, then
+deletion of only previewed runs. If an unresolved staging name maps to any
+previewed run ID, return `selection-changed` before locks or deletion; prove
+the selected destination remains byte-for-byte intact and a later recovery
+cannot promote the conflict as a resurrection. A failed identity check
+performs no recovery; recovery never adds an unpreviewed run to the deletion
+set.
+
+For every read-only matrix row under both valid and broken identity, snapshot
+the complete evidence-home tree as relative entry names, file types, modes
+where supported, and bytes before invocation and assert exact preservation
+afterward. For every `prune --dry-run`, explicitly assert each selected run
+directory and receipt survives unchanged as well as matching exact output.
 
 - [ ] **Step 2: Run reporting tests to verify RED**
 
@@ -1253,6 +1304,12 @@ git diff --check
 ```
 
 Expected: all stages PASS. A Windows-portable profile run on a non-Windows host proves only portable command selection, not actual Windows execution.
+
+On this native Darwin host, the evidence stage must exercise the real
+`renamex_np(RENAME_EXCL)` backend and its destination-race refusal. Linux
+`renameat2(RENAME_NOREPLACE)` and Windows `MoveFileExW(..., 0)` remain
+`not_measured` unless their native runners execute the same evidence stage;
+injected binding tests prove only selection/error handling, not native support.
 
 If a native Windows Python 3.11 runner is available and separately authorized,
 run the evidence and installer stage there and record the job/run reference.

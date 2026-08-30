@@ -791,7 +791,35 @@ locator. A crash after pending fsync but before directory publication may
 leave exactly that private staging directory; no normal run scan treats it as
 a run.
 
-Before any later evidence-home mutation, internal recovery scans only exact
+Both initial publication and recovery promotion call one
+`publish_directory_no_replace(source, destination)` helper. It must use an
+atomic native no-replace operation, never an existence check followed by
+`os.rename()`: Darwin uses `renamex_np(..., RENAME_EXCL)` with
+`RENAME_EXCL=0x00000004`; Linux uses `renameat2(..., RENAME_NOREPLACE)` with
+`RENAME_NOREPLACE=1`; Windows uses `MoveFileExW(..., 0)`, whose zero flags do
+not replace an existing destination. The Python-standard-library `ctypes`
+binding checks the native return and error code. An unavailable symbol,
+unsupported filesystem, cross-volume move, or unproved platform returns
+`atomic-create-unsupported`; there is no check-then-rename fallback. A
+destination that appears at any time is never replaced. Recovery may remove a
+staging directory only after separately validating that an existing
+destination contains byte-identical pending state.
+
+One `recover_staging(paths)` interface is a required orchestration precondition
+after safe evidence-home and identity validation and before every later
+evidence-home mutation: `start`, `finish-review`, `abandon`, `record-outcome`,
+`candidates export`, and confirmed `prune`. Confirmed prune validates identity,
+runs recovery, and inspects its unresolved staging report before locking. If
+any unresolved `.staging-<run-id>` maps to a previewed run ID, confirmation
+fails with `selection-changed` before deleting anything; it never removes the
+destination that blocks a staged pending run and therefore cannot let a later
+recovery resurrect a deleted ID. Otherwise it locks the exact previewed IDs in
+sorted order, revalidates selection eligibility/fingerprints, and only then
+deletes; failed identity validation performs no recovery. `--version`, `show`, `pending`, `doctor`,
+`resolve`, `summary`, candidate listing, and `prune --dry-run` never call
+recovery and never mutate staging.
+
+Internal recovery scans only exact
 `.staging-<canonical-uuid>` names. A private, symlink-free staging directory
 containing one bounded, schema-valid `.pending.json` is promoted to its exact
 absent final run path. If that path already contains byte-identical pending
@@ -934,8 +962,10 @@ Immediate candidates are:
 
 Repeated-pattern candidates are:
 
-- the same escaped finding class in at least two runs;
-- the same finding pattern marked later-disputed in at least three runs;
+- the same exact escaped-finding group `(finding_class, pattern_key,
+  consequence_category)` in at least two runs;
+- the same exact later-disputed finding group `(finding_class, pattern_key,
+  consequence_category)` in at least three runs;
 - the same degraded client cause in at least three runs; or
 - the same input-resolution failure in at least five runs.
 
