@@ -235,10 +235,13 @@ def validate_product(skill_root: Path, registry: ProductRegistry) -> list[str]:
     if openai_path.is_file():
         errors.extend(_validate_openai_yaml(openai_path, skill_root.name))
 
+    allowed_top_level = ALLOWED_TOP_LEVEL
+    if skill_root.name == "pre-sdd-review":
+        allowed_top_level = allowed_top_level | {"evidence"}
     for child in skill_root.iterdir():
         if _is_ignored_residue(child.name):
             continue
-        if child.name not in ALLOWED_TOP_LEVEL:
+        if child.name not in allowed_top_level:
             errors.append(f"unexpected top-level file: {child.name}")
 
     for path in _iter_payload_paths(skill_root):

@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.lib.product_contract import parse_skill_frontmatter  # noqa: E402
+from scripts.lib.product_contract import parse_skill_frontmatter, validate_product  # noqa: E402
 from scripts.lib.product_registry import load_registry  # noqa: E402
 
 
@@ -30,12 +30,14 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
         "README.md",
         "SKILL.md",
         "agents/openai.yaml",
+        "evidence/pre_sdd_review_evidence/__init__.py",
+        "evidence/pre_sdd_review_evidence/schema.py",
         "references/reviewer-protocol.md",
         "release.toml",
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "3a9bc8e55d85001f01810ec82d69df353df2c9647a3a880fa0bb1bb8dd563725",
+    "SKILL.md": "1471ddc7b09c80803f51908277d1f4196419ad48996a9ebffdbafc2cce6e67b6",
     "references/reviewer-protocol.md": (
         "e8a361b36bb261c98887bef8df549b9d6c59519dfdb618cfb7e54646e052aa6d"
     ),
@@ -396,7 +398,7 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
 MAINTAINER_CANONICAL_DIGEST = "1e44e3610721ae1a66b925dc3fefea370dd82564126a45cb84eb1ec8477246b2"
 TESTING_CANONICAL_DIGEST = "e119980c8a7c1b7fa20e31aa539e3312aae73a7776076531c8b7cba2b613bec2"
 COMPATIBILITY_CANONICAL_DIGEST = "3c40b77eb9a96892a07132d62b99cb43321b87516a0bdc4b0a33d033430828c6"
-RELEASE_CANONICAL_DIGEST = "8491ceb8648de55e4b82fb1462a8e7eb3061b1ec3f64533eb8a350b2beea74ca"
+RELEASE_CANONICAL_DIGEST = "f20fa8ef3504d16125a766433bd7a84686340949ea7704f1946dc8c740006981"
 
 
 def section(text: str, start: str, end: str) -> str:
@@ -681,6 +683,16 @@ def second_review_risk_triggers(reviewers: str) -> tuple[str, ...]:
 
 
 class PreSddReviewContractTests(unittest.TestCase):
+    def test_pre_sdd_review_evidence_payload_is_allowed_only_for_pre_sdd(self) -> None:
+        registry = load_registry(ROOT / "products.toml")
+        self.assertEqual(validate_product(SKILL, registry), [])
+        with tempfile.TemporaryDirectory() as directory:
+            copied = Path(directory) / "how-it-works"
+            shutil.copytree(ROOT / "skills" / "how-it-works", copied)
+            (copied / "evidence").mkdir()
+            (copied / "evidence/probe.py").write_text("pass\n", encoding="utf-8")
+            self.assertIn("unexpected top-level file: evidence", validate_product(copied, registry))
+
     def test_source_payload_inventory_and_instruction_documents_are_closed(self) -> None:
         validator = globals().get("product_payload_contract_errors")
         self.assertIsNotNone(

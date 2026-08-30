@@ -148,7 +148,7 @@ class ProductRegistryTests(unittest.TestCase):
         self.assertEqual(product.supported_hosts, ("codex",))
         self.assertEqual(
             product.verify_stages,
-            ("product-contract", "pre-sdd-review-contract", "python-compile"),
+            ("product-contract", "pre-sdd-review-contract", "pre-sdd-review-evidence", "python-compile"),
         )
 
 

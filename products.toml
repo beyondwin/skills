@@ -61,4 +61,4 @@ owned_paths = [
   "tests/products/pre-sdd-review/",
   "docs/maintainers/products/pre-sdd-review/",
 ]
-verify_stages = ["product-contract", "pre-sdd-review-contract", "python-compile"]
+verify_stages = ["product-contract", "pre-sdd-review-contract", "pre-sdd-review-evidence", "python-compile"]

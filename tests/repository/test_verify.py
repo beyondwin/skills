@@ -36,6 +36,7 @@ FULL_STAGE_NAMES = (
     "image-inspector",
     "how-it-works-contract",
     "pre-sdd-review-contract",
+    "pre-sdd-review-evidence",
     "python-compile",
 )
 WINDOWS_STAGE_NAMES = (
@@ -46,6 +47,7 @@ WINDOWS_STAGE_NAMES = (
     "korean-live-dry-run",
     "how-it-works-contract",
     "pre-sdd-review-contract",
+    "pre-sdd-review-evidence",
     "python-compile",
 )
 LIVE_TEST_PATH = (
@@ -215,6 +217,7 @@ class VerifyStageTests(unittest.TestCase):
             any(part.endswith("skills/image-workbench/scripts") for part in paths),
             paths,
         )
+        self.assertIn("skills/pre-sdd-review/evidence", paths)
         self.assertFalse(any("*" in part for part in stage.argv))
 
     def test_run_stage_returns_subprocess_exit_code(self) -> None:
@@ -272,7 +275,7 @@ class VerifyStageTests(unittest.TestCase):
         selected = stages(ROOT, "full", self.registry, skill=product.name)
         self.assertEqual(
             tuple(stage.name for stage in selected),
-            ("product-contract", "pre-sdd-review-contract", "python-compile"),
+            ("product-contract", "pre-sdd-review-contract", "pre-sdd-review-evidence", "python-compile"),
         )
 
     def test_catalog_selection_runs_catalog_gates_only(self) -> None:
@@ -390,6 +393,13 @@ class VerifyStageTests(unittest.TestCase):
             self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
             self.assertIn("tests/products/pre-sdd-review", stage.argv)
             self.assertIn("test_contract.py", stage.argv)
+
+    def test_pre_sdd_review_evidence_is_portable_unittest_discovery(self) -> None:
+        for profile in ("full", "windows-portable"):
+            stage = self._stage(profile, "pre-sdd-review-evidence", skill="pre-sdd-review")
+            self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
+            self.assertIn("tests/products/pre-sdd-review/evidence", stage.argv)
+            self.assertIn("test_*.py", stage.argv)
 
     def test_selected_stages_use_sys_executable_and_tuple_argv(self) -> None:
         selections = (

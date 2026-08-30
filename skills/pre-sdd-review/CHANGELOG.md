@@ -6,6 +6,14 @@ All notable changes to this product are documented in this file.
 
 No unreleased behavior change is recorded.
 
+## 1.2.0 - 2026-08-30
+
+### Added
+
+- The optional local `pre-sdd-review-evidence` CLI records provider-neutral,
+  content-bounded review and outcome receipts. Recording is non-blocking and
+  never changes a review verdict.
+
 ## 1.1.0 - 2026-08-29
 
 ### Changed
