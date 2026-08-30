@@ -7,6 +7,8 @@ import datetime as dt
 import hashlib
 import hmac
 import os
+import re
+import stat
 import sys
 import time
 import uuid
@@ -39,6 +41,7 @@ _OUTCOME_FIELDS = {
     "escaped_findings", "disputed_findings", "prevented_rework", "basis",
     "confidence",
 }
+_PRUNE_INPUT_HARD_LIMIT = 4 * 1024 * 1024
 
 
 class _Parser(argparse.ArgumentParser):
@@ -135,6 +138,18 @@ def _parser() -> _Parser:
         ),
     )
     outcome.add_argument("--confidence", choices=("low", "medium", "high"))
+    summary = subparsers.add_parser("summary")
+    summary.add_argument("--format", choices=("json", "text"), default="json")
+    candidates = subparsers.add_parser("candidates")
+    candidates.add_argument("action", nargs="?", choices=("export",))
+    candidates.add_argument("candidate_id", nargs="?")
+    candidates.add_argument("--format", choices=("json", "text"), default="json")
+    prune = subparsers.add_parser("prune")
+    prune.add_argument("--older-than", required=True)
+    prune.add_argument("--include-without-outcome", action="store_true")
+    prune.add_argument("--dry-run", action="store_true")
+    prune.add_argument("--confirm-selection")
+    prune.add_argument("--from-stdin", action="store_true")
     return parser
 
 
@@ -252,7 +267,18 @@ def _paths(environ: Mapping[str, str]) -> storage.EvidencePaths:
 
 
 def _start(args: argparse.Namespace, paths: storage.EvidencePaths, cwd: Path) -> dict[str, object]:
-    key = repository.load_or_create_identity(paths.home)
+    key_info = repository._validate_identity_entry(paths.identity_key)
+    config_info = repository._validate_identity_entry(paths.config)
+    if key_info is None and config_info is None:
+        runs_info = storage._lstat(paths.runs)
+        if runs_info is not None:
+            if stat.S_ISLNK(runs_info.st_mode) or not stat.S_ISDIR(runs_info.st_mode):
+                raise EvidenceError("identity-state-invalid", "runs root is unsafe")
+            if any(paths.runs.iterdir()):
+                raise EvidenceError("identity-key-missing", "identity key is unavailable")
+        key = repository.load_or_create_identity(paths.home)
+    else:
+        key = reporting.load_existing_identity(paths)
     storage.recover_staging(paths)
     skill = repository.load_skill_snapshot(Path(args.skill_root))
     target = repository.resolve_target(cwd, Path(args.plan), key)
@@ -394,7 +420,7 @@ def _candidate_retry_review(
 
 def _finish(args: argparse.Namespace, paths: storage.EvidencePaths, input_stream: TextIO) -> dict[str, object]:
     started = time.monotonic_ns()
-    key = repository.load_or_create_identity(paths.home)
+    key = reporting.load_existing_identity(paths)
     storage.recover_staging(paths)
     semantic = _normalize_finish(args, input_stream)
     try:
@@ -473,7 +499,7 @@ def _finish(args: argparse.Namespace, paths: storage.EvidencePaths, input_stream
 
 def _abandon(args: argparse.Namespace, paths: storage.EvidencePaths) -> dict[str, object]:
     started = time.monotonic_ns()
-    repository.load_or_create_identity(paths.home)
+    reporting.load_existing_identity(paths)
     storage.recover_staging(paths)
     result = storage.abandon_run(
         paths, args.run_id, args.reason, completed_at=_utc_now(),
@@ -518,7 +544,7 @@ def _record_outcome(
     paths: storage.EvidencePaths,
     input_stream: TextIO,
 ) -> dict[str, object]:
-    key = repository.load_or_create_identity(paths.home)
+    key = reporting.load_existing_identity(paths)
     storage.recover_staging(paths)
     semantic = _normalize_outcome(args, input_stream)
     review = storage.load_review(paths, args.run_id)
@@ -590,6 +616,88 @@ def _doctor(paths: storage.EvidencePaths) -> dict[str, object]:
     return {"status": "ok", "issues": issues}
 
 
+def _summary(args: argparse.Namespace, paths: storage.EvidencePaths) -> object:
+    records = reporting.load_records(paths)
+    pending = storage.scan_runs(paths).pending
+    value = reporting.summarize(records, pending)
+    if args.format == "text":
+        coverage = value["outcome_coverage"]
+        false_ready = value["verified_false_ready"]
+        assert isinstance(coverage, dict) and isinstance(false_ready, dict)
+        return (
+            f"Completed reviews: {value['completed_reviews']}\n"
+            f"Outcome coverage: {coverage['numerator']}/{coverage['denominator']} ({coverage['interpretation']})\n"
+            f"Verified false READY: {false_ready['numerator']}/{false_ready['denominator']} ({false_ready['interpretation']})\n"
+            "Boundary: observer-supplied self-improvement evidence; not audit-grade proof\n"
+        )
+    return value
+
+
+def _candidates(args: argparse.Namespace, paths: storage.EvidencePaths) -> object:
+    candidates = reporting.select_candidates(reporting.load_records(paths))
+    if args.action is None:
+        if args.candidate_id is not None:
+            raise EvidenceError("invalid-arguments", "candidate ID requires export")
+        payloads = [item.payload() for item in candidates]
+        if args.format == "text":
+            if not payloads:
+                return "No heuristic candidates.\n"
+            return "".join(
+                f"{item['candidate_id']} {item['kind']} runs={item['source_run_count']}\n"
+                for item in payloads
+            )
+        return payloads
+    if args.candidate_id is None or args.format != "json":
+        raise EvidenceError("invalid-arguments", "candidate export requires one ID and JSON output")
+    candidate = next(
+        (item for item in candidates if item.candidate_id == args.candidate_id), None
+    )
+    if candidate is None:
+        raise EvidenceError("run-not-found", "candidate was not found")
+    reporting.load_existing_identity(paths)
+    storage.recover_staging(paths)
+    storage._ensure_private_directory(paths.exports)
+    reporting.export_candidate(candidate, paths.exports)
+    return {
+        "status": "exported",
+        "candidate_id": candidate.candidate_id,
+        "files": ["candidate.json", *candidate.required_synthetic_files],
+    }
+
+
+def _prune_cutoff(older_than: str) -> str:
+    match = re.fullmatch(r"([1-9][0-9]*)d", older_than)
+    if match is None:
+        raise EvidenceError("invalid-arguments", "older-than must be a positive day duration")
+    now = dt.datetime.fromisoformat(_utc_now()[:-1] + "+00:00")
+    return (now - dt.timedelta(days=int(match.group(1)))).isoformat(timespec="microseconds").replace("+00:00", "Z")
+
+
+def _prune(
+    args: argparse.Namespace,
+    paths: storage.EvidencePaths,
+    input_stream: TextIO,
+) -> dict[str, object]:
+    if args.dry_run:
+        if args.from_stdin or args.confirm_selection is not None:
+            raise EvidenceError("invalid-arguments", "dry-run cannot confirm a selection")
+        selection = reporting.preview_prune(
+            reporting.load_records(paths),
+            _prune_cutoff(args.older_than),
+            args.include_without_outcome,
+        )
+        return {
+            "status": "preview",
+            "selection": selection.payload(),
+            "selection_digest": selection.digest,
+        }
+    if not args.from_stdin or args.confirm_selection is None:
+        raise EvidenceError("invalid-arguments", "prune mutation requires a confirmed stdin selection")
+    supplied = _read_stdin(input_stream, _PRUNE_INPUT_HARD_LIMIT)
+    deleted = reporting.confirm_prune(paths, supplied, args.confirm_selection)
+    return {"status": "pruned", "run_ids": list(deleted), "count": len(deleted)}
+
+
 def main(
     argv: list[str] | None = None,
     *,
@@ -629,9 +737,18 @@ def main(
             result = _resolve(args, paths)
         elif args.command == "record-outcome":
             result = _record_outcome(args, paths, input_stream)
+        elif args.command == "summary":
+            result = _summary(args, paths)
+        elif args.command == "candidates":
+            result = _candidates(args, paths)
+        elif args.command == "prune":
+            result = _prune(args, paths, input_stream)
         else:
             raise EvidenceError("invalid-arguments", "unknown command")
-        _json_line(output_stream, result)
+        if isinstance(result, str):
+            output_stream.write(result)
+        else:
+            _json_line(output_stream, result)
         return 0
     except EvidenceError as exc:
         message = exc.message[:300].replace("\n", " ").replace("\r", " ")
