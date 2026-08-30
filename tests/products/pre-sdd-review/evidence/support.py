@@ -56,8 +56,8 @@ def fixed_skill() -> dict[str, object]:
     digest = "a" * 64
     return {
         "name": "pre-sdd-review",
-        "declared_version": "1.2.0",
-        "release_version": "1.2.0",
+        "declared_version": "1.3.0",
+        "release_version": "1.3.0",
         "skill_sha256": digest,
         "reviewer_protocol_sha256": "b" * 64,
         "release_manifest_sha256": "c" * 64,

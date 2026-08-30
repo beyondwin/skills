@@ -4,8 +4,16 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 1.3.0 - 2026-08-30
+
 ### Changed
 
+- Scoped re-review stops at unmapped material findings instead of widening the
+  repair or starting another invocation.
+- Each invocation uses at most a primary role and one triggered risk role;
+  fresh closure agents do not add roles.
+- Authority-preserving repairs need no approval. Unresolved product decisions
+  are grouped into one checkpoint.
 - Reporting now validates each receipt from the same bounded byte snapshot used
   for its size and SHA-256, avoiding repeated reads of one review/outcome pair.
 - Source installation ignores only an ordinary `__pycache__` containing regular

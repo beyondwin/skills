@@ -46,6 +46,21 @@
       "expect": ["focused_second_reviewer", "framework-or-runtime-removal"]
     },
     {
+      "id": "third-review-role",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md with primary and data-boundary roles already selected, then add a UX review role during closure",
+      "expect": ["reject_third_role", "fresh_agent_not_new_role"]
+    },
+    {
+      "id": "unmapped-repairable-finding",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md where closure finds an unmapped repairable material defect",
+      "expect": ["REVISE", "terminal_handoff", "no_additional_repair", "no_automatic_retry"]
+    },
+    {
+      "id": "unmapped-authority-finding",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md where closure finds an unmapped material defect that needs a product decision",
+      "expect": ["BLOCKED", "one_consolidated_checkpoint", "no_automatic_retry"]
+    },
+    {
       "id": "stale-document-hash",
       "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after the plan changed",
       "expect": ["stale_fingerprints", "re-review"]

@@ -23,6 +23,7 @@ from scripts.lib.product_registry import load_registry  # noqa: E402
 SKILL = ROOT / "skills" / "pre-sdd-review"
 CASES = ROOT / "tests" / "products" / "pre-sdd-review" / "cases.json"
 FIXTURES = ROOT / "tests" / "products" / "pre-sdd-review" / "fixtures"
+TARGET_VERSION = "1.3.0"
 PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     {
         "CHANGELOG.md",
@@ -45,9 +46,9 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "9b490e8bea79254c9401af17800120d79de1a2d33153bd49908ad80ac58f0990",
+    "SKILL.md": "455c808c4e71281078e01958e0df0a7d4092d6cc1695cc26387bda52f0fc77bf",
     "references/reviewer-protocol.md": (
-        "e8a361b36bb261c98887bef8df549b9d6c59519dfdb618cfb7e54646e052aa6d"
+        "0883c5cdc4f79f9c07d764cacc9f4b01d3902e718af96139f54b4b64dfc86c9c"
     ),
 }
 CASE_IDS = (
@@ -60,6 +61,9 @@ CASE_IDS = (
     "false-positive-smoke",
     "task-interface-order",
     "runtime-removal-risk-review",
+    "third-review-role",
+    "unmapped-repairable-finding",
+    "unmapped-authority-finding",
     "stale-document-hash",
     "ambiguous-multiple-plans",
     "evidence-cli-recorded",
@@ -380,7 +384,7 @@ README_CANONICAL_SECTION_DIGESTS = {
         ("## 사용해야 할 때와 사용하지 말아야 할 때", "63634fe6e87d9b53d0d13d628ab18747c164c33aa432c03e6ab095e7fd94e2b4"),
         ("## 설치", "a2a93e6a3dc7cf933377cee0ca7573c45f3d87afc819a5aa36bb0ed07fe39f3a"),
         ("## 첫 호출", "67982d6dac2b6cc91d6625f95b0a3c3c60937c07754746b0e7d83f41e374f606"),
-        ("## 결과와 기본 흐름", "f3aea1ed24700cbbdcf2fa7426e5c284cbd5f52cfd73a17d109b3be64432fb02"),
+        ("## 결과와 기본 흐름", "d55cb3da2e9351e3c1f6daa14f1b904651abd95872fbd0ed0243c6d8306a659e"),
         ("## 안전과 개인정보", "62341d0462a00708bc0a22c59a92705a3570e5666714add87588ff37c79cbaf9"),
         ("## 운영과 한계", "3bab749b55fdd2b932497764fe7b415cfefe71ad7f0d83466eea6ec8bf9ff08f"),
         ("## 호환성과 검증 수준", "a497ceab7ac795adce2a1d4fc9163102c8e068dc74175b2d6229ac4790eb932d"),
@@ -391,7 +395,7 @@ README_CANONICAL_SECTION_DIGESTS = {
         ("## When to use and not use", "2daaa6de8f1623ab571cc1639b7b5097241c02e5f420b92ed48ecf1a401d926e"),
         ("## Install", "e9283708d71e494288bd89a3fce3c5b1af467885e882da0cba56c3610b554785"),
         ("## First call", "304e4697f6a40a2d522f18757ed7e464c4a8fde253c885fdf82ac1152ebb5b2a"),
-        ("## Expected result", "df755934bd7da0ee5c1760066579191b255958ead5b8c91eaef7dfa9101f5ce7"),
+        ("## Expected result", "9a0ea30a1047bebd62b67f92a942442f8a58b36c92ad7c6ae72dc6d62abe9930"),
         ("## Safety and privacy", "a45d1b73274f6fbc0a253274c389079c7656885d1dfce496a8b5af48ab5a5f53"),
         ("## Operations and limits", "968203b2f2603549347ecc24715f9e2f38ab1108a346e72fbc8f18d0ec0fdb04"),
         ("## Supported hosts and verification", "02a6dbd83e7268ffa9ba58160d099610aed2ba69688277a6f05c2a8b93ae45a1"),
@@ -399,8 +403,8 @@ README_CANONICAL_SECTION_DIGESTS = {
     ),
 }
 README_CANONICAL_DOCUMENT_DIGESTS = {
-    "ko": "4377629fb5d0fef9799135800ba2b2a48c001c44dc455085fe1bd53b81601f5d",
-    "en": "122488dd0e8d252e3d1296381da9a29bb303efb3ac52d60e5d4b31946796d6a8",
+    "ko": "0f590168f37392b13da3995ca10c37636b5f1cd937fae8f6ee081e4968680874",
+    "en": "59402200e8072d9512f0a911143bd810b0059066fd74391e85308cafe5d5d7b4",
 }
 MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Authority order", "3156a43d665d21723ce61b333c7c34f30abd2e6d288c472d5eec5878e5ef8321"),
@@ -409,15 +413,15 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Review passes", "85923c91aaadfe1eea3a6dfad1ba81e43e5df9d99ba111b5116c63dbff80e018"),
     ("### Severities", "72c20c936027d62761c1b2dd9ef16b954c0780d7a15b4b1e05cf33e28b383ebd"),
     ("### Finding classes", "2a0892a5aad034ceaf1218606d657f4b22bac89c0d2b67065b7018e811a44352"),
-    ("### Conditional risk triggers", "beb83c2728bf4bcc9ee15a353a1391971daa10bd59c45fea6a6fd641333db10c"),
+    ("### Conditional risk triggers", "64efb83a91690fe1286ea0dbb147ed51a85a77687fcb8ac9b6aa7583781e6ec9"),
     ("### Verdicts", "6bbc48d01219299cd47b1ae4f6f44952ce497012736b0785551fdb0995aacb00"),
-    ("### Freshness", "0aeb0ada39c01280c13124db6cadb057a1748837991e10ceee85e93415e7e3a6"),
+    ("### Freshness", "496291e8542f8f110b1f9e17647c86b83b42d58720382ce68437bb5601cd09ae"),
     ("### SDD handoff", "8a629dd12d78e2c08e77e7c1d057d0e450b135bc0633d5b62c8c926665976bca"),
 )
-MAINTAINER_CANONICAL_DIGEST = "a7f6b6f671554b8b989efc8e19485027984e7f8d3a6cfbfc03221d702cb9ec4a"
-TESTING_CANONICAL_DIGEST = "ec7f352cd9b132581975bbee39b16f11471754c54903cee9419363a70fe7831a"
+MAINTAINER_CANONICAL_DIGEST = "f09f915fc05aadcaa60b4396fcecc3acc848de91b11ee73dca96ab57a7fd380f"
+TESTING_CANONICAL_DIGEST = "711e0ace7ae0bf3c5f2504a0cf5ae4444a990416b907113d71839beee0cf6018"
 COMPATIBILITY_CANONICAL_DIGEST = "8df097a3b3e0786f176f1d8b5c131bf005f2738e047d0cd5e5f6a7aed7fb7395"
-RELEASE_CANONICAL_DIGEST = "0e6635cc8a847aa9442b5d45dc5ac6b5b45b59712ab25bd2abdbd2f1d2f2da1a"
+RELEASE_CANONICAL_DIGEST = "7c7e7e780b502bf138db51f6c6a958b855fb4d7f0f2c55110bcac1ec6e7b4ebe"
 
 
 def section(text: str, start: str, end: str) -> str:
@@ -1016,6 +1020,18 @@ class PreSddReviewContractTests(unittest.TestCase):
         )
         self.assertEqual(frontmatter["name"], "pre-sdd-review")
 
+    def test_release_sources_target_v1_3_0(self) -> None:
+        release = tomllib.loads((SKILL / "release.toml").read_text(encoding="utf-8"))
+        frontmatter = parse_skill_frontmatter(
+            (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        )
+        self.assertEqual(release["version"], TARGET_VERSION)
+        self.assertEqual(frontmatter["metadata"]["version"], TARGET_VERSION)
+        self.assertIn(
+            f"## {TARGET_VERSION} - 2026-08-30",
+            (SKILL / "CHANGELOG.md").read_text(encoding="utf-8"),
+        )
+
     def test_default_is_review_repair_and_re_review(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         for phrase in (
@@ -1062,6 +1078,37 @@ class PreSddReviewContractTests(unittest.TestCase):
             "modify`, `verified-no-change`, or `unresolved",
         ):
             self.assertIn(phrase, protocol)
+
+    def test_unreleased_convergence_contract_has_one_bounded_terminal_loop(self) -> None:
+        skill = re.sub(
+            r"\s+",
+            " ",
+            (SKILL / "SKILL.md").read_text(encoding="utf-8"),
+        )
+        protocol = re.sub(
+            r"\s+",
+            " ",
+            (SKILL / "references/reviewer-protocol.md").read_text(encoding="utf-8"),
+        )
+        contract = re.sub(
+            r"\s+",
+            " ",
+            (MAINTAINERS / "contract.md").read_text(encoding="utf-8"),
+        )
+
+        for document in (skill, contract):
+            self.assertIn("at most two review roles", document)
+            self.assertIn("does not add a review role", document)
+            self.assertIn("one discovery stage", document)
+            self.assertIn("Do not automatically start another invocation", document)
+            self.assertIn("one consolidated user checkpoint", document)
+
+        for document in (skill, protocol, contract):
+            self.assertIn("unmapped material finding", document)
+            self.assertIn("original finding or a direct mapped repair impact", document)
+            self.assertIn("apply the existing verdict rules", document)
+
+        self.assertIn("Detection still covers the final complete documents", protocol)
 
     def test_reviewer_is_read_only_and_controller_owns_repairs(self) -> None:
         protocol = (SKILL / "references/reviewer-protocol.md").read_text(
@@ -1448,7 +1495,6 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         for fact in (
             "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover",
             "provider-free",
-            "exactly twenty",
             "`ready`, `missing-coverage`, `false-verification`, `runtime-removal`,",
             "`runtime-removal`",
             "`design.md`, `plan.md`,",
@@ -1465,6 +1511,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "not_measured",
         ):
             self.assertIn(fact, normalized_testing)
+        self.assertEqual(len(CASE_IDS), 23)
+        self.assertIn("exactly twenty-three개의", normalized_testing)
         self.assertIn("Codex is supported", compatibility)
         self.assertIn("Every other host is `not_measured`", compatibility)
         self.assertIn("## Evidence CLI compatibility", compatibility)
@@ -1867,6 +1915,35 @@ class PreSddReviewFixtureTests(unittest.TestCase):
         self.assertEqual(
             data["cases"][1]["expect"],
             ["read_only", "single_verdict"],
+        )
+        convergence_expectations = {
+            case["id"]: case["expect"]
+            for case in data["cases"]
+            if case["id"] in {
+                "third-review-role",
+                "unmapped-repairable-finding",
+                "unmapped-authority-finding",
+            }
+        }
+        self.assertEqual(
+            convergence_expectations,
+            {
+                "third-review-role": [
+                    "reject_third_role",
+                    "fresh_agent_not_new_role",
+                ],
+                "unmapped-repairable-finding": [
+                    "REVISE",
+                    "terminal_handoff",
+                    "no_additional_repair",
+                    "no_automatic_retry",
+                ],
+                "unmapped-authority-finding": [
+                    "BLOCKED",
+                    "one_consolidated_checkpoint",
+                    "no_automatic_retry",
+                ],
+            },
         )
         near_misses = [
             case for case in data["cases"] if case["id"].startswith("near-miss-")

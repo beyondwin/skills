@@ -26,7 +26,7 @@ RUNTIME_PACKAGE_FILES = (
 )
 
 _SKILL_NAME = "pre-sdd-review"
-_SKILL_VERSION = "1.2.0"
+_SKILL_VERSION = "1.3.0"
 _CLI_VERSION = "1.0.0"
 _SCHEMA_VERSION = 1
 _COMMAND = "pre-sdd-review-evidence"

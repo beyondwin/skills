@@ -107,3 +107,9 @@ read the final complete documents, evaluate the original findings afresh, and
 use the repair-impact map to run a bounded regression over direct consumers
 and adjacent task interfaces. Do not expand this into an unrelated full
 review.
+
+Detection still covers the final complete documents, but current-repair
+eligibility does not. A material finding is eligible only when its source is an
+original finding or a direct mapped repair impact. Report any unmapped
+material finding without repairing it, end the current invocation, and apply
+the existing verdict rules through the unresolved handoff.

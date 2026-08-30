@@ -80,6 +80,11 @@ There are at most two repair passes. The final verdict is one of:
 - `REVISE`: a material, repairable document defect remains.
 - `BLOCKED`: required input, authority, or repository evidence is unavailable.
 
+One invocation ends after one discovery stage and its bounded re-reviews.
+Authority-preserving repairs need no approval; only a real product decision
+creates one consolidated checkpoint. The controller never automatically
+repeats an invocation after `REVISE` or `BLOCKED`.
+
 A focused second reviewer is conditional, not routine: runtime removal, schema
 migration or data deletion, authentication or security boundaries,
 public/private data-boundary changes, or external side effects such as

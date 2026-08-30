@@ -8,3 +8,4 @@ Files here are point-in-time records. They may contain old names and paths, and 
 
 - [스펙](specs/)
 - [계획](plans/)
+- [현장 관찰 기록](field-notes/) — 비권위 실행 관찰과 개선 후보

@@ -43,8 +43,8 @@ def valid_review(**changes: object) -> dict[str, object]:
         "completed_at": "2026-08-30T10:04:12Z",
         "skill": {
             "name": "pre-sdd-review",
-            "declared_version": "1.2.0",
-            "release_version": "1.2.0",
+            "declared_version": "1.3.0",
+            "release_version": "1.3.0",
             "skill_sha256": SHA,
             "reviewer_protocol_sha256": SHA,
             "release_manifest_sha256": SHA,

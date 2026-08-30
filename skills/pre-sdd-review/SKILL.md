@@ -4,7 +4,7 @@ description: Use when an approved design spec and implementation plan already ex
 license: Apache-2.0
 compatibility: Requires a local Git repository, readable design and plan files, and Codex subagent support for independent review.
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
   updated_at: "2026-08-30"
 ---
 
@@ -98,9 +98,16 @@ mutations. It examines only the triggered risk class.
 The controller deduplicates all findings by evidence and consequence before
 repair. Reviewers never edit files.
 
+Across the entire invocation, use at most two review roles: one primary role
+and, when triggered, one focused risk role. A fresh re-review may replace the
+agent in either role, but it does not add a review role or broaden the
+triggered risk class. Evidence `reviewer_count` records these logical roles,
+not cumulative fresh agent calls.
+
 ## Default mode: review -> repair documents -> scoped re-review
 
-The default controller state machine is:
+One invocation has one discovery stage, at most two repair passes, and a
+terminal scoped closure. The default controller state machine is:
 
 ```text
 resolve plan -> resolve plan **Spec:** -> read binding references
@@ -129,13 +136,19 @@ repair-impact map. It first checks original finding closure, then performs a
 bounded repair-impact regression over the mapped consumers and adjacent
 interfaces. This is not a new full review.
 
-An optional second repair is allowed only after that re-review finds another
-repairable material defect. Before the final repair, deduplicate the remaining
-findings, complete any triggered impact map, and confirm that no unresolved
-authority choice is hidden in the repair. It must be followed by another fresh
-closure and repair-impact re-review before the final verdict. At most two repair passes
-are permitted. If a material issue remains after the second repair pass, return
-`REVISE` with its evidence; do not downgrade it to finish the loop.
+During scoped re-review, a material finding is eligible for the current repair
+only when its source is an original finding or a direct mapped repair impact.
+Keep an unmapped material finding visible, but do not widen the current repair.
+End the invocation, include it in the unresolved handoff, and apply the existing
+verdict rules: `BLOCKED` when new authority, input, or repository evidence is
+required; otherwise `REVISE`.
+
+An optional second repair is allowed only when that re-review finds another
+eligible repairable material defect. Before it, deduplicate remaining findings,
+complete any triggered impact map, and confirm that the repair hides no
+unresolved authority choice. Then run one final fresh closure and repair-impact
+re-review. At most two repair passes are permitted. If a material issue remains,
+return `REVISE` with its evidence; do not downgrade it to finish the loop.
 
 ## Review-only mode
 
@@ -154,6 +167,11 @@ application code, tests, configuration, generated artifacts, and unrelated docum
 Do not introduce a new feature, dependency, host claim, or product decision while
 repairing documents.
 
+Authority-preserving repairs require no user checkpoint. When one or more
+unresolved items require user authority, return one consolidated user
+checkpoint with the exact decisions needed; do not split them into repeated
+approval requests.
+
 ## Verdict and handoff
 
 Return `READY` only when no unresolved finding requires invention or permits a
@@ -169,6 +187,11 @@ next document scope, whether new authority or evidence is required, and the
 next invocation scope. New authority implies `BLOCKED`, never `REVISE`. This
 packet does not authorize a third repair or certify its suggested scope as
 complete.
+
+Do not automatically start another invocation after `REVISE` or `BLOCKED`.
+A later invocation requires an explicit outer request or changed document,
+authority, or repository evidence. If none changed, reuse the prior handoff
+instead of repeating the same review.
 
 Include a compact pass receipt in the final report: input and final document
 hashes, pass number, finding IDs/classes, triggered repair-impact categories,

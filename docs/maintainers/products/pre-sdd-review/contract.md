@@ -101,11 +101,16 @@ A second reviewer is conditional only, never routine.
 - `public/private data-boundary changes`
 - `external side effects such as publishing, billing, messaging, or production mutations`
 
+Across the entire invocation, use at most two review roles: one primary role
+and one focused risk role when triggered. A fresh re-review may replace an
+agent, but it does not add a review role or broaden the triggered risk class.
+Evidence `reviewer_count` records logical roles, not cumulative agent calls.
+
 ## Default flow, verdicts, and freshness
 
-기본 모드는 review, repair documents, scoped re-review입니다. 수리가 스키마,
-타입, 인터페이스, 상태 전이, 조건부 수정 면, 작업 간 계약, 검증 의미,
-공개/비공개 경계를 바꾸면 제어 에이전트가 짧은 영향 범위 표를 만듭니다. 표에는
+한 invocation은 one discovery stage와 최대 두 번의 repair, scoped re-review로
+끝납니다. 수리가 스키마, 타입, 인터페이스, 상태 전이, 조건부 수정 면, 작업 간
+계약, 검증 의미, 공개/비공개 경계를 바꾸면 제어 에이전트가 짧은 영향 범위 표를 만듭니다. 표에는
 바뀐 주장, 바뀐 심볼·상태·경로·명령, 직접 소비자, 이웃 작업 인터페이스,
 `modify | verified-no-change | unresolved` 처리, 검증 반례를 적습니다. 이
 조건에 해당하지 않는 단순 값·문구 수정은 표를 만들지 않습니다.
@@ -114,6 +119,11 @@ A second reviewer is conditional only, never routine.
 해결과 제한된 영향 회귀를 순서대로 수행합니다. 수정 패스는 최대 두 번이며,
 두 번째 패스 뒤에도 중요한 문제가 남으면 심각도를 낮추지 않습니다.
 `review-only`는 파일을 바꾸지 않고 첫 검토 판정만 반환합니다.
+
+Scoped re-review의 현재 repair 대상은 original finding or a direct mapped repair
+impact뿐입니다. 최종 문서에서 찾은 unmapped material finding은 버리지 않되 현재
+repair에 넣지 않습니다. invocation을 끝내고 handoff에 기록한 뒤 apply the
+existing verdict rules를 따릅니다.
 
 ### Verdicts
 
@@ -137,6 +147,11 @@ A second reviewer is conditional only, never routine.
 바뀐 문서 해시, 판정을 담은 짧은 패스 영수증을 포함합니다. `REVISE`와
 `BLOCKED`는 미해결 발견과 다음 범위를 담은 인계 묶음을 반환합니다. 새 권위가
 필요하면 판정은 `BLOCKED`입니다.
+
+Authority-preserving repair에는 승인 질문을 하지 않습니다. 사용자 권위가
+필요하면 exact decisions를 one consolidated user checkpoint로 묶습니다. Do not
+automatically start another invocation after `REVISE` or `BLOCKED`. 문서, 권위,
+저장소 증거가 바뀌지 않았다면 이전 handoff를 재사용합니다.
 
 ## Optional evidence contract
 
