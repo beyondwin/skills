@@ -92,6 +92,8 @@ class StorageLifecycleTests(unittest.TestCase):
 
     def test_interruption_after_pending_fsync_recovers_exact_bytes(self) -> None:
         pending = pending_record()
+        raw_locator = "/private/RAW-LOCATOR-MUST-NEVER-BE-PERSISTED"
+        pending["start_locator_binding"] = "b" * 64
         with self.assertRaisesRegex(RuntimeError, "interrupt"):
             storage.create_pending(
                 self.paths,
@@ -101,6 +103,8 @@ class StorageLifecycleTests(unittest.TestCase):
         staging = self.paths.runs / f".staging-{pending['run_id']}"
         expected = canonical_json_bytes(pending)
         self.assertEqual((staging / ".pending.json").read_bytes(), expected)
+        self.assertIn(b'"start_locator_binding":"' + b"b" * 64 + b'"', expected)
+        self.assertNotIn(raw_locator.encode("utf-8"), expected)
         reports = storage.recover_staging(self.paths)
         self.assertEqual(reports, ())
         run_dir = self.paths.run_directory(str(pending["run_id"]), str(pending["started_at"]))
@@ -151,6 +155,11 @@ class StorageLifecycleTests(unittest.TestCase):
                         record = storage.load_review(paths, handle.run_id)
                 final_bytes = (handle.directory / "review.json").read_bytes()
                 self.assertTrue((handle.directory / ".pending.json").exists())
+                (handle.directory / ".write.lock").write_bytes(b"")
+                (handle.directory / ".review.json.interrupted.tmp").write_bytes(b"")
+                if os.name == "posix":
+                    (handle.directory / ".write.lock").chmod(0o600)
+                    (handle.directory / ".review.json.interrupted.tmp").chmod(0o600)
                 if transition == "finish":
                     result = storage.finish_review(paths, handle.run_id, record)
                 else:
@@ -158,6 +167,8 @@ class StorageLifecycleTests(unittest.TestCase):
                 self.assertEqual(final_bytes, (handle.directory / "review.json").read_bytes())
                 self.assertEqual(result.sha256, storage.sha256_payload(final_bytes))
                 self.assertFalse((handle.directory / ".pending.json").exists())
+                self.assertFalse((handle.directory / ".write.lock").exists())
+                self.assertFalse((handle.directory / ".review.json.interrupted.tmp").exists())
 
     def test_abandon_has_exact_canonical_projection_and_conflict_rules(self) -> None:
         pending = pending_record(mode="review-only")
@@ -482,6 +493,24 @@ class StorageLifecycleTests(unittest.TestCase):
         ), mock.patch.object(storage.ctypes, "get_last_error", return_value=183, create=True):
             with self.assertRaisesRegex(EvidenceError, "already exists"):
                 storage.publish_directory_no_replace(Path("source"), Path("destination"))
+
+    @unittest.skipUnless(storage.sys.platform == "darwin", "requires native Darwin")
+    def test_native_darwin_renamex_np_uses_exclusive_directory_publication(self) -> None:
+        source = self.root / "darwin-source"
+        source.mkdir()
+        destination = self.root / "darwin-destination"
+
+        storage.publish_directory_no_replace(source, destination)
+
+        self.assertFalse(source.exists())
+        self.assertEqual(tuple(destination.iterdir()), ())
+        loser = self.root / "darwin-loser"
+        loser.mkdir()
+        (loser / "loser").write_bytes(b"loser")
+        with self.assertRaisesRegex(EvidenceError, "already exists"):
+            storage.publish_directory_no_replace(loser, destination)
+        self.assertTrue(loser.exists())
+        self.assertEqual(tuple(destination.iterdir()), ())
 
     def test_reader_consumers_use_shared_bounded_reader(self) -> None:
         pending = pending_record()

@@ -4,8 +4,11 @@ import io
 import hashlib
 import json
 import os
+import subprocess
+import sys
 import tempfile
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest import mock
 
@@ -82,6 +85,190 @@ class CliTests(unittest.TestCase):
         code, output, error = self.run_cli(["--version", "start"])
         self.assertNotEqual(code, 0)
         self.assertEqual(output, "")
+
+    def test_twenty_independent_starts_share_one_identity_without_sharing_runs(self) -> None:
+        environment = {
+            **{
+                name: os.environ[name]
+                for name in ("PATH", "TMPDIR", "TEMP", "TMP", "SYSTEMROOT", "COMSPEC", "PATHEXT")
+                if name in os.environ
+            },
+            "HOME": str(self.workspace / "isolated-home"),
+            "PRE_SDD_REVIEW_HOME": str(self.home),
+            "PYTHONDONTWRITEBYTECODE": "1",
+            "PYTHONPATH": str(self.skill / "evidence"),
+        }
+        command = [
+            sys.executable,
+            "-m",
+            "pre_sdd_review_evidence",
+            "start",
+            "--skill-root",
+            str(self.skill),
+            "--plan",
+            "docs/plan.md",
+            "--client",
+            "cursor",
+            "--mode",
+            "default",
+        ]
+
+        def launch(_number: int) -> subprocess.CompletedProcess[str]:
+            return subprocess.run(
+                command,
+                cwd=self.repo,
+                env=environment,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+
+        with ThreadPoolExecutor(max_workers=20) as pool:
+            completed = tuple(pool.map(launch, range(20)))
+
+        self.assertTrue(all(item.returncode == 0 for item in completed))
+        self.assertTrue(all(item.stderr == "" for item in completed))
+        results = tuple(json.loads(item.stdout) for item in completed)
+        run_ids = {str(item["run_id"]) for item in results}
+        self.assertEqual(len(run_ids), 20)
+        pending_paths = tuple(self.home.glob("runs/*/*/*/.pending.json"))
+        self.assertEqual(len(pending_paths), 20)
+        pending = tuple(json.loads(path.read_text(encoding="utf-8")) for path in pending_paths)
+        self.assertEqual({str(item["run_id"]) for item in pending}, run_ids)
+        self.assertEqual(len({str(item["target"]["repo_id"]) for item in pending}), 1)
+        identity = (self.home / "identity.key").read_bytes()
+        config = json.loads((self.home / "config.json").read_text(encoding="utf-8"))
+        self.assertEqual(len(identity), 32)
+        self.assertEqual(config["identity_key_sha256"], hashlib.sha256(identity).hexdigest())
+
+    def test_rejected_sensitive_adversarial_inputs_never_reach_public_artifacts(self) -> None:
+        started = self.start()
+        run_id = str(started["run_id"])
+        markers = (
+            str(self.workspace / "ABSOLUTE-HOME-PRIVATE-MARKER"),
+            "sk-proj-API-KEY-PRIVATE-MARKER",
+            "ENVIRONMENT-PRIVATE-MARKER",
+            "SOURCE-BODY-PRIVATE-MARKER",
+            "PROMPT-PRIVATE-MARKER",
+            "RESPONSE-PRIVATE-MARKER",
+            "WINDOWS-SEPARATOR-PRIVATE-MARKER",
+            "OVERSIZED-UNICODE-PRIVATE-MARKER",
+            "TRUNCATED-JSON-PRIVATE-MARKER",
+            "STALE-LOCK-PRIVATE-MARKER",
+            "SYMLINK-ESCAPE-PRIVATE-MARKER",
+        )
+
+        def finding() -> dict[str, object]:
+            return {
+                "id": "PSDR-999",
+                "severity": "IMPORTANT",
+                "class": "coverage",
+                "pattern_key": "adversarial-privacy",
+                "consequence_category": "other",
+                "status": "repaired",
+                "location": {"path": "docs/plan.md", "locator": "Task 8"},
+                "evidence_refs": ["tests/privacy"],
+                "consequence": "Bounded evidence must remain private.",
+                "minimal_fix": "Reject the invalid structured input.",
+                "repair_pass": 1,
+            }
+
+        invalid_semantics: list[dict[str, object]] = []
+        for key, value in (
+            ("credential", markers[1]),
+            ("environment", {"API_KEY": markers[2]}),
+            ("document_body", f"first line\n{markers[3]}"),
+            ("prompt", markers[4]),
+            ("response", markers[5]),
+        ):
+            semantic = self.semantic()
+            item = finding()
+            item[key] = value
+            semantic["findings"] = [item]
+            semantic["repair_passes"] = 1
+            invalid_semantics.append(semantic)
+        for path_value in (markers[0], f"docs\\{markers[6]}.md"):
+            semantic = self.semantic()
+            item = finding()
+            item["location"] = {"path": path_value, "locator": "Task 8"}
+            semantic["findings"] = [item]
+            semantic["repair_passes"] = 1
+            invalid_semantics.append(semantic)
+        semantic = self.semantic()
+        item = finding()
+        item["consequence"] = "雪" * 301 + markers[7]
+        semantic["findings"] = [item]
+        semantic["repair_passes"] = 1
+        invalid_semantics.append(semantic)
+
+        public_output: list[str] = []
+        finish = [
+            "finish-review", "--run-id", run_id, "--repo", str(self.repo),
+            "--from-stdin",
+        ]
+        for semantic in invalid_semantics:
+            code, output, error = self.run_cli(finish, json.dumps(semantic))
+            self.assertNotEqual(code, 0)
+            self.assertEqual(output, "")
+            public_output.append(error)
+
+        code, output, error = self.run_cli(
+            finish, '{"mode":"default","private":"' + markers[8]
+        )
+        self.assertNotEqual(code, 0)
+        self.assertEqual(output, "")
+        public_output.append(error)
+
+        run_dir = next(self.home.glob(f"runs/*/*/{run_id}"))
+        lock = run_dir / ".write.lock"
+        lock.write_text(markers[9], encoding="utf-8")
+        if os.name == "posix":
+            lock.chmod(0o600)
+        code, output, error = self.run_cli(finish, json.dumps(self.semantic()))
+        self.assertNotEqual(code, 0)
+        self.assertEqual(output, "")
+        public_output.append(error)
+        lock.unlink()
+
+        external = self.workspace / markers[10]
+        external.write_text(f"# {markers[10]}\n", encoding="utf-8")
+        escape = self.repo / "docs/private-plan.md"
+        escape.symlink_to(external)
+        code, output, error = self.run_cli([
+            "start", "--skill-root", str(self.skill), "--plan", "docs/private-plan.md",
+            "--client", "cursor", "--mode", "default",
+        ])
+        self.assertEqual((code, error), (0, ""))
+        self.assertEqual(json.loads(output)["resolution_status"], "outside-repository")
+        public_output.append(output)
+
+        code, output, error = self.run_cli(["show", "--run-id", run_id.upper()])
+        self.assertNotEqual(code, 0)
+        self.assertEqual(output, "")
+        public_output.append(error)
+
+        code, output, error = self.run_cli(finish, json.dumps(self.semantic()))
+        self.assertEqual((code, error), (0, ""))
+        public_output.append(output)
+        for command in (["summary"], ["candidates"]):
+            code, output, error = self.run_cli(command)
+            self.assertEqual((code, error), (0, ""))
+            public_output.append(output)
+
+        public_bytes = "".join(public_output).encode("utf-8")
+        receipt_bytes = b"".join(
+            path.read_bytes()
+            for path in self.home.rglob("*.json")
+            if path.name != "config.json"
+        )
+        export_bytes = b"".join(
+            path.read_bytes() for path in self.home.glob("exports/**/*") if path.is_file()
+        )
+        for marker in markers:
+            encoded = marker.encode("utf-8")
+            self.assertNotIn(encoded, public_bytes)
+            self.assertNotIn(encoded, receipt_bytes)
+            self.assertNotIn(encoded, export_bytes)
 
     def test_start_then_finish_from_stdin_has_exact_status_objects(self) -> None:
         started = self.start()

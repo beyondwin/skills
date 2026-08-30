@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import hashlib
 import json
 import re
@@ -702,6 +703,105 @@ def second_review_risk_triggers(reviewers: str) -> tuple[str, ...]:
 
 
 class PreSddReviewContractTests(unittest.TestCase):
+    def test_evidence_runtime_is_offline_provider_free_and_uses_bounded_reads(self) -> None:
+        runtime = SKILL / "evidence/pre_sdd_review_evidence"
+        network_imports = {
+            "ftplib", "http", "imaplib", "poplib", "requests", "smtplib",
+            "socket", "urllib", "websockets",
+        }
+        provider_identifiers = {
+            "anthropic", "cohere", "mistralai", "openai", "telemetry",
+        }
+        subprocess_calls = {"call", "check_call", "check_output", "Popen", "run"}
+
+        for path in sorted(runtime.glob("*.py")):
+            with self.subTest(module=path.name):
+                tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+                functions = tuple(
+                    node
+                    for node in ast.walk(tree)
+                    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                )
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.Import):
+                        imported = {item.name.split(".", 1)[0] for item in node.names}
+                        self.assertTrue(imported.isdisjoint(network_imports))
+                        self.assertTrue(imported.isdisjoint(provider_identifiers))
+                    elif isinstance(node, ast.ImportFrom):
+                        imported = (node.module or "").split(".", 1)[0]
+                        self.assertNotIn(imported, network_imports)
+                        self.assertNotIn(imported, provider_identifiers)
+                    elif isinstance(node, ast.Name):
+                        self.assertNotIn(node.id.lower(), provider_identifiers)
+                    elif isinstance(node, ast.Attribute):
+                        self.assertNotIn(node.attr.lower(), provider_identifiers)
+                    elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+                        identifier = node.value.lower().split(".", 1)[0]
+                        self.assertNotIn(identifier, network_imports)
+                        self.assertNotIn(identifier, provider_identifiers)
+                    elif isinstance(node, ast.Call):
+                        function = node.func
+                        if isinstance(function, ast.Attribute):
+                            if (
+                                isinstance(function.value, ast.Name)
+                                and function.value.id == "os"
+                                and function.attr == "system"
+                            ):
+                                self.fail(f"{path.name} may not call os.system")
+                            if function.attr in {"read_bytes", "read_text"}:
+                                self.fail(
+                                    f"{path.name} bypasses the shared bounded reader"
+                                )
+                            if function.attr == "read":
+                                owners = tuple(
+                                    item.name
+                                    for item in functions
+                                    if item.lineno <= node.lineno <= (item.end_lineno or item.lineno)
+                                )
+                                self.assertIn(
+                                    (path.name, owners[-1] if owners else None),
+                                    {
+                                        ("cli.py", "_read_stdin"),
+                                        ("schema.py", "read_bounded_bytes"),
+                                    },
+                                    f"{path.name} bypasses the single bounded reader path",
+                                )
+                                self.assertEqual(
+                                    len(node.args), 1,
+                                    f"{path.name} contains an unbounded read()",
+                                )
+                                size = node.args[0]
+                                self.assertIsInstance(size, ast.BinOp)
+                                assert isinstance(size, ast.BinOp)
+                                self.assertIsInstance(size.op, ast.Add)
+                                self.assertIsInstance(size.left, ast.Name)
+                                self.assertEqual(size.left.id, "limit")
+                                self.assertIsInstance(size.right, ast.Constant)
+                                self.assertEqual(size.right.value, 1)
+                            if (
+                                isinstance(function.value, ast.Name)
+                                and function.value.id == "subprocess"
+                                and function.attr in subprocess_calls
+                            ):
+                                self.assertTrue(node.args, "subprocess call has no argv")
+                                argv = node.args[0]
+                                self.assertIsInstance(argv, (ast.List, ast.Tuple))
+                                assert isinstance(argv, (ast.List, ast.Tuple))
+                                self.assertTrue(argv.elts, "subprocess argv is empty")
+                                first = argv.elts[0]
+                                self.assertIsInstance(first, ast.Constant)
+                                assert isinstance(first, ast.Constant)
+                                self.assertEqual(first.value, "git")
+                        self.assertFalse(
+                            any(
+                                keyword.arg == "shell"
+                                and isinstance(keyword.value, ast.Constant)
+                                and keyword.value.value is True
+                                for keyword in node.keywords
+                            ),
+                            f"{path.name} enables shell=True",
+                        )
+
     def test_source_payload_contract_ignores_generated_python_cache(self) -> None:
         validator = globals().get("product_payload_contract_errors")
         self.assertIsNotNone(validator)
