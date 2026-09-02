@@ -66,6 +66,11 @@
       "expect": ["stale_fingerprints", "re-review"]
     },
     {
+      "id": "required-base-not-in-head",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md where the plan names a required implementation base that exists but is not an ancestor of HEAD",
+      "expect": ["BLOCKED", "pre_dispatch", "required_base_mismatch", "no_reviewer"]
+    },
+    {
       "id": "ambiguous-multiple-plans",
       "request": "$pre-sdd-review sample-app/design.md sample-app/plan-a.md sample-app/plan-b.md",
       "expect": ["BLOCKED", "one_plan_per_invocation"]

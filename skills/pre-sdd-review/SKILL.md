@@ -4,8 +4,8 @@ description: Use when an approved design spec and implementation plan already ex
 license: Apache-2.0
 compatibility: Requires a local Git repository, readable design and plan files, and Codex subagent support for independent review.
 metadata:
-  version: "1.3.0"
-  updated_at: "2026-08-30"
+  version: "1.3.1"
+  updated_at: "2026-09-02"
 ---
 
 # Pre-SDD Review
@@ -52,6 +52,12 @@ Interpret conflicts in this order:
 
 When repository evidence conflicts with an approved product decision, preserve
 the conflict. Never silently narrow, replace, or invent product intent.
+
+If the plan explicitly identifies a required implementation base branch, ref,
+or commit, resolve it before dispatching any reviewer. Verify the current
+checkout with `git merge-base --is-ancestor <required-base> HEAD`. If the base
+does not resolve or is not an ancestor of `HEAD`, preserve the mismatch and
+return `BLOCKED`; do not review or repair against a different checkout.
 
 ## Capture freshness
 
@@ -111,7 +117,8 @@ terminal scoped closure. The default controller state machine is:
 
 ```text
 resolve plan -> resolve plan **Spec:** -> read binding references
--> hash design and plan -> record HEAD and dirty state
+-> verify required implementation base -> hash design and plan
+-> record HEAD and dirty state
 -> fresh read-only review -> controller deduplication
 -> authority-preserving document repair -> original closure review
 -> conditional bounded repair-impact regression -> optional second repair

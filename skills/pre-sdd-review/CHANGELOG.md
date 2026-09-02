@@ -4,6 +4,15 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 1.3.1 - 2026-09-02
+
+### Changed
+
+- Plans that explicitly name a required implementation base now block before
+  reviewer dispatch when that base is unresolved or not an ancestor of the
+  current `HEAD`.
+- Provider-free coverage now includes the stale implementation-base boundary.
+
 ## 1.3.0 - 2026-08-30
 
 ### Changed

@@ -429,7 +429,7 @@ module.install(Path(skill_root), Path(windows_bin), "windows", Path(sys.executab
                 lambda root: (root / "release.toml").write_text(
                     (root / "release.toml")
                     .read_text(encoding="utf-8")
-                    .replace('version = "1.3.0"', 'version = "1.3.1"'),
+                    .replace('version = "1.3.1"', 'version = "1.3.2"'),
                     encoding="utf-8",
                 ),
                 "release identity",

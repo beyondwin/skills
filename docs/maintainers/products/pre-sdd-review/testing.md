@@ -32,7 +32,7 @@ receipt를 사용한 summary/candidates 규모 검사도 Python 표준 라이브
 
 ## Exact fixture boundary
 
-`cases.json`은 exactly twenty-three개의 activation, default-flow, review-only,
+`cases.json`은 exactly twenty-four개의 activation, default-flow, review-only,
 verdict, risk, freshness, evidence, near-miss 사례를 소유합니다. `fixtures/`는 정확히
 `ready`, `missing-coverage`, `false-verification`, `runtime-removal`,
 `repair-induced-schema-consumer`, `state-machine-vacuous-pass`, and
@@ -58,6 +58,7 @@ private prompts, credentials, transcripts, full model responses를 픽스처,
 - `unmapped-repairable-finding`
 - `unmapped-authority-finding`
 - `stale-document-hash`
+- `required-base-not-in-head`
 - `ambiguous-multiple-plans`
 - `evidence-cli-recorded`
 - `evidence-cli-unavailable`

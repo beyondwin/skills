@@ -20,6 +20,12 @@ resolved design specification을 찾고, 명시적으로 binding인 참조, 저�
 설계가 나중 호출에서 바뀌면, 이전 설계 지문에 의존한 계획 판정을 다시
 검토합니다.
 
+계획이 required implementation base branch, ref, or commit을 명시하면
+before dispatching any reviewer 현재 checkout을
+`git merge-base --is-ancestor <required-base> HEAD`로 확인합니다. base를 해석할
+수 없거나 `HEAD`의 조상이 아니면 불일치를 보존하고 return `BLOCKED`합니다.
+다른 checkout을 임의로 검토하거나 수리하지 않습니다.
+
 ## Authority order
 
 충돌은 아래의 machine-readable 순서로 해석합니다.

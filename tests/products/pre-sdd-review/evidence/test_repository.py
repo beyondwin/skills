@@ -226,8 +226,8 @@ class RepositoryResolutionTests(unittest.TestCase):
         snapshot = repository.load_skill_snapshot(skill_root)
 
         self.assertEqual(snapshot.name, "pre-sdd-review")
-        self.assertEqual(snapshot.declared_version, "1.3.0")
-        self.assertEqual(snapshot.release_version, "1.3.0")
+        self.assertEqual(snapshot.declared_version, "1.3.1")
+        self.assertEqual(snapshot.release_version, "1.3.1")
         self.assertEqual(snapshot.cli_version, "1.0.0")
         self.assertEqual(snapshot.schema_version, 1)
         for attribute, relative in (
@@ -244,7 +244,7 @@ class RepositoryResolutionTests(unittest.TestCase):
         shutil.copytree(ROOT / "skills/pre-sdd-review", copied)
         release = copied / "release.toml"
         release.write_text(
-            release.read_text(encoding="utf-8").replace('version = "1.3.0"', 'version = "9.9.9"'),
+            release.read_text(encoding="utf-8").replace('version = "1.3.1"', 'version = "9.9.9"'),
             encoding="utf-8",
         )
         with self.assertRaisesRegex(EvidenceError, "versions"):

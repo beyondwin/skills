@@ -23,7 +23,7 @@ from scripts.lib.product_registry import load_registry  # noqa: E402
 SKILL = ROOT / "skills" / "pre-sdd-review"
 CASES = ROOT / "tests" / "products" / "pre-sdd-review" / "cases.json"
 FIXTURES = ROOT / "tests" / "products" / "pre-sdd-review" / "fixtures"
-TARGET_VERSION = "1.3.0"
+TARGET_VERSION = "1.3.1"
 PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     {
         "CHANGELOG.md",
@@ -46,7 +46,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "455c808c4e71281078e01958e0df0a7d4092d6cc1695cc26387bda52f0fc77bf",
+    "SKILL.md": "966f4b8fdb65687d8c4eb4e1092b9a12838c68af122bfe3b7c55b2991766b6bd",
     "references/reviewer-protocol.md": (
         "0883c5cdc4f79f9c07d764cacc9f4b01d3902e718af96139f54b4b64dfc86c9c"
     ),
@@ -65,6 +65,7 @@ CASE_IDS = (
     "unmapped-repairable-finding",
     "unmapped-authority-finding",
     "stale-document-hash",
+    "required-base-not-in-head",
     "ambiguous-multiple-plans",
     "evidence-cli-recorded",
     "evidence-cli-unavailable",
@@ -374,28 +375,29 @@ README_CONTRACT = (
         ),
     ),
     ("freshness", ("fingerprints", "content-change-invalidates")),
+    ("required-base", ("pre-dispatch-ancestor-check",)),
     ("handoff", ("unresolved-packet",)),
     ("sdd", ("outer-request-implementation-only",)),
     ("evidence", ("optional", "non-blocking", "controller-local-run-id")),
 )
 README_CANONICAL_SECTION_DIGESTS = {
     "ko": (
-        ("## 이 스킬이 해결하는 문제", "b88192b94e7fc267bfe59880a7a44c5d15bc32915b4ec52cd88729a9464a85f4"),
+        ("## 이 스킬이 해결하는 문제", "283f070d25a4896d3b6d830f3f7ae512b34e1615ce745f2eaf8bf64b7b2eccc6"),
         ("## 사용해야 할 때와 사용하지 말아야 할 때", "63634fe6e87d9b53d0d13d628ab18747c164c33aa432c03e6ab095e7fd94e2b4"),
         ("## 설치", "a2a93e6a3dc7cf933377cee0ca7573c45f3d87afc819a5aa36bb0ed07fe39f3a"),
         ("## 첫 호출", "67982d6dac2b6cc91d6625f95b0a3c3c60937c07754746b0e7d83f41e374f606"),
-        ("## 결과와 기본 흐름", "d55cb3da2e9351e3c1f6daa14f1b904651abd95872fbd0ed0243c6d8306a659e"),
+        ("## 결과와 기본 흐름", "4705416ed3461c420eaca1de2b44faba34fc2b7e4a714f29fd9265c726ce6b2a"),
         ("## 안전과 개인정보", "62341d0462a00708bc0a22c59a92705a3570e5666714add87588ff37c79cbaf9"),
         ("## 운영과 한계", "3bab749b55fdd2b932497764fe7b415cfefe71ad7f0d83466eea6ec8bf9ff08f"),
         ("## 호환성과 검증 수준", "a497ceab7ac795adce2a1d4fc9163102c8e068dc74175b2d6229ac4790eb932d"),
         ("## 변경 이력과 관리자 문서", "7e1cb70139ec2f47b67004352fdd0ca739f19515c2c715095501268c5b7405ac"),
     ),
     "en": (
-        ("## Purpose", "cb23c6901e6861c95a61afafa163fe57231ea053f9c68db9491d1c6bffa9af87"),
+        ("## Purpose", "d1b0ca1b776d1b9f0ca9748e3bf2f5264e4ab2e6f091d83c998a230ee5659aa3"),
         ("## When to use and not use", "2daaa6de8f1623ab571cc1639b7b5097241c02e5f420b92ed48ecf1a401d926e"),
         ("## Install", "e9283708d71e494288bd89a3fce3c5b1af467885e882da0cba56c3610b554785"),
         ("## First call", "304e4697f6a40a2d522f18757ed7e464c4a8fde253c885fdf82ac1152ebb5b2a"),
-        ("## Expected result", "9a0ea30a1047bebd62b67f92a942442f8a58b36c92ad7c6ae72dc6d62abe9930"),
+        ("## Expected result", "db26a337d731030b1efee3111d60e6030ccb18a4533fe2d67d6140b030392e77"),
         ("## Safety and privacy", "a45d1b73274f6fbc0a253274c389079c7656885d1dfce496a8b5af48ab5a5f53"),
         ("## Operations and limits", "968203b2f2603549347ecc24715f9e2f38ab1108a346e72fbc8f18d0ec0fdb04"),
         ("## Supported hosts and verification", "02a6dbd83e7268ffa9ba58160d099610aed2ba69688277a6f05c2a8b93ae45a1"),
@@ -403,8 +405,8 @@ README_CANONICAL_SECTION_DIGESTS = {
     ),
 }
 README_CANONICAL_DOCUMENT_DIGESTS = {
-    "ko": "0f590168f37392b13da3995ca10c37636b5f1cd937fae8f6ee081e4968680874",
-    "en": "59402200e8072d9512f0a911143bd810b0059066fd74391e85308cafe5d5d7b4",
+    "ko": "aaed1568601583ad3fb76a742a4f9da1555ccf392c84c69c78fb6cdff9497c2a",
+    "en": "14cc353df2a74207d7599ba52036f824886783ce85be164b94a2417b5167ba7c",
 }
 MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Authority order", "3156a43d665d21723ce61b333c7c34f30abd2e6d288c472d5eec5878e5ef8321"),
@@ -418,10 +420,10 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Freshness", "496291e8542f8f110b1f9e17647c86b83b42d58720382ce68437bb5601cd09ae"),
     ("### SDD handoff", "8a629dd12d78e2c08e77e7c1d057d0e450b135bc0633d5b62c8c926665976bca"),
 )
-MAINTAINER_CANONICAL_DIGEST = "f09f915fc05aadcaa60b4396fcecc3acc848de91b11ee73dca96ab57a7fd380f"
-TESTING_CANONICAL_DIGEST = "711e0ace7ae0bf3c5f2504a0cf5ae4444a990416b907113d71839beee0cf6018"
+MAINTAINER_CANONICAL_DIGEST = "49e462422e78b0cea42890811a76e7de32380bc7e4cc72ff1d546c76ed22361b"
+TESTING_CANONICAL_DIGEST = "9b405b03ab0dcd8c5bd7d0f0a0a42bf6f84a8064bfec66dbb0e4106bc25aeb37"
 COMPATIBILITY_CANONICAL_DIGEST = "8df097a3b3e0786f176f1d8b5c131bf005f2738e047d0cd5e5f6a7aed7fb7395"
-RELEASE_CANONICAL_DIGEST = "7c7e7e780b502bf138db51f6c6a958b855fb4d7f0f2c55110bcac1ec6e7b4ebe"
+RELEASE_CANONICAL_DIGEST = "adb2d3ed5a38c02d0cc1dfe1cd97d5a0ae8b8335f953380bd9fc203273d65173"
 
 
 def section(text: str, start: str, end: str) -> str:
@@ -1020,7 +1022,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         )
         self.assertEqual(frontmatter["name"], "pre-sdd-review")
 
-    def test_release_sources_target_v1_3_0(self) -> None:
+    def test_release_sources_target_v1_3_1(self) -> None:
         release = tomllib.loads((SKILL / "release.toml").read_text(encoding="utf-8"))
         frontmatter = parse_skill_frontmatter(
             (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -1028,8 +1030,31 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertEqual(release["version"], TARGET_VERSION)
         self.assertEqual(frontmatter["metadata"]["version"], TARGET_VERSION)
         self.assertIn(
-            f"## {TARGET_VERSION} - 2026-08-30",
+            f"## {TARGET_VERSION} - 2026-09-02",
             (SKILL / "CHANGELOG.md").read_text(encoding="utf-8"),
+        )
+
+    def test_required_implementation_base_blocks_before_reviewer_dispatch(self) -> None:
+        skill = re.sub(
+            r"\s+",
+            " ",
+            (SKILL / "SKILL.md").read_text(encoding="utf-8"),
+        )
+        contract = re.sub(
+            r"\s+",
+            " ",
+            (MAINTAINERS / "contract.md").read_text(encoding="utf-8"),
+        )
+
+        for document in (skill, contract):
+            self.assertIn("required implementation base", document)
+            self.assertIn("before dispatching any reviewer", document)
+            self.assertIn("merge-base --is-ancestor", document)
+            self.assertIn("return `BLOCKED`", document)
+
+        self.assertLess(
+            skill.index("required implementation base"),
+            skill.index("fresh read-only review"),
         )
 
     def test_default_is_review_repair_and_re_review(self) -> None:
@@ -1144,7 +1169,8 @@ class PreSddReviewContractTests(unittest.TestCase):
             workflow,
             re.compile(
                 r"resolve plan -> resolve plan \*\*Spec:\*\* -> read binding references\s*"
-                r"-> hash design and plan -> record HEAD and dirty state\s*"
+                r"-> verify required implementation base -> hash design and plan\s*"
+                r"-> record HEAD and dirty state\s*"
                 r"-> fresh read-only review -> controller deduplication\s*"
                 r"-> authority-preserving document repair -> original closure review\s*"
                 r"-> conditional bounded repair-impact regression -> optional second repair\s*"
@@ -1511,8 +1537,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "not_measured",
         ):
             self.assertIn(fact, normalized_testing)
-        self.assertEqual(len(CASE_IDS), 23)
-        self.assertIn("exactly twenty-three개의", normalized_testing)
+        self.assertEqual(len(CASE_IDS), 24)
+        self.assertIn("exactly twenty-four개의", normalized_testing)
         self.assertIn("Codex is supported", compatibility)
         self.assertIn("Every other host is `not_measured`", compatibility)
         self.assertIn("## Evidence CLI compatibility", compatibility)

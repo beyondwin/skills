@@ -14,6 +14,11 @@ plan's `**Spec:**` field. If that path cannot be resolved, it returns `BLOCKED`
 instead of guessing among nearby files. One invocation reviews one plan;
 separate plan-local reviews never imply an aggregate `READY`.
 
+When a plan names a required implementation base branch, ref, or commit, the
+controller checks that it is an ancestor of the current `HEAD` before reviewer
+dispatch. An unresolved or non-ancestor base returns `BLOCKED` instead of
+guessing another checkout.
+
 ## When to use and not use
 
 Use this when an approved design specification and implementation plan already
@@ -114,6 +119,7 @@ downstream work reaches a terminal state.
 - `second-reviewer`: `conditional-only`
 - `risk-triggers`: `framework-runtime-removal`, `schema-data-deletion`, `auth-security-boundary`, `data-boundary-change`, `external-side-effects`
 - `freshness`: `fingerprints`, `content-change-invalidates`
+- `required-base`: `pre-dispatch-ancestor-check`
 - `handoff`: `unresolved-packet`
 - `sdd`: `outer-request-implementation-only`
 - `evidence`: `optional`, `non-blocking`, `controller-local-run-id`

@@ -5,7 +5,7 @@ version source is `skills/pre-sdd-review/release.toml`. `SKILL.md`의
 `metadata.version`은 검증된 복사본이고 `CHANGELOG.md`는 사람이 읽는 계약
 이력입니다.
 
-제품 식별자는 `release.toml`의 `pre-sdd-review` `version 1.3.0`입니다.
+제품 식별자는 `release.toml`의 `pre-sdd-review` `version 1.3.1`입니다.
 
 ## Check, build, and verify download
 

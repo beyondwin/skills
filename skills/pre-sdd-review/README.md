@@ -13,6 +13,10 @@
 `BLOCKED`를 반환합니다. 한 번의 호출은 계획 하나만 다루며, 여러 계획을 따로
 검토한 결과를 합쳐 `READY`로 간주하지 않습니다.
 
+계획이 필수 구현 베이스 branch, ref, commit을 명시하면 검토자를 부르기 전에
+그 베이스가 현재 `HEAD`의 조상인지 확인합니다. 해석할 수 없거나 조상이 아니면
+다른 checkout을 추측하지 않고 `BLOCKED`를 반환합니다.
+
 ## 사용해야 할 때와 사용하지 말아야 할 때
 
 승인된 설계 명세와 구현 계획이 이미 있고, SDD나 계획 실행 직전에 두 문서와
@@ -104,6 +108,7 @@ CLI가 없거나 호환되지 않거나 권한 오류가 나면 검토는 계속
 - `second-reviewer`: `conditional-only`
 - `risk-triggers`: `framework-runtime-removal`, `schema-data-deletion`, `auth-security-boundary`, `data-boundary-change`, `external-side-effects`
 - `freshness`: `fingerprints`, `content-change-invalidates`
+- `required-base`: `pre-dispatch-ancestor-check`
 - `handoff`: `unresolved-packet`
 - `sdd`: `outer-request-implementation-only`
 - `evidence`: `optional`, `non-blocking`, `controller-local-run-id`
