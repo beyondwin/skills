@@ -1,25 +1,32 @@
 from __future__ import annotations
 
+import io
+import json
 import subprocess
 import sys
-import datetime as dt
-import json
-import uuid
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[4]
-EVIDENCE_ROOT = ROOT / "skills" / "pre-sdd-review" / "evidence"
-if str(EVIDENCE_ROOT) not in sys.path:
-    sys.path.insert(0, str(EVIDENCE_ROOT))
+EVIDENCE_DIR = ROOT / "skills" / "pre-sdd-review" / "evidence"
+if str(EVIDENCE_DIR) not in sys.path:
+    sys.path.insert(0, str(EVIDENCE_DIR))
+
+import evidence  # noqa: E402
+
+SKILL_MD = (
+    "---\n"
+    "name: pre-sdd-review\n"
+    "description: synthetic\n"
+    "metadata:\n"
+    '  version: "2.0.0"\n'
+    "---\n\n# Pre-SDD Review\n"
+)
+PROTOCOL_MD = "# Reviewer protocol\n\nRead-only.\n"
 
 
 def run_git(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        ["git", "-C", str(root), *args],
-        check=False,
-        capture_output=True,
-        text=True,
+        ["git", "-C", str(root), *args], check=False, capture_output=True, text=True
     )
 
 
@@ -28,152 +35,126 @@ def write(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def make_git_repo(workspace: Path, *, initial_commit: bool = True) -> Path:
-    repo = workspace / "repo"
+def make_git_repo(workspace: Path, name: str = "repo") -> Path:
+    repo = workspace / name
     repo.mkdir(parents=True)
-    result = run_git(repo, "init", "--quiet")
-    if result.returncode != 0:
-        raise AssertionError(result.stderr)
-    for key, value in (
-        ("user.name", "Pre SDD Evidence Tests"),
-        ("user.email", "pre-sdd-evidence@example.invalid"),
+    for args in (
+        ("init", "--quiet"),
+        ("config", "user.name", "Evidence Tests"),
+        ("config", "user.email", "evidence@example.invalid"),
     ):
-        result = run_git(repo, "config", key, value)
+        result = run_git(repo, *args)
         if result.returncode != 0:
             raise AssertionError(result.stderr)
-    if initial_commit:
-        write(repo / ".gitignore", "\n")
-        result = run_git(repo, "add", ".gitignore")
-        if result.returncode != 0:
-            raise AssertionError(result.stderr)
-        result = run_git(repo, "commit", "--quiet", "-m", "initial")
+    write(repo / "docs/design.md", "# Design\n")
+    write(repo / "docs/plan.md", "# Plan\n\n**Spec:** docs/design.md\n")
+    write(repo / "src/app.ts", "export const app = 1;\n")
+    for args in (("add", "."), ("commit", "--quiet", "-m", "initial")):
+        result = run_git(repo, *args)
         if result.returncode != 0:
             raise AssertionError(result.stderr)
     return repo
 
 
-def fixed_skill() -> dict[str, object]:
-    digest = "a" * 64
-    return {
-        "name": "pre-sdd-review",
-        "declared_version": "1.3.1",
-        "release_version": "1.3.1",
-        "skill_sha256": digest,
-        "reviewer_protocol_sha256": "b" * 64,
-        "release_manifest_sha256": "c" * 64,
-        "cli_version": "1.0.0",
-        "schema_version": 1,
-    }
+def commit_all(repo: Path, message: str = "change") -> None:
+    for args in (("add", "."), ("commit", "--quiet", "-m", message)):
+        result = run_git(repo, *args)
+        if result.returncode != 0:
+            raise AssertionError(result.stderr)
 
 
-def fixed_target(*, status: str = "resolved") -> dict[str, object]:
-    if status == "not-git-repository":
-        return {
-            "repo_id": None,
-            "initial_head": None,
-            "initial_dirty": None,
-            "plan_path": None,
-            "plan_initial_sha256": None,
-            "design_path": None,
-            "design_initial_sha256": None,
-            "resolution_status": status,
-        }
-    return {
-        "repo_id": "d" * 64,
-        "initial_head": "1" * 40,
-        "initial_dirty": False,
-        "plan_path": "docs/plan.md",
-        "plan_initial_sha256": "e" * 64,
-        "design_path": "docs/design.md",
-        "design_initial_sha256": "f" * 64,
-        "resolution_status": status,
-    }
+def make_skill_root(workspace: Path, version: str = "2.0.0") -> Path:
+    root = workspace / "skill"
+    write(root / "SKILL.md", SKILL_MD.replace('"2.0.0"', f'"{version}"'))
+    write(root / "references/reviewer-protocol.md", PROTOCOL_MD)
+    return root
 
 
-def pending_record(
+def run(argv: list[str], *, home: Path, cwd: Path, stdin_text: str = "") -> tuple[int, str, str]:
+    out, err = io.StringIO(), io.StringIO()
+    code = evidence.main(
+        list(argv),
+        stdin=io.StringIO(stdin_text),
+        stdout=out,
+        stderr=err,
+        environ={"PRE_SDD_REVIEW_HOME": str(home)},
+        cwd=cwd,
+    )
+    return code, out.getvalue(), err.getvalue()
+
+
+def error_code(stderr_text: str) -> str:
+    return json.loads(stderr_text)["error"]["code"]
+
+
+def start(
+    home: Path,
+    repo: Path,
+    skill_root: Path,
     *,
-    run_id: str | None = None,
-    status: str = "resolved",
+    design: bool = True,
+    client: str = "codex",
+    model: str = "gpt-test",
     mode: str = "default",
-    started_at: str = "2026-08-30T10:00:00Z",
-    binding: str = "9" * 64,
-) -> dict[str, object]:
-    return {
-        "schema_version": 1,
-        "record_type": "pending",
-        "run_id": run_id or str(uuid.uuid4()),
-        "started_at": started_at,
-        "skill": fixed_skill(),
-        "client": {"id": "cursor", "version": None, "model": None},
-        "target": fixed_target(status=status),
-        "intended_mode": mode,
-        "start_locator_binding": binding,
-    }
+) -> str:
+    argv = [
+        "start",
+        "--skill-root", str(skill_root),
+        "--repo", str(repo),
+        "--plan", str(repo / "docs/plan.md"),
+        "--client", client,
+        "--model", model,
+        "--mode", mode,
+    ]
+    if design:
+        argv += ["--design", str(repo / "docs/design.md")]
+    code, out, err = run(argv, home=home, cwd=repo)
+    if code != 0:
+        raise AssertionError(err)
+    return json.loads(out)["run_id"]
 
 
-def completed_review(
-    pending: dict[str, object],
-    *,
-    verdict: str = "READY",
-    completed_at: str = "2026-08-30T10:04:12Z",
-) -> dict[str, object]:
-    target = json.loads(json.dumps(pending["target"]))
-    non_git = target["resolution_status"] == "not-git-repository"
-    findings: list[dict[str, object]] = []
-    if verdict == "REVISE":
-        findings = [{
-            "id": "PSDR-001",
-            "severity": "IMPORTANT",
-            "class": "verification-gap",
-            "pattern_key": "missing-proof",
-            "consequence_category": "avoidable-rework",
-            "status": "unresolved",
-            "location": {"path": "docs/plan.md", "locator": "Verification"},
-            "evidence_refs": ["docs/plan.md#verification"],
-            "consequence": "Behavior is not proved.",
-            "minimal_fix": "Add focused behavioral proof.",
-            "repair_pass": None,
-        }]
-    block_reason = "repository-unavailable" if verdict == "BLOCKED" else None
-    return {
-        "schema_version": 1,
-        "record_type": "review",
-        "run_id": pending["run_id"],
-        "started_at": pending["started_at"],
-        "completed_at": completed_at,
-        "skill": pending["skill"],
-        "client": pending["client"],
-        "protocol": {
-            "mode": pending["intended_mode"],
-            "execution": "blocked" if non_git else "full",
-            "reviewer_count": 0 if non_git else 1,
-            "fresh_reviewer": False if non_git else True,
-            "read_only_enforced": False if non_git else True,
-            "conditional_trigger": None,
-            "degraded_reasons": [],
-        },
-        "target": target,
-        "result": {
-            "completion": "completed",
-            "verdict": "BLOCKED" if non_git else verdict,
-            "block_reason": "repository-unavailable" if non_git else block_reason,
-            "completion_reason": None,
-            "review_passes": 1,
-            "repair_passes": 0,
-            "findings": findings,
-        },
-        "freshness": {
-            "final_head": None if non_git else target["initial_head"],
-            "final_dirty": None if non_git else target["initial_dirty"],
-            "plan_final_sha256": None if non_git else target["plan_initial_sha256"],
-            "design_final_sha256": None if non_git else target["design_initial_sha256"],
-        },
-        "metrics": {
-            "elapsed_ms": int((dt.datetime.fromisoformat(completed_at.replace("Z", "+00:00")) - dt.datetime.fromisoformat(str(pending["started_at"]).replace("Z", "+00:00"))).total_seconds() * 1000),
-            "recorder_elapsed_ms": 10,
-            "reviewer_count": 0 if non_git else 1,
-            "review_passes": 1,
-            "repair_passes": 0,
-            "token_usage": None,
-        },
+def finding(**overrides: object) -> dict[str, object]:
+    value: dict[str, object] = {
+        "id": "PSDR-001",
+        "severity": "IMPORTANT",
+        "class": "verification-gap",
+        "pattern": "build-only-acceptance",
+        "status": "repaired",
+        "repair_pass": 1,
+        "location": {"path": "docs/plan.md", "locator": "Task 2"},
+        "evidence": ["src/app.ts"],
+        "consequence": "A build-only check passes a wrong implementation.",
+        "fix": "Add a behavioral unit test to Task 2.",
     }
+    value.update(overrides)
+    return value
+
+
+def finish_payload(**overrides: object) -> dict[str, object]:
+    value: dict[str, object] = {
+        "execution": "full",
+        "reviewers": 1,
+        "trigger": None,
+        "degraded_reasons": [],
+        "verdict": "READY",
+        "block_reason": None,
+        "review_passes": 1,
+        "repair_passes": 0,
+        "findings": [],
+    }
+    value.update(overrides)
+    return value
+
+
+def finish(home: Path, repo: Path, run_id: str, payload: dict[str, object]) -> tuple[int, str, str]:
+    return run(
+        ["finish", "--run-id", run_id, "--repo", str(repo)],
+        home=home,
+        cwd=repo,
+        stdin_text=json.dumps(payload),
+    )
+
+
+def load(home: Path, run_id: str) -> dict[str, object]:
+    return json.loads((home / "runs" / f"{run_id}.json").read_text(encoding="utf-8"))

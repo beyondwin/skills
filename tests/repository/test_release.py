@@ -569,10 +569,9 @@ class ProductDownloadTests(unittest.TestCase):
                 self.assertEqual(release._smoke_pre_sdd_review(skill_root), [])
             self.assertFalse(configured_home.exists())
 
-            runtime = skill_root / "evidence/pre_sdd_review_evidence"
-            (runtime / "network.py").write_text("# extra\n", encoding="utf-8")
+            (skill_root / "evidence/extra.py").write_text("# extra\n", encoding="utf-8")
             self.assertIn(
-                "pre-sdd-review: runtime package manifest mismatch",
+                "pre-sdd-review: unexpected payload member: evidence/extra.py",
                 release._smoke_pre_sdd_review(skill_root),
             )
 

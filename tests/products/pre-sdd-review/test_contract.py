@@ -33,14 +33,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
         "SKILL.md",
         "agents/openai.yaml",
         "evidence/README.md",
-        "evidence/install.py",
-        "evidence/pre_sdd_review_evidence/__init__.py",
-        "evidence/pre_sdd_review_evidence/__main__.py",
-        "evidence/pre_sdd_review_evidence/cli.py",
-        "evidence/pre_sdd_review_evidence/repository.py",
-        "evidence/pre_sdd_review_evidence/reporting.py",
-        "evidence/pre_sdd_review_evidence/schema.py",
-        "evidence/pre_sdd_review_evidence/storage.py",
+        "evidence/evidence.py",
         "references/reviewer-protocol.md",
         "release.toml",
     }
@@ -820,8 +813,8 @@ def evidence_runtime_contract_errors(runtime: Path) -> tuple[str, ...]:
                         )
                         owner = owners[-1] if owners else None
                         if (path.name, owner) not in {
-                            ("cli.py", "_read_stdin"),
-                            ("schema.py", "read_bounded_bytes"),
+                            ("evidence.py", "read_stdin"),
+                            ("evidence.py", "read_bounded_bytes"),
                         }:
                             errors.append(f"{path.name} bypasses the single bounded reader path")
                         elif len(node.args) != 1:
@@ -861,36 +854,17 @@ def evidence_runtime_contract_errors(runtime: Path) -> tuple[str, ...]:
 
 class PreSddReviewContractTests(unittest.TestCase):
     def test_evidence_runtime_is_offline_provider_free_and_uses_bounded_reads(self) -> None:
-        runtime = SKILL / "evidence/pre_sdd_review_evidence"
-        self.assertEqual(evidence_runtime_contract_errors(runtime), ())
+        self.assertEqual(evidence_runtime_contract_errors(SKILL / "evidence"), ())
 
     def test_evidence_runtime_contract_detects_aliased_offline_and_reader_bypasses(self) -> None:
         mutations = (
-            (
-                "subprocess-module-alias",
-                "\nimport subprocess as sp\nsp.run(['python3', '-c', 'pass'])\n",
-                "launches a non-Git subprocess",
-            ),
-            (
-                "subprocess-symbol-alias",
-                "\nfrom subprocess import run as invoke\ninvoke(['python3', '-c', 'pass'])\n",
-                "launches a non-Git subprocess",
-            ),
-            (
-                "os-module-alias",
-                "\nimport os as operating\noperating.system('git status')\n",
-                "may not call os.system",
-            ),
-            (
-                "os-symbol-alias",
-                "\nfrom os import system as invoke\ninvoke('git status')\n",
-                "may not call os.system",
-            ),
-            (
-                "reader-method-alias",
-                "\ndef bypass(stream):\n    reader = stream.read\n    return reader()\n",
-                "bypasses the single bounded reader path",
-            ),
+            ("subprocess-module-alias", "\nimport subprocess as sp\nsp.run(['python3', '-c', 'pass'])\n", "launches a non-Git subprocess"),
+            ("subprocess-symbol-alias", "\nfrom subprocess import run as invoke\ninvoke(['python3', '-c', 'pass'])\n", "launches a non-Git subprocess"),
+            ("os-module-alias", "\nimport os as operating\noperating.system('git status')\n", "may not call os.system"),
+            ("os-symbol-alias", "\nfrom os import system as invoke\ninvoke('git status')\n", "may not call os.system"),
+            ("reader-method-alias", "\ndef bypass(stream):\n    reader = stream.read\n    return reader()\n", "bypasses the single bounded reader path"),
+            ("path-read-text", "\ndef bypass(path):\n    return path.read_text()\n", "bypasses the shared bounded reader"),
+            ("unbounded-read", "\ndef other(stream):\n    return stream.read()\n", "bypasses the single bounded reader path"),
             (
                 "annotated-subprocess-alias",
                 "\nimport subprocess as sp\ninvoke: object = sp.run\ninvoke(['python3', '-c', 'pass'])\n",
@@ -909,38 +883,31 @@ class PreSddReviewContractTests(unittest.TestCase):
         )
         for name, content, expected in mutations:
             with self.subTest(name=name), tempfile.TemporaryDirectory() as directory:
-                copied = Path(directory) / "runtime"
-                shutil.copytree(SKILL / "evidence/pre_sdd_review_evidence", copied)
-                repository_module = copied / "repository.py"
-                repository_module.write_text(
-                    repository_module.read_text(encoding="utf-8") + content,
-                    encoding="utf-8",
-                )
-                self.assertTrue(
-                    any(expected in error for error in evidence_runtime_contract_errors(copied))
-                )
+                copied = Path(directory) / "evidence"
+                shutil.copytree(SKILL / "evidence", copied, ignore=shutil.ignore_patterns("__pycache__"))
+                module = copied / "evidence.py"
+                module.write_text(module.read_text(encoding="utf-8") + content, encoding="utf-8")
+                self.assertTrue(any(expected in error for error in evidence_runtime_contract_errors(copied)), name)
 
         with tempfile.TemporaryDirectory() as directory:
-            copied = Path(directory) / "runtime"
-            shutil.copytree(SKILL / "evidence/pre_sdd_review_evidence", copied)
-            repository_module = copied / "repository.py"
-            repository_module.write_text(
-                repository_module.read_text(encoding="utf-8")
-                + "\nimport subprocess as sp\nsp.run(['git', 'status'])\n",
+            copied = Path(directory) / "evidence"
+            shutil.copytree(SKILL / "evidence", copied, ignore=shutil.ignore_patterns("__pycache__"))
+            module = copied / "evidence.py"
+            module.write_text(
+                module.read_text(encoding="utf-8") + "\nimport subprocess as sp\nsp.run(['git', 'status'])\n",
                 encoding="utf-8",
             )
             self.assertEqual(evidence_runtime_contract_errors(copied), ())
 
     def test_source_payload_contract_ignores_generated_python_cache(self) -> None:
         validator = globals().get("product_payload_contract_errors")
-        self.assertIsNotNone(validator)
         assert validator is not None
         with tempfile.TemporaryDirectory() as directory:
             copied = Path(directory) / "pre-sdd-review"
-            shutil.copytree(SKILL, copied)
-            cache = copied / "evidence/pre_sdd_review_evidence/__pycache__"
-            cache.mkdir(exist_ok=True)
-            (cache / "schema.cpython-314.pyc").write_bytes(b"bytecode")
+            shutil.copytree(SKILL, copied, ignore=shutil.ignore_patterns("__pycache__"))
+            cache = copied / "evidence/__pycache__"
+            cache.mkdir()
+            (cache / "evidence.cpython-311.pyc").write_bytes(b"bytecode")
             self.assertEqual(validator(copied), ())
 
     def test_pre_sdd_review_evidence_payload_is_allowed_only_for_pre_sdd(self) -> None:
@@ -990,15 +957,15 @@ class PreSddReviewContractTests(unittest.TestCase):
             ),
             (
                 "unlisted-evidence-sibling",
-                "evidence/pre_sdd_review_evidence/network.py",
+                "evidence/network.py",
                 "# Network access is not part of this product.\n",
-                "unexpected payload member: evidence/pre_sdd_review_evidence/network.py",
+                "unexpected payload member: evidence/network.py",
             ),
             (
-                "unlisted-report-sibling",
-                "evidence/pre_sdd_review_evidence/report.py",
-                "# Undeclared report modules are not part of the payload.\n",
-                "unexpected payload member: evidence/pre_sdd_review_evidence/report.py",
+                "unlisted-installer",
+                "evidence/install.py",
+                "# Installers are not part of this product.\n",
+                "unexpected payload member: evidence/install.py",
             ),
         )
         for name, relative, content, expected_error in mutations:

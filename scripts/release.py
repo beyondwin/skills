@@ -75,14 +75,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
         "SKILL.md",
         "agents/openai.yaml",
         "evidence/README.md",
-        "evidence/install.py",
-        "evidence/pre_sdd_review_evidence/__init__.py",
-        "evidence/pre_sdd_review_evidence/__main__.py",
-        "evidence/pre_sdd_review_evidence/cli.py",
-        "evidence/pre_sdd_review_evidence/repository.py",
-        "evidence/pre_sdd_review_evidence/reporting.py",
-        "evidence/pre_sdd_review_evidence/schema.py",
-        "evidence/pre_sdd_review_evidence/storage.py",
+        "evidence/evidence.py",
         "references/reviewer-protocol.md",
         "release.toml",
     }
@@ -589,31 +582,11 @@ def _smoke_pre_sdd_review(skill_root: Path) -> list[str]:
             )
         else:
             errors.append(f"pre-sdd-review: unexpected payload member: {relative}")
-    runtime_prefix = "evidence/pre_sdd_review_evidence/"
-    expected_runtime = {
-        relative.removeprefix(runtime_prefix)
-        for relative in PRE_SDD_REVIEW_PAYLOAD_FILES
-        if relative.startswith(runtime_prefix)
-    }
-    runtime_root = skill_root / runtime_prefix
-    try:
-        present_runtime = {path.name for path in runtime_root.iterdir()}
-    except OSError:
-        present_runtime = set()
-    if present_runtime != expected_runtime:
-        errors.append("pre-sdd-review: runtime package manifest mismatch")
     if errors:
         return errors
 
-    expected_version = {
-        "cli_version": "1.0.0",
-        "schema_version": 1,
-        "skill_name": "pre-sdd-review",
-    }
-    expected_bytes = (
-        b'{"cli_version":"1.0.0","schema_version":1,'
-        b'"skill_name":"pre-sdd-review"}\n'
-    )
+    expected_version = {"cli_version": "2.0.0", "schema": 2, "skill_name": "pre-sdd-review"}
+    expected_bytes = b'{"cli_version":"2.0.0","schema":2,"skill_name":"pre-sdd-review"}\n'
     with tempfile.TemporaryDirectory(prefix="pre-sdd-review-smoke-") as directory:
         evidence_home = Path(directory) / "evidence-home-must-stay-absent"
         environ = os.environ.copy()
@@ -621,26 +594,26 @@ def _smoke_pre_sdd_review(skill_root: Path) -> list[str]:
         environ["PYTHONDONTWRITEBYTECODE"] = "1"
         try:
             completed = subprocess.run(
-                [sys.executable, "-m", "pre_sdd_review_evidence", "--version"],
-                cwd=skill_root / "evidence",
+                [sys.executable, str(skill_root / "evidence" / "evidence.py"), "--version"],
+                cwd=skill_root,
                 env=environ,
                 check=False,
                 capture_output=True,
             )
         except OSError:
-            return ["pre-sdd-review: extracted evidence CLI could not execute"]
+            return ["pre-sdd-review: extracted evidence recorder could not execute"]
         if completed.returncode != 0:
-            errors.append("pre-sdd-review: extracted evidence CLI --version failed")
+            errors.append("pre-sdd-review: extracted evidence recorder --version failed")
         if completed.stdout != expected_bytes or completed.stderr != b"":
-            errors.append("pre-sdd-review: extracted evidence CLI version bytes differ")
+            errors.append("pre-sdd-review: extracted evidence recorder version bytes differ")
         try:
             version = json.loads(completed.stdout)
         except (UnicodeError, json.JSONDecodeError):
             version = None
-        if version != expected_version or not isinstance(version, dict) or set(version) != set(expected_version):
-            errors.append("pre-sdd-review: extracted evidence CLI version object differs")
+        if version != expected_version:
+            errors.append("pre-sdd-review: extracted evidence recorder version object differs")
         if evidence_home.exists():
-            errors.append("pre-sdd-review: extracted evidence CLI --version touched evidence home")
+            errors.append("pre-sdd-review: extracted evidence recorder --version touched evidence home")
     return errors
 
 
