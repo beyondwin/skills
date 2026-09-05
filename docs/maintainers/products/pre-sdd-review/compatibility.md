@@ -4,7 +4,7 @@
 
 ## Supported host
 
-Codex is supported because 측정된 계약이 로컬 Git 저장소, 읽을 수 있는 설계와
+Codex is supported. 측정된 계약이 로컬 Git 저장소, 읽을 수 있는 설계와
 계획 파일, 저장소 조사, 격리된 읽기 전용 검토자를 요구하기 때문입니다. Every other host is `not_measured`.
 Markdown 패키지를 읽을 수 있어도 같은 검토자 격리와 저장소 동작을 입증하지
 않았다면 지원으로 올리지 않습니다.
@@ -41,7 +41,7 @@ not be promoted to native support.
 
 ## Evidence limit
 
-필수 공급자 없는 명령은 [testing](testing.md)에 있습니다. 이 명령은 결정적
-패키지와 지시문 계약만 증명하며, 라이브 리뷰 품질이나 호스트 간 동등을
+필수 공급자 없는 명령은 [테스트](testing.md)에 있습니다. 이 명령은 결정적
+패키지와 지시문 계약만 증명합니다. 라이브 검토 품질이나 호스트 간 동등은
 증명하지 않습니다. 선택적 라이브 검사는 명시적, 로컬, 민감하지 않은 경계를
 유지합니다.

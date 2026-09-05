@@ -4,7 +4,10 @@
 
 ## 공급자 없는 증거
 
-필수 증거는 `python3 scripts/verify.py --skill how-it-works`입니다. `tests/products/how-it-works/cases.json`과 `tests/products/how-it-works/test_contract.py`는 형태와 페이로드 계약만 증명합니다. 라이브 모델 품질과 지원 호스트 런타임 동등은 증명하지 않습니다.
+필수 증거는 `python3 scripts/verify.py --skill how-it-works`입니다.
+`tests/products/how-it-works/cases.json`과
+`tests/products/how-it-works/test_contract.py`는 형태와 페이로드 계약만
+증명합니다. 라이브 모델 품질과 지원 호스트 런타임 동등은 증명하지 않습니다.
 
 결정적 픽스처:
 
@@ -17,11 +20,13 @@
 - `no-renderer`는 mermaid 소스와 번호 있는 홉 목록을 남기고 실패가 아닙니다.
 - `no-fetched-source`는 가져온 URL이 없으면 근거 제목을 생략하고 인용을 만들지 않습니다.
 
-페이로드 계약 통과는 파일 정체성, 이식 가능한 frontmatter, 금지 문자열만 증명합니다.
+페이로드 계약 통과는 파일 정체성, 이식 가능한 frontmatter, 금지 문자열만
+증명합니다.
 
 ## 선택적 라이브 smoke
 
-라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있습니다. CI가 요구하지 않습니다. 페이로드 계약 통과를 라이브 호출 증거로 설명하지 마세요.
+라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있습니다. CI가 요구하지
+않습니다. 페이로드 계약 통과를 라이브 호출 증거로 설명하지 마세요.
 
 같은 빌드에서 지원을 유지하려면 다음 네 가지가 통과해야 합니다.
 
@@ -30,7 +35,8 @@
 3. 의도한 암묵 호출과 near-miss 비호출
 4. 완전한 마크다운, mermaid 소스, 번호 있는 홉 목록
 
-기록은 호스트, 클라이언트 버전, 날짜, 케이스, 판정만 남깁니다. 전체 응답과 비공개 프롬프트는 커밋하지 않습니다.
+기록은 호스트, 클라이언트 버전, 날짜, 케이스, 판정만 남깁니다. 전체 응답과
+비공개 프롬프트는 커밋하지 않습니다.
 
 ## 명령
 

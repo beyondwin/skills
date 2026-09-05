@@ -5,30 +5,30 @@
 
 ## Activation and input resolution
 
-승인된 설계 명세와 구현 계획이 모두 있고, SDD 또는 계획 실행 직전의
-준비 상태를 검토할 때만 활성화합니다. 최초 설계·계획 작성, source diff
-review, release readiness, 교정, 일반 문서 작업에는 활성화하지 않습니다.
+승인된 설계 명세와 구현 계획이 모두 있을 때만 씁니다. SDD나 계획 실행
+직전 준비 상태를 볼 때 활성화합니다. 처음 설계나 계획을 쓸 때는 쓰지
+않습니다. 코드 검토, 출시 준비, 교정, 일반 문서 작업에도 쓰지 않습니다.
 
-구현 계획 경로 하나를 먼저 확정합니다. 그 계획의 `**Spec:**` 필드로
-resolved design specification을 찾고, 명시적으로 binding인 참조, 저장소
-루트, 현재 Git 상태를 차례로 확인합니다. `**Spec:**` 경로가 없거나 해석할
-수 없으면 `BLOCKED`이며, 주변 파일을 추측해 선택하지 않습니다.
+구현 계획 경로 하나를 먼저 정합니다. 그 계획의 `**Spec:**` 필드로
+resolved design specification을 찾습니다. 그다음 명시적으로 binding인
+참조, 저장소 루트, 현재 Git 상태를 확인합니다. `**Spec:**` 경로가 없거나
+해석할 수 없으면 `BLOCKED`입니다. 주변 파일을 추측해 고르지 않습니다.
 
 한 호출은 구현 계획 하나만 검토합니다. 여러 계획 중 어느 것인지 분명하지
-않으면 정확한 계획 경로를 다시 받아야 하며, 받을 수 없으면 `BLOCKED`입니다.
+않으면 정확한 계획 경로를 다시 받습니다. 받을 수 없으면 `BLOCKED`입니다.
 계획을 나눠 여러 번 호출해도 전체를 묶은 `READY`는 만들지 않습니다. 공유
 설계가 나중 호출에서 바뀌면, 이전 설계 지문에 의존한 계획 판정을 다시
 검토합니다.
 
 계획이 required implementation base branch, ref, or commit을 명시하면
 before dispatching any reviewer 현재 checkout을
-`git merge-base --is-ancestor <required-base> HEAD`로 확인합니다. base를 해석할
-수 없거나 `HEAD`의 조상이 아니면 불일치를 보존하고 return `BLOCKED`합니다.
-다른 checkout을 임의로 검토하거나 수리하지 않습니다.
+`git merge-base --is-ancestor <required-base> HEAD`로 확인합니다. base를
+해석할 수 없거나 `HEAD`의 조상이 아니면 불일치를 보존하고 return `BLOCKED`합니다.
+다른 checkout을 임의로 검토하거나 고치지 않습니다.
 
 ## Authority order
 
-충돌은 아래의 machine-readable 순서로 해석합니다.
+충돌은 아래 순서로 해석합니다.
 
 ### Authority order
 
@@ -44,9 +44,9 @@ before dispatching any reviewer 현재 checkout을
 
 ## Reviewer isolation and repair allowlist
 
-기본 리뷰어는 fresh, independent, `read-only`입니다. 리뷰어는 증거와 가장
-작은 authority-preserving correction만 보고하고, controlling agent만 문서를
-고칩니다. 아래 bounded list만 수정 권위를 가지며 기능, dependency, host
+기본 검토자는 새로 오고, 독립적이며 `read-only`입니다. 검토자는 증거와
+가장 작은 권위 보존 수정만 보고합니다. 문서를 고치는 것은 controlling
+agent만 합니다. 아래 목록만 수정할 수 있습니다. 기능, dependency, host
 claim, 제품 결정을 추가하지 않습니다.
 
 ### Editable paths
@@ -114,21 +114,22 @@ Evidence `reviewer_count` records logical roles, not cumulative agent calls.
 
 ## Default flow, verdicts, and freshness
 
-한 invocation은 one discovery stage와 최대 두 번의 repair, scoped re-review로
-끝납니다. 수리가 스키마, 타입, 인터페이스, 상태 전이, 조건부 수정 면, 작업 간
-계약, 검증 의미, 공개/비공개 경계를 바꾸면 제어 에이전트가 짧은 영향 범위 표를 만듭니다. 표에는
-바뀐 주장, 바뀐 심볼·상태·경로·명령, 직접 소비자, 이웃 작업 인터페이스,
-`modify | verified-no-change | unresolved` 처리, 검증 반례를 적습니다. 이
-조건에 해당하지 않는 단순 값·문구 수정은 표를 만들지 않습니다.
+한 호출은 one discovery stage와 수정 최대 두 번, 범위 제한 재검토로
+끝납니다. 수정이 스키마, 타입, 인터페이스, 상태 전이, 조건부 수정 면,
+작업 간 계약, 검증 의미, 공개/비공개 경계를 바꾸면 제어 에이전트가 짧은
+영향 범위 표를 만듭니다. 표에는 바뀐 주장, 바뀐 심볼·상태·경로·명령,
+직접 소비자, 이웃 작업 인터페이스, `modify | verified-no-change | unresolved`
+처리, 검증 반례를 적습니다. 이 조건에 해당하지 않는 단순 값·문구 수정은
+표를 만들지 않습니다.
 
-새 검토자는 수리된 최종 문서, 원래 발견, 영향 범위 표를 받아 원래 발견의
-해결과 제한된 영향 회귀를 순서대로 수행합니다. 수정 패스는 최대 두 번이며,
-두 번째 패스 뒤에도 중요한 문제가 남으면 심각도를 낮추지 않습니다.
-`review-only`는 파일을 바꾸지 않고 첫 검토 판정만 반환합니다.
+새 검토자는 고친 최종 문서, 원래 발견, 영향 범위 표를 받습니다. 원래
+발견의 해결과 제한된 영향 회귀를 순서대로 합니다. 수정 패스는 최대 두
+번입니다. 두 번째 패스 뒤에도 중요한 문제가 남으면 심각도를 낮추지
+않습니다. `review-only`는 파일을 바꾸지 않고 첫 검토 판정만 반환합니다.
 
-Scoped re-review의 현재 repair 대상은 original finding or a direct mapped repair
-impact뿐입니다. 최종 문서에서 찾은 unmapped material finding은 버리지 않되 현재
-repair에 넣지 않습니다. invocation을 끝내고 handoff에 기록한 뒤 apply the
+범위 제한 재검토의 현재 수정 대상은 original finding or a direct mapped repair
+impact뿐입니다. 최종 문서에서 찾은 unmapped material finding은 버리지 않습니다.
+지금 수정에는 넣지 않습니다. 호출을 끝내고 handoff에 기록한 뒤 apply the
 existing verdict rules를 따릅니다.
 
 ### Verdicts
@@ -194,11 +195,32 @@ per-plan chains, repeated finding patterns, and anomalies, each carrying
 `run_id` values. No automatic skill mutation, fixture export, or client/model
 ranking follows from it.
 
+## 함께 고칠 파일
+
+동작 변경을 한 파일에만 넣지 마세요.
+
+- 권위 순서, 판정, repair 한도, reviewer role: `skills/pre-sdd-review/SKILL.md`,
+  `references/reviewer-protocol.md`, 이 계약, `tests/products/pre-sdd-review/cases.json`,
+  제품 README
+- 기록기 명령·schema 2: `skills/pre-sdd-review/evidence/evidence.py`,
+  `evidence/README.md`, `tests/products/pre-sdd-review/evidence/`
+- 호스트 지원: `products.toml`, `compatibility.md`, 공개 안내, 해당 테스트.
+  이 작업에서 호스트 지원을 넓히지 않습니다.
+
+## 하지 않는 것
+
+아래는 명시적으로 추가하지 않습니다.
+
+- closure-only input schema
+- shared-design invalidation map
+- program ledger
+- evidence probe cache
+
 ## Handoff
 
-`READY`이면 resolved design과 plan의 정확한 경로와 final fingerprints를
-출력합니다. review와 implementation이 결합된 흐름에서는 수리 전 복사본이
-아니라 최종 문서를 SDD worker에게 전달합니다.
+`READY`이면 해결된 설계와 계획의 정확한 경로와 final fingerprints를
+출력합니다. 검토와 구현이 이어지는 흐름에서는 고치기 전 복사본이 아니라
+최종 문서를 SDD worker에게 넘깁니다.
 
 ### SDD handoff
 

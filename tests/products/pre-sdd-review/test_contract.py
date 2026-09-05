@@ -413,10 +413,10 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Freshness", "496291e8542f8f110b1f9e17647c86b83b42d58720382ce68437bb5601cd09ae"),
     ("### SDD handoff", "8a629dd12d78e2c08e77e7c1d057d0e450b135bc0633d5b62c8c926665976bca"),
 )
-MAINTAINER_CANONICAL_DIGEST = "d99ed7d2c60c07929599a77d2b442b85038f121022f37fcd2322f748f500acbd"
-TESTING_CANONICAL_DIGEST = "e7790bab0c4f24b366e404fd20488c28b0de33d3e7ee70fc19c081eb132a715a"
-COMPATIBILITY_CANONICAL_DIGEST = "5a65dde4f8fc9c64402ee84adb82a2cfd782a38ac76b8e025efb7a61240a78ad"
-RELEASE_CANONICAL_DIGEST = "85932b7c35460c4173fff1ea571e3e1372812a0901af73e0ce7f62b189554413"
+MAINTAINER_CANONICAL_DIGEST = "00d781da46653eb1a283c48f8f91aefb1f1846dff35fd12510ee40de0fa4521c"
+TESTING_CANONICAL_DIGEST = "22e123c28f23a0901a06d79a5bc674ec45ab2917aae8e2b4995482c187587ff7"
+COMPATIBILITY_CANONICAL_DIGEST = "e6190ebc5aed319c09ecf5acdbeae12f8bea341667857b6d7a2af1522abd1a2a"
+RELEASE_CANONICAL_DIGEST = "8207a039cf271400e28fc632c1aa0a585e6f8b54ae6781aae4665f1a66d80cdd"
 
 
 def section(text: str, start: str, end: str) -> str:
@@ -1469,6 +1469,16 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         testing = (MAINTAINERS / "testing.md").read_text(encoding="utf-8")
         compatibility = (MAINTAINERS / "compatibility.md").read_text(encoding="utf-8")
         release = (MAINTAINERS / "release.md").read_text(encoding="utf-8")
+        contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
+        self.assertIn("## 함께 고칠 파일", contract)
+        self.assertIn("## 하지 않는 것", contract)
+        for fact in (
+            "closure-only input schema",
+            "shared-design invalidation map",
+            "program ledger",
+            "evidence probe cache",
+        ):
+            self.assertIn(fact, contract)
         normalized_testing = re.sub(r"\s+", " ", testing)
 
         for fact in (
