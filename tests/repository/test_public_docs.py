@@ -1070,17 +1070,20 @@ class DocumentationArchitectureTests(unittest.TestCase):
             self.assertFalse((ROOT / "docs" / language).exists())
 
     def test_live_docs_omit_removed_evidence_installer_names(self) -> None:
-        skip = {
-            (ROOT / "catalog" / "CHANGELOG.md").resolve(),
-            (ROOT / "skills/pre-sdd-review/CHANGELOG.md").resolve(),
-        }
-        for document in PUBLIC_DOC_PATHS:
-            if document.resolve() in skip:
-                continue
+        documents = PUBLIC_DOC_PATHS + (ROOT / "skills/pre-sdd-review/CHANGELOG.md",)
+        for document in documents:
             relative = document.relative_to(ROOT).as_posix()
             if relative.startswith("docs/history/"):
                 continue
             text = _read(document)
+            if document.name == "CHANGELOG.md":
+                dated = re.search(
+                    r"^## \S+ - [0-9]{4}-[0-9]{2}-[0-9]{2}\s*$",
+                    text,
+                    re.MULTILINE,
+                )
+                if dated is not None:
+                    text = text[: dated.start()]
             for fragment in DEAD_RECORDER_STRINGS:
                 self.assertNotIn(fragment, text, f"{relative} contains {fragment!r}")
             for phrase in DEAD_LAUNCHER_PHRASES:
