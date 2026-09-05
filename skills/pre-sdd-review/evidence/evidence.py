@@ -16,21 +16,56 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import TextIO
 
-CLI_VERSION, SCHEMA, SKILL_NAME = "2.0.0", 2, "pre-sdd-review"
-RECORD_LIMIT, DOCUMENT_LIMIT, SKILL_DOCUMENT_LIMIT = 64 * 1024, 8 * 1024 * 1024, 256 * 1024
+CLI_VERSION = "2.0.0"
+SCHEMA = 2
+SKILL_NAME = "pre-sdd-review"
+RECORD_LIMIT = 64 * 1024
+DOCUMENT_LIMIT = 8 * 1024 * 1024
+SKILL_DOCUMENT_LIMIT = 256 * 1024
 
 CLIENTS = ("codex", "claude-code", "cursor", "grok", "other", "unknown")
 MODES = ("default", "review-only")
 EXECUTIONS = ("full", "degraded", "blocked")
-TRIGGERS = ("runtime-removal", "schema-migration", "auth-boundary", "data-boundary", "external-side-effect")
+TRIGGERS = (
+    "runtime-removal",
+    "schema-migration",
+    "auth-boundary",
+    "data-boundary",
+    "external-side-effect",
+)
 VERDICTS = ("READY", "REVISE", "BLOCKED")
 ABANDON_REASONS = ("user-cancelled", "input-changed", "scope-changed", "input-format-fixed", "other")
 OUTCOME_LABELS = ("good", "false-ready", "noisy", "abandoned")
 SEVERITIES = ("BLOCKER", "IMPORTANT")
 CLASSES = ("authority-drift", "repo-reality", "coverage", "ordering", "verification-gap")
 FINDING_STATUSES = ("repaired", "unresolved", "blocked-by-authority", "accepted-as-is")
-FINISH_KEYS = frozenset({"execution", "reviewers", "trigger", "degraded_reasons", "verdict", "block_reason", "review_passes", "repair_passes", "findings"})
-FINDING_KEYS = frozenset({"id", "severity", "class", "pattern", "status", "repair_pass", "location", "evidence", "consequence", "fix"})
+FINISH_KEYS = frozenset(
+    {
+        "execution",
+        "reviewers",
+        "trigger",
+        "degraded_reasons",
+        "verdict",
+        "block_reason",
+        "review_passes",
+        "repair_passes",
+        "findings",
+    }
+)
+FINDING_KEYS = frozenset(
+    {
+        "id",
+        "severity",
+        "class",
+        "pattern",
+        "status",
+        "repair_pass",
+        "location",
+        "evidence",
+        "consequence",
+        "fix",
+    }
+)
 
 _PATTERN = re.compile(r"[a-z0-9][a-z0-9._-]{0,79}\Z")
 _FINDING_ID = re.compile(r"PSDR-[0-9]{3,}\Z")
@@ -42,14 +77,18 @@ _DRIVE = re.compile(r"^[A-Za-z]:")
 class EvidenceError(Exception):
     def __init__(self, code: str, message: str) -> None:
         super().__init__(message)
-        self.code, self.message = code, message
+        self.code = code
+        self.message = message
 
 
 def fail(code: str, message: str) -> None:
     raise EvidenceError(code, message)
 
+
 def canonical(value: object) -> bytes:
-    return (json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
+    return (
+        json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
+    ).encode("utf-8")
 
 
 def read_bounded_bytes(path: Path, limit: int) -> bytes:
@@ -78,13 +117,16 @@ def parse_json(data: bytes, name: str) -> object:
 def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
+
 def utc_now() -> str:
     return dt.datetime.now(dt.timezone.utc).isoformat(timespec="microseconds").replace("+00:00", "Z")
+
 
 def elapsed_seconds(start: str, end: str) -> int:
     begin = dt.datetime.fromisoformat(start.replace("Z", "+00:00"))
     finish = dt.datetime.fromisoformat(end.replace("Z", "+00:00"))
     return max(0, int((finish - begin).total_seconds()))
+
 
 def evidence_home(environ: Mapping[str, str]) -> Path:
     override = environ.get("PRE_SDD_REVIEW_HOME")
@@ -95,6 +137,7 @@ def evidence_home(environ: Mapping[str, str]) -> Path:
         fail("invalid-arguments", "PRE_SDD_REVIEW_HOME must be a non-empty absolute path")
     return candidate
 
+
 def validate_run_id(value: str) -> str:
     try:
         parsed = uuid.UUID(str(value))
@@ -104,8 +147,10 @@ def validate_run_id(value: str) -> str:
         fail("invalid-arguments", "run_id must be a canonical lowercase UUID")
     return value
 
+
 def run_path(home: Path, run_id: str) -> Path:
     return home / "runs" / f"{validate_run_id(run_id)}.json"
+
 
 def write_record(path: Path, record: dict[str, object]) -> None:
     payload = canonical(record)
@@ -113,10 +158,12 @@ def write_record(path: Path, record: dict[str, object]) -> None:
         fail("schema-invalid", f"record exceeds {RECORD_LIMIT} bytes")
     temp = path.with_name(path.name + ".tmp")
     try:
-        home, runs = path.parent.parent, path.parent
-        for directory in (home, runs):
-            directory.mkdir(mode=0o700, parents=directory is home, exist_ok=True)
-            os.chmod(directory, 0o700)
+        home = path.parent.parent
+        runs = path.parent
+        home.mkdir(mode=0o700, parents=True, exist_ok=True)
+        os.chmod(home, 0o700)
+        runs.mkdir(mode=0o700, exist_ok=True)
+        os.chmod(runs, 0o700)
         descriptor = os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
         with os.fdopen(descriptor, "wb") as stream:
             stream.write(payload)
@@ -135,6 +182,7 @@ def _read_record(path: Path) -> tuple[bytes, dict[str, object]]:
     if not isinstance(record, dict) or record.get("schema") != SCHEMA:
         fail("schema-invalid", "record is not a schema 2 record")
     return data, record
+
 
 def load_record(home: Path, run_id: str) -> dict[str, object]:
     return _read_record(run_path(home, run_id))[1]
@@ -326,9 +374,15 @@ def validate_finish(payload: object, mode: str) -> dict[str, object]:
     if execution == "degraded" and not reasons:
         fail("schema-invalid", "degraded execution requires degraded_reasons")
     return {
-        "execution": execution, "reviewers": reviewers, "trigger": trigger,
-        "degraded_reasons": reasons, "verdict": verdict, "block_reason": block_reason,
-        "review_passes": review_passes, "repair_passes": repair_passes, "findings": findings,
+        "execution": execution,
+        "reviewers": reviewers,
+        "trigger": trigger,
+        "degraded_reasons": reasons,
+        "verdict": verdict,
+        "block_reason": block_reason,
+        "review_passes": review_passes,
+        "repair_passes": repair_passes,
+        "findings": findings,
     }
 
 
@@ -341,15 +395,39 @@ def cmd_start(args: argparse.Namespace, home: Path, cwd: Path) -> dict[str, obje
     model = _string(args.model, "model", 100)
     run_id = str(uuid.uuid4())
     record: dict[str, object] = {
-        "schema": SCHEMA, "run_id": run_id, "status": "pending", "started_at": utc_now(),
-        "completed_at": None, "elapsed_s": None, "skill": skill,
-        "client": {"id": args.client, "model": model}, "repo": root.name, "mode": args.mode,
+        "schema": SCHEMA,
+        "run_id": run_id,
+        "status": "pending",
+        "started_at": utc_now(),
+        "completed_at": None,
+        "elapsed_s": None,
+        "skill": skill,
+        "client": {"id": args.client, "model": model},
+        "repo": root.name,
+        "mode": args.mode,
         "plan": {"path": plan, "sha_start": document_hash(root, plan), "sha_end": None},
-        "design": None if design is None else {"path": design, "sha_start": document_hash(root, design), "sha_end": None},
-        "git": {"head_start": head, "head_end": None, "dirty_start": dirty, "dirty_end": None},
-        "execution": None, "reviewers": None, "trigger": None, "degraded_reasons": [],
-        "review_passes": None, "repair_passes": None, "verdict": None, "block_reason": None,
-        "abandon_reason": None, "findings": [], "outcome": None,
+        "design": None if design is None else {
+            "path": design,
+            "sha_start": document_hash(root, design),
+            "sha_end": None,
+        },
+        "git": {
+            "head_start": head,
+            "head_end": None,
+            "dirty_start": dirty,
+            "dirty_end": None,
+        },
+        "execution": None,
+        "reviewers": None,
+        "trigger": None,
+        "degraded_reasons": [],
+        "review_passes": None,
+        "repair_passes": None,
+        "verdict": None,
+        "block_reason": None,
+        "abandon_reason": None,
+        "findings": [],
+        "outcome": None,
     }
     write_record(run_path(home, run_id), record)
     return {"run_id": run_id, "status": "pending"}
@@ -391,10 +469,10 @@ def cmd_finish(args: argparse.Namespace, home: Path, cwd: Path, stdin: TextIO) -
 def cmd_abandon(args: argparse.Namespace, home: Path) -> dict[str, object]:
     record = _require_pending(home, args.run_id)
     completed_at = utc_now()
-    record.update({
-        "status": "abandoned", "abandon_reason": args.reason, "completed_at": completed_at,
-        "elapsed_s": elapsed_seconds(str(record["started_at"]), completed_at),
-    })
+    record["status"] = "abandoned"
+    record["abandon_reason"] = args.reason
+    record["completed_at"] = completed_at
+    record["elapsed_s"] = elapsed_seconds(str(record["started_at"]), completed_at)
     write_record(run_path(home, args.run_id), record)
     return {"run_id": args.run_id, "status": "abandoned"}
 
@@ -431,8 +509,10 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
     statuses: list[str] = []
     classes: list[str] = []
     anomalies: dict[str, list[object]] = {
-        "repair_without_repaired_finding": [], "head_changed_during_review": [],
-        "design_unresolved_but_full_execution": [], "repo_reality_citing_documents_only": [],
+        "repair_without_repaired_finding": [],
+        "head_changed_during_review": [],
+        "design_unresolved_but_full_execution": [],
+        "repo_reality_citing_documents_only": [],
     }
     for record in records:
         run_id = str(record["run_id"])
@@ -441,11 +521,18 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
         assert isinstance(plan, dict)
         findings = record["findings"]
         assert isinstance(findings, list)
-        runs_index.append({
-            "run_id": run_id, "started_at": record["started_at"], "repo": record["repo"],
-            "plan": plan["path"], "status": record["status"], "verdict": record["verdict"],
-            "findings": len(findings), "elapsed_s": record["elapsed_s"],
-        })
+        runs_index.append(
+            {
+                "run_id": run_id,
+                "started_at": record["started_at"],
+                "repo": record["repo"],
+                "plan": plan["path"],
+                "status": record["status"],
+                "verdict": record["verdict"],
+                "findings": len(findings),
+                "elapsed_s": record["elapsed_s"],
+            }
+        )
         chains.setdefault((str(record["repo"]), str(plan["path"])), []).append(
             {"run_id": run_id, "status": record["status"], "verdict": record["verdict"]}
         )
@@ -464,7 +551,9 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
             if run_id not in runs_for_pattern:
                 runs_for_pattern.append(run_id)
             if item["class"] == "repo-reality" and set(item["evidence"]) <= documents:
-                anomalies["repo_reality_citing_documents_only"].append({"run_id": run_id, "finding_id": item["id"]})
+                anomalies["repo_reality_citing_documents_only"].append(
+                    {"run_id": run_id, "finding_id": item["id"]}
+                )
         if record["repair_passes"] and not any(item["status"] == "repaired" for item in findings):
             anomalies["repair_without_repaired_finding"].append(run_id)
         git_facts = record["git"]
@@ -481,27 +570,47 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
         "schema": SCHEMA,
         "runs": runs_index,
         "counts": {
-            "status": _count([str(record["status"]) for record in records], ("completed", "abandoned", "pending")),
+            "status": _count(
+                [str(record["status"]) for record in records],
+                ("completed", "abandoned", "pending"),
+            ),
             "verdict": _count([str(record["verdict"]) for record in completed], VERDICTS),
             "execution": _count([str(record["execution"]) for record in completed], EXECUTIONS),
-            "abandon_reason": _count([str(record["abandon_reason"]) for record in records if record["status"] == "abandoned"]),
+            "abandon_reason": _count(
+                [str(record["abandon_reason"]) for record in records if record["status"] == "abandoned"]
+            ),
             "outcome": outcome_counts,
         },
         "cost": {
-            "elapsed_s": {"median": int(statistics.median(elapsed)) if elapsed else None, "max": max(elapsed) if elapsed else None},
-            "review_passes_avg": round(statistics.mean(int(record["review_passes"]) for record in completed), 1) if completed else None,
-            "repair_passes_avg": round(statistics.mean(int(record["repair_passes"]) for record in completed), 1) if completed else None,
+            "elapsed_s": {
+                "median": int(statistics.median(elapsed)) if elapsed else None,
+                "max": max(elapsed) if elapsed else None,
+            },
+            "review_passes_avg": (
+                round(statistics.mean(int(record["review_passes"]) for record in completed), 1)
+                if completed
+                else None
+            ),
+            "repair_passes_avg": (
+                round(statistics.mean(int(record["repair_passes"]) for record in completed), 1)
+                if completed
+                else None
+            ),
         },
         "chains": [
             {"repo": repo, "plan": plan_path, "runs": runs}
-            for (repo, plan_path), runs in chains.items() if len(runs) >= 2
+            for (repo, plan_path), runs in chains.items()
+            if len(runs) >= 2
         ],
         "findings": {
-            "total": len(severities), "by_severity": _count(severities),
-            "by_status": _count(statuses), "by_class": _count(classes),
+            "total": len(severities),
+            "by_severity": _count(severities),
+            "by_status": _count(statuses),
+            "by_class": _count(classes),
             "repeated_patterns": [
                 {"class": key[0], "pattern": key[1], "count": len(run_ids), "run_ids": run_ids}
-                for key, run_ids in sorted(pattern_runs.items()) if len(run_ids) >= 2
+                for key, run_ids in sorted(pattern_runs.items())
+                if len(run_ids) >= 2
             ],
         },
         "anomalies": anomalies,
@@ -524,7 +633,10 @@ class _Parser(argparse.ArgumentParser):
         raise EvidenceError("invalid-arguments", message)
 
     def exit(self, status: int = 0, message: str | None = None) -> None:
-        raise EvidenceError("invalid-arguments", (message or "invalid arguments").strip() or "invalid arguments")
+        raise EvidenceError(
+            "invalid-arguments",
+            (message or "invalid arguments").strip() or "invalid arguments",
+        )
 
 
 def build_parser() -> _Parser:
@@ -557,8 +669,13 @@ def build_parser() -> _Parser:
 
 
 def main(
-    argv: list[str] | None = None, *, stdin: TextIO | None = None, stdout: TextIO | None = None,
-    stderr: TextIO | None = None, environ: Mapping[str, str] | None = None, cwd: Path | None = None,
+    argv: list[str] | None = None,
+    *,
+    stdin: TextIO | None = None,
+    stdout: TextIO | None = None,
+    stderr: TextIO | None = None,
+    environ: Mapping[str, str] | None = None,
+    cwd: Path | None = None,
 ) -> int:
     arguments = list(sys.argv[1:] if argv is None else argv)
     stdin = sys.stdin if stdin is None else stdin
@@ -568,7 +685,11 @@ def main(
     cwd = Path.cwd() if cwd is None else Path(cwd)
     try:
         if arguments == ["--version"]:
-            stdout.write(canonical({"cli_version": CLI_VERSION, "schema": SCHEMA, "skill_name": SKILL_NAME}).decode("utf-8"))
+            stdout.write(
+                canonical(
+                    {"cli_version": CLI_VERSION, "schema": SCHEMA, "skill_name": SKILL_NAME}
+                ).decode("utf-8")
+            )
             return 0
         if "--version" in arguments:
             fail("invalid-arguments", "--version accepts no other arguments")
