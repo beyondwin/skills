@@ -12,8 +12,8 @@ python3 "<skill-root>/evidence/evidence.py" --version
 
 Each run is one file, `~/.pre-sdd-review/runs/<run-id>.json`. The only
 override for the root is a non-empty absolute `PRE_SDD_REVIEW_HOME`. Records
-are schema 2 and at most 64 KiB; anything else under the root, including
-schema 1 receipts, is ignored and never written.
+are schema 2 and at most 64 KiB. Readers consider only `runs/*.json` with
+`schema` 2.
 
 ## Commands
 

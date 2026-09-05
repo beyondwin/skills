@@ -38,12 +38,15 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-re
 ```
 
 The local evidence recorder is not installed. Run `evidence/evidence.py` from
-the skill folder with Python 3.11+; the controller uses the skill root it
+the skill folder with Python 3.11+. The controller uses the skill root it
 already loaded.
 
 ```bash
 python3 "<skill-root>/evidence/evidence.py" --version
 ```
+
+Inspect the install folder before update or remove. Shared steps are in
+[Installation](../../docs/users/en/installation.md).
 
 ## First call
 
@@ -62,9 +65,9 @@ it changes nothing.
 
 ## Expected result
 
-In default mode, a fresh read-only reviewer returns evidence-backed findings,
-the controller repairs only the resolved design specification and implementation
-plan, and a scoped re-review checks the changed surface.
+In default mode, a fresh read-only reviewer returns evidence-backed findings.
+The controller repairs only the resolved design specification and implementation
+plan, then a scoped re-review checks the changed surface.
 `review-only` changes nothing and returns the first verdict.
 
 ```text
@@ -131,14 +134,16 @@ documentation require a separate product decision.
 
 Receipts stay local as `~/.pre-sdd-review/runs/<run-id>.json` (schema 2).
 Records hold repository-relative paths, a directory name, hashes, enum values,
-and short paraphrases only; never source text, absolute paths, prompts,
-transcripts, or credentials. The recorder does not detect secrets.
+and short paraphrases only. Never put source text, absolute paths, prompts,
+transcripts, or credentials in a record. The recorder does not detect secrets.
 
 Local file storage is not a signed audit log resistant to malicious local
 tampering. An `outcome` label (`good`, `false-ready`, `noisy`, `abandoned`) is
 an observation recorded by a person or the SDD worker after SDD ends and may be
 re-recorded to correct it. Labels are self-improvement evidence, not objective
 or audit-grade proof.
+
+Details are in [Safety and privacy](../../docs/users/en/safety-and-privacy.md).
 
 ## Operations and limits
 
@@ -147,22 +152,25 @@ The command surface is `start`, `finish`, `abandon`, `outcome`, `show`, and
 [evidence guide](evidence/README.md).
 
 The log is written for agents. To look for improvements, have an agent run
-`summary` and read `anomalies` and `chains` first; every aggregate carries
+`summary` and read `anomalies` and `chains` first. Every aggregate carries
 `run_id` values so it can drop into `show --run-id`. There is no automatic
 fixture selection, skill mutation, or client/model ranking.
 
 The version source is `release.toml`; `SKILL.md` `metadata.version` is a
-verified copy. The recorder ignores older `runs/<year>/<month>/` receipts, and
-deleting a receipt is deleting its file.
+verified copy. The recorder ignores older `runs/<year>/<month>/` receipts.
+Deleting a receipt is deleting its file.
 
 ## Supported hosts and verification
 
 pre-sdd-review: Codex supported; other hosts not_measured.
 
 Only Codex has measured support for isolated read-only review and repository
-inspection. Provider-free verification proves package, instruction, and
-fixture contracts, not live review quality. Optional live checks are explicit,
-local, potentially billable, and never required by CI.
+inspection. Other hosts are in [Compatibility](../../docs/users/en/compatibility.md).
+
+Provider-free verification proves package, instruction, and fixture contracts,
+not live review quality. Optional live checks are explicit, local, potentially
+billable, and never required by CI. Details are in
+[Verification](../../docs/users/en/verification.md).
 
 The recorder uses only the Python 3.11+ standard library and is verified by
 the provider-free suite on macOS. Linux and native Windows remain

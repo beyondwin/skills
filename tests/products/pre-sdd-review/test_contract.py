@@ -375,31 +375,31 @@ README_CONTRACT = (
 )
 README_CANONICAL_SECTION_DIGESTS = {
     "ko": (
-        ("## 이 스킬이 해결하는 문제", "283f070d25a4896d3b6d830f3f7ae512b34e1615ce745f2eaf8bf64b7b2eccc6"),
+        ("## 이 스킬이 해결하는 문제", "34742e41af70cad0eea87b0a6335332097205550174c666b9360ddcfd4f76ddd"),
         ("## 사용해야 할 때와 사용하지 말아야 할 때", "63634fe6e87d9b53d0d13d628ab18747c164c33aa432c03e6ab095e7fd94e2b4"),
-        ("## 설치", "4e254dc51946238354f65e3a2eb3bb7ff0ba11f40a9940b77c978d4bd2f60d11"),
-        ("## 첫 호출", "67982d6dac2b6cc91d6625f95b0a3c3c60937c07754746b0e7d83f41e374f606"),
-        ("## 결과와 기본 흐름", "6ad6fdafdfc3b9d843f63b9b1e5dac5f4e0c33d8f996af74e6e804fe1763c9da"),
-        ("## 안전과 개인정보", "03c6e0b389de7a4a50db7965ac513d7ba1fe2000cf337d4c509de10b79c59bb3"),
+        ("## 설치", "182491e6460519942342f3b6eeb6cf3af99011858abbc0e74b83aac4f611ae41"),
+        ("## 첫 호출", "50b99daba0033aa7cc24a42ae5c07ffbe75c93d9ce270f2dcfbc48cc64ef82a2"),
+        ("## 결과와 기본 흐름", "767a58ed8f949cede87fd8a0c2bb4cb2ed02522a14c1a852827038261b9f2fc5"),
+        ("## 안전과 개인정보", "80a7952ae3a8d3f46896e98f96348077d15602fa496337dee3de3666dde70219"),
         ("## 운영과 한계", "9e9d82809469de0503886979744cc794745c3c151bf2795c02658621f6843223"),
-        ("## 호환성과 검증 수준", "9aff2698257d5a6a1eef2c40cf211e905d8bfb54d2bd7c2bd38057fa37f933bf"),
+        ("## 호환성과 검증 수준", "c904a730dd0857d35e60bfaba7d735616518f79f9ed5ca1c55245621320952e2"),
         ("## 변경 이력과 관리자 문서", "7e1cb70139ec2f47b67004352fdd0ca739f19515c2c715095501268c5b7405ac"),
     ),
     "en": (
         ("## Purpose", "d1b0ca1b776d1b9f0ca9748e3bf2f5264e4ab2e6f091d83c998a230ee5659aa3"),
         ("## When to use and not use", "2daaa6de8f1623ab571cc1639b7b5097241c02e5f420b92ed48ecf1a401d926e"),
-        ("## Install", "86eeb85db21677714e160967e9c670490dbf7a37d8558f50370a563bcda50db9"),
+        ("## Install", "328f10374b466b89d71da407a2add2f842dadd49ccbe8217ee51ff0c00c43add"),
         ("## First call", "304e4697f6a40a2d522f18757ed7e464c4a8fde253c885fdf82ac1152ebb5b2a"),
-        ("## Expected result", "38cefd11ecdd496fdb703297640676e691d23f08f4274296eab60b70fd03cd0c"),
-        ("## Safety and privacy", "732209666d89ccf58ff4a33e89333fd8adde68c9075cb4b99f0b511f02f9c94a"),
-        ("## Operations and limits", "f0381a694f40c8fe4c05fdc34247c240e523f7e5eaac60a5c6a013de4e111b76"),
-        ("## Supported hosts and verification", "f728b5fe35f472b2a1ab6acfe7db5a33b0b8eca047d21fca5f7f2034b2429f6d"),
+        ("## Expected result", "878e1b880bd85b1d0d048084fa7ffb2059acf70900a40dc05c78d5b05fc5f6ed"),
+        ("## Safety and privacy", "6deacd7f8ac39cf1322593d056764569198789615c3e5548d0bd8c8bd7d5b771"),
+        ("## Operations and limits", "978d25d3d73bb0621c112ac4c868bc6978cfd133501c822ed659276a9bf4adfe"),
+        ("## Supported hosts and verification", "52511fc16c8aa5f4485645f5f76e576d660e6d42fb37723884aeda8233c10d0a"),
         ("## Changelog and maintainer docs", "7a5611089ddaf6819881da0ae7d96ec6ce36107f2c0076e9528499437749e7b1"),
     ),
 }
 README_CANONICAL_DOCUMENT_DIGESTS = {
-    "ko": "32fb0a5ef99327206e89e16eaba196ff68e6922888bf8a6b940c7c705f8970b1",
-    "en": "c2e55b8df3df49d8d663fa92bfca2ef24e1735d849735833ffa872b15624d137",
+    "ko": "e54e2f1d393536f70462098ffdcf5ef015a160806f42725254659196ffe74a35",
+    "en": "97a2b69e26d524ce03c2e146e5df9504f208a9aef9f5f0c32b76e2e4a25c9726",
 }
 MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Authority order", "3156a43d665d21723ce61b333c7c34f30abd2e6d288c472d5eec5878e5ef8321"),
@@ -1521,7 +1521,7 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             self.assertIn("audit log", text)
             self.assertIn("`summary`", text)
             self.assertIn("`outcome`", text)
-            self.assertNotIn("pre-sdd-review-evidence", text.replace("`pre-sdd-review-evidence` launcher", ""))
+            self.assertNotIn("pre-sdd-review-evidence", text)
             self.assertNotIn("record-outcome", text)
             self.assertNotIn("install.py", text)
             self.assertNotIn("--bin-dir", text)
