@@ -209,8 +209,9 @@ class CatalogContractTests(unittest.TestCase):
 
     def test_catalog_readme_states_artifact_and_root_roles(self) -> None:
         text = (ROOT / "catalog" / "README.md").read_text(encoding="utf-8")
-        self.assertIn("only released plugin ZIPs are supported catalog artifacts", text)
-        self.assertIn("repository root is for individual skill installs", text)
+        normalized = " ".join(text.split())
+        self.assertIn("지원되는 카탈로그 아티팩트는 공개된 플러그인 ZIP뿐입니다.", normalized)
+        self.assertIn("저장소 루트는 개별 스킬을 설치하는 곳입니다.", normalized)
 
     def test_current_skill_directories_are_not_described_by_catalog_plugin(self) -> None:
         from scripts.lib.product_registry import load_registry
