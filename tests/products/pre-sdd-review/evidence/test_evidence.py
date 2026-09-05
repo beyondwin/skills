@@ -172,5 +172,103 @@ class StartTests(unittest.TestCase):
         self.assertEqual(load(self.home, json.loads(out)["run_id"])["skill"]["version"], release["version"])
 
 
+class FinishTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.directory = tempfile.TemporaryDirectory()
+        self.workspace = Path(self.directory.name)
+        self.home = self.workspace / "home"
+        self.repo = make_git_repo(self.workspace)
+        self.skill = make_skill_root(self.workspace)
+        self.run_id = start(self.home, self.repo, self.skill)
+
+    def tearDown(self) -> None:
+        self.directory.cleanup()
+
+    def test_finish_completes_the_record_with_end_state(self) -> None:
+        write(self.repo / "docs/plan.md", "# Plan\n\n**Spec:** docs/design.md\n\nrepaired\n")
+        commit_all(self.repo)
+        payload = finish_payload(verdict="READY", review_passes=2, repair_passes=1, findings=[finding()])
+        code, out, err = finish(self.home, self.repo, self.run_id, payload)
+        self.assertEqual(code, 0, err)
+        self.assertEqual(json.loads(out), {"run_id": self.run_id, "status": "completed", "verdict": "READY"})
+        record = load(self.home, self.run_id)
+        self.assertEqual(record["status"], "completed")
+        self.assertEqual((record["execution"], record["reviewers"], record["verdict"]), ("full", 1, "READY"))
+        self.assertEqual((record["review_passes"], record["repair_passes"]), (2, 1))
+        self.assertEqual(record["findings"], [finding()])
+        self.assertNotEqual(record["plan"]["sha_start"], record["plan"]["sha_end"])
+        self.assertEqual(record["design"]["sha_start"], record["design"]["sha_end"])
+        self.assertNotEqual(record["git"]["head_start"], record["git"]["head_end"])
+        self.assertFalse(record["git"]["dirty_end"])
+        self.assertIsInstance(record["elapsed_s"], int)
+        self.assertRegex(record["completed_at"], r"Z$")
+
+    def test_finish_rejects_each_invariant_violation(self) -> None:
+        cases = {
+            "ready-with-unresolved": finish_payload(findings=[finding(status="unresolved", repair_pass=None)]),
+            "revise-without-unresolved": finish_payload(verdict="REVISE", repair_passes=1, findings=[finding()]),
+            "blocked-without-reason": finish_payload(verdict="BLOCKED", execution="blocked", reviewers=0),
+            "repair-without-repaired": finish_payload(repair_passes=1),
+            "full-two-reviewers-no-trigger": finish_payload(reviewers=2),
+            "full-one-reviewer-with-trigger": finish_payload(trigger="schema-migration"),
+            "full-with-degraded-reason": finish_payload(degraded_reasons=["fresh-reviewer-unavailable"]),
+            "degraded-without-reason": finish_payload(execution="degraded"),
+            "duplicate-finding-id": finish_payload(repair_passes=1, findings=[finding(), finding(pattern="other")]),
+            "repair-pass-exceeds": finish_payload(repair_passes=1, findings=[finding(repair_pass=2)]),
+            "absolute-evidence-path": finish_payload(repair_passes=1, findings=[finding(evidence=["/etc/passwd"])]),
+            "parent-location-path": finish_payload(repair_passes=1, findings=[finding(location={"path": "../x.md", "locator": "L1"})]),
+            "long-consequence": finish_payload(repair_passes=1, findings=[finding(consequence="x" * 301)]),
+            "bad-finding-id": finish_payload(repair_passes=1, findings=[finding(id="F-1")]),
+            "unknown-key": {**finish_payload(), "token_usage": None},
+            "missing-key": {key: value for key, value in finish_payload().items() if key != "findings"},
+            "review-passes-zero": finish_payload(review_passes=0),
+        }
+        for name, payload in cases.items():
+            with self.subTest(name=name):
+                code, out, err = finish(self.home, self.repo, self.run_id, payload)
+                self.assertEqual((code, out), (2, ""), name)
+                self.assertEqual(error_code(err), "schema-invalid", name)
+                self.assertEqual(load(self.home, self.run_id)["status"], "pending")
+
+    def test_finish_accepts_blocked_degraded_and_triggered_full_runs(self) -> None:
+        for payload in (
+            finish_payload(verdict="BLOCKED", block_reason="spec-unresolved", execution="blocked", reviewers=0),
+            finish_payload(verdict="REVISE", execution="degraded", degraded_reasons=["fresh-reviewer-unavailable"], findings=[finding(status="unresolved", repair_pass=None)]),
+            finish_payload(reviewers=2, trigger="data-boundary"),
+        ):
+            with self.subTest(payload=payload["verdict"] + payload["execution"]):
+                run_id = start(self.home, self.repo, self.skill)
+                code, _, err = finish(self.home, self.repo, run_id, payload)
+                self.assertEqual(code, 0, err)
+
+    def test_review_only_rejects_repair_passes(self) -> None:
+        run_id = start(self.home, self.repo, self.skill, mode="review-only")
+        code, _, err = finish(self.home, self.repo, run_id, finish_payload(repair_passes=1, findings=[finding()]))
+        self.assertEqual((code, error_code(err)), (2, "schema-invalid"))
+
+    def test_finish_rejects_wrong_repository_and_second_finish(self) -> None:
+        other = make_git_repo(self.workspace, name="other")
+        code, _, err = finish(self.home, other, self.run_id, finish_payload())
+        self.assertEqual((code, error_code(err)), (2, "outside-repository"))
+        self.assertEqual(finish(self.home, self.repo, self.run_id, finish_payload())[0], 0)
+        code, _, err = finish(self.home, self.repo, self.run_id, finish_payload())
+        self.assertEqual((code, error_code(err)), (2, "already-finished"))
+
+    def test_finish_rejects_unknown_run_and_invalid_json(self) -> None:
+        code, _, err = finish(self.home, self.repo, "00000000-0000-4000-8000-000000000000", finish_payload())
+        self.assertEqual((code, error_code(err)), (2, "run-not-found"))
+        code, _, err = run(["finish", "--run-id", self.run_id, "--repo", str(self.repo)], home=self.home, cwd=self.repo, stdin_text="{not json")
+        self.assertEqual((code, error_code(err)), (2, "schema-invalid"))
+
+    def test_finish_rejects_records_over_the_size_limit(self) -> None:
+        findings = [
+            finding(id=f"PSDR-{index:03d}", pattern=f"pattern-{index}", consequence="c" * 300, fix="f" * 300)
+            for index in range(1, 130)
+        ]
+        code, _, err = finish(self.home, self.repo, self.run_id, finish_payload(repair_passes=1, findings=findings))
+        self.assertEqual((code, error_code(err)), (2, "schema-invalid"))
+        self.assertEqual(load(self.home, self.run_id)["status"], "pending")
+
+
 if __name__ == "__main__":
     unittest.main()

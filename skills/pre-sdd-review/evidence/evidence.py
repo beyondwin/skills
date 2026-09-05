@@ -274,6 +274,89 @@ def _relative(value: object, name: str) -> str:
     return str(value)
 
 
+def validate_finding(item: object, repair_passes: int) -> dict[str, object]:
+    if not isinstance(item, dict) or set(item) != FINDING_KEYS:
+        fail("schema-invalid", "finding must contain exactly the finding keys")
+    identifier = _string(item["id"], "finding.id", 20)
+    if identifier is None or not _FINDING_ID.fullmatch(identifier):
+        fail("schema-invalid", "finding.id must look like PSDR-001")
+    _enum(item["severity"], "finding.severity", SEVERITIES)
+    _enum(item["class"], "finding.class", CLASSES)
+    pattern = _string(item["pattern"], "finding.pattern", 80)
+    if pattern is None or not _PATTERN.fullmatch(pattern):
+        fail("schema-invalid", "finding.pattern must be lowercase kebab, dot, or underscore tokens")
+    _enum(item["status"], "finding.status", FINDING_STATUSES)
+    repair_pass = item["repair_pass"]
+    if repair_pass is not None:
+        _integer(repair_pass, "finding.repair_pass", 1, 2)
+        if repair_pass > repair_passes:
+            fail("schema-invalid", "finding.repair_pass exceeds repair_passes")
+    location = item["location"]
+    if not isinstance(location, dict) or set(location) != {"path", "locator"}:
+        fail("schema-invalid", "finding.location must contain path and locator")
+    _relative(location["path"], "finding.location.path")
+    _string(location["locator"], "finding.location.locator", 200)
+    if not isinstance(item["evidence"], list):
+        fail("schema-invalid", "finding.evidence must be a list")
+    references: list[str] = []
+    for reference in item["evidence"]:
+        value = _relative(reference, "finding.evidence[]")
+        if value not in references:
+            references.append(value)
+    _string(item["consequence"], "finding.consequence", 300)
+    _string(item["fix"], "finding.fix", 300)
+    normalized = dict(item)
+    normalized["evidence"] = references
+    return normalized
+
+
+def validate_finish(payload: object, mode: str) -> dict[str, object]:
+    if not isinstance(payload, dict) or set(payload) != FINISH_KEYS:
+        fail("schema-invalid", "finish input must contain exactly the finish keys")
+    execution = _enum(payload["execution"], "execution", EXECUTIONS)
+    reviewers = _integer(payload["reviewers"], "reviewers", 0, 2)
+    trigger = _enum(payload["trigger"], "trigger", TRIGGERS, nullable=True)
+    if not isinstance(payload["degraded_reasons"], list):
+        fail("schema-invalid", "degraded_reasons must be a list")
+    reasons = [str(_string(item, "degraded_reasons[]", 100)) for item in payload["degraded_reasons"]]
+    verdict = _enum(payload["verdict"], "verdict", VERDICTS)
+    block_reason = _string(payload["block_reason"], "block_reason", 100, nullable=True)
+    review_passes = _integer(payload["review_passes"], "review_passes", 1, 3)
+    repair_passes = _integer(payload["repair_passes"], "repair_passes", 0, 2)
+    if not isinstance(payload["findings"], list):
+        fail("schema-invalid", "findings must be a list")
+    findings = [validate_finding(item, repair_passes) for item in payload["findings"]]
+    identifiers = [str(item["id"]) for item in findings]
+    if len(set(identifiers)) != len(identifiers):
+        fail("schema-invalid", "finding ids must be unique")
+    statuses = [str(item["status"]) for item in findings]
+    if verdict == "READY" and any(status != "repaired" for status in statuses):
+        fail("schema-invalid", "READY permits only repaired findings")
+    if verdict == "REVISE" and "unresolved" not in statuses:
+        fail("schema-invalid", "REVISE requires an unresolved finding")
+    if verdict == "BLOCKED" and block_reason is None:
+        fail("schema-invalid", "BLOCKED requires block_reason")
+    if repair_passes > 0 and "repaired" not in statuses:
+        fail("schema-invalid", "repair_passes requires at least one repaired finding")
+    if mode == "review-only" and repair_passes != 0:
+        fail("schema-invalid", "review-only permits no repair pass")
+    if execution == "full" and (reasons or reviewers != (2 if trigger is not None else 1)):
+        fail("schema-invalid", "full execution requires one reviewer, or two with a trigger, and no degraded reasons")
+    if execution == "degraded" and not reasons:
+        fail("schema-invalid", "degraded execution requires degraded_reasons")
+    return {
+        "execution": execution,
+        "reviewers": reviewers,
+        "trigger": trigger,
+        "degraded_reasons": reasons,
+        "verdict": verdict,
+        "block_reason": block_reason,
+        "review_passes": review_passes,
+        "repair_passes": repair_passes,
+        "findings": findings,
+    }
+
+
 # --------------------------------------------------------------- commands
 
 def cmd_start(args: argparse.Namespace, home: Path, cwd: Path) -> dict[str, object]:
@@ -312,6 +395,39 @@ def cmd_start(args: argparse.Namespace, home: Path, cwd: Path) -> dict[str, obje
     }
     write_record(run_path(home, run_id), record)
     return {"run_id": run_id, "status": "pending"}
+
+
+def _require_pending(home: Path, run_id: str) -> dict[str, object]:
+    record = load_record(home, run_id)
+    if record["status"] != "pending":
+        fail("already-finished", "run is already finished")
+    return record
+
+
+def cmd_finish(args: argparse.Namespace, home: Path, cwd: Path, stdin: TextIO) -> dict[str, object]:
+    record = _require_pending(home, args.run_id)
+    root = git_root(locator(cwd, args.repo))
+    if root.name != record["repo"]:
+        fail("outside-repository", "repository does not match the recorded run")
+    semantic = validate_finish(read_stdin(stdin, RECORD_LIMIT), str(record["mode"]))
+    head, dirty = git_state(root)
+    plan = record["plan"]
+    design = record["design"]
+    assert isinstance(plan, dict)
+    plan["sha_end"] = document_hash(root, str(plan["path"]))
+    if isinstance(design, dict):
+        design["sha_end"] = document_hash(root, str(design["path"]))
+    git_facts = record["git"]
+    assert isinstance(git_facts, dict)
+    git_facts["head_end"] = head
+    git_facts["dirty_end"] = dirty
+    completed_at = utc_now()
+    record.update(semantic)
+    record["status"] = "completed"
+    record["completed_at"] = completed_at
+    record["elapsed_s"] = elapsed_seconds(str(record["started_at"]), completed_at)
+    write_record(run_path(home, args.run_id), record)
+    return {"run_id": args.run_id, "status": "completed", "verdict": record["verdict"]}
 
 
 class _Parser(argparse.ArgumentParser):
@@ -373,6 +489,8 @@ def main(
         home = evidence_home(environ)
         if args.command == "start":
             result: object = cmd_start(args, home, cwd)
+        elif args.command == "finish":
+            result = cmd_finish(args, home, cwd, stdin)
         else:
             fail("invalid-arguments", f"{args.command} is not implemented")
         stdout.write(canonical(result).decode("utf-8"))
