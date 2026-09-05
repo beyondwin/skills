@@ -214,6 +214,17 @@ HISTORY_PREFIXES = (
     "docs/history/",
     "catalog/CHANGELOG.md",
 )
+DEAD_RECORDER_STRINGS = (
+    "install.py",
+    "--bin-dir",
+    "record-outcome",
+    "finish-review",
+    "~/.local/bin/pre-sdd-review-evidence",
+)
+DEAD_LAUNCHER_PHRASES = (
+    "pre-sdd-review-evidence launcher",
+    "`pre-sdd-review-evidence` launcher",
+)
 ACTIVE_ROUTING_SURFACES = (
     README_PATHS
     + PRODUCT_README_PATHS
@@ -852,6 +863,8 @@ class UserGuideFactTests(unittest.TestCase):
             self.assertIn("~/.pre-sdd-review/", text)
             self.assertNotIn("--bin-dir", text)
             self.assertNotIn("install.py", text)
+            self.assertNotIn("pre-sdd-review-evidence launcher", text)
+            self.assertNotIn("~/.local/bin/pre-sdd-review-evidence", text)
 
         korean_safety = _read(ROOT / "docs/users/ko/safety-and-privacy.md")
         english_safety = _read(ROOT / "docs/users/en/safety-and-privacy.md")
@@ -1055,6 +1068,39 @@ class DocumentationArchitectureTests(unittest.TestCase):
         for language in ("ko", "en"):
             self.assertEqual({p.name for p in (ROOT / "docs/users" / language).glob("*.md")}, expected)
             self.assertFalse((ROOT / "docs" / language).exists())
+
+    def test_live_docs_omit_removed_evidence_installer_names(self) -> None:
+        skip = {
+            (ROOT / "catalog" / "CHANGELOG.md").resolve(),
+            (ROOT / "skills/pre-sdd-review/CHANGELOG.md").resolve(),
+        }
+        for document in PUBLIC_DOC_PATHS:
+            if document.resolve() in skip:
+                continue
+            relative = document.relative_to(ROOT).as_posix()
+            if relative.startswith("docs/history/"):
+                continue
+            text = _read(document)
+            for fragment in DEAD_RECORDER_STRINGS:
+                self.assertNotIn(fragment, text, f"{relative} contains {fragment!r}")
+            for phrase in DEAD_LAUNCHER_PHRASES:
+                self.assertNotIn(phrase, text, f"{relative} contains {phrase!r}")
+
+    def test_maintainer_index_owns_docs_maintenance_rules(self) -> None:
+        text = _read(MAINTAINER_INDEX)
+        normalized = re.sub(r"\s+", " ", text)
+        for fact in (
+            "제품 README",
+            "docs/users/",
+            "docs/maintainers/",
+            "사실 하나",
+            "한국어가 원본",
+            "digest",
+            "함께 고칠 파일",
+            "진행 중",
+        ):
+            self.assertIn(fact, normalized)
+        self.assertIn("docs/history/", text)
 
     def test_history_is_visibly_non_authoritative(self) -> None:
         text = (ROOT / "docs/history/README.md").read_text(encoding="utf-8")

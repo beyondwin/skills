@@ -4,6 +4,23 @@
 
 관리자 문서는 한국어가 원본입니다. 명령, 파일 경로, 계약 식별자는 영어로 둡니다.
 
+## 문서 유지
+
+문은 두 개입니다. 제품 README는 그 스킬을 고르고 호출할 때, `docs/users/`와
+`docs/maintainers/`의 이 인덱스는 설치·검증·변경·릴리스를 할 때 봅니다. 파일은 청중 트리에만 둡니다.
+
+사실 하나는 한 문서가 소유합니다. 다른 페이지는 링크로 보냅니다. 공개 설치는
+`docs/users/`, 제품 동작은 해당 `contract.md`와 `SKILL.md`, 기록기 명령은
+`skills/pre-sdd-review/evidence/README.md`가 소유합니다.
+
+관리자 문서는 한국어가 원본입니다. 명령, 파일 경로, 계약 식별자는 영어로 둡니다.
+문장은 짧게, 일상어로 씁니다.
+
+산 문서를 바꾸면 같은 변경에서 digest 핀과 사실 단언을 맞춥니다. 제품 동작
+변경은 해당 계약의 `함께 고칠 파일`을 따릅니다.
+
+`docs/history/`는 진행 중인 설계·계획만 둡니다. 현재 계약을 정의하지 않습니다.
+
 ## 할 일
 
 | 작업 | 문서 |
@@ -15,7 +32,7 @@
 | 릴리스 | [독립 제품 릴리스](repository/release.md), 해당 제품 `release.md` |
 | 불변 카탈로그 확인 | [카탈로그](repository/catalog.md), `catalog/` |
 | 마이그레이션·Archive | [마이그레이션](repository/migrations.md) |
-| 과거 결정 확인 | [기록](../history/) |
+| 진행 중인 설계·계획 | [기록](../history/) |
 
 ## 저장소 공통
 
@@ -55,7 +72,7 @@
 
 ### pre-sdd-review
 
-- [계약](products/pre-sdd-review/contract.md) — 권위 순서, 기본 문서 개선 흐름, 변이 경계, 판정
+- [계약](products/pre-sdd-review/contract.md) — 권위 순서, 판정, 함께 고칠 파일
 - [테스트](products/pre-sdd-review/testing.md) — 공급자 없는 계약 픽스처와 선택적 라이브 절차의 증거 한계
 - [호환성](products/pre-sdd-review/compatibility.md) — Codex 측정 지원과 다른 호스트 `not_measured` 경계
 - [릴리스](products/pre-sdd-review/release.md) — 독립 제품 check/build/verify-download와 비게시 경계

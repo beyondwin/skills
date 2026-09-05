@@ -30,8 +30,6 @@ python3 skills/pre-sdd-review/evidence/evidence.py --version
 
 Receipts live at `~/.pre-sdd-review/runs/<run-id>.json`. Removing the skill
 folder does not delete receipts, and deleting a receipt is deleting its file.
-The `pre-sdd-review-evidence` launcher installed by earlier versions is no
-longer used; inspect that exact file, then remove it.
 
 ## How It Works local links
 

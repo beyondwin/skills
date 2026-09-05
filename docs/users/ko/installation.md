@@ -28,9 +28,7 @@ python3 skills/pre-sdd-review/evidence/evidence.py --version
 ```
 
 영수증은 `~/.pre-sdd-review/runs/<run-id>.json`에 남습니다. 스킬 폴더를 지워도
-영수증은 지워지지 않으며, 영수증 삭제는 파일 삭제로 충분합니다. 이전 버전이
-설치한 `pre-sdd-review-evidence` launcher는 더 이상 쓰이지 않으므로 그 파일만
-확인한 뒤 제거하세요.
+영수증은 지워지지 않으며, 영수증 삭제는 파일 삭제로 충분합니다.
 
 ## How It Works 로컬 링크
 
