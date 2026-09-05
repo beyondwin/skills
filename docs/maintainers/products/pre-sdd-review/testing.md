@@ -64,7 +64,7 @@ private prompts, credentials, transcripts, full model responses를 픽스처,
 - `evidence-cli-unavailable`
 - `evidence-review-only`
 - `evidence-resolution-blocked`
-- `evidence-combined-sdd-outcome`
+- `evidence-outcome-optional`
 - `near-miss-write-spec`
 - `near-miss-write-plan`
 - `near-miss-code-review`

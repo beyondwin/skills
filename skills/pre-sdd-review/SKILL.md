@@ -72,24 +72,30 @@ a path, command, interface, or blast-radius claim used as review evidence.
 
 ## Optional local evidence
 
-Run `pre-sdd-review-evidence --version` without installing anything. Parse its
-canonical JSON and accept only `skill_name=pre-sdd-review`,
-`schema_version=1`, and CLI major version 1. When compatible, call `start`
-with the actual loaded skill root and primary plan, keep the returned `run_id`
-controller-local and out of user documents, then perform the semantic review.
-The same evidence lifecycle applies to default and `review-only` mode.
+Run `python3 "<skill-root>/evidence/evidence.py" --version` from the actual
+loaded skill root without installing anything. Parse its canonical JSON and
+record only when `skill_name=pre-sdd-review` and `schema=2`. When compatible,
+call `start` before semantic review with the skill root, the repository, the
+primary plan, the design path resolved from the plan's `**Spec:**` field, the
+host client id, the host-reported model string (or `unknown`), and the mode.
+If `**Spec:**` cannot be resolved, omit `--design` and return `BLOCKED`; the
+recorder does not parse `**Spec:**`. Keep the returned `run_id`
+controller-local and out of user documents. The same lifecycle applies to
+default and `review-only` mode.
 
-After the verdict and any repairs are final, call `finish-review` with the
-current repository locator and print exactly one `Evidence:` line:
-`Evidence: recorded; run_id=<run-id>` or
+After the verdict and any repairs are final, call `finish` once with the
+current repository locator and the review facts on stdin, then print exactly
+one `Evidence:` line: `Evidence: recorded; run_id=<run-id>` or
 `Evidence: not_recorded; reason=<code>`. An unavailable, malformed,
 incompatible, or permission-failing recorder must continue the review and
-never changes the semantic verdict.
+never changes the semantic verdict. If the invocation ends before `finish`,
+call `abandon` with one of `user-cancelled`, `input-changed`, `scope-changed`,
+`input-format-fixed`, or `other`; never leave a run pending.
 
-Only for an explicitly requested combined SDD flow, hand the recorded
-`run_id` to that worker. At terminal downstream status, it may call
-`record-outcome` with the current repository locator. Never store a full
-reviewer response or source body in evidence; use bounded paraphrases only.
+Recording an `outcome` is not a controller duty. After SDD or implementation
+ends, the user or the SDD worker may record one label (`good`, `false-ready`,
+`noisy`, `abandoned`) for the run. Never store a full reviewer response or
+source body in evidence; use bounded paraphrases only.
 
 ## Select reviewers
 

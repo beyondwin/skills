@@ -77,28 +77,28 @@
     },
     {
       "id": "evidence-cli-recorded",
-      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md with a compatible local evidence CLI",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md with a compatible local evidence recorder",
       "expect": ["start_before_review", "finish_after_verdict", "Evidence_recorded"]
     },
     {
       "id": "evidence-cli-unavailable",
-      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md without a compatible local evidence CLI",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md without a compatible local evidence recorder",
       "expect": ["continue_review", "Evidence_not_recorded"]
     },
     {
       "id": "evidence-review-only",
-      "request": "$pre-sdd-review review-only sample-app/design.md sample-app/plan.md with a compatible local evidence CLI",
+      "request": "$pre-sdd-review review-only sample-app/design.md sample-app/plan.md with a compatible local evidence recorder",
       "expect": ["review_only_receipt", "no_document_mutation"]
     },
     {
       "id": "evidence-resolution-blocked",
-      "request": "$pre-sdd-review sample-app/plan-without-spec.md with a compatible local evidence CLI",
-      "expect": ["BLOCKED", "resolution_failure_recorded"]
+      "request": "$pre-sdd-review sample-app/plan-without-spec.md with a compatible local evidence recorder",
+      "expect": ["BLOCKED", "design_omitted_from_start", "design_recorded_null"]
     },
     {
-      "id": "evidence-combined-sdd-outcome",
+      "id": "evidence-outcome-optional",
       "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md and implement it with SDD",
-      "expect": ["recorded_run_id_handoff", "terminal_outcome", "verdict_unchanged"]
+      "expect": ["verdict_unchanged", "outcome_not_controller_duty", "one_label_after_sdd"]
     },
     {
       "id": "near-miss-write-spec",

@@ -39,9 +39,9 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "966f4b8fdb65687d8c4eb4e1092b9a12838c68af122bfe3b7c55b2991766b6bd",
+    "SKILL.md": "aba91fcfab06380161af32cf434e3571db9b62f4b8c8581b42c1f24ee1409431",
     "references/reviewer-protocol.md": (
-        "0883c5cdc4f79f9c07d764cacc9f4b01d3902e718af96139f54b4b64dfc86c9c"
+        "8b28feb6c897341917cdde06411cadf8aea1f815f10608fa7ce709d12b77821f"
     ),
 }
 CASE_IDS = (
@@ -64,7 +64,7 @@ CASE_IDS = (
     "evidence-cli-unavailable",
     "evidence-review-only",
     "evidence-resolution-blocked",
-    "evidence-combined-sdd-outcome",
+    "evidence-outcome-optional",
     "near-miss-write-spec",
     "near-miss-write-plan",
     "near-miss-code-review",
@@ -414,7 +414,7 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### SDD handoff", "8a629dd12d78e2c08e77e7c1d057d0e450b135bc0633d5b62c8c926665976bca"),
 )
 MAINTAINER_CANONICAL_DIGEST = "49e462422e78b0cea42890811a76e7de32380bc7e4cc72ff1d546c76ed22361b"
-TESTING_CANONICAL_DIGEST = "9b405b03ab0dcd8c5bd7d0f0a0a42bf6f84a8064bfec66dbb0e4106bc25aeb37"
+TESTING_CANONICAL_DIGEST = "adf831f1efd9a8d2ff416189b24b8465d59037aae1fcde522fb3285b2e1f6e34"
 COMPATIBILITY_CANONICAL_DIGEST = "8df097a3b3e0786f176f1d8b5c131bf005f2738e047d0cd5e5f6a7aed7fb7395"
 RELEASE_CANONICAL_DIGEST = "adb2d3ed5a38c02d0cc1dfe1cd97d5a0ae8b8335f953380bd9fc203273d65173"
 
@@ -1151,68 +1151,45 @@ class PreSddReviewContractTests(unittest.TestCase):
         evidence = section(body, "## Optional local evidence", "## Select reviewers")
         normalized = re.sub(r"\s+", " ", evidence)
 
-        ordered = (
-            "pre-sdd-review-evidence --version",
-            "start",
-            "semantic review",
-            "finish-review",
-            "Evidence:",
-            "combined SDD",
-            "terminal",
-            "record-outcome",
-        )
+        ordered = ("evidence.py\" --version", "start", "semantic review", "finish", "Evidence:", "abandon", "outcome")
         positions = tuple(normalized.index(item) for item in ordered)
         self.assertEqual(positions, tuple(sorted(positions)))
         for fact in (
             "without installing anything",
             "skill_name=pre-sdd-review",
-            "schema_version=1",
-            "CLI major version 1",
+            "schema=2",
             "actual loaded skill root",
             "primary plan",
+            "does not parse `**Spec:**`",
             "controller-local",
             "default and `review-only` mode",
             "current repository locator",
             "exactly one `Evidence:` line",
             "never changes the semantic verdict",
-            "explicitly requested combined SDD",
+            "never leave a run pending",
+            "not a controller duty",
             "full reviewer response",
             "source body",
         ):
             self.assertIn(fact, normalized)
         self.assertIn("Evidence: recorded; run_id=<run-id>", evidence)
         self.assertIn("Evidence: not_recorded; reason=<code>", evidence)
+        self.assertNotIn("pre-sdd-review-evidence", body)
+        self.assertNotIn("record-outcome", body)
+        self.assertNotIn("finish-review", body)
         self.assertRegex(
             normalized,
-            re.compile(
-                r"unavailable, malformed, incompatible, or permission.*continue.*review",
-                re.IGNORECASE,
-            ),
+            re.compile(r"unavailable, malformed, incompatible, or permission.*continue.*review", re.IGNORECASE),
         )
 
     def test_evidence_cases_cover_recorded_failure_review_only_blocked_and_handoff(self) -> None:
         data = json.loads(CASES.read_text(encoding="utf-8"))
         cases = {case["id"]: tuple(case["expect"]) for case in data["cases"]}
-        self.assertEqual(
-            cases["evidence-cli-recorded"],
-            ("start_before_review", "finish_after_verdict", "Evidence_recorded"),
-        )
-        self.assertEqual(
-            cases["evidence-cli-unavailable"],
-            ("continue_review", "Evidence_not_recorded"),
-        )
-        self.assertEqual(
-            cases["evidence-review-only"],
-            ("review_only_receipt", "no_document_mutation"),
-        )
-        self.assertEqual(
-            cases["evidence-resolution-blocked"],
-            ("BLOCKED", "resolution_failure_recorded"),
-        )
-        self.assertEqual(
-            cases["evidence-combined-sdd-outcome"],
-            ("recorded_run_id_handoff", "terminal_outcome", "verdict_unchanged"),
-        )
+        self.assertEqual(cases["evidence-cli-recorded"], ("start_before_review", "finish_after_verdict", "Evidence_recorded"))
+        self.assertEqual(cases["evidence-cli-unavailable"], ("continue_review", "Evidence_not_recorded"))
+        self.assertEqual(cases["evidence-review-only"], ("review_only_receipt", "no_document_mutation"))
+        self.assertEqual(cases["evidence-resolution-blocked"], ("BLOCKED", "design_omitted_from_start", "design_recorded_null"))
+        self.assertEqual(cases["evidence-outcome-optional"], ("verdict_unchanged", "outcome_not_controller_duty", "one_label_after_sdd"))
 
     def test_authority_and_risk_selection_are_ordered_and_conditional(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -1291,6 +1268,14 @@ class PreSddReviewContractTests(unittest.TestCase):
             ),
         )
 
+    def test_protocol_requires_repository_evidence_for_repo_reality(self) -> None:
+        protocol = (SKILL / "references/reviewer-protocol.md").read_text(encoding="utf-8")
+        grounding = section(protocol, "### Pass 2: repository grounding", "### Pass 3: cross-artifact consistency")
+        self.assertIn(
+            "A `repo-reality` finding must cite at least one repository path that is neither the reviewed design nor the reviewed plan.",
+            re.sub(r"\s+", " ", grounding),
+        )
+
     def test_ready_handoff_keeps_freshness_and_explicit_sdd_boundary(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         freshness = section(body, "## Capture freshness", "## Select reviewers")
@@ -1321,12 +1306,13 @@ class PreSddReviewContractTests(unittest.TestCase):
         skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         protocol = (SKILL / "references/reviewer-protocol.md").read_text(encoding="utf-8")
         evidence = section(skill, "## Optional local evidence", "## Select reviewers")
+        self.assertNotIn("evidence.py", protocol)
         self.assertNotIn("pre-sdd-review-evidence", protocol)
         self.assertNotIn("schema field", evidence.lower())
         self.assertNotIn("atomic", evidence.lower())
         self.assertNotIn("recovery", evidence.lower())
         repair_rules = section(skill, "## Repair rules", "## Verdict and handoff")
-        self.assertNotIn("pre-sdd-review-evidence", repair_rules)
+        self.assertNotIn("evidence.py", repair_rules)
 
 
 class PreSddReviewDocumentationTests(unittest.TestCase):

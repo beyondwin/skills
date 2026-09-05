@@ -54,7 +54,9 @@ design.
 Verify named paths, symbols, commands, test runners, versions, actual
 extension points, collisions, consumers, and claimed blast radius. Run only
 safe read-only baseline checks needed to test a document claim. Preserve and
-report pre-existing dirty state when it makes a claim unresolvable.
+report pre-existing dirty state when it makes a claim unresolvable. A
+`repo-reality` finding must cite at least one repository path that is neither
+the reviewed design nor the reviewed plan.
 
 ### Pass 3: cross-artifact consistency
 
