@@ -1,13 +1,28 @@
 from __future__ import annotations
 
 import json
+import os
+import stat
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from support import EVIDENCE_DIR, error_code, run
+from support import (
+    EVIDENCE_DIR,
+    commit_all,
+    error_code,
+    finding,
+    finish,
+    finish_payload,
+    load,
+    make_git_repo,
+    make_skill_root,
+    run,
+    start,
+    write,
+)
 
 
 VERSION_LINE = b'{"cli_version":"2.0.0","schema":2,"skill_name":"pre-sdd-review"}\n'
@@ -48,6 +63,113 @@ class VersionTests(unittest.TestCase):
             self.assertEqual(completed.returncode, 0, completed.stderr)
             self.assertEqual(completed.stdout, VERSION_LINE)
             self.assertFalse(home.exists())
+
+
+class StartTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.directory = tempfile.TemporaryDirectory()
+        self.workspace = Path(self.directory.name)
+        self.home = self.workspace / "home"
+        self.repo = make_git_repo(self.workspace)
+        self.skill = make_skill_root(self.workspace)
+
+    def tearDown(self) -> None:
+        self.directory.cleanup()
+
+    def test_start_writes_a_pending_record_with_git_and_document_facts(self) -> None:
+        run_id = start(self.home, self.repo, self.skill)
+        record = load(self.home, run_id)
+        head = subprocess.run(["git", "-C", str(self.repo), "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+        self.assertEqual(record["schema"], 2)
+        self.assertEqual(record["status"], "pending")
+        self.assertEqual(record["repo"], "repo")
+        self.assertEqual(record["client"], {"id": "codex", "model": "gpt-test"})
+        self.assertEqual(record["mode"], "default")
+        self.assertEqual(record["skill"]["version"], "2.0.0")
+        self.assertRegex(record["skill"]["sha256"], r"^[0-9a-f]{64}$")
+        self.assertEqual(record["plan"]["path"], "docs/plan.md")
+        self.assertRegex(record["plan"]["sha_start"], r"^[0-9a-f]{64}$")
+        self.assertIsNone(record["plan"]["sha_end"])
+        self.assertEqual(record["design"]["path"], "docs/design.md")
+        self.assertEqual(record["git"], {"head_start": head, "head_end": None, "dirty_start": False, "dirty_end": None})
+        for key in ("completed_at", "elapsed_s", "execution", "reviewers", "trigger", "review_passes", "repair_passes", "verdict", "block_reason", "abandon_reason", "outcome"):
+            self.assertIsNone(record[key], key)
+        self.assertEqual(record["degraded_reasons"], [])
+        self.assertEqual(record["findings"], [])
+        self.assertRegex(record["started_at"], r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$")
+        path = self.home / "runs" / f"{run_id}.json"
+        self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o600)
+        self.assertEqual(stat.S_IMODE((self.home / "runs").stat().st_mode), 0o700)
+        self.assertNotIn(str(self.repo), path.read_text(encoding="utf-8"))
+
+    def test_start_without_design_records_null_and_dirty_worktree(self) -> None:
+        write(self.repo / "docs/plan.md", "# Plan\n\nno spec\n")
+        run_id = start(self.home, self.repo, self.skill, design=False)
+        record = load(self.home, run_id)
+        self.assertIsNone(record["design"])
+        self.assertTrue(record["git"]["dirty_start"])
+
+    def test_start_accepts_relative_paths_from_cwd(self) -> None:
+        code, out, err = run(
+            ["start", "--skill-root", str(self.skill), "--repo", ".", "--plan", "docs/plan.md",
+             "--design", "./docs/design.md", "--client", "claude-code", "--model", "unknown", "--mode", "review-only"],
+            home=self.home, cwd=self.repo,
+        )
+        self.assertEqual(code, 0, err)
+        record = load(self.home, json.loads(out)["run_id"])
+        self.assertEqual((record["plan"]["path"], record["design"]["path"], record["mode"]), ("docs/plan.md", "docs/design.md", "review-only"))
+
+    def test_start_rejects_plan_outside_repository(self) -> None:
+        outside = self.workspace / "elsewhere.md"
+        write(outside, "# Plan\n")
+        code, _, err = run(
+            ["start", "--skill-root", str(self.skill), "--repo", str(self.repo), "--plan", str(outside),
+             "--client", "codex", "--model", "m", "--mode", "default"],
+            home=self.home, cwd=self.repo,
+        )
+        self.assertEqual((code, error_code(err)), (2, "outside-repository"))
+
+    def test_start_rejects_non_git_repository(self) -> None:
+        plain = self.workspace / "plain"
+        write(plain / "plan.md", "# Plan\n")
+        code, _, err = run(
+            ["start", "--skill-root", str(self.skill), "--repo", str(plain), "--plan", str(plain / "plan.md"),
+             "--client", "codex", "--model", "m", "--mode", "default"],
+            home=self.home, cwd=plain,
+        )
+        self.assertEqual((code, error_code(err)), (2, "not-git-repository"))
+
+    def test_start_rejects_skill_root_without_protocol_or_version(self) -> None:
+        broken = self.workspace / "broken"
+        write(broken / "SKILL.md", "---\nname: pre-sdd-review\n---\n")
+        code, _, err = run(
+            ["start", "--skill-root", str(broken), "--repo", str(self.repo), "--plan", "docs/plan.md",
+             "--client", "codex", "--model", "m", "--mode", "default"],
+            home=self.home, cwd=self.repo,
+        )
+        self.assertEqual((code, error_code(err)), (2, "invalid-arguments"))
+
+    def test_start_rejects_unknown_client_and_invalid_home(self) -> None:
+        code, _, err = run(
+            ["start", "--skill-root", str(self.skill), "--repo", str(self.repo), "--plan", "docs/plan.md",
+             "--client", "gemini", "--model", "m", "--mode", "default"],
+            home=self.home, cwd=self.repo,
+        )
+        self.assertEqual((code, error_code(err)), (2, "invalid-arguments"))
+        code, _, err = run(["summary"], home=Path("relative/home"), cwd=self.repo)
+        self.assertEqual((code, error_code(err)), (2, "invalid-arguments"))
+
+    def test_start_reads_the_real_skill_root_version(self) -> None:
+        real_skill = EVIDENCE_DIR.parent
+        code, out, err = run(
+            ["start", "--skill-root", str(real_skill), "--repo", str(self.repo), "--plan", "docs/plan.md",
+             "--client", "codex", "--model", "m", "--mode", "default"],
+            home=self.home, cwd=self.repo,
+        )
+        self.assertEqual(code, 0, err)
+        import tomllib
+        release = tomllib.loads((real_skill / "release.toml").read_text(encoding="utf-8"))
+        self.assertEqual(load(self.home, json.loads(out)["run_id"])["skill"]["version"], release["version"])
 
 
 if __name__ == "__main__":
