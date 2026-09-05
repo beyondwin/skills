@@ -96,10 +96,10 @@ PRE_SDD_REVIEW_SUPPORT = (
     "pre-sdd-review: Codex supported; other hosts not_measured."
 )
 PRE_SDD_SHARED_SECTION_DIGESTS = {
-    ("ko", "safety"): "4959a601685bdd8505b1dc4e642b69eab9c2b39c629fbc0cd33a6d0e5014af8c",
-    ("en", "safety"): "b7850ec7843d1d9a5c00c40ba2bfa00fba1b16e6cf725296627dc0f3e1159630",
-    ("ko", "verification"): "a99a0a36ca3fea3f88f64c8b491d8fbdbb401f4ec1183a6fa6ae8d8004a787bc",
-    ("en", "verification"): "ba8641a9148c3ae35d24f1bb2bdeb534754a92f54046c6b90ac25e4d5245298b",
+    ("ko", "safety"): "86b0b7c6020984699af0a8dec3ff4d79fcd6f605cf2f4c647d17d31d1ddbcd7e",
+    ("en", "safety"): "72ee48897fe1255e3d1227e31553ad56e9aa81c4614c634a13876255756d28ec",
+    ("ko", "verification"): "2d24cb850c897d8bf90dd883d3fc38f0366ef5a1bb71eadcb2870485dba67be9",
+    ("en", "verification"): "a06cdb79bd2f5b77ac540ea03a65a42eba6266d9f7994147a0265626c5a81177",
 }
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,

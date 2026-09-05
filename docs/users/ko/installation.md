@@ -2,11 +2,11 @@
 
 [English](../en/installation.md) · [호환성](compatibility.md) · [안전과 개인정보](safety-and-privacy.md) · [검증](verification.md)
 
-설치할 스킬은 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md)입니다. 라이선스는 Apache-2.0입니다.
+설치할 스킬은 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md)입니다. 라이선스는 Apache-2.0입니다. 어느 호스트가 되는지는 [호환성](compatibility.md)을 보세요.
 
 ## 기본 설치 (Codex)
 
-`$skill-installer`는 `korean-writing-editor`, `image-workbench`, `pre-sdd-review`에 씁니다. 같은 폴더가 이미 있으면 설치기는 멈춥니다. 이 세 스킬의 기본 위치는 `$CODEX_HOME/skills/<skill-name>`이며, `CODEX_HOME`이 없으면 `~/.codex/skills`입니다. How It Works는 여기가 아닙니다.
+`$skill-installer`는 `korean-writing-editor`, `image-workbench`, `pre-sdd-review`에 씁니다. 같은 폴더가 이미 있으면 설치기는 멈춥니다. 이 세 스킬의 기본 위치는 `$CODEX_HOME/skills/<skill-name>`입니다. `CODEX_HOME`이 없으면 `~/.codex/skills`입니다. How It Works는 여기가 아닙니다.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
@@ -18,21 +18,17 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-re
 
 ## Pre-SDD Review evidence 기록기
 
-`pre-sdd-review`의 의미 검토 지원은 Codex로 유지됩니다. 선택적 로컬 기록기
-`evidence/evidence.py`는 설치하지 않고 스킬 폴더에서 Python 3.11+로 직접
-실행하며, Codex, Claude Code, Cursor, Grok이 같은 파일과 같은 데이터 루트를
-씁니다. 이는 다른 호스트의 의미 검토 지원을 뜻하지 않습니다.
+선택 기록기 `evidence/evidence.py`는 설치하지 않습니다. 스킬 폴더에서 Python 3.11 이상으로 직접 실행합니다.
 
 ```bash
 python3 skills/pre-sdd-review/evidence/evidence.py --version
 ```
 
-영수증은 `~/.pre-sdd-review/runs/<run-id>.json`에 남습니다. 스킬 폴더를 지워도
-영수증은 지워지지 않으며, 영수증 삭제는 파일 삭제로 충분합니다.
+영수증은 `~/.pre-sdd-review/` 아래에 남습니다. 스킬 폴더를 지워도 영수증은 지워지지 않습니다. 영수증을 지우려면 그 파일을 지우면 됩니다. 명령과 한계는 [기록기 README](../../../skills/pre-sdd-review/evidence/README.md)를 보세요.
 
 ## How It Works 로컬 링크
 
-`how-it-works`는 로컬 또는 저장소 기준으로 Codex와 Claude Code를 지원합니다. 공개 GitHub 경로는 https://github.com/beyondwin/skills/tree/main/skills/how-it-works 입니다. 저장소를 클론한 뒤 링크 두 개를 걸면 됩니다. 첫 링크는 Codex, 둘째는 Claude Code입니다. Codex는 `~/.agents/skills/how-it-works`에서 찾습니다. `~/.codex`나 `~/.grok` 복사본을 만들지 마세요. `ln -s`는 이미 있는 대상을 덮어쓰지 않고 실패합니다.
+`how-it-works`는 저장소를 클론한 뒤 링크 두 개를 겁니다. 공개 경로는 https://github.com/beyondwin/skills/tree/main/skills/how-it-works 입니다. 첫 링크는 Codex, 둘째는 Claude Code입니다. Codex는 `~/.agents/skills/how-it-works`에서 찾습니다. `~/.codex`나 `~/.grok` 복사본을 만들지 마세요. `ln -s`는 이미 있는 대상을 덮어쓰지 않고 실패합니다.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -52,11 +48,11 @@ ln -s "$PWD/skills/how-it-works" ~/.claude/skills/how-it-works
 npx skills add beyondwin/skills --skill korean-writing-editor
 ```
 
-이 `npx` 명령은 제3자 설치기이며 자체 릴리스와 텔레메트리 정책을 따릅니다. `image-workbench`와 `pre-sdd-review`는 Codex 전용이라 이 경로로 지원하지 않습니다. `how-it-works`는 위 로컬 링크를 씁니다.
+이 `npx` 명령은 제3자 설치기입니다. 자체 릴리스와 텔레메트리 정책을 따릅니다. 다른 스킬은 위 기본 설치나 로컬 링크를 쓰세요.
 
 ## Codex 전용 Git 클론
 
-`korean-writing-editor`, `image-workbench`, `pre-sdd-review`는 Codex 전용입니다. `npx`를 쓰지 않을 때는 저장소를 클론한 뒤, Codex가 기대하는 스킬 폴더에 확인된 디렉터리만 복사합니다.
+`npx`를 쓰지 않으면 저장소를 클론합니다. 그다음 Codex가 기대하는 스킬 폴더에, 확인된 디렉터리만 복사합니다.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -67,8 +63,6 @@ ls -ld "$SKILL_TARGET"
 ```
 
 `$SKILL_TARGET`이 없거나, 이 스킬을 가리키는 안전한 링크임이 확인된 경우에만 복사하세요. 이미 있는 실제 디렉터리는 덮어쓰지 말고 멈추세요. `image-workbench`와 `pre-sdd-review`도 같은 방식으로 정확한 폴더만 다룹니다.
-
-다른 호스트 폴더는 `korean-writing-editor`의 Agent Skills 계약 이식 대상일 뿐입니다. 기록된 smoke가 있기 전에는 그 호스트를 지원이라고 말하지 마세요.
 
 ## 갱신과 제거
 
@@ -85,7 +79,7 @@ ls -ld "$SKILL_TARGET"
 - 실제 디렉터리인가, 심볼릭 링크인가, 다른 곳을 가리키는가
 - `SKILL.md`의 `name`과 `metadata.version`이 기대한 값인가
 
-이 스킬임이 확인된 뒤에만 호스트의 일반 제거로 그 경로만 지우거나, 대상을 치운 뒤 `$skill-installer`로 다시 설치하세요. 상위 `skills` 디렉터리나 홈 디렉터리를 지우지 마세요. 기존 설치를 확인 없이 교체하지 마세요.
+이 스킬임이 확인된 뒤에만 그 경로만 지우세요. 호스트의 일반 제거를 쓰거나, 대상을 치운 뒤 `$skill-installer`로 다시 설치하세요. 상위 `skills` 디렉터리나 홈 디렉터리를 지우지 마세요. 기존 설치를 확인 없이 교체하지 마세요.
 
 `image-workbench`와 `pre-sdd-review`도 같은 확인 순서를 각각 `.../skills/image-workbench`, `.../skills/pre-sdd-review`에 적용합니다.
 
@@ -97,7 +91,7 @@ unlink ~/.agents/skills/how-it-works
 unlink ~/.claude/skills/how-it-works
 ```
 
-설치·갱신·제거는 정확한 대상만 다룹니다. 원격 스크립트를 셸에 파이프하거나, 대상을 확인하지 않고 덮어쓰거나, 상위 스킬 디렉터리를 지우거나, 기존 설치를 자동으로 바꾸지 마세요.
+설치·갱신·제거는 정확한 대상만 다룹니다. 원격 스크립트를 셸에 파이프하지 마세요. 대상을 확인하지 않고 덮어쓰지 마세요. 상위 스킬 디렉터리를 지우지 마세요. 기존 설치를 자동으로 바꾸지 마세요.
 
 ## 검증
 
@@ -107,4 +101,4 @@ unlink ~/.claude/skills/how-it-works
 python3 scripts/verify.py
 ```
 
-이 명령은 계약·오프라인 픽스처만 다룹니다. 라이브 실행을 승인하거나 품질을 증명하지 않습니다. 프로필과 증거 한계는 [검증](verification.md)을 보세요.
+프로필과 증거 한계는 [검증](verification.md)을 보세요.

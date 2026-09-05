@@ -2,7 +2,7 @@
 
 [한국어](../ko/compatibility.md) · [Installation](installation.md)
 
-The current standalone products are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), and [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md). How It Works currently claims Codex and Claude Code. Korean Writing Editor, Image Workbench, and Pre-SDD Review keep their registered Codex boundaries.
+The current standalone products are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), and [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md). How It Works currently claims Codex and Claude Code. The other three products keep their registered Codex boundaries.
 
 ## Shared support sentences
 
@@ -16,23 +16,20 @@ pre-sdd-review: Codex supported; other hosts not_measured.
 
 ## Contract portability versus measured support
 
-`korean-writing-editor` follows the open Agent Skills directory format (`SKILL.md`, optional `scripts/`, `references/`, and `assets/`). That format does not mean Claude Code, Cursor, or any other host is supported today. A host is `supported` only after a current smoke test; otherwise its status is `partially verified` or `not_measured`.
+A matching folder layout does not mean that host is supported. A host is `supported` only after a current smoke test. Otherwise its status is `partially verified` or `not_measured`. See each product README for the product guide.
 
-`image-workbench` is Codex-only. Similar tools in another host do not establish compatibility. `brief` and `audit` can run read-only, but generate or edit requires Codex built-in image generation and local image viewing.
+`how-it-works` supports Codex and Claude Code for local or repository-based use. Claude.ai, Cowork, Skills API upload, and marketplace publication are not supported.
 
-`how-it-works` supports `codex` and `claude-code` for local or repository-based use. Output is GitHub-flavored markdown in chat, plus mermaid source and a numbered hop list. A host page or mermaid renderer is not required. Claude.ai, Cowork, Skills API upload, and marketplace publication are not supported.
+`image-workbench` is Codex-only. Similar tools in another host do not establish compatibility.
 
-`pre-sdd-review` is measured only on Codex with a local Git repository and independent subagent review. A portable Markdown package shape does not prove reviewer independence or equivalent repository inspection on another host, so those hosts remain `not_measured`.
+Other hosts for `pre-sdd-review` remain `not_measured`.
 
-The immutable catalog `v2.0.0` plugin bundle does not include How It Works or Pre-SDD Review. The plugin name `beyondwin-skills` means the repository is packaged as one plugin. It does not mean the plugin is listed in a plugin directory.
+The catalog plugin name is `beyondwin-skills`. That does not mean a marketplace listing.
 
 ## Install paths and hosts
 
-- Codex primary for Korean Writing Editor, Image Workbench, and Pre-SDD Review: `$skill-installer` with the public GitHub skill path. See [Installation](installation.md).
-- How It Works: `~/.agents/skills/how-it-works` (Codex) and `~/.claude/skills/how-it-works` (Claude Code). Codex does not use `~/.codex`. `ln -s` fails instead of overwriting an existing target.
-- Optional: third-party `npx skills add beyondwin/skills --skill korean-writing-editor`. That installer has its own policy.
-- Alternative: `git clone` plus host-native folder install. Inspect the exact target before copying.
+Install, link, and remove steps are in [Installation](installation.md). Verification is in [Verification](verification.md).
 
-Windows-meaningful checks are the Korean-editor offline suite and repository contracts. Do not claim `image-workbench` generate or edit support except where the Codex prerequisites exist.
+Windows-meaningful checks are the Korean-editor offline suite and repository contracts. Do not claim `image-workbench` generate or edit support except where Codex is present.
 
-The license is Apache-2.0. Provider-free verification is `python3 scripts/verify.py`.
+The license is Apache-2.0.

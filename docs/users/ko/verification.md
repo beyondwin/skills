@@ -8,7 +8,23 @@
 python3 scripts/verify.py
 ```
 
-이 명령은 `--profile full`과 같습니다. 단계는 repository-contract, korean-package, korean-offline, korean-live-unit, korean-live-dry-run, image-contract, image-inspector, how-it-works-contract, pre-sdd-review-contract, pre-sdd-review-evidence, python-compile 순서이며, 첫 실패 단계에서 멈춥니다. `windows-portable`는 Codex 전용 `image-contract`와 `image-inspector`를 제외하지만 이식 가능한 `pre-sdd-review-contract`와 `pre-sdd-review-evidence`는 유지합니다. 라이브 `--execute`는 포함하지 않습니다.
+이 명령은 `--profile full`과 같습니다.
+
+단계는 아래 순서입니다. 첫 실패에서 멈춥니다.
+
+- repository-contract
+- korean-package
+- korean-offline
+- korean-live-unit
+- korean-live-dry-run
+- image-contract
+- image-inspector
+- how-it-works-contract
+- pre-sdd-review-contract
+- pre-sdd-review-evidence
+- python-compile
+
+`windows-portable`는 Codex 전용 `image-contract`와 `image-inspector`를 뺍니다. 이식 가능한 `pre-sdd-review-contract`와 `pre-sdd-review-evidence`는 남깁니다. 라이브 `--execute`는 넣지 않습니다.
 
 ```bash
 python3 scripts/verify.py --profile full
@@ -31,32 +47,27 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 ## 오프라인 픽스처
 
-오프라인 스위트는 결정적 계약만 증명합니다.
+오프라인 스위트는 결정적 계약만 증명합니다. 제품별 픽스처는 각 제품 README를 보세요.
 
-- `korean-writing-editor`: `tests/products/korean-writing-editor/offline/`의 트리거·모드·보존·출력 픽스처
-- `image-workbench`: `tests/products/image-workbench/`의 라우팅·권한·ImageSpec·핸드오프·inspector 픽스처
-- `how-it-works`: `tests/products/how-it-works/cases.json`의 합성 DNS·rebase 계약 픽스처와 `tests/products/how-it-works/test_contract.py` 페이로드 계약. 채팅 필수 산출(one-sentence claim, Mermaid, numbered hop list, rung-specific body, adjacent slices, one next move)의 형태만 잠급니다.
-- `pre-sdd-review`: `tests/products/pre-sdd-review/`의 합성 사례와 문서 픽스처. `pre-sdd-review`의 공급자 없는 픽스처는 지시와 패키지 계약만 검증합니다. 리뷰어 독립성, 의미 완전성, 라이브 리뷰 품질을 증명하지 않습니다.
+- `korean-writing-editor`: `tests/products/korean-writing-editor/offline/`
+- `image-workbench`: `tests/products/image-workbench/`
+- `how-it-works`: `tests/products/how-it-works/`
+- `pre-sdd-review`: `tests/products/pre-sdd-review/`. `pre-sdd-review`의 공급자 없는 픽스처는 지시와 패키지 계약만 검증합니다. 리뷰어 독립성, 의미 완전성, 라이브 리뷰 품질을 증명하지 않습니다.
 
-Evidence 단계는 `tests/products/pre-sdd-review/evidence/`에서 `evidence.py`의
-schema 2 record, Git 사실, 불변식, 여섯 명령, summary 집계를 검증합니다.
-네트워크, 모델, provider, telemetry를 호출하지 않으며 DB나 index를 쓰지
-않습니다.
+Evidence 단계는 `tests/products/pre-sdd-review/evidence/`에서 `evidence.py`를 검사합니다. 네트워크, 모델, provider, telemetry를 호출하지 않습니다.
 
-비-Windows의 `windows-portable` 통과는 native Windows 지원을 증명하지 않습니다. native Windows와 Linux는 각 Python 3.11 환경에서 evidence 단계가
-실행되기 전까지 `not_measured`입니다. Claude Code, Cursor, Grok의 의미 검토도
-별도 live receipt 없이는 `not_measured`입니다.
+비-Windows의 `windows-portable` 통과는 native Windows 지원을 증명하지 않습니다. native Windows와 Linux는 그 환경에서 evidence 단계가 돌기 전까지 `not_measured`입니다.
 
-통과는 일반 한국어 편집 품질, 의미 동등, 라이브 이미지 품질, 상업 허가, 더 나은 공급자, 런타임 동등성을 증명하지 않습니다. 라이선스는 Apache-2.0입니다.
+통과는 일반 품질을 증명하지 않습니다. 라이선스는 Apache-2.0입니다.
 
 ## 라이브 실행
 
-라이브 평가는 로컬에서만 하며, 명시 플래그, 이름 있는 런타임, 제한된 호출 예산, 추적 소스 밖의 증거 루트가 있을 때 합니다. CI는 라이브를 요구하지 않습니다. 공급자 프로세스를 조용히 바꾸지 않습니다.
+라이브 평가는 로컬에서만 합니다. 명시 플래그, 이름 있는 런타임, 제한된 호출 예산, 추적 소스 밖의 증거 루트가 있을 때 합니다. CI는 라이브를 요구하지 않습니다. 공급자 프로세스를 조용히 바꾸지 않습니다.
 
-상태 어휘는 `verified`, `partially_verified`, `failed`, `blocked`, `not_measured`입니다. 오프라인 성공을 `partially_verified`로 바꾸지 말고, 공급자 불가를 통과로 바꾸지 마세요.
+상태 어휘는 `verified`, `partially_verified`, `failed`, `blocked`, `not_measured`입니다. 오프라인 성공을 `partially_verified`로 바꾸지 마세요. 공급자 불가를 통과로 바꾸지 마세요.
 
-한국어 라이브 한도는 maintainer 문서의 119 / 3 / 122 / 38 / 160 예산을 따릅니다. 운영 절차는 `tests/products/korean-writing-editor/live/README.md`에 있습니다. 사용자 한국어 원문, 공급자 응답, 비공개 참조 이미지, 생성 이미지, 자격 증명, receipt는 커밋하지 않습니다.
+한국어 라이브 한도는 관리자 문서의 119 / 3 / 122 / 38 / 160 예산을 따릅니다. 운영 절차는 `tests/products/korean-writing-editor/live/README.md`에 있습니다. 사용자 한국어 원문, 공급자 응답, 비공개 참조 이미지, 생성 이미지, 자격 증명, receipt는 커밋하지 않습니다.
 
 ## 한계
 
-측정된 지원과 픽스처 결과만 보고하세요. 플러그인 디렉터리 등록, 모든 호스트 지원, 일반 품질, 라이브 이미지 품질, 권리 확정, 공급자 우월을 주장하지 마세요. `how-it-works` 오프라인 통과는 Codex나 Claude Code 라이브 품질을 증명하지 않습니다. `pre-sdd-review` 오프라인 통과도 리뷰어 독립성, 의미 완전성, 라이브 리뷰 품질을 증명하지 않습니다. 라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있고 CI가 요구하지 않습니다.
+측정된 지원과 픽스처 결과만 보고하세요. 플러그인 디렉터리 등록, 모든 호스트 지원, 일반 품질, 라이브 이미지 품질, 권리 확정, 공급자 우월을 주장하지 마세요.

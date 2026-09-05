@@ -8,7 +8,23 @@ Required verification runs without credentials or models.
 python3 scripts/verify.py
 ```
 
-That command is `--profile full`. Stages run in this order: repository-contract, korean-package, korean-offline, korean-live-unit, korean-live-dry-run, image-contract, image-inspector, how-it-works-contract, pre-sdd-review-contract, pre-sdd-review-evidence, python-compile. The first failing stage stops the command. `windows-portable` excludes the Codex-only `image-contract` and `image-inspector` stages but keeps the portable `pre-sdd-review-contract` and `pre-sdd-review-evidence`. Live `--execute` is not included.
+That command is `--profile full`.
+
+Stages run in this order. The first failing stage stops the command.
+
+- repository-contract
+- korean-package
+- korean-offline
+- korean-live-unit
+- korean-live-dry-run
+- image-contract
+- image-inspector
+- how-it-works-contract
+- pre-sdd-review-contract
+- pre-sdd-review-evidence
+- python-compile
+
+`windows-portable` excludes the Codex-only `image-contract` and `image-inspector` stages. It keeps the portable `pre-sdd-review-contract` and `pre-sdd-review-evidence`. Live `--execute` is not included.
 
 ```bash
 python3 scripts/verify.py --profile full
@@ -31,33 +47,27 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 ## Offline fixtures
 
-The offline suites prove the deterministic contract only.
+The offline suites prove the deterministic contract only. See each product README for that product's fixtures.
 
-- `korean-writing-editor`: trigger, mode, preservation, and output fixtures under `tests/products/korean-writing-editor/offline/`
-- `image-workbench`: routing, authorization, ImageSpec, handoff, and inspector fixtures under `tests/products/image-workbench/`
-- `how-it-works`: synthetic DNS and rebase contract fixtures in `tests/products/how-it-works/cases.json` and payload contracts in `tests/products/how-it-works/test_contract.py`. They lock the in-chat required deliverable (one-sentence claim, Mermaid, numbered hop list, rung-specific body, adjacent slices, one next move).
-- `pre-sdd-review`: synthetic cases and document fixtures under `tests/products/pre-sdd-review/`. Provider-free fixtures validate only instruction and package contracts. They do not prove reviewer independence, semantic completeness, or live review quality.
+- `korean-writing-editor`: `tests/products/korean-writing-editor/offline/`
+- `image-workbench`: `tests/products/image-workbench/`
+- `how-it-works`: `tests/products/how-it-works/`
+- `pre-sdd-review`: `tests/products/pre-sdd-review/`. Provider-free fixtures validate only instruction and package contracts. They do not prove reviewer independence, semantic completeness, or live review quality.
 
-The evidence stage under `tests/products/pre-sdd-review/evidence/` validates
-the schema 2 records, Git facts, invariants, six commands, and summary
-aggregation of `evidence.py`. It makes no network, model, provider, or
-telemetry call and uses no database or index.
+The evidence stage under `tests/products/pre-sdd-review/evidence/` checks `evidence.py`. It makes no network, model, provider, or telemetry call.
 
-A non-Windows `windows-portable` pass does not prove native Windows support. Native Windows and Linux remain `not_measured` until the
-evidence stage runs under Python 3.11 there. Semantic review on Claude Code,
-Cursor, and Grok also remains `not_measured` without a separate validated live
-receipt.
+A non-Windows `windows-portable` pass does not prove native Windows support. Native Windows and Linux remain `not_measured` until the evidence stage runs there.
 
-A pass does not prove general Korean editing quality, semantic equivalence, live image quality, commercial permission, a better provider, or runtime parity. The license is Apache-2.0.
+A pass does not prove general quality. The license is Apache-2.0.
 
 ## Live execution
 
 Live evaluation is local only. It needs a positive flag, a named runtime, a bounded call budget, and an evidence root outside tracked source. CI never requires it. Provider processes are never silently substituted.
 
-Status labels are `verified`, `partially_verified`, `failed`, `blocked`, and `not_measured`. Do not turn an offline pass into `partially_verified`, and do not turn an unavailable provider into a pass.
+Status labels are `verified`, `partially_verified`, `failed`, `blocked`, and `not_measured`. Do not turn an offline pass into `partially_verified`. Do not turn an unavailable provider into a pass.
 
 Korean live ceilings follow the 119 / 3 / 122 / 38 / 160 budgets in the maintainer protocol. Operator steps are in `tests/products/korean-writing-editor/live/README.md`. Do not commit user Korean text, provider responses, private reference images, generated images, credentials, or receipts.
 
 ## Limitations
 
-Report measured support and fixture results only. Do not claim plugin-directory availability, support on every host, general quality, live image quality, settled reuse rights, or a better provider. An offline `how-it-works` pass does not prove live quality on Codex or Claude Code. An offline `pre-sdd-review` pass does not prove reviewer independence, semantic completeness, or live review quality. Live execution is local, explicit, optional, potentially billable, and never required by CI.
+Report measured support and fixture results only. Do not claim plugin-directory availability, support on every host, general quality, live image quality, settled reuse rights, or a better provider.
