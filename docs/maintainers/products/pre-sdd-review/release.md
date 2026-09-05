@@ -33,7 +33,7 @@ Release payload keeps `evidence/evidence.py` non-executable; it is run with
 `python3` and never installed. Native Windows stays `not_measured` unless a
 native Python 3.11 evidence run is recorded.
 
-No tag or GitHub Release is created by these commands.
+no tag or GitHub Release is created by these commands.
 
 ## Failure recovery
 
