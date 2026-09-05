@@ -413,10 +413,10 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Freshness", "496291e8542f8f110b1f9e17647c86b83b42d58720382ce68437bb5601cd09ae"),
     ("### SDD handoff", "8a629dd12d78e2c08e77e7c1d057d0e450b135bc0633d5b62c8c926665976bca"),
 )
-MAINTAINER_CANONICAL_DIGEST = "49e462422e78b0cea42890811a76e7de32380bc7e4cc72ff1d546c76ed22361b"
-TESTING_CANONICAL_DIGEST = "adf831f1efd9a8d2ff416189b24b8465d59037aae1fcde522fb3285b2e1f6e34"
-COMPATIBILITY_CANONICAL_DIGEST = "8df097a3b3e0786f176f1d8b5c131bf005f2738e047d0cd5e5f6a7aed7fb7395"
-RELEASE_CANONICAL_DIGEST = "adb2d3ed5a38c02d0cc1dfe1cd97d5a0ae8b8335f953380bd9fc203273d65173"
+MAINTAINER_CANONICAL_DIGEST = "d99ed7d2c60c07929599a77d2b442b85038f121022f37fcd2322f748f500acbd"
+TESTING_CANONICAL_DIGEST = "e7790bab0c4f24b366e404fd20488c28b0de33d3e7ee70fc19c081eb132a715a"
+COMPATIBILITY_CANONICAL_DIGEST = "5a65dde4f8fc9c64402ee84adb82a2cfd782a38ac76b8e025efb7a61240a78ad"
+RELEASE_CANONICAL_DIGEST = "85932b7c35460c4173fff1ea571e3e1372812a0901af73e0ce7f62b189554413"
 
 
 def section(text: str, start: str, end: str) -> str:
@@ -1486,7 +1486,7 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "CI never",
             "user documents",
             "full model responses",
-            "pre-sdd-review-evidence",
+            "evidence.py",
             "not_measured",
         ):
             self.assertIn(fact, normalized_testing)
@@ -1494,7 +1494,7 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         self.assertIn("exactly twenty-four개의", normalized_testing)
         self.assertIn("Codex is supported", compatibility)
         self.assertIn("Every other host is `not_measured`", compatibility)
-        self.assertIn("## Evidence CLI compatibility", compatibility)
+        self.assertIn("## Evidence recorder compatibility", compatibility)
         self.assertIn("| Linux / Python 3.11+ | `not_measured` |", compatibility)
         self.assertIn("| Windows / Python 3.11+ | `not_measured` |", compatibility)
         normalized_release = re.sub(r"\s+", " ", release).lower()

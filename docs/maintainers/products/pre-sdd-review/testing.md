@@ -17,18 +17,16 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
 documented contract fact를 확인합니다. live review, semantic quality, 다른
 호스트의 동등 지원은 증명하지 않습니다.
 
-공유 evidence CLI의 schema, repository identity, create-only storage,
-outcome, reporting, installer 계약은 별도 provider-free 단계로 실행합니다.
-Installed command identity is `pre-sdd-review-evidence`.
+`evidence/evidence.py` 기록기의 schema 2 record, Git 사실, 불변식, 여섯 명령,
+summary 집계 계약은 별도 provider-free 단계로 실행합니다. The recorder runs as
+`python3 skills/pre-sdd-review/evidence/evidence.py` and is not installed.
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
   -s tests/products/pre-sdd-review/evidence -p 'test_*.py' -v
 ```
 
-이 단계는 네트워크나 provider를 호출하지 않습니다. 수천 개의 bounded 합성
-receipt를 사용한 summary/candidates 규모 검사도 Python 표준 라이브러리 안에서
-실행하며 DB나 index를 추가하지 않습니다.
+이 단계는 네트워크나 provider를 호출하지 않으며 DB나 index를 추가하지 않습니다.
 
 ## Exact fixture boundary
 
@@ -94,8 +92,8 @@ v1.1 전진 확인은 정답을 숨긴 채 `repair-induced-schema-consumer`,
 이탈이 없어야 합니다. 기존 `ready` 픽스처는 공급자 없는 긍정 대조입니다. 이
 점검은 반복 평가나 일반 품질 측정을 대신하지 않습니다.
 
-Evidence lifecycle 픽스처는 source text, raw path, prompt, transcript,
-credential을 bounded reason/finding에 넣지 않고 짧은 합성 paraphrase만
-사용합니다. Outcome label과 confidence는 관찰자 입력이며 audit-grade proof가
-아닙니다. native Windows, Linux, Claude Code, Cursor, Grok은 각 native 또는
-live 단계가 별도로 실행되기 전까지 `not_measured`입니다.
+Evidence 테스트는 임시 Git 저장소와 합성 skill root만 사용하며 source text, raw
+path, prompt, transcript, credential을 record에 넣지 않습니다. `outcome` label은
+관찰자 입력이며 audit-grade proof가 아닙니다. native Windows, Linux, Claude Code,
+Cursor, Grok은 각 native 또는 live 단계가 별도로 실행되기 전까지
+`not_measured`입니다.

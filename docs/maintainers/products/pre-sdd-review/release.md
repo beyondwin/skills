@@ -5,7 +5,7 @@ version source is `skills/pre-sdd-review/release.toml`. `SKILL.md`의
 `metadata.version`은 검증된 복사본이고 `CHANGELOG.md`는 사람이 읽는 계약
 이력입니다.
 
-제품 식별자는 `release.toml`의 `pre-sdd-review` `version 1.3.1`입니다.
+제품 식별자는 `release.toml`의 `pre-sdd-review` `version 2.0.0`입니다.
 
 ## Check, build, and verify download
 
@@ -24,15 +24,14 @@ python3 scripts/release.py verify-download --product pre-sdd-review --input <fre
 
 `check`는 tracked product scope, SemVer, changelog, 필수 verification을
 확인합니다. `build`는 새 빈 출력 디렉터리에 standalone ZIP 하나와
-`SHA256SUMS`만 씁니다. `verify-download`는 fresh bytes, checksum, ZIP
-structure, extracted payload hash, exact evidence runtime manifest, extracted
-`pre-sdd-review-evidence --version` canonical JSON, product verification을
-확인합니다. 로컬 build output은 public-release evidence가 아닙니다.
+`SHA256SUMS`만 씁니다. `verify-download`는 fresh bytes, checksum, ZIP structure, extracted payload
+hash, exact payload manifest, extracted `evidence.py --version` canonical JSON,
+product verification을 확인합니다. 로컬 build output은 public-release evidence가
+아닙니다.
 
-Release payload keeps the evidence package source files non-executable. The
-explicit installer creates the launcher outside the ZIP. Native Windows stays
-`not_measured` unless a native Python 3.11 evidence and installer run is
-recorded; portable wrapper construction does not change that status.
+Release payload keeps `evidence/evidence.py` non-executable; it is run with
+`python3` and never installed. Native Windows stays `not_measured` unless a
+native Python 3.11 evidence run is recorded.
 
 No tag or GitHub Release is created by these commands.
 

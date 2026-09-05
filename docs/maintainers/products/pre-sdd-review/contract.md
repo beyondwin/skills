@@ -163,41 +163,36 @@ automatically start another invocation after `REVISE` or `BLOCKED`. 문서, 권�
 
 Evidence recording is a separate optional contract and does not change the
 authority order, reviewer protocol, repair allowlist, or verdict rules. The
-controller checks canonical `pre-sdd-review-evidence --version` output, calls
-`start` before semantic review only when CLI major 1/schema 1 matches this
-product, and calls `finish-review` only after the verdict and repairs are
-final. It prints exactly one `Evidence:` line. Any unavailable, malformed,
-incompatible, or permission-failing recorder remains visible as
-`not_recorded` and cannot change `READY`, `REVISE`, or `BLOCKED`.
+controller runs `python3 "<skill-root>/evidence/evidence.py" --version` from
+the loaded skill root, calls `start` before semantic review only when `schema`
+is 2 and `skill_name` is `pre-sdd-review`, and calls `finish` once after the
+verdict and repairs are final. It prints exactly one `Evidence:` line. Any
+unavailable, malformed, incompatible, or permission-failing recorder remains
+visible as `not_recorded` and cannot change `READY`, `REVISE`, or `BLOCKED`.
 
-`run_id` stays controller-local and outside the reviewed documents. It is
-given only to an explicitly requested combined SDD worker; a separate worker
-must resolve the exact current repository and plan hash. Downstream recording
-uses the current repository locator and occurs only at a terminal status.
-The CLI owns deterministic paths, hashes, Git facts, identity, validation,
-create-only persistence, matching, and aggregation. The reviewer and
+The controller resolves the design path from the plan's `**Spec:**` field and
+passes it as `--design`; when it cannot, it omits `--design` and returns
+`BLOCKED`. The recorder never parses `**Spec:**`. An invocation that ends
+before `finish` calls `abandon` with one of `user-cancelled`, `input-changed`,
+`scope-changed`, `input-format-fixed`, or `other`. `run_id` stays
+controller-local and outside the reviewed documents.
+
+The recorder owns paths, hashes, Git facts, validation, atomic file
+replacement, and aggregation under `~/.pre-sdd-review/runs/`. The reviewer and
 controller remain the only owners of semantic findings, repairs, protocol
-observations, and verdicts.
+observations, and verdicts. Records hold repository-relative paths, a
+directory name, hashes, enum values, integers, timestamps, and bounded
+paraphrases; never source text, absolute paths, prompts, provider
+transcripts, command output, environment values, or credentials. Local files
+are not a signed audit log.
 
-Receipts contain bounded paraphrases, never source or document text, absolute
-paths, prompts, provider transcripts, command output, environment values, or
-credentials. Bounded reason/finding fields do not make raw input safe; the
-controller must paraphrase them. The CLI does not add automatic secret
-detection. Local atomic storage is not a signed audit log. Structured downstream
-observations, assessment basis, and confidence are observer-supplied. The CLI
-derives `good`, `false-ready`, `noisy`, and `prevented-rework` deterministically
-from those observations. Inputs and derived labels are self-improvement evidence
-rather than objective or audit-grade proof. Before `record-outcome`, represent
-every known dispute and uncertainty honestly in the single structured outcome
-input. Disputes stay in `disputed_findings`; other uncertainty belongs in the
-applicable structured observation fields. Confidence and assessment basis do
-not alter the deterministic label. `inconclusive` occurs only when the
-structured downstream observations reach the approved derivation fallback. A
-completed outcome without escaped, disputed, or prevented-rework observations
-derives `good` even when confidence is low. After the create-only outcome is
-recorded, schema 1 cannot correct or amend it. An erroneous recorded outcome is
-an uncorrectable residual risk, not a correction path. Candidate thresholds
-remain human-inspection heuristics with no automatic mutation or ranking.
+`outcome` is not a controller duty. After SDD or implementation ends, the user
+or the SDD worker records one label (`good`, `false-ready`, `noisy`,
+`abandoned`) with an optional note; `false-ready` requires a `READY` verdict
+and a label may be re-recorded. `summary` is JSON for agents: counts, cost,
+per-plan chains, repeated finding patterns, and anomalies, each carrying
+`run_id` values. No automatic skill mutation, fixture export, or client/model
+ranking follows from it.
 
 ## Handoff
 

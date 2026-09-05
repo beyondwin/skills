@@ -20,24 +20,24 @@ Markdown 패키지를 읽을 수 있어도 같은 검토자 격리와 저장소 
 | `claude-code` | `not_measured` |
 | `codex` | `supported` |
 
-## Evidence CLI compatibility
+## Evidence recorder compatibility
 
-Evidence CLI portability is independent of the semantic host matrix. Codex,
-Claude Code, Cursor, and Grok use one installed
-`pre-sdd-review-evidence` command and one `~/.pre-sdd-review/` data root when
-the command is available. A CLI pass does not prove independent read-only
-review or semantic quality on that host.
+Recorder portability is independent of the semantic host matrix. Codex,
+Claude Code, Cursor, and Grok run the same `evidence/evidence.py` from the
+loaded skill root and share one `~/.pre-sdd-review/` data root. A recorder
+pass does not prove independent read-only review or semantic quality on that
+host.
 
 ### CLI matrix
 
 | Runtime | Status | Evidence boundary |
 | --- | --- | --- |
-| macOS / Python 3.11+ | `verified` | current native atomic no-replace and provider-free suite |
-| Linux / Python 3.11+ | `not_measured` | binding selection is tested; native execution has no run evidence |
-| Windows / Python 3.11+ | `not_measured` | portable `.cmd`/zipapp construction is tested; native execution has no run evidence |
+| macOS / Python 3.11+ | `verified` | provider-free evidence suite |
+| Linux / Python 3.11+ | `not_measured` | no native run evidence |
+| Windows / Python 3.11+ | `not_measured` | no native run evidence |
 
-An injected native binding or a `windows-portable` run on another OS verifies
-selection and rendering only. It must not be promoted to native support.
+A `windows-portable` run on another OS verifies stage selection only. It must
+not be promoted to native support.
 
 ## Evidence limit
 
