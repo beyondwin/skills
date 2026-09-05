@@ -37,15 +37,12 @@ In Codex, pass the public GitHub path to `$skill-installer`.
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-review
 ```
 
-Install the optional CLI from an inspected skill copy only when you want local
-receipts. `--bin-dir` must be an existing directory already intended for
-`PATH`. Inspect the exact target first, and never pipe a remote script into a
-shell.
+The local evidence recorder is not installed. Run `evidence/evidence.py` from
+the skill folder with Python 3.11+; the controller uses the skill root it
+already loaded.
 
 ```bash
-ls -ld "$HOME/.local/bin"
-python3 skills/pre-sdd-review/evidence/install.py --bin-dir "$HOME/.local/bin"
-pre-sdd-review-evidence --version
+python3 "<skill-root>/evidence/evidence.py" --version
 ```
 
 ## First call
@@ -98,13 +95,14 @@ document invalidates its fingerprints and requires re-review. Repository
 changes do the same when they alter evidence for a path, command, interface, or
 blast-radius claim. A new product decision is always `BLOCKED`.
 
-When a compatible local CLI is present, the controller calls `start` before
-semantic review, calls `finish-review` after the final verdict, and prints
-`Evidence: recorded; run_id=<run-id>`. If the CLI is unavailable, incompatible,
-or denied by permissions, review continues and it prints
-`Evidence: not_recorded; reason=<code>`. The local `run_id` is handed off only
-for an explicitly combined SDD request, and `record-outcome` is used only when
-downstream work reaches a terminal state.
+When a compatible local recorder is present, the controller calls `start`
+before semantic review, calls `finish` after the final verdict, and prints
+`Evidence: recorded; run_id=<run-id>`. If the recorder is unavailable,
+incompatible, or denied by permissions, review continues and it prints
+`Evidence: not_recorded; reason=<code>`. The controller passes the design path
+it resolved from the plan's `**Spec:**` field; when it cannot, it omits the
+design and ends with `BLOCKED`. An invocation that ends early closes its run
+with `abandon`.
 
 ### Contract
 
@@ -131,39 +129,31 @@ documents in the `Contract` above. Accepted ADRs, visual authority,
 application code, tests, configuration, generated artifacts, and unrelated
 documentation require a separate product decision.
 
-Receipts stay local under `~/.pre-sdd-review/` by default. Even bounded reasons
-and findings must not contain source text, paths, prompts, transcripts, or
-credentials; use a short paraphrase. Provider-free fixtures must not store user
-documents or full model responses.
+Receipts stay local as `~/.pre-sdd-review/runs/<run-id>.json` (schema 2).
+Records hold repository-relative paths, a directory name, hashes, enum values,
+and short paraphrases only; never source text, absolute paths, prompts,
+transcripts, or credentials. The recorder does not detect secrets.
 
-Create-only storage provides atomicity and consistency for cooperating local
-clients, not a signed audit log resistant to malicious local tampering.
-Structured downstream observations, assessment basis, and confidence are
-observer-supplied. The CLI derives `good`, `false-ready`, `noisy`, and
-`prevented-rework` deterministically from those observations. The inputs and
-labels are self-improvement evidence, not objective or audit-grade proof.
-
-Before `record-outcome`, represent every known dispute and uncertainty honestly
-in the single structured outcome input. Put finding disputes in
-`disputed_findings`. Confidence and assessment basis do not alter the
-deterministic label. `inconclusive` occurs only when the structured downstream
-observations reach the approved derivation fallback. After the create-only
-outcome is recorded, schema 1 cannot correct or amend it.
+Local file storage is not a signed audit log resistant to malicious local
+tampering. An `outcome` label (`good`, `false-ready`, `noisy`, `abandoned`) is
+an observation recorded by a person or the SDD worker after SDD ends and may be
+re-recorded to correct it. Labels are self-improvement evidence, not objective
+or audit-grade proof.
 
 ## Operations and limits
 
-The command surface is `start`, `finish-review`, `abandon`, `show`, `pending`,
-`doctor`, `resolve`, `record-outcome`, `summary`, `candidates`, and `prune`.
-For exact arguments, size limits, recovery, backup, and deletion procedures,
-use each `--help` and the [evidence CLI guide](evidence/README.md). Candidate
-thresholds are inspection heuristics, not authority for automatic skill
-mutation, automatic quality judgment, or client/model ranking.
+The command surface is `start`, `finish`, `abandon`, `outcome`, `show`, and
+`summary`. For exact arguments, the stdin shape, and size limits, use the
+[evidence guide](evidence/README.md).
 
-Before updating or removing anything, inspect the exact installed target. The
-version source is `release.toml`; `SKILL.md` `metadata.version` is a verified
-copy. Removing the launcher does not delete receipts. Back up the whole
-evidence root to preserve identity, and delete receipts only through a reviewed
-`prune --dry-run` followed by explicit confirmation of the same selection.
+The log is written for agents. To look for improvements, have an agent run
+`summary` and read `anomalies` and `chains` first; every aggregate carries
+`run_id` values so it can drop into `show --run-id`. There is no automatic
+fixture selection, skill mutation, or client/model ranking.
+
+The version source is `release.toml`; `SKILL.md` `metadata.version` is a
+verified copy. The recorder ignores older `runs/<year>/<month>/` receipts, and
+deleting a receipt is deleting its file.
 
 ## Supported hosts and verification
 
@@ -174,10 +164,9 @@ inspection. Provider-free verification proves package, instruction, and
 fixture contracts, not live review quality. Optional live checks are explicit,
 local, potentially billable, and never required by CI.
 
-The shared CLI has verified the current native macOS path and provider-free
-portable construction. Linux and native Windows remain `not_measured` until
-the evidence and installer stages actually pass under Python 3.11+ on those
-systems. Wrapper tests elsewhere do not imply native support.
+The recorder uses only the Python 3.11+ standard library and is verified by
+the provider-free suite on macOS. Linux and native Windows remain
+`not_measured` until the evidence stage runs there.
 
 ## Changelog and maintainer docs
 

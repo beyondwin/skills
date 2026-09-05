@@ -1,126 +1,61 @@
-# Pre-SDD review evidence CLI
+# Pre-SDD review evidence recorder
 
-`pre-sdd-review-evidence` is an optional, provider-neutral local recorder. It
-requires Python 3.11+ and the standard library only. It makes no model,
-provider, telemetry, or network call.
-
-## Install
-
-Choose an existing directory already intended for `PATH`. The installer
-neither creates a PATH directory nor edits `PATH` or a shell profile.
+`evidence.py` is the optional local recorder for `pre-sdd-review`. It needs
+Python 3.11+ and the standard library only, makes no model, provider, or
+network call, and is never installed: run it from the skill root.
 
 ```sh
-python3 skills/pre-sdd-review/evidence/install.py \
-  --bin-dir "$HOME/.local/bin"
-pre-sdd-review-evidence --version
+python3 "<skill-root>/evidence/evidence.py" --version
 ```
 
-For another inspected skill copy, pass both paths explicitly:
+## Data
 
-```sh
-python3 /path/to/pre-sdd-review/evidence/install.py \
-  --skill-root /path/to/pre-sdd-review \
-  --bin-dir /existing/path-directory
-```
+Each run is one file, `~/.pre-sdd-review/runs/<run-id>.json`. The only
+override for the root is a non-empty absolute `PRE_SDD_REVIEW_HOME`. Records
+are schema 2 and at most 64 KiB; anything else under the root, including
+schema 1 receipts, is ignored and never written.
 
-Do not pipe a remote download to a shell. The installer validates the release
-identity and exact seven-file runtime manifest without importing the source,
-then copies only those files. An ordinary real `__pycache__` containing only
-regular `.pyc` files is ignored; a symlinked cache, nested entry, non-bytecode
-file, extra source file, or missing runtime file is rejected. Installation is
-create-only: an identical reinstall is idempotent, and different bytes are
-never overwritten.
+## Commands
 
-POSIX installation creates `pre-sdd-review-evidence`. Windows installation
-creates a `.pyz` plus a quoted `.cmd` wrapper. Portable construction on another
-OS does not prove native Windows behavior.
+| Command | Arguments | Effect |
+| --- | --- | --- |
+| `--version` | none | Print `{"cli_version":"2.0.0","schema":2,"skill_name":"pre-sdd-review"}` |
+| `start` | `--skill-root --repo --plan [--design] --client --model --mode` | Hash the documents, read Git state, write a `pending` record, print `run_id` |
+| `finish` | `--run-id --repo` and one JSON object on stdin | Recompute end hashes and Git state, validate, write `completed` |
+| `abandon` | `--run-id --reason` | Close a pending run; reason is `user-cancelled`, `input-changed`, `scope-changed`, `input-format-fixed`, or `other` |
+| `outcome` | `--run-id --label [--note]` | Record `good`, `false-ready`, `noisy`, or `abandoned` on a completed run; may be re-recorded |
+| `show` | `--run-id` | Print the record verbatim |
+| `summary` | `[--repo NAME] [--last N]` | Print the aggregate JSON below |
 
-## Basic flow
+`finish` reads exactly these keys: `execution` (`full`, `degraded`,
+`blocked`), `reviewers` (0–2), `trigger` (`runtime-removal`,
+`schema-migration`, `auth-boundary`, `data-boundary`, `external-side-effect`,
+or null), `degraded_reasons` (list), `verdict`, `block_reason`,
+`review_passes` (1–3), `repair_passes` (0–2), and `findings`. Each finding has
+`id` (`PSDR-001`), `severity`, `class`, `pattern`, `status`, `repair_pass`,
+`location` (`path`, `locator`), `evidence` (relative paths), `consequence`, and
+`fix`. `READY` permits only repaired findings, `REVISE` needs an unresolved
+one, `BLOCKED` needs `block_reason`, a repair pass needs a repaired finding,
+and `review-only` permits no repair pass.
 
-Receipts live under `~/.pre-sdd-review/`. The only override is a non-empty,
-absolute `PRE_SDD_REVIEW_HOME`. The launcher and data root are separate:
-installing, updating, removing, or running `--version` does not create, change,
-or delete receipts.
+## Reading the log
 
-The normal lifecycle is:
+The log is for agents. `summary` returns `runs`, `counts`, `cost`, `chains`
+(plans reviewed more than once), `findings` (with `repeated_patterns`), and
+`anomalies`; every entry carries `run_id` values for `show`. Start from
+`anomalies` and `chains`.
 
-1. `start` creates a private pending run.
-2. `finish-review` creates its immutable review, or `abandon` closes an
-   interrupted pending run.
-3. `record-outcome` creates at most one immutable terminal outcome after
-   downstream work ends.
-4. `summary` and `candidates` aggregate validated receipts on demand.
+## Boundary
 
-Inspection and maintenance commands are:
+Records hold repository-relative paths, a directory name, hashes, enum
+values, integers, timestamps, and short paraphrases. Never put source text,
+absolute paths, prompts, transcripts, command output, or credentials in a
+note, consequence, or fix. Files are local and unsigned: self-improvement
+evidence, not an audit log.
 
-```text
-show       display one validated run
-pending    classify pending runs without changing them
-doctor     report local state problems without repairing them
-resolve    match the repository identity and exact plan hash
-prune      preview, then explicitly confirm, bounded deletion
-```
+## Errors
 
-Use each subcommand's `--help` for exact fields.
-
-## Safety and evidence boundary
-
-Review and outcome inputs must contain bounded paraphrases only. Do not put
-source or document text, absolute paths, prompts, provider transcripts,
-command output, credentials, or environment-variable values in any bounded
-field. The CLI validates shapes and obvious prohibited values; it does not
-perform automatic secret detection and cannot recognize every sensitive short
-string.
-
-Create-only local storage provides atomicity and consistency for cooperating
-clients. It is not a signed audit log and does not prevent malicious local
-tampering. Structured downstream observations, assessment basis, and confidence
-are observer-supplied. The CLI derives `good`, `false-ready`, `noisy`, and
-`prevented-rework` deterministically from those observations. Both inputs and
-labels are self-improvement evidence, not objective or audit-grade proof.
-
-Before `record-outcome`, represent every known dispute and uncertainty honestly
-in the single structured outcome input. Put finding disputes only in
-`disputed_findings`; use the applicable structured observation for other
-uncertainty. Confidence and assessment basis do not alter the deterministic
-label. `inconclusive` occurs only when the structured downstream observations
-reach the approved derivation fallback. After the create-only outcome is
-recorded, schema 1 cannot correct or amend it. There is no correction or
-amendment command, so an erroneous outcome is an explicit residual risk.
-
-Candidate thresholds are inspection heuristics: they do not mutate the skill,
-judge quality automatically, or rank clients or models.
-
-## Update, backup, and removal
-
-The installer has no force flag. Inspect the exact target first:
-
-```sh
-command -v pre-sdd-review-evidence
-ls -l "$HOME/.local/bin/pre-sdd-review-evidence"
-pre-sdd-review-evidence --version
-```
-
-For different bytes, remove only that verified launcher and reinstall from the
-new inspected copy. On Windows, verify and remove the exact `.cmd` and `.pyz`
-pair. Removing a launcher does not remove `~/.pre-sdd-review/` or an overridden
-data root.
-
-Back up the complete evidence root, including `identity.key` and `config.json`,
-when repository identity continuity matters. Stop evidence writers first.
-Receipt deletion is a separate operation: inspect `prune --dry-run`, then
-confirm only its exact selection.
-
-## Limits and measured support
-
-`review.json` has a 16 KiB soft and 32 KiB hard limit; `outcome.json` has a
-4 KiB soft and 8 KiB hard limit; a completed run has a 40 KiB hard limit.
-Reporting reads and validates each receipt snapshot once and remains an
-on-demand linear scan—there is no database or index.
-
-The native macOS atomic no-replace path and provider-free portable construction
-are measured. Native Linux and Windows execution remain `not_measured` until
-the full evidence and installer stages pass under Python 3.11+ on those
-platforms. The local receipts are unsigned, immutable outcomes have no
-amendment path, and same-user mutation outside cooperating CLI operations is
-not prevented.
+Failures print one line to stderr, `{"error":{"code":"…","message":"…"}}`,
+and exit 2. Codes: `invalid-arguments`, `schema-invalid`, `run-not-found`,
+`not-git-repository`, `outside-repository`, `already-finished`,
+`evidence-home-unwritable`.

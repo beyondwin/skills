@@ -34,14 +34,11 @@ Codex에서는 공개 GitHub 경로를 `$skill-installer`에 전달합니다.
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-review
 ```
 
-로컬 영수증이 필요할 때만 검사한 스킬 복사본에서 선택적 CLI를 설치합니다.
-`--bin-dir`은 이미 `PATH`에 사용하기로 한 기존 디렉터리여야 합니다. 실행 전에
-정확한 대상을 확인하고 원격 스크립트를 셸로 파이프하지 마세요.
+로컬 영수증 기록기는 따로 설치하지 않습니다. 스킬 폴더 안의 `evidence/evidence.py`를
+Python 3.11+로 직접 실행하며, 컨트롤러는 이미 알고 있는 스킬 루트를 그대로 씁니다.
 
 ```bash
-ls -ld "$HOME/.local/bin"
-python3 skills/pre-sdd-review/evidence/install.py --bin-dir "$HOME/.local/bin"
-pre-sdd-review-evidence --version
+python3 "<skill-root>/evidence/evidence.py" --version
 ```
 
 ## 첫 호출
@@ -88,12 +85,12 @@ public/private 데이터 경계, 게시·과금·메시징·프로덕션 변경 
 문서 밖 Git 변경도 경로·명령·인터페이스·영향 범위 근거를 바꾸면 같은 규칙을
 적용합니다. 새 제품 결정이 필요하면 `BLOCKED`입니다.
 
-호환되는 로컬 CLI가 있으면 의미 검토 전 `start`, 최종 판정 뒤
-`finish-review`를 호출하고 `Evidence: recorded; run_id=<run-id>`를 출력합니다.
-CLI가 없거나 호환되지 않거나 권한 오류가 나면 검토는 계속되고
-`Evidence: not_recorded; reason=<code>`를 출력합니다. 명시적으로 결합된 SDD
-요청에만 `run_id`를 넘기며 downstream 작업이 terminal 상태일 때만
-`record-outcome`을 사용합니다.
+호환되는 로컬 기록기가 있으면 의미 검토 전 `start`, 최종 판정 뒤 `finish`를
+호출하고 `Evidence: recorded; run_id=<run-id>`를 출력합니다. 기록기가 없거나
+호환되지 않거나 권한 오류가 나면 검토는 계속되고
+`Evidence: not_recorded; reason=<code>`를 출력합니다. 설계 경로는 컨트롤러가
+계획의 `**Spec:**`에서 해석한 값을 넘기며, 해석할 수 없으면 생략하고 `BLOCKED`로
+끝냅니다. 도중에 끝나면 `abandon`으로 run을 닫습니다.
 
 ### Contract
 
@@ -119,36 +116,30 @@ CLI가 없거나 호환되지 않거나 권한 오류가 나면 검토는 계속
 승인된 ADR·시각 권위, 애플리케이션 코드, 테스트, 설정, 생성물, 관련 없는 문서는
 별도 제품 결정 없이는 변경하지 않습니다.
 
-영수증은 기본적으로 `~/.pre-sdd-review/`에 로컬로 남습니다. bounded reason이나
-finding에도 원문, 경로, 프롬프트, transcript, credential을 넣지 말고 짧게 바꿔
-쓰세요. 제공자 없는 픽스처에는 사용자 문서나 전체 모델 응답을 저장하지 않습니다.
+영수증은 `~/.pre-sdd-review/runs/<run-id>.json`에 로컬로만 남습니다(schema 2).
+저장소 상대 경로, 디렉터리 이름, 해시, 열거값, 짧은 paraphrase만 저장하며 source
+원문(source text), 절대 경로, prompts, transcripts, credentials는 넣지 마세요.
+기록기는 자동 비밀 탐지를 하지 않습니다.
 
-create-only 저장은 협력하는 로컬 클라이언트에 원자성과 일관성을 제공하지만,
-악의적인 로컬 변조를 막는 서명된 audit log는 아닙니다. 구조화한 downstream
-observation, assessment basis, confidence는 관찰자가 입력합니다. `good`,
-`false-ready`, `noisy`, `prevented-rework` label은 CLI가 그 observation에서
-결정적으로 파생합니다. 입력과 label은 자기개선용 evidence이지 객관적·감사 등급
-증거가 아닙니다.
-
-`record-outcome` 전에 알려진 모든 이견과 불확실성을 한 번의 구조화한 outcome
-입력에 정직하게 담아야 합니다. finding 이견은 `disputed_findings`에 기록합니다.
-confidence와 assessment basis는 결정적 label을 바꾸지 않습니다. `inconclusive`는
-구조화한 downstream observation이 승인된 파생 fallback에 도달할 때만 나옵니다.
-create-only outcome이 기록된 뒤에는 schema 1에서 정정하거나 amend할 수 없습니다.
+로컬 파일 저장은 악의적인 로컬 변조를 막는 서명된 audit log가 아닙니다.
+`outcome` 라벨(`good`, `false-ready`, `noisy`, `abandoned`)은 SDD가 끝난 뒤
+사람이나 SDD 워커가 남기는 관찰이며 다시 기록해 정정할 수 있습니다. 라벨은
+자기개선용 evidence이지 객관적·감사 등급 증거가 아닙니다.
 
 ## 운영과 한계
 
-전체 명령은 `start`, `finish-review`, `abandon`, `show`, `pending`, `doctor`,
-`resolve`, `record-outcome`, `summary`, `candidates`, `prune`입니다. 정확한 인자,
-크기 제한, 복구·백업·삭제 절차는 [evidence CLI 안내](evidence/README.md)를
-따릅니다. `candidates` 임계값은 사람이 볼 후보를 고르는 휴리스틱일 뿐 스킬 자동
-변경, 자동 품질 판정, client/model ranking을 허가하지 않습니다.
+명령은 `start`, `finish`, `abandon`, `outcome`, `show`, `summary` 여섯 개입니다.
+정확한 인자, stdin 형식, 크기 제한은 [evidence 안내](evidence/README.md)를
+따릅니다.
 
-업데이트나 제거 전에는 정확한 설치 대상을 확인하세요. 버전 원본은
-`release.toml`이고 `SKILL.md`의 `metadata.version`은 검증된 복제 값입니다.
-launcher 제거는 영수증을 지우지 않습니다. identity를 유지하려면 evidence root
-전체를 백업하고, 영수증 삭제는 `prune --dry-run`과 동일 selection의 명시적 확정을
-별도 작업으로 수행합니다.
+로그는 에이전트가 읽도록 만들어졌습니다. 개선점을 찾을 때는 에이전트에게
+`summary`를 실행하게 하고 `anomalies`와 `chains`부터 보게 하세요. 모든 집계에
+`run_id`가 붙어 있어 `show --run-id`로 바로 내려갈 수 있습니다. 후보 픽스처
+자동 선정, 자동 스킬 변경, client/model ranking은 하지 않습니다.
+
+버전 원본은 `release.toml`이고 `SKILL.md`의 `metadata.version`은 검증된 복제
+값입니다. 기록기는 이전 `runs/<연>/<월>/` 영수증을 읽지 않으며, 영수증 삭제는
+파일 삭제로 충분합니다.
 
 ## 호환성과 검증 수준
 
@@ -158,9 +149,9 @@ Codex만 독립 읽기 전용 검토와 저장소 조사를 포함해 측정되�
 검증은 패키지·지시문·픽스처 계약만 증명하며 실제 모델 검토 품질을 증명하지
 않습니다. 선택적 live 검사는 명시적이고 로컬에서만 하며 비용이 들 수 있습니다.
 
-공유 CLI는 현재 macOS native 경로와 provider-free portable 구성이 검증됐습니다.
-Linux와 native Windows는 각 Python 3.11+ 환경에서 직접 실행 증거가 생길 때까지
-`not_measured`입니다. 다른 OS의 wrapper 테스트로 native 지원을 추론하지 않습니다.
+기록기는 Python 3.11+ 표준 라이브러리만 쓰며 macOS에서 provider-free 테스트로
+검증됐습니다. Linux와 native Windows는 각 환경에서 evidence 단계가 직접 실행될
+때까지 `not_measured`입니다.
 
 ## 변경 이력과 관리자 문서
 

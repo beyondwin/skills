@@ -23,7 +23,7 @@ from scripts.lib.product_registry import load_registry  # noqa: E402
 SKILL = ROOT / "skills" / "pre-sdd-review"
 CASES = ROOT / "tests" / "products" / "pre-sdd-review" / "cases.json"
 FIXTURES = ROOT / "tests" / "products" / "pre-sdd-review" / "fixtures"
-TARGET_VERSION = "1.3.1"
+TARGET_VERSION = "2.0.0"
 PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     {
         "CHANGELOG.md",
@@ -39,7 +39,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "aba91fcfab06380161af32cf434e3571db9b62f4b8c8581b42c1f24ee1409431",
+    "SKILL.md": "1f47b5f7b8202939a112cc6f151547421cafb576f88cfadfce454196f0811641",
     "references/reviewer-protocol.md": (
         "8b28feb6c897341917cdde06411cadf8aea1f815f10608fa7ce709d12b77821f"
     ),
@@ -304,7 +304,7 @@ KOREAN_FACTS = (
     "BLOCKED",
     "Codex",
     "not_measured",
-    "pre-sdd-review-evidence",
+    "evidence.py",
     "~/.pre-sdd-review/",
 )
 ENGLISH_FACTS = (
@@ -317,7 +317,7 @@ ENGLISH_FACTS = (
     "BLOCKED",
     "Codex",
     "not_measured",
-    "pre-sdd-review-evidence",
+    "evidence.py",
     "~/.pre-sdd-review/",
 )
 KOREAN_README_HEADINGS = (
@@ -377,29 +377,29 @@ README_CANONICAL_SECTION_DIGESTS = {
     "ko": (
         ("## 이 스킬이 해결하는 문제", "283f070d25a4896d3b6d830f3f7ae512b34e1615ce745f2eaf8bf64b7b2eccc6"),
         ("## 사용해야 할 때와 사용하지 말아야 할 때", "63634fe6e87d9b53d0d13d628ab18747c164c33aa432c03e6ab095e7fd94e2b4"),
-        ("## 설치", "a2a93e6a3dc7cf933377cee0ca7573c45f3d87afc819a5aa36bb0ed07fe39f3a"),
+        ("## 설치", "4e254dc51946238354f65e3a2eb3bb7ff0ba11f40a9940b77c978d4bd2f60d11"),
         ("## 첫 호출", "67982d6dac2b6cc91d6625f95b0a3c3c60937c07754746b0e7d83f41e374f606"),
-        ("## 결과와 기본 흐름", "4705416ed3461c420eaca1de2b44faba34fc2b7e4a714f29fd9265c726ce6b2a"),
-        ("## 안전과 개인정보", "62341d0462a00708bc0a22c59a92705a3570e5666714add87588ff37c79cbaf9"),
-        ("## 운영과 한계", "3bab749b55fdd2b932497764fe7b415cfefe71ad7f0d83466eea6ec8bf9ff08f"),
-        ("## 호환성과 검증 수준", "a497ceab7ac795adce2a1d4fc9163102c8e068dc74175b2d6229ac4790eb932d"),
+        ("## 결과와 기본 흐름", "6ad6fdafdfc3b9d843f63b9b1e5dac5f4e0c33d8f996af74e6e804fe1763c9da"),
+        ("## 안전과 개인정보", "03c6e0b389de7a4a50db7965ac513d7ba1fe2000cf337d4c509de10b79c59bb3"),
+        ("## 운영과 한계", "9e9d82809469de0503886979744cc794745c3c151bf2795c02658621f6843223"),
+        ("## 호환성과 검증 수준", "9aff2698257d5a6a1eef2c40cf211e905d8bfb54d2bd7c2bd38057fa37f933bf"),
         ("## 변경 이력과 관리자 문서", "7e1cb70139ec2f47b67004352fdd0ca739f19515c2c715095501268c5b7405ac"),
     ),
     "en": (
         ("## Purpose", "d1b0ca1b776d1b9f0ca9748e3bf2f5264e4ab2e6f091d83c998a230ee5659aa3"),
         ("## When to use and not use", "2daaa6de8f1623ab571cc1639b7b5097241c02e5f420b92ed48ecf1a401d926e"),
-        ("## Install", "e9283708d71e494288bd89a3fce3c5b1af467885e882da0cba56c3610b554785"),
+        ("## Install", "86eeb85db21677714e160967e9c670490dbf7a37d8558f50370a563bcda50db9"),
         ("## First call", "304e4697f6a40a2d522f18757ed7e464c4a8fde253c885fdf82ac1152ebb5b2a"),
-        ("## Expected result", "db26a337d731030b1efee3111d60e6030ccb18a4533fe2d67d6140b030392e77"),
-        ("## Safety and privacy", "a45d1b73274f6fbc0a253274c389079c7656885d1dfce496a8b5af48ab5a5f53"),
-        ("## Operations and limits", "968203b2f2603549347ecc24715f9e2f38ab1108a346e72fbc8f18d0ec0fdb04"),
-        ("## Supported hosts and verification", "02a6dbd83e7268ffa9ba58160d099610aed2ba69688277a6f05c2a8b93ae45a1"),
+        ("## Expected result", "38cefd11ecdd496fdb703297640676e691d23f08f4274296eab60b70fd03cd0c"),
+        ("## Safety and privacy", "732209666d89ccf58ff4a33e89333fd8adde68c9075cb4b99f0b511f02f9c94a"),
+        ("## Operations and limits", "f0381a694f40c8fe4c05fdc34247c240e523f7e5eaac60a5c6a013de4e111b76"),
+        ("## Supported hosts and verification", "f728b5fe35f472b2a1ab6acfe7db5a33b0b8eca047d21fca5f7f2034b2429f6d"),
         ("## Changelog and maintainer docs", "7a5611089ddaf6819881da0ae7d96ec6ce36107f2c0076e9528499437749e7b1"),
     ),
 }
 README_CANONICAL_DOCUMENT_DIGESTS = {
-    "ko": "aaed1568601583ad3fb76a742a4f9da1555ccf392c84c69c78fb6cdff9497c2a",
-    "en": "14cc353df2a74207d7599ba52036f824886783ce85be164b94a2417b5167ba7c",
+    "ko": "32fb0a5ef99327206e89e16eaba196ff68e6922888bf8a6b940c7c705f8970b1",
+    "en": "c2e55b8df3df49d8d663fa92bfca2ef24e1735d849735833ffa872b15624d137",
 }
 MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Authority order", "3156a43d665d21723ce61b333c7c34f30abd2e6d288c472d5eec5878e5ef8321"),
@@ -989,7 +989,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         )
         self.assertEqual(frontmatter["name"], "pre-sdd-review")
 
-    def test_release_sources_target_v1_3_1(self) -> None:
+    def test_release_sources_target_v2_0_0(self) -> None:
         release = tomllib.loads((SKILL / "release.toml").read_text(encoding="utf-8"))
         frontmatter = parse_skill_frontmatter(
             (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -997,7 +997,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertEqual(release["version"], TARGET_VERSION)
         self.assertEqual(frontmatter["metadata"]["version"], TARGET_VERSION)
         self.assertIn(
-            f"## {TARGET_VERSION} - 2026-09-02",
+            f"## {TARGET_VERSION} - 2026-09-05",
             (SKILL / "CHANGELOG.md").read_text(encoding="utf-8"),
         )
 
@@ -1507,83 +1507,37 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             self.assertIn(fact, release)
         self.assertIn("no tag or github release is created by these commands.", normalized_release)
 
-    def test_v1_2_docs_keep_evidence_local_bounded_non_audit_and_non_mutating(self) -> None:
+    def test_v2_docs_keep_evidence_local_bounded_optional_and_agent_readable(self) -> None:
         documents = (
             (SKILL / "README.md").read_text(encoding="utf-8"),
             (SKILL / "README.en.md").read_text(encoding="utf-8"),
+            (SKILL / "evidence/README.md").read_text(encoding="utf-8"),
             (MAINTAINERS / "contract.md").read_text(encoding="utf-8"),
         )
         normalized = tuple(re.sub(r"\s+", " ", text) for text in documents)
         for text in normalized:
-            self.assertIn("pre-sdd-review-evidence", text)
+            self.assertIn("evidence.py", text)
+            self.assertIn("~/.pre-sdd-review/", text)
             self.assertIn("audit log", text)
-            self.assertIn("disputed_findings", text)
-            self.assertIn("inconclusive", text)
+            self.assertIn("`summary`", text)
+            self.assertIn("`outcome`", text)
+            self.assertNotIn("pre-sdd-review-evidence", text.replace("`pre-sdd-review-evidence` launcher", ""))
+            self.assertNotIn("record-outcome", text)
+            self.assertNotIn("install.py", text)
+            self.assertNotIn("--bin-dir", text)
         combined = " ".join(normalized)
         for phrase in (
-            "~/.pre-sdd-review/",
-            "not a signed audit log",
+            "`good`, `false-ready`, `noisy`, `abandoned`",
+            "anomalies",
+            "chains",
+            "run_id",
             "source text",
             "prompts",
             "transcripts",
             "credentials",
-            "cannot correct or amend",
-            "automatic skill mutation",
-            "client/model ranking",
+            "schema 2",
         ):
             self.assertIn(phrase, combined)
-
-    def test_v1_2_docs_distinguish_label_derivation_from_observer_uncertainty(self) -> None:
-        english_documents = (
-            (SKILL / "README.en.md").read_text(encoding="utf-8"),
-            (SKILL / "evidence/README.md").read_text(encoding="utf-8"),
-            (MAINTAINERS / "contract.md").read_text(encoding="utf-8"),
-            (ROOT / "docs/users/en/safety-and-privacy.md").read_text(encoding="utf-8"),
-        )
-        korean_documents = (
-            (SKILL / "README.md").read_text(encoding="utf-8"),
-            (ROOT / "docs/users/ko/safety-and-privacy.md").read_text(encoding="utf-8"),
-        )
-        english_required = (
-            "Structured downstream observations, assessment basis, and confidence are observer-supplied.",
-            "The CLI derives `good`, `false-ready`, `noisy`, and `prevented-rework` deterministically from those observations.",
-            "Before `record-outcome`, represent every known dispute and uncertainty honestly in the single structured outcome input.",
-            "Confidence and assessment basis do not alter the deterministic label.",
-            "`inconclusive` occurs only when the structured downstream observations reach the approved derivation fallback.",
-            "After the create-only outcome is recorded, schema 1 cannot correct or amend it.",
-        )
-        korean_required = (
-            "구조화한 downstream observation, assessment basis, confidence는 관찰자가 입력합니다.",
-            "`good`, `false-ready`, `noisy`, `prevented-rework` label은 CLI가 그 observation에서 결정적으로 파생합니다.",
-            "`record-outcome` 전에 알려진 모든 이견과 불확실성을 한 번의 구조화한 outcome 입력에 정직하게 담아야 합니다.",
-            "confidence와 assessment basis는 결정적 label을 바꾸지 않습니다.",
-            "`inconclusive`는 구조화한 downstream observation이 승인된 파생 fallback에 도달할 때만 나옵니다.",
-            "create-only outcome이 기록된 뒤에는 schema 1에서 정정하거나 amend할 수 없습니다.",
-        )
-        for document in english_documents:
-            normalized = re.sub(r"\s+", " ", document)
-            for phrase in english_required:
-                self.assertIn(phrase, normalized)
-            self.assertNotIn(
-                "Outcome labels such as `good`, `false-ready`, `noisy`, and `prevented-rework`, together with confidence, are observer-supplied",
-                normalized,
-            )
-            self.assertNotIn(
-                "encode uncertainty in the observations, basis, and confidence so the derived assessment remains `inconclusive`",
-                normalized,
-            )
-            self.assertNotIn(
-                "uncertainty is encoded in observations, basis, and confidence so the derived assessment stays `inconclusive`",
-                normalized,
-            )
-        for document in korean_documents:
-            normalized = re.sub(r"\s+", " ", document)
-            for phrase in korean_required:
-                self.assertIn(phrase, normalized)
-            self.assertNotIn(
-                "불확실성은 observation·basis·confidence에 담아 파생 assessment가 `inconclusive`",
-                normalized,
-            )
 
     def test_changelog_records_the_first_independent_release_without_publication_claim(self) -> None:
         changelog = (SKILL / "CHANGELOG.md").read_text(encoding="utf-8")

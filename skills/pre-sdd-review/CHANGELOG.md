@@ -4,6 +4,28 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 2.0.0 - 2026-09-05
+
+### Changed
+
+- The evidence recorder is one standard-library script,
+  `evidence/evidence.py`, run with `python3` from the loaded skill root. The
+  `pre-sdd-review-evidence` launcher, installer, and package are removed.
+- Records use schema 2: one file per run under `~/.pre-sdd-review/runs/`,
+  and six commands `start`, `finish`, `abandon`, `outcome`, `show`, `summary`.
+  Schema 1 receipts are not read.
+- The controller passes the design path it resolved from `**Spec:**`; the
+  recorder no longer parses that field. An unresolved design is recorded as
+  null with a `BLOCKED` verdict.
+- `finish` rejects a repair pass without a repaired finding. `summary` is
+  agent-readable JSON with verdict counts, abandon reasons, per-plan chains,
+  repeated finding patterns, outcome coverage, and anomalies, each carrying
+  run IDs.
+- `outcome` records one label (`good`, `false-ready`, `noisy`, `abandoned`)
+  and an optional note, and may be re-recorded.
+- Reviewer protocol: a `repo-reality` finding must cite a repository path
+  other than the reviewed design or plan.
+
 ## 1.3.1 - 2026-09-02
 
 ### Changed
