@@ -1,8 +1,12 @@
 # 마이그레이션과 Archive
 
-Archive에서 공개 저장소로 가져온 출처 pin과 캡처 절차를 적습니다. 현재 제품 계약을 바꾸지 않습니다.
+Archive에서 공개 저장소로 가져온 출처 pin과 캡처 절차를 적습니다. 지금 쓰는
+제품 계약을 바꾸지 않습니다.
 
-# Archive skill migration provenance
+아래 영어 표는 가져온 출처 pin입니다. 지금 Archive 트리를 설명하지 않습니다.
+로컬 checkout 경로를 이 기록의 일부로 취급하지 않습니다.
+
+## Archive skill migration provenance
 
 This document freezes the `beyondwin/Archive` source used to create the public
 `beyondwin/skills` repository. It is the import pin, not a description of the

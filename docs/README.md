@@ -1,8 +1,10 @@
 # 문서 / Documentation
 
-어디를 보면 되는지 가리킵니다. 제품 규칙은 각 제품 README와 관리자 문서에 있습니다.
+어디를 보면 되는지 가리킵니다. 제품 규칙은 각 제품 README와 관리자 문서에
+있습니다.
 
-This page only routes readers. Product contracts live in each product README and the maintainer docs.
+This page only routes readers. Product contracts live in each product README
+and the maintainer docs.
 
 ## 설치하거나 고를 때 / Install or choose
 
@@ -26,6 +28,7 @@ This page only routes readers. Product contracts live in each product README and
 
 관리자 작업은 [`docs/maintainers/`](maintainers/)를 따릅니다.
 
-## 과거 결정을 볼 때 / Inspect past decisions
+## 진행 중인 설계·계획 / In-progress specs and plans
 
-시점 기록은 [`docs/history/`](history/)에 있습니다. 현재 계약을 정의하지 않습니다.
+진행 중인 설계·계획은 [`docs/history/`](history/)에 있습니다. 현재 계약을
+정의하지 않습니다.

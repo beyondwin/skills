@@ -1,12 +1,15 @@
 # 제품 레지스트리
 
-`products.toml`은 현재 독립 제품의 유일한 순서 있는 색인입니다. 버전, 태그, 셸 명령을 소유하지 않습니다. 제품 버전 원본은 각 `skills/<name>/release.toml`입니다.
+`products.toml`은 현재 독립 제품의 유일한 순서 있는 색인입니다. 버전, 태그,
+셸 명령을 소유하지 않습니다. 제품 버전 원본은 각 `skills/<name>/release.toml`입니다.
 
-카탈로그 `catalog/`는 레지스트리와 별개입니다. 레지스트리에 제품을 넣는 것만으로 `catalog/` lock이나 공개 플러그인 번들이 바뀌지 않습니다.
+카탈로그 `catalog/`는 레지스트리와 별개입니다. 레지스트리에 제품을 넣는 것만으로
+`catalog/` lock이나 공개 플러그인 번들이 바뀌지 않습니다.
 
 ## 스키마
 
-최상위와 각 `[[products]]` 항목의 필드만 허용합니다. 추가 키, 누락 키, 잘못된 타입은 로드가 실패합니다.
+최상위와 각 `[[products]]` 항목의 필드만 허용합니다. 추가 키, 누락 키, 잘못된
+타입은 로드가 실패합니다.
 
 | 필드 | 위치 | 의미 |
 | --- | --- | --- |
@@ -20,7 +23,8 @@
 | `owned_paths` | 제품 | 변경 라우팅 접두사. 디렉터리 항목은 끝 `/`가 필요 |
 | `verify_stages` | 제품 | 코드에 등록된 검증 단계 식별자. 셸 명령이 아님 |
 
-`version`, `tag_prefix`, `command` 필드는 없습니다. 제품 순서와 중복 이름·경로 거부는 파서가 강제합니다.
+`version`, `tag_prefix`, `command` 필드는 없습니다. 제품 순서와 중복
+이름·경로 거부는 파서가 강제합니다.
 
 ## 등록 절차
 
@@ -32,7 +36,8 @@
 4. 등록된 검증 단계 식별자를 `verify_stages`에 적는다
 5. 레지스트리 검증이 통과한다
 
-미등록 `skills/`, `tests/products/`, `docs/maintainers/products/` 자식, 알 수 없는 호스트·단계, 이름 불일치는 실패로 닫힙니다.
+등록되지 않은 `skills/`, `tests/products/`, `docs/maintainers/products/` 자식,
+알 수 없는 호스트·단계, 이름 불일치는 실패로 닫힙니다.
 
 ## 검증 명령
 
@@ -44,4 +49,5 @@ python3 scripts/verify.py --skill <name>
 python3 scripts/verify.py --catalog
 ```
 
-어느 선택자를 써도 `products.toml`을 읽고 등록된 단계 이름에 대해 검증합니다. 오류가 있으면 단계 실행 전에 종료 코드 1로 멈춥니다.
+어느 선택자를 써도 `products.toml`을 읽고 등록된 단계 이름에 대해
+검증합니다. 오류가 있으면 단계 실행 전에 종료 코드 1로 멈춥니다.
