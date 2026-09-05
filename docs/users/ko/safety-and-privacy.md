@@ -22,28 +22,18 @@
 
 `pre-sdd-review`는 로컬 설계, 구현 계획, 참조된 ADR, 저장소 파일을 읽습니다. 기본 모드에서는 확인된 설계와 계획만 수정합니다. 저장소 소유 테스트는 사용자 문서를 전송하거나 지속 저장하거나 픽스처로 수집하지 않습니다. 이 제품은 텔레메트리나 업로드 경로를 추가하지 않습니다. 라이브 처리와 보존은 Codex 호스트의 데이터 제어를 따릅니다. 명시적인 외부 요청 없이는 구현이나 SDD를 시작하지 않습니다.
 
-선택적 `pre-sdd-review-evidence`는 Python 표준 라이브러리만 사용하며 영수증을
-`~/.pre-sdd-review/` 또는 명시한 절대 `PRE_SDD_REVIEW_HOME`에만 둡니다. review와
-outcome은 크기가 제한된 create-only 로컬 record입니다. source 원문, 절대 경로,
-prompt, provider transcript, command output, credential, 환경 변수 값은 저장하지
-마세요. 짧게 제한된 reason이나 finding에도 원문·경로·프롬프트·transcript·credential을
-입력하지 말고 paraphrase만 사용하세요. CLI는 자동 비밀 탐지를 약속하지 않습니다.
+선택적 기록기 `evidence/evidence.py`는 Python 표준 라이브러리만 사용하고 설치하지
+않으며, run마다 record 하나를 `~/.pre-sdd-review/runs/` 또는 명시한 절대
+`PRE_SDD_REVIEW_HOME`에 둡니다. record에는 저장소 상대 경로, 디렉터리 이름, 해시,
+열거값, 정수, 시각, 짧은 paraphrase만 들어갑니다. source 원문, 절대 경로, prompt,
+provider transcript, command output, credential, 환경 변수 값은 짧게 제한된
+note·consequence·fix에도 넣지 마세요. 기록기는 자동 비밀 탐지를 약속하지 않습니다.
 
-원자적 로컬 저장은 협력하는 client 사이의 일관성을 제공할 뿐, 악의적인 로컬 변조를 막는 서명된 audit log가 아닙니다. 구조화한 downstream observation,
-assessment basis, confidence는 관찰자가 입력합니다. `good`, `false-ready`,
-`noisy`, `prevented-rework` label은 CLI가 그 observation에서 결정적으로
-파생합니다. 입력과 파생 label은 자기개선 evidence이지 객관적 품질 판정이나
-감사 등급 증거가 아닙니다. `record-outcome` 전에 알려진 모든 이견과 불확실성을
-한 번의 구조화한 outcome 입력에 정직하게 담아야 합니다. finding 이견은
-`disputed_findings`에, 그 밖의 불확실성은 해당하는 구조화 observation 필드에
-담으세요. confidence와 assessment basis는 결정적 label을 바꾸지 않습니다.
-`inconclusive`는 구조화한 downstream observation이 승인된 파생 fallback에
-도달할 때만 나옵니다. 완료된 outcome에 escaped, disputed, prevented-rework
-observation이 없으면 confidence가 낮아도 `good`을 파생합니다. create-only
-outcome이 기록된 뒤에는 schema 1에서 정정하거나 amend할 수 없습니다. 잘못
-기록한 outcome은 정정 경로가 아니라 이번 schema의 잔여 위험입니다. candidate
-임계값은 자동 skill 변경이나 client/model ranking이 아닌 사람이 검토할
-휴리스틱입니다.
+원자적 로컬 저장은 협력하는 client 사이의 일관성을 제공할 뿐, 악의적인 로컬 변조를 막는 서명된 audit log가 아닙니다. `outcome` label(`good`, `false-ready`,
+`noisy`, `abandoned`)은 SDD나 구현이 끝난 뒤 사람이나 SDD 워커가 남기는 관찰이며
+다시 기록해 정정할 수 있습니다. label은 자기개선 evidence이지 객관적 품질 판정이나
+감사 등급 증거가 아닙니다. 로그 읽기는 에이전트의 일입니다. `summary`는 JSON을
+돌려주며 anomalies와 chains에 run_id가 붙어 있습니다.
 
 ## 이해관계가 큰 요청
 

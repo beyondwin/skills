@@ -39,16 +39,14 @@ The offline suites prove the deterministic contract only.
 - `pre-sdd-review`: synthetic cases and document fixtures under `tests/products/pre-sdd-review/`. Provider-free fixtures validate only instruction and package contracts. They do not prove reviewer independence, semantic completeness, or live review quality.
 
 The evidence stage under `tests/products/pre-sdd-review/evidence/` validates
-schema, bounded reads, repository identity, create-only storage, interruption
-recovery, outcomes, summary/candidates, retention, and installer behavior. It
-makes no network, model, provider, or telemetry call. The thousands-of-receipts
-scale check uses no database or index.
+the schema 2 records, Git facts, invariants, six commands, and summary
+aggregation of `evidence.py`. It makes no network, model, provider, or
+telemetry call and uses no database or index.
 
-The current host's native atomic path and portable launcher rendering are
-different evidence. A non-Windows `windows-portable` pass does not prove native Windows support. Native Windows and Linux remain `not_measured` until the
-evidence and installer stages run under Python 3.11 there. Semantic review on
-Claude Code, Cursor, and Grok also remains `not_measured` without a separate
-validated live receipt.
+A non-Windows `windows-portable` pass does not prove native Windows support. Native Windows and Linux remain `not_measured` until the
+evidence stage runs under Python 3.11 there. Semantic review on Claude Code,
+Cursor, and Grok also remains `not_measured` without a separate validated live
+receipt.
 
 A pass does not prove general Korean editing quality, semantic equivalence, live image quality, commercial permission, a better provider, or runtime parity. The license is Apache-2.0.
 

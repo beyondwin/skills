@@ -16,31 +16,21 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-re
 
 설치한 뒤 새 대화에서 제품 README의 첫 호출을 쓰세요.
 
-## Pre-SDD Review evidence CLI
+## Pre-SDD Review evidence 기록기
 
-`pre-sdd-review`의 의미 검토 지원은 Codex로 유지됩니다. 별도의 선택적 로컬
-recorder는 Codex, Claude Code, Cursor, Grok이 모두 같은
-`pre-sdd-review-evidence` 명령을 호출할 수 있게 합니다. 이는 다른 호스트의
-의미 검토 지원을 뜻하지 않습니다.
-
-검사한 스킬 복사본과 Python 3.11+를 사용하세요. `--bin-dir`은 설치기가 만들지
-않으며 이미 `PATH` 용도로 정한 기존 디렉터리여야 합니다. 실행 전에 정확한
-디렉터리와 내용을 확인하고 원격 스크립트를 셸로 파이프하지 마세요.
+`pre-sdd-review`의 의미 검토 지원은 Codex로 유지됩니다. 선택적 로컬 기록기
+`evidence/evidence.py`는 설치하지 않고 스킬 폴더에서 Python 3.11+로 직접
+실행하며, Codex, Claude Code, Cursor, Grok이 같은 파일과 같은 데이터 루트를
+씁니다. 이는 다른 호스트의 의미 검토 지원을 뜻하지 않습니다.
 
 ```bash
-ls -ld "$HOME/.local/bin"
-ls -l skills/pre-sdd-review/evidence/install.py
-python3 skills/pre-sdd-review/evidence/install.py \
-  --bin-dir "$HOME/.local/bin"
-command -v pre-sdd-review-evidence
-pre-sdd-review-evidence --version
+python3 skills/pre-sdd-review/evidence/evidence.py --version
 ```
 
-영수증은 기본적으로 `~/.pre-sdd-review/`에 있으며, launcher와 분리되어
-있습니다. 갱신이나 제거 전에는 `command -v pre-sdd-review-evidence`와 정확한
-launcher 파일을 확인하세요. launcher를 제거해도 receipt는 지워지지 않습니다.
-identity 연속성이 필요하면 `identity.key`와 `config.json`을 포함한 전체 data
-root를 백업합니다. Windows는 정확한 `.cmd`와 `.pyz` 두 대상을 검사합니다.
+영수증은 `~/.pre-sdd-review/runs/<run-id>.json`에 남습니다. 스킬 폴더를 지워도
+영수증은 지워지지 않으며, 영수증 삭제는 파일 삭제로 충분합니다. 이전 버전이
+설치한 `pre-sdd-review-evidence` launcher는 더 이상 쓰이지 않으므로 그 파일만
+확인한 뒤 제거하세요.
 
 ## How It Works 로컬 링크
 

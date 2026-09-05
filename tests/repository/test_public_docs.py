@@ -96,10 +96,10 @@ PRE_SDD_REVIEW_SUPPORT = (
     "pre-sdd-review: Codex supported; other hosts not_measured."
 )
 PRE_SDD_SHARED_SECTION_DIGESTS = {
-    ("ko", "safety"): "5108fefbf450a8c9b5f630f819519569f64f2491e23ad587284325269e92ea49",
-    ("en", "safety"): "4c3685b930608523cdddc430fdb9547943079086105ff70eee7d909ddfa4a616",
-    ("ko", "verification"): "7b29404e45ed79d812f37c9d81775774804f34ce1012b4bfbc6e735de8172878",
-    ("en", "verification"): "2db145d6d09e59abe2d0e9a0c5293b93fcaaccd60cf1e5e1dc08247985d04b01",
+    ("ko", "safety"): "4959a601685bdd8505b1dc4e642b69eab9c2b39c629fbc0cd33a6d0e5014af8c",
+    ("en", "safety"): "b7850ec7843d1d9a5c00c40ba2bfa00fba1b16e6cf725296627dc0f3e1159630",
+    ("ko", "verification"): "a99a0a36ca3fea3f88f64c8b491d8fbdbb401f4ec1183a6fa6ae8d8004a787bc",
+    ("en", "verification"): "ba8641a9148c3ae35d24f1bb2bdeb534754a92f54046c6b90ac25e4d5245298b",
 }
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
@@ -848,10 +848,10 @@ class UserGuideFactTests(unittest.TestCase):
         self.assertIn(installer, korean_installation)
         self.assertIn(installer, english_installation)
         for text in (korean_installation, english_installation):
-            self.assertIn("pre-sdd-review-evidence", text)
-            self.assertIn("--bin-dir", text)
+            self.assertIn("python3 skills/pre-sdd-review/evidence/evidence.py --version", text)
             self.assertIn("~/.pre-sdd-review/", text)
-            self.assertIn("command -v pre-sdd-review-evidence", text)
+            self.assertNotIn("--bin-dir", text)
+            self.assertNotIn("install.py", text)
 
         korean_safety = _read(ROOT / "docs/users/ko/safety-and-privacy.md")
         english_safety = _read(ROOT / "docs/users/en/safety-and-privacy.md")
@@ -870,6 +870,8 @@ class UserGuideFactTests(unittest.TestCase):
         self.assertIn("python3 scripts/verify.py --skill pre-sdd-review", english_verification)
         self.assertIn("pre-sdd-review-evidence", korean_verification)
         self.assertIn("pre-sdd-review-evidence", english_verification)
+        self.assertIn("evidence.py", korean_verification)
+        self.assertIn("evidence.py", english_verification)
         self.assertEqual(
             pre_sdd_shared_contract_errors(
                 korean_verification,
@@ -899,21 +901,20 @@ class UserGuideFactTests(unittest.TestCase):
             "credentials",
             "automatic secret detection",
             "not a signed audit log",
-            "observer-supplied",
-            "cannot correct or amend",
-            "disputed_findings",
-            "inconclusive",
-            "automatic skill mutation",
-            "client/model ranking",
+            "bounded note, consequence, or fix",
+            "may be re-recorded",
+            "self-improvement evidence",
+            "anomalies",
+            "chains",
+            "run_id",
         ):
             self.assertIn(phrase, combined)
         for phrase in (
-            "Structured downstream observations, assessment basis, and confidence are observer-supplied.",
-            "The CLI derives `good`, `false-ready`, `noisy`, and `prevented-rework` deterministically from those observations.",
-            "Before `record-outcome`, represent every known dispute and uncertainty honestly in the single structured outcome input.",
-            "Confidence and assessment basis do not alter the deterministic label.",
-            "`inconclusive` occurs only when the structured downstream observations reach the approved derivation fallback.",
-            "After the create-only outcome is recorded, schema 1 cannot correct or amend it.",
+            "The recorder does not promise automatic secret detection.",
+            "Atomic local storage gives cooperating clients consistency; it is not a signed audit log resistant to malicious local tampering.",
+            "An `outcome` label (`good`, `false-ready`, `noisy`, `abandoned`) is an observation recorded by a person or the SDD worker after SDD or implementation ends and may be re-recorded to correct it.",
+            "Labels are self-improvement evidence, not objective quality judgments or audit-grade proof.",
+            "Reading the log is an agent's task: `summary` returns JSON whose anomalies and chains carry run_id values.",
         ):
             self.assertIn(phrase, re.sub(r"\s+", " ", english))
 

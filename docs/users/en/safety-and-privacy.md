@@ -22,32 +22,22 @@ In `image-workbench`, every input image has exactly one role: `edit_target`, `su
 
 `pre-sdd-review` reads local design, implementation plan, referenced ADR, and repository files. In default mode it edits only the resolved design and plan. Repository-owned tests do not transmit, persist, or capture user documents as fixtures. This product adds no telemetry or upload path. Live processing and retention follow the Codex host's data controls. It never starts implementation or SDD without an explicit outer request.
 
-The optional `pre-sdd-review-evidence` command uses only the Python standard
-library and keeps receipts under `~/.pre-sdd-review/` or an explicit absolute
-`PRE_SDD_REVIEW_HOME`. Reviews and outcomes are bounded, create-only local
-records. Do not store source text, absolute paths, prompts, provider
-transcripts, command output, credentials, or environment-variable values.
-Even bounded reasons and findings must use paraphrases rather than raw text,
-paths, prompts, transcripts, or credentials. The CLI does not promise
-automatic secret detection.
+The optional recorder `evidence/evidence.py` uses only the Python standard
+library, is not installed, and keeps one record per run under
+`~/.pre-sdd-review/runs/` or an explicit absolute `PRE_SDD_REVIEW_HOME`.
+Records hold repository-relative paths, a directory name, hashes, enum values,
+integers, timestamps, and short paraphrases. Do not store source text,
+absolute paths, prompts, provider transcripts, command output, credentials, or
+environment-variable values, even inside a bounded note, consequence, or fix.
+The recorder does not promise automatic secret detection.
 
 Atomic local storage gives cooperating clients consistency; it is not a signed audit log resistant to malicious local tampering.
-Structured downstream observations, assessment basis, and confidence are
-observer-supplied. The CLI derives `good`, `false-ready`, `noisy`, and
-`prevented-rework` deterministically from those observations. Inputs and derived
-labels are self-improvement evidence, not objective quality judgments or
-audit-grade proof. Before `record-outcome`, represent every known dispute and
-uncertainty honestly in the single structured outcome input. Put finding
-disputes in `disputed_findings` and other uncertainty in the applicable
-structured observation fields. Confidence and assessment basis do not alter
-the deterministic label. `inconclusive` occurs only when the structured
-downstream observations reach the approved derivation fallback. A completed
-outcome without escaped, disputed, or prevented-rework observations derives
-`good` even when confidence is low. After the create-only outcome is recorded,
-schema 1 cannot correct or amend it. An erroneous recorded outcome is an
-uncorrectable residual risk, not a correction path. Treat candidate thresholds
-as human-inspection heuristics, never automatic skill mutation or client/model
-ranking.
+An `outcome` label (`good`, `false-ready`, `noisy`, `abandoned`) is an
+observation recorded by a person or the SDD worker after SDD or implementation
+ends and may be re-recorded to correct it. Labels are self-improvement
+evidence, not objective quality judgments or audit-grade proof. Reading the log
+is an agent's task: `summary` returns JSON whose anomalies and chains carry
+run_id values.
 
 ## High-stakes requests
 

@@ -38,14 +38,12 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 - `how-it-works`: `tests/products/how-it-works/cases.json`의 합성 DNS·rebase 계약 픽스처와 `tests/products/how-it-works/test_contract.py` 페이로드 계약. 채팅 필수 산출(one-sentence claim, Mermaid, numbered hop list, rung-specific body, adjacent slices, one next move)의 형태만 잠급니다.
 - `pre-sdd-review`: `tests/products/pre-sdd-review/`의 합성 사례와 문서 픽스처. `pre-sdd-review`의 공급자 없는 픽스처는 지시와 패키지 계약만 검증합니다. 리뷰어 독립성, 의미 완전성, 라이브 리뷰 품질을 증명하지 않습니다.
 
-Evidence 단계는 `tests/products/pre-sdd-review/evidence/`에서 schema, bounded
-read, repository identity, create-only storage, interruption recovery,
-outcome, summary/candidates, retention, installer를 검증합니다. 네트워크, 모델,
-provider, telemetry를 호출하지 않습니다. 수천 개의 합성 receipt 규모 검사는
-DB나 index 없이 실행됩니다.
+Evidence 단계는 `tests/products/pre-sdd-review/evidence/`에서 `evidence.py`의
+schema 2 record, Git 사실, 불변식, 여섯 명령, summary 집계를 검증합니다.
+네트워크, 모델, provider, telemetry를 호출하지 않으며 DB나 index를 쓰지
+않습니다.
 
-현재 호스트의 native atomic path와 portable launcher 렌더링은 서로 다른 증거입니다.
-비-Windows의 `windows-portable` 통과는 native Windows 지원을 증명하지 않습니다. native Windows와 Linux는 각 Python 3.11 환경에서 evidence와 installer 단계가
+비-Windows의 `windows-portable` 통과는 native Windows 지원을 증명하지 않습니다. native Windows와 Linux는 각 Python 3.11 환경에서 evidence 단계가
 실행되기 전까지 `not_measured`입니다. Claude Code, Cursor, Grok의 의미 검토도
 별도 live receipt 없이는 `not_measured`입니다.
 

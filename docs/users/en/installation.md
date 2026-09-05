@@ -16,32 +16,22 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-re
 
 After install, invoke on a new turn using the product README.
 
-## Pre-SDD Review evidence CLI
+## Pre-SDD Review evidence recorder
 
-Semantic review support for `pre-sdd-review` remains Codex-only. The separate
-optional local recorder lets Codex, Claude Code, Cursor, and Grok call the same
-`pre-sdd-review-evidence` command. That does not make the other hosts supported
-for semantic review.
-
-Use Python 3.11+ and an inspected skill copy. The installer does not create
-`--bin-dir`; it must already exist and be intended for `PATH`. Inspect the
-exact directory and installer before execution, and never pipe a remote script
-into a shell.
+Semantic review support for `pre-sdd-review` remains Codex-only. The optional
+local recorder `evidence/evidence.py` is not installed; run it from the skill
+folder with Python 3.11+. Codex, Claude Code, Cursor, and Grok use the same
+file and the same data root. That does not make the other hosts supported for
+semantic review.
 
 ```bash
-ls -ld "$HOME/.local/bin"
-ls -l skills/pre-sdd-review/evidence/install.py
-python3 skills/pre-sdd-review/evidence/install.py \
-  --bin-dir "$HOME/.local/bin"
-command -v pre-sdd-review-evidence
-pre-sdd-review-evidence --version
+python3 skills/pre-sdd-review/evidence/evidence.py --version
 ```
 
-Receipts default to `~/.pre-sdd-review/` and are separate from the launcher.
-Before update or removal, inspect `command -v pre-sdd-review-evidence` and the
-exact launcher file. Removing it does not delete receipts. To preserve identity
-continuity, back up the whole data root including `identity.key` and
-`config.json`. On Windows, inspect the exact `.cmd` and `.pyz` targets.
+Receipts live at `~/.pre-sdd-review/runs/<run-id>.json`. Removing the skill
+folder does not delete receipts, and deleting a receipt is deleting its file.
+The `pre-sdd-review-evidence` launcher installed by earlier versions is no
+longer used; inspect that exact file, then remove it.
 
 ## How It Works local links
 
