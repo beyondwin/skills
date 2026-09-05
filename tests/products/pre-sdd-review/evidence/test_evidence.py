@@ -24,6 +24,8 @@ from support import (
     write,
 )
 
+import evidence
+
 
 VERSION_LINE = b'{"cli_version":"2.0.0","schema":2,"skill_name":"pre-sdd-review"}\n'
 
@@ -330,6 +332,114 @@ class AbandonOutcomeShowTests(unittest.TestCase):
         code, _, err = run(["show", "--run-id", "00000000-0000-4000-8000-000000000000"], home=self.home, cwd=self.repo)
         self.assertEqual((code, error_code(err)), (2, "run-not-found"))
         code, _, err = run(["show", "--run-id", "not-a-uuid"], home=self.home, cwd=self.repo)
+        self.assertEqual((code, error_code(err)), (2, "invalid-arguments"))
+
+
+class SummaryTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.directory = tempfile.TemporaryDirectory()
+        self.workspace = Path(self.directory.name)
+        self.home = self.workspace / "home"
+        self.repo = make_git_repo(self.workspace)
+        self.other = make_git_repo(self.workspace, name="other")
+        self.skill = make_skill_root(self.workspace)
+
+    def tearDown(self) -> None:
+        self.directory.cleanup()
+
+    def _summary(self, *extra: str) -> dict:
+        code, out, err = run(["summary", *extra], home=self.home, cwd=self.repo)
+        self.assertEqual(code, 0, err)
+        return json.loads(out)
+
+    def _mutate(self, run_id: str, **changes: object) -> None:
+        record = load(self.home, run_id)
+        record.update(changes)
+        evidence.write_record(self.home / "runs" / f"{run_id}.json", record)
+
+    def test_summary_on_empty_home_has_exact_keys(self) -> None:
+        summary = self._summary()
+        self.assertEqual(set(summary), {"schema", "runs", "counts", "cost", "chains", "findings", "anomalies"})
+        self.assertEqual(summary["runs"], [])
+        self.assertEqual(summary["counts"]["status"], {"completed": 0, "abandoned": 0, "pending": 0})
+        self.assertEqual(summary["counts"]["verdict"], {"READY": 0, "REVISE": 0, "BLOCKED": 0})
+        self.assertEqual(summary["counts"]["outcome"], {"recorded": 0, "good": 0, "false-ready": 0, "noisy": 0, "abandoned": 0})
+        self.assertEqual(summary["cost"], {"elapsed_s": {"median": None, "max": None}, "review_passes_avg": None, "repair_passes_avg": None})
+        self.assertEqual(summary["anomalies"], {
+            "repair_without_repaired_finding": [],
+            "head_changed_during_review": [],
+            "design_unresolved_but_full_execution": [],
+            "repo_reality_citing_documents_only": [],
+        })
+        self.assertFalse(self.home.exists())
+
+    def test_summary_aggregates_chains_patterns_outcomes_and_anomalies(self) -> None:
+        repo_reality = finding(id="PSDR-001", **{"class": "repo-reality"}, pattern="demo-npm-cwd", status="unresolved", repair_pass=None, evidence=["docs/plan.md"])
+        first = start(self.home, self.repo, self.skill)
+        self.assertEqual(finish(self.home, self.repo, first, finish_payload(verdict="REVISE", review_passes=2, findings=[repo_reality]))[0], 0)
+        second = start(self.home, self.repo, self.skill)
+        write(self.repo / "docs/plan.md", "# Plan\n\n**Spec:** docs/design.md\n\nfixed\n")
+        commit_all(self.repo)
+        repaired = finding(id="PSDR-002", **{"class": "repo-reality"}, pattern="demo-npm-cwd", evidence=["src/app.ts"])
+        self.assertEqual(finish(self.home, self.repo, second, finish_payload(verdict="READY", review_passes=2, repair_passes=1, findings=[repaired]))[0], 0)
+        self.assertEqual(run(["outcome", "--run-id", second, "--label", "good"], home=self.home, cwd=self.repo)[0], 0)
+        abandoned = start(self.home, self.repo, self.skill)
+        self.assertEqual(run(["abandon", "--run-id", abandoned, "--reason", "input-changed"], home=self.home, cwd=self.repo)[0], 0)
+        pending = start(self.home, self.other, self.skill)
+        unresolved_design = start(self.home, self.other, self.skill, design=False)
+        self.assertEqual(finish(self.home, self.other, unresolved_design, finish_payload())[0], 0)
+        self._mutate(unresolved_design, repair_passes=1, findings=[])
+        legacy = self.home / "runs" / "2026" / "09" / "abc" / "review.json"
+        legacy.parent.mkdir(parents=True)
+        legacy.write_text('{"schema_version":1}\n', encoding="utf-8")
+        (self.home / "runs" / "garbage.json").write_text("{not json", encoding="utf-8")
+        (self.home / "runs" / "old.json").write_text('{"schema":1,"run_id":"x"}\n', encoding="utf-8")
+
+        summary = self._summary()
+        self.assertEqual([item["run_id"] for item in summary["runs"]], [first, second, abandoned, pending, unresolved_design])
+        self.assertEqual(set(summary["runs"][0]), {"run_id", "started_at", "repo", "plan", "status", "verdict", "findings", "elapsed_s"})
+        self.assertEqual(summary["counts"]["status"], {"completed": 3, "abandoned": 1, "pending": 1})
+        self.assertEqual(summary["counts"]["verdict"], {"READY": 2, "REVISE": 1, "BLOCKED": 0})
+        self.assertEqual(summary["counts"]["execution"], {"full": 3, "degraded": 0, "blocked": 0})
+        self.assertEqual(summary["counts"]["abandon_reason"], {"input-changed": 1})
+        self.assertEqual(summary["counts"]["outcome"], {"recorded": 1, "good": 1, "false-ready": 0, "noisy": 0, "abandoned": 0})
+        self.assertEqual(summary["cost"]["review_passes_avg"], round((2 + 2 + 1) / 3, 1))
+        self.assertEqual(summary["cost"]["repair_passes_avg"], round((0 + 1 + 1) / 3, 1))
+        self.assertIsInstance(summary["cost"]["elapsed_s"]["median"], int)
+        self.assertEqual(len(summary["chains"]), 2)
+        repo_chain = next(chain for chain in summary["chains"] if chain["repo"] == "repo")
+        self.assertEqual(repo_chain["plan"], "docs/plan.md")
+        self.assertEqual(
+            repo_chain["runs"],
+            [
+                {"run_id": first, "status": "completed", "verdict": "REVISE"},
+                {"run_id": second, "status": "completed", "verdict": "READY"},
+                {"run_id": abandoned, "status": "abandoned", "verdict": None},
+            ],
+        )
+        self.assertEqual(summary["findings"]["total"], 2)
+        self.assertEqual(summary["findings"]["by_severity"], {"IMPORTANT": 2})
+        self.assertEqual(summary["findings"]["by_status"], {"unresolved": 1, "repaired": 1})
+        self.assertEqual(summary["findings"]["by_class"], {"repo-reality": 2})
+        self.assertEqual(
+            summary["findings"]["repeated_patterns"],
+            [{"class": "repo-reality", "pattern": "demo-npm-cwd", "count": 2, "run_ids": [first, second]}],
+        )
+        self.assertEqual(summary["anomalies"]["repair_without_repaired_finding"], [unresolved_design])
+        self.assertEqual(summary["anomalies"]["head_changed_during_review"], [second])
+        self.assertEqual(summary["anomalies"]["design_unresolved_but_full_execution"], [unresolved_design])
+        self.assertEqual(summary["anomalies"]["repo_reality_citing_documents_only"], [{"run_id": first, "finding_id": "PSDR-001"}])
+
+    def test_summary_filters_by_repo_and_last(self) -> None:
+        first = start(self.home, self.repo, self.skill)
+        self.assertEqual(finish(self.home, self.repo, first, finish_payload())[0], 0)
+        second = start(self.home, self.other, self.skill)
+        self.assertEqual(finish(self.home, self.other, second, finish_payload())[0], 0)
+        third = start(self.home, self.other, self.skill)
+        self.assertEqual([item["run_id"] for item in self._summary("--repo", "other")["runs"]], [second, third])
+        self.assertEqual([item["run_id"] for item in self._summary("--last", "1")["runs"]], [third])
+        self.assertEqual(self._summary("--last", "1")["counts"]["status"], {"completed": 0, "abandoned": 0, "pending": 1})
+        code, _, err = run(["summary", "--last", "0"], home=self.home, cwd=self.repo)
         self.assertEqual((code, error_code(err)), (2, "invalid-arguments"))
 
 
