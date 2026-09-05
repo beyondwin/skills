@@ -430,6 +430,34 @@ def cmd_finish(args: argparse.Namespace, home: Path, cwd: Path, stdin: TextIO) -
     return {"run_id": args.run_id, "status": "completed", "verdict": record["verdict"]}
 
 
+def cmd_abandon(args: argparse.Namespace, home: Path) -> dict[str, object]:
+    record = _require_pending(home, args.run_id)
+    completed_at = utc_now()
+    record["status"] = "abandoned"
+    record["abandon_reason"] = args.reason
+    record["completed_at"] = completed_at
+    record["elapsed_s"] = elapsed_seconds(str(record["started_at"]), completed_at)
+    write_record(run_path(home, args.run_id), record)
+    return {"run_id": args.run_id, "status": "abandoned"}
+
+
+def cmd_outcome(args: argparse.Namespace, home: Path) -> dict[str, object]:
+    record = load_record(home, args.run_id)
+    if record["status"] != "completed":
+        fail("schema-invalid", "outcome requires a completed run")
+    if args.label == "false-ready" and record["verdict"] != "READY":
+        fail("schema-invalid", "false-ready requires a READY verdict")
+    note = _string(args.note, "note", 300, nullable=True)
+    record["outcome"] = {"label": args.label, "note": note, "recorded_at": utc_now()}
+    write_record(run_path(home, args.run_id), record)
+    return {"run_id": args.run_id, "outcome": args.label}
+
+
+def cmd_show(args: argparse.Namespace, home: Path) -> str:
+    load_record(home, args.run_id)
+    return read_bounded_bytes(run_path(home, args.run_id), RECORD_LIMIT).decode("utf-8")
+
+
 class _Parser(argparse.ArgumentParser):
     def error(self, message: str) -> None:  # noqa: D401 - argparse hook
         raise EvidenceError("invalid-arguments", message)
@@ -491,6 +519,13 @@ def main(
             result: object = cmd_start(args, home, cwd)
         elif args.command == "finish":
             result = cmd_finish(args, home, cwd, stdin)
+        elif args.command == "abandon":
+            result = cmd_abandon(args, home)
+        elif args.command == "outcome":
+            result = cmd_outcome(args, home)
+        elif args.command == "show":
+            stdout.write(cmd_show(args, home))
+            return 0
         else:
             fail("invalid-arguments", f"{args.command} is not implemented")
         stdout.write(canonical(result).decode("utf-8"))

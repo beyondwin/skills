@@ -270,5 +270,68 @@ class FinishTests(unittest.TestCase):
         self.assertEqual(load(self.home, self.run_id)["status"], "pending")
 
 
+class AbandonOutcomeShowTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.directory = tempfile.TemporaryDirectory()
+        self.workspace = Path(self.directory.name)
+        self.home = self.workspace / "home"
+        self.repo = make_git_repo(self.workspace)
+        self.skill = make_skill_root(self.workspace)
+        self.run_id = start(self.home, self.repo, self.skill)
+
+    def tearDown(self) -> None:
+        self.directory.cleanup()
+
+    def test_abandon_closes_a_pending_run_with_each_reason(self) -> None:
+        for reason in ("user-cancelled", "input-changed", "scope-changed", "input-format-fixed", "other"):
+            with self.subTest(reason=reason):
+                run_id = start(self.home, self.repo, self.skill)
+                code, out, err = run(["abandon", "--run-id", run_id, "--reason", reason], home=self.home, cwd=self.repo)
+                self.assertEqual(code, 0, err)
+                self.assertEqual(json.loads(out), {"run_id": run_id, "status": "abandoned"})
+                record = load(self.home, run_id)
+                self.assertEqual((record["status"], record["abandon_reason"]), ("abandoned", reason))
+                self.assertIsInstance(record["elapsed_s"], int)
+                self.assertIsNone(record["verdict"])
+
+    def test_abandon_rejects_invalid_reason_and_finished_runs(self) -> None:
+        code, _, err = run(["abandon", "--run-id", self.run_id, "--reason", "bored"], home=self.home, cwd=self.repo)
+        self.assertEqual((code, error_code(err)), (2, "invalid-arguments"))
+        self.assertEqual(finish(self.home, self.repo, self.run_id, finish_payload())[0], 0)
+        code, _, err = run(["abandon", "--run-id", self.run_id, "--reason", "other"], home=self.home, cwd=self.repo)
+        self.assertEqual((code, error_code(err)), (2, "already-finished"))
+
+    def test_outcome_records_and_overwrites_a_label(self) -> None:
+        self.assertEqual(finish(self.home, self.repo, self.run_id, finish_payload())[0], 0)
+        code, out, err = run(["outcome", "--run-id", self.run_id, "--label", "good", "--note", "SDD completed"], home=self.home, cwd=self.repo)
+        self.assertEqual(code, 0, err)
+        self.assertEqual(json.loads(out), {"run_id": self.run_id, "outcome": "good"})
+        first = load(self.home, self.run_id)["outcome"]
+        self.assertEqual((first["label"], first["note"]), ("good", "SDD completed"))
+        code, _, err = run(["outcome", "--run-id", self.run_id, "--label", "false-ready"], home=self.home, cwd=self.repo)
+        self.assertEqual(code, 0, err)
+        second = load(self.home, self.run_id)["outcome"]
+        self.assertEqual((second["label"], second["note"]), ("false-ready", None))
+
+    def test_outcome_rejects_pending_runs_false_ready_without_ready_and_long_notes(self) -> None:
+        code, _, err = run(["outcome", "--run-id", self.run_id, "--label", "good"], home=self.home, cwd=self.repo)
+        self.assertEqual((code, error_code(err)), (2, "schema-invalid"))
+        revise = finish_payload(verdict="REVISE", findings=[finding(status="unresolved", repair_pass=None)])
+        self.assertEqual(finish(self.home, self.repo, self.run_id, revise)[0], 0)
+        code, _, err = run(["outcome", "--run-id", self.run_id, "--label", "false-ready"], home=self.home, cwd=self.repo)
+        self.assertEqual((code, error_code(err)), (2, "schema-invalid"))
+        code, _, err = run(["outcome", "--run-id", self.run_id, "--label", "noisy", "--note", "n" * 301], home=self.home, cwd=self.repo)
+        self.assertEqual((code, error_code(err)), (2, "schema-invalid"))
+
+    def test_show_prints_the_record_verbatim(self) -> None:
+        code, out, err = run(["show", "--run-id", self.run_id], home=self.home, cwd=self.repo)
+        self.assertEqual(code, 0, err)
+        self.assertEqual(out, (self.home / "runs" / f"{self.run_id}.json").read_text(encoding="utf-8"))
+        code, _, err = run(["show", "--run-id", "00000000-0000-4000-8000-000000000000"], home=self.home, cwd=self.repo)
+        self.assertEqual((code, error_code(err)), (2, "run-not-found"))
+        code, _, err = run(["show", "--run-id", "not-a-uuid"], home=self.home, cwd=self.repo)
+        self.assertEqual((code, error_code(err)), (2, "invalid-arguments"))
+
+
 if __name__ == "__main__":
     unittest.main()
