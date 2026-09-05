@@ -48,7 +48,6 @@ class EvidenceError(Exception):
 def fail(code: str, message: str) -> None:
     raise EvidenceError(code, message)
 
-
 def canonical(value: object) -> bytes:
     return (json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
 
@@ -79,16 +78,13 @@ def parse_json(data: bytes, name: str) -> object:
 def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
-
 def utc_now() -> str:
     return dt.datetime.now(dt.timezone.utc).isoformat(timespec="microseconds").replace("+00:00", "Z")
-
 
 def elapsed_seconds(start: str, end: str) -> int:
     begin = dt.datetime.fromisoformat(start.replace("Z", "+00:00"))
     finish = dt.datetime.fromisoformat(end.replace("Z", "+00:00"))
     return max(0, int((finish - begin).total_seconds()))
-
 
 def evidence_home(environ: Mapping[str, str]) -> Path:
     override = environ.get("PRE_SDD_REVIEW_HOME")
@@ -99,7 +95,6 @@ def evidence_home(environ: Mapping[str, str]) -> Path:
         fail("invalid-arguments", "PRE_SDD_REVIEW_HOME must be a non-empty absolute path")
     return candidate
 
-
 def validate_run_id(value: str) -> str:
     try:
         parsed = uuid.UUID(str(value))
@@ -109,10 +104,8 @@ def validate_run_id(value: str) -> str:
         fail("invalid-arguments", "run_id must be a canonical lowercase UUID")
     return value
 
-
 def run_path(home: Path, run_id: str) -> Path:
     return home / "runs" / f"{validate_run_id(run_id)}.json"
-
 
 def write_record(path: Path, record: dict[str, object]) -> None:
     payload = canonical(record)
@@ -120,7 +113,10 @@ def write_record(path: Path, record: dict[str, object]) -> None:
         fail("schema-invalid", f"record exceeds {RECORD_LIMIT} bytes")
     temp = path.with_name(path.name + ".tmp")
     try:
-        path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        home, runs = path.parent.parent, path.parent
+        for directory in (home, runs):
+            directory.mkdir(mode=0o700, parents=directory is home, exist_ok=True)
+            os.chmod(directory, 0o700)
         descriptor = os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
         with os.fdopen(descriptor, "wb") as stream:
             stream.write(payload)
@@ -131,14 +127,17 @@ def write_record(path: Path, record: dict[str, object]) -> None:
         raise EvidenceError("evidence-home-unwritable", "evidence storage is unavailable") from exc
 
 
-def load_record(home: Path, run_id: str) -> dict[str, object]:
-    path = run_path(home, run_id)
+def _read_record(path: Path) -> tuple[bytes, dict[str, object]]:
     if not path.is_file():
         fail("run-not-found", "run was not found")
-    record = parse_json(read_bounded_bytes(path, RECORD_LIMIT), "record")
+    data = read_bounded_bytes(path, RECORD_LIMIT)
+    record = parse_json(data, "record")
     if not isinstance(record, dict) or record.get("schema") != SCHEMA:
         fail("schema-invalid", "record is not a schema 2 record")
-    return record
+    return data, record
+
+def load_record(home: Path, run_id: str) -> dict[str, object]:
+    return _read_record(run_path(home, run_id))[1]
 
 
 def iter_records(home: Path) -> list[dict[str, object]]:
@@ -413,8 +412,7 @@ def cmd_outcome(args: argparse.Namespace, home: Path) -> dict[str, object]:
 
 
 def cmd_show(args: argparse.Namespace, home: Path) -> str:
-    load_record(home, args.run_id)
-    return read_bounded_bytes(run_path(home, args.run_id), RECORD_LIMIT).decode("utf-8")
+    return _read_record(run_path(home, args.run_id))[0].decode("utf-8")
 
 
 def _count(values: list[str], keys: tuple[str, ...] | None = None) -> dict[str, int]:
@@ -525,11 +523,14 @@ class _Parser(argparse.ArgumentParser):
     def error(self, message: str) -> None:
         raise EvidenceError("invalid-arguments", message)
 
+    def exit(self, status: int = 0, message: str | None = None) -> None:
+        raise EvidenceError("invalid-arguments", (message or "invalid arguments").strip() or "invalid arguments")
+
 
 def build_parser() -> _Parser:
-    parser = _Parser(prog="evidence.py", add_help=True)
-    commands = parser.add_subparsers(dest="command", required=True)
-    start = commands.add_parser("start")
+    parser = _Parser(prog="evidence.py", add_help=False)
+    commands = parser.add_subparsers(dest="command", required=True, parser_class=_Parser)
+    start = commands.add_parser("start", add_help=False)
     start.add_argument("--skill-root", required=True)
     start.add_argument("--repo", required=True)
     start.add_argument("--plan", required=True)
@@ -537,19 +538,19 @@ def build_parser() -> _Parser:
     start.add_argument("--client", required=True, choices=CLIENTS)
     start.add_argument("--model", default="unknown")
     start.add_argument("--mode", required=True, choices=MODES)
-    finish = commands.add_parser("finish")
+    finish = commands.add_parser("finish", add_help=False)
     finish.add_argument("--run-id", required=True)
     finish.add_argument("--repo", required=True)
-    abandon = commands.add_parser("abandon")
+    abandon = commands.add_parser("abandon", add_help=False)
     abandon.add_argument("--run-id", required=True)
     abandon.add_argument("--reason", required=True, choices=ABANDON_REASONS)
-    outcome = commands.add_parser("outcome")
+    outcome = commands.add_parser("outcome", add_help=False)
     outcome.add_argument("--run-id", required=True)
     outcome.add_argument("--label", required=True, choices=OUTCOME_LABELS)
     outcome.add_argument("--note")
-    show = commands.add_parser("show")
+    show = commands.add_parser("show", add_help=False)
     show.add_argument("--run-id", required=True)
-    summary = commands.add_parser("summary")
+    summary = commands.add_parser("summary", add_help=False)
     summary.add_argument("--repo")
     summary.add_argument("--last", type=int)
     return parser

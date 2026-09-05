@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import stat
 import subprocess
 import sys
@@ -53,6 +52,15 @@ class VersionTests(unittest.TestCase):
             self.assertEqual(set(envelope["error"]), {"code", "message"})
             self.assertEqual(envelope["error"]["code"], "invalid-arguments")
 
+    def test_help_uses_the_error_envelope(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory)
+            for argv in (["--help"], ["start", "--help"]):
+                with self.subTest(argv=argv):
+                    code, out, err = run(argv, home=home, cwd=home)
+                    self.assertEqual((code, out), (2, ""))
+                    self.assertEqual(error_code(err), "invalid-arguments")
+
     def test_script_runs_as_a_file_without_installation(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory) / "home"
@@ -102,6 +110,7 @@ class StartTests(unittest.TestCase):
         path = self.home / "runs" / f"{run_id}.json"
         self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o600)
         self.assertEqual(stat.S_IMODE((self.home / "runs").stat().st_mode), 0o700)
+        self.assertEqual(stat.S_IMODE(self.home.stat().st_mode), 0o700)
         self.assertNotIn(str(self.repo), path.read_text(encoding="utf-8"))
 
     def test_start_without_design_records_null_and_dirty_worktree(self) -> None:
@@ -189,7 +198,8 @@ class FinishTests(unittest.TestCase):
     def test_finish_completes_the_record_with_end_state(self) -> None:
         write(self.repo / "docs/plan.md", "# Plan\n\n**Spec:** docs/design.md\n\nrepaired\n")
         commit_all(self.repo)
-        payload = finish_payload(verdict="READY", review_passes=2, repair_passes=1, findings=[finding()])
+        second = finding(id="PSDR-002", pattern="other-gap")
+        payload = finish_payload(verdict="READY", review_passes=2, repair_passes=1, findings=[finding(), second])
         code, out, err = finish(self.home, self.repo, self.run_id, payload)
         self.assertEqual(code, 0, err)
         self.assertEqual(json.loads(out), {"run_id": self.run_id, "status": "completed", "verdict": "READY"})
@@ -197,7 +207,7 @@ class FinishTests(unittest.TestCase):
         self.assertEqual(record["status"], "completed")
         self.assertEqual((record["execution"], record["reviewers"], record["verdict"]), ("full", 1, "READY"))
         self.assertEqual((record["review_passes"], record["repair_passes"]), (2, 1))
-        self.assertEqual(record["findings"], [finding()])
+        self.assertEqual(record["findings"], [finding(), second])
         self.assertNotEqual(record["plan"]["sha_start"], record["plan"]["sha_end"])
         self.assertEqual(record["design"]["sha_start"], record["design"]["sha_end"])
         self.assertNotEqual(record["git"]["head_start"], record["git"]["head_end"])
