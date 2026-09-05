@@ -413,8 +413,8 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Freshness", "496291e8542f8f110b1f9e17647c86b83b42d58720382ce68437bb5601cd09ae"),
     ("### SDD handoff", "8a629dd12d78e2c08e77e7c1d057d0e450b135bc0633d5b62c8c926665976bca"),
 )
-MAINTAINER_CANONICAL_DIGEST = "00d781da46653eb1a283c48f8f91aefb1f1846dff35fd12510ee40de0fa4521c"
-TESTING_CANONICAL_DIGEST = "22e123c28f23a0901a06d79a5bc674ec45ab2917aae8e2b4995482c187587ff7"
+MAINTAINER_CANONICAL_DIGEST = "5674b27c67a37a00484f2f04b7aa2c6520bc990c65935bc42a93fecdb0ebb06f"
+TESTING_CANONICAL_DIGEST = "101698bd649028daecae8fc454868d48734f8fe686b841f993c027dbfc27fbd1"
 COMPATIBILITY_CANONICAL_DIGEST = "e6190ebc5aed319c09ecf5acdbeae12f8bea341667857b6d7a2af1522abd1a2a"
 RELEASE_CANONICAL_DIGEST = "8207a039cf271400e28fc632c1aa0a585e6f8b54ae6781aae4665f1a66d80cdd"
 
@@ -631,14 +631,14 @@ def testing_document_errors(text: str) -> tuple[str, ...]:
         errors.append("fixture inventory differs")
     normalized = re.sub(r"\s+", " ", text)
     for required in (
-        "fresh Codex session",
-        "non-sensitive synthetic design and plan",
-        "record only host, client version, date, case identifier, and verdict",
-        "user documents",
-        "full model responses",
-        "optional",
-        "billable",
-        "CI never",
+        "새 Codex 세션",
+        "민감하지 않은 합성 설계·계획",
+        "호스트, 클라이언트 버전, 날짜, 사례 식별자, 판정만",
+        "사용자 문서",
+        "모델 응답 전체",
+        "선택적",
+        "비용이 들 수 있습니다",
+        "CI는 요구하지 않습니다",
     ):
         if required not in normalized:
             errors.append("live-check boundary differs")
@@ -1013,11 +1013,14 @@ class PreSddReviewContractTests(unittest.TestCase):
             (MAINTAINERS / "contract.md").read_text(encoding="utf-8"),
         )
 
-        for document in (skill, contract):
-            self.assertIn("required implementation base", document)
-            self.assertIn("before dispatching any reviewer", document)
-            self.assertIn("merge-base --is-ancestor", document)
-            self.assertIn("return `BLOCKED`", document)
+        self.assertIn("required implementation base", skill)
+        self.assertIn("before dispatching any reviewer", skill)
+        self.assertIn("merge-base --is-ancestor", skill)
+        self.assertIn("return `BLOCKED`", skill)
+        self.assertIn("검토자를 부르기 전에", contract)
+        self.assertIn("필수 베이스", contract)
+        self.assertIn("merge-base --is-ancestor", contract)
+        self.assertIn("`BLOCKED`를 반환", contract)
 
         self.assertLess(
             skill.index("required implementation base"),
@@ -1091,14 +1094,20 @@ class PreSddReviewContractTests(unittest.TestCase):
         for document in (skill, contract):
             self.assertIn("at most two review roles", document)
             self.assertIn("does not add a review role", document)
-            self.assertIn("one discovery stage", document)
             self.assertIn("Do not automatically start another invocation", document)
             self.assertIn("one consolidated user checkpoint", document)
 
-        for document in (skill, protocol, contract):
+        self.assertIn("one discovery stage", skill)
+        self.assertIn("발견 단계 한 번", contract)
+
+        for document in (skill, protocol):
             self.assertIn("unmapped material finding", document)
             self.assertIn("original finding or a direct mapped repair impact", document)
             self.assertIn("apply the existing verdict rules", document)
+        self.assertIn("원래 발견", contract)
+        self.assertIn("직접 대응된 수정 영향", contract)
+        self.assertIn("대응되지 않은 중요 발견", contract)
+        self.assertIn("기존 판정 규칙", contract)
 
         self.assertIn("Detection still covers the final complete documents", protocol)
 
@@ -1488,14 +1497,14 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "`runtime-removal`",
             "`design.md`, `plan.md`,",
             "`repository.json`, and `expected.json`",
-            "optional",
-            "fresh Codex session",
-            "non-sensitive synthetic design and plan",
-            "record only host, client version, date, case identifier, and verdict",
-            "billable",
-            "CI never",
-            "user documents",
-            "full model responses",
+            "선택적",
+            "새 Codex 세션",
+            "민감하지 않은 합성 설계·계획",
+            "호스트, 클라이언트 버전, 날짜, 사례 식별자, 판정만",
+            "비용이 들 수 있습니다",
+            "CI는 요구하지 않습니다",
+            "사용자 문서",
+            "모델 응답 전체",
             "evidence.py",
             "not_measured",
         ):

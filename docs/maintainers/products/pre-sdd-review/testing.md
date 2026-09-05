@@ -82,11 +82,11 @@ private prompts, credentials, transcripts, full model responses를 픽스처,
 
 ## Optional fresh-session live checks
 
-live check는 로컬이고, 명시적이며, optional입니다. billable일 수 있고
-CI never requires it. fresh Codex session과 non-sensitive synthetic design and plan만
-사용하고, record only host, client version, date, case identifier, and verdict.
-provider-free 결과를 라이브 품질 주장으로 바꾸지 않습니다. user documents나
-full model responses를 저장하지 않습니다.
+라이브 검사는 로컬이고, 명시적이며, 선택적입니다. 비용이 들 수 있습니다.
+CI는 요구하지 않습니다. 새 Codex 세션과 민감하지 않은 합성 설계·계획만
+사용합니다. 기록은 호스트, 클라이언트 버전, 날짜, 사례 식별자, 판정만 남깁니다.
+공급자 없는 결과를 라이브 품질 주장으로 바꾸지 않습니다. 사용자 문서나
+모델 응답 전체를 저장하지 않습니다.
 
 v1.1 전진 확인은 정답을 숨긴 채 `repair-induced-schema-consumer`,
 `state-machine-vacuous-pass`, `conditional-edit-surface`를 각각 따로 호출합니다.

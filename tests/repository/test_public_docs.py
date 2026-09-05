@@ -1650,6 +1650,8 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("authorization", contract_text)
         self.assertIn("imagespec", contract_text)
         self.assertIn("rubric", contract_text)
+        self.assertIn("동의가 불명확하면", contract_text)
+        self.assertIn("`hold`", _read(contract))
         self.assertIn("inspector", testing_text)
         self.assertIn("inspect_asset.py", testing_text)
         self.assertIn("release.toml", release_text)

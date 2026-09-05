@@ -20,10 +20,10 @@ resolved design specification을 찾습니다. 그다음 명시적으로 binding
 설계가 나중 호출에서 바뀌면, 이전 설계 지문에 의존한 계획 판정을 다시
 검토합니다.
 
-계획이 required implementation base branch, ref, or commit을 명시하면
-before dispatching any reviewer 현재 checkout을
-`git merge-base --is-ancestor <required-base> HEAD`로 확인합니다. base를
-해석할 수 없거나 `HEAD`의 조상이 아니면 불일치를 보존하고 return `BLOCKED`합니다.
+계획이 필수 구현 베이스(`branch`, `ref`, 또는 `commit`)를 적으면,
+검토자를 부르기 전에, 현재 checkout이 필수 베이스의 조상인지
+`git merge-base --is-ancestor <required-base> HEAD`로 확인합니다. 베이스를
+해석할 수 없거나 `HEAD`의 조상이 아니면 불일치를 남기고 `BLOCKED`를 반환합니다.
 다른 checkout을 임의로 검토하거나 고치지 않습니다.
 
 ## Authority order
@@ -114,7 +114,7 @@ Evidence `reviewer_count` records logical roles, not cumulative agent calls.
 
 ## Default flow, verdicts, and freshness
 
-한 호출은 one discovery stage와 수정 최대 두 번, 범위 제한 재검토로
+한 호출은 발견 단계 한 번과 수정 최대 두 번, 범위 제한 재검토로
 끝납니다. 수정이 스키마, 타입, 인터페이스, 상태 전이, 조건부 수정 면,
 작업 간 계약, 검증 의미, 공개/비공개 경계를 바꾸면 제어 에이전트가 짧은
 영향 범위 표를 만듭니다. 표에는 바뀐 주장, 바뀐 심볼·상태·경로·명령,
@@ -127,10 +127,10 @@ Evidence `reviewer_count` records logical roles, not cumulative agent calls.
 번입니다. 두 번째 패스 뒤에도 중요한 문제가 남으면 심각도를 낮추지
 않습니다. `review-only`는 파일을 바꾸지 않고 첫 검토 판정만 반환합니다.
 
-범위 제한 재검토의 현재 수정 대상은 original finding or a direct mapped repair
-impact뿐입니다. 최종 문서에서 찾은 unmapped material finding은 버리지 않습니다.
-지금 수정에는 넣지 않습니다. 호출을 끝내고 handoff에 기록한 뒤 apply the
-existing verdict rules를 따릅니다.
+범위 제한 재검토의 현재 수정 대상은 원래 발견이거나 직접 대응된 수정 영향뿐입니다.
+최종 문서에서 찾은 대응되지 않은 중요 발견은 버리지 않습니다.
+지금 수정에는 넣지 않습니다. 호출을 끝내고 인계에 기록한 뒤
+기존 판정 규칙을 따릅니다.
 
 ### Verdicts
 
