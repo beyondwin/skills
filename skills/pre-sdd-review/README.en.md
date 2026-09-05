@@ -37,9 +37,7 @@ In Codex, pass the public GitHub path to `$skill-installer`.
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-review
 ```
 
-The local evidence recorder is not installed. Run `evidence/evidence.py` from
-the skill folder with Python 3.11+. The controller uses the skill root it
-already loaded.
+The local evidence recorder is not installed.
 
 ```bash
 python3 "<skill-root>/evidence/evidence.py" --version

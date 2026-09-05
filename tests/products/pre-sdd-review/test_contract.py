@@ -377,18 +377,18 @@ README_CANONICAL_SECTION_DIGESTS = {
     "ko": (
         ("## 이 스킬이 해결하는 문제", "34742e41af70cad0eea87b0a6335332097205550174c666b9360ddcfd4f76ddd"),
         ("## 사용해야 할 때와 사용하지 말아야 할 때", "63634fe6e87d9b53d0d13d628ab18747c164c33aa432c03e6ab095e7fd94e2b4"),
-        ("## 설치", "182491e6460519942342f3b6eeb6cf3af99011858abbc0e74b83aac4f611ae41"),
+        ("## 설치", "0310039df0ab24fb37b0c2ff647a6fbf12f938a88d5026f997636c9e1bdfc7ee"),
         ("## 첫 호출", "50b99daba0033aa7cc24a42ae5c07ffbe75c93d9ce270f2dcfbc48cc64ef82a2"),
         ("## 결과와 기본 흐름", "767a58ed8f949cede87fd8a0c2bb4cb2ed02522a14c1a852827038261b9f2fc5"),
         ("## 안전과 개인정보", "80a7952ae3a8d3f46896e98f96348077d15602fa496337dee3de3666dde70219"),
-        ("## 운영과 한계", "9e9d82809469de0503886979744cc794745c3c151bf2795c02658621f6843223"),
-        ("## 호환성과 검증 수준", "c904a730dd0857d35e60bfaba7d735616518f79f9ed5ca1c55245621320952e2"),
+        ("## 운영과 한계", "8374f78382377aa3c1dbe54d856fa495e3240d1299c830f60a3b69d428954ec9"),
+        ("## 호환성과 검증 수준", "52cd6d07286a1c1bd48b0c8411e450dfd8d09bcba0995c5f58b264e4eefc1f21"),
         ("## 변경 이력과 관리자 문서", "7e1cb70139ec2f47b67004352fdd0ca739f19515c2c715095501268c5b7405ac"),
     ),
     "en": (
         ("## Purpose", "d1b0ca1b776d1b9f0ca9748e3bf2f5264e4ab2e6f091d83c998a230ee5659aa3"),
         ("## When to use and not use", "2daaa6de8f1623ab571cc1639b7b5097241c02e5f420b92ed48ecf1a401d926e"),
-        ("## Install", "328f10374b466b89d71da407a2add2f842dadd49ccbe8217ee51ff0c00c43add"),
+        ("## Install", "bc2117dc022697234b829886280584fc231146197b4d8710cbedbb60c19f9e20"),
         ("## First call", "304e4697f6a40a2d522f18757ed7e464c4a8fde253c885fdf82ac1152ebb5b2a"),
         ("## Expected result", "878e1b880bd85b1d0d048084fa7ffb2059acf70900a40dc05c78d5b05fc5f6ed"),
         ("## Safety and privacy", "6deacd7f8ac39cf1322593d056764569198789615c3e5548d0bd8c8bd7d5b771"),
@@ -398,8 +398,8 @@ README_CANONICAL_SECTION_DIGESTS = {
     ),
 }
 README_CANONICAL_DOCUMENT_DIGESTS = {
-    "ko": "e54e2f1d393536f70462098ffdcf5ef015a160806f42725254659196ffe74a35",
-    "en": "97a2b69e26d524ce03c2e146e5df9504f208a9aef9f5f0c32b76e2e4a25c9726",
+    "ko": "5f79e0b2aebbf4537f9bc9ed6fa6f467cad62cc5514e869c3715adef4ebb169f",
+    "en": "b6200bc61c93823878f94112b7ee47e313d07c0d2c7586cecc2f265adae18869",
 }
 MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Authority order", "3156a43d665d21723ce61b333c7c34f30abd2e6d288c472d5eec5878e5ef8321"),

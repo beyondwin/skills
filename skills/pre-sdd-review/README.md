@@ -34,8 +34,7 @@ Codex에서는 공개 GitHub 경로를 `$skill-installer`에 전달합니다.
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-review
 ```
 
-로컬 영수증 기록기는 설치하지 않습니다. 스킬 폴더의 `evidence/evidence.py`를
-Python 3.11+로 직접 실행합니다. 컨트롤러는 이미 로드한 스킬 루트를 그대로 씁니다.
+로컬 영수증 기록기는 설치하지 않습니다.
 
 ```bash
 python3 "<skill-root>/evidence/evidence.py" --version
@@ -143,7 +142,7 @@ public/private 데이터 경계, 게시·과금·메시징·프로덕션 변경 
 자동 선정, 자동 스킬 변경, client/model ranking은 하지 않습니다.
 
 버전 원본은 `release.toml`이고 `SKILL.md`의 `metadata.version`은 검증된 복제
-값입니다. 기록기는 이전 `runs/<연>/<월>/` 영수증을 읽지 않으며, 영수증 삭제는
+값입니다. 기록기는 이전 `runs/<year>/<month>/` 영수증을 읽지 않으며, 영수증 삭제는
 파일 삭제로 충분합니다.
 
 ## 호환성과 검증 수준
@@ -155,7 +154,8 @@ Codex만 독립 읽기 전용 검토와 저장소 조사를 포함해 측정되�
 
 제공자 없는 검증은 패키지·지시문·픽스처 계약만 증명하며 실제 모델 검토 품질을
 증명하지 않습니다. 선택적 live 검사는 명시적이고 로컬에서만 하며 비용이 들 수
-있습니다. 자세한 내용은 [검증](../../docs/users/ko/verification.md)을 보세요.
+있고, CI에서는 요구하지 않습니다. 자세한 내용은
+[검증](../../docs/users/ko/verification.md)을 보세요.
 
 기록기는 Python 3.11+ 표준 라이브러리만 쓰며 macOS에서 provider-free 테스트로
 검증됐습니다. Linux와 native Windows는 각 환경에서 evidence 단계가 직접 실행될
