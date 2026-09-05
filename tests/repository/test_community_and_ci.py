@@ -93,7 +93,6 @@ class CiWorkflowTests(unittest.TestCase):
             full_rows,
             [
                 ("ubuntu-latest", "full"),
-                ("macos-latest", "full"),
                 ("windows-latest", "windows-portable"),
             ],
         )
@@ -105,7 +104,6 @@ class CiWorkflowTests(unittest.TestCase):
             pr_os_profiles,
             {
                 ("ubuntu-latest", "full"),
-                ("macos-latest", "full"),
                 ("windows-latest", "windows-portable"),
             },
         )

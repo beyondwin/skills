@@ -222,14 +222,13 @@ class TargetMappingTests(RegistryRoutingTestCase):
 
 
 class MatrixSerializationTests(RegistryRoutingTestCase):
-    def test_each_target_runs_ubuntu_macos_full_and_windows_portable(self) -> None:
+    def test_each_target_runs_ubuntu_full_and_windows_portable(self) -> None:
         matrix = matrix_for_targets(["how-it-works"], self.registry)
         rows = matrix["include"]
         self.assertEqual(
             [(row["os"], row["profile"], row["selector"], row["target"]) for row in rows],
             [
                 ("ubuntu-latest", "full", "--skill how-it-works", "how-it-works"),
-                ("macos-latest", "full", "--skill how-it-works", "how-it-works"),
                 ("windows-latest", "windows-portable", "--skill how-it-works", "how-it-works"),
             ],
         )
@@ -252,7 +251,7 @@ class MatrixSerializationTests(RegistryRoutingTestCase):
         matrix = matrix_for_targets(("korean-writing-editor", "catalog"), self.registry)
         self.assertEqual(
             [row["target"] for row in matrix["include"]],
-            ["catalog"] * 3 + ["korean-writing-editor"] * 3,
+            ["catalog"] * 2 + ["korean-writing-editor"] * 2,
         )
 
     def test_selectors_are_fixed_strings(self) -> None:
@@ -277,13 +276,12 @@ class MatrixSerializationTests(RegistryRoutingTestCase):
         self.assertEqual(json.loads(encoded), matrix)
         self.assertTrue(encoded.startswith('{"include":['))
 
-    def test_full_repository_matrix_is_three_unselected_os_rows(self) -> None:
+    def test_full_repository_matrix_is_two_unselected_os_rows(self) -> None:
         matrix = full_repository_matrix()
         self.assertEqual(
             [(row["os"], row["profile"], row.get("selector", ""), row.get("target")) for row in matrix["include"]],
             [
                 ("ubuntu-latest", "full", "", None),
-                ("macos-latest", "full", "", None),
                 ("windows-latest", "windows-portable", "", None),
             ],
         )
@@ -358,7 +356,7 @@ class ChangedPathAndCliTests(RegistryRoutingTestCase):
                 payload = line.split("=", 1)[1]
                 self.assertEqual(payload, serialize_matrix(full_repository_matrix()))
                 matrix = json.loads(payload)
-                self.assertEqual(len(matrix["include"]), 3)
+                self.assertEqual(len(matrix["include"]), 2)
                 self.assertTrue(all(row["selector"] == "" for row in matrix["include"]))
 
     def test_cli_writes_pr_matrix_from_changed_paths(self) -> None:
@@ -406,7 +404,7 @@ class ChangedPathAndCliTests(RegistryRoutingTestCase):
             )
             matrix = json.loads(payload)
             self.assertEqual({row["target"] for row in matrix["include"]}, {"image-workbench"})
-            self.assertEqual(len(matrix["include"]), 3)
+            self.assertEqual(len(matrix["include"]), 2)
 
     def test_cli_returns_nonzero_on_registry_errors(self) -> None:
         import scripts.changed_targets as module

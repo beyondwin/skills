@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import json
 import stat
 import subprocess
@@ -73,6 +74,13 @@ class VersionTests(unittest.TestCase):
             self.assertEqual(completed.returncode, 0, completed.stderr)
             self.assertEqual(completed.stdout, VERSION_LINE)
             self.assertFalse(home.exists())
+
+    def test_json_line_bypasses_text_newline_translation(self) -> None:
+        raw = io.BytesIO()
+        stream = io.TextIOWrapper(raw, encoding="utf-8", newline="\r\n")
+        evidence.write_json(stream, {"status": "ok"})
+        stream.flush()
+        self.assertEqual(raw.getvalue(), b'{"status":"ok"}\n')
 
 
 class StartTests(unittest.TestCase):

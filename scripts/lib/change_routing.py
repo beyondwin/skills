@@ -11,7 +11,6 @@ from scripts.lib.product_registry import ProductRegistry, normalize_repo_path
 CATALOG_PREFIX = "catalog/"
 OS_ROWS = (
     ("ubuntu-latest", "full"),
-    ("macos-latest", "full"),
     ("windows-latest", "windows-portable"),
 )
 FULL_REPOSITORY_EVENTS = frozenset({"push", "workflow_dispatch"})

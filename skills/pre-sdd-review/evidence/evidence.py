@@ -91,6 +91,19 @@ def canonical(value: object) -> bytes:
     ).encode("utf-8")
 
 
+def write_bytes(stream: TextIO, payload: bytes) -> None:
+    binary = getattr(stream, "buffer", None)
+    if binary is not None:
+        binary.write(payload)
+        binary.flush()
+        return
+    stream.write(payload.decode("utf-8"))
+
+
+def write_json(stream: TextIO, value: object) -> None:
+    write_bytes(stream, canonical(value))
+
+
 def read_bounded_bytes(path: Path, limit: int) -> bytes:
     with Path(path).open("rb") as stream:
         data = stream.read(limit + 1)
@@ -685,10 +698,9 @@ def main(
     cwd = Path.cwd() if cwd is None else Path(cwd)
     try:
         if arguments == ["--version"]:
-            stdout.write(
-                canonical(
-                    {"cli_version": CLI_VERSION, "schema": SCHEMA, "skill_name": SKILL_NAME}
-                ).decode("utf-8")
+            write_json(
+                stdout,
+                {"cli_version": CLI_VERSION, "schema": SCHEMA, "skill_name": SKILL_NAME},
             )
             return 0
         if "--version" in arguments:
@@ -704,15 +716,15 @@ def main(
         elif args.command == "outcome":
             result = cmd_outcome(args, home)
         elif args.command == "show":
-            stdout.write(cmd_show(args, home))
+            write_bytes(stdout, cmd_show(args, home).encode("utf-8"))
             return 0
         elif args.command == "summary":
             result = cmd_summary(args, home)
-        stdout.write(canonical(result).decode("utf-8"))
+        write_json(stdout, result)
         return 0
     except EvidenceError as exc:
         message = exc.message[:300].replace("\n", " ").replace("\r", " ")
-        stderr.write(canonical({"error": {"code": exc.code, "message": message}}).decode("utf-8"))
+        write_json(stderr, {"error": {"code": exc.code, "message": message}})
         return 2
 
 

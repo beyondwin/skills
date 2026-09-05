@@ -4,6 +4,11 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- Recorder JSON lines keep a single LF on Windows text stdout, so release
+  smoke and `--version` match the Unix byte contract.
+
 ### Changed
 
 - Product README language was simplified with no behaviour change.
