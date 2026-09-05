@@ -413,7 +413,7 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Freshness", "496291e8542f8f110b1f9e17647c86b83b42d58720382ce68437bb5601cd09ae"),
     ("### SDD handoff", "8a629dd12d78e2c08e77e7c1d057d0e450b135bc0633d5b62c8c926665976bca"),
 )
-MAINTAINER_CANONICAL_DIGEST = "5674b27c67a37a00484f2f04b7aa2c6520bc990c65935bc42a93fecdb0ebb06f"
+MAINTAINER_CANONICAL_DIGEST = "f04ce44258d7ddddb660cc8bdb60c354738f6dd8364c07c3a6bc5bc4aacf4ec9"
 TESTING_CANONICAL_DIGEST = "101698bd649028daecae8fc454868d48734f8fe686b841f993c027dbfc27fbd1"
 COMPATIBILITY_CANONICAL_DIGEST = "e6190ebc5aed319c09ecf5acdbeae12f8bea341667857b6d7a2af1522abd1a2a"
 RELEASE_CANONICAL_DIGEST = "8207a039cf271400e28fc632c1aa0a585e6f8b54ae6781aae4665f1a66d80cdd"
@@ -1018,7 +1018,8 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("merge-base --is-ancestor", skill)
         self.assertIn("return `BLOCKED`", skill)
         self.assertIn("검토자를 부르기 전에", contract)
-        self.assertIn("필수 베이스", contract)
+        self.assertIn("필수 베이스가 `HEAD`의 조상인지", contract)
+        self.assertNotIn("현재 checkout이 필수 베이스의 조상인지", contract)
         self.assertIn("merge-base --is-ancestor", contract)
         self.assertIn("`BLOCKED`를 반환", contract)
 

@@ -21,7 +21,7 @@ resolved design specification을 찾습니다. 그다음 명시적으로 binding
 검토합니다.
 
 계획이 필수 구현 베이스(`branch`, `ref`, 또는 `commit`)를 적으면,
-검토자를 부르기 전에, 현재 checkout이 필수 베이스의 조상인지
+검토자를 부르기 전에, 필수 베이스가 `HEAD`의 조상인지
 `git merge-base --is-ancestor <required-base> HEAD`로 확인합니다. 베이스를
 해석할 수 없거나 `HEAD`의 조상이 아니면 불일치를 남기고 `BLOCKED`를 반환합니다.
 다른 checkout을 임의로 검토하거나 고치지 않습니다.
