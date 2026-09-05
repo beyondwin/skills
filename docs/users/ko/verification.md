@@ -24,7 +24,7 @@ python3 scripts/verify.py
 - pre-sdd-review-evidence
 - python-compile
 
-`windows-portable`는 Codex 전용 `image-contract`와 `image-inspector`를 뺍니다. 이식 가능한 `pre-sdd-review-contract`와 `pre-sdd-review-evidence`는 남깁니다. 라이브 `--execute`는 넣지 않습니다.
+`windows-portable`는 `image-contract`, `image-inspector`, `pre-sdd-review-evidence`를 뺍니다. 이식 가능한 `pre-sdd-review-contract`는 남깁니다. 라이브 `--execute`는 넣지 않습니다.
 
 ```bash
 python3 scripts/verify.py --profile full

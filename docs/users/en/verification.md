@@ -24,7 +24,7 @@ Stages run in this order. The first failing stage stops the command.
 - pre-sdd-review-evidence
 - python-compile
 
-`windows-portable` excludes the Codex-only `image-contract` and `image-inspector` stages. It keeps the portable `pre-sdd-review-contract` and `pre-sdd-review-evidence`. Live `--execute` is not included.
+`windows-portable` excludes `image-contract`, `image-inspector`, and `pre-sdd-review-evidence`. It keeps the portable `pre-sdd-review-contract`. Live `--execute` is not included.
 
 ```bash
 python3 scripts/verify.py --profile full

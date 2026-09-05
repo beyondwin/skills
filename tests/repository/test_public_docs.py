@@ -21,6 +21,7 @@ from scripts.lib.documentation import (  # noqa: E402
 )
 from scripts.lib.product_contract import validate_product  # noqa: E402
 from scripts.lib.product_registry import load_registry  # noqa: E402
+from scripts.lib.verification import WINDOWS_EXCLUDED_STAGES  # noqa: E402
 
 REGISTRY = load_registry(ROOT / "products.toml")
 
@@ -288,6 +289,47 @@ README_ORDER_KO = (
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+_WINDOWS_PORTABLE_STAGE_RE = re.compile(r"`([a-z0-9]+(?:-[a-z0-9]+)*)`")
+
+
+def _windows_portable_exclusion_sentence(text: str) -> str:
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith("`windows-portable`"):
+            continue
+        if "exclude" in stripped.lower() or "뺍니다" in stripped:
+            return stripped
+    raise AssertionError("missing windows-portable exclusion sentence")
+
+
+def _windows_portable_excluded_stages(sentence: str) -> frozenset[str]:
+    if "뺍니다" in sentence:
+        exclude_part, _, keep_part = sentence.partition("뺍니다")
+    else:
+        parts = re.split(r"(?i)\bkeeps?\b", sentence, maxsplit=1)
+        if "exclude" not in parts[0].lower():
+            raise AssertionError("windows-portable sentence does not exclude stages")
+        exclude_part = parts[0]
+        keep_part = parts[1] if len(parts) > 1 else ""
+    excluded = {
+        name
+        for name in _WINDOWS_PORTABLE_STAGE_RE.findall(exclude_part)
+        if name != "windows-portable"
+    }
+    kept = {
+        name
+        for name in _WINDOWS_PORTABLE_STAGE_RE.findall(keep_part)
+        if name != "windows-portable"
+    }
+    overlap = excluded & kept
+    if overlap:
+        raise AssertionError(
+            "windows-portable lists stages as both excluded and kept: "
+            + ", ".join(sorted(overlap))
+        )
+    return frozenset(excluded)
 
 
 def _assert_exists(test: unittest.TestCase, path: Path) -> None:
@@ -850,6 +892,18 @@ class UserGuideFactTests(unittest.TestCase):
             self.assertTrue(
                 "does not prove" in text.lower() or "증명하지 않습니다" in text,
                 f"{document.name} must not treat offline fixtures as live quality evidence",
+            )
+
+    def test_windows_portable_user_guides_match_orchestrator_exclusions(self) -> None:
+        for document in (
+            ROOT / "docs" / "users" / "ko" / "verification.md",
+            ROOT / "docs" / "users" / "en" / "verification.md",
+        ):
+            sentence = _windows_portable_exclusion_sentence(_read(document))
+            self.assertEqual(
+                _windows_portable_excluded_stages(sentence),
+                WINDOWS_EXCLUDED_STAGES,
+                document.name,
             )
 
     def test_pre_sdd_review_shared_guides_preserve_scope_and_evidence_limits(self) -> None:
