@@ -9,6 +9,10 @@ All notable changes to this product are documented in this file.
 - Independent product `release.toml` and this changelog. The next standalone
   target is `2.0.1`.
 
+### Changed
+
+- Product README language was simplified with no behaviour change.
+
 ### Notes
 
 - This section does not claim a new GitHub tag or GitHub Release.

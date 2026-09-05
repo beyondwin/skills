@@ -4,57 +4,74 @@
 
 ## Purpose
 
-It takes Korean text you already have and edits it. It fixes spelling, spacing, and awkward sentences, and it leaves meaning, the writer's voice, and values such as names, dates, and numbers unchanged.
+It edits Korean text you already have. It fixes spelling, spacing, and
+awkward sentences. Meaning and the writer's voice stay the same. Names,
+dates, and numbers stay the same.
 
 ## When to use and not use
 
 Use it when you already have Korean text and want that text edited.
 
-Do not use `korean-writing-editor` for translation, drafting, summarization, code review, casual conversation, authorship detection, or detector evasion.
+Do not use `korean-writing-editor` for translation, drafting, summarization,
+code review, casual conversation, authorship detection, or detector evasion.
 
 ## Supported hosts
 
 korean-writing-editor: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
 
-Codex is the measured host today. Shared support policy is in [Compatibility](../../docs/users/en/compatibility.md).
+Codex is the measured host today. Other hosts are in
+[Compatibility](../../docs/users/en/compatibility.md).
 
 ## Install
+
+In Codex, pass the public GitHub path to `$skill-installer`.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
 ```
 
-The installer stops if the destination already exists. It does not replace an existing install. Shared install, update, and uninstall steps are in [Installation](../../docs/users/en/installation.md).
+Shared install steps are in
+[Installation](../../docs/users/en/installation.md).
 
 ## First call
 
-After install, invoke explicitly on the next turn:
+After install, invoke it on the next turn:
 
 ```text
-$korean-writing-editor Proofread the supplied Korean source and keep meaning and voice.
+$korean-writing-editor Fix typos only: (Korean source)
 ```
 
 ## Expected result
 
-The default is `polish`: small readability edits that keep meaning and voice. `diagnose` names problems and does not rewrite. `correct` fixes spelling, spacing, and clear grammar only.
+The default is `polish`: small readability edits that keep meaning and
+voice. `diagnose` names problems and does not rewrite. `correct` fixes
+spelling, spacing, and clear grammar only.
 
 ## Safety and privacy
 
-This repository has no telemetry. The skill does not persist user text as fixtures, logs, or a voice profile. It does not send text to unofficial spelling services or browse for facts unless the user separately asks.
+The skill does not persist user text as fixtures, logs, or a voice profile.
+It does not send text to unofficial spelling services. It does not browse
+for facts unless the user separately asks.
 
-For high-stakes legal, medical, or financial material, default to mechanical `correct` or `diagnose`.
+For high-stakes legal, medical, or financial material, default to mechanical
+`correct` or `diagnose`.
 
-Details are in [Safety and privacy](../../docs/users/en/safety-and-privacy.md).
+Details are in
+[Safety and privacy](../../docs/users/en/safety-and-privacy.md).
 
 ## Verification
 
-Offline checks cover the contract only. They do not prove live editing quality. Evidence limits are in [Verification](../../docs/users/en/verification.md).
+Offline checks cover the contract only. They do not prove live editing
+quality. Evidence limits are in
+[Verification](../../docs/users/en/verification.md).
 
 ## Update and remove
 
-Inspect the exact install target before update. Confirm the path matches this skill name, whether it is a real directory, and that `SKILL.md` `name` and `metadata.version` are the expected values. Do not replace an existing install without that inspection.
+Inspect the install folder before update or remove. Shared steps are in
+[Installation](../../docs/users/en/installation.md).
 
-Check the current version in `SKILL.md` `metadata.version` and [CHANGELOG](CHANGELOG.md).
+Check the current version in `SKILL.md` `metadata.version` and
+[CHANGELOG](CHANGELOG.md).
 
 ## Changelog and maintainer docs
 

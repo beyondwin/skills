@@ -14,6 +14,7 @@ All notable changes to this product are documented in this file.
 
 - One-turn hosts emit the complete required deliverable in the current reply
   even if focused references cannot be read this turn.
+- Product README language was simplified with no behaviour change.
 
 ## 1.0.0 - 2026-08-28
 
