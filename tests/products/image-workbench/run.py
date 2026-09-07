@@ -134,6 +134,76 @@ class EvaluatorTests(unittest.TestCase):
             evaluate_candidate(case),
         )
 
+    def test_read_only_actions_are_rejected_when_both_sides_agree(self):
+        for mode, route, trigger in (
+            ("brief", "brief", True),
+            ("audit", "audit", True),
+            ("none", "no_op", False),
+        ):
+            for action in ("builtin_imagegen", "new_file", "replace_existing"):
+                with self.subTest(mode=mode, action=action):
+                    case = self.valid_case(
+                        candidate_mode=mode,
+                        expected_mode=mode,
+                        candidate_route=route,
+                        expected_route=route,
+                        candidate_trigger=trigger,
+                        expected_trigger=trigger,
+                        replacement_authorized=True,
+                    )
+                    if action == "builtin_imagegen":
+                        case.update(
+                            candidate_tool_action=action,
+                            expected_tool_action=action,
+                        )
+                    else:
+                        case.update(
+                            candidate_destination_action=action,
+                            expected_destination_action=action,
+                        )
+                    self.assertEqual(validate_case(case), [])
+                    self.assertTrue(evaluate_candidate(case))
+
+    def test_action_invariants_use_each_side_without_relying_on_pair_mismatch(self):
+        case = self.valid_case(
+            candidate_mode="generate",
+            expected_mode="generate",
+            candidate_route="no_op",
+            expected_route="no_op",
+            candidate_tool_action="builtin_imagegen",
+            expected_tool_action="builtin_imagegen",
+        )
+        self.assertEqual(validate_case(case), [])
+        self.assertTrue(evaluate_candidate(case))
+        case.update(
+            candidate_route="raster_generate",
+            expected_route="raster_generate",
+            candidate_trigger=False,
+            expected_trigger=False,
+        )
+        self.assertEqual(validate_case(case), [])
+        self.assertTrue(evaluate_candidate(case))
+
+    def test_existing_authorized_generation_edit_and_no_op_stay_valid(self):
+        cases = load_cases(pathlib.Path(__file__).with_name("cases.json"))
+        selected = {
+            "auth-generate-tool",
+            "auth-edit-target-tool",
+            "save-replacement-authorized",
+            "auth-brief-no-tool",
+            "auth-audit-no-tool",
+            "near-miss-legacy-kws-invocation",
+            "near-miss-svg",
+            "save-preview-only",
+            "auth-edit-missing-target-hold",
+        }
+        self.assertEqual({str(case["id"]) for case in cases} & selected, selected)
+        for case in cases:
+            if case["id"] in selected:
+                with self.subTest(case_id=case["id"]):
+                    self.assertEqual(validate_case(case), [])
+                    self.assertEqual(evaluate_candidate(case), [])
+
     def test_executable_edit_requires_exactly_one_edit_target_on_both_sides(self):
         case = self.valid_case(
             id="edit-target-required",
@@ -990,9 +1060,32 @@ def _missing_counter_values(
     ]
 
 
-def evaluate_candidate(case: dict[str, object]) -> list[str]:
+def _action_invariant_errors(case: dict[str, object]) -> list[str]:
     case_id = str(case.get("id", "<unknown>"))
     errors: list[str] = []
+    for side in ("candidate", "expected"):
+        read_only = (
+            case.get(f"{side}_mode") in {"brief", "audit", "none"}
+            or case.get(f"{side}_route") in {"brief", "audit", "no_op"}
+            or case.get(f"{side}_trigger") is False
+        )
+        if not read_only:
+            continue
+        if case.get(f"{side}_tool_action") == "builtin_imagegen":
+            errors.append(f"{case_id}: {side} read-only action cannot generate")
+        if case.get(f"{side}_destination_action") in {
+            "new_file",
+            "replace_existing",
+        }:
+            errors.append(
+                f"{case_id}: {side} read-only action cannot write an asset"
+            )
+    return errors
+
+
+def evaluate_candidate(case: dict[str, object]) -> list[str]:
+    case_id = str(case.get("id", "<unknown>"))
+    errors = _action_invariant_errors(case)
 
     for candidate_field, expected_field, label in PAIR_FIELDS:
         candidate = case.get(candidate_field)
@@ -1494,6 +1587,25 @@ def run_mutation_checks(cases: list[dict[str, object]]) -> list[str]:
         identity_case["candidate_invariants"] = []
         if not validate_case(identity_case) + evaluate_candidate(identity_case):
             errors.append("mutation: spec-identity-invariant removal was accepted")
+
+    for case_id in (
+        "auth-brief-no-tool",
+        "auth-audit-no-tool",
+        "near-miss-legacy-kws-invocation",
+    ):
+        for action in ("builtin_imagegen", "new_file", "replace_existing"):
+            mutated, lookup_errors = _reference_case(cases_by_id, case_id)
+            errors.extend(lookup_errors)
+            if mutated is None:
+                continue
+            mutated["replacement_authorized"] = True
+            field = (
+                "tool_action" if action == "builtin_imagegen" else "destination_action"
+            )
+            for side in ("candidate", "expected"):
+                mutated[f"{side}_{field}"] = action
+            if not validate_case(mutated) + evaluate_candidate(mutated):
+                errors.append(f"mutation: {case_id} co-mutated {field} was accepted")
     return errors
 
 
@@ -1567,7 +1679,7 @@ def main(argv: list[str] | None = None) -> int:
         f"handoff={counts['handoff']} "
         f"trust={counts['trust']}"
     )
-    print("8 mutation checks: PASS")
+    print("17 mutation checks: PASS")
     if args.scope in {"core", "full"}:
         print(f"skill tree ({args.scope}): PASS")
     print("offline contract only: reference decisions do not prove live image quality")

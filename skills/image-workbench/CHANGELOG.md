@@ -20,6 +20,9 @@ has been published for this version.
 - JPEG inspection rejects malformed first-scan headers and invalid component
   selectors. WebP inspection rejects reserved VP8 versions and nonzero VP8L
   versions while preserving existing alpha reporting.
+- Offline evaluation now rejects generation and asset writes in brief,
+  audit, and no-op decisions even when candidate and expected values agree
+  on the prohibited action.
 
 ### Added
 

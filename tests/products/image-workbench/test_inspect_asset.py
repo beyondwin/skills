@@ -184,6 +184,43 @@ class AssetInspectorTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "JPEG scan"):
             parse_jpeg(data[:-2])
 
+    def test_jpeg_sof_requires_exact_component_record_length(self):
+        valid = make_jpeg(1, 1)
+        sof = valid.index(b"\xff\xc0")
+        segment_length = struct.unpack(">H", valid[sof + 2:sof + 4])[0]
+        segment_end = sof + 2 + segment_length
+        extra_component_byte = (
+            valid[:sof + 2]
+            + struct.pack(">H", segment_length + 1)
+            + valid[sof + 4:segment_end]
+            + b"\0"
+            + valid[segment_end:]
+        )
+        self.assertEqual(parse_jpeg(valid), (1, 1, False))
+        with self.assertRaises(ValueError):
+            parse_jpeg(extra_component_byte)
+
+    def test_jpeg_sof_rejects_duplicate_component_identifiers(self):
+        valid = bytearray(make_jpeg(1, 1))
+        sof = bytes(valid).index(b"\xff\xc0")
+        valid[sof + 13] = valid[sof + 10]
+        sos = bytes(valid).index(b"\xff\xda")
+        sos_length = struct.unpack(">H", valid[sos + 2:sos + 4])[0]
+        sos_payload = bytes(valid[sos + 4:sos + 2 + sos_length])
+        two_component_scan = (
+            b"\x02" + sos_payload[1:3] + sos_payload[5:7] + sos_payload[-3:]
+        )
+        duplicate_identifier = (
+            bytes(valid[:sos])
+            + b"\xff\xda"
+            + struct.pack(">H", len(two_component_scan) + 2)
+            + two_component_scan
+            + bytes(valid[sos + 2 + sos_length:])
+        )
+        self.assertEqual(parse_jpeg(make_jpeg(1, 1)), (1, 1, False))
+        with self.assertRaises(ValueError):
+            parse_jpeg(duplicate_identifier)
+
     def test_jpeg_sos_requires_matching_component_structure(self):
         valid = make_jpeg(1, 1)
         sos = valid.index(b"\xff\xda")

@@ -30,6 +30,10 @@ Choose one mode before acting: `brief`, `generate`, `edit`, or `audit`.
 `brief`, `audit`, comparison, and diagnosis are read-only; they never authorize
 generation. Only a clear `generate` or `edit` request authorizes an image call.
 
+Read-only modes and no-op routes do not generate, create, or replace image
+assets. A replacement authorization does not change a brief, audit, or no-op
+into an edit request.
+
 ## Route The Deliverable
 
 Route SVG, vector marks, icons, native UI, data visuals, and exact layouts to
