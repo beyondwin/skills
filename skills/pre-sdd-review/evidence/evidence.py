@@ -9,6 +9,7 @@ import hmac
 import json
 import os
 import re
+import stat
 import statistics
 import subprocess
 import sys
@@ -55,6 +56,12 @@ FINISH_KEYS = frozenset(
         "findings",
     }
 )
+RECORD_KEYS_V2 = {
+    "schema", "run_id", "status", "started_at", "completed_at", "elapsed_s",
+    "skill", "client", "repo", "mode", "plan", "design", "git", "execution",
+    "reviewers", "trigger", "degraded_reasons", "review_passes", "repair_passes",
+    "verdict", "block_reason", "abandon_reason", "findings", "outcome",
+}
 FINDING_KEYS = frozenset(
     {
         "id",
@@ -124,10 +131,30 @@ def read_stdin(stream: TextIO, limit: int) -> object:
 
 def parse_json(data: bytes, name: str) -> object:
     try:
-        return json.loads(data.decode("utf-8"))
-    except (UnicodeDecodeError, ValueError):
-        fail("schema-invalid", f"{name} is not valid UTF-8 JSON")
-    return None
+        value = json.loads(
+            data.decode("utf-8"),
+            parse_constant=lambda token: fail("schema-invalid", "non-finite JSON numbers are not allowed"),
+        )
+    except (UnicodeDecodeError, ValueError, RecursionError):
+        fail("schema-invalid", f"{name} is not valid bounded UTF-8 JSON")
+    # Python 3.14's decoder can accept nesting beyond Python's recursion limit.
+    # Bound it explicitly without recursively walking attacker-controlled input.
+    pending = [(value, 0)]
+    while pending:
+        item, depth = pending.pop()
+        if isinstance(item, str):
+            try:
+                item.encode("utf-8")
+            except UnicodeEncodeError:
+                fail("schema-invalid", f"{name} contains an unpaired Unicode surrogate")
+        elif isinstance(item, (dict, list)):
+            if depth >= 1000:
+                fail("schema-invalid", f"{name} is not valid bounded UTF-8 JSON")
+            children = item.values() if isinstance(item, dict) else item
+            pending.extend((child, depth + 1) for child in children)
+            if isinstance(item, dict):
+                pending.extend((key, depth + 1) for key in item)
+    return value
 
 
 def sha256(data: bytes) -> str:
@@ -196,13 +223,15 @@ def write_record(path: Path, record: dict[str, object]) -> None:
 
 
 def _read_record(path: Path) -> tuple[bytes, dict[str, object]]:
-    if not path.is_file():
+    try:
+        if not stat.S_ISREG(path.stat().st_mode):
+            fail("run-not-found", "run was not found")
+        data = read_bounded_bytes(path, RECORD_LIMIT)
+    except FileNotFoundError:
         fail("run-not-found", "run was not found")
-    data = read_bounded_bytes(path, RECORD_LIMIT)
-    record = parse_json(data, "record")
-    schema = record.get("schema") if isinstance(record, dict) else None
-    if not isinstance(record, dict) or type(schema) is not int or schema not in (2, 3):
-        fail("schema-invalid", "record is not a supported schema 2 or 3 record")
+    except OSError as exc:
+        raise EvidenceError("evidence-home-unwritable", "evidence storage is unavailable") from exc
+    record = validate_record(parse_json(data, "record"), path.stem)
     return data, record
 
 
@@ -210,21 +239,25 @@ def load_record(home: Path, run_id: str) -> dict[str, object]:
     return _read_record(run_path(home, run_id))[1]
 
 
-def iter_records(home: Path) -> list[dict[str, object]]:
+def scan_records(home: Path) -> tuple[list[dict[str, object]], int]:
     runs = home / "runs"
     if not runs.is_dir():
-        return []
+        return [], 0
     records: list[dict[str, object]] = []
-    for path in runs.glob("*.json"):
-        if not path.is_file():
-            continue
+    invalid = 0
+    for path in sorted(runs.glob("*.json")):
         try:
-            record = parse_json(read_bounded_bytes(path, RECORD_LIMIT), path.name)
-        except EvidenceError:
-            continue
-        if isinstance(record, dict) and record.get("schema") == SCHEMA and isinstance(record.get("started_at"), str):
-            records.append(record)
-    return sorted(records, key=lambda item: (str(item["started_at"]), str(item["run_id"])))
+            if not stat.S_ISREG(path.stat().st_mode):
+                continue
+            records.append(_read_record(path)[1])
+        except (EvidenceError, OSError):
+            invalid += 1
+    records.sort(key=lambda item: (str(item["started_at"]), str(item["run_id"])))
+    return records, invalid
+
+
+def iter_records(home: Path) -> list[dict[str, object]]:
+    return scan_records(home)[0]
 
 
 def git(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
@@ -437,7 +470,7 @@ def validate_finding(item: object, repair_passes: int) -> dict[str, object]:
     return normalized
 
 
-def validate_finish(payload: object, mode: str) -> dict[str, object]:
+def validate_finish_shape(payload: object) -> dict[str, object]:
     if not isinstance(payload, dict) or set(payload) != FINISH_KEYS:
         fail("schema-invalid", "finish input must contain exactly the finish keys")
     execution = _enum(payload["execution"], "execution", EXECUTIONS)
@@ -452,10 +485,35 @@ def validate_finish(payload: object, mode: str) -> dict[str, object]:
     repair_passes = _integer(payload["repair_passes"], "repair_passes", 0, 2)
     if not isinstance(payload["findings"], list):
         fail("schema-invalid", "findings must be a list")
-    findings = [validate_finding(item, repair_passes) for item in payload["findings"]]
+    findings = [validate_finding(item, 2) for item in payload["findings"]]
     identifiers = [str(item["id"]) for item in findings]
     if len(set(identifiers)) != len(identifiers):
         fail("schema-invalid", "finding ids must be unique")
+    return {
+        "execution": execution,
+        "reviewers": reviewers,
+        "trigger": trigger,
+        "degraded_reasons": reasons,
+        "verdict": verdict,
+        "block_reason": block_reason,
+        "review_passes": review_passes,
+        "repair_passes": repair_passes,
+        "findings": findings,
+    }
+
+
+def validate_finish(payload: object, mode: str) -> dict[str, object]:
+    normalized = validate_finish_shape(payload)
+    findings = normalized["findings"]
+    repair_passes = normalized["repair_passes"]
+    if any(item["repair_pass"] is not None and item["repair_pass"] > repair_passes for item in findings):
+        fail("schema-invalid", "finding.repair_pass exceeds repair_passes")
+    verdict = normalized["verdict"]
+    block_reason = normalized["block_reason"]
+    execution = normalized["execution"]
+    reviewers = normalized["reviewers"]
+    trigger = normalized["trigger"]
+    reasons = normalized["degraded_reasons"]
     statuses = [str(item["status"]) for item in findings]
     if verdict == "READY" and any(status != "repaired" for status in statuses):
         fail("schema-invalid", "READY permits only repaired findings")
@@ -471,17 +529,119 @@ def validate_finish(payload: object, mode: str) -> dict[str, object]:
         fail("schema-invalid", "full execution requires one reviewer, or two with a trigger, and no degraded reasons")
     if execution == "degraded" and not reasons:
         fail("schema-invalid", "degraded execution requires degraded_reasons")
-    return {
-        "execution": execution,
-        "reviewers": reviewers,
-        "trigger": trigger,
-        "degraded_reasons": reasons,
-        "verdict": verdict,
-        "block_reason": block_reason,
-        "review_passes": review_passes,
-        "repair_passes": repair_passes,
-        "findings": findings,
-    }
+    return normalized
+
+
+def _object(value: object, name: str, keys: set[str]) -> dict[str, object]:
+    if not isinstance(value, dict) or set(value) != keys:
+        fail("schema-invalid", f"{name} must contain exactly its declared fields")
+    return value
+
+
+def _timestamp(value: object, name: str) -> str:
+    if not isinstance(value, str) or not re.fullmatch(
+        r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z", value
+    ):
+        fail("schema-invalid", f"{name} must be a canonical UTC timestamp")
+    try:
+        dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        fail("schema-invalid", f"{name} is not a valid date")
+    return value
+
+
+def _digest(value: object, name: str) -> str:
+    if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value):
+        fail("schema-invalid", f"{name} must be a lowercase SHA-256 value")
+    return value
+
+
+def _boolean(value: object, name: str) -> bool:
+    if type(value) is not bool:
+        fail("schema-invalid", f"{name} must be a boolean")
+    return value
+
+
+def validate_record(record: object, expected_run_id: str) -> dict[str, object]:
+    if not isinstance(record, dict) or type(record.get("schema")) is not int:
+        fail("schema-invalid", "record schema must be an integer")
+    schema = record["schema"]
+    if schema not in (2, 3):
+        fail("schema-invalid", "record must use schema 2 or 3")
+    value = _object(record, "record", RECORD_KEYS_V2 | ({"repo_key"} if schema == 3 else set()))
+    if not isinstance(value["run_id"], str):
+        fail("schema-invalid", "record run_id must be a string")
+    try:
+        validate_run_id(expected_run_id)
+        validate_run_id(value["run_id"])
+    except EvidenceError:
+        fail("schema-invalid", "record filename and run_id must be canonical UUIDs")
+    if value["run_id"] != expected_run_id:
+        fail("schema-invalid", "record run_id does not match its filename")
+    repo = _string(value["repo"], "repo", 255)
+    if repo in (".", "..") or "/" in repo or "\\" in repo:
+        fail("schema-invalid", "repo must be a display basename")
+    if schema == 3:
+        _digest(value["repo_key"], "repo_key")
+    _enum(value["mode"], "mode", MODES)
+    status = _enum(value["status"], "status", ("pending", "completed", "abandoned"))
+    started = _timestamp(value["started_at"], "started_at")
+    if status == "pending":
+        if value["completed_at"] is not None or value["elapsed_s"] is not None:
+            fail("schema-invalid", "pending records cannot have terminal timestamps")
+    else:
+        ended = _timestamp(value["completed_at"], "completed_at")
+        _integer(value["elapsed_s"], "elapsed_s", 0, 2**63 - 1)
+        if ended < started:
+            fail("schema-invalid", "completed_at precedes started_at")
+    skill = _object(value["skill"], "skill", {"version", "sha256"})
+    _string(skill["version"], "skill.version", 100)
+    _digest(skill["sha256"], "skill.sha256")
+    client = _object(value["client"], "client", {"id", "model"})
+    _enum(client["id"], "client.id", CLIENTS)
+    _string(client["model"], "client.model", 100)
+    for name in ("plan", "design"):
+        if name == "design" and value[name] is None:
+            continue
+        document = _object(value[name], name, {"path", "sha_start", "sha_end"})
+        _relative(document["path"], name + ".path")
+        _digest(document["sha_start"], name + ".sha_start")
+        if status == "completed":
+            _digest(document["sha_end"], name + ".sha_end")
+        elif document["sha_end"] is not None:
+            fail("schema-invalid", "unfinished documents cannot have end hashes")
+    git_facts = _object(value["git"], "git", {"head_start", "head_end", "dirty_start", "dirty_end"})
+    for suffix in ("start", "end"):
+        head, dirty = git_facts["head_" + suffix], git_facts["dirty_" + suffix]
+        if suffix == "end" and status != "completed":
+            if head is not None or dirty is not None:
+                fail("schema-invalid", "unfinished review cannot have end Git facts")
+        else:
+            if not isinstance(head, str) or not re.fullmatch(r"unborn|[0-9a-f]{40}|[0-9a-f]{64}", head):
+                fail("schema-invalid", "Git head must be unborn or a commit hash")
+            _boolean(dirty, "git.dirty_" + suffix)
+    if status == "completed":
+        validate_finish_shape({key: value[key] for key in FINISH_KEYS})
+        if value["abandon_reason"] is not None:
+            fail("schema-invalid", "completed records cannot have abandon_reason")
+    else:
+        null_fields = FINISH_KEYS - {"degraded_reasons", "findings"}
+        if any(value[key] is not None for key in null_fields):
+            fail("schema-invalid", "unfinished review cannot contain semantic completion fields")
+        if value["degraded_reasons"] != [] or value["findings"] != []:
+            fail("schema-invalid", "unfinished review must have empty observation lists")
+        if status == "abandoned":
+            _enum(value["abandon_reason"], "abandon_reason", ABANDON_REASONS)
+        elif value["abandon_reason"] is not None:
+            fail("schema-invalid", "pending records cannot have abandon_reason")
+    if value["outcome"] is not None:
+        if status != "completed":
+            fail("schema-invalid", "outcome requires a completed record")
+        outcome = _object(value["outcome"], "outcome", {"label", "note", "recorded_at"})
+        _enum(outcome["label"], "outcome.label", OUTCOME_LABELS)
+        _string(outcome["note"], "outcome.note", 300, nullable=True)
+        _timestamp(outcome["recorded_at"], "outcome.recorded_at")
+    return value
 
 
 def cmd_start(args: argparse.Namespace, home: Path, cwd: Path) -> dict[str, object]:
@@ -729,12 +889,14 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
 def cmd_summary(args: argparse.Namespace, home: Path) -> dict[str, object]:
     if args.last is not None and args.last < 1:
         fail("invalid-arguments", "--last must be a positive integer")
-    records = iter_records(home)
+    records, invalid = scan_records(home)
     if args.repo is not None:
         records = [record for record in records if record["repo"] == args.repo]
     if args.last is not None:
         records = records[-args.last :]
-    return summarize(records)
+    result = summarize(records)
+    result["invalid_records"] = invalid
+    return result
 
 
 class _Parser(argparse.ArgumentParser):

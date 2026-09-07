@@ -377,8 +377,9 @@ class SummaryTests(unittest.TestCase):
 
     def test_summary_on_empty_home_has_exact_keys(self) -> None:
         summary = self._summary()
-        self.assertEqual(set(summary), {"schema", "runs", "counts", "cost", "chains", "findings", "anomalies"})
+        self.assertEqual(set(summary), {"schema", "runs", "counts", "cost", "chains", "findings", "anomalies", "invalid_records"})
         self.assertEqual(summary["runs"], [])
+        self.assertEqual(summary["invalid_records"], 0)
         self.assertEqual(summary["counts"]["status"], {"completed": 0, "abandoned": 0, "pending": 0})
         self.assertEqual(summary["counts"]["verdict"], {"READY": 0, "REVISE": 0, "BLOCKED": 0})
         self.assertEqual(summary["counts"]["outcome"], {"recorded": 0, "good": 0, "false-ready": 0, "noisy": 0, "abandoned": 0})
@@ -414,6 +415,7 @@ class SummaryTests(unittest.TestCase):
         (self.home / "runs" / "old.json").write_text('{"schema":1,"run_id":"x"}\n', encoding="utf-8")
 
         summary = self._summary()
+        self.assertEqual(summary["invalid_records"], 2)
         self.assertEqual([item["run_id"] for item in summary["runs"]], [first, second, abandoned, pending, unresolved_design])
         self.assertEqual(set(summary["runs"][0]), {"run_id", "started_at", "repo", "plan", "status", "verdict", "findings", "elapsed_s"})
         self.assertEqual(summary["counts"]["status"], {"completed": 3, "abandoned": 1, "pending": 1})
