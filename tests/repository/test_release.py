@@ -357,6 +357,52 @@ class ProductDownloadTests(unittest.TestCase):
             errors,
         )
 
+    def test_recomputed_checksum_cannot_replace_trusted_payload(self) -> None:
+        mutations = (
+            ("how-it-works", "references/output.md"),
+            ("korean-writing-editor", "references/editorial-guide.md"),
+            ("image-workbench", "scripts/inspect_asset.py"),
+            ("pre-sdd-review", "evidence/evidence.py"),
+        )
+        for name, relative in mutations:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as tmp:
+                output = Path(tmp)
+                archive, _ = release.build_product(
+                    ROOT,
+                    name,
+                    output,
+                    require_release_entry=False,
+                )
+                member = f"{name}/{relative}"
+                suffix = (
+                    b"\n# download mutation\n"
+                    if relative.endswith(".py")
+                    else b"\n<!-- download mutation -->\n"
+                )
+                changed = []
+
+                def rewrite(items):
+                    for info, data in items:
+                        if info.filename == member:
+                            data += suffix
+                            changed.append(info.filename)
+                        yield info, data
+
+                self._rewrite_zip(archive, rewrite)
+                self.assertEqual(changed, [member])
+                write_checksums((archive,), output / "SHA256SUMS")
+                with mock.patch.object(
+                    release,
+                    "_run_product_smoke",
+                    return_value=[],
+                ) as smoke:
+                    errors = release.verify_product_download(ROOT, name, output)
+                self.assertIn(
+                    f"{name}: extracted payload does not match current source payload",
+                    errors,
+                )
+                smoke.assert_not_called()
+
     def test_verify_product_download_rejects_executable_pre_sdd_reviewer_protocol(self) -> None:
         release.build_product(
             ROOT,
