@@ -254,6 +254,64 @@ class AssetInspectorTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "invalid PNG image data"):
             parse_png(make_png_with_idat_chunks(1, 1, 6, (compressed, b"\0")))
 
+    def test_png_rejects_corrupt_ihdr_crc(self):
+        data = bytearray(make_png(1, 1, color_type=6))
+        data[29] ^= 1
+        with self.assertRaises(ValueError):
+            parse_png(bytes(data))
+
+    def test_png_scanline_filter_bounds_across_idat_chunks(self):
+        for filter_value in (0, 1, 2, 3, 4, 5, 255):
+            with self.subTest(filter_value=filter_value):
+                raw = b"\0\xff\xff\xff\xff" + bytes([filter_value]) + b"\xff" * 4
+                compressed = zlib.compress(raw)
+                data = make_png_with_idat_chunks(1, 2, 6, tuple(bytes([value]) for value in compressed))
+                if filter_value <= 4:
+                    self.assertEqual(parse_png(data), (1, 2, True))
+                else:
+                    with self.assertRaises(ValueError):
+                        parse_png(data)
+
+    def test_png_adam7_filter_positions_and_empty_passes(self):
+        # 3x3 RGB8 Adam7 has six non-empty rows, including the filter byte.
+        # Explicit independent fixture geometry: 4, 4, 7, 4, 4, 10 bytes.
+        rows = [bytes([index % 5]) + b"\xff" * (size - 1)
+                for index, size in enumerate((4, 4, 7, 4, 4, 10))]
+        for broken in (False, True):
+            with self.subTest(broken=broken):
+                raw = bytearray(b"".join(rows))
+                if broken:
+                    raw[23] = 5  # Last pass filter, not an image sample.
+                data = bytearray(make_png_with_idat(3, 3, 2, zlib.compress(raw)))
+                data[28] = 1
+                data[29:33] = struct.pack(">I", zlib.crc32(data[12:29]) & 0xFFFFFFFF)
+                if broken:
+                    with self.assertRaises(ValueError):
+                        parse_png(bytes(data))
+                else:
+                    self.assertEqual(parse_png(bytes(data)), (3, 3, False))
+
+    def test_indexed_png_requires_palette_without_trns(self):
+        with self.assertRaises(ValueError):
+            parse_png(make_png(1, 1, color_type=3))
+        palette = b"\0\0\0\xff\xff\xff"
+        self.assertEqual(
+            parse_png(make_png(1, 1, color_type=3, before_trns=[(b"PLTE", palette)])),
+            (1, 1, False),
+        )
+
+    def test_indexed_png_palette_size_respects_bit_depth(self):
+        for entry_count in (2, 3):
+            with self.subTest(entry_count=entry_count):
+                data = bytearray(make_png(1, 1, 3, before_trns=[(b"PLTE", b"\0\0\0" * entry_count)]))
+                data[24] = 1
+                data[29:33] = struct.pack(">I", zlib.crc32(data[12:29]) & 0xFFFFFFFF)
+                if entry_count == 2:
+                    self.assertEqual(parse_png(bytes(data)), (1, 1, False))
+                else:
+                    with self.assertRaises(ValueError):
+                        parse_png(bytes(data))
+
     def test_truncated_or_malformed_jpeg_is_rejected(self):
         with self.assertRaises(ValueError):
             parse_jpeg(b"\xff\xd8\xff\xc0\x00")

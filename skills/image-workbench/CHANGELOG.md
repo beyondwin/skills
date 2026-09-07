@@ -14,6 +14,9 @@ has been published for this version.
 - The inspector rejects output paths that alias the input asset, including
   symlinks and hard links, before writing. Existing unrelated JSON reports
   can still be updated.
+- PNG inspection now checks the IHDR CRC, scanline filter range across
+  non-interlaced and Adam7 rows, and required indexed palette structure.
+  Existing bounded decompression and file-fact reporting remain in place.
 
 ### Added
 

@@ -2,6 +2,7 @@
 """Inspect basic facts from local PNG, JPEG, and WebP image assets."""
 
 import argparse
+from collections.abc import Iterable, Iterator
 import dataclasses
 import hashlib
 import json
@@ -63,9 +64,30 @@ def _png_decoded_byte_count(width, height, bit_depth, color_type, interlace):
     return total
 
 
-def _decode_png_idat(image_data, expected_size):
+def _png_scanline_sizes(
+    width: int, height: int, bit_depth: int, color_type: int, interlace: int
+) -> Iterator[int]:
+    if interlace == 0:
+        row_size = 1 + _png_row_bytes(width, bit_depth, color_type)
+        for _ in range(height):
+            yield row_size
+        return
+    for start_x, start_y, step_x, step_y in ADAM7_PASSES:
+        pass_width = max(0, (width - start_x + step_x - 1) // step_x)
+        pass_height = max(0, (height - start_y + step_y - 1) // step_y)
+        if pass_width and pass_height:
+            row_size = 1 + _png_row_bytes(pass_width, bit_depth, color_type)
+            for _ in range(pass_height):
+                yield row_size
+
+
+def _decode_png_idat(
+    image_data: list[bytes], expected_size: int, scanline_sizes: Iterable[int]
+) -> None:
     decompressor = zlib.decompressobj()
     decoded_size = 0
+    sizes = iter(scanline_sizes)
+    row_remaining = 0
     for chunk in image_data:
         if decompressor.eof:
             if chunk:
@@ -80,9 +102,20 @@ def _decode_png_idat(image_data, expected_size):
             raise ValueError("PNG image data size mismatch")
         if decompressor.unused_data:
             raise ValueError("invalid PNG image data")
+        cursor = 0
+        while cursor < len(decoded):
+            if row_remaining == 0:
+                row_remaining = next(sizes, 0)
+                if not row_remaining:
+                    raise ValueError("PNG image data size mismatch")
+                if decoded[cursor] > 4:
+                    raise ValueError("invalid PNG scanline filter")
+            consumed = min(row_remaining, len(decoded) - cursor)
+            cursor += consumed
+            row_remaining -= consumed
     if not decompressor.eof:
         raise ValueError("invalid PNG image data")
-    if decoded_size != expected_size:
+    if decoded_size != expected_size or row_remaining or next(sizes, None) is not None:
         raise ValueError("PNG image data size mismatch")
 
 
@@ -98,6 +131,11 @@ def parse_png(data):
     chunk_end = 16 + length
     if chunk_end + 4 > len(data):
         raise ValueError("truncated PNG IHDR")
+
+    actual_ihdr_crc = struct.unpack(">I", data[29:33])[0]
+    expected_ihdr_crc = zlib.crc32(data[12:29]) & 0xFFFFFFFF
+    if actual_ihdr_crc != expected_ihdr_crc:
+        raise ValueError("invalid PNG IHDR CRC")
 
     width, height, bit_depth, color_type, compression, filtering, interlace = struct.unpack(
         ">IIBBBBB", data[16:29]
@@ -145,6 +183,8 @@ def parse_png(data):
             if seen_image_data or seen_trns or palette_entries is not None or chunk_length == 0 or chunk_length > 768 or chunk_length % 3:
                 raise ValueError("invalid PNG PLTE chunk")
             palette_entries = chunk_length // 3
+            if palette_entries > 1 << bit_depth:
+                raise ValueError("PNG palette exceeds bit depth")
         elif chunk_type == b"tRNS":
             valid_trns = (
                 (color_type == 0 and chunk_length == 2)
@@ -165,7 +205,13 @@ def parse_png(data):
         offset = payload_end + 4
     if not seen_iend:
         raise ValueError("missing PNG IEND")
-    _decode_png_idat(image_data, expected_decoded_size)
+    if color_type == 3 and palette_entries is None:
+        raise ValueError("missing PNG PLTE")
+    _decode_png_idat(
+        image_data,
+        expected_decoded_size,
+        _png_scanline_sizes(width, height, bit_depth, color_type, interlace),
+    )
     return width, height, alpha
 
 
