@@ -156,7 +156,7 @@ class Runner18BoundaryTests(unittest.TestCase):
 - [ ] **Step 2: Run RED.**
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 tests/products/korean-writing-editor/live/test_live_matrix.py Runner18BoundaryTests -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v tests.products.korean-writing-editor.live.test_live_matrix.Runner18BoundaryTests
 ```
 
 Expected: current identity is `17`; empty old-identity plan returns normally instead of rejecting. The old-reader test is a compatibility control and may already pass. Preserve these distinct observations in the task evidence.
@@ -181,7 +181,7 @@ In `validate_dispatch_identity`, current executions always require the existing 
 - [ ] **Step 4: Document and run GREEN.** State that runner 18 evidence covers this hardening series, while 10–17 receipt statuses retain their original meaning. Replace the README's current-run reference to runner 17 with 18 without rewriting its historical runner-10 discussion. Run:
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 tests/products/korean-writing-editor/live/test_live_matrix.py Runner18BoundaryTests ReceiptAndBudgetTests LiveMatrixLifecycleTests -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v tests.products.korean-writing-editor.live.test_live_matrix.Runner18BoundaryTests tests.products.korean-writing-editor.live.test_live_matrix.ReceiptAndBudgetTests tests.products.korean-writing-editor.live.test_live_matrix.LiveMatrixLifecycleTests
 ```
 
 Expected: all selected provider-free tests pass; no provider process is launched. Legacy reading is still covered, and attempted new execution with legacy identity fails before side effects.
@@ -237,7 +237,7 @@ def test_known_literal_loss_is_failed_even_with_unmeasured_semantics(self):
 - [ ] **Step 2: Run RED.**
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 tests/products/korean-writing-editor/live/test_live_matrix.py DeterministicEvaluationTests.test_swapped_attribution_is_not_verified DeterministicEvaluationTests.test_reversed_polish_meaning_is_not_verified DeterministicEvaluationTests.test_uncorrected_flow_does_not_prove_naturalness -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v tests.products.korean-writing-editor.live.test_live_matrix.DeterministicEvaluationTests.test_swapped_attribution_is_not_verified tests.products.korean-writing-editor.live.test_live_matrix.DeterministicEvaluationTests.test_reversed_polish_meaning_is_not_verified tests.products.korean-writing-editor.live.test_live_matrix.DeterministicEvaluationTests.test_uncorrected_flow_does_not_prove_naturalness
 ```
 
 Expected: all three currently return `verified` with no findings. These are oracle failures, not claims about actual model output.
@@ -300,7 +300,7 @@ def test_new_semantic_signals_survive_receipt_and_review_packet(self):
 - [ ] **Step 4: Run GREEN and document truthful state definitions.**
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 tests/products/korean-writing-editor/live/test_live_matrix.py DeterministicEvaluationTests ReviewAndReportTests -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v tests.products.korean-writing-editor.live.test_live_matrix.DeterministicEvaluationTests tests.products.korean-writing-editor.live.test_live_matrix.ReviewAndReportTests
 ```
 
 Expected: semantic and attribution mutations are `partially_verified`, definite literal violations remain `failed`, and declared positive correction remains `verified`. Document the new soft codes and unchanged-source preservation boundary. If an existing exact-body test targeted a changed arbitrary prose candidate, revise its expected certainty with a reference to spec K1; do not delete the negative assertion.
@@ -347,7 +347,7 @@ def test_diagnose_quoted_numeric_example_remains_unmeasured(self):
 - [ ] **Step 2: Run RED.**
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 tests/products/korean-writing-editor/live/test_live_matrix.py DeterministicEvaluationTests.test_diagnose_may_omit_unrelated_source_facts DeterministicEvaluationTests.test_diagnose_ambiguous_alternative_number_is_not_hard_drift DeterministicEvaluationTests.test_diagnose_quoted_numeric_example_remains_unmeasured -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v tests.products.korean-writing-editor.live.test_live_matrix.DeterministicEvaluationTests.test_diagnose_may_omit_unrelated_source_facts tests.products.korean-writing-editor.live.test_live_matrix.DeterministicEvaluationTests.test_diagnose_ambiguous_alternative_number_is_not_hard_drift tests.products.korean-writing-editor.live.test_live_matrix.DeterministicEvaluationTests.test_diagnose_quoted_numeric_example_remains_unmeasured
 ```
 
 Expected: omission, alternative explanation, and quoted example currently contain hard `diagnostic_fact_drift` findings. The positive numeric restatement is a hard-failure control.
@@ -387,7 +387,7 @@ Update `test_diagnose_rejects_obvious_protected_literal_deletion` to assert soft
 - [ ] **Step 4: Run GREEN and document scope.**
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 tests/products/korean-writing-editor/live/test_live_matrix.py DeterministicEvaluationTests -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v tests.products.korean-writing-editor.live.test_live_matrix.DeterministicEvaluationTests
 ```
 
 Expected: omission, ambiguous numbers, and quoted examples are partial; positively changed source restatement fails. Original `diagnose-no-rewrite` exact forbidden rewrite and existing spacing tests still enforce their declared output boundaries. No general legal or semantic validity is claimed.
@@ -479,7 +479,7 @@ class ExecutionObservationTests(unittest.TestCase):
 - [ ] **Step 2: Run RED.**
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 tests/products/korean-writing-editor/live/test_live_matrix.py ExecutionObservationTests -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v tests.products.korean-writing-editor.live.test_live_matrix.ExecutionObservationTests
 ```
 
 Expected: missing `normalize_codex_transport`, `ExecutionEvidence`, and related interfaces. Record the earlier executable defect separately by passing synthetic command-execution + good final-body JSONL through existing `extract_codex_response` and `evaluate_response`: it yields `verified`. Tests must never call the command included in the payload.
@@ -633,7 +633,7 @@ def test_execution_finding_survives_durable_dispatch_reload(self):
 - [ ] **Step 5: Run GREEN across adapters, evaluation, and durable dispatch.**
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 tests/products/korean-writing-editor/live/test_live_matrix.py ExecutionObservationTests ProviderAdapterTests DeterministicEvaluationTests ReceiptAndBudgetTests -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v tests.products.korean-writing-editor.live.test_live_matrix.ExecutionObservationTests tests.products.korean-writing-editor.live.test_live_matrix.ProviderAdapterTests tests.products.korean-writing-editor.live.test_live_matrix.DeterministicEvaluationTests tests.products.korean-writing-editor.live.test_live_matrix.ReceiptAndBudgetTests
 ```
 
 Expected: forbidden observed attempt fails despite a good body; incomplete or absent observation is partial; skill reads and quoted-command echoes produce no hard failure; positively complete synthetic empty trace can verify unchanged structural output. Existing structural tests that specifically test body canonicalization should pass explicit `ExecutionEvidence("complete", ())` when they claim whole-case verified; their literal/marker/polarity assertions remain intact.
@@ -666,7 +666,7 @@ def test_required_local_grammar_is_shared_by_correct_and_polish(self):
 - [ ] **Step 2: Run RED.**
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 tests/products/korean-writing-editor/test_package.py KoreanPackageTests.test_required_local_grammar_is_shared_by_correct_and_polish -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v tests.products.korean-writing-editor.test_package.KoreanPackageTests.test_required_local_grammar_is_shared_by_correct_and_polish
 ```
 
 Expected: missing fixture ID (`KeyError`). This checks the declared offline contract, not model obedience.
@@ -725,7 +725,7 @@ Align the same distinction in the mode table, product READMEs, and maintainer co
 - [ ] **Step 5: Run GREEN and name the evidence limit.**
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 tests/products/korean-writing-editor/test_package.py -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v tests.products.korean-writing-editor.test_package
 PYTHONDONTWRITEBYTECODE=1 python3 tests/products/korean-writing-editor/offline/run.py --self-test
 PYTHONDONTWRITEBYTECODE=1 python3 tests/products/korean-writing-editor/offline/run.py --scope full
 ```
@@ -778,7 +778,7 @@ def test_full_scope_rejects_a_broken_readme_link_in_a_copied_payload(self):
 - [ ] **Step 2: Run RED.**
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 tests/products/korean-writing-editor/test_package.py KoreanPackageTests.test_standalone_readme_relative_links_stay_inside_payload KoreanPackageTests.test_release_target_and_skill_version_are_202 KoreanPackageTests.test_full_scope_rejects_a_broken_readme_link_in_a_copied_payload -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v tests.products.korean-writing-editor.test_package.KoreanPackageTests.test_standalone_readme_relative_links_stay_inside_payload tests.products.korean-writing-editor.test_package.KoreanPackageTests.test_release_target_and_skill_version_are_202 tests.products.korean-writing-editor.test_package.KoreanPackageTests.test_full_scope_rejects_a_broken_readme_link_in_a_copied_payload
 ```
 
 Expected: copied README links escape the payload, version remains `2.0.1`, and full-scope validation currently ignores README links. No network or real installation is involved.
@@ -801,9 +801,9 @@ Update maintainer release/testing notes to require runner 18 product evidence an
 - [ ] **Step 5: Run product verification once, then hand off for shared gates.**
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 tests/products/korean-writing-editor/test_package.py -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v tests.products.korean-writing-editor.test_package
 PYTHONDONTWRITEBYTECODE=1 python3 tests/products/korean-writing-editor/offline/run.py --scope full
-PYTHONDONTWRITEBYTECODE=1 python3 tests/products/korean-writing-editor/live/test_live_matrix.py -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest -v tests.products.korean-writing-editor.live.test_live_matrix
 PYTHONDONTWRITEBYTECODE=1 python3 tests/products/korean-writing-editor/live/live_matrix.py --dry-run
 git diff --check
 ```
