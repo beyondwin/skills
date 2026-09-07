@@ -11,3 +11,7 @@ records.
 지금 쓰는 안내와 계약은 [`docs/README.md`](../README.md),
 [`docs/users/`](../users/), [`docs/maintainers/`](../maintainers/), 각 제품
 README를 보세요.
+
+## 진행 중인 설계
+
+- [스킬 저장소 신뢰성 개선 설계](specs/2026-09-08-skills-hardening-design.md) — 작성본 검토 대기. 구현 계획과 제품 수정은 시작하지 않았습니다.
