@@ -25,6 +25,11 @@ smoke는 CI가 요구하지 않습니다.
 운영 절차는 [테스트](testing.md)와
 `tests/products/korean-writing-editor/live/README.md`를 따릅니다.
 
+이번 hardening series의 새 실행 증거는 runner 18로 만듭니다. runner 10부터
+17까지의 영수증은 버전을 올리지 않고 계속 읽으며, 기록된 status의 원래
+의미도 유지합니다. 다만 이 과거 증거로 runner 18 실행을 시작하거나 재개할
+수는 없으므로 새 실행에는 새 run ID가 필요합니다.
+
 ## 새 호스트 지원
 
 새 지원을 레지스트리와 공개 안내에 넣으려면 같은 빌드에서 다음 네 가지

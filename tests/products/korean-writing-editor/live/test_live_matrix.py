@@ -1881,6 +1881,73 @@ class ProviderAdapterTests(unittest.TestCase):
                 self.assertIn("stderr_sha256=", message)
 
 
+class Runner18BoundaryTests(unittest.TestCase):
+    def test_current_execution_identity_is_18(self) -> None:
+        self.assertEqual(live_matrix.RUNNER_VERSION, "18")
+
+    def test_historical_receipts_remain_readable_without_upgrade(self) -> None:
+        for version in ("10", "17"):
+            with self.subTest(version=version):
+                payload = strict_receipt_payload()
+                payload["identity"]["runner_version"] = version
+                receipt = live_matrix._receipt_from_json(payload)
+                self.assertEqual(receipt.identity.runner_version, version)
+                self.assertEqual(
+                    receipt.as_json()["identity"]["runner_version"], version
+                )
+
+    def test_old_identity_cannot_start_or_resume_an_execution_plan(self) -> None:
+        identity = live_matrix.RunIdentity.for_test(runner_version="17")
+        with self.assertRaisesRegex(live_matrix.LiveMatrixError, "new run ID"):
+            live_matrix.remaining_calls((), {}, identity)
+
+    def test_runner17_receipt_cannot_skip_runner18_work(self) -> None:
+        payload = strict_receipt_payload()
+        payload["identity"]["runner_version"] = "17"
+        receipt = live_matrix._receipt_from_json(payload)
+        current = dataclasses.replace(receipt.identity, runner_version="18")
+        call = live_matrix.PlannedCall(
+            receipt.call_id, "producer", "test-producer", receipt.case_id, 1
+        )
+        with self.assertRaisesRegex(live_matrix.LiveMatrixError, "identity drift"):
+            live_matrix.remaining_calls((call,), {receipt.call_id: receipt}, current)
+
+    def test_old_dispatch_identity_is_rejected_before_git_or_provider(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            _, _, preflight, _, _ = single_codex_dispatch_fixture(
+                pathlib.Path(directory)
+            )
+            preflight = dataclasses.replace(
+                preflight,
+                identity=dataclasses.replace(preflight.identity, runner_version="17"),
+            )
+            with mock.patch("live_matrix._git_status_is_clean") as status:
+                with mock.patch("live_matrix.run_command") as command:
+                    with self.assertRaisesRegex(
+                        live_matrix.LiveMatrixError, "new run ID"
+                    ):
+                        live_matrix.validate_dispatch_identity(preflight)
+            status.assert_not_called()
+            command.assert_not_called()
+
+    def test_old_identity_cannot_reload_durable_execution_evidence(self) -> None:
+        identity = live_matrix.RunIdentity.for_test(runner_version="17")
+        with tempfile.TemporaryDirectory() as directory:
+            with mock.patch("live_matrix._load_attempt_reservations") as reservations:
+                with mock.patch("live_matrix._load_receipt_attempts") as receipts:
+                    with self.assertRaisesRegex(
+                        live_matrix.LiveMatrixError, "new run ID"
+                    ):
+                        live_matrix._reload_durable_evidence(
+                            pathlib.Path(directory),
+                            identity,
+                            (),
+                            allowed_logical_ids=(),
+                        )
+            reservations.assert_not_called()
+            receipts.assert_not_called()
+
+
 class ReceiptAndBudgetTests(UnixOnlyLiveTestMixin, unittest.TestCase):
     unix_only_test_names = frozenset({
         "test_manifest_hash_rejects_symlink",
@@ -2931,8 +2998,9 @@ class LiveMatrixLifecycleTests(UnixOnlyLiveTestMixin, unittest.TestCase):
                 marker_payload["commit_state"], marker_fixture["commit_state"]
             )
             self.assertEqual(
-                marker_payload["runner_version"], marker_fixture["runner_version"]
+                marker_payload["runner_version"], live_matrix.RUNNER_VERSION
             )
+            self.assertEqual(marker_fixture["runner_version"], "17")
             self.assertEqual(
                 marker_payload["schema_version"], marker_fixture["schema_version"]
             )

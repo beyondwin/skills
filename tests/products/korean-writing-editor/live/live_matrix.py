@@ -106,7 +106,7 @@ ORACLE_PUNCTUATION_TRANSLATION = str.maketrans(
 MAX_STREAM_BYTES = 131_072
 COMMAND_TIMEOUT_SECONDS = 300
 DIAGNOSTIC_TAIL_BYTES = 256
-RUNNER_VERSION = "17"
+RUNNER_VERSION = "18"
 RUN_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 MIN_JOBS = 1
 MAX_JOBS = 4
@@ -234,7 +234,7 @@ GIT_OBJECT_ID_RE = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
 SAFE_METADATA_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$")
 FINDING_CODE_RE = re.compile(r"^[a-z0-9]+(?:[_-][a-z0-9]+)*$")
 SUPPORTED_RECEIPT_RUNNER_VERSIONS = frozenset(
-    {"10", "11", "12", "13", "14", "15", "16", RUNNER_VERSION}
+    {"10", "11", "12", "13", "14", "15", "16", "17", RUNNER_VERSION}
 )
 RECEIPT_TIMESTAMP_RE = re.compile(
     r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$"
@@ -394,6 +394,11 @@ class RunIdentity:
             raise TypeError(f"unknown RunIdentity test override: {sorted(unknown)[0]}")
         values.update(overrides)
         return cls(**values)
+
+
+def _require_current_runner(identity: RunIdentity) -> None:
+    if identity.runner_version != RUNNER_VERSION:
+        raise LiveMatrixError("runner identity changed; use a new run ID")
 
 
 @dataclass(frozen=True)
@@ -1765,6 +1770,7 @@ def remaining_calls(
     identity: RunIdentity,
 ) -> tuple[PlannedCall, ...]:
     """Return only calls with no complete matching receipt; reject identity drift."""
+    _require_current_runner(identity)
     _validate_run_identity(identity, label="resume")
     plan_ids = {call.call_id for call in plan}
     if len(plan_ids) != len(plan):
@@ -4529,6 +4535,7 @@ def _dispatch_one(
 
 def validate_dispatch_identity(preflight: PreflightResult) -> None:
     """Fail closed if the checked checkout or manifests drift before dispatch."""
+    _require_current_runner(preflight.identity)
     report_state = preflight.report_state
     if preflight.report_path is not None:
         report_lease = preflight.report_lease
@@ -4565,12 +4572,9 @@ def validate_dispatch_identity(preflight: PreflightResult) -> None:
     if _sha256_file(live_cases) != preflight.identity.live_cases_hash:
         raise LiveMatrixError("dispatch identity drift: live cases changed")
     preflight_lease = preflight.preflight_lease
-    if preflight.identity.runner_version == RUNNER_VERSION:
-        if preflight_lease is None:
-            raise LiveMatrixError("dispatch requires one active preflight evidence lease")
-        preflight_lease.validate_for_dispatch()
-    elif preflight_lease is not None:
-        preflight_lease.validate_for_dispatch()
+    if preflight_lease is None:
+        raise LiveMatrixError("dispatch requires one active preflight evidence lease")
+    preflight_lease.validate_for_dispatch()
 
 
 def dispatch_calls(
@@ -5889,6 +5893,7 @@ def _reload_durable_evidence(
     expected_reviewer_prompt_sha256: Mapping[str, str] | None = None,
 ) -> tuple[tuple[AttemptReservation, ...], dict[str, CallReceipt]]:
     """Reload, validate, and scope the only evidence allowed into packets/reports."""
+    _require_current_runner(identity)
     reservations = _load_attempt_reservations(run_root, identity)
     attempts = _load_receipt_attempts(run_root)
     _validate_receipt_reservations(attempts, reservations, identity)

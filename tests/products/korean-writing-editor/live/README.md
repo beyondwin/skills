@@ -214,7 +214,7 @@ Completed `verified`, `partially_verified`, `failed`, and `not_measured`
 receipts remain complete. A `blocked` logical call may receive a new actual
 `:attempt-N` ID only when spare budget remains.
 
-Runner version 17 validates the exact receipt and nested identity/finding
+Runner version 18 validates the exact receipt and nested identity/finding
 schemas at load, publication, resume budgeting, report assembly, and review
 sampling. Integers reject booleans and out-of-range values; timestamps, hashes,
 stream byte/hash pairs, terminal statuses, evidence paths, call identity, and
@@ -222,8 +222,11 @@ reservation relationships must be coherent before a receipt can authorize any
 later step. Every current `partially_verified` receipt carries at least one
 typed `not_measured` finding. Immutable runner-version-10 evidence remains
 readable with only its original omitted finding certainty and empty-finding
-`partially_verified` shape treated as explicit legacy compatibility; it is not
-reusable as a runner-version-17 execution identity.
+`partially_verified` shape treated as explicit legacy compatibility. Receipts
+from runners 10 through 17 remain readable without upgrade, and their statuses
+retain their original meaning. They are not reusable as a runner-version-18
+execution identity; this hardening series requires runner 18 evidence and a new
+run ID.
 
 ## Review Packet
 
