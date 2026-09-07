@@ -172,7 +172,6 @@ def write_record(path: Path, record: dict[str, object]) -> None:
     payload = canonical(record)
     if len(payload) > RECORD_LIMIT:
         fail("schema-invalid", f"record exceeds {RECORD_LIMIT} bytes")
-    temp = path.with_name(path.name + ".tmp")
     try:
         home = path.parent.parent
         runs = path.parent
@@ -180,12 +179,18 @@ def write_record(path: Path, record: dict[str, object]) -> None:
         os.chmod(home, 0o700)
         runs.mkdir(mode=0o700, exist_ok=True)
         os.chmod(runs, 0o700)
-        descriptor = os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-        with os.fdopen(descriptor, "wb") as stream:
-            stream.write(payload)
-            stream.flush()
-            os.fsync(stream.fileno())
-        os.replace(temp, path)
+        descriptor, temporary = tempfile.mkstemp(
+            prefix=path.name + ".", suffix=".tmp", dir=path.parent
+        )
+        temp = Path(temporary)
+        try:
+            with os.fdopen(descriptor, "wb") as stream:
+                stream.write(payload)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(temp, path)
+        finally:
+            temp.unlink(missing_ok=True)
     except OSError as exc:
         raise EvidenceError("evidence-home-unwritable", "evidence storage is unavailable") from exc
 
@@ -536,55 +541,61 @@ def _require_pending(home: Path, run_id: str) -> dict[str, object]:
 
 
 def cmd_finish(args: argparse.Namespace, home: Path, cwd: Path, stdin: TextIO) -> dict[str, object]:
-    record = _require_pending(home, args.run_id)
-    root = git_root(locator(cwd, args.repo))
-    if not hmac.compare_digest(
-        checkout_key(root, home, create=False), str(record["repo_key"])
-    ):
-        fail("outside-repository", "repository does not match the recorded run")
-    semantic = validate_finish(read_stdin(stdin, RECORD_LIMIT), str(record["mode"]))
-    head, dirty = git_state(root)
-    plan = record["plan"]
-    design = record["design"]
-    assert isinstance(plan, dict)
-    plan["sha_end"] = document_hash(root, str(plan["path"]))
-    if isinstance(design, dict):
-        design["sha_end"] = document_hash(root, str(design["path"]))
-    git_facts = record["git"]
-    assert isinstance(git_facts, dict)
-    git_facts["head_end"] = head
-    git_facts["dirty_end"] = dirty
-    completed_at = utc_now()
-    record.update(semantic)
-    record["status"] = "completed"
-    record["completed_at"] = completed_at
-    record["elapsed_s"] = elapsed_seconds(str(record["started_at"]), completed_at)
-    write_record(run_path(home, args.run_id), record)
-    return {"run_id": args.run_id, "status": "completed", "verdict": record["verdict"]}
+    lock = home / "locks" / f"{validate_run_id(args.run_id)}.lock"
+    with _file_lock(lock):
+        record = _require_pending(home, args.run_id)
+        root = git_root(locator(cwd, args.repo))
+        if not hmac.compare_digest(
+            checkout_key(root, home, create=False), str(record["repo_key"])
+        ):
+            fail("outside-repository", "repository does not match the recorded run")
+        semantic = validate_finish(read_stdin(stdin, RECORD_LIMIT), str(record["mode"]))
+        head, dirty = git_state(root)
+        plan = record["plan"]
+        design = record["design"]
+        assert isinstance(plan, dict)
+        plan["sha_end"] = document_hash(root, str(plan["path"]))
+        if isinstance(design, dict):
+            design["sha_end"] = document_hash(root, str(design["path"]))
+        git_facts = record["git"]
+        assert isinstance(git_facts, dict)
+        git_facts["head_end"] = head
+        git_facts["dirty_end"] = dirty
+        completed_at = utc_now()
+        record.update(semantic)
+        record["status"] = "completed"
+        record["completed_at"] = completed_at
+        record["elapsed_s"] = elapsed_seconds(str(record["started_at"]), completed_at)
+        write_record(run_path(home, args.run_id), record)
+        return {"run_id": args.run_id, "status": "completed", "verdict": record["verdict"]}
 
 
 def cmd_abandon(args: argparse.Namespace, home: Path) -> dict[str, object]:
-    record = _require_pending(home, args.run_id)
-    completed_at = utc_now()
-    record["status"] = "abandoned"
-    record["abandon_reason"] = args.reason
-    record["completed_at"] = completed_at
-    record["elapsed_s"] = elapsed_seconds(str(record["started_at"]), completed_at)
-    write_record(run_path(home, args.run_id), record)
-    return {"run_id": args.run_id, "status": "abandoned"}
+    lock = home / "locks" / f"{validate_run_id(args.run_id)}.lock"
+    with _file_lock(lock):
+        record = _require_pending(home, args.run_id)
+        completed_at = utc_now()
+        record["status"] = "abandoned"
+        record["abandon_reason"] = args.reason
+        record["completed_at"] = completed_at
+        record["elapsed_s"] = elapsed_seconds(str(record["started_at"]), completed_at)
+        write_record(run_path(home, args.run_id), record)
+        return {"run_id": args.run_id, "status": "abandoned"}
 
 
 def cmd_outcome(args: argparse.Namespace, home: Path) -> dict[str, object]:
-    record = load_record(home, args.run_id)
-    require_current_schema(record)
-    if record["status"] != "completed":
-        fail("schema-invalid", "outcome requires a completed run")
-    if args.label == "false-ready" and record["verdict"] != "READY":
-        fail("schema-invalid", "false-ready requires a READY verdict")
-    note = _string(args.note, "note", 300, nullable=True)
-    record["outcome"] = {"label": args.label, "note": note, "recorded_at": utc_now()}
-    write_record(run_path(home, args.run_id), record)
-    return {"run_id": args.run_id, "outcome": args.label}
+    lock = home / "locks" / f"{validate_run_id(args.run_id)}.lock"
+    with _file_lock(lock):
+        record = load_record(home, args.run_id)
+        require_current_schema(record)
+        if record["status"] != "completed":
+            fail("schema-invalid", "outcome requires a completed run")
+        if args.label == "false-ready" and record["verdict"] != "READY":
+            fail("schema-invalid", "false-ready requires a READY verdict")
+        note = _string(args.note, "note", 300, nullable=True)
+        record["outcome"] = {"label": args.label, "note": note, "recorded_at": utc_now()}
+        write_record(run_path(home, args.run_id), record)
+        return {"run_id": args.run_id, "outcome": args.label}
 
 
 def cmd_show(args: argparse.Namespace, home: Path) -> str:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import builtins
 import copy
 import json
 import os
@@ -184,6 +185,138 @@ class IdentityTests(RecorderFixture):
         self.assertEqual(len({str(record["repo_key"]) for record in records}), 1)
         self.assertEqual(len((self.home / ".identity-salt").read_bytes()), 32)
         self.assertEqual(list(self.home.glob(".identity-salt-*")), [])
+
+
+class TransitionTests(RecorderFixture):
+    def child(self, arguments: list[str], payload: str = "") -> subprocess.Popen[str]:
+        worker = (
+            "import sys; sys.path.insert(0, sys.argv.pop(1)); "
+            "import evidence; print('ready', flush=True); "
+            "raise SystemExit(evidence.main())"
+        )
+        process = subprocess.Popen(
+            [sys.executable, "-c", worker, str(EVIDENCE_DIR), *arguments],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            cwd=self.repo,
+            env={**os.environ, "PRE_SDD_REVIEW_HOME": str(self.home),
+                 "PYTHONDONTWRITEBYTECODE": "1"},
+        )
+
+        def cleanup() -> None:
+            if process.poll() is None:
+                process.kill()
+            process.communicate(timeout=15)
+
+        self.addCleanup(cleanup)
+        self.assertEqual(process.stdout.readline(), "ready\n")
+        if payload:
+            process.stdin.write(payload)
+        process.stdin.close()
+        process.stdin = None
+        return process
+
+    def assert_waiting(self, processes: list[subprocess.Popen[str]]) -> None:
+        for process in processes:
+            with self.assertRaises(subprocess.TimeoutExpired):
+                process.communicate(timeout=0.2)
+
+    def test_terminal_commands_wait_for_lock_and_have_one_winner(self) -> None:
+        for second_command in ("finish", "abandon"):
+            with self.subTest(second_command=second_command):
+                run_id = start(self.home, self.repo, self.skill)
+                with evidence._file_lock(self.home / "locks" / f"{run_id}.lock"):
+                    processes = []
+                    for command in ("finish", second_command):
+                        arguments = [command, "--run-id", run_id]
+                        arguments += (["--repo", str(self.repo)] if command == "finish"
+                                      else ["--reason", "other"])
+                        processes.append(self.child(
+                            arguments, json.dumps(finish_payload()) if command == "finish" else ""
+                        ))
+                    self.assert_waiting(processes)
+                results = []
+                for process in processes:
+                    out, err = process.communicate(timeout=15)
+                    results.append((process.returncode, out, err))
+                self.assertEqual(sorted(code for code, _, _ in results), [0, 2])
+                loser = next(err for code, _, err in results if code == 2)
+                self.assertEqual(error_code(loser), "already-finished")
+                final = load(self.home, run_id)
+                self.assertIn(final["status"], ("completed", "abandoned"))
+                self.assertEqual(len(list((self.home / "runs").glob("*.json"))),
+                                 1 if second_command == "finish" else 2)
+
+    def test_outcomes_wait_for_lock_and_preserve_complete_updates(self) -> None:
+        run_id = start(self.home, self.repo, self.skill)
+        self.assertEqual(finish(self.home, self.repo, run_id, finish_payload())[0], 0)
+        before = load(self.home, run_id)
+        pairs = [("good", "first observation"), ("false-ready", "second observation")]
+        with evidence._file_lock(self.home / "locks" / f"{run_id}.lock"):
+            processes = [self.child([
+                "outcome", "--run-id", run_id, "--label", label, "--note", note
+            ]) for label, note in pairs]
+            self.assert_waiting(processes)
+            # A holder's latest record must survive both queued writers. Reading
+            # before acquiring the lock would restore the old client snapshot.
+            before["client"]["model"] = "updated-while-queued"
+            self.put(run_id, before)
+        for process in processes:
+            out, err = process.communicate(timeout=15)
+            self.assertEqual(process.returncode, 0, err)
+            self.assertEqual(json.loads(out)["run_id"], run_id)
+        final = load(self.home, run_id)
+        outcome = final.pop("outcome")
+        self.assertIn((outcome["label"], outcome["note"]), pairs)
+        self.assertTrue(outcome["recorded_at"])
+        before.pop("outcome")
+        self.assertEqual(final, before)
+
+    def test_write_failure_preserves_record_and_removes_own_temporary_file(self) -> None:
+        run_id = start(self.home, self.repo, self.skill)
+        path = self.home / "runs" / f"{run_id}.json"
+        before = path.read_bytes()
+        # Another writer's old temporary file must never be reused or removed.
+        other_temp = path.with_name(path.name + ".tmp")
+        other_temp.write_bytes(b"another writer")
+        changed = load(self.home, run_id)
+        changed["status"] = "abandoned"
+        with mock.patch.object(evidence.os, "replace", side_effect=OSError("synthetic failure")):
+            with self.assertRaises(evidence.EvidenceError) as raised:
+                evidence.write_record(path, changed)
+        self.assertEqual(raised.exception.code, "evidence-home-unwritable")
+        self.assertEqual(path.read_bytes(), before)
+        self.assertEqual(list(path.parent.glob(path.name + ".*.tmp")), [])
+        self.assertEqual(other_temp.read_bytes(), b"another writer")
+
+
+class UnsupportedLockingTests(RecorderFixture):
+    def test_mutation_fails_cleanly_but_read_only_commands_need_no_locking(self) -> None:
+        original_import = builtins.__import__
+
+        def without_fcntl(name, *args, **kwargs):
+            if name == "fcntl":
+                raise ImportError("synthetic unsupported platform")
+            return original_import(name, *args, **kwargs)
+
+        with mock.patch("builtins.__import__", side_effect=without_fcntl):
+            for command in (["--version"], ["summary"]):
+                code, out, err = run(command, home=self.home, cwd=self.repo)
+                self.assertEqual((code, err), (0, ""))
+                self.assertIsInstance(json.loads(out), dict)
+                self.assertFalse(self.home.exists())
+            code, out, err = run([
+                "start", "--skill-root", str(self.skill), "--repo", str(self.repo),
+                "--plan", str(self.repo / "docs/plan.md"), "--client", "codex",
+                "--mode", "default",
+            ], home=self.home, cwd=self.repo)
+        self.assertEqual((code, out), (2, ""))
+        self.assertEqual(error_code(err), "locking-unavailable")
+        self.assertEqual(len(err.splitlines()), 1)
+        self.assertNotIn("Traceback", err)
+        self.assertFalse(self.home.exists())
 
 
 class LegacyTests(RecorderFixture):
