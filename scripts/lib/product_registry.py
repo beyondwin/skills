@@ -59,8 +59,10 @@ def load_registry(path: pathlib.Path) -> ProductRegistry:
         raise ValueError(f"invalid products.toml: {exc}") from exc
     if not isinstance(data, dict):
         raise ValueError("products.toml must be a table")
-    if data.get("schema_version") != 1:
-        raise ValueError("schema_version must be 1")
+    if set(data) != {"schema_version", "products"}:
+        raise ValueError("products.toml must contain only schema_version and products")
+    if type(data["schema_version"]) is not int or data["schema_version"] != 1:
+        raise ValueError("schema_version must be integer 1")
     raw_products = data.get("products")
     if not isinstance(raw_products, list):
         raise ValueError("products must be an array of tables")
@@ -185,7 +187,7 @@ def _load_product(index: int, item: object) -> Product:
         name, "maintainer_docs", item["maintainer_docs"], directory=False
     )
     owned_raw = item["owned_paths"]
-    if not isinstance(owned_raw, list):
+    if not isinstance(owned_raw, list) or not owned_raw:
         raise ValueError(f"product {name}: owned_paths must be a list of strings")
     owned_paths: list[pathlib.PurePosixPath] = []
     seen_owned: set[str] = set()
@@ -222,8 +224,10 @@ def _string(label: str, field: str, value: object) -> str:
 
 
 def _string_list(label: str, field: str, value: object) -> tuple[str, ...]:
-    if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
-        raise ValueError(f"product {label}: {field} must be a list of strings")
+    if (not isinstance(value, list) or not value
+            or any(not isinstance(item, str) or not item.strip() for item in value)):
+        raise ValueError(f"product {label}: {field} must be a non-empty list of strings")
+    _reject_duplicates(value, f"product {label}: duplicate {field}")
     return tuple(value)
 
 

@@ -11,6 +11,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import ModuleType
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -233,6 +234,14 @@ class VerifyStageTests(unittest.TestCase):
         )
         self.assertEqual(run_stage(ok), 0)
         self.assertEqual(run_stage(failed), 5)
+
+    def test_empty_stage_plan_is_rejected(self) -> None:
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            with mock.patch("scripts.lib.verification.run_stage") as run:
+                self.assertNotEqual(run_stages(iter(())), 0)
+        run.assert_not_called()
+        self.assertIn("no verification stages selected", stderr.getvalue())
 
     def test_fail_fast_stops_and_names_the_failed_stage(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -466,7 +475,9 @@ class VerifyStageTests(unittest.TestCase):
             catalog: bool = False,
         ):
             recorded.append((profile, skill, catalog))
-            return ()
+            return (
+                Stage("test", (sys.executable, "-c", "raise SystemExit(0)"), cwd=ROOT),
+            )
 
         verify.stages = fake_stages  # type: ignore[method-assign]
         try:
@@ -488,7 +499,9 @@ class VerifyStageTests(unittest.TestCase):
             catalog: bool = False,
         ):
             recorded.append((profile, skill, catalog))
-            return ()
+            return (
+                Stage("test", (sys.executable, "-c", "raise SystemExit(0)"), cwd=ROOT),
+            )
 
         verify.stages = fake_stages  # type: ignore[method-assign]
         try:
@@ -510,7 +523,9 @@ class VerifyStageTests(unittest.TestCase):
             catalog: bool = False,
         ):
             recorded.append((profile, skill, catalog))
-            return ()
+            return (
+                Stage("test", (sys.executable, "-c", "raise SystemExit(0)"), cwd=ROOT),
+            )
 
         verify.stages = fake_stages  # type: ignore[method-assign]
         try:

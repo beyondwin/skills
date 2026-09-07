@@ -140,6 +140,28 @@ class RegistryParsingTests(unittest.TestCase):
         with self.assertRaises(dataclasses.FrozenInstanceError):
             registry.products[0].name = "renamed"  # type: ignore[misc]
 
+    def test_rejects_top_level_and_required_list_gaps(self) -> None:
+        valid = _registry(_product())
+        invalid = [
+            valid.replace("schema_version = 1", "schema_version = true", 1),
+            "unexpected = 1\n" + valid,
+        ]
+        for field in ("supported_hosts", "owned_paths", "verify_stages"):
+            invalid.append(_registry(_product(**{field: "[]"})))
+        for field, value in (
+            ("supported_hosts", '["codex", "codex"]'),
+            ("verify_stages", '["product-contract", "product-contract"]'),
+            ("supported_hosts", '[" "]'),
+            ("verify_stages", '[""]'),
+        ):
+            invalid.append(_registry(_product(**{field: value})))
+        for source in invalid:
+            with self.subTest(source=source), tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / "products.toml"
+                path.write_text(source, encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    load_registry(path)
+
 
 class ProductRegistryTests(unittest.TestCase):
     def test_pre_sdd_review_is_codex_only(self) -> None:

@@ -238,7 +238,11 @@ def run_stage(stage: Stage) -> int:
 
 
 def run_stages(stage_list: Iterable[Stage]) -> int:
-    for stage in stage_list:
+    selected = tuple(stage_list)
+    if not selected:
+        print("FAILED: no verification stages selected", file=sys.stderr, flush=True)
+        return 1
+    for stage in selected:
         code = run_stage(stage)
         if code != 0:
             print(f"FAILED stage: {stage.name}", file=sys.stderr, flush=True)
