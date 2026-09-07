@@ -222,6 +222,7 @@ def parse_jpeg(data):
     sof_markers = set(range(0xC0, 0xC4)) | set(range(0xC5, 0xC8)) | set(range(0xC9, 0xCC)) | set(range(0xCD, 0xD0))
     standalone_markers = {0x01, 0xD8, 0xD9} | set(range(0xD0, 0xD8))
     dimensions = None
+    frame_component_ids = set()
     while offset < len(data):
         if data[offset] != 0xFF:
             raise ValueError("invalid JPEG marker")
@@ -247,13 +248,28 @@ def parse_jpeg(data):
                 raise ValueError("truncated JPEG SOF")
             height, width = struct.unpack(">HH", data[offset + 3:offset + 7])
             components = data[offset + 7]
-            if components == 0 or segment_length < 8 + 3 * components:
+            if components == 0 or segment_length != 8 + 3 * components:
                 raise ValueError("invalid JPEG SOF")
+            identifiers = data[offset + 8:offset + segment_length:3]
+            if len(set(identifiers)) != components:
+                raise ValueError("invalid JPEG SOF component identifiers")
+            frame_component_ids = set(identifiers)
             _require_dimensions(width, height)
             dimensions = (width, height, False)
         if marker == 0xDA:
             if dimensions is None:
                 raise ValueError("JPEG SOS before SOF")
+            if segment_length < 6:
+                raise ValueError("invalid JPEG SOS")
+            scan_components = data[offset + 2]
+            if not 1 <= scan_components <= 4 or segment_length != 6 + 2 * scan_components:
+                raise ValueError("invalid JPEG SOS component count")
+            selectors = data[offset + 3:offset + 3 + 2 * scan_components:2]
+            tables = data[offset + 4:offset + 4 + 2 * scan_components:2]
+            if len(set(selectors)) != scan_components or not set(selectors) <= frame_component_ids:
+                raise ValueError("invalid JPEG SOS component selectors")
+            if any((table >> 4) > 3 or (table & 0x0F) > 3 for table in tables):
+                raise ValueError("invalid JPEG SOS table selectors")
             scan_start = offset + segment_length
             if scan_start >= len(data) - 2 or data[-2:] != b"\xff\xd9":
                 raise ValueError("missing JPEG scan or EOI")
@@ -324,6 +340,9 @@ def parse_webp(data):
     if chunk_type == b"VP8 ":
         if len(payload) <= 10 or payload[3:6] != b"\x9d\x01\x2a":
             raise ValueError("invalid WebP VP8 header")
+        version = (payload[0] >> 1) & 0x07
+        if version > 3:
+            raise ValueError("unsupported WebP VP8 version")
         width = struct.unpack("<H", payload[6:8])[0] & 0x3FFF
         height = struct.unpack("<H", payload[8:10])[0] & 0x3FFF
         _require_dimensions(width, height)
@@ -332,6 +351,8 @@ def parse_webp(data):
         raise ValueError("invalid WebP VP8L header")
     else:
         packed = int.from_bytes(payload[1:5], "little")
+        if (packed >> 29) != 0:
+            raise ValueError("unsupported WebP VP8L version")
         width = (packed & 0x3FFF) + 1
         height = ((packed >> 14) & 0x3FFF) + 1
         _require_dimensions(width, height)

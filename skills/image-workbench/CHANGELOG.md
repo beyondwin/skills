@@ -17,6 +17,9 @@ has been published for this version.
 - PNG inspection now checks the IHDR CRC, scanline filter range across
   non-interlaced and Adam7 rows, and required indexed palette structure.
   Existing bounded decompression and file-fact reporting remain in place.
+- JPEG inspection rejects malformed first-scan headers and invalid component
+  selectors. WebP inspection rejects reserved VP8 versions and nonzero VP8L
+  versions while preserving existing alpha reporting.
 
 ### Added
 

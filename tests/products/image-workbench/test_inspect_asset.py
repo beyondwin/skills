@@ -184,6 +184,34 @@ class AssetInspectorTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "JPEG scan"):
             parse_jpeg(data[:-2])
 
+    def test_jpeg_sos_requires_matching_component_structure(self):
+        valid = make_jpeg(1, 1)
+        sos = valid.index(b"\xff\xda")
+        length = struct.unpack(">H", valid[sos + 2:sos + 4])[0]
+        payload = valid[sos + 4:sos + 2 + length]
+        suffix = valid[sos + 2 + length:]
+        self.assertEqual(payload[0], 3)
+        variants = {
+            "empty_header": b"",
+            "zero_components": b"\0\0\x3f\0",
+            "count_mismatch": bytes([2]) + payload[1:],
+            "unknown_component": payload[:1] + b"\x7f" + payload[2:],
+            "duplicate_component": payload[:3] + payload[1:2] + payload[4:],
+            "invalid_table_selector": payload[:2] + b"\x40" + payload[3:],
+        }
+        self.assertEqual(parse_jpeg(valid), (1, 1, False))
+        for name, scan_header in variants.items():
+            with self.subTest(name=name):
+                data = (
+                    valid[:sos]
+                    + b"\xff\xda"
+                    + struct.pack(">H", len(scan_header) + 2)
+                    + scan_header
+                    + suffix
+                )
+                with self.assertRaises(ValueError):
+                    parse_jpeg(data)
+
     def test_webp_vp8x_reports_dimensions_and_alpha_flag(self):
         data = make_webp_extended_vp8(width=1, height=1, alpha=True)
         self.assertEqual(parse_webp(data), (1, 1, True))
@@ -205,8 +233,47 @@ class AssetInspectorTests(unittest.TestCase):
     def test_webp_vp8_reports_dimensions_without_alpha(self):
         self.assertEqual(parse_webp(make_webp_vp8(1, 1)), (1, 1, False))
 
+    def test_webp_vp8_rejects_reserved_versions(self):
+        valid = make_webp_vp8(1, 1)
+        self.assertEqual(parse_webp(valid), (1, 1, False))
+        for version in (4, 5, 6, 7):
+            with self.subTest(version=version):
+                data = bytearray(valid)
+                data[20] = (data[20] & ~0x0E) | (version << 1)
+                with self.assertRaises(ValueError):
+                    parse_webp(bytes(data))
+
     def test_webp_vp8l_reports_dimensions_with_unknown_alpha(self):
         self.assertEqual(parse_webp(make_webp_vp8l(1, 1)), (1, 1, None))
+
+    def test_webp_vp8l_rejects_nonzero_version_preserves_alpha_hint(self):
+        valid = make_webp_vp8l(1, 1)
+        for version in range(1, 8):
+            with self.subTest(version=version):
+                data = bytearray(valid)
+                data[24] = (data[24] & 0x1F) | (version << 5)
+                with self.assertRaises(ValueError):
+                    parse_webp(bytes(data))
+        alpha_hint = bytearray(valid)
+        alpha_hint[24] |= 0x10
+        self.assertEqual(parse_webp(bytes(alpha_hint)), (1, 1, None))
+
+    def test_webp_vp8x_reserved_bits_remain_rejected(self):
+        valid = make_webp_extended_vp8(1, 1, alpha=True)
+        self.assertEqual(parse_webp(valid), (1, 1, True))
+        for offset, mask in (
+            (20, 0x01),
+            (20, 0x40),
+            (20, 0x80),
+            (21, 1),
+            (22, 1),
+            (23, 1),
+        ):
+            with self.subTest(offset=offset, mask=mask):
+                data = bytearray(valid)
+                data[offset] |= mask
+                with self.assertRaises(ValueError):
+                    parse_webp(bytes(data))
 
     def test_unsupported_input_is_an_explicit_error(self):
         with self.assertRaisesRegex(ValueError, "unsupported image format"):
