@@ -1,23 +1,26 @@
-"""Local evidence recorder for pre-sdd-review (schema 2). Standard library only."""
+"""Local evidence recorder for pre-sdd-review (schema 3). Standard library only."""
 
 from __future__ import annotations
 
 import argparse
 import datetime as dt
 import hashlib
+import hmac
 import json
 import os
 import re
 import statistics
 import subprocess
 import sys
+import tempfile
 import uuid
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
+from contextlib import contextmanager
 from pathlib import Path
 from typing import TextIO
 
-CLI_VERSION = "2.0.0"
-SCHEMA = 2
+CLI_VERSION = "3.0.0"
+SCHEMA = 3
 SKILL_NAME = "pre-sdd-review"
 RECORD_LIMIT = 64 * 1024
 DOCUMENT_LIMIT = 8 * 1024 * 1024
@@ -192,8 +195,9 @@ def _read_record(path: Path) -> tuple[bytes, dict[str, object]]:
         fail("run-not-found", "run was not found")
     data = read_bounded_bytes(path, RECORD_LIMIT)
     record = parse_json(data, "record")
-    if not isinstance(record, dict) or record.get("schema") != SCHEMA:
-        fail("schema-invalid", "record is not a schema 2 record")
+    schema = record.get("schema") if isinstance(record, dict) else None
+    if not isinstance(record, dict) or type(schema) is not int or schema not in (2, 3):
+        fail("schema-invalid", "record is not a supported schema 2 or 3 record")
     return data, record
 
 
@@ -220,6 +224,82 @@ def iter_records(home: Path) -> list[dict[str, object]]:
 
 def git(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(["git", "-C", str(root), *args], check=False, capture_output=True, text=True)
+
+
+@contextmanager
+def _file_lock(path: Path) -> Iterator[None]:
+    try:
+        import fcntl
+    except ImportError:
+        fail("locking-unavailable", "OS file locking is unavailable for evidence mutations")
+    descriptor: int | None = None
+    try:
+        path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        os.chmod(path.parent, 0o700)
+        descriptor = os.open(path, os.O_RDWR | os.O_CREAT, 0o600)
+        os.fchmod(descriptor, 0o600)
+        fcntl.flock(descriptor, fcntl.LOCK_EX)
+        yield
+    except OSError as exc:
+        raise EvidenceError(
+            "evidence-home-unwritable", "evidence storage is unavailable"
+        ) from exc
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+
+
+def _identity_salt(home: Path, *, create: bool) -> bytes:
+    salt_path = home / ".identity-salt"
+    with _file_lock(home / ".identity.lock"):
+        if not salt_path.exists():
+            if not create:
+                fail(
+                    "identity-unavailable",
+                    "checkout identity is unavailable; start a new run",
+                )
+            descriptor, temporary = tempfile.mkstemp(prefix=".identity-salt-", dir=home)
+            temp_path = Path(temporary)
+            try:
+                with os.fdopen(descriptor, "wb") as stream:
+                    stream.write(os.urandom(32))
+                    stream.flush()
+                    os.fsync(stream.fileno())
+                os.replace(temp_path, salt_path)
+            finally:
+                temp_path.unlink(missing_ok=True)
+        os.chmod(salt_path, 0o600)
+        salt = read_bounded_bytes(salt_path, 32)
+        if len(salt) != 32:
+            fail(
+                "schema-invalid",
+                "checkout identity salt must contain exactly 32 bytes",
+            )
+        return salt
+
+
+def checkout_key(root: Path, home: Path, *, create: bool) -> str:
+    result = git(root, "rev-parse", "--absolute-git-dir")
+    raw = result.stdout.strip()
+    if result.returncode != 0 or not raw or "\n" in raw:
+        fail("not-git-repository", "checkout Git directory is unavailable")
+    material = canonical(
+        {
+            "git_dir": str(Path(raw).resolve()),
+            "checkout": str(root.resolve()),
+        }
+    )
+    return hmac.new(
+        _identity_salt(home, create=create), material, hashlib.sha256
+    ).hexdigest()
+
+
+def require_current_schema(record: dict[str, object]) -> None:
+    if record["schema"] != 3:
+        fail(
+            "legacy-record-read-only",
+            "schema 2 is historical-unbound; preserve it and start a new run",
+        )
 
 
 def locator(cwd: Path, value: str) -> Path:
@@ -417,6 +497,7 @@ def cmd_start(args: argparse.Namespace, home: Path, cwd: Path) -> dict[str, obje
         "skill": skill,
         "client": {"id": args.client, "model": model},
         "repo": root.name,
+        "repo_key": checkout_key(root, home, create=True),
         "mode": args.mode,
         "plan": {"path": plan, "sha_start": document_hash(root, plan), "sha_end": None},
         "design": None if design is None else {
@@ -448,6 +529,7 @@ def cmd_start(args: argparse.Namespace, home: Path, cwd: Path) -> dict[str, obje
 
 def _require_pending(home: Path, run_id: str) -> dict[str, object]:
     record = load_record(home, run_id)
+    require_current_schema(record)
     if record["status"] != "pending":
         fail("already-finished", "run is already finished")
     return record
@@ -456,7 +538,9 @@ def _require_pending(home: Path, run_id: str) -> dict[str, object]:
 def cmd_finish(args: argparse.Namespace, home: Path, cwd: Path, stdin: TextIO) -> dict[str, object]:
     record = _require_pending(home, args.run_id)
     root = git_root(locator(cwd, args.repo))
-    if root.name != record["repo"]:
+    if not hmac.compare_digest(
+        checkout_key(root, home, create=False), str(record["repo_key"])
+    ):
         fail("outside-repository", "repository does not match the recorded run")
     semantic = validate_finish(read_stdin(stdin, RECORD_LIMIT), str(record["mode"]))
     head, dirty = git_state(root)
@@ -492,6 +576,7 @@ def cmd_abandon(args: argparse.Namespace, home: Path) -> dict[str, object]:
 
 def cmd_outcome(args: argparse.Namespace, home: Path) -> dict[str, object]:
     record = load_record(home, args.run_id)
+    require_current_schema(record)
     if record["status"] != "completed":
         fail("schema-invalid", "outcome requires a completed run")
     if args.label == "false-ready" and record["verdict"] != "READY":
