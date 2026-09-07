@@ -1026,6 +1026,35 @@ def _structural_sentinel_status(candidate: str, sentinel: str) -> str:
     return "ambiguous" if base_match_found else "missing"
 
 
+def _semantic_findings(case: LiveCase, candidate: str) -> tuple[Finding, ...]:
+    if case.expected_behavior != "edit":
+        return ()
+    canonical = _canonical_structural_text(candidate)
+    exact = (
+        case.exact_output is not None
+        and canonical == _canonical_structural_text(case.exact_output)
+    )
+    unchanged = canonical == _canonical_structural_text(case.source)
+    if exact:
+        return ()
+    axes = set(case.review_axes)
+    findings: list[Finding] = []
+    if "attribution" in axes and not unchanged:
+        findings.append(Finding(
+            "attribution_not_measured",
+            "free-form speaker and statement relations are not deterministically measured",
+            certainty="not_measured",
+        ))
+    required_semantics = axes & {"meaning", "minimality", "voice", "naturalness"}
+    if required_semantics and (not unchanged or "naturalness" in axes):
+        findings.append(Finding(
+            "semantic_not_measured",
+            "required free-form editing dimensions lack a positive canonical form",
+            certainty="not_measured",
+        ))
+    return tuple(findings)
+
+
 def evaluate_response(case: LiveCase, response: str) -> tuple[Finding, ...]:
     candidate = normalize_response(response)
     canonical_candidate = _canonical_literal_text(candidate)
@@ -1120,6 +1149,7 @@ def evaluate_response(case: LiveCase, response: str) -> tuple[Finding, ...]:
                 certainty="not_measured",
             )
         )
+    findings.extend(_semantic_findings(case, candidate))
     return tuple(findings)
 
 

@@ -276,6 +276,18 @@ failure adds `activation_not_measured`, including alongside another soft
 signal. Reviewer packets and reports keep not-measured signals separate from
 hard findings.
 
+For edited prose, free-form meaning, minimality, voice, or naturalness emits
+`semantic_not_measured` without a positive canonical form. Free-form speaker
+and statement relations emit `attribution_not_measured`. These soft findings
+produce `partially_verified` when hard checks pass; a definite literal loss
+still produces `failed`. A manifest's explicit exact output is its declared
+positive form after hard checks. An unchanged canonical source proves only
+preservation dimensions, including attribution; it cannot prove that requested
+naturalness or awkward-flow correction was achieved. No exact sentences are
+invented for free-form polish to raise verified counts. The new soft codes
+survive receipt serialization and review packets within the existing two-soft,
+eight-evidence-plus-four-control limits and diagnostic/structural priorities.
+
 No aggregate average erases a severe failure. Every report states the level at
 which a status applies.
 

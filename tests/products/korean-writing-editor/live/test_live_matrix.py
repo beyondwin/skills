@@ -476,8 +476,8 @@ GUIDE_RECEIPT_SCHEMA_PARAGRAPH = (
     "`not_measured`, including on resume, so a forged terminal receipt cannot hide a "
     "charged call from the remaining-work or budget ledger."
 )
-GUIDE_V17_RECEIPT_PARAGRAPH = (
-    "Runner version 17 validates the exact receipt and nested identity/finding "
+GUIDE_V18_RECEIPT_PARAGRAPH = (
+    "Runner version 18 validates the exact receipt and nested identity/finding "
     "schemas at load, publication, resume budgeting, report assembly, and review "
     "sampling. Integers reject booleans and out-of-range values; timestamps, hashes, "
     "stream byte/hash pairs, terminal statuses, evidence paths, call identity, and "
@@ -485,8 +485,11 @@ GUIDE_V17_RECEIPT_PARAGRAPH = (
     "later step. Every current `partially_verified` receipt carries at least one "
     "typed `not_measured` finding. Immutable runner-version-10 evidence remains "
     "readable with only its original omitted finding certainty and empty-finding "
-    "`partially_verified` shape treated as explicit legacy compatibility; it is not "
-    "reusable as a runner-version-17 execution identity."
+    "`partially_verified` shape treated as explicit legacy compatibility. Receipts "
+    "from runners 10 through 17 remain readable without upgrade, and their statuses "
+    "retain their original meaning. They are not reusable as a runner-version-18 "
+    "execution identity; this hardening series requires runner 18 evidence and a "
+    "new run ID."
 )
 GUIDE_PRIVACY_PARAGRAPH = (
     "Use synthetic prompts only. Do not place private manuscripts, credentials, "
@@ -605,6 +608,19 @@ GUIDE_JUDGE_PARAGRAPH = (
     "signal. Reviewer packets and reports keep not-measured signals separate from "
     "hard findings."
 )
+GUIDE_EDIT_SEMANTICS_PARAGRAPH = (
+    "For edited prose, free-form meaning, minimality, voice, or naturalness emits "
+    "`semantic_not_measured` without a positive canonical form. Free-form speaker "
+    "and statement relations emit `attribution_not_measured`. These soft findings "
+    "produce `partially_verified` when hard checks pass; a definite literal loss "
+    "still produces `failed`. A manifest's explicit exact output is its declared "
+    "positive form after hard checks. An unchanged canonical source proves only "
+    "preservation dimensions, including attribution; it cannot prove that requested "
+    "naturalness or awkward-flow correction was achieved. No exact sentences are "
+    "invented for free-form polish to raise verified counts. The new soft codes "
+    "survive receipt serialization and review packets within the existing two-soft, "
+    "eight-evidence-plus-four-control limits and diagnostic/structural priorities."
+)
 GUIDE_REVIEW_PACKET_PARAGRAPH = (
     "The packet contains at most eight evidence samples plus exactly four band "
     "controls. Within those existing eight evidence slots, up to two deterministic "
@@ -694,7 +710,7 @@ GUIDE_EXPECTED_SECTIONS = (
             "When matching preflight state exists but both report target and report state are absent, execute exclusively creates bounded pending content and persists its exact state before any producer or reviewer dispatch. A target without state, state without its exact target, an unsafe target, ownership drift, or extra relevant checkout dirt fails before dispatch.",
             GUIDE_LEASE_PARAGRAPH,
             "Completed `verified`, `partially_verified`, `failed`, and `not_measured` receipts remain complete. A `blocked` logical call may receive a new actual `:attempt-N` ID only when spare budget remains.",
-            GUIDE_V17_RECEIPT_PARAGRAPH,
+            GUIDE_V18_RECEIPT_PARAGRAPH,
         ),
     ),
     (
@@ -710,6 +726,7 @@ GUIDE_EXPECTED_SECTIONS = (
             "The optional report uses exactly these executed-evidence definitions:",
             " ".join(f"- `{status}`: {meaning}" for status, meaning in GUIDE_STATUS_DEFINITIONS),
             GUIDE_JUDGE_PARAGRAPH,
+            GUIDE_EDIT_SEMANTICS_PARAGRAPH,
             "No aggregate average erases a severe failure. Every report states the level at which a status applies.",
         ),
     ),
@@ -1102,12 +1119,12 @@ class LiveDocumentationTests(unittest.TestCase):
             re.sub(r"\s+", " ", text),
         )
 
-    def test_eval_guide_documents_v17_receipt_and_review_identity_boundaries(self) -> None:
+    def test_eval_guide_documents_v18_receipt_and_review_identity_boundaries(self) -> None:
         text = re.sub(
             r"\s+", " ", (HERE / "README.md").read_text(encoding="utf-8")
         )
         for required in (
-            "Runner version 17 validates the exact receipt and nested identity/finding schemas",
+            "Runner version 18 validates the exact receipt and nested identity/finding schemas",
             "Every current `partially_verified` receipt carries at least one typed `not_measured` finding",
             "runner-version-10 evidence remains readable",
             "emitted into the canonical review prompt",
@@ -1330,6 +1347,42 @@ class DeterministicEvaluationTests(unittest.TestCase):
             case, "이 기능은 사용할 수 있지만 반드시 켤 필요는 없습니다.\n"
         )
         self.assertEqual(result, ())
+
+    def test_swapped_attribution_is_not_verified(self) -> None:
+        case = case_by_id("preserve-literals-attribution")
+        response = (
+            "2026-08-23에 박지영이 “40명 모두 확인했습니다”라고 기록했고 "
+            "김민수는 v2.1.0 배포를 보류했다."
+        )
+        self.assert_soft_partial(case, response, "attribution_not_measured")
+
+    def test_reversed_polish_meaning_is_not_verified(self) -> None:
+        case = case_by_id("polish-local-flow")
+        self.assert_soft_partial(
+            case, "회의 의견을 무시하고 초안을 다시 폐기했습니다.",
+            "semantic_not_measured",
+        )
+
+    def test_uncorrected_flow_does_not_prove_naturalness(self) -> None:
+        case = case_by_id("polish-local-flow")
+        self.assert_soft_partial(case, case.source, "semantic_not_measured")
+
+    def test_known_correction_positive_form_still_verifies(self) -> None:
+        case = case_by_id("correct-obligation")
+        findings = live_matrix.evaluate_response(case, case.exact_output)
+        self.assertEqual(findings, ())
+        self.assertEqual(live_matrix.case_status(case, findings), "verified")
+
+    def test_unchanged_attribution_is_a_positive_preservation_form(self) -> None:
+        case = case_by_id("preserve-literals-attribution")
+        findings = live_matrix.evaluate_response(case, case.source)
+        self.assertEqual(live_matrix.case_status(case, findings), "verified")
+
+    def test_known_literal_loss_is_failed_even_with_unmeasured_semantics(self) -> None:
+        case = case_by_id("preserve-literals-attribution")
+        findings = live_matrix.evaluate_response(case, case.source.replace("박지영", ""))
+        self.assertEqual(live_matrix.case_status(case, findings), "failed")
+        self.assertIn("occurrence_count_changed", {f.code for f in findings})
 
     def test_preamble_is_not_normalized_away(self) -> None:
         case = case_by_id("correct-obligation")
@@ -5825,6 +5878,29 @@ class ReviewAndReportTests(unittest.TestCase):
             ["structural_semantics_not_measured"],
         )
 
+    def test_new_semantic_signals_survive_receipt_and_review_packet(self) -> None:
+        case = case_by_id("preserve-literals-attribution")
+        for code in ("semantic_not_measured", "attribution_not_measured"):
+            with self.subTest(code=code):
+                receipt = live_matrix.CallReceipt.for_test(
+                    "producer:preserve-literals-attribution:1",
+                    status="partially_verified", case_id=case.id, band=case.band,
+                    findings=(live_matrix.Finding(
+                        code, "synthetic uncertainty", certainty="not_measured",
+                    ),),
+                )
+                restored = live_matrix._receipt_from_json(receipt.as_json())
+                samples = live_matrix.select_review_samples(
+                    (restored,), responses={receipt.call_id: case.source},
+                    cases={case.id: case},
+                )
+                evidence = next(
+                    sample for sample in samples
+                    if sample.sample_kind == "semantic_not_measured"
+                )
+                self.assertIn(code, evidence.not_measured_signals)
+                self.assertIn(code, live_matrix.build_review_prompt(samples))
+
     def test_packet_reserves_two_of_eight_evidence_slots_for_balanced_soft_samples(self) -> None:
         soft_receipts = (
             live_matrix.CallReceipt.for_test(
@@ -5899,7 +5975,20 @@ class ReviewAndReportTests(unittest.TestCase):
             ),
         )
         hard_and_controls = synthetic_receipts_for_test(10, 4)
-        receipts = soft_receipts + hard_and_controls
+        new_semantic_receipts = tuple(
+            live_matrix.CallReceipt.for_test(
+                f"soft-{code}",
+                status="partially_verified",
+                case_id="a-" + code.replace("_", "-"),
+                band="preservation",
+                response_sha256="b" * 64,
+                findings=(live_matrix.Finding(
+                    code, "synthetic uncertainty", certainty="not_measured",
+                ),),
+            )
+            for code in ("semantic_not_measured", "attribution_not_measured")
+        )
+        receipts = soft_receipts + new_semantic_receipts + hard_and_controls
 
         samples = live_matrix.select_review_samples(tuple(reversed(receipts)))
         forward = live_matrix.select_review_samples(receipts)
