@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 
@@ -26,6 +27,7 @@ from scripts.lib.change_routing import (  # noqa: E402
     targets_for_paths,
 )
 from scripts.lib.product_registry import load_registry  # noqa: E402
+from scripts.lib.verification import stages  # noqa: E402
 
 
 def run_git(repository: Path, *arguments: str) -> str:
@@ -294,10 +296,69 @@ class MatrixSerializationTests(RegistryRoutingTestCase):
         for event in ("push", "workflow_dispatch"):
             self.assertEqual(matrix_for_event(event, ROOT, self.registry), expected, event)
 
-    def test_unknown_event_selects_every_target_row(self) -> None:
+    def test_common_pr_runs_repository_contract(self) -> None:
+        cases = ((), ("scripts/lib/product_registry.py",), ("unknown-file",))
+        for paths in cases:
+            with self.subTest(paths=paths), mock.patch(
+                "scripts.lib.change_routing.changed_paths", return_value=paths
+            ):
+                matrix = matrix_for_event(
+                    "pull_request", ROOT, self.registry, "base", "head"
+                )
+            self.assertEqual(matrix, full_repository_matrix())
+            for row in matrix["include"]:
+                self.assertEqual(row["selector"], "")
+                names = [
+                    stage.name
+                    for stage in stages(ROOT, row["profile"], self.registry)
+                ]
+                self.assertIn("repository-contract", names)
+
+    def test_product_only_pr_retains_narrow_selector(self) -> None:
+        with mock.patch(
+            "scripts.lib.change_routing.changed_paths",
+            return_value=("skills/how-it-works/SKILL.md",),
+        ):
+            matrix = matrix_for_event(
+                "pull_request", ROOT, self.registry, "base", "head"
+            )
+        self.assertEqual(len(matrix["include"]), 2)
+        self.assertEqual(
+            {row["selector"] for row in matrix["include"]},
+            {"--skill how-it-works"},
+        )
+
+    def test_all_product_paths_retain_narrow_product_selectors(self) -> None:
+        paths = tuple(product.skill_path.as_posix() for product in self.registry.products)
+        with mock.patch(
+            "scripts.lib.change_routing.changed_paths", return_value=paths
+        ):
+            matrix = matrix_for_event(
+                "pull_request", ROOT, self.registry, "base", "head"
+            )
+        self.assertEqual(len(matrix["include"]), len(self.registry.products) * 2)
+        self.assertEqual(
+            {row["selector"] for row in matrix["include"]},
+            {f"--skill {name}" for name in self.registry.names},
+        )
+
+    def test_catalog_path_retains_narrow_catalog_selector(self) -> None:
+        with mock.patch(
+            "scripts.lib.change_routing.changed_paths",
+            return_value=("catalog/release.toml",),
+        ):
+            matrix = matrix_for_event(
+                "pull_request", ROOT, self.registry, "base", "head"
+            )
+        self.assertEqual(len(matrix["include"]), 2)
+        self.assertEqual(
+            {row["selector"] for row in matrix["include"]}, {"--catalog"}
+        )
+
+    def test_unknown_event_uses_full_repository_matrix(self) -> None:
         self.assertEqual(
             matrix_for_event("schedule", ROOT, self.registry),
-            matrix_for_targets(self.all_targets, self.registry),
+            full_repository_matrix(),
         )
 
 
@@ -334,6 +395,26 @@ class ChangedPathAndCliTests(RegistryRoutingTestCase):
             run_git(repository, "commit", "-m", "seed")
             sha = run_git(repository, "rev-parse", "HEAD")
             self.assertEqual(changed_paths(repository, sha, sha), ())
+
+    def test_invalid_git_refs_use_full_repository_matrix(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            repository = Path(directory)
+            init_repository(repository)
+            (repository / "README.md").write_text("seed\n", encoding="utf-8")
+            run_git(repository, "add", "-A")
+            run_git(repository, "commit", "-m", "seed")
+
+            matrix = matrix_for_event(
+                "pull_request",
+                repository,
+                self.registry,
+                "missing-base",
+                "missing-head",
+            )
+
+        self.assertEqual(matrix, full_repository_matrix())
+        self.assertEqual(len(matrix["include"]), 2)
+        self.assertTrue(all(row["selector"] == "" for row in matrix["include"]))
 
     def test_cli_writes_compact_full_matrix_for_main_and_dispatch(self) -> None:
         script = ROOT / "scripts" / "changed_targets.py"

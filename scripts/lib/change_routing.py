@@ -53,6 +53,22 @@ def targets_for_paths(paths: Iterable[str], registry: ProductRegistry) -> Sequen
     return tuple(target for target in _all_targets(registry) if target in selected)
 
 
+def matrix_for_paths(
+    paths: Iterable[str],
+    registry: ProductRegistry,
+) -> dict[str, list[dict[str, str]]]:
+    normalized = tuple(normalize_repo_path(path) for path in paths)
+    if not normalized:
+        return full_repository_matrix()
+    for path in normalized:
+        known = path.startswith(CATALOG_PREFIX) or any(
+            _matches_owned(path, product.owned_paths) for product in registry.products
+        )
+        if not known:
+            return full_repository_matrix()
+    return matrix_for_targets(targets_for_paths(normalized, registry), registry)
+
+
 def matrix_for_targets(
     targets: Iterable[str],
     registry: ProductRegistry,
@@ -123,8 +139,5 @@ def matrix_for_event(
     if event in FULL_REPOSITORY_EVENTS:
         return full_repository_matrix()
     if event == "pull_request" and base and head:
-        return matrix_for_targets(
-            targets_for_paths(changed_paths(root, base, head), registry),
-            registry,
-        )
-    return matrix_for_targets(_all_targets(registry), registry)
+        return matrix_for_paths(changed_paths(root, base, head), registry)
+    return full_repository_matrix()
