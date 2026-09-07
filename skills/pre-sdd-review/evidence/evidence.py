@@ -503,33 +503,31 @@ def validate_finish_shape(payload: object) -> dict[str, object]:
 
 
 def validate_finish(payload: object, mode: str) -> dict[str, object]:
-    normalized = validate_finish_shape(payload)
-    findings = normalized["findings"]
-    repair_passes = normalized["repair_passes"]
-    if any(item["repair_pass"] is not None and item["repair_pass"] > repair_passes for item in findings):
-        fail("schema-invalid", "finding.repair_pass exceeds repair_passes")
-    verdict = normalized["verdict"]
-    block_reason = normalized["block_reason"]
-    execution = normalized["execution"]
-    reviewers = normalized["reviewers"]
-    trigger = normalized["trigger"]
-    reasons = normalized["degraded_reasons"]
-    statuses = [str(item["status"]) for item in findings]
-    if verdict == "READY" and any(status != "repaired" for status in statuses):
-        fail("schema-invalid", "READY permits only repaired findings")
-    if verdict == "REVISE" and "unresolved" not in statuses:
-        fail("schema-invalid", "REVISE requires an unresolved finding")
-    if verdict == "BLOCKED" and block_reason is None:
-        fail("schema-invalid", "BLOCKED requires block_reason")
-    if repair_passes > 0 and "repaired" not in statuses:
-        fail("schema-invalid", "repair_passes requires at least one repaired finding")
-    if mode == "review-only" and repair_passes != 0:
-        fail("schema-invalid", "review-only permits no repair pass")
-    if execution == "full" and (reasons or reviewers != (2 if trigger is not None else 1)):
-        fail("schema-invalid", "full execution requires one reviewer, or two with a trigger, and no degraded reasons")
-    if execution == "degraded" and not reasons:
-        fail("schema-invalid", "degraded execution requires degraded_reasons")
-    return normalized
+    return validate_finish_shape(payload)
+
+
+def observation_anomalies(record: dict[str, object]) -> list[str]:
+    """Annotate completed observations without rejudging their recorded verdict."""
+    if record["status"] != "completed":
+        return []
+    findings = record["findings"]
+    statuses = [item["status"] for item in findings]
+    expected_reviewers = 2 if record["trigger"] is not None else 1
+    checks = {
+        "blocked_execution_with_nonblocked_verdict": record["execution"] == "blocked" and record["verdict"] != "BLOCKED",
+        "ready_with_unresolved_findings": record["verdict"] == "READY" and any(status != "repaired" for status in statuses),
+        "revise_without_unresolved_finding": record["verdict"] == "REVISE" and "unresolved" not in statuses,
+        "blocked_without_reason": record["verdict"] == "BLOCKED" and record["block_reason"] is None,
+        "repair_without_repaired_finding": bool(record["repair_passes"]) and "repaired" not in statuses,
+        "review_only_with_repair": record["mode"] == "review-only" and record["repair_passes"] != 0,
+        "full_reviewer_count_mismatch": record["execution"] == "full" and record["reviewers"] != expected_reviewers,
+        "full_with_degraded_reasons": record["execution"] == "full" and bool(record["degraded_reasons"]),
+        "degraded_without_reason": record["execution"] == "degraded" and not record["degraded_reasons"],
+        "finding_repair_pass_exceeds_total": any(item["repair_pass"] is not None and item["repair_pass"] > record["repair_passes"] for item in findings),
+        "head_changed_during_review": record["git"]["head_start"] != record["git"]["head_end"],
+        "design_unresolved_but_full_execution": record["design"] is None and record["execution"] == "full",
+    }
+    return sorted(name for name, observed in checks.items() if observed)
 
 
 def _object(value: object, name: str, keys: set[str]) -> dict[str, object]:
@@ -773,11 +771,22 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
     completed = [record for record in records if record["status"] == "completed"]
     runs_index: list[dict[str, object]] = []
     chains: dict[tuple[str, str], list[dict[str, object]]] = {}
+    chain_repos: dict[tuple[str, str], str] = {}
     pattern_runs: dict[tuple[str, str], list[str]] = {}
     severities: list[str] = []
     statuses: list[str] = []
     classes: list[str] = []
+    anomalous_run_ids: set[str] = set()
     anomalies: dict[str, list[object]] = {
+        "blocked_execution_with_nonblocked_verdict": [],
+        "ready_with_unresolved_findings": [],
+        "revise_without_unresolved_finding": [],
+        "blocked_without_reason": [],
+        "review_only_with_repair": [],
+        "full_reviewer_count_mismatch": [],
+        "full_with_degraded_reasons": [],
+        "degraded_without_reason": [],
+        "finding_repair_pass_exceeds_total": [],
         "repair_without_repaired_finding": [],
         "head_changed_during_review": [],
         "design_unresolved_but_full_execution": [],
@@ -795,6 +804,8 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
                 "run_id": run_id,
                 "started_at": record["started_at"],
                 "repo": record["repo"],
+                "repo_key": record["repo_key"] if record["schema"] == 3 else None,
+                "binding": "checkout-bound" if record["schema"] == 3 else "historical-unbound",
                 "plan": plan["path"],
                 "status": record["status"],
                 "verdict": record["verdict"],
@@ -802,11 +813,17 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
                 "elapsed_s": record["elapsed_s"],
             }
         )
-        chains.setdefault((str(record["repo"]), str(plan["path"])), []).append(
-            {"run_id": run_id, "status": record["status"], "verdict": record["verdict"]}
-        )
+        if record["schema"] == 3:
+            chain_key = (str(record["repo_key"]), str(plan["path"]))
+            chain_repos.setdefault(chain_key, str(record["repo"]))
+            chains.setdefault(chain_key, []).append(
+                {"run_id": run_id, "status": record["status"], "verdict": record["verdict"]}
+            )
         if record["status"] != "completed":
             continue
+        for anomaly in observation_anomalies(record):
+            anomalies[anomaly].append(run_id)
+            anomalous_run_ids.add(run_id)
         documents = {str(plan["path"])}
         if isinstance(design, dict):
             documents.add(str(design["path"]))
@@ -823,33 +840,36 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
                 anomalies["repo_reality_citing_documents_only"].append(
                     {"run_id": run_id, "finding_id": item["id"]}
                 )
-        if record["repair_passes"] and not any(item["status"] == "repaired" for item in findings):
-            anomalies["repair_without_repaired_finding"].append(run_id)
-        git_facts = record["git"]
-        assert isinstance(git_facts, dict)
-        if git_facts["head_start"] != git_facts["head_end"]:
-            anomalies["head_changed_during_review"].append(run_id)
-        if design is None and record["execution"] == "full":
-            anomalies["design_unresolved_but_full_execution"].append(run_id)
+                anomalous_run_ids.add(run_id)
     elapsed = [int(record["elapsed_s"]) for record in completed if isinstance(record["elapsed_s"], int)]
     outcomes = [record["outcome"] for record in completed if isinstance(record["outcome"], dict)]
     outcome_counts = {"recorded": len(outcomes)}
     outcome_counts.update(_count([str(item["label"]) for item in outcomes], OUTCOME_LABELS))
+    normal = [record for record in completed if str(record["run_id"]) not in anomalous_run_ids]
+    anomalous = [record for record in completed if str(record["run_id"]) in anomalous_run_ids]
+    counts = {
+        "status": _count(
+            [str(record["status"]) for record in records],
+            ("completed", "abandoned", "pending"),
+        ),
+        "verdict": _count([str(record["verdict"]) for record in completed], VERDICTS),
+        "execution": _count([str(record["execution"]) for record in completed], EXECUTIONS),
+        "abandon_reason": _count(
+            [str(record["abandon_reason"]) for record in records if record["status"] == "abandoned"]
+        ),
+        "outcome": outcome_counts,
+        "observation": {"normal": len(normal), "anomalous": len(anomalous)},
+        "normal_verdict": _count([str(record["verdict"]) for record in normal], VERDICTS),
+        "anomalous_verdict": _count([str(record["verdict"]) for record in anomalous], VERDICTS),
+        "binding": _count(
+            ["checkout-bound" if record["schema"] == 3 else "historical-unbound" for record in records],
+            ("checkout-bound", "historical-unbound"),
+        ),
+    }
     return {
         "schema": SCHEMA,
         "runs": runs_index,
-        "counts": {
-            "status": _count(
-                [str(record["status"]) for record in records],
-                ("completed", "abandoned", "pending"),
-            ),
-            "verdict": _count([str(record["verdict"]) for record in completed], VERDICTS),
-            "execution": _count([str(record["execution"]) for record in completed], EXECUTIONS),
-            "abandon_reason": _count(
-                [str(record["abandon_reason"]) for record in records if record["status"] == "abandoned"]
-            ),
-            "outcome": outcome_counts,
-        },
+        "counts": counts,
         "cost": {
             "elapsed_s": {
                 "median": int(statistics.median(elapsed)) if elapsed else None,
@@ -867,8 +887,8 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
             ),
         },
         "chains": [
-            {"repo": repo, "plan": plan_path, "runs": runs}
-            for (repo, plan_path), runs in chains.items()
+            {"repo": chain_repos[(repo_key, plan_path)], "repo_key": repo_key, "plan": plan_path, "runs": runs}
+            for (repo_key, plan_path), runs in chains.items()
             if len(runs) >= 2
         ],
         "findings": {

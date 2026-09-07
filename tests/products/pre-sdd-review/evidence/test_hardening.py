@@ -368,10 +368,6 @@ class LegacyTests(RecorderFixture):
         self.assertNotIn("repo_key", load(self.home, run_id))
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class ReaderTests(RecorderFixture):
     def assert_damage_isolated(self, good_id: str, bad_id: str) -> None:
         code, out, err = run(["show", "--run-id", bad_id], home=self.home, cwd=self.repo)
@@ -558,7 +554,7 @@ class ReaderTests(RecorderFixture):
             self.assertEqual(json.loads(out)["invalid_records"], 1)
             self.assertEqual([item["run_id"] for item in json.loads(out)["runs"]], expected)
 
-    def test_typed_contradictions_are_readable_but_finish_still_rejects_them(self) -> None:
+    def test_typed_contradictions_are_readable_and_finish_accepts_them(self) -> None:
         run_id = start(self.home, self.repo, self.skill)
         self.assertEqual(finish(self.home, self.repo, run_id, finish_payload())[0], 0)
         original = load(self.home, run_id)
@@ -571,8 +567,7 @@ class ReaderTests(RecorderFixture):
         ]
         for payload in payloads:
             with self.subTest(payload=payload):
-                with self.assertRaises(evidence.EvidenceError):
-                    evidence.validate_finish(payload, "default")
+                self.assertEqual(evidence.validate_finish(payload, "default"), payload)
                 record = {**original, **payload, "schema": 2}
                 del record["repo_key"]
                 path = self.put(run_id, record)
@@ -655,3 +650,89 @@ class ReaderTests(RecorderFixture):
         self.assertEqual((code, err), (0, ""))
         self.assertEqual(json.loads(out)["invalid_records"], 0)
         self.assertEqual([item["repo"] for item in json.loads(out)["runs"]], ["same", "독서📚"])
+
+
+class ObservationTests(RecorderFixture):
+    def test_blocked_ready_is_preserved_and_separated(self) -> None:
+        normal = start(self.home, self.repo, self.skill)
+        self.assertEqual(finish(self.home, self.repo, normal, finish_payload())[0], 0)
+        suspect = start(self.home, self.repo, self.skill)
+        payload = finish_payload(execution="blocked", reviewers=0, verdict="READY")
+        code, _, err = finish(self.home, self.repo, suspect, payload)
+        self.assertEqual(code, 0, err)
+        path = self.home / "runs" / f"{suspect}.json"
+        before = path.read_bytes()
+        self.assertEqual(load(self.home, suspect)["verdict"], "READY")
+        code, out, err = run(["summary"], home=self.home, cwd=self.repo)
+        self.assertEqual((code, err), (0, ""))
+        summary = json.loads(out)
+        self.assertIn(suspect, summary["anomalies"]["blocked_execution_with_nonblocked_verdict"])
+        self.assertEqual(summary["counts"]["observation"], {"normal": 1, "anomalous": 1})
+        self.assertEqual(summary["counts"]["normal_verdict"], {"READY": 1, "REVISE": 0, "BLOCKED": 0})
+        self.assertEqual(summary["counts"]["anomalous_verdict"], {"READY": 1, "REVISE": 0, "BLOCKED": 0})
+        self.assertEqual(summary["counts"]["verdict"]["READY"], 2)
+        self.assertEqual(path.read_bytes(), before)
+
+    def test_same_basename_and_legacy_are_not_checkout_chains(self) -> None:
+        first = start(self.home, self.repo, self.skill)
+        second = start(self.home, self.repo, self.skill)
+        other = make_git_repo(self.workspace / "second", "same")
+        third = start(self.home, other, self.skill)
+        legacy = start(self.home, self.repo, self.skill)
+        record = load(self.home, legacy)
+        record["schema"] = 2
+        record.pop("repo_key")
+        path = self.put(legacy, record)
+        before = path.read_bytes()
+        code, out, err = run(["summary", "--repo", "same"], home=self.home, cwd=self.repo)
+        self.assertEqual((code, err), (0, ""))
+        summary = json.loads(out)
+        self.assertEqual(len(summary["chains"]), 1)
+        chain = summary["chains"][0]
+        self.assertEqual([row["run_id"] for row in chain["runs"]], [first, second])
+        self.assertEqual((chain["repo"], chain["plan"], chain["repo_key"]), ("same", "docs/plan.md", self.key(first)))
+        rows = {row["run_id"]: row for row in summary["runs"]}
+        self.assertEqual(rows[legacy]["binding"], "historical-unbound")
+        self.assertIsNone(rows[legacy]["repo_key"])
+        self.assertEqual(rows[first]["binding"], "checkout-bound")
+        self.assertNotEqual(rows[first]["repo_key"], rows[third]["repo_key"])
+        self.assertEqual(summary["counts"]["binding"], {"checkout-bound": 3, "historical-unbound": 1})
+        self.assertEqual(summary["counts"]["observation"], {"normal": 0, "anomalous": 0})
+        self.assertEqual(path.read_bytes(), before)
+
+    def test_multiple_anomalies_are_sorted_without_mutating_observations(self) -> None:
+        run_id = start(self.home, self.repo, self.skill, mode="review-only")
+        self.assertEqual(evidence.observation_anomalies(load(self.home, run_id)), [])
+        payload = finish_payload(execution="degraded", repair_passes=1,
+                                 findings=[finding(status="unresolved", repair_pass=2)])
+        code, _, err = finish(self.home, self.repo, run_id, payload)
+        self.assertEqual((code, err), (0, ""))
+        record = load(self.home, run_id)
+        before = copy.deepcopy(record)
+        self.assertEqual(evidence.observation_anomalies(record), [
+            "degraded_without_reason", "finding_repair_pass_exceeds_total",
+            "ready_with_unresolved_findings", "repair_without_repaired_finding",
+            "review_only_with_repair",
+        ])
+        self.assertEqual(record, before)
+        code, out, err = run(["summary"], home=self.home, cwd=self.repo)
+        self.assertEqual((code, err), (0, ""))
+        self.assertEqual(json.loads(out)["counts"]["observation"], {"normal": 0, "anomalous": 1})
+
+    def test_document_only_finding_counts_as_anomalous_observation(self) -> None:
+        run_id = start(self.home, self.repo, self.skill)
+        item = finding(**{"class": "repo-reality"}, evidence=["docs/plan.md"])
+        self.assertEqual(finish(self.home, self.repo, run_id,
+                               finish_payload(repair_passes=1, findings=[item]))[0], 0)
+        self.assertEqual(evidence.observation_anomalies(load(self.home, run_id)), [])
+        code, out, err = run(["summary"], home=self.home, cwd=self.repo)
+        self.assertEqual((code, err), (0, ""))
+        summary = json.loads(out)
+        self.assertEqual(summary["anomalies"]["repo_reality_citing_documents_only"], [
+            {"run_id": run_id, "finding_id": "PSDR-001"},
+        ])
+        self.assertEqual(summary["counts"]["observation"], {"normal": 0, "anomalous": 1})
+
+
+if __name__ == "__main__":
+    unittest.main()

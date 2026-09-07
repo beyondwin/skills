@@ -223,7 +223,7 @@ class FinishTests(unittest.TestCase):
         self.assertIsInstance(record["elapsed_s"], int)
         self.assertRegex(record["completed_at"], r"Z$")
 
-    def test_finish_rejects_each_invariant_violation(self) -> None:
+    def test_finish_preserves_contradictions_as_anomalies(self) -> None:
         cases = {
             "ready-with-unresolved": finish_payload(findings=[finding(status="unresolved", repair_pass=None)]),
             "revise-without-unresolved": finish_payload(verdict="REVISE", repair_passes=1, findings=[finding()]),
@@ -233,8 +233,34 @@ class FinishTests(unittest.TestCase):
             "full-one-reviewer-with-trigger": finish_payload(trigger="schema-migration"),
             "full-with-degraded-reason": finish_payload(degraded_reasons=["fresh-reviewer-unavailable"]),
             "degraded-without-reason": finish_payload(execution="degraded"),
-            "duplicate-finding-id": finish_payload(repair_passes=1, findings=[finding(), finding(pattern="other")]),
             "repair-pass-exceeds": finish_payload(repair_passes=1, findings=[finding(repair_pass=2)]),
+        }
+        expected = {
+            "ready-with-unresolved": "ready_with_unresolved_findings",
+            "revise-without-unresolved": "revise_without_unresolved_finding",
+            "blocked-without-reason": "blocked_without_reason",
+            "repair-without-repaired": "repair_without_repaired_finding",
+            "full-two-reviewers-no-trigger": "full_reviewer_count_mismatch",
+            "full-one-reviewer-with-trigger": "full_reviewer_count_mismatch",
+            "full-with-degraded-reason": "full_with_degraded_reasons",
+            "degraded-without-reason": "degraded_without_reason",
+            "repair-pass-exceeds": "finding_repair_pass_exceeds_total",
+        }
+        for name, payload in cases.items():
+            with self.subTest(name=name):
+                run_id = start(self.home, self.repo, self.skill)
+                code, _, err = finish(self.home, self.repo, run_id, payload)
+                self.assertEqual((code, err), (0, ""))
+                record = load(self.home, run_id)
+                self.assertEqual({key: record[key] for key in payload}, payload)
+                self.assertEqual(evidence.observation_anomalies(record), [expected[name]])
+                code, out, err = run(["summary"], home=self.home, cwd=self.repo)
+                self.assertEqual((code, err), (0, ""))
+                self.assertIn(run_id, json.loads(out)["anomalies"][expected[name]])
+
+    def test_finish_rejects_each_shape_violation(self) -> None:
+        cases = {
+            "duplicate-finding-id": finish_payload(repair_passes=1, findings=[finding(), finding(pattern="other")]),
             "absolute-evidence-path": finish_payload(repair_passes=1, findings=[finding(evidence=["/etc/passwd"])]),
             "parent-location-path": finish_payload(repair_passes=1, findings=[finding(location={"path": "../x.md", "locator": "L1"})]),
             "long-consequence": finish_payload(repair_passes=1, findings=[finding(consequence="x" * 301)]),
@@ -261,10 +287,13 @@ class FinishTests(unittest.TestCase):
                 code, _, err = finish(self.home, self.repo, run_id, payload)
                 self.assertEqual(code, 0, err)
 
-    def test_review_only_rejects_repair_passes(self) -> None:
+    def test_review_only_preserves_repair_passes_as_anomaly(self) -> None:
         run_id = start(self.home, self.repo, self.skill, mode="review-only")
         code, _, err = finish(self.home, self.repo, run_id, finish_payload(repair_passes=1, findings=[finding()]))
-        self.assertEqual((code, error_code(err)), (2, "schema-invalid"))
+        self.assertEqual((code, err), (0, ""))
+        record = load(self.home, run_id)
+        self.assertEqual(record["repair_passes"], 1)
+        self.assertEqual(evidence.observation_anomalies(record), ["review_only_with_repair"])
 
     def test_finish_rejects_wrong_repository_and_second_finish(self) -> None:
         other = make_git_repo(self.workspace, name="other")
@@ -385,6 +414,15 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(summary["counts"]["outcome"], {"recorded": 0, "good": 0, "false-ready": 0, "noisy": 0, "abandoned": 0})
         self.assertEqual(summary["cost"], {"elapsed_s": {"median": None, "max": None}, "review_passes_avg": None, "repair_passes_avg": None})
         self.assertEqual(summary["anomalies"], {
+            "blocked_execution_with_nonblocked_verdict": [],
+            "ready_with_unresolved_findings": [],
+            "revise_without_unresolved_finding": [],
+            "blocked_without_reason": [],
+            "review_only_with_repair": [],
+            "full_reviewer_count_mismatch": [],
+            "full_with_degraded_reasons": [],
+            "degraded_without_reason": [],
+            "finding_repair_pass_exceeds_total": [],
             "repair_without_repaired_finding": [],
             "head_changed_during_review": [],
             "design_unresolved_but_full_execution": [],
@@ -417,7 +455,10 @@ class SummaryTests(unittest.TestCase):
         summary = self._summary()
         self.assertEqual(summary["invalid_records"], 2)
         self.assertEqual([item["run_id"] for item in summary["runs"]], [first, second, abandoned, pending, unresolved_design])
-        self.assertEqual(set(summary["runs"][0]), {"run_id", "started_at", "repo", "plan", "status", "verdict", "findings", "elapsed_s"})
+        self.assertEqual(set(summary["runs"][0]), {"run_id", "started_at", "repo", "repo_key", "binding", "plan", "status", "verdict", "findings", "elapsed_s"})
+        self.assertEqual(summary["counts"]["observation"], {"normal": 0, "anomalous": 3})
+        self.assertEqual(summary["counts"]["normal_verdict"], {"READY": 0, "REVISE": 0, "BLOCKED": 0})
+        self.assertEqual(summary["counts"]["anomalous_verdict"], {"READY": 2, "REVISE": 1, "BLOCKED": 0})
         self.assertEqual(summary["counts"]["status"], {"completed": 3, "abandoned": 1, "pending": 1})
         self.assertEqual(summary["counts"]["verdict"], {"READY": 2, "REVISE": 1, "BLOCKED": 0})
         self.assertEqual(summary["counts"]["execution"], {"full": 3, "degraded": 0, "blocked": 0})
