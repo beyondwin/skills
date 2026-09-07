@@ -276,6 +276,16 @@ failure adds `activation_not_measured`, including alongside another soft
 signal. Reviewer packets and reports keep not-measured signals separate from
 hard findings.
 
+For `diagnose`, omitting source facts, including nonnumeric protected phrases,
+does not prove factual drift. `diagnostic_fact_drift` requires a complete
+canonical source restatement with a changed protected number; that protected
+quantity must occur exactly once in the source. Alternative numbers, quoted
+examples, and changed numbers within longer free-form explanations remain
+`diagnostic_semantics_not_measured`. They are not verified as safe or legally
+valid. Edited-body literal checks and the declared forbidden diagnostic rewrite
+remain hard boundaries. This follows approved spec K2, replacing the earlier
+omission-as-drift expectation.
+
 For edited prose, free-form meaning, minimality, voice, or naturalness emits
 `semantic_not_measured` without a positive canonical form. Free-form speaker
 and statement relations emit `attribution_not_measured`. These soft findings

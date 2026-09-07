@@ -608,6 +608,17 @@ GUIDE_JUDGE_PARAGRAPH = (
     "signal. Reviewer packets and reports keep not-measured signals separate from "
     "hard findings."
 )
+GUIDE_DIAGNOSTIC_DRIFT_PARAGRAPH = (
+    "For `diagnose`, omitting source facts, including nonnumeric protected phrases, "
+    "does not prove factual drift. `diagnostic_fact_drift` requires a complete "
+    "canonical source restatement with a changed protected number; that protected "
+    "quantity must occur exactly once in the source. Alternative numbers, quoted "
+    "examples, and changed numbers within longer free-form explanations remain "
+    "`diagnostic_semantics_not_measured`. They are not verified as safe or legally "
+    "valid. Edited-body literal checks and the declared forbidden diagnostic rewrite "
+    "remain hard boundaries. This follows approved spec K2, replacing the earlier "
+    "omission-as-drift expectation."
+)
 GUIDE_EDIT_SEMANTICS_PARAGRAPH = (
     "For edited prose, free-form meaning, minimality, voice, or naturalness emits "
     "`semantic_not_measured` without a positive canonical form. Free-form speaker "
@@ -726,6 +737,7 @@ GUIDE_EXPECTED_SECTIONS = (
             "The optional report uses exactly these executed-evidence definitions:",
             " ".join(f"- `{status}`: {meaning}" for status, meaning in GUIDE_STATUS_DEFINITIONS),
             GUIDE_JUDGE_PARAGRAPH,
+            GUIDE_DIAGNOSTIC_DRIFT_PARAGRAPH,
             GUIDE_EDIT_SEMANTICS_PARAGRAPH,
             "No aggregate average erases a severe failure. Every report states the level at which a status applies.",
         ),
@@ -1457,7 +1469,42 @@ class DeterministicEvaluationTests(unittest.TestCase):
 
         self.assert_soft_partial(case, response, "diagnostic_semantics_not_measured")
 
-    def test_diagnose_rejects_protected_quantity_drift(self) -> None:
+    def test_diagnose_may_omit_unrelated_source_facts(self) -> None:
+        case = case_by_id("hold-high-stakes")
+        response = (
+            "‘언제나’와 ‘보장한다’의 적용 범위가 불분명합니다. "
+            "계약의 예외 조건과 보장 주체를 확인해 주세요. 결정 등급: hold."
+        )
+        self.assert_soft_partial(case, response, "diagnostic_semantics_not_measured")
+
+    def test_diagnose_ambiguous_alternative_number_is_not_hard_drift(self) -> None:
+        case = case_by_id("hold-high-stakes")
+        self.assert_soft_partial(
+            case,
+            "30일인지 31일인지 모호합니다. 전액 환불 조건을 확인해야 합니다.",
+            "diagnostic_semantics_not_measured",
+        )
+
+    def test_diagnose_positive_source_restatement_with_changed_number_fails(self) -> None:
+        case = case_by_id("hold-high-stakes")
+        response = case.source.replace("30일", "31일")
+        findings = live_matrix.evaluate_response(case, response)
+        self.assertEqual(live_matrix.case_status(case, findings), "failed")
+        self.assertTrue(
+            any(
+                finding.code == "diagnostic_fact_drift"
+                and finding.literal == "30일"
+                and finding.certainty == "hard"
+                for finding in findings
+            )
+        )
+
+    def test_diagnose_quoted_numeric_example_remains_unmeasured(self) -> None:
+        case = case_by_id("hold-high-stakes")
+        response = "‘31일’은 가상의 예시입니다. 원문의 적용 범위를 확인해 주세요."
+        self.assert_soft_partial(case, response, "diagnostic_semantics_not_measured")
+
+    def test_diagnose_ambiguous_quantity_explanations_remain_unmeasured(self) -> None:
         case = case_by_id("hold-high-stakes")
         responses = (
             "31일 기준이 모호합니다. 전액 환불 조건을 확인해야 합니다.",
@@ -1466,35 +1513,15 @@ class DeterministicEvaluationTests(unittest.TestCase):
 
         for response in responses:
             with self.subTest(response=response):
-                codes = {
-                    finding.code
-                    for finding in live_matrix.evaluate_response(case, response)
-                }
-                self.assertIn("diagnostic_fact_drift", codes)
-                findings = live_matrix.evaluate_response(case, response)
-                self.assertEqual(live_matrix.case_status(case, findings), "failed")
-                self.assertTrue(
-                    any(
-                        finding.code == "diagnostic_fact_drift"
-                        and getattr(finding, "certainty", None) == "hard"
-                        for finding in findings
-                    )
+                self.assert_soft_partial(
+                    case, response, "diagnostic_semantics_not_measured"
                 )
 
-    def test_diagnose_rejects_obvious_protected_literal_deletion(self) -> None:
+    def test_diagnose_protected_literal_omission_remains_unmeasured(self) -> None:
         case = case_by_id("hold-high-stakes")
         response = "30일 조건이 모호하므로 계약 범위를 확인해야 합니다."
 
-        findings = live_matrix.evaluate_response(case, response)
-        self.assertEqual(live_matrix.case_status(case, findings), "failed")
-        self.assertTrue(
-            any(
-                finding.code == "diagnostic_fact_drift"
-                and finding.literal == "전액 환불"
-                and getattr(finding, "certainty", None) == "hard"
-                for finding in findings
-            )
-        )
+        self.assert_soft_partial(case, response, "diagnostic_semantics_not_measured")
 
     def test_diagnose_marks_relation_scope_and_polarity_as_not_measured(self) -> None:
         case = case_by_id("hold-high-stakes")

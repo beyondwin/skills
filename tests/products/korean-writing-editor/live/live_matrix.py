@@ -960,24 +960,26 @@ def _canonical_structural_text(value: str) -> str:
 def _diagnostic_hard_drifts(case: LiveCase, candidate: str) -> tuple[str, ...]:
     if case.expected_behavior != "diagnose":
         return ()
-    canonical_candidate = _canonical_literal_text(candidate)
+    source = _canonical_literal_text(case.source)
+    observed = _canonical_literal_text(candidate)
     drifts: list[str] = []
     for fact in case.preserve_counts:
         canonical_fact = _canonical_literal_text(fact)
         quantity = re.fullmatch(r"(\d[\d,.]*)\s*([^\W\d_]+)", canonical_fact)
-        if quantity is None:
-            fact_tokens = tuple(re.findall(r"[^\W_]+", canonical_fact, re.UNICODE))
-            if fact_tokens and any(
-                token not in canonical_candidate for token in fact_tokens
-            ):
-                drifts.append(fact)
+        if quantity is None or source.count(canonical_fact) != 1:
             continue
         expected_number, unit = quantity.groups()
-        observed = re.findall(
-            rf"(?<![\d,.])(\d[\d,.]*)\s*{re.escape(unit)}",
-            canonical_candidate,
+        prefix, suffix = source.split(canonical_fact, 1)
+        # Only a complete source restatement proves a changed numeric assertion.
+        # Omission, quotations, and free-form explanations remain unmeasured.
+        pattern = (
+            re.escape(prefix)
+            + r"(?P<number>\d[\d,.]*)\s*"
+            + re.escape(unit)
+            + re.escape(suffix)
         )
-        if not observed or any(number != expected_number for number in observed):
+        match = re.fullmatch(pattern, observed)
+        if match is not None and match.group("number") != expected_number:
             drifts.append(fact)
     return tuple(drifts)
 
@@ -1089,7 +1091,7 @@ def evaluate_response(case: LiveCase, response: str) -> tuple[Finding, ...]:
         findings.append(
             Finding(
                 "diagnostic_fact_drift",
-                "diagnose output removes or changes a protected numeric fact",
+                "diagnose output restates the complete source with a changed protected number",
                 fact,
             )
         )
