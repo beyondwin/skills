@@ -327,6 +327,84 @@ class AssetInspectorTests(unittest.TestCase):
             self.assertEqual(main([str(input_path), "--output", str(output_path)]), 0)
             self.assertEqual(output_path.read_text(), expected)
 
+    def test_output_aliases_preserve_source_bytes(self):
+        data = make_png(3, 2, color_type=6)
+        for spelling in ("absolute", "relative", "normalized"):
+            with self.subTest(spelling=spelling), tempfile.TemporaryDirectory(prefix="image facts ") as directory:
+                root = Path(directory)
+                source = root / "asset.png"
+                source.write_bytes(data)
+                (root / "nested").mkdir()
+                target = {
+                    "absolute": str(source.resolve()),
+                    "relative": os.path.relpath(source, Path.cwd()),
+                    "normalized": str(root / "nested" / ".." / "asset.png"),
+                }[spelling]
+                stdout, stderr = StringSink(), StringSink()
+                result = main([str(source), "--output", target], stdout, stderr)
+                self.assertEqual(result, 1)
+                self.assertEqual(source.read_bytes(), data)
+                self.assertEqual(stdout.value, "")
+                self.assertEqual(len(stderr.value.splitlines()), 1)
+                error = json.loads(stderr.value)
+                self.assertEqual(error["path"], str(source))
+                self.assertTrue(error["error"])
+
+    def test_output_symlink_alias_preserves_both_directions(self):
+        data = make_png(3, 2, color_type=6)
+        for reverse in (False, True):
+            with self.subTest(reverse=reverse), tempfile.TemporaryDirectory(prefix="image facts ") as directory:
+                source = Path(directory) / "asset.png"
+                alias = Path(directory) / "alias.json"
+                source.write_bytes(data)
+                try:
+                    alias.symlink_to(source)
+                except (OSError, NotImplementedError) as error:
+                    self.skipTest(f"symlink unavailable on this host: {error}")
+                input_path, output_path = (alias, source) if reverse else (source, alias)
+                stdout, stderr = StringSink(), StringSink()
+                self.assertEqual(main([str(input_path), "--output", str(output_path)], stdout, stderr), 1)
+                self.assertTrue(alias.is_symlink())
+                self.assertEqual(source.read_bytes(), data)
+                self.assertEqual(alias.read_bytes(), data)
+                self.assertEqual(stdout.value, "")
+                self.assertEqual(json.loads(stderr.value)["path"], str(input_path))
+
+    def test_output_hardlink_preserves_source_bytes(self):
+        data = make_png(3, 2, color_type=6)
+        with tempfile.TemporaryDirectory(prefix="image facts ") as directory:
+            source = Path(directory) / "asset.png"
+            alias = Path(directory) / "alias.json"
+            source.write_bytes(data)
+            try:
+                os.link(source, alias)
+            except (OSError, NotImplementedError) as error:
+                self.skipTest(f"hard link unavailable on this host: {error}")
+            stdout, stderr = StringSink(), StringSink()
+            self.assertEqual(main([str(source), "--output", str(alias)], stdout, stderr), 1)
+            self.assertTrue(source.samefile(alias))
+            self.assertEqual(source.read_bytes(), data)
+            self.assertEqual(alias.read_bytes(), data)
+            self.assertEqual(stdout.value, "")
+            self.assertTrue(json.loads(stderr.value)["error"])
+
+    def test_existing_unrelated_json_output_is_updated(self):
+        data = make_png(3, 2, color_type=6)
+        with tempfile.TemporaryDirectory(prefix="image facts ") as directory:
+            source = Path(directory) / "asset.png"
+            output = Path(directory) / "facts.json"
+            source.write_bytes(data)
+            output.write_text('{"old": true}\n', encoding="utf-8")
+            stdout, stderr = StringSink(), StringSink()
+            self.assertEqual(main([str(source), "--output", str(output)], stdout, stderr), 0)
+            self.assertEqual(source.read_bytes(), data)
+            self.assertEqual(json.loads(output.read_text(encoding="utf-8")), {
+                "alpha": True, "byte_size": len(data), "format": "png",
+                "height": 2, "sha256": hashlib.sha256(data).hexdigest(), "width": 3,
+            })
+            self.assertEqual(stdout.value, "")
+            self.assertEqual(stderr.value, "")
+
     def test_output_write_error_cli_exits_one_with_error_json(self):
         with tempfile.TemporaryDirectory() as directory:
             input_path = Path(directory) / "asset.png"

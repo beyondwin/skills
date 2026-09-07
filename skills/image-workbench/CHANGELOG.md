@@ -4,10 +4,21 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 2.0.2 - 2026-09-08
+
+Local release preparation only. No new GitHub tag or GitHub Release
+has been published for this version.
+
+### Fixed
+
+- The inspector rejects output paths that alias the input asset, including
+  symlinks and hard links, before writing. Existing unrelated JSON reports
+  can still be updated.
+
 ### Added
 
 - Independent product `release.toml` and this changelog. The next standalone
-  target is `2.0.1`.
+  target is `2.0.2`.
 
 ### Changed
 

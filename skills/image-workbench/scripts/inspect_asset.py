@@ -330,6 +330,17 @@ def _write_json(value, output_stream):
     output_stream.write(json.dumps(value, sort_keys=True) + "\n")
 
 
+def _require_distinct_output(input_path: Path, output_path: Path) -> None:
+    if input_path.resolve() == output_path.resolve():
+        raise ValueError("output path refers to the input asset")
+    try:
+        identical = input_path.samefile(output_path)
+    except FileNotFoundError:
+        return
+    if identical:
+        raise ValueError("output path refers to the input asset")
+
+
 def main(argv=None, output_stream=None, error_stream=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("path", nargs="?")
@@ -348,9 +359,10 @@ def main(argv=None, output_stream=None, error_stream=None):
     rendered = json.dumps(dataclasses.asdict(facts), sort_keys=True) + "\n"
     if args.output:
         try:
+            _require_distinct_output(Path(args.path), Path(args.output))
             Path(args.output).write_text(rendered)
-        except OSError as error:
-            message = error.strerror if error.strerror else str(error)
+        except (OSError, ValueError) as error:
+            message = error.strerror if isinstance(error, OSError) and error.strerror else str(error)
             _write_json({"error": message, "path": args.path}, error_stream)
             return 1
     else:

@@ -4,8 +4,8 @@ description: Use when the user asks to plan, generate, edit, compare, or product
 license: Apache-2.0
 compatibility: Requires Codex built-in image generation and local image viewing for generate or edit mode. Brief and audit modes can run read-only.
 metadata:
-  version: "2.0.1"
-  updated_at: "2026-08-27"
+  version: "2.0.2"
+  updated_at: "2026-09-08"
 ---
 
 # Image Workbench
