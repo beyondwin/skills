@@ -22,6 +22,7 @@ from scripts.lib.documentation import (  # noqa: E402
 from scripts.lib.product_contract import validate_product  # noqa: E402
 from scripts.lib.product_registry import load_registry  # noqa: E402
 from scripts.lib.verification import WINDOWS_EXCLUDED_STAGES  # noqa: E402
+from tests.repository.test_installation_contract import installation_block  # noqa: E402
 
 REGISTRY = load_registry(ROOT / "products.toml")
 
@@ -109,11 +110,11 @@ SUPPORT_BY_PRODUCT = {
     "pre-sdd-review": PRE_SDD_REVIEW_SUPPORT,
 }
 HOW_IT_WORKS_MKDIR = "mkdir -p ~/.agents/skills ~/.claude/skills"
-HOW_IT_WORKS_AGENTS_LINK = (
-    'ln -s "$PWD/skills/how-it-works" ~/.agents/skills/how-it-works'
+HOW_IT_WORKS_AGENTS_INVOCATION = (
+    'python3 - "$PWD/skills/how-it-works" "$HOME/.agents/skills/how-it-works" <<\'PY\''
 )
-HOW_IT_WORKS_CLAUDE_LINK = (
-    'ln -s "$PWD/skills/how-it-works" ~/.claude/skills/how-it-works'
+HOW_IT_WORKS_CLAUDE_INVOCATION = (
+    'python3 - "$PWD/skills/how-it-works" "$HOME/.claude/skills/how-it-works" <<\'PY\''
 )
 HOW_IT_WORKS_UNLINK_AGENTS = "unlink ~/.agents/skills/how-it-works"
 HOW_IT_WORKS_UNLINK_CLAUDE = "unlink ~/.claude/skills/how-it-works"
@@ -617,8 +618,9 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
             path = ROOT / "skills/how-it-works" / filename
             text = _read(path)
             self.assertIn(HOW_IT_WORKS_MKDIR, text)
-            self.assertIn(HOW_IT_WORKS_AGENTS_LINK, text)
-            self.assertIn(HOW_IT_WORKS_CLAUDE_LINK, text)
+            self.assertTrue(installation_block(path.relative_to(ROOT).as_posix()))
+            self.assertIn(HOW_IT_WORKS_AGENTS_INVOCATION, text)
+            self.assertIn(HOW_IT_WORKS_CLAUDE_INVOCATION, text)
             self.assertIn(HOW_IT_WORKS_UNLINK_AGENTS, text)
             self.assertIn(HOW_IT_WORKS_UNLINK_CLAUDE, text)
             self.assertIn("$how-it-works", text)
@@ -633,8 +635,9 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
             self.assertNotIn("브라우저에서 여는 페이지", text)
             self.assertNotIn("page you open in a browser", text.lower())
             self.assertTrue(
-                "fails instead of overwriting" in text.lower() or "덮어쓰지 않고 실패" in text,
-                f"{filename} must say ln -s fails instead of overwriting",
+                "does not replace a different link, dangling link, file, or directory" in text.lower()
+                or "파일, 디렉터리는 자동으로 바꾸지 않습니다" in text,
+                f"{filename} must refuse to replace existing targets",
             )
 
     def test_product_readmes_include_installer_support_and_maintainer_link(self) -> None:
@@ -647,10 +650,11 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
                 self.assertIn(SUPPORT_BY_PRODUCT[product.name], text)
                 self.assertIn("CHANGELOG.md", text)
                 maintainer = product.maintainer_docs.as_posix()
-                self.assertIn(f"{maintainer}/contract.md", text)
-                self.assertIn(f"{maintainer}/testing.md", text)
-                self.assertIn(f"{maintainer}/compatibility.md", text)
-                self.assertIn(f"{maintainer}/release.md", text)
+                public = f"https://github.com/beyondwin/skills/blob/main/{maintainer}"
+                self.assertIn(f"{public}/contract.md", text)
+                self.assertIn(f"{public}/testing.md", text)
+                self.assertIn(f"{public}/compatibility.md", text)
+                self.assertIn(f"{public}/release.md", text)
                 self.assertNotIn(f"docs/maintainers/{product.name}.md", text)
                 self.assertTrue(
                     "inspect" in text.lower() or "확인" in text,
@@ -790,8 +794,9 @@ class UserGuideFactTests(unittest.TestCase):
                 f"{document.name} must label the npx installer as third-party",
             )
             self.assertIn(HOW_IT_WORKS_MKDIR, text)
-            self.assertIn(HOW_IT_WORKS_AGENTS_LINK, text)
-            self.assertIn(HOW_IT_WORKS_CLAUDE_LINK, text)
+            self.assertTrue(installation_block(document.relative_to(ROOT).as_posix()))
+            self.assertIn(HOW_IT_WORKS_AGENTS_INVOCATION, text)
+            self.assertIn(HOW_IT_WORKS_CLAUDE_INVOCATION, text)
             self.assertIn(HOW_IT_WORKS_UNLINK_AGENTS, text)
             self.assertIn(HOW_IT_WORKS_UNLINK_CLAUDE, text)
 

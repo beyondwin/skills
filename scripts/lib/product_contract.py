@@ -342,8 +342,6 @@ def _check_relative_links(skill_root: Path, relative_path: str, text: str) -> li
         try:
             resolved.relative_to(skill_root.resolve())
         except ValueError:
-            if Path(relative_path).name in {"README.md", "README.en.md"}:
-                continue
             errors.append(f"broken relative link in {relative_path}: {target}")
             continue
         if not resolved.exists():

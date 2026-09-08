@@ -28,15 +28,57 @@ python3 skills/pre-sdd-review/evidence/evidence.py --version
 
 ## How It Works 로컬 링크
 
-`how-it-works`는 저장소를 클론한 뒤 링크 두 개를 겁니다. 공개 경로는 https://github.com/beyondwin/skills/tree/main/skills/how-it-works 입니다. 첫 링크는 Codex, 둘째는 Claude Code입니다. Codex는 `~/.agents/skills/how-it-works`에서 찾습니다. `~/.codex`나 `~/.grok` 복사본을 만들지 마세요. `ln -s`는 이미 있는 대상을 덮어쓰지 않고 실패합니다.
+`how-it-works`는 저장소를 클론한 뒤 링크 두 개를 겁니다. 공개 경로는 https://github.com/beyondwin/skills/tree/main/skills/how-it-works 입니다. 첫 링크는 Codex, 둘째는 Claude Code입니다. Codex는 `~/.agents/skills/how-it-works`에서 찾습니다. `~/.codex`나 `~/.grok` 복사본을 만들지 마세요.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
 cd skills
 mkdir -p ~/.agents/skills ~/.claude/skills
-ln -s "$PWD/skills/how-it-works" ~/.agents/skills/how-it-works
-ln -s "$PWD/skills/how-it-works" ~/.claude/skills/how-it-works
 ```
+
+아래 일회성 Python 블록은 source와 target을 인자로 받습니다. source가 실제 스킬
+디렉터리인지 먼저 확인하고, 같은 링크는 성공으로 처리합니다. 다른 링크, 깨진 링크,
+파일, 디렉터리는 자동으로 바꾸지 않습니다. 대상이 검사 뒤 생기는 경우에도 멈추므로
+직접 확인한 뒤 다시 실행해야 합니다.
+
+<!-- how-it-works-local-links -->
+```python
+import os
+import sys
+from pathlib import Path
+
+if len(sys.argv) != 3:
+    raise SystemExit("usage: python3 - SOURCE TARGET")
+source = Path(sys.argv[1]).expanduser().resolve(strict=True)
+target = Path(os.path.abspath(os.path.expanduser(sys.argv[2])))
+if not source.is_dir() or not (source / "SKILL.md").is_file():
+    raise SystemExit("source must be a skill directory")
+if target.is_symlink():
+    try:
+        same = target.resolve(strict=True) == source
+    except (OSError, RuntimeError):
+        same = False
+    if same:
+        print("already linked")
+        raise SystemExit(0)
+    raise SystemExit("refusing different or dangling link")
+if target.exists():
+    raise SystemExit("refusing existing file or directory")
+target.parent.mkdir(parents=True, exist_ok=True)
+try:
+    target.symlink_to(source, target_is_directory=True)
+except FileExistsError:
+    raise SystemExit("target appeared during installation; inspect it before retrying")
+print("linked")
+```
+
+이 블록을 quoted here-document의 표준입력으로 넣고 target마다 별도로 실행합니다.
+Codex 호출은
+`python3 - "$PWD/skills/how-it-works" "$HOME/.agents/skills/how-it-works" <<'PY'`,
+Claude Code 호출은
+`python3 - "$PWD/skills/how-it-works" "$HOME/.claude/skills/how-it-works" <<'PY'`로
+시작합니다. 각 호출의 다음 줄에 위 Python 블록을 그대로 넣고 마지막 줄을 `PY`로
+닫습니다. source와 target 인자의 따옴표를 유지하세요.
 
 호스트마다 따로 복사하지 마세요. 첫 호출은 [`how-it-works` README](../../../skills/how-it-works/README.md)를 보세요.
 
@@ -56,6 +98,7 @@ npx skills add beyondwin/skills --skill korean-writing-editor
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
+cd skills
 SKILL_SOURCE="$PWD/skills/korean-writing-editor"
 SKILL_TARGET="${CODEX_HOME:-$HOME/.codex}/skills/korean-writing-editor"
 ls -ld "$SKILL_SOURCE"
