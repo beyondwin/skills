@@ -4,8 +4,8 @@ description: Use only when the user asks to proofread, correct, or polish Korean
 license: Apache-2.0
 compatibility: Requires Korean source text and local Agent Skills file access. Model delegation is optional and host-dependent.
 metadata:
-  version: "2.0.1"
-  updated_at: "2026-08-27"
+  version: "2.0.2"
+  updated_at: "2026-09-08"
 ---
 
 # Korean Writing Editor

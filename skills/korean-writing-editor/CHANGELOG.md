@@ -4,18 +4,29 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
-### Added
-
-- Independent product `release.toml` and this changelog. The next standalone
-  target is `2.0.1`.
-
-### Changed
-
-- Product README language was simplified with no behaviour change.
-
 ### Notes
 
 - This section does not claim a new GitHub tag or GitHub Release.
+
+## 2.0.2 - 2026-09-08
+
+### Changed
+
+- Clearly required local grammar repairs now apply in both `correct` and
+  `polish`; optional readability and local-flow edits remain `polish` only.
+- Repository-document links in both standalone READMEs now use absolute GitHub
+  paths, while links to files shipped in the payload remain relative.
+- Runner 18 distinguishes positive meaning and attribution evidence from
+  unmeasured free-form output, detects positive numeric drift in diagnostic
+  restatements, and retains bounded execution evidence separately from the
+  final response body.
+- Historical runner 10 through 17 receipts remain readable, but cannot
+  authorize or skip runner 18 execution under the new semantics.
+
+### Notes
+
+- This is local release preparation for standalone target `2.0.2`. No new
+  GitHub tag or GitHub Release has been published.
 
 ## 2.0.0 - 2026-08-27
 

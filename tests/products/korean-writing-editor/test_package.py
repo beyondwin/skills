@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
+import tomllib
 import unittest
 from pathlib import Path
 
@@ -61,6 +63,48 @@ class KoreanPackageTests(unittest.TestCase):
             self.assertFalse((staged / "CHANGE_PROTOCOL.md").exists())
             self.assertFalse((staged / "evals").exists())
 
+    def test_standalone_readme_relative_links_stay_inside_payload(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="korean payload ") as directory:
+            staged = Path(directory) / "korean-writing-editor"
+            shutil.copytree(SKILL_ROOT, staged)
+            for name in ("README.md", "README.en.md"):
+                text = (staged / name).read_text(encoding="utf-8")
+                for target in re.findall(r"\[[^\]]*\]\(([^)]+)\)", text):
+                    if target.startswith(("https://", "http://", "#")):
+                        continue
+                    resolved = (staged / target.split("#", 1)[0]).resolve()
+                    with self.subTest(file=name, target=target):
+                        self.assertTrue(resolved.is_relative_to(staged.resolve()))
+                        self.assertTrue(resolved.is_file())
+
+    def test_release_target_and_skill_version_are_202(self) -> None:
+        release = tomllib.loads(
+            (SKILL_ROOT / "release.toml").read_text(encoding="utf-8")
+        )
+        self.assertEqual(release["version"], "2.0.2")
+        self.assertIn(
+            'version: "2.0.2"',
+            (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8"),
+        )
+        changelog = (SKILL_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+        self.assertRegex(changelog, r"(?m)^## 2\.0\.2 - \d{4}-\d{2}-\d{2}$")
+
+    def test_full_scope_rejects_a_broken_readme_link_in_a_copied_payload(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            staged = Path(directory) / "korean-writing-editor"
+            shutil.copytree(SKILL_ROOT, staged)
+            readme = staged / "README.md"
+            readme.write_text(
+                readme.read_text(encoding="utf-8")
+                + "\n[missing](missing.md)\n",
+                encoding="utf-8",
+            )
+            result = run_offline("--scope", "full", "--skill-root", str(staged))
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("broken relative link", result.stdout + result.stderr)
+
     def test_payload_declares_canonical_name_license_and_version(self) -> None:
         skill_md = SKILL_ROOT / "SKILL.md"
         self.assertTrue(skill_md.is_file(), "SKILL.md is absent")
@@ -69,7 +113,7 @@ class KoreanPackageTests(unittest.TestCase):
         self.assertIn("name: korean-writing-editor", text)
         self.assertIn("license: Apache-2.0", text)
         self.assertIn("compatibility:", text)
-        self.assertIn('version: "2.0.1"', text)
+        self.assertIn('version: "2.0.2"', text)
         for relative in PAYLOAD_FILES:
             self.assertTrue(
                 (SKILL_ROOT / relative).is_file(),

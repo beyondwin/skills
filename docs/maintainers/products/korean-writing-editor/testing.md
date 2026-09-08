@@ -4,6 +4,12 @@
 `tests/products/korean-writing-editor/offline/run.py`에서 서른세 개 속성
 케이스와 변이 검사를 그대로 유지하세요.
 
+`--scope full`은 `README.md`와 `README.en.md`도 필수 payload 파일로 읽고,
+복사한 standalone payload에서 모든 로컬 링크가 payload 내부의 실제 파일로
+해결되는지 검사합니다. 저장소 문서 링크는 절대 GitHub URL이므로 네트워크로
+응답 상태를 확인하지 않습니다. 제품 패키지 회귀는 `release.toml`, `SKILL.md`,
+날짜가 있는 `2.0.2` CHANGELOG 항목과 깨진 README 링크의 거부를 함께 확인합니다.
+
 ## 결정적 픽스처
 
 - trigger 작업은 긍정 기록과 near-miss 기록이 모두 필요합니다.
@@ -27,6 +33,10 @@
 `tests/products/korean-writing-editor/live/README.md`를 함께 맞춥니다. 라이브
 케이스는 합성입니다. 이 아티팩트에 비공개 원고나 전체 트랜스크립트를 넣지
 않습니다.
+
+이번 hardening series의 제품 증거는 runner 18로 새로 만들어야 합니다.
+runner 10부터 17까지의 과거 영수증은 읽을 수 있지만 runner 18 실행을
+재개하거나 생략하는 근거로 재사용하지 않습니다.
 
 라이브 예산 변경은 119-producer, 3-reviewer, 122-baseline, 38-remediation,
 160-total dry-run과 파서 단언을 동기화합니다. 보고서가 있는 resume 변경은

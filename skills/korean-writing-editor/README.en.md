@@ -20,7 +20,7 @@ code review, casual conversation, authorship detection, or detector evasion.
 korean-writing-editor: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
 
 Codex is the measured host today. Other hosts are in
-[Compatibility](../../docs/users/en/compatibility.md).
+[Compatibility](https://github.com/beyondwin/skills/blob/main/docs/users/en/compatibility.md).
 
 ## Install
 
@@ -31,7 +31,7 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-wri
 ```
 
 Shared install steps are in
-[Installation](../../docs/users/en/installation.md).
+[Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/installation.md).
 
 ## First call
 
@@ -59,18 +59,18 @@ For high-stakes legal, medical, or financial material, default to mechanical
 `correct` or `diagnose`.
 
 Details are in
-[Safety and privacy](../../docs/users/en/safety-and-privacy.md).
+[Safety and privacy](https://github.com/beyondwin/skills/blob/main/docs/users/en/safety-and-privacy.md).
 
 ## Verification
 
 Offline checks cover the contract only. They do not prove live editing
 quality. Evidence limits are in
-[Verification](../../docs/users/en/verification.md).
+[Verification](https://github.com/beyondwin/skills/blob/main/docs/users/en/verification.md).
 
 ## Update and remove
 
 Inspect the install folder before update or remove. Shared steps are in
-[Installation](../../docs/users/en/installation.md).
+[Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/installation.md).
 
 Check the current version in `SKILL.md` `metadata.version` and
 [CHANGELOG](CHANGELOG.md).
@@ -78,7 +78,7 @@ Check the current version in `SKILL.md` `metadata.version` and
 ## Changelog and maintainer docs
 
 - [CHANGELOG](CHANGELOG.md)
-- [Contract](../../docs/maintainers/products/korean-writing-editor/contract.md)
-- [Testing](../../docs/maintainers/products/korean-writing-editor/testing.md)
-- [Compatibility](../../docs/maintainers/products/korean-writing-editor/compatibility.md)
-- [Release](../../docs/maintainers/products/korean-writing-editor/release.md)
+- [Contract](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/korean-writing-editor/contract.md)
+- [Testing](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/korean-writing-editor/testing.md)
+- [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/korean-writing-editor/compatibility.md)
+- [Release](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/korean-writing-editor/release.md)

@@ -284,6 +284,8 @@ def validate_skill_tree(skill_root: pathlib.Path, scope: str) -> list[str]:
         "references/editorial-guide.md",
         "references/sources.md",
     ]
+    if scope == "full":
+        required_files.extend(["README.md", "README.en.md"])
 
     if scope == "fixtures":
         return errors

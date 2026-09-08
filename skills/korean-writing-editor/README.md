@@ -19,7 +19,7 @@
 korean-writing-editor: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
 
 지금은 Codex에서만 지원합니다. 다른 호스트는
-[호환성](../../docs/users/ko/compatibility.md)을 보세요.
+[호환성](https://github.com/beyondwin/skills/blob/main/docs/users/ko/compatibility.md)을 보세요.
 
 ## 설치
 
@@ -29,7 +29,7 @@ Codex에서는 공개 GitHub 경로를 `$skill-installer`에 전달합니다.
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
 ```
 
-나머지 설치 방법은 [설치](../../docs/users/ko/installation.md)를 보세요.
+나머지 설치 방법은 [설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/installation.md)를 보세요.
 
 ## 첫 호출
 
@@ -54,18 +54,18 @@ $korean-writing-editor 오탈자만 고쳐줘: (한국어 원문)
 법률·의료·금융처럼 이해관계가 큰 글은 기계적 `correct` 또는 `diagnose`가
 기본입니다.
 
-자세한 내용은 [안전과 개인정보](../../docs/users/ko/safety-and-privacy.md)를
+자세한 내용은 [안전과 개인정보](https://github.com/beyondwin/skills/blob/main/docs/users/ko/safety-and-privacy.md)를
 보세요.
 
 ## 검증
 
 오프라인 검사는 계약만 확인합니다. 실제 교정 품질을 증명하지 않습니다.
-증거 한계는 [검증](../../docs/users/ko/verification.md)을 보세요.
+증거 한계는 [검증](https://github.com/beyondwin/skills/blob/main/docs/users/ko/verification.md)을 보세요.
 
 ## 업데이트와 제거
 
 바꾸거나 지우기 전에 설치 폴더를 확인하세요. 절차는
-[설치](../../docs/users/ko/installation.md)를 보세요.
+[설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/installation.md)를 보세요.
 
 현재 버전은 `SKILL.md`의 `metadata.version`과 [CHANGELOG](CHANGELOG.md)에서
 봅니다.
@@ -73,7 +73,7 @@ $korean-writing-editor 오탈자만 고쳐줘: (한국어 원문)
 ## 변경 이력과 관리자 문서
 
 - [CHANGELOG](CHANGELOG.md)
-- [계약](../../docs/maintainers/products/korean-writing-editor/contract.md)
-- [테스트](../../docs/maintainers/products/korean-writing-editor/testing.md)
-- [호환성](../../docs/maintainers/products/korean-writing-editor/compatibility.md)
-- [릴리스](../../docs/maintainers/products/korean-writing-editor/release.md)
+- [계약](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/korean-writing-editor/contract.md)
+- [테스트](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/korean-writing-editor/testing.md)
+- [호환성](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/korean-writing-editor/compatibility.md)
+- [릴리스](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/korean-writing-editor/release.md)
