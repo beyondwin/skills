@@ -497,13 +497,23 @@ class AssetInspectorTests(unittest.TestCase):
                 source = root / "asset.png"
                 source.write_bytes(data)
                 (root / "nested").mkdir()
-                target = {
-                    "absolute": str(source.resolve()),
-                    "relative": os.path.relpath(source, Path.cwd()),
-                    "normalized": str(root / "nested" / ".." / "asset.png"),
-                }[spelling]
                 stdout, stderr = StringSink(), StringSink()
-                result = main([str(source), "--output", target], stdout, stderr)
+                if spelling == "relative":
+                    # Windows tempfile can land on another drive than cwd.
+                    # Compute and resolve the relative alias from the temp dir.
+                    previous = os.getcwd()
+                    try:
+                        os.chdir(root)
+                        target = os.path.relpath(source)
+                        result = main([str(source), "--output", target], stdout, stderr)
+                    finally:
+                        os.chdir(previous)
+                else:
+                    target = {
+                        "absolute": str(source.resolve()),
+                        "normalized": str(root / "nested" / ".." / "asset.png"),
+                    }[spelling]
+                    result = main([str(source), "--output", target], stdout, stderr)
                 self.assertEqual(result, 1)
                 self.assertEqual(source.read_bytes(), data)
                 self.assertEqual(stdout.value, "")

@@ -1,15 +1,15 @@
 # how-it-works 테스트
 
-공급자 없는 계약과 선택적 유료 smoke를 섞지 마세요. 사용자 주제, 공급자 트랜스크립트, 비공개 로그를 Git 픽스처로 커밋하지 마세요.
+모델 서비스 없이 확인하는 규칙과, 선택적이고 비용이 들 수 있는 실제 실행 확인을 섞지 마세요. 사용자 주제, 모델 서비스 대화, 비공개 로그를 Git 테스트 예시로 커밋하지 마세요.
 
 ## 공급자 없는 증거
 
 필수 증거는 `python3 scripts/verify.py --skill how-it-works`입니다.
 `tests/products/how-it-works/cases.json`과
-`tests/products/how-it-works/test_contract.py`는 형태와 페이로드 계약만
+`tests/products/how-it-works/test_contract.py`는 형태와 설치 파일 규칙만
 증명합니다. 라이브 모델 품질과 지원 호스트 런타임 동등은 증명하지 않습니다.
 
-결정적 픽스처:
+결정적 테스트 예시:
 
 - `broad-slice`는 문명 명사를 세 조각으로 자르고 질문 하나입니다.
 - `missing-rung`은 닫힌 깊이 질문 하나이며 칸을 조용히 채우지 않습니다.

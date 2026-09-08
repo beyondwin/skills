@@ -24,8 +24,8 @@
 
 how-it-works: Codex and Claude Code supported for local or repository-based use.
 
-지원 호스트 id는 `codex`, `claude-code`입니다. 현재 payload의 실제 실행 증거는
-`not_measured`입니다. 보존된 2026-08-28 측정에서는 Grok가 실패했고 Cursor는
+지원 호스트 id는 `codex`, `claude-code`입니다. 지금 설치 파일의 실제 실행은
+아직 확인하지 않았습니다(`not_measured`). 보존된 2026-08-28 측정에서는 Grok가 실패했고 Cursor는
 실행되지 않았습니다. 이 과거 기록을 현재 실행 결과로 해석하지 않습니다. Claude.ai,
 Cowork, Skills API 업로드, marketplace 게시는 지원하지 않습니다. 공유 한계는
 [호환성](https://github.com/beyondwin/skills/blob/main/docs/users/ko/compatibility.md)을
@@ -114,12 +114,12 @@ $how-it-works DNS 길
 
 필수 여섯 가지는 다음과 같습니다.
 
-1. one-sentence claim
-2. Mermaid
-3. numbered hop list
-4. rung-specific body
-5. adjacent slices
-6. one next move
+1. one-sentence claim — 한 줄로 무엇이 도는지
+2. Mermaid — 그림
+3. numbered hop list — 번호 매긴 단계
+4. rung-specific body — 고른 깊이의 본문
+5. adjacent slices — 지금 다루지 않은 옆 설명
+6. one next move — 다음에 할 일 하나
 
 골격:
 
@@ -145,7 +145,7 @@ $how-it-works DNS 길
 
 ## 안전과 개인정보
 
-사용자 주제를 픽스처나 로그로 저장하지 않습니다. 인용은 그 턴에서 가져온
+사용자 주제를 테스트 예시나 로그로 저장하지 않습니다. 인용은 그 턴에서 가져온
 URL만 보입니다. 비공개 코퍼스가 아닙니다. 의료·법률·금융 슬라이스는
 메커니즘만 설명합니다. 조언이 아닙니다.
 
@@ -156,7 +156,7 @@ URL만 보입니다. 비공개 코퍼스가 아닙니다. 의료·법률·금융
 ## 검증
 
 모델 없는 검증은 `python3 scripts/verify.py --skill how-it-works`입니다.
-오프라인 픽스처는 결정적 계약만 증명합니다. 라이브 호스트 품질을 증명하지
+오프라인 테스트 예시는 정해진 규칙만 증명합니다. 라이브 호스트 품질을 증명하지
 않습니다.
 
 Optional live scoring is pass/fail from observable output in a fresh session.

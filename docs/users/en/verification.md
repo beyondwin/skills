@@ -2,7 +2,7 @@
 
 [한국어](../ko/verification.md) · [Compatibility](compatibility.md) · [Safety and privacy](safety-and-privacy.md)
 
-Required verification runs without credentials or models.
+Required verification runs without credentials or models. A pass means the repo rules match today. It does not mean a model edits well or that images look good.
 
 ```bash
 python3 scripts/verify.py
@@ -71,6 +71,14 @@ A pass does not prove general quality. The license is Apache-2.0.
 Korean live coverage remains 14 cases / 17 repeats.
 
 Live evaluation is local only. It needs a positive flag, a named runtime, a bounded call budget, and an evidence root outside tracked source. CI never requires it. Provider processes are never silently substituted.
+
+Status labels mean:
+
+- `verified`: confirmed
+- `partially_verified`: only part confirmed
+- `failed`: failed
+- `blocked`: stopped before a run
+- `not_measured`: not checked in this environment yet
 
 Status labels are `verified`, `partially_verified`, `failed`, `blocked`, and `not_measured`. Do not turn an offline pass into `partially_verified`. Do not turn an unavailable provider into a pass.
 

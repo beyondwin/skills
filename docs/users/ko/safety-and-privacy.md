@@ -2,21 +2,21 @@
 
 [English](../en/safety-and-privacy.md) · [설치](installation.md) · [검증](verification.md)
 
-이 프로젝트 자체는 텔레메트리를 넣지 않습니다. 필수 CI와 `python3 scripts/verify.py`는 자격 증명, 모델 호출, 원격 업로드를 하지 않습니다. 선택적 제3자 설치기 `npx skills add beyondwin/skills --skill korean-writing-editor`는 제3자입니다. 자체 정책을 따릅니다.
+이 프로젝트 자체는 텔레메트리를 넣지 않습니다. 사용 기록을 밖으로 보내지 않습니다. 필수 CI와 `python3 scripts/verify.py`는 자격 증명, 모델 호출, 원격 업로드를 하지 않습니다. 선택적 제3자 설치기 `npx skills add beyondwin/skills --skill korean-writing-editor`는 제3자입니다. 자체 정책을 따릅니다.
 
 제품 안내는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md)를 보세요.
 
 ## 한국어 원문
 
-`korean-writing-editor`는 사용자가 준 글을 픽스처, 로그, 말투 프로필로 저장하지 않습니다. 비공식 맞춤법 웹 서비스로 보내지 않습니다. 따로 요청하지 않으면 사실을 찾아오지 않습니다. 공개 픽스처는 다시 나눠도 되는 합성 예시입니다. 개인 대화나 비공개 원고는 커밋하지 마세요.
+`korean-writing-editor`는 사용자가 준 글을 테스트 예시, 로그, 말투 프로필로 저장하지 않습니다. 비공식 맞춤법 웹 서비스로 보내지 않습니다. 따로 요청하지 않으면 사실을 찾아오지 않습니다. 공개 테스트 예시는 다시 나눠도 되는 합성 예시입니다. 개인 대화나 비공개 원고는 커밋하지 마세요.
 
 ## 설명 주제
 
-`how-it-works`는 사용자 주제를 픽스처나 로그로 저장하지 않습니다. Codex나 Claude Code에 로컬로 설치되어도 같습니다. 인용은 그 턴에서 가져온 URL만 보입니다. 비공개 코퍼스가 아닙니다. 의료·법률·금융 슬라이스는 메커니즘만 설명합니다. 조언이 아닙니다.
+`how-it-works`는 사용자 주제를 테스트 예시나 로그로 저장하지 않습니다. Codex나 Claude Code에 로컬로 설치되어도 같습니다. 인용은 그 턴에서 가져온 URL만 보입니다. 비공개 자료 모음이 아닙니다. 의료·법률·금융 슬라이스는 메커니즘만 설명합니다. 조언이 아닙니다.
 
 ## 이미지 참조와 동의
 
-`image-workbench`에서 입력 이미지의 역할은 하나입니다. 역할은 `edit_target`, `subject_reference`, `style_reference`, 또는 `compositing_input`입니다. 참조 이미지는 사람, 상표, 보호된 작업을 복제할 권리를 주지 않습니다. 인물·상표·예시 이미지의 consent가 불명하면 보류합니다. 비공개 참조, 프롬프트, 생성 결과는 Git 픽스처로 저장하지 않습니다.
+`image-workbench`에서 입력 이미지의 역할은 하나입니다. 역할은 `edit_target`, `subject_reference`, `style_reference`, 또는 `compositing_input`입니다. 참조 이미지는 사람, 상표, 보호된 작업을 복제할 권리를 주지 않습니다. 인물·상표·예시 이미지의 consent(동의)가 불명하면 보류합니다. 비공개 참조, 프롬프트, 생성 결과는 Git 테스트 예시로 저장하지 않습니다.
 
 ## SDD 전 문서 검토
 
@@ -38,7 +38,7 @@ record에는 저장소 상대 경로, 디렉터리 이름, 해시, 열거값, �
 
 ## hash, provenance, consent, 권리
 
-다음 증거는 서로 다릅니다. 하나만으로 소유, consent, 사실, 상업 이용 권리(rights)를 증명하지 않습니다.
+hash는 파일이 같은지, provenance는 어디서 왔다고 적혀 있는지, consent는 동의가 있는지, rights는 써도 되는 권리인지를 말합니다. 다음 증거는 서로 다릅니다. 하나만으로 소유, consent, 사실, 상업 이용 권리(rights)를 증명하지 않습니다.
 
 | 증거 | 의미 | 증명하지 않는 것 |
 | --- | --- | --- |

@@ -9,7 +9,7 @@ This repository currently ships four standalone products:
 
 New skills are not accepted by default. A pull request that adds another skill is out of scope unless repository governance is changed first.
 
-The immutable plugin bundle under `catalog/` is separate from these products. It does not include `how-it-works` or `pre-sdd-review`.
+The frozen plugin bundle under `catalog/` is separate from these products. It does not include `how-it-works` or `pre-sdd-review`.
 
 `how-it-works` currently claims Codex and Claude Code only. Do not broaden host support for `korean-writing-editor`, `image-workbench`, or `pre-sdd-review`.
 
@@ -25,7 +25,7 @@ Focused fixes for the current standalone products only:
 - measured compatibility evidence
 - synthetic, non-personal regression fixtures
 
-Live provider results are not sufficient evidence by themselves. Include a reproducible case definition, runtime identity, consent-safe artifacts, and a passing deterministic contract gate.
+Live provider results are not enough on their own. Include a reproducible case, runtime identity, consent-safe artifacts, and a passing offline check.
 
 ## Requirements
 

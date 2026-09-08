@@ -1,6 +1,6 @@
 # image-workbench 계약
 
-route, authorization, ImageSpec, rubric, inspector, 픽스처, 버전을 함께
+route(어디로 가는지), authorization(언제 만들어도 되는지), ImageSpec, rubric(채점표), inspector(파일 확인기), 테스트 예시, 버전을 함께
 유지하세요. 공개 설치 안내는 제품 `README.md`/`README.en.md`와 `docs/users/`에
 있습니다. 이 스킬은 Codex-only입니다.
 

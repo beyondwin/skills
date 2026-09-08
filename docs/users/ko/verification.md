@@ -2,7 +2,7 @@
 
 [English](../en/verification.md) · [호환성](compatibility.md) · [안전과 개인정보](safety-and-privacy.md)
 
-필수 검증은 자격 증명과 모델 없이 돌아갑니다.
+필수 검증은 자격 증명과 모델 없이 돌아갑니다. 통과는 “지금 저장소 규칙이 맞다”는 뜻입니다. 모델이 글을 잘 고치거나 그림을 잘 만든다는 뜻은 아닙니다.
 
 ```bash
 python3 scripts/verify.py
@@ -71,6 +71,14 @@ Pre-SDD는 schema 2 record를 `historical-unbound`로 읽기만 지원합니다.
 Korean 라이브 범위는 14 cases / 17 repeats를 유지합니다.
 
 라이브 평가는 로컬에서만 합니다. 명시 플래그, 이름 있는 런타임, 제한된 호출 예산, 추적 소스 밖의 증거 루트가 있을 때 합니다. CI는 라이브를 요구하지 않습니다. 공급자 프로세스를 조용히 바꾸지 않습니다.
+
+상태 이름 뜻:
+
+- `verified`: 확인됨
+- `partially_verified`: 일부만 확인됨
+- `failed`: 실패
+- `blocked`: 실행 전에 막힘
+- `not_measured`: 아직 이 환경에서 확인하지 않음
 
 상태 어휘는 `verified`, `partially_verified`, `failed`, `blocked`, `not_measured`입니다. 오프라인 성공을 `partially_verified`로 바꾸지 마세요. 공급자 불가를 통과로 바꾸지 마세요.
 

@@ -9,7 +9,7 @@
 
 - 제품·소유 경로는 [products.toml](products.toml), 기여 범위는 [CONTRIBUTING.md](CONTRIBUTING.md)를 따릅니다.
 - `skills/<name>/`을 수정할 때 `tests/products/<name>/`와 `docs/maintainers/products/<name>/`의 계약을 확인합니다.
-- `catalog/`의 고정 번들은 제품 수정과 별개로 유지합니다. 지원 호스트 변경은 제품 레지스트리·문서·테스트에 함께 반영합니다.
+- `catalog/`의 고정 묶음은 제품 수정과 별개로 유지합니다. 지원 호스트 변경은 제품 목록·문서·테스트에 함께 반영합니다.
 - 비공개 원문·이미지, 자격 증명, 공급자 receipt, 생성 미디어를 커밋하지 않습니다. 라이브 모델 호출은 명시적으로 승인된 범위에서만 실행합니다.
 
 ## 검증

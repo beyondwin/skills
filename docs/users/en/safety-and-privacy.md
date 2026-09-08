@@ -2,7 +2,7 @@
 
 [한국어](../ko/safety-and-privacy.md) · [Installation](installation.md) · [Verification](verification.md)
 
-This project itself has no telemetry. Required CI and `python3 scripts/verify.py` do not use credentials, model calls, or remote uploads. The optional third-party installer `npx skills add beyondwin/skills --skill korean-writing-editor` is third-party. It follows its own policy.
+This project itself has no telemetry. It does not send usage records out. Required CI and `python3 scripts/verify.py` do not use credentials, model calls, or remote uploads. The optional third-party installer `npx skills add beyondwin/skills --skill korean-writing-editor` is third-party. It follows its own policy.
 
 Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md).
 
@@ -38,7 +38,7 @@ For high-stakes legal, medical, or financial Korean text, default to mechanical 
 
 ## hash, provenance, consent, and rights
 
-These evidence types are distinct. None of them alone proves ownership, consent, truth, or commercial permission.
+A hash shows whether bytes match. Provenance is a claimed origin. Consent is permission from a person. Rights are whether you may reuse the work. These evidence types are distinct. None of them alone proves ownership, consent, truth, or commercial permission.
 
 | Evidence | What it shows | What it does not prove |
 | --- | --- | --- |

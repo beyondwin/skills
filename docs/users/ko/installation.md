@@ -18,7 +18,7 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-re
 
 ## Pre-SDD Review evidence 기록기
 
-선택 기록기 `evidence/evidence.py`는 설치하지 않습니다. 스킬 폴더에서 Python 3.11 이상으로 직접 실행합니다.
+선택 기록기 `evidence/evidence.py`는 설치하지 않습니다. 스킬 폴더에서 Python 3.11 이상으로 직접 실행합니다. 영수증(실행 기록)만 남깁니다.
 
 ```bash
 python3 skills/pre-sdd-review/evidence/evidence.py --version
@@ -28,7 +28,7 @@ python3 skills/pre-sdd-review/evidence/evidence.py --version
 
 ## How It Works 로컬 링크
 
-`how-it-works`는 저장소를 클론한 뒤 링크 두 개를 겁니다. 공개 경로는 https://github.com/beyondwin/skills/tree/main/skills/how-it-works 입니다. 첫 링크는 Codex, 둘째는 Claude Code입니다. Codex는 `~/.agents/skills/how-it-works`에서 찾습니다. `~/.codex`나 `~/.grok` 복사본을 만들지 마세요.
+`how-it-works`는 저장소를 받은 뒤 바로가기 두 개를 겁니다. 공개 경로는 https://github.com/beyondwin/skills/tree/main/skills/how-it-works 입니다. 첫 링크는 Codex, 둘째는 Claude Code입니다. Codex는 `~/.agents/skills/how-it-works`에서 찾습니다. `~/.codex`나 `~/.grok` 복사본을 만들지 마세요.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git

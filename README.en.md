@@ -3,8 +3,8 @@
 [한국어](README.md)
 
 Four skills live here. Korean Writing Editor, Image Workbench, and Pre-SDD
-Review install in Codex. How It Works installs for local or repository-based use
-in Codex and Claude Code.
+Review install in Codex. How It Works links this repo for Codex and Claude
+Code.
 
 [![CI](https://github.com/beyondwin/skills/actions/workflows/verify.yml/badge.svg)](https://github.com/beyondwin/skills/actions/workflows/verify.yml)
 [![Release](https://img.shields.io/github/v/release/beyondwin/skills)](https://github.com/beyondwin/skills/releases)
@@ -49,7 +49,7 @@ To check the repo without a model:
 python3 scripts/verify.py
 ```
 
-Profiles and evidence limits are in
+What the check covers, and what a pass means, is in
 [Verification](docs/users/en/verification.md).
 
 ## Safety

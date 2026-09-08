@@ -1,18 +1,18 @@
 # 저장소 구조
 
-이 저장소는 독립 스킬 제품 모노레포입니다. 따로 버전을 매기는 카탈로그
+이 저장소는 스킬 네 개를 한곳에 모아 둔 곳입니다. 따로 버전을 매기는 카탈로그
 플러그인 `beyondwin-skills`도 둡니다.
 
 현재 독립 제품은 `products.toml`이 가리키는 `korean-writing-editor`,
 `image-workbench`, `how-it-works`, `pre-sdd-review`입니다. 마지막 공개
-카탈로그 `2.0.0`은 공개 `v2.0.0`의 두 스킬만 lock합니다. Apache-2.0은 루트와
-각 standalone 스킬에 적용됩니다.
+카탈로그 `2.0.0`은 공개 `v2.0.0`의 두 스킬만 고정합니다. Apache-2.0은 루트와
+각 따로 설치하는 스킬에 적용됩니다.
 
 저장소 루트는 개별 스킬을 GitHub 경로로 설치하는 작업 공간입니다.
 The repository root does not own plugin metadata.
-카탈로그 플러그인 메타데이터는 `catalog/plugin/.codex-plugin/plugin.json`에
+카탈로그 플러그인 정보는 `catalog/plugin/.codex-plugin/plugin.json`에
 있습니다. 카탈로그 릴리스 때 플러그인 ZIP 루트로 복사됩니다. 지원되는 카탈로그
-아티팩트는 공개된 플러그인 ZIP뿐입니다.
+결과물은 공개된 플러그인 ZIP뿐입니다.
 
 ## 설치 파일과 개발 증거
 
@@ -31,18 +31,18 @@ README, CHANGELOG, `release.toml`, 라이선스, 실행에 필요한 파일은 �
 | `catalog/catalog.lock.json` | 카탈로그가 채택한 불변 스킬 릴리스 | 아니오 |
 | `catalog/release.toml` | 카탈로그 식별 (`beyondwin-skills` `2.0.0`) | 아니오 |
 | `tests/repository/` | 매니페스트, 링크, 패키징, 공개 문서 사실 | 아니오 |
-| `tests/products/korean-writing-editor/offline/` | 결정적 트리거·모드·보존·출력 픽스처 | 아니오 |
-| `tests/products/korean-writing-editor/live/` | 합성 라이브 하니스, 단위 테스트, dry-run, 운영 안내 | 아니오 |
+| `tests/products/korean-writing-editor/offline/` | 결정적 트리거·모드·보존·출력 테스트 예시 | 아니오 |
+| `tests/products/korean-writing-editor/live/` | 합성 라이브 실행 도구, 단위 테스트, dry-run, 운영 안내 | 아니오 |
 | `tests/products/image-workbench/` | 라우팅, 권한, 증거, inspector 테스트 | 아니오 |
-| `tests/products/how-it-works/` | 합성 DNS·rebase 계약과 페이로드 픽스처 | 아니오 |
-| `tests/products/pre-sdd-review/` | 합성 설계·계획 계약 픽스처 | 아니오 |
+| `tests/products/how-it-works/` | 합성 DNS·rebase 규칙과 설치 파일 테스트 예시 | 아니오 |
+| `tests/products/pre-sdd-review/` | 합성 설계·계획 규칙 테스트 예시 | 아니오 |
 | `docs/README.md` | 설치·사용·관리·기록 라우팅 | 아니오 |
 | `docs/users/` | 공유 설치·호환성·안전·검증 안내 | 아니오 |
-| `docs/maintainers/` | 구조, 레지스트리, 버저닝, 릴리스, 카탈로그, 마이그레이션, 제품 프로토콜 | 아니오 |
+| `docs/maintainers/` | 구조, 제품 목록, 버저닝, 릴리스, 카탈로그, 마이그레이션, 제품 규칙 | 아니오 |
 | `docs/history/` | 진행 중인 설계·계획. 현재 계약을 정의하지 않음 | 아니오 |
-| `scripts/verify.py` | 모델 없는 검증 오케스트레이터 | 아니오 |
+| `scripts/verify.py` | 모델 없는 검사 스크립트 | 아니오 |
 
-페이로드 디렉터리에는 `CHANGE_PROTOCOL.md`, `evals/`, `tests/`를 두지
+설치 폴더에는 `CHANGE_PROTOCOL.md`, `evals/`, `tests/`를 두지
 않습니다. `README.md`, `README.en.md`, `CHANGELOG.md`, `release.toml`은
 허용되며 필수입니다. `image-workbench` inspector
 `skills/image-workbench/scripts/inspect_asset.py`는 런타임 코드입니다. 테스트는
@@ -67,7 +67,7 @@ README, CHANGELOG, `release.toml`, 라이선스, 실행에 필요한 파일은 �
 - 이미지 평가기: `tests/products/image-workbench/run.py --skill-root PATH`.
   케이스는 러너 옆에 둡니다.
 - inspector: 실제 스킬 루트에서 `python3 scripts/inspect_asset.py`를 해석합니다.
-- 라이브 하니스: 소스 스킬은 `<repo>/skills/korean-writing-editor`입니다.
+- 라이브 실행 도구: 소스 스킬은 `<repo>/skills/korean-writing-editor`입니다.
   보고서는 명시된 무시 증거 루트 아래에 둡니다.
 - pre-sdd-review 계약: `tests/products/pre-sdd-review/test_contract.py`.
   케이스는 같은 디렉터리의 `cases.json`과 `fixtures/`입니다.

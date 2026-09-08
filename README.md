@@ -4,7 +4,7 @@
 
 스킬 네 개를 모아 둔 저장소입니다. Korean Writing Editor, Image Workbench,
 Pre-SDD Review는 Codex에서 설치합니다. How It Works는 Codex와 Claude Code에서
-로컬 또는 저장소 기준으로 설치합니다.
+이 저장소를 연결해 씁니다.
 
 [![CI](https://github.com/beyondwin/skills/actions/workflows/verify.yml/badge.svg)](https://github.com/beyondwin/skills/actions/workflows/verify.yml)
 [![Release](https://img.shields.io/github/v/release/beyondwin/skills)](https://github.com/beyondwin/skills/releases)
@@ -14,7 +14,7 @@ Pre-SDD Review는 Codex에서 설치합니다. How It Works는 Codex와 Claude C
 
 ## 스킬 선택
 
-현재 독립 제품은 아래 네 가지입니다. 카탈로그 번들 `v2.0.0`에는 How It Works와
+현재 독립 제품은 아래 네 가지입니다. 카탈로그 묶음 `v2.0.0`에는 How It Works와
 Pre-SDD Review가 들어 있지 않습니다.
 
 | 스킬 | 역할 | 호스트 |
@@ -40,7 +40,7 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-re
 How It Works 공개 경로는
 https://github.com/beyondwin/skills/tree/main/skills/how-it-works 입니다.
 
-설치·갱신·제거, How It Works 로컬 링크, 제3자 설치기는
+설치·갱신·제거, How It Works 로컬 연결, 제3자 설치기는
 [설치](docs/users/ko/installation.md)를 보세요.
 
 저장소를 검사하려면:
@@ -49,7 +49,8 @@ https://github.com/beyondwin/skills/tree/main/skills/how-it-works 입니다.
 python3 scripts/verify.py
 ```
 
-프로필과 증거 한계는 [검증](docs/users/ko/verification.md)을 보세요.
+어떤 검사를 하는지, 통과가 무엇을 뜻하는지는
+[검증](docs/users/ko/verification.md)을 보세요.
 
 ## 안전
 

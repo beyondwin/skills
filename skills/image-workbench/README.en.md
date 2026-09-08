@@ -71,7 +71,7 @@ Details are in
 
 ## Verification
 
-Offline checks cover the contract only. They do not prove live image
+Offline checks cover the documented rules only. They do not prove live image
 quality. Evidence limits are in
 [Verification](https://github.com/beyondwin/skills/blob/main/docs/users/en/verification.md).
 

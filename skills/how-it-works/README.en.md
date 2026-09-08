@@ -27,7 +27,7 @@ stand-in for `/eli5`.
 how-it-works: Codex and Claude Code supported for local or repository-based use.
 
 The supported host ids are `codex` and `claude-code`. Live evidence for the
-current payload is `not_measured`. In the preserved 2026-08-28 measurement,
+current install files is `not_measured`. In the preserved 2026-08-28 measurement,
 Grok failed and Cursor was not run. That historical record is not current-run
 evidence. Claude.ai, Cowork, Skills API upload, and marketplace publication are
 not supported. Shared limits are in
@@ -117,12 +117,12 @@ is not a failed task.
 
 The six required items are:
 
-1. one-sentence claim
-2. Mermaid
-3. numbered hop list
-4. rung-specific body
-5. adjacent slices
-6. one next move
+1. one-sentence claim — what moves, in one sentence
+2. Mermaid — the diagram
+3. numbered hop list — the steps in order
+4. rung-specific body — the body for the depth you picked
+5. adjacent slices — nearby explanations you are not covering now
+6. one next move — exactly one thing to do next
 
 Skeleton:
 
@@ -148,7 +148,7 @@ Next: {exactly one move}
 
 ## Safety and privacy
 
-The skill does not persist user topics as fixtures or logs. Citations are
+The skill does not persist user topics as test examples or logs. Citations are
 user-visible URLs from the current turn. They are not a private corpus.
 Medical, legal, or financial slices explain mechanism only. They are not
 advice.
@@ -160,7 +160,7 @@ Details are in
 
 Provider-free verification is
 `python3 scripts/verify.py --skill how-it-works`. Offline fixtures prove
-the deterministic contract only. They do not prove live host quality.
+the documented rules only. They do not prove live host quality.
 
 Optional live scoring is pass/fail from observable output in a fresh session.
 Calls may use subscription/API quota. Do not use private or user prompts.

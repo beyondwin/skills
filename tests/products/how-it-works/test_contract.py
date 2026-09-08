@@ -597,9 +597,9 @@ class HowItWorksPayloadTests(unittest.TestCase):
             )
         korean = (SKILL / "README.md").read_text(encoding="utf-8")
         english = (SKILL / "README.en.md").read_text(encoding="utf-8")
-        self.assertIn("현재 payload의 실제 실행 증거는\n`not_measured`", korean)
+        self.assertIn("지금 설치 파일의 실제 실행은\n아직 확인하지 않았습니다(`not_measured`)", korean)
         self.assertIn("보존된 2026-08-28 측정에서는 Grok가 실패했고 Cursor는", korean)
-        self.assertIn("Live evidence for the\ncurrent payload is `not_measured`", english)
+        self.assertIn("Live evidence for the\ncurrent install files is `not_measured`", english)
         self.assertIn("In the preserved 2026-08-28 measurement,\nGrok failed and Cursor was not run", english)
 
 

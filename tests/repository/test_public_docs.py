@@ -1492,7 +1492,7 @@ class MaintainerStructureTests(unittest.TestCase):
                 ROOT / "docs/maintainers/products/how-it-works/testing.md",
                 "# how-it-works 테스트",
                 "# how-it-works testing",
-                "공급자 없는 계약과 선택적 유료 smoke를 섞지 마세요. 사용자 주제, 공급자 트랜스크립트, 비공개 로그를 Git 픽스처로 커밋하지 마세요.",
+                "모델 서비스 없이 확인하는 규칙과, 선택적이고 비용이 들 수 있는 실제 실행 확인을 섞지 마세요. 사용자 주제, 모델 서비스 대화, 비공개 로그를 Git 테스트 예시로 커밋하지 마세요.",
                 "Do not mix provider-free contracts with optional paid smoke checks.",
             ),
         )

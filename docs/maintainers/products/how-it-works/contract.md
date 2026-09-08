@@ -1,7 +1,7 @@
 # how-it-works 계약
 
-트리거, 칸, 출력, 안전, 함께 고칠 파일을 같이 유지하세요. 프롬프트만 고치고
-픽스처나 공개 안내를 낡은 상태로 두면 계약 위반입니다. 공개 설치 안내는 제품
+트리거, 칸, 출력, 안전, 함께 고칠 파일을 같이 유지하세요. 안내문만 고치고
+테스트 예시나 공개 안내를 낡은 상태로 두면 규칙 위반입니다. 공개 설치 안내는 제품
 `README.md`/`README.en.md`와 `docs/users/`에 있습니다.
 
 ## 트리거와 기본값
@@ -29,12 +29,12 @@ mermaid 렌더러는 필수가 아닙니다. 렌더러가 없어도 실패가 �
 
 필수 여섯 가지는 다음과 같습니다.
 
-1. one-sentence claim
-2. Mermaid
-3. numbered hop list
-4. rung-specific body
-5. adjacent slices
-6. one next move
+1. one-sentence claim — 한 줄로 무엇이 도는지
+2. Mermaid — 그림
+3. numbered hop list — 번호 매긴 단계
+4. rung-specific body — 고른 깊이의 본문
+5. adjacent slices — 지금 다루지 않은 옆 설명
+6. one next move — 다음에 할 일 하나
 
 크롬과 홉 ID 규칙은 `skills/how-it-works/references/output.md`가 소유합니다.
 mermaid가 시각 채널입니다. 손으로 그린 HTML 상자는 다이어그램이 아닙니다.

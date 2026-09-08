@@ -18,7 +18,7 @@ After install, start a new turn and use the first-call example in the product RE
 
 ## Pre-SDD Review evidence recorder
 
-The optional recorder `evidence/evidence.py` is not installed. Run it from the skill folder with Python 3.11+.
+The optional recorder `evidence/evidence.py` is not installed. Run it from the skill folder with Python 3.11+. It only writes local receipts (run records).
 
 ```bash
 python3 skills/pre-sdd-review/evidence/evidence.py --version
@@ -28,7 +28,7 @@ Receipts live under `~/.pre-sdd-review/`. Removing the skill folder does not del
 
 ## How It Works local links
 
-For `how-it-works`, clone the repo and make two links. The public GitHub path is https://github.com/beyondwin/skills/tree/main/skills/how-it-works. The first link serves Codex. The second serves Claude Code. Codex looks in `~/.agents/skills/how-it-works`. Do not create a `~/.codex` or `~/.grok` duplicate.
+For `how-it-works`, clone the repo and make two shortcuts. The public GitHub path is https://github.com/beyondwin/skills/tree/main/skills/how-it-works. The first link serves Codex. The second serves Claude Code. Codex looks in `~/.agents/skills/how-it-works`. Do not create a `~/.codex` or `~/.grok` duplicate.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git

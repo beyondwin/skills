@@ -4,6 +4,8 @@
 
 The current standalone products are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), and [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md). How It Works currently claims Codex and Claude Code. The other three products keep their registered Codex boundaries.
 
+In short: the Korean editor, Image Workbench, and Pre-SDD Review are confirmed on Codex today. How It Works links this repo for Codex and Claude Code.
+
 ## Shared support sentences
 
 korean-writing-editor: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.

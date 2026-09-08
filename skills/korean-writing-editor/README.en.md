@@ -51,7 +51,7 @@ local flow.
 
 ## Safety and privacy
 
-The skill does not persist user text as fixtures, logs, or a voice profile.
+The skill does not persist user text as test examples, logs, or a voice profile.
 It does not send text to unofficial spelling services. It does not browse
 for facts unless the user separately asks.
 
@@ -63,7 +63,7 @@ Details are in
 
 ## Verification
 
-Offline checks cover the contract only. They do not prove live editing
+Offline checks cover the documented rules only. They do not prove live editing
 quality. Evidence limits are in
 [Verification](https://github.com/beyondwin/skills/blob/main/docs/users/en/verification.md).
 

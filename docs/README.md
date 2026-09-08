@@ -1,10 +1,10 @@
 # 문서 / Documentation
 
-어디를 보면 되는지 가리킵니다. 제품 규칙은 각 제품 README와 관리자 문서에
-있습니다.
+어디를 보면 되는지 가리킵니다. 각 스킬의 쓰임새는 제품 README에, 변경 규칙은
+관리자 문서에 있습니다.
 
-This page only routes readers. Product contracts live in each product README
-and the maintainer docs.
+This page only routes readers. How to use a skill is in that product README.
+How to change it is in the maintainer docs.
 
 ## 설치하거나 고를 때 / Install or choose
 
