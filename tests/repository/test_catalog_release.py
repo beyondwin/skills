@@ -151,7 +151,7 @@ class CatalogLegacyFixtureTests(unittest.TestCase):
 
     def test_catalog_build_uses_locked_archives_not_current_skill_source(self) -> None:
         before = build_catalog(ROOT, self.legacy_inputs, self.output_one)
-        with mock.patch.object(Path, "read_bytes", autospec=True, wraps=Path.read_bytes) as read_bytes:
+        with mock.patch.object(Path, "read_bytes", autospec=True, side_effect=Path.read_bytes) as read_bytes:
             after = build_catalog(ROOT, self.legacy_inputs, self.output_two)
         self.assertEqual(sha256_file(before[0]), sha256_file(after[0]))
         current_skill_paths = [
