@@ -165,11 +165,18 @@ automatically start another invocation after `REVISE` or `BLOCKED`. 문서, 권�
 Evidence recording is a separate optional contract and does not change the
 authority order, reviewer protocol, repair allowlist, or verdict rules. The
 controller runs `python3 "<skill-root>/evidence/evidence.py" --version` from
-the loaded skill root, calls `start` before semantic review only when `schema`
-is 2 and `skill_name` is `pre-sdd-review`, and calls `finish` once after the
-verdict and repairs are final. It prints exactly one `Evidence:` line. Any
-unavailable, malformed, incompatible, or permission-failing recorder remains
-visible as `not_recorded` and cannot change `READY`, `REVISE`, or `BLOCKED`.
+the loaded skill root and records only when the handshake is exactly
+`skill_name=pre-sdd-review` and `schema=3`. Its canonical line is
+`{"cli_version":"3.0.0","schema":3,"skill_name":"pre-sdd-review"}` followed
+by one LF. The controller calls `start` before semantic review and `finish`
+once after the verdict and repairs are final. It prints exactly one
+`Evidence:` line. If the recorder is unavailable or fails, report
+`Evidence: not_recorded; reason=<code>`; this cannot change `READY`, `REVISE`, or `BLOCKED`.
+
+A schema 2 pending run remains `historical-unbound` and read-only. Preserve it
+and start a new run if recording is still wanted. Never infer a checkout
+identity for a historical record. `start` creates a schema 3 checkout-bound
+run; `finish`, `abandon`, and `outcome` may mutate schema 3 only.
 
 The controller resolves the design path from the plan's `**Spec:**` field and
 passes it as `--design`; when it cannot, it omits `--design` and returns
@@ -182,10 +189,33 @@ The recorder owns paths, hashes, Git facts, validation, atomic file
 replacement, and aggregation under `~/.pre-sdd-review/runs/`. The reviewer and
 controller remain the only owners of semantic findings, repairs, protocol
 observations, and verdicts. Records hold repository-relative paths, a
-directory name, hashes, enum values, integers, timestamps, and bounded
-paraphrases; never source text, absolute paths, prompts, provider
-transcripts, command output, environment values, or credentials. Local files
-are not a signed audit log.
+directory name, `repo_key`, hashes, enum values, integers, timestamps, and
+bounded paraphrases; never source text, absolute paths, prompts, provider
+transcripts, command output, environment values, credentials, salt, or
+identity path material. Local files are not a signed audit log.
+
+The evidence home keeps `.identity-salt` as private 32-byte local state and
+uses `.identity.lock` plus `locks/<run-id>.lock` for mutations. The normalized
+checkout root and Git directory feed HMAC only; the record stores their derived
+`repo_key` and the `repo` display name. A moved checkout, clone, other worktree,
+lost salt, or different evidence home cannot be treated as the original
+binding. Locks require supported OS locking. Read-only `show`, `summary`, and
+`--version` do not require it, and native Windows mutation support is not
+claimed.
+
+`show` validates a record and returns its original bytes. `summary` reports
+scan-wide `invalid_records` before filters; `--repo` filters the `repo` display
+name only, and `--last` selects valid ordered records. `counts.verdict` includes
+all observed completed verdicts, while `normal_verdict` and
+`anomalous_verdict` split them by observation and binding counts distinguish
+`checkout-bound` from `historical-unbound`. These values are local descriptive
+observations, not a model-quality measurement or signed-audit claim.
+
+Input shape, enum and count ranges, record size, required fields, and path
+restrictions remain validated. Semantic review still requires the existing
+verdict, reviewer, finding, and repair rules. Structurally valid deviations
+remain observed values and appear in `anomalies`; evidence cannot rewrite a
+verdict or become mutation authority.
 
 `outcome` is not a controller duty. After SDD or implementation ends, the user
 or the SDD worker records one label (`good`, `false-ready`, `noisy`,
@@ -202,7 +232,7 @@ ranking follows from it.
 - 권위 순서, 판정, repair 한도, reviewer role: `skills/pre-sdd-review/SKILL.md`,
   `references/reviewer-protocol.md`, 이 계약, `tests/products/pre-sdd-review/cases.json`,
   제품 README
-- 기록기 명령·schema 2: `skills/pre-sdd-review/evidence/evidence.py`,
+- 기록기 명령·schema 3: `skills/pre-sdd-review/evidence/evidence.py`,
   `evidence/README.md`, `tests/products/pre-sdd-review/evidence/`
 - 호스트 지원: `products.toml`, `compatibility.md`, 공개 안내, 해당 테스트.
   이 작업에서 호스트 지원을 넓히지 않습니다.

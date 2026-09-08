@@ -74,7 +74,7 @@ a path, command, interface, or blast-radius claim used as review evidence.
 
 Run `python3 "<skill-root>/evidence/evidence.py" --version` from the actual
 loaded skill root without installing anything. Parse its canonical JSON and
-record only when `skill_name=pre-sdd-review` and `schema=2`. When compatible,
+record only when `skill_name=pre-sdd-review` and `schema=3`. When compatible,
 call `start` before semantic review with the skill root, the repository, the
 primary plan, the design path resolved from the plan's `**Spec:**` field, the
 host client id, the host-reported model string (or `unknown`), and the mode.
@@ -91,6 +91,12 @@ incompatible, or permission-failing recorder must continue the review and
 never changes the semantic verdict. If the invocation ends before `finish`,
 call `abandon` with one of `user-cancelled`, `input-changed`, `scope-changed`,
 `input-format-fixed`, or `other`; never leave a run pending.
+
+A schema 2 pending run is `historical-unbound` and read-only. Preserve it and
+start a new run if recording is still wanted; never infer a checkout identity
+for a historical record. If the recorder cannot read its private identity
+state, cannot acquire a required mutation lock, or otherwise fails, report
+`Evidence: not_recorded; reason=<code>` and continue the semantic review.
 
 Recording an `outcome` is not a controller duty. After SDD or implementation
 ends, the user or the SDD worker may record one label (`good`, `false-ready`,

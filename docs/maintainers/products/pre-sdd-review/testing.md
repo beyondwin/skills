@@ -10,15 +10,16 @@ live-check 경계를 소유합니다. 모델의 실제 리뷰 품질을 측정�
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
-  -s tests/products/pre-sdd-review -p 'test_contract.py' -v
+  -s tests/products/pre-sdd-review -p test_contract.py -v
 ```
 
 이 명령은 패키지 정체, 지시문, 픽스처 형태, 활성화 경계, 문서화된 계약
 사실을 확인합니다. 라이브 검토, 의미 품질, 다른 호스트의 동등 지원은
 증명하지 않습니다.
 
-`evidence/evidence.py` 기록기의 schema 2 기록, Git 사실, 불변식, 여섯 명령,
-summary 집계 계약은 별도 provider-free 단계로 실행합니다. 기록기는
+`evidence/evidence.py` 기록기의 schema 3 checkout 결속, schema 2 read-only
+legacy 처리, mutation lock, 손상 record 격리, 여섯 명령, summary 관찰 집계
+계약은 별도 provider-free 단계로 실행합니다. 기록기는
 `python3 skills/pre-sdd-review/evidence/evidence.py`로 돌리며 설치하지
 않습니다.
 
@@ -29,6 +30,12 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
 
 이 단계는 네트워크나 공급자를 호출하지 않습니다. DB나 index도 추가하지
 않습니다.
+
+`test_contract.py`의 schema 3 문서 assertion은 설치 지시문, 기록기 안내,
+maintainer contract가 같은 lifecycle을 설명하는지 확인하는 일관성 증거입니다.
+실제 recorder 동작 증거는 evidence suite가 소유합니다. 이 승인 범위에서는
+provider나 실제 모델을 호출하지 않으므로 실제 모델 리뷰 품질은
+`not_measured`입니다.
 
 ## Exact fixture boundary
 
@@ -96,6 +103,7 @@ v1.1 전진 확인은 정답을 숨긴 채 `repair-induced-schema-consumer`,
 
 Evidence 테스트는 임시 Git 저장소와 합성 skill root만 사용합니다. source text,
 raw path, prompt, transcript, credential을 기록에 넣지 않습니다. `outcome`
-label은 관찰자 입력이며 감사급 증명이 아닙니다. native Windows, Linux,
-Claude Code, Cursor, Grok은 각 native 또는 live 단계가 별도로 실행되기
-전까지 `not_measured`입니다.
+label과 정상/이상 verdict 분리는 관찰자 입력이며 모델 품질이나 감사급 증명이
+아닙니다. 손상 record 수는 filter 전 전체 scan에서 확인합니다. native
+Windows, Linux, Claude Code, Cursor, Grok은 각 native 또는 live 단계가
+별도로 실행되기 전까지 `not_measured`입니다.

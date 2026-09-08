@@ -39,7 +39,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "1f47b5f7b8202939a112cc6f151547421cafb576f88cfadfce454196f0811641",
+    "SKILL.md": "3dc6220d5502464c61ca68f85624140ae59e168d249ffc30c051b443bf2bdb1a",
     "references/reviewer-protocol.md": (
         "8b28feb6c897341917cdde06411cadf8aea1f815f10608fa7ce709d12b77821f"
     ),
@@ -377,29 +377,29 @@ README_CANONICAL_SECTION_DIGESTS = {
     "ko": (
         ("## 이 스킬이 해결하는 문제", "34742e41af70cad0eea87b0a6335332097205550174c666b9360ddcfd4f76ddd"),
         ("## 사용해야 할 때와 사용하지 말아야 할 때", "63634fe6e87d9b53d0d13d628ab18747c164c33aa432c03e6ab095e7fd94e2b4"),
-        ("## 설치", "0310039df0ab24fb37b0c2ff647a6fbf12f938a88d5026f997636c9e1bdfc7ee"),
+        ("## 설치", "a037729d9f288741bc50c17f7ed6c6ad1a122b669b3f1b1406374b2eac108192"),
         ("## 첫 호출", "50b99daba0033aa7cc24a42ae5c07ffbe75c93d9ce270f2dcfbc48cc64ef82a2"),
         ("## 결과와 기본 흐름", "767a58ed8f949cede87fd8a0c2bb4cb2ed02522a14c1a852827038261b9f2fc5"),
-        ("## 안전과 개인정보", "80a7952ae3a8d3f46896e98f96348077d15602fa496337dee3de3666dde70219"),
-        ("## 운영과 한계", "8374f78382377aa3c1dbe54d856fa495e3240d1299c830f60a3b69d428954ec9"),
-        ("## 호환성과 검증 수준", "52cd6d07286a1c1bd48b0c8411e450dfd8d09bcba0995c5f58b264e4eefc1f21"),
-        ("## 변경 이력과 관리자 문서", "7e1cb70139ec2f47b67004352fdd0ca739f19515c2c715095501268c5b7405ac"),
+        ("## 안전과 개인정보", "0290d8394cb6097d33cc3d28d750ec5b38b14daf4202f06c8543b32ab658cfb6"),
+        ("## 운영과 한계", "0fa6e54e8efc3d8dbd1441acf89229166cc81afb67ef4387f7aa2dfd58a5b9a5"),
+        ("## 호환성과 검증 수준", "baab6694eb07df0a85e89c1e30eaf53074cfcafc09efe25c82e71eab45ec98ca"),
+        ("## 변경 이력과 관리자 문서", "bbe52e903896c2e9b265f189c77b88c12bebe1e331af3c0afeb72098b8d9c011"),
     ),
     "en": (
         ("## Purpose", "d1b0ca1b776d1b9f0ca9748e3bf2f5264e4ab2e6f091d83c998a230ee5659aa3"),
         ("## When to use and not use", "2daaa6de8f1623ab571cc1639b7b5097241c02e5f420b92ed48ecf1a401d926e"),
-        ("## Install", "bc2117dc022697234b829886280584fc231146197b4d8710cbedbb60c19f9e20"),
+        ("## Install", "3059098891619289fba676e8256a35c3abe74b65a03d34f874afc253467e337a"),
         ("## First call", "304e4697f6a40a2d522f18757ed7e464c4a8fde253c885fdf82ac1152ebb5b2a"),
         ("## Expected result", "878e1b880bd85b1d0d048084fa7ffb2059acf70900a40dc05c78d5b05fc5f6ed"),
-        ("## Safety and privacy", "6deacd7f8ac39cf1322593d056764569198789615c3e5548d0bd8c8bd7d5b771"),
-        ("## Operations and limits", "978d25d3d73bb0621c112ac4c868bc6978cfd133501c822ed659276a9bf4adfe"),
-        ("## Supported hosts and verification", "52511fc16c8aa5f4485645f5f76e576d660e6d42fb37723884aeda8233c10d0a"),
-        ("## Changelog and maintainer docs", "7a5611089ddaf6819881da0ae7d96ec6ce36107f2c0076e9528499437749e7b1"),
+        ("## Safety and privacy", "38b9938371030f1d81e491c82aad770b3f0cf7210c6ab83243c3b70596b3db7c"),
+        ("## Operations and limits", "30cc7c2ca3ac91f633417a6ca57bcb070be8edd5d6ef15574e35e82163df792c"),
+        ("## Supported hosts and verification", "165a5b1b758c9e87c1e5b3796b05dcbf10f3045672c7a9c4c90898c0cb7f8f92"),
+        ("## Changelog and maintainer docs", "d8564c37ce946ed96d43a606dd471a9b813f8b8f6b468b727452895dc56ebd63"),
     ),
 }
 README_CANONICAL_DOCUMENT_DIGESTS = {
-    "ko": "5f79e0b2aebbf4537f9bc9ed6fa6f467cad62cc5514e869c3715adef4ebb169f",
-    "en": "b6200bc61c93823878f94112b7ee47e313d07c0d2c7586cecc2f265adae18869",
+    "ko": "2b22b0ef15ac4880efa8a2c8fe514ed469e3458830b40398283abbcc2610e487",
+    "en": "cc6359c72c043c3bc97ef2f795591ca3bebc757fc2031f24679c30cdeac8effd",
 }
 MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Authority order", "3156a43d665d21723ce61b333c7c34f30abd2e6d288c472d5eec5878e5ef8321"),
@@ -413,9 +413,9 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Freshness", "496291e8542f8f110b1f9e17647c86b83b42d58720382ce68437bb5601cd09ae"),
     ("### SDD handoff", "8a629dd12d78e2c08e77e7c1d057d0e450b135bc0633d5b62c8c926665976bca"),
 )
-MAINTAINER_CANONICAL_DIGEST = "f04ce44258d7ddddb660cc8bdb60c354738f6dd8364c07c3a6bc5bc4aacf4ec9"
-TESTING_CANONICAL_DIGEST = "101698bd649028daecae8fc454868d48734f8fe686b841f993c027dbfc27fbd1"
-COMPATIBILITY_CANONICAL_DIGEST = "e6190ebc5aed319c09ecf5acdbeae12f8bea341667857b6d7a2af1522abd1a2a"
+MAINTAINER_CANONICAL_DIGEST = "492f7097647017ed3bae0505fbaa63ee8122ea1f5590e16c7552b1df9069e09c"
+TESTING_CANONICAL_DIGEST = "3dc92aa2bf002335965f9d836d978d28f96b1f0355bce398a7d3e2b71451be60"
+COMPATIBILITY_CANONICAL_DIGEST = "e47297cbf13ae9b9d8ebde193338247f70a1329e0e3e73eb104bb4d249c02561"
 RELEASE_CANONICAL_DIGEST = "34c75089cbc42fd666c6bc0ecc8be13f5229763ee224f1d6ca8baa62cd3759a0"
 
 
@@ -1167,7 +1167,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         for fact in (
             "without installing anything",
             "skill_name=pre-sdd-review",
-            "schema=2",
+            "schema=3",
             "actual loaded skill root",
             "primary plan",
             "does not parse `**Spec:**`",
@@ -1191,6 +1191,25 @@ class PreSddReviewContractTests(unittest.TestCase):
             normalized,
             re.compile(r"unavailable, malformed, incompatible, or permission.*continue.*review", re.IGNORECASE),
         )
+
+    def test_recorder_v3_documents_legacy_and_observation_boundaries(self) -> None:
+        skill_text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        recorder = (SKILL / "evidence/README.md").read_text(encoding="utf-8")
+        contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
+
+        self.assertIn("schema=3", skill_text)
+        for token in (
+            "repo_key",
+            "historical-unbound",
+            "legacy-record-read-only",
+            "locking-unavailable",
+            "invalid_records",
+            "normal_verdict",
+            "anomalous_verdict",
+        ):
+            self.assertIn(token, recorder)
+        self.assertIn("cannot change `READY`, `REVISE`, or `BLOCKED`", contract)
+        self.assertIn("false-ready` requires a `READY` verdict", contract)
 
     def test_evidence_cases_cover_recorded_failure_review_only_blocked_and_handoff(self) -> None:
         data = json.loads(CASES.read_text(encoding="utf-8"))
@@ -1527,7 +1546,7 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             self.assertIn(fact, release)
         self.assertIn("no tag or github release is created by these commands.", normalized_release)
 
-    def test_v2_docs_keep_evidence_local_bounded_optional_and_agent_readable(self) -> None:
+    def test_v3_docs_keep_evidence_local_bounded_optional_and_agent_readable(self) -> None:
         documents = (
             (SKILL / "README.md").read_text(encoding="utf-8"),
             (SKILL / "README.en.md").read_text(encoding="utf-8"),
@@ -1555,7 +1574,7 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "prompts",
             "transcripts",
             "credentials",
-            "schema 2",
+            "schema 3",
         ):
             self.assertIn(phrase, combined)
 

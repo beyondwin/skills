@@ -34,10 +34,15 @@ host.
 | --- | --- | --- |
 | macOS / Python 3.11+ | `verified` | provider-free evidence suite |
 | Linux / Python 3.11+ | `not_measured` | no native run evidence |
-| Windows / Python 3.11+ | `not_measured` | no native run evidence |
+| Windows / Python 3.11+ | `not_measured` | schema 3 mutations require POSIX `fcntl.flock`; read-only commands are not a native support claim |
 
 A `windows-portable` run on another OS verifies stage selection only. It must
 not be promoted to native support.
+
+Schema 3 mutation commands use OS file locking for `.identity.lock` and
+`locks/<run-id>.lock`. `show`, `summary`, and `--version` are read-only and do
+not acquire those locks. This distinction does not advertise native Windows
+mutation support or raise Windows above `not_measured`.
 
 ## Evidence limit
 

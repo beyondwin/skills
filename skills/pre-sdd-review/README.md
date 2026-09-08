@@ -41,7 +41,7 @@ python3 "<skill-root>/evidence/evidence.py" --version
 ```
 
 갱신하거나 지울 때는 설치 폴더를 먼저 확인하세요. 절차는
-[설치](../../docs/users/ko/installation.md)를 보세요.
+[설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/installation.md)를 보세요.
 
 ## 첫 호출
 
@@ -118,17 +118,23 @@ public/private 데이터 경계, 게시·과금·메시징·프로덕션 변경 
 승인된 ADR·시각 권위, 애플리케이션 코드, 테스트, 설정, 생성물, 관련 없는 문서는
 별도 제품 결정 없이는 변경하지 않습니다.
 
-영수증은 `~/.pre-sdd-review/runs/<run-id>.json`에 로컬로만 남습니다(schema 2).
-저장소 상대 경로, 디렉터리 이름, 해시, 열거값, 짧은 paraphrase만 저장합니다.
-원문, 절대 경로, prompts, transcripts, credentials는 넣지 마세요. 기록기는
-자동 비밀 탐지를 하지 않습니다.
+영수증은 `~/.pre-sdd-review/runs/<run-id>.json`에 로컬로만 남습니다(schema 3).
+개인 32바이트 `.identity-salt`와 checkout·Git 디렉터리 경로의 HMAC으로
+checkout 결속을 만들고, 영수증에는 표시 이름 `repo`와 `repo_key`만 저장합니다.
+salt와 identity 입력 경로는 출력하거나 저장하지 않습니다. checkout 이동, clone,
+다른 worktree, salt 유실, 다른 evidence home은 원래 결속으로 취급할 수 없습니다.
+schema 2 기록은 `historical-unbound` 읽기 전용으로 보존합니다.
+
+기록에는 저장소 상대 경로, 디렉터리 이름, 해시, 열거값, 짧은 paraphrase만
+넣습니다. 원문, 절대 경로, prompts, transcripts, credentials는 넣지 마세요.
+기록기는 자동 비밀 탐지를 하지 않습니다.
 
 로컬 파일 저장은 악의적인 로컬 변조를 막는 서명된 audit log가 아닙니다.
 `outcome` 라벨(`good`, `false-ready`, `noisy`, `abandoned`)은 SDD가 끝난 뒤
 사람이나 SDD 워커가 남기는 관찰이며 다시 기록해 정정할 수 있습니다. 라벨은
 자기개선용 evidence이지 객관적·감사 등급 증거가 아닙니다.
 
-자세한 내용은 [안전과 개인정보](../../docs/users/ko/safety-and-privacy.md)를 보세요.
+자세한 내용은 [안전과 개인정보](https://github.com/beyondwin/skills/blob/main/docs/users/ko/safety-and-privacy.md)를 보세요.
 
 ## 운영과 한계
 
@@ -140,6 +146,9 @@ public/private 데이터 경계, 게시·과금·메시징·프로덕션 변경 
 `summary`를 실행하게 하고 `anomalies`와 `chains`부터 보게 하세요. 모든 집계에
 `run_id`가 붙어 있어 `show --run-id`로 바로 내려갈 수 있습니다. 후보 픽스처
 자동 선정, 자동 스킬 변경, client/model ranking은 하지 않습니다.
+`invalid_records`는 filter 전 전체 scan 손상을 세고, verdict 전체 합계와
+`normal_verdict`/`anomalous_verdict`, checkout 결속 합계를 나눠 보여줍니다.
+이는 모델 품질 측정이나 서명된 감사 증명이 아닙니다.
 
 버전 원본은 `release.toml`이고 `SKILL.md`의 `metadata.version`은 검증된 복제
 값입니다. 기록기는 이전 `runs/<year>/<month>/` 영수증을 읽지 않으며, 영수증 삭제는
@@ -150,12 +159,12 @@ public/private 데이터 경계, 게시·과금·메시징·프로덕션 변경 
 pre-sdd-review: Codex supported; other hosts not_measured.
 
 Codex만 독립 읽기 전용 검토와 저장소 조사를 포함해 측정되었습니다. 다른 호스트는
-[호환성](../../docs/users/ko/compatibility.md)을 보세요.
+[호환성](https://github.com/beyondwin/skills/blob/main/docs/users/ko/compatibility.md)을 보세요.
 
 제공자 없는 검증은 패키지·지시문·픽스처 계약만 증명하며 실제 모델 검토 품질을
 증명하지 않습니다. 선택적 live 검사는 명시적이고 로컬에서만 하며 비용이 들 수
 있고, CI에서는 요구하지 않습니다. 자세한 내용은
-[검증](../../docs/users/ko/verification.md)을 보세요.
+[검증](https://github.com/beyondwin/skills/blob/main/docs/users/ko/verification.md)을 보세요.
 
 기록기는 Python 3.11+ 표준 라이브러리만 쓰며 macOS에서 provider-free 테스트로
 검증됐습니다. Linux와 native Windows는 각 환경에서 evidence 단계가 직접 실행될
@@ -164,7 +173,7 @@ Codex만 독립 읽기 전용 검토와 저장소 조사를 포함해 측정되�
 ## 변경 이력과 관리자 문서
 
 - [CHANGELOG](CHANGELOG.md)
-- [계약](../../docs/maintainers/products/pre-sdd-review/contract.md)
-- [테스트](../../docs/maintainers/products/pre-sdd-review/testing.md)
-- [호환성](../../docs/maintainers/products/pre-sdd-review/compatibility.md)
-- [릴리스](../../docs/maintainers/products/pre-sdd-review/release.md)
+- [계약](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/pre-sdd-review/contract.md)
+- [테스트](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/pre-sdd-review/testing.md)
+- [호환성](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/pre-sdd-review/compatibility.md)
+- [릴리스](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/pre-sdd-review/release.md)
