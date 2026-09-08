@@ -1,6 +1,6 @@
 # 스킬 신뢰성 개선 실행 인덱스
 
-상태: 승인된 [설계](../specs/2026-09-08-skills-hardening-design.md)에 대한 구현 계획. 제품 구현은 아직 시작하지 않았다.
+상태: 승인된 [설계](../specs/2026-09-08-skills-hardening-design.md)의 제품·공유 계약 구현을 `codex/skills-hardening-implementation`에 로컬 커밋했다. 아직 main에 합쳐지지 않은 구현 브랜치의 통합 검토에 이 계획을 사용한다. 본문의 체크리스트는 승인된 실행 절차이며, 실제 검증 결과와 판단은 로컬 실행 증거에 기록한다.
 
 총 여섯 개 구현 계획, 28개 작업이다. 현재 네 제품의 경계를 유지하면서 데이터 보존·검증 누락·판정 근거·기록 동일성을 보강한다. 감사 후보 중 반대 증거가 있는 R6와 P5는 필수 작업에서 제외했다.
 
@@ -32,7 +32,7 @@ flowchart LR
 
 ## 실행 준비와 종료 기준
 
-실행 시 `superpowers:using-git-worktrees`로 계획 문서를 포함하는 HEAD에서 격리 작업 공간을 만들고, `superpowers:subagent-driven-development`로 task별 RED/GREEN과 독립 spec·품질 리뷰를 수행한다. 현재 문서 작성 단계에서는 제품 코드를 바꾸지 않는다. 모델·이미지 생성 API, 사용자 설치본 교체, 원격 게시·tag·push는 포함하지 않는다.
+실행 시 `superpowers:using-git-worktrees`로 계획 문서를 포함하는 HEAD에서 격리 작업 공간을 만들고, `superpowers:subagent-driven-development`로 task별 RED/GREEN과 독립 spec·품질 리뷰를 수행한다. 2026-09-08 사용자의 구현 요청에 따라 이 절차를 실행했다. 모델·이미지 생성 API, 사용자 설치본 교체, 원격 게시·tag·push는 포함하지 않는다.
 
 첫 실행 기록은 gitignored `.evidence/skills-hardening/ledger.md`에 둔다. 각 task마다 아래 항목을 채운다. 기록기의 READY가 아니라 실제 테스트와 리뷰 결과를 적는다.
 
