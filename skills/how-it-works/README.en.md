@@ -26,21 +26,68 @@ stand-in for `/eli5`.
 
 how-it-works: Codex and Claude Code supported for local or repository-based use.
 
-The supported host ids are `codex` and `claude-code`. Grok was measured and failed live smoke, so it is not supported. Cursor was not executed, so it is not claimed. Claude.ai, Cowork, Skills API upload, and marketplace publication are not supported. Shared limits are in [Compatibility](../../docs/users/en/compatibility.md).
+The supported host ids are `codex` and `claude-code`. Live evidence for the
+current payload is `not_measured`. In the preserved 2026-08-28 measurement,
+Grok failed and Cursor was not run. That historical record is not current-run
+evidence. Claude.ai, Cowork, Skills API upload, and marketplace publication are
+not supported. Shared limits are in
+[Compatibility](https://github.com/beyondwin/skills/blob/main/docs/users/en/compatibility.md).
 
 ## Install
 
-Clone the repo, then make two links. The first link serves Codex. The
-second serves Claude Code. `ln -s` fails instead of overwriting an existing
-target.
+Clone the repo, then make two links. The first link serves Codex. The second
+serves Claude Code.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
 cd skills
 mkdir -p ~/.agents/skills ~/.claude/skills
-ln -s "$PWD/skills/how-it-works" ~/.agents/skills/how-it-works
-ln -s "$PWD/skills/how-it-works" ~/.claude/skills/how-it-works
 ```
+
+The one-shot Python block below takes source and target as arguments. It first
+validates that source is a skill directory and treats the same link as success.
+It does not replace a different link, dangling link, file, or directory. It also
+stops if the target appears after inspection, so inspect it before retrying.
+
+<!-- how-it-works-local-links -->
+```python
+import os
+import sys
+from pathlib import Path
+
+if len(sys.argv) != 3:
+    raise SystemExit("usage: python3 - SOURCE TARGET")
+source = Path(sys.argv[1]).expanduser().resolve(strict=True)
+target = Path(os.path.abspath(os.path.expanduser(sys.argv[2])))
+if not source.is_dir() or not (source / "SKILL.md").is_file():
+    raise SystemExit("source must be a skill directory")
+if target.is_symlink():
+    try:
+        same = target.resolve(strict=True) == source
+    except (OSError, RuntimeError):
+        same = False
+    if same:
+        print("already linked")
+        raise SystemExit(0)
+    raise SystemExit("refusing different or dangling link")
+if target.exists():
+    raise SystemExit("refusing existing file or directory")
+target.parent.mkdir(parents=True, exist_ok=True)
+try:
+    target.symlink_to(source, target_is_directory=True)
+except FileExistsError:
+    raise SystemExit("target appeared during installation; inspect it before retrying")
+print("linked")
+```
+
+Put this block on standard input through a quoted here-document and run it once
+per target. The Codex invocation starts with
+`python3 - "$PWD/skills/how-it-works" "$HOME/.agents/skills/how-it-works" <<'PY'`;
+the Claude Code invocation starts with
+`python3 - "$PWD/skills/how-it-works" "$HOME/.claude/skills/how-it-works" <<'PY'`.
+Place the Python block above unchanged on the following lines and close each
+invocation with `PY` on its own line. Keep the source and target arguments
+quoted.
 
 `$skill-installer` names the public GitHub path. Codex still discovers
 `~/.agents/skills/how-it-works`. Do not create a `~/.codex` duplicate.
@@ -50,7 +97,7 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-wor
 ```
 
 Shared install steps are in
-[Installation](../../docs/users/en/installation.md).
+[Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/installation.md).
 
 ## First call
 
@@ -107,7 +154,7 @@ Medical, legal, or financial slices explain mechanism only. They are not
 advice.
 
 Details are in
-[Safety and privacy](../../docs/users/en/safety-and-privacy.md).
+[Safety and privacy](https://github.com/beyondwin/skills/blob/main/docs/users/en/safety-and-privacy.md).
 
 ## Verification
 
@@ -122,7 +169,7 @@ and delete them after scoring. A host that fails the same-build criteria is
 unsupported.
 
 Shared evidence limits are in
-[Verification](../../docs/users/en/verification.md).
+[Verification](https://github.com/beyondwin/skills/blob/main/docs/users/en/verification.md).
 
 ## Update and remove
 
@@ -135,7 +182,8 @@ unlink ~/.claude/skills/how-it-works
 ```
 
 Do not delete the parent `skills` directory or a home directory. Shared
-steps are in [Installation](../../docs/users/en/installation.md).
+steps are in
+[Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/installation.md).
 
 Check the current version in `SKILL.md` `metadata.version` and
 [CHANGELOG](CHANGELOG.md).
@@ -143,7 +191,7 @@ Check the current version in `SKILL.md` `metadata.version` and
 ## Changelog and maintainer docs
 
 - [CHANGELOG](CHANGELOG.md)
-- [Contract](../../docs/maintainers/products/how-it-works/contract.md)
-- [Testing](../../docs/maintainers/products/how-it-works/testing.md)
-- [Compatibility](../../docs/maintainers/products/how-it-works/compatibility.md)
-- [Release](../../docs/maintainers/products/how-it-works/release.md)
+- [Contract](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/how-it-works/contract.md)
+- [Testing](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/how-it-works/testing.md)
+- [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/how-it-works/compatibility.md)
+- [Release](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/how-it-works/release.md)

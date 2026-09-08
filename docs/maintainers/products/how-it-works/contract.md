@@ -63,6 +63,22 @@ mermaid가 시각 채널입니다. 손으로 그린 HTML 상자는 다이어그�
 `skills/how-it-works/references/stakes.md`가 소유합니다.
 `korean-writing-editor`를 호출하지 않습니다.
 
+## 버전과 설치
+
+현재 제품 계약 버전은 `2.0.0`입니다. 원본은
+`skills/how-it-works/release.toml`이며 `SKILL.md`의 `metadata.version`은 같은
+값을 복제합니다. `metadata.updated_at`과 `CHANGELOG.md`의 버전 날짜는 실제 구현일
+`2026-09-08`을 사용합니다. 이 메타데이터는 tag, 공개, GitHub Release가 생겼다는
+뜻이 아닙니다.
+
+두 제품 README는 `<!-- how-it-works-local-links -->` 바로 뒤의 Python 블록을
+바이트 단위로 같게 유지합니다. 블록은 source와 target 두 인자를 받아 source의
+실재와 `SKILL.md`를 먼저 검사합니다. 같은 symlink는 성공하고, 다른 symlink,
+깨진 symlink, 파일, 디렉터리, 검사 뒤 나타난 target은 바꾸지 않고 거부합니다.
+README의 실행 예시는 quoted here-document와 인용한 source/target 인자를 사용하며
+Codex와 Claude Code target을 각각 호출합니다. 실제 HOME에서는 검증하지 않습니다.
+공백이 있는 임시 경로의 동작 반례는 공통 설치 계약 검사가 소유합니다.
+
 ## 함께 고칠 파일
 
 동작 변경을 한 파일에만 넣지 마세요.
@@ -74,3 +90,7 @@ mermaid가 시각 채널입니다. 손으로 그린 HTML 상자는 다이어그�
 - 한국어 목소리와 intent/그림 예시: `skills/how-it-works/references/korean.md`. `korean-writing-editor`를 호출하지 않습니다.
 - 이해관계 배너와 고위험 확인 정책: `skills/how-it-works/references/stakes.md`의 언어별 정확한 배너 바이트
 - 출처 또는 인용 정책: `skills/how-it-works/references/sources.md`. 검증/미확인을 구분하고 논문·법령 ID를 만들지 않습니다.
+- 버전, 설치 블록, payload 내부/외부 링크: `skills/how-it-works/release.toml`,
+  `SKILL.md`, `CHANGELOG.md`, 두 제품 README,
+  `tests/products/how-it-works/test_contract.py`. 공통 설치 실행 반례와 공유 version
+  pin은 통합 담당이 소유합니다.

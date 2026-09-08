@@ -39,6 +39,14 @@
 출력 품질, 모델의 여섯 산출 준수, Mermaid parser/renderer 결과는
 `not_measured`입니다.
 
+`test_v2_release_and_repeatable_install_contract`는 제품 version, 두 README의 추출
+marker, 옛 직접 `ln -s` 명령 제거, payload 밖 문서에 대한 깨진 상대 링크 제거를
+검사합니다. 제품 검사는 설치 코드를 실제 HOME에서 실행하지 않습니다. 공백 포함
+임시 source/target의 첫 설치, 동일 링크 반복, 실제 디렉터리, 다른 링크, 깨진 링크,
+경합 반례는 통합 담당의 `tests/repository/test_installation_contract.py`가 실행해야
+합니다. 첫 설치와 반복은 성공하고, 거부 시 원본과 target 바이트·링크가 그대로여야
+합니다.
+
 ## 선택적 라이브 smoke
 
 라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있습니다. CI가 요구하지

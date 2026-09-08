@@ -6,8 +6,8 @@
 [버저닝](../../repository/versioning.md)을 따릅니다.
 
 공개 how-it-works 릴리스는 아직 없습니다. 이 제품은 통합 `v2.0.0` GitHub
-Release와 불변 카탈로그 lock에 포함되지 않았습니다. 첫 독립 공개 목표는
-`1.0.0`입니다.
+Release와 불변 카탈로그 lock에 포함되지 않았습니다. 현재 독립 공개 후보
+메타데이터는 `2.0.0`입니다. tag, publication, GitHub Release는 만들지 않았습니다.
 
 ## SemVer 예시
 
@@ -24,7 +24,7 @@ Release와 불변 카탈로그 lock에 포함되지 않았습니다. 첫 독립 
 
 ## 검사, 빌드, 다운로드
 
-`1.0.0` 검사·빌드·다운로드 확인:
+`2.0.0` 검사·빌드·다운로드 확인:
 
 ```bash
 python3 scripts/verify.py --skill how-it-works

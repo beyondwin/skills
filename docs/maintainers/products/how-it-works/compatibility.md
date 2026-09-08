@@ -16,8 +16,11 @@ skills/how-it-works/              저장소 원본
 └─ ~/.claude/skills/how-it-works ─→ Claude Code
 ```
 
-`ln -s`는 이미 있는 대상을 덮어쓰지 않고 실패합니다. `.codex`와 `.grok` 중복
-링크를 다시 만들지 마세요.
+제품 README의 일회성 Python 블록은 source와 target을 인자로 받습니다. source의
+실재와 `SKILL.md`를 먼저 검사한 뒤 링크를 만들며, 같은 링크의 반복 설치는
+`already linked`로 성공합니다. 다른 링크, 깨진 링크, 파일, 디렉터리, 검사 뒤
+나타난 target은 자동 교체하지 않습니다. `.codex`와 `.grok` 중복 링크를 다시 만들지
+마세요. 실제 HOME 대신 공백이 있는 임시 경로에서 설치 계약을 검증합니다.
 
 ## 호출 구문
 

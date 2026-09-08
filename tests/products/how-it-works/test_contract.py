@@ -192,12 +192,25 @@ class SectionHelperTests(unittest.TestCase):
 
 
 class HowItWorksPayloadTests(unittest.TestCase):
+    def test_v2_release_and_repeatable_install_contract(self) -> None:
+        from scripts.lib.product_contract import load_product_release
+
+        self.assertEqual(load_product_release(SKILL).version, "2.0.0")
+        for filename in ("README.md", "README.en.md"):
+            text = (SKILL / filename).read_text(encoding="utf-8")
+            self.assertIn("<!-- how-it-works-local-links -->\n```python\n", text)
+            self.assertNotIn(
+                'ln -s "$PWD/skills/how-it-works" ~/.agents/skills/how-it-works',
+                text,
+            )
+            self.assertNotIn("](../../docs/", text)
+
     def test_frontmatter_uses_portable_intersection(self) -> None:
         frontmatter = parse_skill_frontmatter((SKILL / "SKILL.md").read_text(encoding="utf-8"))
         self.assertEqual(set(frontmatter), PORTABLE_FIELDS)
         self.assertEqual(frontmatter["name"], "how-it-works")
         self.assertEqual(frontmatter["license"], "Apache-2.0")
-        self.assertEqual(frontmatter["metadata"]["version"], "1.0.0")
+        self.assertEqual(frontmatter["metadata"]["version"], "2.0.0")
 
     def test_frontmatter_has_no_host_tool_requirement(self) -> None:
         frontmatter = parse_skill_frontmatter((SKILL / "SKILL.md").read_text(encoding="utf-8"))
@@ -223,11 +236,12 @@ class HowItWorksPayloadTests(unittest.TestCase):
             text,
         )
 
-    def test_unreleased_changelog_records_one_turn_emit_instruction(self) -> None:
+    def test_v2_changelog_records_one_turn_emit_instruction(self) -> None:
         text = (SKILL / "CHANGELOG.md").read_text(encoding="utf-8")
-        unreleased = text.split("## Unreleased", 1)[1].split("\n## ", 1)[0]
-        self.assertIn("current reply", unreleased)
-        self.assertIn("focused references", unreleased)
+        self.assertIn("## 2.0.0 - 2026-09-08", text)
+        release = text.split("## 2.0.0 - 2026-09-08", 1)[1].split("\n## ", 1)[0]
+        self.assertIn("current reply", release)
+        self.assertIn("focused references", release)
 
     def test_release_smoke_accepts_portable_frontmatter(self) -> None:
         from scripts.release import _smoke_how_it_works
@@ -560,7 +574,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
         for forbidden in HOST_TOOL_MARKERS:
             self.assertNotIn(forbidden, text)
 
-    def test_product_readmes_do_not_invent_a_cursor_smoke_failure(self) -> None:
+    def test_product_readmes_separate_historical_and_current_measurement(self) -> None:
         for filename in ("README.md", "README.en.md"):
             text = (SKILL / filename).read_text(encoding="utf-8")
             self.assertNotRegex(
@@ -583,10 +597,10 @@ class HowItWorksPayloadTests(unittest.TestCase):
             )
         korean = (SKILL / "README.md").read_text(encoding="utf-8")
         english = (SKILL / "README.en.md").read_text(encoding="utf-8")
-        self.assertIn("Grok는 라이브 smoke에서 측정되었고 실패했습니다", korean)
-        self.assertIn("Cursor는 실행하지 않아 지원을 주장하지 않습니다", korean)
-        self.assertIn("Grok was measured and failed live smoke", english)
-        self.assertIn("Cursor was not executed, so it is not claimed", english)
+        self.assertIn("현재 payload의 실제 실행 증거는\n`not_measured`", korean)
+        self.assertIn("보존된 2026-08-28 측정에서는 Grok가 실패했고 Cursor는", korean)
+        self.assertIn("Live evidence for the\ncurrent payload is `not_measured`", english)
+        self.assertIn("In the preserved 2026-08-28 measurement,\nGrok failed and Cursor was not run", english)
 
 
 class HowItWorksLiveContractTests(unittest.TestCase):
