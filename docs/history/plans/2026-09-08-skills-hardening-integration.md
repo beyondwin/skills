@@ -33,6 +33,8 @@
 | `tests/repository/test_public_docs.py` | 새 문서 사실, 규범·극성·모순 보호 유지 |
 | `tests/repository/test_release.py` | 현행 제품 버전과 변이 배포 계약 |
 | `tests/repository/test_release_contract.py` | 현행 네 제품 버전 pin과 날짜 변이 fixture |
+| `tests/repository/test_repository.py` | 현행 Image 버전 불일치 반례의 실제 변이 |
+| `tests/repository/test_catalog_release.py` | 현행 How 아카이브를 소비하는 independent 합성 fixture의 버전·태그 |
 | `docs/users/ko/installation.md`, `docs/users/en/installation.md` | 안전한 링크, clone 소스 경로 |
 | `docs/users/ko/compatibility.md`, `docs/users/en/compatibility.md` | 지원 대상과 현재 증거 범위 |
 | `docs/users/ko/verification.md`, `docs/users/en/verification.md` | 측정 차원과 runner/recorder 형식 |
@@ -227,6 +229,9 @@ expected = release.load_product_release(ROOT / "skills" / "how-it-works")
 self.assertEqual({path.name for path in self.output.iterdir()}, {expected.artifact_name, "SHA256SUMS"})
 ```
 
+- [ ] 직접 소비자에서 추가로 확인된 현행 버전 변이를 맞춘다. `test_repository.py::test_rejects_version_mismatch`의 Image 원본 버전과 기대 오류를 2.0.2로 맞추고 원본이 실제로 달라졌는지 단언한다. `test_release.py`의 날짜 반례는 현행 How 2.0.0 dated heading을 제거하고, ZIP metadata 변이는 현행 2.0.0을 9.9.9로 바꾸었는지 각 대상에서 단언한다. `test_release_contract.py`의 Korean invalid-SemVer 반례도 현행 2.0.2를 2.0으로 바꾸고 실제 변이를 확인한다.
+- [ ] `test_catalog_release.py::CatalogIndependentFixtureTests`는 현행 How 빌드를 사용하는 합성 fixture이므로 버전과 qualified tag를 현행 source release에서 얻는다. `release.toml`이 삭제된 공격 ZIP에서도 fixture를 구성해야 하므로 손상된 추출본에서 버전을 읽도록 바꾸지 않는다. negative tag는 의도적으로 unqualified 상태를 유지한다. 이 변경은 `catalog/`와 `fixtures/legacy-bundle-v2.0.0/`의 불변 이력을 수정하지 않는다.
+
 - [ ] 아래 내용을 기존 공유 문서의 해당 제품 절에 반영한다. 제품 README와 관리자 계약을 원본으로 사용하며 문서별 유지 대상은 정확히 다음과 같다.
 
 | 문서 쌍 | 반영할 사실 |
@@ -251,7 +256,7 @@ def section_digest(document, heading):
     return hashlib.sha256(_owned_section(text, heading).encode("utf-8")).hexdigest()
 ```
 
-- [ ] GREEN: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests.repository.test_verify tests.repository.test_release_contract tests.repository.test_public_docs tests.repository.test_release` 실행. 이어 `PYTHONDONTWRITEBYTECODE=1 python3 scripts/verify.py --skill how-it-works`에서 새 evidence 테스트가 실행되는지 확인한다. 이 시점의 제품 코드는 인덱스에 반영된 커밋과 일치해야 한다.
+- [ ] GREEN: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests.repository.test_verify tests.repository.test_release_contract tests.repository.test_public_docs tests.repository.test_release tests.repository.test_repository tests.repository.test_catalog_release` 실행. 이어 `PYTHONDONTWRITEBYTECODE=1 python3 scripts/verify.py --skill how-it-works`에서 새 evidence 테스트가 실행되는지 확인한다. 이 시점의 제품 코드는 인덱스에 반영된 커밋과 일치해야 한다.
 - [ ] Task 2의 정확한 공유 파일만 stage하고 `git diff --cached --check` 뒤 `docs: align shared contracts with hardened skill releases`로 커밋한다.
 
 ### Task 3: 통합 반례·추출본 검증과 독립 리뷰
