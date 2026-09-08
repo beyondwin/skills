@@ -232,6 +232,9 @@ self.assertEqual({path.name for path in self.output.iterdir()}, {expected.artifa
 - [ ] 직접 소비자에서 추가로 확인된 현행 버전 변이를 맞춘다. `test_repository.py::test_rejects_version_mismatch`의 Image 원본 버전과 기대 오류를 2.0.2로 맞추고 원본이 실제로 달라졌는지 단언한다. `test_release.py`의 날짜 반례는 현행 How 2.0.0 dated heading을 제거하고, ZIP metadata 변이는 현행 2.0.0을 9.9.9로 바꾸었는지 각 대상에서 단언한다. `test_release_contract.py`의 Korean invalid-SemVer 반례도 현행 2.0.2를 2.0으로 바꾸고 실제 변이를 확인한다.
 - [ ] `test_catalog_release.py::CatalogIndependentFixtureTests`는 현행 How 빌드를 사용하는 합성 fixture이므로 버전과 qualified tag를 현행 source release에서 얻는다. `release.toml`이 삭제된 공격 ZIP에서도 fixture를 구성해야 하므로 손상된 추출본에서 버전을 읽도록 바꾸지 않는다. negative tag는 의도적으로 unqualified 상태를 유지한다. 이 변경은 `catalog/`와 `fixtures/legacy-bundle-v2.0.0/`의 불변 이력을 수정하지 않는다.
 
+- [ ] 실제 통합 실패로 확인된 두 직접 소비자도 수정한다. 공개 문서 검사는 Image의 정확한 “Passing does not prove complete bitstream decoding, visual quality, or rights clearance.” 부정 문장만 좁게 허용한다. `rights clearance` 금지 자체를 제거하지 않으며 부정어 제거·긍정 보장 추가 변이는 계속 실패해야 한다.
+- [ ] `verify_catalog_download`는 archive/member/metadata/신뢰 lock의 정확한 payload hash 검사를 유지한 뒤 `independent` 항목에 현행 제품 smoke를 적용한다. 고정된 `legacy-bundle`에 현행 회귀 테스트를 적용해 과거 계약을 재정의하지 않는다. 정상 legacy가 현행 smoke를 호출하지 않음, legacy payload와 checksum의 동시 변이가 거부됨, independent smoke 오류가 전파됨을 검증한다. 기존 catalog/legacy bytes는 바꾸지 않고 이 증거 경계를 저장소 release 안내에 명시한다.
+
 - [ ] 아래 내용을 기존 공유 문서의 해당 제품 절에 반영한다. 제품 README와 관리자 계약을 원본으로 사용하며 문서별 유지 대상은 정확히 다음과 같다.
 
 | 문서 쌍 | 반영할 사실 |
