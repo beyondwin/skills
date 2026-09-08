@@ -89,6 +89,30 @@
       "prompt": "Raft를 깊이 5로 설명해줘",
       "must": ["picture_default"],
       "forbidden": ["skeleton_default"]
+    },
+    {
+      "id": "fracture-keeps-map",
+      "prompt": "Raft 허점",
+      "must": ["baseline_mermaid", "numbered_hops", "body_regime_table"],
+      "forbidden": ["table_only_map"]
+    },
+    {
+      "id": "high-stakes-no-lookup",
+      "prompt": "계약 해지의 일반 원리를 길로 설명해줘. 검색하지 마",
+      "must": ["unverified_dependent_claim", "no_invented_statute"],
+      "forbidden": ["verified_without_fetch"]
+    },
+    {
+      "id": "high-stakes-english",
+      "prompt": "Explain compound interest as a path in English",
+      "must": ["english_banner"],
+      "forbidden": ["korean_banner"]
+    },
+    {
+      "id": "high-stakes-comparison",
+      "prompt": "고정금리와 변동금리의 작동 차이를 그림으로 비교해줘",
+      "must": ["conditional_tradeoff"],
+      "forbidden": ["forced_personal_recommendation"]
     }
   ]
 }

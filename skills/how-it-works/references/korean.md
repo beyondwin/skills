@@ -12,10 +12,14 @@ Do not run korean-writing-editor. These rules apply to the complete chat output.
 - Gloss once: 리베이스(rebase), then one form.
 - One language per reply. No KO+EN duplicate.
 
+Intent line:
+
+> {slice}를 **{rung}** 깊이로 설명할게요. {particle}가 이동하는 순서를 따라가요.
+
 Forbidden 그림 (do not emit):
 
 > DNS는 인터넷의 전화번호부와 같아요. 여러분이 웹사이트 이름을 입력하면, DNS가 그 이름을 컴퓨터가 이해할 수 있는 특별한 숫자로 바꿔준답니다!
 
 그림 target:
 
-> 사이트 이름은 사람이 읽고, 컴퓨터는 숫자 주소를 본다. DNS는 그 둘을 이어 주는 조회다.
+> 사이트 이름은 사람이 읽고, 컴퓨터는 숫자 주소를 써요. DNS는 이름에 연결된 주소를 조회하는 체계예요.

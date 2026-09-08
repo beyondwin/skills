@@ -24,9 +24,12 @@ Prefer explicit invocation: `$how-it-works` on Codex and `/how-it-works` on Clau
 
 ## Classify
 
-Say one line before any question so the user can override:
+Say one line before any question so the user can override. Use only the selected
+language. In Korean, use this intent line:
 
-> {slice}네. **{rung}**로 보고, {particle}를 따라갈게.
+> {slice}를 **{rung}** 깊이로 설명할게요. {particle}가 이동하는 순서를 따라가요.
+
+In English, state the same intent in English without repeating the Korean line.
 
 Paths:
 
@@ -64,9 +67,8 @@ Silent aliases (never print numbers or ages): 쉽게/한눈에/한 장 → 그�
 
 If the prompt already uses domain words (`rebase`, `TTL`, `Raft`), default **뼈대** only when neither a rung nor a depth alias was supplied.
 
-Intent line:
-
-> {slice}를 **{rung}**로, {particle}를 따라갈게. 안 다루는 것: {out of scope}.
+The intent line may add the out-of-scope slice in the selected language, while
+keeping the same register and meaning.
 
 Do not wait for a nod when they already chose the rung. Pause when the slice is surprising or the topic is medical, legal, or financial — then read `references/stakes.md`.
 
@@ -93,6 +95,7 @@ One next move only:
 - 한 줄로 되말하기
 
 다음 칸 and 흐린 홉 하나 keep the same hop IDs. 다른 각도 may recut the type. 한 줄로 되말하기 patches gaps in chat.
+Render the next move in the selected language only.
 
 ## Required deliverable
 
@@ -106,6 +109,12 @@ The explanation is complete in this chat reply. Do not wait for a renderer. Incl
 6. one next move
 
 A missing renderer is not a failed task. Keep the Mermaid source and the numbered hop list.
+Keep the baseline Mermaid and numbered hops at every rung. At 허점, add the
+failure/regime table to the body without replacing the map. Keep hop identifiers
+stable when changing depth; explain added detail against the same hops.
+
+Use only the selected language for headings, intent lines, body, banner, and next
+move.
 
 ## Optional preview
 
@@ -113,7 +122,7 @@ A host page, Canvas, or visual preview may be added only after the complete outp
 
 ## EXPLAIN
 
-Read `references/output.md`, then `references/visuals.md`. If Korean → `references/korean.md`. If metaphor → the isomorphism section in `output.md`. If medical/legal/financial → `references/stakes.md`.
+Read `references/output.md`, then `references/visuals.md`. If Korean → `references/korean.md`. If metaphor → the isomorphism section in `output.md`. If medical/legal/financial → `references/stakes.md`. For claims that depend on date, jurisdiction, or material uncertainty, also read `references/sources.md`.
 
 ## Dump gate
 
@@ -128,7 +137,7 @@ Read `references/output.md`, then `references/visuals.md`. If Korean → `refere
 | They asked 동물로 so use animals | Animals requested still means no animals. Map is mermaid + table. Analogy vehicle is not a mascot. |
 | Depth 그림 means simpler than true | 그림 is a smaller true map. False-simple is a bug. |
 | They said 쉽게 but jargon should win | Explicit 쉽게 selects 그림 even with rebase, TTL, or Raft. |
-| I’ll add sources from memory | Fetch or omit 근거. |
+| I’ll add sources from memory | Verify in this turn or mark the dependent claim unverified. Never invent a reference. |
 | Korean and English to be safe | One language. Gloss once. |
 | I’ll explain the whole internet then zoom | 자르기 first. |
 

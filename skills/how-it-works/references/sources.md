@@ -3,8 +3,17 @@
 This skill does not pin an external explanation corpus. The required
 deliverable is complete in chat Markdown. No host-specific tool is required.
 Citations: only URLs fetched in the current turn may appear as verified sources.
-When none were fetched, omit the citation heading. Invented paper
-IDs are a failure.
+When none were fetched, omit the citation heading. This does not prevent an
+unverified claim note in the body. Invented paper or statute IDs are a failure.
+
+Stable general principles need no unnecessary lookup. Claims depending on date,
+jurisdiction, or material uncertainty must be verified or explicitly unverified.
+When host policy and user constraints allow, check primary sources for those
+claims. When lookup is unavailable or the user disallows it, label the dependent
+claim as unverified and state the date/jurisdiction limitation without inventing
+details. Only sources actually fetched in the current turn may be labeled
+verified. Never invent paper or statute identifiers. An unverified claim note is
+allowed even when no citation heading is emitted.
 
 | Locator | Checked | Adopted | Rejected |
 | --- | --- | --- | --- |

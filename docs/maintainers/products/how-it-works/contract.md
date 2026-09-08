@@ -38,12 +38,28 @@ mermaid 렌더러는 필수가 아닙니다. 렌더러가 없어도 실패가 �
 
 크롬과 홉 ID 규칙은 `skills/how-it-works/references/output.md`가 소유합니다.
 mermaid가 시각 채널입니다. 손으로 그린 HTML 상자는 다이어그램이 아닙니다.
+모든 칸의 Map에는 기준 Mermaid와 `H1`, `H2` 형식의 번호 있는 홉 목록이
+남습니다. 깊이가 바뀌어도 같은 ID를 유지하고 추가 설명은 같은 홉에 붙입니다.
+허점의 실패/적용 범위 표는 Mermaid를 대체하지 않고 Body에 둡니다.
+
+제목, intent, 본문, 배너, 다음 이동은 선택한 언어 하나로만 출력합니다. 공통
+템플릿의 `한 줄 / One sentence` 같은 표기는 두 언어를 같이 출력하라는 뜻이
+아니라 현재 언어에 맞는 한쪽을 고르라는 뜻입니다. 비교는 사용자가 제시한 조건
+아래에서 tradeoff를 설명합니다. 의료·법률·금융 비교에 개인 행동 추천을 필수로
+요구하지 않습니다.
 
 ## 안전
 
-사용자 주제를 픽스처나 로그로 저장하지 않습니다. 인용은 그 턴에서 가져온 URL만
-보이며 비공개 코퍼스가 아닙니다. 의료·법률·금융 슬라이스는 메커니즘만
-설명합니다. 조언이 아닙니다. 정확한 배너 바이트는
+사용자 주제를 픽스처나 로그로 저장하지 않습니다. 그 턴에서 실제로 가져온 URL만
+검증한 출처로 표시할 수 있으며 비공개 코퍼스가 아닙니다. 안정적인 일반 원리는
+불필요하게 조회하지 않습니다. 날짜·관할·중대한 불확실성에 의존하는 주장은
+검증하거나 미확인으로 명시합니다. 호스트 정책과 사용자 제약이 허용하면 1차
+출처를 확인하고, 조회할 수 없거나 사용자가 금지하면 날짜/관할 한계와 함께
+미확인으로 표시합니다. 논문·법령 식별자를 만들지 않습니다. 근거 제목을
+생략해도 미확인 주석은 허용됩니다.
+
+의료·법률·금융 슬라이스는 일반 메커니즘만 설명하며 개인 조언을 하지 않습니다.
+선택한 언어의 정확한 한국어/영어 배너는
 `skills/how-it-works/references/stakes.md`가 소유합니다.
 `korean-writing-editor`를 호출하지 않습니다.
 
@@ -53,8 +69,8 @@ mermaid가 시각 채널입니다. 손으로 그린 HTML 상자는 다이어그�
 
 - trigger 또는 near-miss 변경 (`$how-it-works`, `/how-it-works`, 원리부터, `/eli5` no-op): `skills/how-it-works/SKILL.md` 활성화 문구, `tests/products/how-it-works/cases.json`, `tests/products/how-it-works/test_contract.py`, 제품 README와 공유 공개 안내
 - 칸 기본값 또는 별칭 변경 (`slice`, `type`, `rung`, `language`, 명시 rung/별칭 우선, 조건부 jargon 기본, 숫자 주제 데이터): `SKILL.md` dump gate, 픽스처, 공개 안내
-- 출력 크롬, 유형 레시피, 홉 ID: `skills/how-it-works/references/output.md`와 해당 픽스처 id
-- 시각 채널: `skills/how-it-works/references/visuals.md`. mermaid 소스와 번호 있는 홉 목록을 유지합니다.
-- 한국어 목소리: `skills/how-it-works/references/korean.md`. `korean-writing-editor`를 호출하지 않습니다.
-- 이해관계 배너: `skills/how-it-works/references/stakes.md`의 정확한 배너 바이트
-- 출처 또는 인용 정책: `skills/how-it-works/references/sources.md`. 논문 ID를 만들지 않습니다.
+- 출력 크롬, 유형 레시피, 홉 ID, 허점 Body 표, 비교 정책: `skills/how-it-works/references/output.md`와 해당 픽스처 id
+- 시각 채널: `skills/how-it-works/references/visuals.md`. 모든 칸에서 기준 mermaid 소스와 번호 있는 홉 목록을 유지합니다.
+- 한국어 목소리와 intent/그림 예시: `skills/how-it-works/references/korean.md`. `korean-writing-editor`를 호출하지 않습니다.
+- 이해관계 배너와 고위험 확인 정책: `skills/how-it-works/references/stakes.md`의 언어별 정확한 배너 바이트
+- 출처 또는 인용 정책: `skills/how-it-works/references/sources.md`. 검증/미확인을 구분하고 논문·법령 ID를 만들지 않습니다.

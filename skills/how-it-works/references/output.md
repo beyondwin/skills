@@ -20,11 +20,15 @@ Every rung fills the same slots. Empty slots are allowed. Contradictory fillings
 
 **Hop IDs stay stable.** 그림 hop 1 is 허점 hop 1. “3번만 더 깊게” must work. Hop identifiers in Mermaid labels and the numbered list must agree and survive rung changes.
 
+Keep the baseline Mermaid and numbered hops in Map at every rung. Put the failure/regime table in Body at 허점. Keep hop identifiers stable when changing depth; explain added detail against the same hops.
+
 **Ontology lock:** if 허점 is an emergent process, 그림 may not be an agent with a goal.
 
 **Term monotonicity:** a word introduced at 길 keeps its meaning at 허점. If 허점 must split a term, 길 should have used a more careful everyday word or flagged the split.
 
 Chrome order is authoritative. Length is a budget, not a target. Restating the same sentence to fill space is a failure. Mermaid rendering is enhancement only; source plus hop list is the fallback.
+
+Use only the selected language for headings, intent lines, body, banner, and next move. The slash-separated Korean/English labels in the template below are alternatives: choose the label for the current language and do not emit both.
 
 ````markdown
 # {slice} · {그림|길|뼈대|허점}
@@ -53,7 +57,7 @@ Chrome order is authoritative. Length is a budget, not a target. Restating the s
 - 지도: mermaid source, then the numbered hop list; caption is the diagram’s claim
 - 본문: type-specific; see recipes below
 - 지금 다루지 않은 것: 2–5 adjacent slices as prose links, not a second essay
-- Every rung includes the numbered hop list even when the map is a table
+- Every rung includes the baseline Mermaid and numbered hop list. At 허점, the failure/regime table belongs in Body, not Map
 - If a metaphor was used, include **이 그림이 깨지는 지점** as a short section. At 허점 that *is* the body; do not duplicate a cute “breaks at” box.
 
 ## Rung overlay
@@ -63,7 +67,7 @@ Chrome order is authoritative. Length is a budget, not a target. Restating the s
 | **그림** | Happy-path pipeline, 5–7 boxes | Identity, use, ≤2-joint backbone. Optional one analogy plus one break line. | Baby talk, second metaphor, formulas, `여러분`, `답니다` |
 | **길** | `sequenceDiagram`, 4–6 actors, same path, message numbers = hop IDs | Numbered hops: who holds it, what they hand off, where it stops on failure | New metaphor, architecture hairball |
 | **뼈대** | Same sequence + `alt`/`opt` (cache, error) | Terms as labels on hops already seen. What happens if you change one part. Common mistakes. Optional second flowchart of the hidden decision | Restarting from 그림, pizza |
-| **허점** | Failure/regime **table**. Not a prettier poster | What this picture cannot see. Rivals mapped onto the same slots. How you would inspect. Collapse to the one-liner | Re-teaching 그림, name-dropping without a one-line “what they showed” |
+| **허점** | Same baseline Mermaid and numbered hops | Failure/regime table: where the picture fails, where it applies, rivals mapped onto the same slots, and how to inspect. Collapse to the one-liner | Table-only map, re-teaching 그림, name-dropping without a one-line “what they showed” |
 
 ## Type recipes (body only; chrome stays)
 
@@ -71,7 +75,7 @@ Chrome order is authoritative. Length is a budget, not a target. Restating the s
 | --- | --- |
 | **개념** | One relation → popular wrong picture → correction |
 | **흐름** | Walk the hops. 길 gets the sequence diagram. 그림 gets boxes only |
-| **비교** | Required GFM table: what it optimizes / what it gives up / failure shape / how to undo. The 한 줄 is a **recommendation**, not a tie. 그림 uses 3 axes; 길 uses 5 |
+| **비교** | Required GFM table: what it optimizes / what it gives up / failure shape / how to undo. State the tradeoff under the user's conditions. Do not require a personalized action recommendation for medical, legal, or financial topics. 그림 uses 3 axes; 길 uses 5 |
 | **절차** | Start state → end state. Each step is one state change. Recover from failure. “What is rebase” is not a command list |
 
 `리베이스가 뭐야` is concept/flow. `conflict 난 다음` is procedure. Classify from the **job**, not the noun.
@@ -81,10 +85,10 @@ Chrome order is authoritative. Length is a budget, not a target. Restating the s
 ```text
 ## 근거
 - 검증함: {title} — {url}   (only URLs fetched this turn)
-- 불확실: {claim} — 확인하지 않음
+- 미확인: {claim} — {date/jurisdiction limitation}
 ```
 
-If nothing was fetched, omit the heading. Invented arXiv IDs are a failure. Stable textbook facts need no theater-citation.
+Use the equivalent English labels for an English reply. If nothing was fetched, omit the citation heading. Omitting that heading does not prohibit an unverified claim note in the body. Only a source fetched in the current turn may be labeled verified. Invented paper or statute identifiers are a failure. Stable general principles need no unnecessary lookup.
 
 ## Metaphor isomorphism
 

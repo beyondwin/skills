@@ -24,9 +24,20 @@
 - `jargon-without-depth`는 깊이 선택이 없을 때 기존 jargon 뼈대 기본을 유지합니다.
 - `topic-number-is-not-depth`는 `Raft term 20`의 숫자를 허점 선택으로 해석하지 않습니다.
 - `explicit-numeric-depth`는 `깊이 5`처럼 명시적으로 고른 숫자만 그림 별칭으로 해석합니다.
+- `fracture-keeps-map`은 허점에서도 기준 Mermaid와 번호 있는 홉을 Map에
+  유지하고 실패/적용 범위 표를 Body에 둡니다.
+- `high-stakes-no-lookup`은 검색 금지를 지키면서 날짜·관할 의존 주장을
+  미확인으로 표시하고 법령 식별자를 만들지 않습니다.
+- `high-stakes-english`는 영어 배너만 선택합니다.
+- `high-stakes-comparison`은 사용자가 제시한 조건 아래 tradeoff를 설명하며 개인
+  행동 추천을 강제하지 않습니다.
 
 페이로드 계약 통과는 파일 정체성, 이식 가능한 frontmatter, 금지 문자열만
 증명합니다. 실제 모델이 깊이 우선순위를 준수하는지는 `not_measured`입니다.
+옛 고위험 배너와 옛 DNS jargon 문구의 정확한 문자열 회귀도 거부합니다. 이 검사는
+문서와 fixture의 정적 일치만 증명합니다. 설명의 진실성, 실제 해요체 준수, 영어
+출력 품질, 모델의 여섯 산출 준수, Mermaid parser/renderer 결과는
+`not_measured`입니다.
 
 ## 선택적 라이브 smoke
 

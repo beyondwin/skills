@@ -32,6 +32,10 @@ CASE_IDS = [
     "jargon-without-depth",
     "topic-number-is-not-depth",
     "explicit-numeric-depth",
+    "fracture-keeps-map",
+    "high-stakes-no-lookup",
+    "high-stakes-english",
+    "high-stakes-comparison",
 ]
 REQUIRED_DELIVERABLE_PHRASES = (
     "one-sentence claim",
@@ -353,6 +357,42 @@ class HowItWorksPayloadTests(unittest.TestCase):
                 "forbidden": ["skeleton_default"],
             },
         )
+        self.assertEqual(
+            by_id["fracture-keeps-map"],
+            {
+                "id": "fracture-keeps-map",
+                "prompt": "Raft 허점",
+                "must": ["baseline_mermaid", "numbered_hops", "body_regime_table"],
+                "forbidden": ["table_only_map"],
+            },
+        )
+        self.assertEqual(
+            by_id["high-stakes-no-lookup"],
+            {
+                "id": "high-stakes-no-lookup",
+                "prompt": "계약 해지의 일반 원리를 길로 설명해줘. 검색하지 마",
+                "must": ["unverified_dependent_claim", "no_invented_statute"],
+                "forbidden": ["verified_without_fetch"],
+            },
+        )
+        self.assertEqual(
+            by_id["high-stakes-english"],
+            {
+                "id": "high-stakes-english",
+                "prompt": "Explain compound interest as a path in English",
+                "must": ["english_banner"],
+                "forbidden": ["korean_banner"],
+            },
+        )
+        self.assertEqual(
+            by_id["high-stakes-comparison"],
+            {
+                "id": "high-stakes-comparison",
+                "prompt": "고정금리와 변동금리의 작동 차이를 그림으로 비교해줘",
+                "must": ["conditional_tradeoff"],
+                "forbidden": ["forced_personal_recommendation"],
+            },
+        )
 
     def test_required_deliverable_is_complete_in_chat(self) -> None:
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -442,6 +482,28 @@ class HowItWorksPayloadTests(unittest.TestCase):
         self.assertNotIn("jargon wins", text)
         self.assertNotIn("Aliases (쉽게, 한눈에, `5`) do not count as naming 그림", text)
 
+    def test_v2_fracture_and_stakes_contract(self) -> None:
+        output = _reference("output.md")
+        stakes = _reference("stakes.md")
+        sources = _reference("sources.md")
+        korean = _reference("korean.md")
+        visuals = _reference("visuals.md")
+        self.assertIn("Keep the baseline Mermaid and numbered hops in Map at every rung", output)
+        self.assertIn("Put the failure/regime table in Body at 허점", output)
+        self.assertIn("Map의 기준 Mermaid 유지; Body의 실패/적용 범위 표", visuals)
+        self.assertNotIn("The 한 줄 is a **recommendation**, not a tie", output)
+        self.assertNotIn("Do not fetch sources unless", stakes)
+        self.assertIn("verified or explicitly unverified", stakes)
+        self.assertIn("verified or explicitly unverified", sources)
+        self.assertIn("## 한국어", stakes)
+        self.assertIn("## English", stakes)
+        self.assertNotIn("물어라", stakes)
+        self.assertNotIn(
+            "이건 시술/계약/투자 조언이 아니다. 단순화는 예외와 관할을 지운다.",
+            stakes,
+        )
+        self.assertNotIn("컴퓨터는 숫자 주소를 본다", korean)
+
     def test_debug_and_eli5_do_not_enter_the_gate(self) -> None:
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         frontmatter = parse_skill_frontmatter(text)
@@ -456,14 +518,21 @@ class HowItWorksPayloadTests(unittest.TestCase):
         self.assertIn("default **뼈대**", text)
         self.assertIn("Explicit 쉽게/한눈에/한 장 selects 그림 even with jargon", text)
 
-    def test_high_stakes_banner_bytes_unchanged(self) -> None:
+    def test_high_stakes_banners_are_language_specific(self) -> None:
         text = _reference("stakes.md")
         self.assertIn(
+            "일반적인 작동 원리를 설명해요. 개인의 의료·법률·금융 결정을 위한 조언은 아니에요.",
+            text,
+        )
+        self.assertIn(
+            "This explains the general mechanism. It is not personalized medical, legal, or financial advice.",
+            text,
+        )
+        self.assertNotIn(
             "이건 시술/계약/투자 조언이 아니다. 단순화는 예외와 관할을 지운다.",
             text,
         )
-        self.assertIn("결정 전에 자격이 있는 사람에게 물어라.", text)
-        self.assertIn("Explain mechanism only.", text)
+        self.assertNotIn("결정 전에 자격이 있는 사람에게 물어라.", text)
 
     def test_korean_keeps_one_language_and_register(self) -> None:
         text = _reference("korean.md")

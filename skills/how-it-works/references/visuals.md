@@ -2,6 +2,8 @@
 
 Default: a fenced Mermaid block in the chat Markdown, plus a numbered hop list that still reads when the diagram is shown as source. No host-specific drawing tool is required. HTML boxes are not substitutes for Mermaid.
 
+Keep that baseline Mermaid and its numbered hops at every rung. Deeper rungs add detail against the same hop identifiers.
+
 Stick to flowchart/graph, sequenceDiagram, stateDiagram. Other types may show as source.
 
 Rules:
@@ -12,8 +14,8 @@ Rules:
 - 그림: ≤7 boxes (hard cap 12; over 12 means recut the slice)
 - 길: sequenceDiagram, 4–6 actors, message numbers = hop IDs
 - 뼈대: same sequence + alt/opt; optional second flowchart of the hidden decision
-- 허점: table, not a prettier 그림
-- 비교: table is the picture; mermaid is the choice path
+- 허점: Map의 기준 Mermaid 유지; Body의 실패/적용 범위 표
+- 비교: keep the baseline Mermaid in Map; put the conditional tradeoff table in Body
 - 절차: boxes are states, not commands
 - 되먹임: loops, not a sequence that hides them
 - Mind map only for “what exists in this field”
