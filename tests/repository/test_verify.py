@@ -65,6 +65,7 @@ REQUIRED_UNIX_ONLY_LIVE_TESTS = (
     "test_reuse_rechecks_evidence_names_after_intervening_validation",
     "test_first_preflight_rejects_every_incomplete_or_unsafe_install_bootstrap",
     "test_held_evidence_read_rejects_same_size_rewrite_during_validation",
+    "test_held_evidence_read_rejects_same_size_metadata_change_during_validation",
     "test_report_lease_binds_directory_target_inode_hash_and_state",
     "test_manifest_hash_rejects_symlink",
 )

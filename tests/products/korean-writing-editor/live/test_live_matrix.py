@@ -3168,6 +3168,7 @@ class LiveMatrixLifecycleTests(UnixOnlyLiveTestMixin, unittest.TestCase):
         "test_reuse_rechecks_evidence_names_after_intervening_validation",
         "test_dispatch_revalidates_leased_preflight_evidence_before_provider",
         "test_held_evidence_read_rejects_same_size_rewrite_during_validation",
+        "test_held_evidence_read_rejects_same_size_metadata_change_during_validation",
         "test_evidence_name_recheck_is_the_final_lease_authorization_step",
         "test_reuse_compares_every_preflight_field_to_current_expected_payload",
         "test_reuse_rejects_unknown_run_root_entry_after_commit",
