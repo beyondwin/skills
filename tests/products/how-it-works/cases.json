@@ -39,8 +39,8 @@
     {
       "id": "jargon-rung",
       "prompt": "rebase 쉽게 설명해줘",
-      "must": ["skeleton_default"],
-      "forbidden": ["picture_default"]
+      "must": ["picture_default"],
+      "forbidden": ["skeleton_default"]
     },
     {
       "id": "no-renderer",
@@ -53,6 +53,42 @@
       "prompt": "/how-it-works DNS 길, 검색하지 마",
       "must": ["omit_citations"],
       "forbidden": ["invented_citation"]
+    },
+    {
+      "id": "explicit-fracture-jargon",
+      "prompt": "Raft 허점으로 설명해줘",
+      "must": ["fracture"],
+      "forbidden": ["skeleton_default"]
+    },
+    {
+      "id": "explicit-path-jargon",
+      "prompt": "rebase 길로 보여줘",
+      "must": ["path"],
+      "forbidden": ["skeleton_default"]
+    },
+    {
+      "id": "english-explicit-fracture",
+      "prompt": "Explain Raft at the fracture depth.",
+      "must": ["fracture", "english"],
+      "forbidden": ["korean_banner", "skeleton_default"]
+    },
+    {
+      "id": "jargon-without-depth",
+      "prompt": "Raft 원리부터 설명해줘",
+      "must": ["skeleton_default"],
+      "forbidden": ["numeric_depth"]
+    },
+    {
+      "id": "topic-number-is-not-depth",
+      "prompt": "Raft term 20의 원리부터 설명해줘",
+      "must": ["skeleton_default"],
+      "forbidden": ["fracture"]
+    },
+    {
+      "id": "explicit-numeric-depth",
+      "prompt": "Raft를 깊이 5로 설명해줘",
+      "must": ["picture_default"],
+      "forbidden": ["skeleton_default"]
     }
   ]
 }

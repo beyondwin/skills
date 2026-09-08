@@ -53,9 +53,16 @@ Rung picker (recommendation first):
 - **뼈대** — 갈림길과 실패
 - **허점** — 이 그림이 금 가는 곳
 
-Silent aliases (never print numbers or ages): 쉽게/한눈에/한 장/`5` → 그림; 따라가/`10` → 길; 내부/실무/속/`15` → 뼈대; 한계/깊게/예외/반례/`20` → 허점.
+Depth precedence: explicit rung > explicit depth alias > existing jargon default > one necessary question.
+An explicitly selected 그림/길/뼈대/허점 (picture/path/skeleton/fracture) wins.
+Explicit 쉽게/한눈에/한 장 selects 그림 even with jargon such as rebase, TTL, or Raft.
+Use the existing jargon default only when neither a rung nor a depth alias was supplied.
+Interpret numeric aliases only when explicitly selecting depth; numbers in the topic are not depth choices.
+Never replace a filled rung. If the rung remains unresolved, ask one closed depth question.
 
-If the prompt already uses domain words (`rebase`, `TTL`, `Raft`), default **뼈대** unless they named the word 그림. Aliases (쉽게, 한눈에, `5`) do not count as naming 그림 — jargon wins.
+Silent aliases (never print numbers or ages): 쉽게/한눈에/한 장 → 그림; 따라가 → 길; 내부/실무/속 → 뼈대; 한계/깊게/예외/반례 → 허점. Explicit numeric depth selections use `5` → 그림, `10` → 길, `15` → 뼈대, and `20` → 허점. `Raft term 20`, `HTTP/2`, and `5개 노드` contain topic data, not depth choices.
+
+If the prompt already uses domain words (`rebase`, `TTL`, `Raft`), default **뼈대** only when neither a rung nor a depth alias was supplied.
 
 Intent line:
 
@@ -120,7 +127,7 @@ Read `references/output.md`, then `references/visuals.md`. If Korean → `refere
 | I'll add a preview first and fill chat later | Preview comes after the complete output, and only if useful. |
 | They asked 동물로 so use animals | Animals requested still means no animals. Map is mermaid + table. Analogy vehicle is not a mascot. |
 | Depth 그림 means simpler than true | 그림 is a smaller true map. False-simple is a bug. |
-| They said 쉽게 so pick 그림 | rebase/TTL/Raft still 뼈대. 쉽게 is an alias, not the word 그림. |
+| They said 쉽게 but jargon should win | Explicit 쉽게 selects 그림 even with rebase, TTL, or Raft. |
 | I’ll add sources from memory | Fetch or omit 근거. |
 | Korean and English to be safe | One language. Gloss once. |
 | I’ll explain the whole internet then zoom | 자르기 first. |

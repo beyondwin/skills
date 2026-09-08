@@ -6,6 +6,9 @@ All notable changes to this product are documented in this file.
 
 ### Breaking
 
+- Depth selection now follows explicit rung, explicit depth alias, existing
+  jargon default, then one necessary question. Explicit easy aliases override
+  jargon, while numbers in the topic remain topic data.
 - Required output is complete in chat: one-sentence claim, Mermaid source,
   numbered hop list, rung-specific body, adjacent slices, and one next move.
   A host preview is optional and non-fatal.

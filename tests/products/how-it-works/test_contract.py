@@ -26,6 +26,12 @@ CASE_IDS = [
     "jargon-rung",
     "no-renderer",
     "no-fetched-source",
+    "explicit-fracture-jargon",
+    "explicit-path-jargon",
+    "english-explicit-fracture",
+    "jargon-without-depth",
+    "topic-number-is-not-depth",
+    "explicit-numeric-depth",
 ]
 REQUIRED_DELIVERABLE_PHRASES = (
     "one-sentence claim",
@@ -287,12 +293,66 @@ class HowItWorksPayloadTests(unittest.TestCase):
         self.assertEqual(by_id["implicit-positive"]["forbidden"], ["debug"])
         self.assertEqual(by_id["near-miss-debug"]["must"], ["do_not_activate"])
         self.assertEqual(by_id["near-miss-eli5"]["prompt"], "/eli5 DNS")
-        self.assertEqual(by_id["jargon-rung"]["must"], ["skeleton_default"])
-        self.assertEqual(by_id["jargon-rung"]["forbidden"], ["picture_default"])
+        self.assertEqual(by_id["jargon-rung"]["must"], ["picture_default"])
+        self.assertEqual(by_id["jargon-rung"]["forbidden"], ["skeleton_default"])
         self.assertEqual(by_id["no-renderer"]["must"], ["mermaid_source", "numbered_hops"])
         self.assertEqual(by_id["no-renderer"]["forbidden"], ["failure"])
         self.assertEqual(by_id["no-fetched-source"]["must"], ["omit_citations"])
         self.assertEqual(by_id["no-fetched-source"]["forbidden"], ["invented_citation"])
+        self.assertEqual(
+            by_id["explicit-fracture-jargon"],
+            {
+                "id": "explicit-fracture-jargon",
+                "prompt": "Raft 허점으로 설명해줘",
+                "must": ["fracture"],
+                "forbidden": ["skeleton_default"],
+            },
+        )
+        self.assertEqual(
+            by_id["explicit-path-jargon"],
+            {
+                "id": "explicit-path-jargon",
+                "prompt": "rebase 길로 보여줘",
+                "must": ["path"],
+                "forbidden": ["skeleton_default"],
+            },
+        )
+        self.assertEqual(
+            by_id["english-explicit-fracture"],
+            {
+                "id": "english-explicit-fracture",
+                "prompt": "Explain Raft at the fracture depth.",
+                "must": ["fracture", "english"],
+                "forbidden": ["korean_banner", "skeleton_default"],
+            },
+        )
+        self.assertEqual(
+            by_id["jargon-without-depth"],
+            {
+                "id": "jargon-without-depth",
+                "prompt": "Raft 원리부터 설명해줘",
+                "must": ["skeleton_default"],
+                "forbidden": ["numeric_depth"],
+            },
+        )
+        self.assertEqual(
+            by_id["topic-number-is-not-depth"],
+            {
+                "id": "topic-number-is-not-depth",
+                "prompt": "Raft term 20의 원리부터 설명해줘",
+                "must": ["skeleton_default"],
+                "forbidden": ["fracture"],
+            },
+        )
+        self.assertEqual(
+            by_id["explicit-numeric-depth"],
+            {
+                "id": "explicit-numeric-depth",
+                "prompt": "Raft를 깊이 5로 설명해줘",
+                "must": ["picture_default"],
+                "forbidden": ["skeleton_default"],
+            },
+        )
 
     def test_required_deliverable_is_complete_in_chat(self) -> None:
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -372,6 +432,16 @@ class HowItWorksPayloadTests(unittest.TestCase):
         aliases = section(text, "Silent aliases", "If the prompt already uses domain words")
         self.assertNotIn("흐름", aliases)
 
+    def test_v2_explicit_depth_precedence_contract(self) -> None:
+        text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn(
+            "explicit rung > explicit depth alias > existing jargon default > one necessary question",
+            text,
+        )
+        self.assertIn("Interpret numeric aliases only when explicitly selecting depth", text)
+        self.assertNotIn("jargon wins", text)
+        self.assertNotIn("Aliases (쉽게, 한눈에, `5`) do not count as naming 그림", text)
+
     def test_debug_and_eli5_do_not_enter_the_gate(self) -> None:
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         frontmatter = parse_skill_frontmatter(text)
@@ -380,10 +450,11 @@ class HowItWorksPayloadTests(unittest.TestCase):
         self.assertIn("Do not activate on eli5", text)
         self.assertIn("Do not use the rung picker", text)
 
-    def test_jargon_defaults_to_skeleton_not_picture(self) -> None:
+    def test_explicit_easy_alias_precedes_jargon(self) -> None:
+        # Design section 5.3 intentionally changes the former jargon-first contract.
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         self.assertIn("default **뼈대**", text)
-        self.assertIn("Aliases (쉽게, 한눈에, `5`) do not count as naming 그림", text)
+        self.assertIn("Explicit 쉽게/한눈에/한 장 selects 그림 even with jargon", text)
 
     def test_high_stakes_banner_bytes_unchanged(self) -> None:
         text = _reference("stakes.md")

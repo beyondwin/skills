@@ -11,9 +11,15 @@
 “explain like I’m 5”는 다른 스킬입니다. 이 스킬에서는 아무 일도 하지 않습니다.
 
 설명 전에 `slice`, `type`, `rung`, `language`를 채웁니다. 칸은 그림, 길, 뼈대,
-허점입니다. 기본 칸은 길입니다. jargon(`rebase`, `TTL`, `Raft`)은 그림이라는
-단어를 쓰지 않는 한 뼈대입니다. `쉽게`는 그림이 아닙니다. 한 번에 질문
-하나입니다. 채워진 칸은 다시 묻지 않습니다.
+허점이며 picker의 추천 첫 칸은 길입니다. 깊이 우선순위는 `explicit rung > explicit depth
+alias > existing jargon default > one necessary question`입니다. 명시한
+그림/길/뼈대/허점 또는 picture/path/skeleton/fracture가 가장 먼저 적용됩니다.
+`쉽게`/`한눈에`/`한 장`은 jargon(`rebase`, `TTL`, `Raft`)이 있어도 그림입니다.
+jargon 기본 뼈대는 명시한 rung이나 깊이 별칭이 없을 때만 적용합니다. 숫자 별칭
+`5→그림`, `10→길`, `15→뼈대`, `20→허점`은 `깊이 5`, `depth 20`, 깊이 선택
+질문에 대한 `10`처럼 깊이를 명시적으로 고른 경우에만 해석합니다. `Raft term
+20`, `HTTP/2`, `5개 노드`의 숫자는 주제 데이터입니다. 한 번에 닫힌 깊이 질문
+하나만 하며 채워진 칸은 바꾸거나 다시 묻지 않습니다.
 
 ## 출력
 
@@ -46,7 +52,7 @@ mermaid가 시각 채널입니다. 손으로 그린 HTML 상자는 다이어그�
 동작 변경을 한 파일에만 넣지 마세요.
 
 - trigger 또는 near-miss 변경 (`$how-it-works`, `/how-it-works`, 원리부터, `/eli5` no-op): `skills/how-it-works/SKILL.md` 활성화 문구, `tests/products/how-it-works/cases.json`, `tests/products/how-it-works/test_contract.py`, 제품 README와 공유 공개 안내
-- 칸 기본값 또는 별칭 변경 (`slice`, `type`, `rung`, `language`, 길 default, jargon to 뼈대, 쉽게 is not 그림): `SKILL.md` dump gate, 픽스처, 공개 안내
+- 칸 기본값 또는 별칭 변경 (`slice`, `type`, `rung`, `language`, 명시 rung/별칭 우선, 조건부 jargon 기본, 숫자 주제 데이터): `SKILL.md` dump gate, 픽스처, 공개 안내
 - 출력 크롬, 유형 레시피, 홉 ID: `skills/how-it-works/references/output.md`와 해당 픽스처 id
 - 시각 채널: `skills/how-it-works/references/visuals.md`. mermaid 소스와 번호 있는 홉 목록을 유지합니다.
 - 한국어 목소리: `skills/how-it-works/references/korean.md`. `korean-writing-editor`를 호출하지 않습니다.
