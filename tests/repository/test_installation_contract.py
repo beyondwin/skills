@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import subprocess
@@ -16,6 +17,48 @@ DOCUMENTS = (
 )
 MARKER = "<!-- how-it-works-local-links -->"
 
+# Arrange a real competing entry at the last possible point, then call the
+# original syscall wrapper. No sleeps or synthetic FileExistsError are involved.
+RACE_INSTALLER = r"""
+import json
+import os
+import sys
+from pathlib import Path
+
+race_source = Path(sys.argv[1])
+race_target = Path(sys.argv[2])
+race_state = sys.argv.pop(3)
+race_record = Path(sys.argv.pop(3))
+race_original_symlink_to = Path.symlink_to
+
+def create_competing_entry_then_link(self, *args, **kwargs):
+    Path.symlink_to = race_original_symlink_to
+    assert self == race_target
+    assert not os.path.lexists(self)
+    if race_state == "file":
+        self.write_bytes(b"file keep")
+    elif race_state == "directory":
+        self.mkdir()
+        (self / "keep.txt").write_bytes(b"directory keep")
+    else:
+        destination = {
+            "same": race_source,
+            "other": race_source.parent.parent / "other source",
+            "dangling": race_source.parent.parent / "missing",
+        }[race_state]
+        os.symlink(destination, self, target_is_directory=True)
+    before = self.lstat()
+    race_record.write_text(json.dumps({
+        "identity": [before.st_dev, before.st_ino, before.st_mode,
+                     before.st_mtime_ns, before.st_ctime_ns],
+        "link": os.readlink(self) if self.is_symlink() else None,
+    }), encoding="utf-8")
+    return race_original_symlink_to(self, *args, **kwargs)
+
+Path.symlink_to = create_competing_entry_then_link
+exec(compile(sys.stdin.read(), "<documented installer>", "exec"))
+"""
+
 
 def installation_block(relative: str) -> str:
     text = (ROOT / relative).read_text(encoding="utf-8")
@@ -29,6 +72,54 @@ def installation_block(relative: str) -> str:
 
 
 class InstallationContractTests(unittest.TestCase):
+    def test_documented_installation_preserves_targets_appearing_before_creation(self):
+        # Removing the collision handler leaks a traceback; retrying after an
+        # unlink destroys the competing entry. Both break this contract.
+        for document in DOCUMENTS:
+            for state in ("file", "directory", "same", "other", "dangling"):
+                with self.subTest(document=document, state=state), tempfile.TemporaryDirectory() as tmp:
+                    base = Path(tmp)
+                    source = base / "source with spaces" / "how-it-works"
+                    source.mkdir(parents=True)
+                    (source / "SKILL.md").write_bytes(b"name: how-it-works\n")
+                    other = base / "other source"
+                    other.mkdir()
+                    (other / "keep.txt").write_bytes(b"other keep")
+                    target = base / "target with spaces" / "how-it-works"
+                    record = base / "race-record.json"
+                    result = subprocess.run(
+                        [sys.executable, "-c", RACE_INSTALLER,
+                         str(source), str(target), state, str(record)],
+                        input=installation_block(document),
+                        capture_output=True, text=True, check=False,
+                    )
+                    if os.name == "nt" and "WinError 1314" in result.stderr:
+                        self.skipTest("symlink privilege unavailable on this Windows runner")
+                    self.assertTrue(record.is_file(), result.stderr)
+                    self.assertNotEqual(result.returncode, 0, result.stdout)
+                    self.assertNotIn("Traceback", result.stderr)
+                    self.assertTrue(result.stderr.strip(), "collision needs a user-visible reason")
+                    before = json.loads(record.read_text(encoding="utf-8"))
+                    after = target.lstat()
+                    self.assertEqual(
+                        [after.st_dev, after.st_ino, after.st_mode,
+                         after.st_mtime_ns, after.st_ctime_ns],
+                        before["identity"],
+                    )
+                    if state in ("same", "other", "dangling"):
+                        self.assertTrue(target.is_symlink())
+                        self.assertEqual(os.readlink(target), before["link"])
+                    elif state == "file":
+                        self.assertFalse(target.is_symlink())
+                        self.assertEqual(target.read_bytes(), b"file keep")
+                    else:
+                        self.assertFalse(target.is_symlink())
+                        self.assertEqual((target / "keep.txt").read_bytes(), b"directory keep")
+                    self.assertEqual(sorted(p.name for p in source.iterdir()), ["SKILL.md"])
+                    self.assertEqual((source / "SKILL.md").read_bytes(), b"name: how-it-works\n")
+                    self.assertEqual((other / "keep.txt").read_bytes(), b"other keep")
+                    self.assertFalse((base / "missing").exists())
+
     def test_documented_link_installation_preserves_existing_targets(self):
         for document in DOCUMENTS:
             with self.subTest(document=document):

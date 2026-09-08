@@ -16,7 +16,7 @@ pre-sdd-review: Codex supported; other hosts not_measured.
 
 ## Contract portability versus measured support
 
-A matching folder layout does not mean that host is supported. A host is `supported` only after a current smoke test. Otherwise its status is `partially verified` or `not_measured`. See each product README for the product guide.
+A matching folder layout does not mean that host is supported. Adding a new supported host requires smoke evidence from the current build and an explicit support decision. Established support scope and current measurement status are separate. Record unmeasured current execution as `not_measured`; that alone does not change the established support scope. See each product README for the product guide.
 
 `how-it-works` supports Codex and Claude Code for local or repository-based use. Claude.ai, Cowork, Skills API upload, and marketplace publication are not supported.
 
@@ -24,7 +24,7 @@ A matching folder layout does not mean that host is supported. A host is `suppor
 
 Other hosts for `pre-sdd-review` remain `not_measured`.
 
-The preserved `how-it-works` smoke is `historical-unbound`; it is separate from current payload and model execution evidence. `current-bounded` validates version/hash and metadata binding only, not actual execution or explanation quality. No new native Windows measurement was made.
+The preserved `how-it-works` smoke is `historical-unbound`; it is separate from current payload and model execution evidence. Actual execution of the current 2.0.0 payload is `not_measured`. `current-bounded` validates version/hash and metadata binding only, not actual execution or explanation quality. No new native Windows measurement was made.
 
 The catalog plugin name is `beyondwin-skills`. That does not mean a marketplace listing.
 

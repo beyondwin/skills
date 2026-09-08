@@ -12,10 +12,6 @@ records.
 [`docs/users/`](../users/), [`docs/maintainers/`](../maintainers/), 각 제품
 README를 보세요.
 
-## 진행 중인 설계
+현재 진행 중인 설계·계획은 없습니다. 완료된 문서는 Git 이력에서 확인할 수 있습니다.
 
-- [스킬 저장소 신뢰성 개선 설계](specs/2026-09-08-skills-hardening-design.md) — 승인 후 로컬 구현 커밋을 반영했습니다. 아직 main에 합쳐지지 않은 구현 브랜치의 통합 검토에 사용합니다.
-
-## 진행 중인 구현 계획
-
-- [스킬 신뢰성 개선 실행 인덱스](plans/2026-09-08-skills-hardening-index.md) — 공통 기반, 네 제품 전담 계획, 공유 계약 통합과 검증 순서입니다.
+There are no in-progress specs or plans. Completed documents remain available in Git history.
