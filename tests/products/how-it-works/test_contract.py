@@ -130,31 +130,47 @@ LIVE_CASES_PAYLOAD = {
             "id": "explicit-dns-path",
             "prompt_codex": "$how-it-works DNS가 브라우저 요청에서 IP 주소가 되는 길을 보여줘",
             "prompt_slash": "/how-it-works DNS가 브라우저 요청에서 IP 주소가 되는 길을 보여줘",
-            "expect": [
-                "discovered",
-                "explicit",
-                "claim",
-                "mermaid",
-                "numbered_hops",
-                "body",
-                "adjacent_slices",
-                "next_move",
-            ],
+            "expect": {
+                "invocation": "explicit",
+                "dimensions": {
+                    "fence": "lexical", "hop_ids": "lexical",
+                    "skill_loading": "host_event",
+                    "mermaid_syntax": "not_measured", "meaning": "not_measured",
+                },
+            },
         },
         {
             "id": "implicit-dns-path",
             "prompt": "DNS 요청이 브라우저에서 어디를 거쳐 IP 주소가 되는지 길로 보여줘",
-            "expect": ["implicit", "claim", "mermaid", "numbered_hops"],
+            "expect": {
+                "invocation": "implicit",
+                "dimensions": {
+                    "fence": "lexical", "hop_ids": "lexical",
+                    "skill_loading": "host_event",
+                    "mermaid_syntax": "not_measured", "meaning": "not_measured",
+                },
+            },
         },
         {
             "id": "near-miss-debug",
             "prompt": "DNS resolver 테스트 실패를 고쳐줘. 동작 설명은 하지 마.",
-            "expect": ["not_activated"],
+            "expect": {
+                "invocation": "not_activated",
+                "dimensions": {
+                    "fence": "not_measured", "hop_ids": "not_measured",
+                    "skill_loading": "not_measured",
+                    "mermaid_syntax": "not_measured", "meaning": "not_measured",
+                },
+            },
         },
     ],
 }
 LIVE_README_MARKERS = (
-    "pass/fail from observable output",
+    "historical-unbound",
+    "current-bounded",
+    "host_event",
+    "not_measured/not_run",
+    "does not authenticate execution",
     "Do not use private or user prompts",
     "Do not commit full responses",
     "fresh session",
@@ -256,6 +272,8 @@ class HowItWorksPayloadTests(unittest.TestCase):
     def test_payload_excludes_eval_and_html_templates(self) -> None:
         names = {p.name for p in SKILL.rglob("*") if p.is_file()}
         self.assertNotIn("test_contract.py", names)
+        self.assertNotIn("test_evidence_contract.py", names)
+        self.assertNotIn("evidence_contract.py", names)
         self.assertNotIn("cases.json", names)
         joined = "\n".join(
             p.read_text(encoding="utf-8") for p in SKILL.rglob("*.md")
@@ -582,6 +600,10 @@ class HowItWorksLiveContractTests(unittest.TestCase):
         for case in data["cases"]:
             self.assertEqual(set(case), LIVE_CASE_FIELDS[case["id"]], case["id"])
             self.assertTrue(FORBIDDEN_LIVE_KEYS.isdisjoint(case), case["id"])
+            self.assertEqual(set(case["expect"]), {"invocation", "dimensions"})
+            self.assertEqual(set(case["expect"]["dimensions"]), {
+                "fence", "hop_ids", "skill_loading", "mermaid_syntax", "meaning",
+            })
 
     def test_live_readme_defines_observable_fresh_private_quota_rules(self) -> None:
         self.assertTrue(LIVE_README.is_file(), "live/README.md is absent")
@@ -633,11 +655,11 @@ class HowItWorksLiveContractTests(unittest.TestCase):
             self.assertTrue(FORBIDDEN_LIVE_KEYS.isdisjoint(row), row["host"])
             self.assertNotIn("prompt", row)
             self.assertNotIn("transcript", row)
-        supported = {
-            row["host"] for row in hosts if row["verdict"] == "supported"
-        }
+
+    def test_registry_preserves_supported_hosts_independently_of_current_measurement(self) -> None:
+        # Historical verdicts remain historical; this locks the existing support scope.
         self.assertEqual(
-            supported,
+            {"codex", "claude-code"},
             set(load_registry(ROOT / "products.toml").require("how-it-works").supported_hosts),
         )
 

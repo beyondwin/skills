@@ -1,8 +1,8 @@
 # how-it-works live smoke
 
-This optional operator procedure scores pass/fail from observable output
-in a fresh session. It is not CI. Calls may consume
-subscription/API quota.
+This optional operator procedure records separate observations in a fresh session.
+It is not CI. Calls may consume subscription/API quota. No live calls were made
+for the 2.0.0 hardening work: current execution evidence is `not_measured`.
 
 Do not use private or user prompts. Use only the three synthetic cases in
 `cases.json`. Do not commit full responses, screenshots, generated media,
@@ -10,44 +10,46 @@ credentials, or billing receipts. Store temporary outputs outside the repository
 and delete them after scoring.
 
 Use a fresh session for every case. A provider-free contract pass is not live
-evidence. If any host fails the required criteria on the same build after the
-fix/retest loop, document it as unsupported in `products.toml` and active docs.
-Do not invent a passing verdict.
+evidence. Product support remains Codex and Claude Code, independently of the
+current measurement state. Do not calculate `supported` from a binding result or
+rewrite the support registry because this run has no measurement.
 
-## Cases
+## Cases and dimensions
 
-- `explicit-dns-path`
-- `implicit-dns-path`
-- `near-miss-debug`
+`expect` describes the intended invocation and observation methods, not results.
+The three synthetic prompts are unchanged:
 
-## Required criteria
+- `explicit-dns-path`: judge explicit invocation; observe fence/hop IDs lexically
+  and skill loading only from a host event.
+- `implicit-dns-path`: judge intended implicit invocation with the same separate
+  observations.
+- `near-miss-debug`: judge only non-invocation. All five output dimensions stay
+  `not_measured/not_run`; an explanation is not requested.
 
-A host is `supported` only when all of the following pass:
+For invocation, record `pass`, `fail`, or `not_measured` against the case's intended
+activation or non-activation. If activation cannot be observed, leave it unmeasured.
+Mentioning the skill name or matching output chrome does not prove skill loading.
 
-1. Skill discovery
-2. Explicit invocation
-3. Intended implicit invocation and near-miss non-invocation
-4. Complete Markdown, Mermaid source, and numbered hop list
+Every dimension has exactly `status` and `method` fields. Status is `pass`, `fail`,
+or `not_measured`. A missing observation must be `not_measured/not_run`.
 
-Score only what the returned chat text shows.
-
-| Expectation | Observable pass | Observable fail |
+| Dimension | Method allowed for pass/fail | What it can establish |
 | --- | --- | --- |
-| `discovered` | The host loads or names `how-it-works` as a skill, or emits the required chrome after an explicit invoke | The host cannot find the skill or treats the invoke as unknown text |
-| `explicit` | Output follows the skill after `$how-it-works` or `/how-it-works` | The host ignores the explicit invoke |
-| `implicit` | Output follows the skill without `$how-it-works` or `/how-it-works` | The host stays in a generic assistant reply and never enters the explanation flow |
-| `claim` | A one-sentence claim is present (`## 한 줄` / `One sentence`, or equivalent) | No claim sentence |
-| `mermaid` | A fenced `mermaid` block is present | No Mermaid source |
-| `numbered_hops` | A numbered hop list is present | No numbered hops |
-| `body` | A rung-specific body is present (`## 본문` / `Body`, or equivalent) | No body |
-| `adjacent_slices` | Uncovered adjacent slices are present (`## 지금 다루지 않은 것` / `Adjacent slices`, or equivalent) | No adjacent-slice section |
-| `next_move` | Exactly one next move is offered (`다음` / `Next`) | No next move, or a menu of many unrelated tasks |
-| `not_activated` | The host does not enter the explanation gate, does not emit the required chrome, and tries to debug or refuse explanation | The host emits Mermaid/hop explanation chrome anyway |
+| `fence` | `lexical` | A nonempty, closed canonical Mermaid fence is present |
+| `hop_ids` | `lexical` | H1/H2 IDs in Mermaid source match unique `1. **H1**` prose entries |
+| `skill_loading` | `host_event` | A separately observed host loading event |
+| `mermaid_syntax` | `parser` or `renderer` | The result of an actually executed Mermaid parser/renderer |
+| `meaning` | `semantic_review` | A separate review of causal and explanatory correctness |
 
-`explicit-dns-path` must show `discovered`, `explicit`, `claim`, `mermaid`,
-`numbered_hops`, `body`, `adjacent_slices`, and `next_move`.
-`implicit-dns-path` must show `implicit`, `claim`, `mermaid`, and
-`numbered_hops`. `near-miss-debug` must show `not_activated`.
+`observe_text(text)` performs only the first two lexical checks. It never promotes
+regex matches to loading, syntax, or meaning evidence. If the fence check fails,
+hop IDs remain unmeasured. Broken Mermaid can pass these lexical checks.
+
+Use an already executable parser/renderer only if it is actually run. This procedure
+does not require installation. Causality, depth transitions, accessibility, and
+syntax are not established by document markers or regex. Without the corresponding
+observation, leave those claims unmeasured. Method labels supplied by an operator
+are declarations: `record_binding` does not authenticate execution.
 
 ## Commands
 
@@ -101,8 +103,58 @@ case "$how_it_works_smoke_tmp" in
 esac
 ```
 
-## Record
+## Record and payload binding
 
-`smoke-record.json` stores only `schema_version`, `executed_on`, and per-host
-`host`, `client_version`, `cases`, and `verdict`. A host verdict is
-`supported` only when every required case is `pass`.
+Keep `smoke-record.json` byte-for-byte unchanged. It is schema 1, classified as
+`historical-unbound`: the 2026-08-28 date, client versions, and verdicts describe
+that historical run and have no payload hash or model binding. Codex `0.150.0`
+and Claude Code `2.1.247` passed then; Grok `1.0.5` was `unsupported` after measured
+failure; Cursor `3.17.21` was `not_measured` because Computer Use was unavailable.
+None of these verdicts verifies the current 2.0.0 payload.
+
+A future schema 2 record has exactly these top-level fields:
+
+| Field | Contract |
+| --- | --- |
+| `schema_version` | Integer `2`, never a boolean |
+| `product` | `how-it-works` |
+| `product_version` | Nonempty actual release version from `load_product_release(Path).version` |
+| `payload_sha256` | 64 lowercase hex digits from the existing `payload_sha256(Path)` |
+| `model` | Actual nonempty observed model name, or `null` if unknown |
+| `host` | `codex`, `claude-code`, `grok`, or `cursor`; acceptance is not product support |
+| `client_version` | Nonempty observed client version |
+| `runner_version` | Nonempty version of the procedure/runner actually used |
+| `executed_on` | Actual execution date, accepted by Python `date.fromisoformat` |
+| `cases` | Nonempty object keyed by case ID |
+
+Each case has exactly `invocation` and `dimensions`. Invocation has one of the
+three statuses above; dimensions has exactly `fence`, `hop_ids`, `skill_loading`,
+`mermaid_syntax`, and `meaning`, each with the exact status/method shape above.
+Extra fields, missing dimensions, and invalid evidence methods are rejected.
+Do not invent dates, models, client/runner versions, or successful observations.
+No new actual record is created by this implementation; synthetic unit fixtures
+are not execution records.
+
+Calculate the hash only after all payload changes are finished, using the shared
+helper without another sorting or hashing algorithm:
+
+```python
+from pathlib import Path
+from scripts.lib.product_contract import load_product_release, payload_sha256
+
+skill_root = Path("skills/how-it-works")
+current_version = load_product_release(skill_root).version
+current_hash = payload_sha256(skill_root)
+```
+
+`record_binding(record, current_version=..., current_hash=...)` validates declared
+metadata and returns:
+
+- `historical-unbound`: schema 1, with its historical host judgments untouched.
+- `unbound`: valid schema 2 with unknown (`null`) model, even if version/hash differ.
+- `different-payload`: known model, but version or hash differs from the current payload.
+- `current-bounded`: known model and matching version/hash; this is metadata binding,
+  not execution authentication, invocation success, or an all-dimensions quality verdict.
+
+The pure module lives under product tests, outside the installed payload. Existing
+schema 1 field/host/verdict checks remain separate from this binding function.

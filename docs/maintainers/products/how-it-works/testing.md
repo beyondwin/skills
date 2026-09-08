@@ -44,21 +44,52 @@
 라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있습니다. CI가 요구하지
 않습니다. 페이로드 계약 통과를 라이브 호출 증거로 설명하지 마세요.
 
-같은 빌드에서 지원을 유지하려면 다음 네 가지가 통과해야 합니다.
+제품 지원은 Codex/Claude Code 그대로이며 현재 2.0.0의 실제 실행 증거는
+`not_measured`입니다. 지원 대상과 현재 측정 상태를 같은 조건으로 계산하지 않습니다.
+과거 `live/smoke-record.json`의 schema 1 바이트와 날짜·클라이언트·판정은 유지합니다.
+이 기록은 `historical-unbound`이며 당시 payload hash나 model을 추정하지 않습니다.
+과거 Grok 실패와 Cursor 미측정도 현재 빌드의 측정 결과로 바꾸지 않습니다.
 
-1. 스킬 발견
-2. 명시 호출
-3. 의도한 암묵 호출과 near-miss 비호출
-4. 완전한 마크다운, mermaid 소스, 번호 있는 홉 목록
+새 증거 계약의 순수 함수는 `tests/products/how-it-works/live/evidence_contract.py`에
+있으며 설치 payload에 포함되지 않습니다. `test_evidence_contract.py`의 입력은 합성
+단위 테스트용이며 실제 실행 기록이 아닙니다. 실제 새 기록 파일은 만들지 않습니다.
 
-기록은 호스트, 클라이언트 버전, 날짜, 케이스, 판정만 남깁니다. 전체 응답과
-비공개 프롬프트는 커밋하지 않습니다.
+- `observe_text`는 닫힌 비어 있지 않은 Mermaid fence와 source/prose의 동일한
+  H1/H2 hop ID 및 번호 목록의 중복 여부만 `lexical`로 관측합니다.
+- `skill_loading`은 별도 `host_event`, `mermaid_syntax`는 실제 실행한 `parser` 또는
+  `renderer`, `meaning`은 `semantic_review`가 있어야 측정할 수 있습니다. 로딩을
+  스킬 이름 언급이나 출력 chrome에서 추정하지 않습니다.
+- 모든 차원은 `status`와 `method`를 가지며, 출처가 없으면 `not_measured/not_run`입니다.
+  near-miss는 invocation만 판정하고 다섯 출력 차원은 미측정으로 둡니다.
+- schema 2는 실제 product version, 기존 `payload_sha256(Path)`의 hash, model,
+  host, client/runner version, 실행일, 케이스별 invocation과 다섯 차원을 기록합니다.
+  model을 확인할 수 없으면 `null`이고 결과는 `unbound`입니다. hash는 payload 수정이
+  모두 끝난 뒤 계산하며, 실제 버전은 `load_product_release(Path).version`을 사용합니다.
+- 알려진 model과 일치하는 version/hash는 `current-bounded`, 불일치는
+  `different-payload`입니다. 이는 제출한 메타데이터의 결속이며 실제 실행 인증이나
+  품질 통과가 아닙니다. 방법 선언 자체의 진위도 이 함수가 인증하지 않습니다.
+
+직접 단위 검사는 깨진 Mermaid의 비승격, hop 불일치·중복·부재, 과거 기록 비변경,
+null model, 버전/hash 불일치, 임시 reference 변경에 따른 실제 공통 hash 변화,
+추가 키·잘못된 날짜·차원 누락·boolean schema 및 잘못된 방법 선언을 검증합니다.
+형태만으로 문법·인과·깊이 전환·접근성을 입증하지 않습니다. parser/renderer는 이미
+실행 가능한 경우 실제 실행 결과만 기록하며 이 작업은 설치를 요구하지 않습니다.
+
+세 기존 synthetic prompt와 상세 schema·관측 절차는
+`tests/products/how-it-works/live/README.md`를 따릅니다. 전체 응답과 비공개 프롬프트,
+자격증명은 커밋하지 않습니다.
 
 ## 명령
 
 ```bash
 python3 scripts/verify.py --skill how-it-works
 python3 scripts/verify.py
-python3 -m unittest discover -s tests/products/how-it-works -p 'test_*.py'
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/products/how-it-works -p test_evidence_contract.py -v
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/products/how-it-works -p 'test_*.py' -v
 git diff --check
 ```
+
+공통 `how-it-works-contract` stage가 `test_contract.py`만 발견하는 동안에는 위 직접
+명령으로 새 파일을 실행합니다. 통합 담당이 discovery pattern을 `test_*.py`로
+수정하고 공유 version pin을 맞춘 뒤 `--skill` 및 전체 profile을 실행합니다.
+제품 단위 순수 검사 통과는 이 통합 게이트나 라이브 모델 품질의 통과를 대신하지 않습니다.
