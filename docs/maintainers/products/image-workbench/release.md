@@ -5,6 +5,9 @@
 디렉터리의 `CHANGELOG.md`입니다. 공통 판정표는
 [버저닝](../../repository/versioning.md)을 따릅니다.
 
+`2.0.2`는 현재 로컬 standalone 출시 목표입니다. 이 버전 문자열이나 로컬
+검사 결과는 tag 생성, push, GitHub Release 공개가 수행됐다는 증거가 아닙니다.
+
 ## SemVer 예시
 
 - PATCH: inspector 경로 안내 정정, 깨진 상대 링크, 문서화된 권한 경계를 회복하는 결함 수정
@@ -34,6 +37,10 @@ python3 scripts/release.py verify-download --product image-workbench --input <fr
 구조, 추출 payload hash, 제품 검증과 설치 smoke를 확인합니다. 추출 smoke는
 추출한 inspector를 스킬 루트에서 호출해야 합니다. 로컬 `dist/`는 공개 증거가
 아닙니다.
+
+checksum 검증과 로컬 신뢰 source payload hash 비교를 구현하는 공통 release
+코드는 통합 담당이 소유합니다. 제품 문서만 바뀐 상태를 해당 공통 계약의 구현
+증거로 사용하지 않습니다.
 
 제품 태그는 `image-workbench-v<version>`입니다. 기존 통합 태그 `v2.0.0`의
 standalone ZIP은 레거시 기준선입니다. 제품 한정 태그 `image-workbench-v2.0.0`은

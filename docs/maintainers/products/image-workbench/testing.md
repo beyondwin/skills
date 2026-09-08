@@ -19,6 +19,11 @@
 - 평가기 또는 inspector 명령·패키지 경로 변경은
   `tests/products/image-workbench/run.py`와 `python3 scripts/verify.py`와
   맞춥니다.
+- `test_payload_docs.py`는 임시 standalone 복사본의 README 상대 링크가
+  payload 안에서 해석되는지 확인합니다. 공개 docs URL은 저장소 안의 대응
+  파일까지만 검사하며 원격 HTTP 응답을 증명하지 않습니다.
+- evaluator는 기존 8개 mutation에 expected/candidate 동시 오염 9개를 더해
+  읽기 전용 행동 경계를 검사합니다. 실제 이미지 호출 없이 실행합니다.
 
 오프라인 픽스처는 이미지 품질 증명이 아닙니다. 라이브 이미지 카나리는
 선택입니다. 이 오프라인 수락과 따로 보고합니다. 상태, 비용/동의 경계, 출력
@@ -27,13 +32,19 @@
 ## 명령
 
 ```bash
-python3 scripts/verify.py --skill image-workbench
-python3 scripts/verify.py
-python3 tests/products/image-workbench/run.py --self-test
-python3 tests/products/image-workbench/run.py --scope full
-python3 -m unittest discover -s tests/products/image-workbench -p 'test_*.py'
+PYTHONDONTWRITEBYTECODE=1 python3 scripts/verify.py --skill image-workbench
+PYTHONDONTWRITEBYTECODE=1 python3 scripts/verify.py
+PYTHONDONTWRITEBYTECODE=1 python3 tests/products/image-workbench/run.py --self-test
+PYTHONDONTWRITEBYTECODE=1 python3 tests/products/image-workbench/run.py --scope full
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/products/image-workbench -p 'test_*.py'
+IMAGE_WORKBENCH_EXTRACTED_ROOT=/path/to/extracted/image-workbench
+IMAGE_WORKBENCH_INSPECTOR="$IMAGE_WORKBENCH_EXTRACTED_ROOT/scripts/inspect_asset.py" PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/products/image-workbench -p 'test_*.py'
+PYTHONDONTWRITEBYTECODE=1 python3 tests/products/image-workbench/run.py --scope full --skill-root "$IMAGE_WORKBENCH_EXTRACTED_ROOT"
 git diff --check
 ```
+
+마지막 두 명령은 공통 `verify-download`가 추출 payload에 적용하는 제품 smoke의
+경계를 보여 줍니다. 동일 archive를 다시 수동 추출해 중복 검사하지 않습니다.
 
 라이브 이미지 호출은 CI가 요구하지 않습니다. 자격 증명과 비용이 들 수
 있습니다. 오프라인 통과를 라이브 시각 결과로 바꾸지 마세요.

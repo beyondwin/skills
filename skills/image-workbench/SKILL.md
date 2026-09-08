@@ -68,6 +68,11 @@ format, dimensions, alpha when exposed, byte size, SHA-256, and path readiness.
 Mechanical facts never replace visual inspection; apply the
 [quality rubric](references/quality-rubric.md).
 
+The inspector verifies selected file facts and required parsed structure,
+not complete bitstream decoding. Visual quality and rights remain separate
+checks. Its JSON output must not alias the input asset; a separate existing
+JSON report may be updated.
+
 ## Iterate And Stop
 
 Produce one useful first candidate by default. One tool call per explicitly requested distinct asset or variant. Ordinary requests never become unrequested batches. Make at most one clearly justified correction at a time. Repeat the ImageSpec invariants and candidate inspection after each correction. Hold when a critical condition cannot be verified instead of treating an aesthetic preference as a reason to keep generating.

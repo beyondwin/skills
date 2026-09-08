@@ -23,6 +23,11 @@ exposed, byte size, SHA-256, and destination/path readiness with the local
 inspector. These facts describe the file; they do not judge aesthetics, rights,
 or the result of an edit.
 
+The inspector verifies selected file facts and required parsed structure,
+not complete bitstream decoding. Visual quality and rights remain separate
+checks. Its JSON output must not alias the input asset; a separate existing
+JSON report may be updated.
+
 ## Critical Versus Advisory
 
 Critical failures include a missing subject, failed edit invariant, incorrect

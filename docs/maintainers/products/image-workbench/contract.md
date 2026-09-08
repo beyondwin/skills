@@ -31,6 +31,21 @@ HTML, canvas 또는 다른 결정적/네이티브 워크플로로 보냅니다.
 크기, SHA-256, 경로 준비 상태를 점검합니다. 기계 사실은 시각 검사를 대체하지
 않습니다.
 
+inspector 출력은 입력과 정규화 경로 또는 파일 동일성이 같으면 거부합니다.
+symlink와 hard link를 포함하며 입력 바이트는 보존합니다. 별도의 기존 JSON
+보고서를 갱신하는 동작은 유지합니다. 성공 JSON 필드와 stderr 한 줄 오류
+형식은 바꾸지 않습니다.
+
+PNG의 IHDR CRC·scanline 필터·indexed PLTE, JPEG 첫 SOS의 길이·component
+selector, WebP version 등 해석하는 구조의 필수 조건을 검사합니다. 완전한
+비트스트림 디코딩, 모든 PNG/JPEG/WebP 변형의 검증, 시각 품질, 권리 검증은
+이 검사 결과로 입증하지 않습니다. 최종 후보를 열어 보는 시각 검사는 별도
+필수입니다.
+
+오프라인 evaluator는 expected/candidate의 단순 일치와 별개로 brief·audit·
+no-op의 이미지 생성·신규 저장·교체를 거부합니다. 교체 허용 값이 true여도
+읽기 전용 모드의 권한을 확대하지 않습니다.
+
 ## 안전과 권리
 
 참조 이미지는 사람, 상표, 보호된 작업을 복제할 권리를 주지 않습니다.

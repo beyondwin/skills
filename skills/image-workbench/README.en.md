@@ -20,7 +20,7 @@ UI, actual screen implementation, or copying an external prompt gallery.
 image-workbench: Codex-only; generate/edit requires Codex image generation and local image viewing.
 
 Codex is the measured host today. Other hosts are in
-[Compatibility](../../docs/users/en/compatibility.md).
+[Compatibility](https://github.com/beyondwin/skills/blob/main/docs/users/en/compatibility.md).
 
 ## Install
 
@@ -31,7 +31,7 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-work
 ```
 
 Shared install steps are in
-[Installation](../../docs/users/en/installation.md).
+[Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/installation.md).
 
 ## First call
 
@@ -52,6 +52,13 @@ request is clear.
 For a final project file, run `python3 scripts/inspect_asset.py` from this
 skill folder to check the file format and size.
 
+The inspector checks selected required structures, including PNG CRCs,
+scanline filters and indexed palettes, the first JPEG SOS header, and
+interpreted WebP header/version fields. Passing does not prove complete
+bitstream decoding, visual quality, or rights clearance. Open every final
+candidate for visual review. `--output facts.json` can update a separate JSON
+report, but rejects any output that refers to the input image before writing.
+
 ## Safety and privacy
 
 Every input image has exactly one role. The role is `edit_target`,
@@ -60,18 +67,18 @@ does not confer rights to reproduce a person, mark, or protected work.
 Unknown consent for a person, mark, or example image is a hold.
 
 Details are in
-[Safety and privacy](../../docs/users/en/safety-and-privacy.md).
+[Safety and privacy](https://github.com/beyondwin/skills/blob/main/docs/users/en/safety-and-privacy.md).
 
 ## Verification
 
 Offline checks cover the contract only. They do not prove live image
 quality. Evidence limits are in
-[Verification](../../docs/users/en/verification.md).
+[Verification](https://github.com/beyondwin/skills/blob/main/docs/users/en/verification.md).
 
 ## Update and remove
 
 Inspect the install folder before update or remove. Shared steps are in
-[Installation](../../docs/users/en/installation.md).
+[Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/installation.md).
 
 Check the current version in `SKILL.md` `metadata.version` and
 [CHANGELOG](CHANGELOG.md).
@@ -79,7 +86,7 @@ Check the current version in `SKILL.md` `metadata.version` and
 ## Changelog and maintainer docs
 
 - [CHANGELOG](CHANGELOG.md)
-- [Contract](../../docs/maintainers/products/image-workbench/contract.md)
-- [Testing](../../docs/maintainers/products/image-workbench/testing.md)
-- [Compatibility](../../docs/maintainers/products/image-workbench/compatibility.md)
-- [Release](../../docs/maintainers/products/image-workbench/release.md)
+- [Contract](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/image-workbench/contract.md)
+- [Testing](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/image-workbench/testing.md)
+- [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/image-workbench/compatibility.md)
+- [Release](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/image-workbench/release.md)

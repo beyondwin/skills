@@ -23,6 +23,9 @@ has been published for this version.
 - Offline evaluation now rejects generation and asset writes in brief,
   audit, and no-op decisions even when candidate and expected values agree
   on the prohibited action.
+- Standalone README links to repository documentation use public URLs.
+  Inspector documentation now distinguishes selected structural checks
+  from complete decoding, visual review, and rights verification.
 
 ### Added
 
