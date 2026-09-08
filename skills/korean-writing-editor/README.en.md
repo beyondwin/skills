@@ -45,7 +45,9 @@ $korean-writing-editor Fix typos only: (Korean source)
 
 The default is `polish`: small readability edits that keep meaning and
 voice. `diagnose` names problems and does not rewrite. `correct` fixes
-spelling, spacing, and clear grammar only.
+spelling, spacing, and clearly required local grammar only. `polish` applies
+those required corrections first, then optionally improves readability and
+local flow.
 
 ## Safety and privacy
 

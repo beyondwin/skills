@@ -49,8 +49,8 @@ unless the user asks for diagnosis or local correction only.
 | Mode | User intent | Boundary |
 | --- | --- | --- |
 | `diagnose` | 고치지 말고 문제만 알려줘 | Name issues, decision class, and holds. Do not rewrite. |
-| `correct` | 오탈자만 고쳐줘 | Apply normative and clearly grammatical local corrections only. |
-| `polish` | 자연스럽게 다듬어줘 | Improve local readability and flow while preserving meaning and voice. |
+| `correct` | 오탈자만 고쳐줘 | Apply normative and clearly required local grammar corrections only. |
+| `polish` | 자연스럽게 다듬어줘 | Apply the same required corrections, then optional local readability and flow improvements while preserving meaning and voice. |
 
 `polish` stays conservative unless the user explicitly asks for stronger
 restructuring. Stronger structure still cannot invent facts or change
@@ -79,8 +79,9 @@ For a valid request, in this order:
 2. Note material propositions and invariants in working memory only, without
    persisting user text: negation, certainty, obligation, time, causality,
    quantities, names, quotations, and attribution.
-3. Apply normative local corrections (`correct` and `polish` only).
-4. Apply local grammar and flow improvements only in `polish`.
+3. Apply normative local corrections and clearly required local grammar
+   corrections (`correct` and `polish` only).
+4. Apply optional readability and local flow improvements only in `polish`.
 5. Restore intentional voice features (repetition, fragments, endings, slang,
    indirectness, rhythm) when they are voice rather than errors.
 6. Compare with the original and revert any unsupported semantic change,

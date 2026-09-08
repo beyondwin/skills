@@ -1,7 +1,7 @@
 # korean-writing-editor 테스트
 
 `tests/products/korean-writing-editor/offline/cases.json`과
-`tests/products/korean-writing-editor/offline/run.py`에서 서른한 개 속성
+`tests/products/korean-writing-editor/offline/run.py`에서 서른세 개 속성
 케이스와 변이 검사를 그대로 유지하세요.
 
 ## 결정적 픽스처
@@ -15,6 +15,10 @@
   기록에서 보호할 수 있습니다.
 - 과정 서문이 있는 후보는 교체된 `norm-spacing-can-01` 속성에 실패해야
   합니다.
+- `norm-grammar-particle-correct-09`와 `norm-grammar-particle-polish-10`은
+  같은 명백한 중복 조사 오류가 두 모드에서 모두 교정되는지 확인합니다. 원문
+  오류를 그대로 둔 후보와 양가적인 마지막 절을 확신으로 바꾼 후보는 각각의
+  독립 변이 검사에 실패해야 합니다.
 - 픽스처 통과는 오프라인 오라클 계약만 증명합니다. 라이브 모델 품질을
   증명하지 않습니다.
 

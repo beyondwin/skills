@@ -21,7 +21,7 @@ RUNNER = (
 )
 CASES = RUNNER.with_name("cases.json")
 EXPECTED_SUMMARY = (
-    "31 cases: normative=8 preservation=8 noop=6 voice=4 trigger=5"
+    "33 cases: normative=10 preservation=8 noop=6 voice=4 trigger=5"
 )
 PAYLOAD_FILES = (
     "SKILL.md",
@@ -43,7 +43,7 @@ class KoreanPackageTests(unittest.TestCase):
     def test_korean_offline_runner_accepts_explicit_skill_root(self) -> None:
         result = run_offline("--scope", "full", "--skill-root", str(SKILL_ROOT))
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("31 cases:", result.stdout)
+        self.assertIn("33 cases:", result.stdout)
         self.assertIn(EXPECTED_SUMMARY, result.stdout)
         self.assertIn("mutation checks: PASS", result.stdout)
 
@@ -86,10 +86,24 @@ class KoreanPackageTests(unittest.TestCase):
         self.assertTrue(CASES.is_file(), "cases.json is absent")
         payload = json.loads(CASES.read_text(encoding="utf-8"))
         self.assertEqual(payload["version"], "1")
-        self.assertEqual(len(payload["cases"]), 31)
+        self.assertEqual(len(payload["cases"]), 33)
         runner_text = RUNNER.read_text(encoding="utf-8")
         self.assertIn("--skill-root", runner_text)
         self.assertIn('with_name("cases.json")', runner_text)
+
+    def test_required_local_grammar_is_shared_by_correct_and_polish(self):
+        cases = {
+            case["id"]: case
+            for case in json.loads(CASES.read_text(encoding="utf-8"))["cases"]
+        }
+        expected = "나는 3월 4일에 김민수의 글을 읽었지만, 다시 읽을지는 모르겠다."
+        for mode in ("correct", "polish"):
+            with self.subTest(mode=mode):
+                case = cases[f"norm-grammar-particle-{mode}-{'09' if mode == 'correct' else '10'}"]
+                self.assertEqual(case["candidate"], expected)
+                self.assertEqual(case["expected_mode"], mode)
+                self.assertIn("다시 읽을지는 모르겠다", case["must_preserve"])
+                self.assertIn("글을을", case["forbidden_substrings"])
 
     def test_default_skill_root_is_repository_payload(self) -> None:
         result = run_offline("--scope", "full")

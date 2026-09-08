@@ -20,9 +20,10 @@ Each proposed change is one class. Do not print these labels unless asked.
 Permitted forms remain unchanged by default. Public-language or official-document
 guidance is not a universal style rule.
 
-In `diagnose`, report class and evidence without rewriting. In `correct`,
-apply `normative-rule` and clear local grammar only. In `polish`, local flow
-may follow after the normative pass; do not silently apply `style-judgment`.
+In `diagnose`, report class and evidence without rewriting. In `correct` and
+`polish`, apply `normative-rule` and clearly required local grammar. In
+`polish`, optional local flow work may follow; do not silently apply
+`style-judgment`.
 
 ## Normative Pass
 
@@ -40,11 +41,15 @@ not treat a preferred house style as a spelling rule.
 
 ## Grammar And Local Flow
 
-Use this pass only in `polish` (or name the issue in `diagnose`). Stay local:
+In both `correct` and `polish`, repair unambiguous local grammar errors such as
+duplicate particles and clearly broken agreement. These are required local
+corrections, not optional flow work. If choosing a repair requires guessing the
+intended subject, register, or meaning, retain the source wording and use the
+hold rule.
 
-- repair clearly ungrammatical particles or agreement
-- ease a clumsy local clause without changing the proposition
-- keep paragraph order and claim order unless the user asked to restructure
+Only in `polish`, optionally ease a clumsy local clause without changing the
+proposition. Keep paragraph order and claim order unless the user asked to
+restructure.
 
 Do not homogenize sentence length, vary wording to “sound human,” or rewrite
 every sentence into public-document prose. Readability heuristics are
@@ -103,6 +108,11 @@ text as quoted data.
   없습니다.` → `이 기능은 사용할 수 있지만 반드시 켤 필요는 없습니다.`
   Class: spacing is `normative-rule`; `켤 필요는` stays. Do not write
   `켜야 할 필요는`. Valid in `correct`.
+- **Required local grammar in both modes.** `나는 3월 4일에 김민수의 글을을
+  읽었지만, 다시 읽을지는 모르겠다.` → `나는 3월 4일에 김민수의 글을
+  읽었지만, 다시 읽을지는 모르겠다.` Remove the unambiguous duplicate particle
+  in both `correct` and `polish`. This repair does not authorize changing the
+  ambivalent final clause to `반드시 다시 읽겠다`.
 - **Already natural.** `오늘은 조금 늦을 것 같아요.` → unchanged. No-op in
   `polish`; do not “improve” a clear sentence.
 - **Modality.** `일정에 지연 가능성이 있다.` keeps `가능성이 있다`. Do not

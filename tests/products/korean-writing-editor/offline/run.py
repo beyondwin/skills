@@ -33,7 +33,7 @@ ALLOWED_CATEGORIES = {"normative", "preservation", "noop", "voice", "trigger"}
 ALLOWED_MODES = {"diagnose", "correct", "polish", "none"}
 ALLOWED_TIERS = {"fast", "balanced", "frontier", "none"}
 EXPECTED_CATEGORY_COUNTS = {
-    "normative": 8,
+    "normative": 10,
     "preservation": 8,
     "noop": 6,
     "voice": 4,
@@ -424,6 +424,24 @@ def run_mutation_checks(cases: list[dict[str, object]]) -> list[str]:
                 "mutation: adding process preamble produced no error"
             )
 
+    for mode, suffix in (("correct", "09"), ("polish", "10")):
+        case_id = f"norm-grammar-particle-{mode}-{suffix}"
+        case = by_id.get(case_id)
+        if case is None:
+            errors.append(f"mutation: missing {case_id}")
+            continue
+        for candidate in (
+            case["source"],
+            str(case["candidate"]).replace(
+                "다시 읽을지는 모르겠다", "반드시 다시 읽겠다"
+            ),
+        ):
+            mutated = dict(case, candidate=candidate)
+            if not evaluate_candidate(mutated):
+                errors.append(
+                    f"mutation: grammar or voice corruption escaped {case_id}"
+                )
+
     return errors
 
 
@@ -636,7 +654,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     print(
-        "31 cases: "
+        "33 cases: "
         f"normative={category_counts['normative']} "
         f"preservation={category_counts['preservation']} "
         f"noop={category_counts['noop']} "
