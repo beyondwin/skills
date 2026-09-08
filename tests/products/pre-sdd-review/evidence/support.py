@@ -18,7 +18,7 @@ SKILL_MD = (
     "name: pre-sdd-review\n"
     "description: synthetic\n"
     "metadata:\n"
-    '  version: "2.0.0"\n'
+    '  version: "3.0.0"\n'
     "---\n\n# Pre-SDD Review\n"
 )
 PROTOCOL_MD = "# Reviewer protocol\n\nRead-only.\n"
@@ -63,9 +63,9 @@ def commit_all(repo: Path, message: str = "change") -> None:
             raise AssertionError(result.stderr)
 
 
-def make_skill_root(workspace: Path, version: str = "2.0.0") -> Path:
+def make_skill_root(workspace: Path, version: str = "3.0.0") -> Path:
     root = workspace / "skill"
-    write(root / "SKILL.md", SKILL_MD.replace('"2.0.0"', f'"{version}"'))
+    write(root / "SKILL.md", SKILL_MD.replace('"3.0.0"', f'"{version}"'))
     write(root / "references/reviewer-protocol.md", PROTOCOL_MD)
     return root
 

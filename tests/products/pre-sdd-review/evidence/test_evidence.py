@@ -103,7 +103,7 @@ class StartTests(unittest.TestCase):
         self.assertEqual(record["repo"], "repo")
         self.assertEqual(record["client"], {"id": "codex", "model": "gpt-test"})
         self.assertEqual(record["mode"], "default")
-        self.assertEqual(record["skill"]["version"], "2.0.0")
+        self.assertEqual(record["skill"]["version"], "3.0.0")
         self.assertRegex(record["skill"]["sha256"], r"^[0-9a-f]{64}$")
         self.assertEqual(record["plan"]["path"], "docs/plan.md")
         self.assertRegex(record["plan"]["sha_start"], r"^[0-9a-f]{64}$")

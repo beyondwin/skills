@@ -13,6 +13,18 @@ All notable changes to this product are documented in this file.
 
 - Product README language was simplified with no behaviour change.
 
+## 3.0.0 - 2026-09-08
+
+### Changed
+
+- New optional recorder schema 3 binds records to a locally salted checkout identity.
+- Schema 2 remains readable as historical-unbound evidence and cannot be mutated.
+- Run locks serialize finish, abandon, and outcome; reads isolate corrupt records.
+- Structurally valid contradictory observations remain recorded and appear as anomalies.
+- Installed README links resolve inside the payload or point to public repository docs.
+- Reviewer roles, scalar risk triggers, two-document repairs, repair limits, and semantic verdicts are unchanged.
+- This change does not publish a release or claim new native platform/model evidence.
+
 ## 2.0.0 - 2026-09-05
 
 ### Changed

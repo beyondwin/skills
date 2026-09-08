@@ -23,7 +23,7 @@ from scripts.lib.product_registry import load_registry  # noqa: E402
 SKILL = ROOT / "skills" / "pre-sdd-review"
 CASES = ROOT / "tests" / "products" / "pre-sdd-review" / "cases.json"
 FIXTURES = ROOT / "tests" / "products" / "pre-sdd-review" / "fixtures"
-TARGET_VERSION = "2.0.0"
+TARGET_VERSION = "3.0.0"
 PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     {
         "CHANGELOG.md",
@@ -39,7 +39,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "3dc6220d5502464c61ca68f85624140ae59e168d249ffc30c051b443bf2bdb1a",
+    "SKILL.md": "486aa0c5cadabbfa3e5426552ecc4e7b97d3c3f9e394b6a52e8a13d99e8bad34",
     "references/reviewer-protocol.md": (
         "8b28feb6c897341917cdde06411cadf8aea1f815f10608fa7ce709d12b77821f"
     ),
@@ -416,7 +416,7 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
 MAINTAINER_CANONICAL_DIGEST = "492f7097647017ed3bae0505fbaa63ee8122ea1f5590e16c7552b1df9069e09c"
 TESTING_CANONICAL_DIGEST = "3dc92aa2bf002335965f9d836d978d28f96b1f0355bce398a7d3e2b71451be60"
 COMPATIBILITY_CANONICAL_DIGEST = "e47297cbf13ae9b9d8ebde193338247f70a1329e0e3e73eb104bb4d249c02561"
-RELEASE_CANONICAL_DIGEST = "34c75089cbc42fd666c6bc0ecc8be13f5229763ee224f1d6ca8baa62cd3759a0"
+RELEASE_CANONICAL_DIGEST = "a2a311c654c1a983236950ee8ce7e2747d3899900ab6e406819ee61e8dd23ddc"
 
 
 def section(text: str, start: str, end: str) -> str:
@@ -989,7 +989,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         )
         self.assertEqual(frontmatter["name"], "pre-sdd-review")
 
-    def test_release_sources_target_v2_0_0(self) -> None:
+    def test_release_sources_target_v3_0_0(self) -> None:
         release = tomllib.loads((SKILL / "release.toml").read_text(encoding="utf-8"))
         frontmatter = parse_skill_frontmatter(
             (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -997,7 +997,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertEqual(release["version"], TARGET_VERSION)
         self.assertEqual(frontmatter["metadata"]["version"], TARGET_VERSION)
         self.assertIn(
-            f"## {TARGET_VERSION} - 2026-09-05",
+            f"## {TARGET_VERSION} - 2026-09-08",
             (SKILL / "CHANGELOG.md").read_text(encoding="utf-8"),
         )
 
