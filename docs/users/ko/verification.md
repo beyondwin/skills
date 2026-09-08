@@ -49,6 +49,10 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 오프라인 스위트는 결정적 계약만 증명합니다. 제품별 픽스처는 각 제품 README를 보세요.
 
+현재 Korean 오프라인은 33개(`normative=10`)이며 나머지 픽스처 분류는 유지합니다. 새 Korean 라이브 증거는 runner 18을 사용하며 과거 runner 영수증은 runner 18 실행을 증명하지 않습니다. Image는 31개 픽스처와 17개 mutation을 검사합니다.
+
+Korean 후보는 hard 실패가 있으면 `failed`가 우선합니다. hard 검사를 통과해도 의미·귀속·요청된 편집 실행이 미관측이면 `partially_verified`입니다. 오프라인 계약 성공만으로 라이브 상태를 부여하지 않습니다. How의 fence/hop, loading, syntax, meaning은 별도 증거가 필요합니다. 과거 smoke는 `historical-unbound`이며 현재 메타데이터 결속만으로 모델 실행을 증명하지 않습니다.
+
 - `korean-writing-editor`: `tests/products/korean-writing-editor/offline/`
 - `image-workbench`: `tests/products/image-workbench/`
 - `how-it-works`: `tests/products/how-it-works/`
@@ -56,11 +60,15 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 Evidence 단계는 `tests/products/pre-sdd-review/evidence/`에서 `evidence.py`를 검사합니다. 네트워크, 모델, provider, telemetry를 호출하지 않습니다.
 
+Pre-SDD는 schema 2 record를 `historical-unbound`로 읽기만 지원합니다. 변경 명령은 schema 3의 checkout 결속이 필요합니다. schema 2 pending record는 보존하고 새 run을 시작합니다. schema 3 `--version`은 canonical JSON `{"cli_version":"3.0.0","schema":3,"skill_name":"pre-sdd-review"}`과 마지막 LF 하나를 출력하며 evidence home을 만들지 않습니다.
+
 비-Windows의 `windows-portable` 통과는 native Windows 지원을 증명하지 않습니다. native Windows와 Linux는 그 환경에서 evidence 단계가 돌기 전까지 `not_measured`입니다.
 
 통과는 일반 품질을 증명하지 않습니다. 라이선스는 Apache-2.0입니다.
 
 ## 라이브 실행
+
+Korean 라이브 범위는 14 cases / 17 repeats를 유지합니다.
 
 라이브 평가는 로컬에서만 합니다. 명시 플래그, 이름 있는 런타임, 제한된 호출 예산, 추적 소스 밖의 증거 루트가 있을 때 합니다. CI는 라이브를 요구하지 않습니다. 공급자 프로세스를 조용히 바꾸지 않습니다.
 

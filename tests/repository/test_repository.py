@@ -253,20 +253,18 @@ class ValidateSkillRejectionTests(unittest.TestCase):
 
     def test_rejects_version_mismatch(self) -> None:
         source = SKILLS[1]
-        staged = self._mutated(
-            source,
-            lambda skill: (skill / "SKILL.md").write_text(
-                (skill / "SKILL.md").read_text(encoding="utf-8").replace(
-                    'version: "2.0.1"',
-                    'version: "1.0.0"',
-                    1,
-                ),
-                encoding="utf-8",
-            ),
-        )
+
+        def mutate(skill):
+            path = skill / "SKILL.md"
+            original = path.read_text(encoding="utf-8")
+            mutated = original.replace('version: "2.0.2"', 'version: "1.0.0"', 1)
+            self.assertNotEqual(mutated, original)
+            path.write_text(mutated, encoding="utf-8")
+
+        staged = self._mutated(source, mutate)
         errors = "\n".join(validate_product(staged, REGISTRY))
         self.assertIn(
-            "release.toml version 2.0.1 != SKILL.md version 1.0.0",
+            "release.toml version 2.0.2 != SKILL.md version 1.0.0",
             errors,
         )
 

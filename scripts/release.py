@@ -318,7 +318,8 @@ def verify_catalog_download(root: Path, directory: Path) -> list[str]:
                     collected.append(error)
             if item_errors:
                 continue
-            collected.extend(_run_product_smoke(root, item.name, skill_root))
+            if item.release_kind == "independent":
+                collected.extend(_run_product_smoke(root, item.name, skill_root))
         return collected
 
 
@@ -582,8 +583,8 @@ def _smoke_pre_sdd_review(skill_root: Path) -> list[str]:
     if errors:
         return errors
 
-    expected_version = {"cli_version": "2.0.0", "schema": 2, "skill_name": "pre-sdd-review"}
-    expected_bytes = b'{"cli_version":"2.0.0","schema":2,"skill_name":"pre-sdd-review"}\n'
+    expected_version = {"cli_version": "3.0.0", "schema": 3, "skill_name": "pre-sdd-review"}
+    expected_bytes = b'{"cli_version":"3.0.0","schema":3,"skill_name":"pre-sdd-review"}\n'
     with tempfile.TemporaryDirectory(prefix="pre-sdd-review-smoke-") as directory:
         evidence_home = Path(directory) / "evidence-home-must-stay-absent"
         environ = os.environ.copy()

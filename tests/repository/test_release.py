@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -81,9 +82,9 @@ class ProductBuildTests(unittest.TestCase):
         artifacts = release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
         self.assertEqual(
             {path.name for path in artifacts},
-            {"how-it-works-v1.0.0.zip", "SHA256SUMS"},
+            {release.load_product_release(ROOT / "skills" / "how-it-works").artifact_name, "SHA256SUMS"},
         )
-        names = zip_names(self.output / "how-it-works-v1.0.0.zip")
+        names = zip_names(self.output / release.load_product_release(ROOT / "skills" / "how-it-works").artifact_name)
         self.assertTrue(names)
         self.assertEqual({name.split("/", 1)[0] for name in names}, {"how-it-works"})
         self.assertTrue(all(name.startswith("how-it-works/") for name in names))
@@ -127,14 +128,10 @@ class ProductBuildTests(unittest.TestCase):
             skill = root / "skills" / "how-it-works"
             shutil.copytree(ROOT / "skills" / "how-it-works", skill)
             changelog = skill / "CHANGELOG.md"
-            changelog.write_text(
-                changelog.read_text(encoding="utf-8").replace(
-                    "## 1.0.0 - 2026-08-28\n",
-                    "",
-                    1,
-                ),
-                encoding="utf-8",
-            )
+            original = changelog.read_text(encoding="utf-8")
+            mutated = re.sub(r"(?m)^## 2\.0\.0 - [0-9]{4}-[0-9]{2}-[0-9]{2}\n", "", original, count=1)
+            self.assertNotEqual(mutated, original)
+            changelog.write_text(mutated, encoding="utf-8")
             with self.assertRaises(ReleaseError) as raised:
                 release.build_product(root, "how-it-works", self.output)
         self.assertIn("dated release heading", str(raised.exception))
@@ -311,7 +308,7 @@ class ProductDownloadTests(unittest.TestCase):
         release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
         self.assertEqual(
             {path.name for path in self.output.iterdir()},
-            {"how-it-works-v1.0.0.zip", "SHA256SUMS"},
+            {release.load_product_release(ROOT / "skills" / "how-it-works").artifact_name, "SHA256SUMS"},
         )
         self.assertEqual(release.verify_product_download(ROOT, "how-it-works", self.output), [])
 
@@ -341,7 +338,7 @@ class ProductDownloadTests(unittest.TestCase):
             self.output,
             require_release_entry=False,
         )
-        archive = self.output / "pre-sdd-review-v2.0.0.zip"
+        archive = self.output / release.load_product_release(ROOT / "skills" / "pre-sdd-review").artifact_name
 
         def change_protocol_bytes(items):
             for info, data in items:
@@ -410,7 +407,7 @@ class ProductDownloadTests(unittest.TestCase):
             self.output,
             require_release_entry=False,
         )
-        archive = self.output / "pre-sdd-review-v2.0.0.zip"
+        archive = self.output / release.load_product_release(ROOT / "skills" / "pre-sdd-review").artifact_name
 
         def make_protocol_executable(items):
             for info, data in items:
@@ -449,7 +446,7 @@ class ProductDownloadTests(unittest.TestCase):
                     output,
                     require_release_entry=False,
                 )
-                archive = output / "pre-sdd-review-v2.0.0.zip"
+                archive = output / release.load_product_release(ROOT / "skills" / "pre-sdd-review").artifact_name
 
                 def add_member(items):
                     yield from items
@@ -473,7 +470,7 @@ class ProductDownloadTests(unittest.TestCase):
             self.output,
             require_release_entry=False,
         )
-        archive = self.output / "pre-sdd-review-v2.0.0.zip"
+        archive = self.output / release.load_product_release(ROOT / "skills" / "pre-sdd-review").artifact_name
 
         def add_directory(items):
             yield from items
@@ -500,7 +497,7 @@ class ProductDownloadTests(unittest.TestCase):
             self.output,
             require_release_entry=False,
         )
-        archive = self.output / "pre-sdd-review-v2.0.0.zip"
+        archive = self.output / release.load_product_release(ROOT / "skills" / "pre-sdd-review").artifact_name
 
         def change_required_member_type(items):
             for info, data in items:
@@ -524,7 +521,7 @@ class ProductDownloadTests(unittest.TestCase):
             self.output,
             require_release_entry=False,
         )
-        archive = self.output / "pre-sdd-review-v2.0.0.zip"
+        archive = self.output / release.load_product_release(ROOT / "skills" / "pre-sdd-review").artifact_name
 
         def change_required_member_creator(items):
             for info, data in items:
@@ -558,7 +555,7 @@ class ProductDownloadTests(unittest.TestCase):
             self.output,
             require_release_entry=False,
         )
-        archive = self.output / "pre-sdd-review-v2.0.0.zip"
+        archive = self.output / release.load_product_release(ROOT / "skills" / "pre-sdd-review").artifact_name
 
         def drop_member(items):
             for info, data in items:
@@ -630,7 +627,7 @@ class ProductDownloadTests(unittest.TestCase):
     def test_verify_product_download_rejects_malformed_digest(self) -> None:
         release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
         (self.output / "SHA256SUMS").write_text(
-            "not-a-digest  how-it-works-v1.0.0.zip\n",
+            f"not-a-digest  {release.load_product_release(ROOT / 'skills' / 'how-it-works').artifact_name}\n",
             encoding="ascii",
         )
         errors = release.verify_product_download(ROOT, "how-it-works", self.output)
@@ -644,13 +641,13 @@ class ProductDownloadTests(unittest.TestCase):
 
     def test_verify_product_download_rejects_renamed_zip(self) -> None:
         release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
-        (self.output / "how-it-works-v1.0.0.zip").rename(self.output / "how-it-works-renamed.zip")
+        (self.output / release.load_product_release(ROOT / "skills" / "how-it-works").artifact_name).rename(self.output / "how-it-works-renamed.zip")
         errors = release.verify_product_download(ROOT, "how-it-works", self.output)
         self.assertIn("unexpected zip in download directory: how-it-works-renamed.zip", errors)
 
     def test_verify_product_download_rejects_checksum_mismatch(self) -> None:
         release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
-        archive = self.output / "how-it-works-v1.0.0.zip"
+        archive = self.output / release.load_product_release(ROOT / "skills" / "how-it-works").artifact_name
         archive.write_bytes(archive.read_bytes() + b"\x00")
         errors = release.verify_product_download(ROOT, "how-it-works", self.output)
         self.assertTrue(any("checksum mismatch" in error for error in errors), errors)
@@ -676,7 +673,7 @@ class ProductDownloadTests(unittest.TestCase):
 
     def test_verify_product_download_rejects_unsafe_member(self) -> None:
         release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
-        archive = self.output / "how-it-works-v1.0.0.zip"
+        archive = self.output / release.load_product_release(ROOT / "skills" / "how-it-works").artifact_name
 
         def add_absolute(items):
             yield from items
@@ -693,16 +690,18 @@ class ProductDownloadTests(unittest.TestCase):
 
     def test_verify_product_download_rejects_metadata_version_mismatch(self) -> None:
         release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
-        archive = self.output / "how-it-works-v1.0.0.zip"
+        archive = self.output / release.load_product_release(ROOT / "skills" / "how-it-works").artifact_name
 
         def bump_version(items):
             for info, data in items:
                 text = data.decode("utf-8")
                 if info.filename == "how-it-works/release.toml":
-                    text = text.replace('version = "1.0.0"', 'version = "9.9.9"')
+                    text = text.replace('version = "2.0.0"', 'version = "9.9.9"')
+                    self.assertNotEqual(text.encode("utf-8"), data)
                     data = text.encode("utf-8")
                 elif info.filename == "how-it-works/SKILL.md":
-                    text = text.replace('version: "1.0.0"', 'version: "9.9.9"')
+                    text = text.replace('version: "2.0.0"', 'version: "9.9.9"')
+                    self.assertNotEqual(text.encode("utf-8"), data)
                     data = text.encode("utf-8")
                 yield info, data
 
@@ -713,7 +712,7 @@ class ProductDownloadTests(unittest.TestCase):
 
     def test_verify_product_download_rejects_extracted_validation_failure(self) -> None:
         release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
-        archive = self.output / "how-it-works-v1.0.0.zip"
+        archive = self.output / release.load_product_release(ROOT / "skills" / "how-it-works").artifact_name
 
         def drop_changelog(items):
             for info, data in items:

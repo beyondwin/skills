@@ -390,7 +390,7 @@ class VerifyStageTests(unittest.TestCase):
         stage = self._stage("full", "how-it-works-contract", skill="how-it-works")
         self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
         self.assertIn("tests/products/how-it-works", stage.argv)
-        self.assertIn("test_contract.py", stage.argv)
+        self.assertEqual(stage.argv[stage.argv.index("-p") + 1], "test_*.py")
 
     def test_pre_sdd_review_contract_is_portable_unittest_discovery(self) -> None:
         for profile in ("full", "windows-portable"):

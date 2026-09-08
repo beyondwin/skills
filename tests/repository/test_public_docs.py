@@ -98,10 +98,10 @@ PRE_SDD_REVIEW_SUPPORT = (
     "pre-sdd-review: Codex supported; other hosts not_measured."
 )
 PRE_SDD_SHARED_SECTION_DIGESTS = {
-    ("ko", "safety"): "86b0b7c6020984699af0a8dec3ff4d79fcd6f605cf2f4c647d17d31d1ddbcd7e",
-    ("en", "safety"): "72ee48897fe1255e3d1227e31553ad56e9aa81c4614c634a13876255756d28ec",
-    ("ko", "verification"): "2d24cb850c897d8bf90dd883d3fc38f0366ef5a1bb71eadcb2870485dba67be9",
-    ("en", "verification"): "a06cdb79bd2f5b77ac540ea03a65a42eba6266d9f7994147a0265626c5a81177",
+    ("ko", "safety"): "2308378028288c8a57547252818cdfa6e6392b1fe53d6b113659b273dda03547",
+    ("en", "safety"): "f41ea8a8d2dd98f3d6b37eeacca8a488fc6bf046b4971c636ae56239df6876ab",
+    ("ko", "verification"): "b2e63b8c98fe4aec48f8bc5ff3721f1ff7bb5c9e2c2ec7f44dfd343a77c7aa26",
+    ("en", "verification"): "bf532dac4cd0c9fb3d8072901731cd8276c694726428dee80fe73aef1e0ecbae",
 }
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
@@ -259,6 +259,19 @@ FORBIDDEN_CLAIMS = (
     "listed in a marketplace",
     "available in the marketplace",
 )
+
+def unsupported_claims(text: str, *, allow_image_disclaimer: bool = False) -> tuple[str, ...]:
+    normalized = re.sub(r"\s+", " ", text).lower()
+    if allow_image_disclaimer:
+        normalized = normalized.replace(
+            "passing does not prove complete bitstream decoding, "
+            "visual quality, or rights clearance.",
+            "",
+            1,
+        )
+    return tuple(claim for claim in FORBIDDEN_CLAIMS if claim in normalized)
+
+
 STALE_TWO_SKILL = (
     "exactly two skills",
     "two curated skills",
@@ -899,6 +912,31 @@ class UserGuideFactTests(unittest.TestCase):
                 f"{document.name} must not treat offline fixtures as live quality evidence",
             )
 
+    def test_shared_guides_name_current_evidence_dimensions(self) -> None:
+        for language in ("ko", "en"):
+            with self.subTest(language=language):
+                base = ROOT / "docs/users" / language
+                verification = _read(base / "verification.md")
+                for phrase in (
+                    "33", "normative=10", "runner 18", "31", "17",
+                    "14 cases / 17 repeats", "119 / 3 / 122 / 38 / 160",
+                    "hard", "failed", "partially_verified", "fence/hop",
+                    "loading", "syntax", "meaning", "schema 2", "schema 3",
+                    "historical-unbound", "checkout", "LF",
+                    '{"cli_version":"3.0.0","schema":3,"skill_name":"pre-sdd-review"}',
+                ):
+                    self.assertIn(phrase, verification)
+                compatibility = _read(base / "compatibility.md")
+                for phrase in ("historical-unbound", "current-bounded", "native Windows"):
+                    self.assertIn(phrase, compatibility)
+                safety = _read(base / "safety-and-privacy.md")
+                for phrase in (
+                    "receipt", "semantic verdict", "32-byte", ".identity-salt",
+                    "HMAC-SHA-256", "repo_key", "clone/worktree", "evidence home",
+                    "schema 2", "historical-unbound",
+                ):
+                    self.assertIn(phrase.lower(), safety.lower())
+
     def test_windows_portable_user_guides_match_orchestrator_exclusions(self) -> None:
         for document in (
             ROOT / "docs" / "users" / "ko" / "verification.md",
@@ -1202,11 +1240,27 @@ class DocumentationArchitectureTests(unittest.TestCase):
         for field in REGISTRY_SCHEMA_FIELDS:
             self.assertIn(field, registry_text, field)
         self.assertIn("python3 scripts/verify.py", registry_text)
+        for phrase in (
+            "허용 최상위 키는 정확히 `schema_version`, `products`",
+            "bool이 아닌 정확한 정수 `1`",
+            "`supported_hosts`, `owned_paths`, `verify_stages`는 비어 있지 않은 필수 목록",
+            "각 목록 내부의 중복", "제품 간 중복 이름·경로",
+            "빈 runner 목록과 빈 stage 목록도 실패",
+        ):
+            self.assertIn(phrase, registry_text)
         release_text = _read(release_doc)
         self.assertIn("python3 scripts/release.py check --product", release_text)
         self.assertIn("python3 scripts/release.py build --product", release_text)
         self.assertIn("python3 scripts/release.py verify-download --product", release_text)
         self.assertNotRegex(release_text, VERSION_LITERAL_RE)
+        self.assertIn(
+            "checksum → archive checks → extract → metadata → 신뢰 소스 hash → smoke",
+            release_text,
+        )
+        self.assertIn("checksum 단독으로는 인증이 아닙니다", release_text)
+        self.assertIn("`release_kind=independent`에만 현재 제품 smoke", release_text)
+        self.assertIn("`legacy-bundle`은 신뢰 lock", release_text)
+        self.assertIn("과거 payload가 새 hardening을 상속했다는 뜻은 아닙니다", release_text)
         catalog_text = _read(catalog_doc)
         self.assertIn("Registry products do not automatically enter v2.0.0", catalog_text)
         migrations_text = _read(migrations_doc)
@@ -1631,6 +1685,9 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("catalog/plugin/.codex-plugin/plugin.json", text)
         self.assertIn("catalog/catalog.lock.json", text)
         self.assertIn("does not own plugin metadata", text)
+        self.assertIn("공통 경로, unknown 경로, 빈 diff, diff 실패", text)
+        self.assertIn("selector 없는 전체 검사", text)
+        self.assertIn("제품 전용 변경일 때만 해당 제품 selector로 좁은 검사", text)
         self.assertIn("README.md", text)
         self.assertIn("CHANGELOG.md", text)
         self.assertIn("release.toml", text)
@@ -1752,7 +1809,7 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertNotIn("@how-it-works", compatibility_text)
         self.assertIn("tests/products/how-it-works/live/smoke-record.json", compatibility_text)
         self.assertIn("release.toml", release_text)
-        self.assertIn("1.0.0", release_text)
+        self.assertIn("2.0.0", release_text)
         self.assertIn("python3 scripts/release.py check --product how-it-works", release_text)
         self.assertIn("python3 scripts/release.py build --product how-it-works", release_text)
         self.assertIn(
@@ -1802,9 +1859,32 @@ class PublicClaimTests(unittest.TestCase):
     def test_public_docs_omit_unsupported_quality_and_marketplace_claims(self) -> None:
         for document in PUBLIC_DOC_PATHS:
             _assert_exists(self, document)
-            lowered = _read(document).lower()
-            for claim in FORBIDDEN_CLAIMS:
-                self.assertNotIn(claim, lowered)
+            self.assertEqual(
+                unsupported_claims(
+                    _read(document),
+                    allow_image_disclaimer=document == ROOT / "skills/image-workbench/README.en.md",
+                ),
+                (),
+                str(document),
+            )
+
+    def test_image_disclaimer_exception_preserves_positive_claim_rejection(self) -> None:
+        disclaimer = (
+            "Passing does not prove complete bitstream decoding, "
+            "visual quality, or rights clearance."
+        )
+        self.assertEqual(unsupported_claims(disclaimer, allow_image_disclaimer=True), ())
+        self.assertIn("rights clearance", unsupported_claims(disclaimer))
+        for mutation in (
+            disclaimer.replace("does not ", ""),
+            disclaimer + " We guarantee rights clearance.",
+        ):
+            with self.subTest(mutation=mutation):
+                self.assertNotEqual(mutation, disclaimer)
+                self.assertIn(
+                    "rights clearance",
+                    unsupported_claims(mutation, allow_image_disclaimer=True),
+                )
 
     def test_active_user_docs_omit_stale_two_skill_claims(self) -> None:
         for document in ACTIVE_USER_DOCS:

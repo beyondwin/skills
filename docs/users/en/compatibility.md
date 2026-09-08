@@ -24,6 +24,8 @@ A matching folder layout does not mean that host is supported. A host is `suppor
 
 Other hosts for `pre-sdd-review` remain `not_measured`.
 
+The preserved `how-it-works` smoke is `historical-unbound`; it is separate from current payload and model execution evidence. `current-bounded` validates version/hash and metadata binding only, not actual execution or explanation quality. No new native Windows measurement was made.
+
 The catalog plugin name is `beyondwin-skills`. That does not mean a marketplace listing.
 
 ## Install paths and hosts

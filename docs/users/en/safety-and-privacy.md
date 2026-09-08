@@ -27,6 +27,8 @@ The optional recorder `evidence/evidence.py` is not installed. It uses the Pytho
 Records hold repository-relative paths, a directory name, hashes, enum values, integers, timestamps, and short paraphrases. Do not store source text, absolute paths, prompts, provider transcripts, command output, credentials, or environment-variable values, even inside a bounded note, consequence, or fix.
 The recorder does not promise automatic secret detection.
 
+Recording is optional; a receipt error does not change the semantic verdict. Schema 3 derives `repo_key` with HMAC-SHA-256 from the normalized Git directory and checkout root using a private local 32-byte `.identity-salt`. Neither raw absolute identity path nor the salt is printed or recorded. The binding belongs to the checkout, evidence home, and salt: a separate clone/worktree, moved checkout, different evidence home, or lost salt requires a new run. A display name cannot establish identity. Schema 2 records remain read-only `historical-unbound` evidence; never infer their checkout binding.
+
 Atomic local storage gives cooperating clients consistency; it is not a signed audit log resistant to malicious local tampering.
 An `outcome` label (`good`, `false-ready`, `noisy`, `abandoned`) is an observation recorded by a person or the SDD worker after SDD or implementation ends and may be re-recorded to correct it. Labels are self-improvement evidence, not objective quality judgments or audit-grade proof. Reading the log is an agent's task: `summary` returns JSON whose anomalies and chains carry run_id values.
 

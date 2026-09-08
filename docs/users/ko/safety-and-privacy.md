@@ -26,6 +26,8 @@
 
 record에는 저장소 상대 경로, 디렉터리 이름, 해시, 열거값, 정수, 시각, 짧은 paraphrase만 넣습니다. source 원문, 절대 경로, prompt, provider transcript, command output, credential, 환경 변수 값은 넣지 마세요. 짧게 제한된 note·consequence·fix에도 넣지 마세요. 기록기는 자동 비밀 탐지를 약속하지 않습니다.
 
+기록은 선택이며 receipt 오류는 semantic verdict를 바꾸지 않습니다. schema 3는 정규화한 Git 디렉터리와 checkout 루트에서 로컬 비공개 32-byte `.identity-salt`를 사용한 HMAC-SHA-256으로 `repo_key`를 유도합니다. 원시 절대 identity 경로와 salt는 출력하거나 기록하지 않습니다. 결속은 checkout·evidence home·salt에 속합니다. 별도 clone/worktree, checkout 경로 이동, 다른 evidence home, salt 유실은 새 run이 필요합니다. 표시 이름만으로 identity를 판단하지 않습니다. schema 2는 읽기 전용 `historical-unbound` 증거로 남으며 checkout 결속을 추정하지 않습니다.
+
 원자적 로컬 저장은 협력하는 client 사이의 일관성을 제공할 뿐, 악의적인 로컬 변조를 막는 서명된 audit log가 아닙니다.
 
 `outcome` label(`good`, `false-ready`, `noisy`, `abandoned`)은 SDD나 구현이 끝난 뒤 사람이나 SDD 워커가 남기는 관찰입니다. 다시 기록해 정정할 수 있습니다. label은 자기개선 evidence입니다. 객관적 품질 판정이나 감사 등급 증거가 아닙니다. 로그 읽기는 에이전트의 일입니다. `summary`는 JSON을 돌려줍니다. anomalies와 chains에 run_id가 붙어 있습니다.

@@ -11,6 +11,8 @@
 최상위와 각 `[[products]]` 항목의 필드만 허용합니다. 추가 키, 누락 키, 잘못된
 타입은 로드가 실패합니다.
 
+허용 최상위 키는 정확히 `schema_version`, `products`입니다. `schema_version`은 bool이 아닌 정확한 정수 `1`이어야 합니다. `supported_hosts`, `owned_paths`, `verify_stages`는 비어 있지 않은 필수 목록입니다. 각 목록 내부의 중복과 제품 간 중복 이름·경로를 거부합니다. 빈 runner 목록과 빈 stage 목록도 실패로 닫힙니다.
+
 | 필드 | 위치 | 의미 |
 | --- | --- | --- |
 | `schema_version` | 최상위 | 반드시 `1` |

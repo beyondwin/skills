@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -21,10 +22,10 @@ from scripts.lib.product_contract import (  # noqa: E402
 from scripts.lib.product_registry import load_registry  # noqa: E402
 
 EXPECTED = {
-    "korean-writing-editor": "2.0.1",
-    "image-workbench": "2.0.1",
-    "how-it-works": "1.0.0",
-    "pre-sdd-review": "2.0.0",
+    "korean-writing-editor": "2.0.2",
+    "image-workbench": "2.0.2",
+    "how-it-works": "2.0.0",
+    "pre-sdd-review": "3.0.0",
 }
 REGISTRY = load_registry(ROOT / "products.toml")
 
@@ -43,17 +44,17 @@ class ProductReleaseTests(unittest.TestCase):
         self.assertNotIn("PRODUCT_NAMES =", source)
         self.assertEqual(self.registry.names, tuple(product.name for product in self.registry.products))
 
-    def test_how_it_works_first_archive_identity(self) -> None:
+    def test_how_it_works_current_archive_identity(self) -> None:
         product = load_product_release(ROOT / "skills/how-it-works")
-        self.assertEqual(product.version, "1.0.0")
-        self.assertEqual(product.tag, "how-it-works-v1.0.0")
-        self.assertEqual(product.artifact_name, "how-it-works-v1.0.0.zip")
+        self.assertEqual(product.version, "2.0.0")
+        self.assertEqual(product.tag, "how-it-works-v2.0.0")
+        self.assertEqual(product.artifact_name, "how-it-works-v2.0.0.zip")
 
     def test_pre_sdd_review_current_archive_identity(self) -> None:
         product = load_product_release(ROOT / "skills/pre-sdd-review")
-        self.assertEqual(product.version, "2.0.0")
-        self.assertEqual(product.tag, "pre-sdd-review-v2.0.0")
-        self.assertEqual(product.artifact_name, "pre-sdd-review-v2.0.0.zip")
+        self.assertEqual(product.version, "3.0.0")
+        self.assertEqual(product.tag, "pre-sdd-review-v3.0.0")
+        self.assertEqual(product.artifact_name, "pre-sdd-review-v3.0.0.zip")
 
     def test_each_product_owns_an_independent_release_manifest(self) -> None:
         self.assertEqual(set(self.registry.names), set(EXPECTED))
@@ -71,12 +72,12 @@ class ProductReleaseTests(unittest.TestCase):
             root = Path(directory) / "how-it-works"
             shutil.copytree(ROOT / "skills" / "how-it-works", root)
             manifest = root / "release.toml"
-            manifest.write_text(
-                manifest.read_text(encoding="utf-8").replace('version = "1.0.0"', 'version = "1.0.1"'),
-                encoding="utf-8",
-            )
+            original = manifest.read_text(encoding="utf-8")
+            mutated = original.replace('version = "2.0.0"', 'version = "2.0.1"', 1)
+            self.assertNotEqual(mutated, original)
+            manifest.write_text(mutated, encoding="utf-8")
             errors = validate_product(root, self.registry)
-            self.assertIn("release.toml version 1.0.1 != SKILL.md version 1.0.0", errors)
+            self.assertIn("release.toml version 2.0.1 != SKILL.md version 2.0.0", errors)
 
     def test_payload_hash_changes_with_bytes_but_is_stable_across_copies(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -117,13 +118,10 @@ class ProductReleaseRejectionTests(unittest.TestCase):
     def test_rejects_invalid_semver(self) -> None:
         root = self._copy("korean-writing-editor")
         manifest = root / "release.toml"
-        manifest.write_text(
-            manifest.read_text(encoding="utf-8").replace(
-                'version = "2.0.1"',
-                'version = "2.0"',
-            ),
-            encoding="utf-8",
-        )
+        original = manifest.read_text(encoding="utf-8")
+        mutated = original.replace('version = "2.0.2"', 'version = "2.0"', 1)
+        self.assertNotEqual(mutated, original)
+        manifest.write_text(mutated, encoding="utf-8")
         errors = "\n".join(validate_product(root, REGISTRY))
         self.assertIn("invalid SemVer: 2.0", errors)
 
@@ -266,16 +264,12 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         self.assertEqual(require_dated_changelog(source), [])
         root = self._copy("how-it-works")
         changelog = root / "CHANGELOG.md"
-        changelog.write_text(
-            changelog.read_text(encoding="utf-8").replace(
-                "## 1.0.0 - 2026-08-28\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        original = changelog.read_text(encoding="utf-8")
+        mutated = re.sub(r"(?m)^## 2\.0\.0 - [0-9]{4}-[0-9]{2}-[0-9]{2}\n", "", original, count=1)
+        self.assertNotEqual(mutated, original)
+        changelog.write_text(mutated, encoding="utf-8")
         self.assertIn(
-            "CHANGELOG.md missing dated release heading for 1.0.0",
+            "CHANGELOG.md missing dated release heading for 2.0.0",
             require_dated_changelog(root),
         )
         self.assertEqual(validate_product(root, REGISTRY), [])

@@ -26,6 +26,10 @@ python3 scripts/release.py verify-download --product <name> --input <fresh-downl
 - `verify-download`는 새로 받은 바이트의 checksum, ZIP 구조, 추출 payload
   hash, 제품 검증과 설치 smoke를 확인합니다.
 
+다운로드 검증 순서는 checksum → archive checks → extract → metadata → 신뢰 소스 hash → smoke입니다. checksum 단독으로는 인증이 아닙니다. 추출 payload를 신뢰하는 소스의 payload hash에 결속한 뒤 smoke를 실행합니다.
+
+카탈로그 다운로드 검증은 `release_kind=independent`에만 현재 제품 smoke를 적용합니다. 불변 `legacy-bundle`은 신뢰 lock, metadata·member·archive 검사와 정확한 payload hash로 인증합니다. 현재 제품 회귀 스위트는 과거 payload의 판정 기준이 아니므로 적용하지 않습니다. 이 경계는 과거 payload가 새 hardening을 상속했다는 뜻은 아닙니다.
+
 로컬 `dist/`는 공개 증거가 아닙니다. 제품 태그는 `<name>-v<version>`
 annotated tag입니다. 이미 있는 태그는 재사용하거나 이동하지 않습니다. 태그와
 GitHub Release는 명시적 출시 작업입니다. 로컬 빌드의 부수 효과가 아닙니다.

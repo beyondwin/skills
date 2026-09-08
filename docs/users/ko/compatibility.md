@@ -24,6 +24,8 @@ pre-sdd-review: Codex supported; other hosts not_measured.
 
 `pre-sdd-review`의 다른 호스트는 `not_measured`입니다.
 
+보존된 `how-it-works` smoke는 `historical-unbound`이며 현재 payload·모델 실행 증거와 별개입니다. `current-bounded`는 버전/hash와 메타데이터 결속만 검사하며 실제 실행이나 설명 품질을 증명하지 않습니다. 새 native Windows 측정은 없습니다.
+
 이 저장소의 카탈로그 플러그인 이름은 `beyondwin-skills`입니다. 마켓플레이스에 올라 있다는 뜻이 아닙니다.
 
 ## 설치 경로와 호스트

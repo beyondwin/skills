@@ -76,6 +76,8 @@ README, CHANGELOG, `release.toml`, 라이선스, 실행에 필요한 파일은 �
 
 ## 검증 경계
 
+PR matrix는 공통 경로, unknown 경로, 빈 diff, diff 실패이면 selector 없는 전체 검사를 실행합니다. 제품 전용 변경일 때만 해당 제품 selector로 좁은 검사를 실행합니다.
+
 필수 로컬 검증:
 
 ```bash

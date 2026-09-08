@@ -49,6 +49,10 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 The offline suites prove the deterministic contract only. See each product README for that product's fixtures.
 
+Current Korean offline coverage is 33 cases (`normative=10`); the other fixture categories are unchanged. New Korean live evidence uses runner 18; historical runner receipts do not prove a runner 18 execution. Image coverage is 31 fixtures and 17 mutations.
+
+For Korean candidates, hard failures take precedence as `failed`. After hard checks pass, unobserved meaning, attribution, or requested edit execution yields `partially_verified`; offline contract success alone is not a live status. For How, fence/hop validity, loading, syntax, and meaning require separate evidence. The historical smoke remains `historical-unbound`; current metadata binding alone proves no model execution.
+
 - `korean-writing-editor`: `tests/products/korean-writing-editor/offline/`
 - `image-workbench`: `tests/products/image-workbench/`
 - `how-it-works`: `tests/products/how-it-works/`
@@ -56,11 +60,15 @@ The offline suites prove the deterministic contract only. See each product READM
 
 The evidence stage under `tests/products/pre-sdd-review/evidence/` checks `evidence.py`. It makes no network, model, provider, or telemetry call.
 
+Pre-SDD reads schema 2 records as `historical-unbound` only. Mutation commands require schema 3 and its checkout binding; preserve a schema 2 pending record and start a new run. Schema 3 `--version` emits the canonical JSON `{"cli_version":"3.0.0","schema":3,"skill_name":"pre-sdd-review"}` followed by one LF and creates no evidence home.
+
 A non-Windows `windows-portable` pass does not prove native Windows support. Native Windows and Linux remain `not_measured` until the evidence stage runs there.
 
 A pass does not prove general quality. The license is Apache-2.0.
 
 ## Live execution
+
+Korean live coverage remains 14 cases / 17 repeats.
 
 Live evaluation is local only. It needs a positive flag, a named runtime, a bounded call budget, and an evidence root outside tracked source. CI never requires it. Provider processes are never silently substituted.
 

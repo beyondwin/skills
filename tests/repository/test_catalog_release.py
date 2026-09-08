@@ -310,7 +310,9 @@ class CatalogLegacyFixtureTests(unittest.TestCase):
 
     def test_verify_catalog_download_accepts_built_legacy_catalog(self) -> None:
         build_catalog(ROOT, self.legacy_inputs, self.output_one)
-        self.assertEqual(verify_catalog_download(ROOT, self.output_one), [])
+        with mock.patch.object(release, "_run_product_smoke", return_value=["current smoke must not run"]) as smoke:
+            self.assertEqual(verify_catalog_download(ROOT, self.output_one), [])
+        smoke.assert_not_called()
 
     def test_verify_catalog_download_rejects_plugin_members_not_equal_to_lock(self) -> None:
         archive, _checksums = build_catalog(ROOT, self.legacy_inputs, self.output_one)
@@ -343,14 +345,10 @@ class CatalogLegacyFixtureTests(unittest.TestCase):
 
         _rewrite_zip(archive, tamper)
         write_checksums((archive,), self.output_one / "SHA256SUMS")
-        errors = "\n".join(verify_catalog_download(ROOT, self.output_one))
-        self.assertTrue(
-            any(
-                "byte-equivalent" in error.lower() or "payload" in error.lower()
-                for error in errors.splitlines()
-            ),
-            errors,
-        )
+        with mock.patch.object(release, "_run_product_smoke", return_value=[]) as smoke:
+            errors = "\n".join(verify_catalog_download(ROOT, self.output_one))
+        smoke.assert_not_called()
+        self.assertIn("korean-writing-editor: standalone payload is not byte-equivalent", errors)
 
 
 class CatalogSchemaInputTests(unittest.TestCase):
@@ -433,7 +431,8 @@ class CatalogIndependentFixtureTests(unittest.TestCase):
     def tearDown(self) -> None:
         self._tempdir.cleanup()
 
-    def _independent_root(self, archive: Path, *, tag: str = "how-it-works-v1.0.0") -> Path:
+    def _independent_root(self, archive: Path, *, tag: str | None = None) -> Path:
+        source_release = release.load_product_release(ROOT / "skills" / "how-it-works")
         with tempfile.TemporaryDirectory() as directory:
             extracted = Path(directory)
             errors = extract_archive(archive, extracted)
@@ -468,8 +467,8 @@ class CatalogIndependentFixtureTests(unittest.TestCase):
                 "skills": [
                     {
                         "name": "how-it-works",
-                        "version": "1.0.0",
-                        "tag": tag,
+                        "version": source_release.version,
+                        "tag": source_release.tag if tag is None else tag,
                         "release_kind": "independent",
                         "source_commit": COMMIT_C,
                         "payload_sha256": digest,
@@ -506,6 +505,11 @@ class CatalogIndependentFixtureTests(unittest.TestCase):
         self.assertIn("skills/how-it-works/release.toml", names)
         self.assertIn(".codex-plugin/plugin.json", names)
         self.assertEqual(verify_catalog_download(root, output), [])
+        with mock.patch.object(release, "_run_product_smoke", return_value=["independent smoke failure"]) as smoke:
+            self.assertEqual(verify_catalog_download(root, output), ["independent smoke failure"])
+        smoke.assert_called_once()
+        self.assertEqual(smoke.call_args.args[:2], (root, "how-it-works"))
+        self.assertEqual(smoke.call_args.args[2].name, "how-it-works")
 
     def test_independent_inputs_reject_missing_release_toml(self) -> None:
         product_dir = self.workspace / "product"
@@ -532,10 +536,11 @@ class CatalogIndependentFixtureTests(unittest.TestCase):
         archive, _checksums = release.build_product(
             ROOT, "how-it-works", product_dir, require_release_entry=False
         )
-        root = self._independent_root(archive, tag="v1.0.0")
+        source_release = release.load_product_release(ROOT / "skills" / "how-it-works")
+        root = self._independent_root(archive, tag=f"v{source_release.version}")
         inputs = self._independent_inputs(archive)
         errors = "\n".join(validate_catalog_inputs(root, inputs, REGISTRY))
-        self.assertIn("how-it-works-v1.0.0", errors)
+        self.assertIn(source_release.tag, errors)
 
 
 class CatalogCLITests(unittest.TestCase):
