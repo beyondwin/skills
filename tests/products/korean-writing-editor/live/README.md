@@ -127,9 +127,13 @@ held run-directory FD and compares every current preflight payload field
 exactly. It retains those three descriptors through execution and, immediately
 before every provider attempt reservation, rechecks their exact held bytes and
 metadata, both current evidence names, the bootstrap inputs, and the exact known
-run-directory entry set. Completion of that recheck is the authorization
-linearization point: a later swap can affect at most the immediately reserved
-attempt, while persistent drift blocks every later reservation.
+run-directory entry set. Authorization uses the captured bytes verified against
+the lease digest; the recheck does not freeze other writers. A same-size rewrite
+after the byte read can share the same filesystem timestamps and escape that
+check, just as a later path swap can. Neither substitutes replacement bytes into
+the verified snapshot. Persistent drift fails the next byte/digest recheck and
+blocks later reservations; a concurrent change can affect at most the immediately
+reserved attempt.
 
 The operator supplies `--run-id` and `--evidence-root` explicitly. Reports
 are written only under `<evidence-root>/reports/`. Do not use a tracked

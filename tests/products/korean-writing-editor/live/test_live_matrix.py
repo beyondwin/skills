@@ -554,10 +554,14 @@ GUIDE_PREFLIGHT_COMMIT_PARAGRAPH = (
     "current preflight payload field exactly. It retains those three descriptors "
     "through execution and, immediately before every provider attempt reservation, "
     "rechecks their exact held bytes and metadata, both current evidence names, the "
-    "bootstrap inputs, and the exact known run-directory entry set. Completion of "
-    "that recheck is the authorization linearization point: a later swap can affect "
-    "at most the immediately reserved attempt, while persistent drift blocks every "
-    "later reservation."
+    "bootstrap inputs, and the exact known run-directory entry set. Authorization "
+    "uses the captured bytes verified against the lease digest; the recheck does "
+    "not freeze other writers. A same-size rewrite after the byte read can share "
+    "the same filesystem timestamps and escape that check, just as a later path "
+    "swap can. Neither substitutes replacement bytes into the verified snapshot. "
+    "Persistent drift fails the next byte/digest recheck and blocks later "
+    "reservations; a concurrent change can affect at most the immediately "
+    "reserved attempt."
 )
 GUIDE_IDENTITY_PARAGRAPH = (
     "Resume validates the complete current preflight payload: run ID, runner "
@@ -4183,7 +4187,7 @@ class LiveMatrixLifecycleTests(UnixOnlyLiveTestMixin, unittest.TestCase):
                         if lease is not None:
                             lease.close()
 
-    def test_held_evidence_read_rejects_same_size_rewrite_during_validation(self) -> None:
+    def test_held_evidence_read_rejects_same_size_metadata_change_during_validation(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = pathlib.Path(directory)
             evidence = root / "evidence.json"
@@ -4206,14 +4210,20 @@ class LiveMatrixLifecycleTests(UnixOnlyLiveTestMixin, unittest.TestCase):
                 if descriptor == evidence_descriptor:
                     evidence_fstats += 1
                     if evidence_fstats == 2:
+                        before_rewrite = original_fstat(descriptor)
                         evidence.write_bytes(replacement)
+                        # Coarse filesystem clocks can otherwise keep both timestamps unchanged.
+                        os.utime(
+                            evidence,
+                            ns=(before_rewrite.st_atime_ns, before_rewrite.st_mtime_ns + 1_000_000_000),
+                        )
                 return original_fstat(descriptor)
 
             try:
                 with mock.patch(
                     "live_matrix.os.fstat", side_effect=rewrite_before_stability_check
                 ):
-                    with self.assertRaises(ValueError):
+                    with self.assertRaisesRegex(ValueError, "bounded file changed while reading"):
                         live_matrix._read_held_regular_file_at(
                             directory_descriptor,
                             evidence.name,
