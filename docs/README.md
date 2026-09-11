@@ -25,6 +25,7 @@ How to change it is in the maintainer docs.
 - [`image-workbench`](../skills/image-workbench/README.md) · [English](../skills/image-workbench/README.en.md) — Codex
 - [`how-it-works`](../skills/how-it-works/README.md) · [English](../skills/how-it-works/README.en.md) — Codex, Claude Code
 - [`pre-sdd-review`](../skills/pre-sdd-review/README.md) · [English](../skills/pre-sdd-review/README.en.md) — Codex, SDD 전 문서 검토
+- [`sddx`](../skills/sddx/README.md) · [English](../skills/sddx/README.en.md) — Codex, Claude Code, 외부 SDD implementer
 
 ## 유지·변경·릴리스 / Maintain, change, or release
 

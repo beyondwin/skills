@@ -38,6 +38,7 @@ FULL_STAGE_NAMES = (
     "how-it-works-contract",
     "pre-sdd-review-contract",
     "pre-sdd-review-evidence",
+    "sddx-contract",
     "python-compile",
 )
 WINDOWS_STAGE_NAMES = (
@@ -48,6 +49,7 @@ WINDOWS_STAGE_NAMES = (
     "korean-live-dry-run",
     "how-it-works-contract",
     "pre-sdd-review-contract",
+    "sddx-contract",
     "python-compile",
 )
 LIVE_TEST_PATH = (
@@ -279,6 +281,11 @@ class VerifyStageTests(unittest.TestCase):
     def test_how_it_works_selection_runs_only_shared_and_how_it_works_gates(self) -> None:
         names = [stage.name for stage in self._selected("full", skill="how-it-works")]
         self.assertEqual(names, ["product-contract", "how-it-works-contract", "python-compile"])
+
+    def test_sddx_selection_runs_only_shared_and_sddx_gates(self) -> None:
+        names = [stage.name for stage in self._selected("full", skill="sddx")]
+        self.assertEqual(names, ["product-contract", "sddx-contract", "python-compile"])
+
 
     def test_pre_sdd_review_selects_its_registered_stages(self) -> None:
         product = self.registry.require("pre-sdd-review")

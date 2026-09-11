@@ -1,6 +1,6 @@
 ## Summary
 
-Describe the change for `korean-writing-editor`, `image-workbench`, `how-it-works`, and/or `pre-sdd-review` only.
+Describe the change for `korean-writing-editor`, `image-workbench`, `how-it-works`, `pre-sdd-review`, and/or `sddx` only.
 
 ## Change type
 

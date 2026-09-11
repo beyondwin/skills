@@ -88,6 +88,9 @@ HOW_IT_WORKS_SUPPORT = (
 PRE_SDD_REVIEW_SUPPORT = (
     "pre-sdd-review: Codex supported; other hosts not_measured."
 )
+SDDX_SUPPORT = (
+    "sddx: Claude Code and Codex supported for local or repository-based use."
+)
 PRE_SDD_SHARED_SECTION_DIGESTS = {
     ("ko", "safety"): "2308378028288c8a57547252818cdfa6e6392b1fe53d6b113659b273dda03547",
     ("en", "safety"): "f41ea8a8d2dd98f3d6b37eeacca8a488fc6bf046b4971c636ae56239df6876ab",
@@ -99,6 +102,7 @@ SUPPORT_BY_PRODUCT = {
     "image-workbench": IMAGE_SUPPORT,
     "how-it-works": HOW_IT_WORKS_SUPPORT,
     "pre-sdd-review": PRE_SDD_REVIEW_SUPPORT,
+    "sddx": SDDX_SUPPORT,
 }
 HOW_IT_WORKS_MKDIR = "mkdir -p ~/.agents/skills ~/.claude/skills"
 HOW_IT_WORKS_AGENTS_INVOCATION = (
@@ -1731,6 +1735,7 @@ class MaintainerStructureTests(unittest.TestCase):
             "image-workbench": "tests/products/image-workbench/",
             "how-it-works": "tests/products/how-it-works/",
             "pre-sdd-review": "tests/products/pre-sdd-review/",
+            "sddx": "tests/products/sddx/",
         }
         for name, path in expected.items():
             text = _read(ROOT / "docs" / "maintainers" / "products" / name / "testing.md")

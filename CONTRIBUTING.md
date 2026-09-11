@@ -1,17 +1,18 @@
 # Contributing
 
-This repository currently ships four standalone products:
+This repository currently ships five standalone products:
 
 - `korean-writing-editor`
 - `image-workbench`
 - `how-it-works`
 - `pre-sdd-review`
+- `sddx`
 
 New skills are not accepted by default. A pull request that adds another skill is out of scope unless repository governance is changed first.
 
-The frozen plugin bundle under `catalog/` is separate from these products. It does not include `how-it-works` or `pre-sdd-review`.
+The frozen plugin bundle under `catalog/` is separate from these products. It does not include `how-it-works`, `pre-sdd-review`, or `sddx`.
 
-`how-it-works` currently claims Codex and Claude Code only. Do not broaden host support for `korean-writing-editor`, `image-workbench`, or `pre-sdd-review`.
+`how-it-works` and `sddx` currently claim Codex and Claude Code only. Do not broaden host support for `korean-writing-editor`, `image-workbench`, or `pre-sdd-review`.
 
 Host-support changes must update `products.toml`, the matching docs, and tests together.
 

@@ -1,0 +1,29 @@
+# sddx 릴리스
+
+이 문서는 SDDx의 독립 패키징 절차를 소유합니다. 버전 원본은
+`skills/sddx/release.toml`입니다. `SKILL.md` `metadata.version`은 검증된
+복제 값입니다. 사람이 체감하는 이력은 같은 디렉터리의 `CHANGELOG.md`입니다.
+
+공개 sddx 릴리스는 아직 없습니다. 이 제품은 통합 `v2.0.0` GitHub Release와
+불변 카탈로그 lock에 포함되지 않았습니다. 현재 독립 버전은 `release.toml`이
+소유합니다.
+
+## 검사, 빌드, 다운로드
+
+공통 check / build / verify-download 명령은
+[`docs/maintainers/repository/release.md`](../../repository/release.md)를
+보세요. 제품 검사는 `python3 scripts/release.py check --product sddx`입니다.
+
+제품 태그는 `sddx-v<version>`입니다. 태그와 Draft는 명시적 출시 작업입니다.
+로컬 빌드의 부수 효과가 아닙니다.
+
+설치 파일이 바뀌면 `release.toml`과 `SKILL.md` 버전 결정과 제품 CHANGELOG
+항목이 같은 변경에 있어야 합니다. 초판은 태그를 만들지 않습니다.
+
+## 실패 복구
+
+- 로컬 검증 실패: 파일, 버전, CHANGELOG 또는 테스트를 고치고 다시 검증합니다.
+- 패키징 실패: 새 출력 디렉터리에서 다시 빌드합니다. 부분 결과를 재사용하지 않습니다.
+- 이 제품 실패: 다른 제품의 버전, 태그, Release와 카탈로그 lock을 바꾸지 않습니다.
+
+no tag or GitHub Release is created by these commands.

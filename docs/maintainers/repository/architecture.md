@@ -1,10 +1,10 @@
 # 저장소 구조
 
-이 저장소는 스킬 네 개를 한곳에 모아 둔 곳입니다. 따로 버전을 매기는 카탈로그
+이 저장소는 스킬 다섯 개를 한곳에 모아 둔 곳입니다. 따로 버전을 매기는 카탈로그
 플러그인 `beyondwin-skills`도 둡니다.
 
 현재 독립 제품은 `products.toml`이 가리키는 `korean-writing-editor`,
-`image-workbench`, `how-it-works`, `pre-sdd-review`입니다. 마지막 공개
+`image-workbench`, `how-it-works`, `pre-sdd-review`, `sddx`입니다. 마지막 공개
 카탈로그 `2.0.0`은 공개 `v2.0.0`의 두 스킬만 고정합니다. Apache-2.0은 루트와
 각 따로 설치하는 스킬에 적용됩니다.
 
@@ -36,6 +36,7 @@ README, CHANGELOG, `release.toml`, 라이선스, 실행에 필요한 파일은 �
 | `tests/products/image-workbench/` | 라우팅, 권한, 증거, inspector 테스트 | 아니오 |
 | `tests/products/how-it-works/` | 합성 DNS·rebase 규칙과 설치 파일 테스트 예시 | 아니오 |
 | `tests/products/pre-sdd-review/` | 합성 설계·계획 규칙 테스트 예시 | 아니오 |
+| `tests/products/sddx/` | backend 신원 픽스처와 제품 계약 | 아니오 |
 | `docs/README.md` | 설치·사용·관리·기록 라우팅 | 아니오 |
 | `docs/users/` | 공유 설치·호환성·안전·검증 안내 | 아니오 |
 | `docs/maintainers/` | 구조, 제품 목록, 버저닝, 릴리스, 카탈로그, 마이그레이션, 제품 규칙 | 아니오 |
@@ -86,7 +87,8 @@ python3 scripts/verify.py
 [korean-writing-editor](../products/korean-writing-editor/contract.md),
 [image-workbench](../products/image-workbench/contract.md),
 [how-it-works](../products/how-it-works/contract.md),
-[pre-sdd-review](../products/pre-sdd-review/contract.md)를 보세요.
+[pre-sdd-review](../products/pre-sdd-review/contract.md),
+[sddx](../products/sddx/contract.md)를 보세요.
 레지스트리는 [products-registry.md](products-registry.md), 독립 릴리스는
 [release.md](release.md), 카탈로그는 [catalog.md](catalog.md), Archive 출처는
 [migrations.md](migrations.md)입니다.

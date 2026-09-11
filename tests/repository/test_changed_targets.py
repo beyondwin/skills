@@ -199,6 +199,7 @@ class TargetMappingTests(RegistryRoutingTestCase):
                 "image-workbench",
                 "how-it-works",
                 "pre-sdd-review",
+                "sddx",
             ),
         )
 
@@ -248,6 +249,7 @@ class MatrixSerializationTests(RegistryRoutingTestCase):
                 ("image-workbench", "windows-portable", "--skill image-workbench"),
                 ("how-it-works", "windows-portable", "--skill how-it-works"),
                 ("pre-sdd-review", "windows-portable", "--skill pre-sdd-review"),
+                ("sddx", "windows-portable", "--skill sddx"),
             ],
         )
 

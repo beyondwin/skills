@@ -2,9 +2,9 @@
 
 [한국어](../ko/compatibility.md) · [Installation](installation.md)
 
-The current standalone products are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), and [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md). How It Works currently claims Codex and Claude Code. The other three products keep their registered Codex boundaries.
+The current standalone products are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md), and [`sddx`](../../../skills/sddx/README.en.md). How It Works and SDDx currently claim Codex and Claude Code. The other three products keep their registered Codex boundaries.
 
-In short: the Korean editor, Image Workbench, and Pre-SDD Review are confirmed on Codex today. How It Works links this repo for Codex and Claude Code.
+In short: the Korean editor, Image Workbench, and Pre-SDD Review are confirmed on Codex today. How It Works and SDDx link this repo for Codex and Claude Code.
 
 ## Shared support sentences
 
@@ -15,6 +15,8 @@ image-workbench: Codex-only; generate/edit requires Codex image generation and l
 how-it-works: Codex and Claude Code supported for local or repository-based use.
 
 pre-sdd-review: Codex supported; other hosts not_measured.
+
+sddx: Claude Code and Codex supported for local or repository-based use.
 
 ## Contract portability versus measured support
 

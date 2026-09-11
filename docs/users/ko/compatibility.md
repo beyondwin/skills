@@ -2,9 +2,9 @@
 
 [English](../en/compatibility.md) · [설치](installation.md)
 
-현재 독립 제품은 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md)입니다. How It Works는 Codex와 Claude Code에서 씁니다. 나머지 세 제품은 Codex에서만 지원합니다.
+현재 독립 제품은 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md), [`sddx`](../../../skills/sddx/README.md)입니다. How It Works와 SDDx는 Codex와 Claude Code에서 씁니다. 나머지 세 제품은 Codex에서만 지원합니다.
 
-쉽게 말하면: 한국어 편집기, 이미지 작업대, SDD 전 검토는 지금 Codex만 확인했습니다. How It Works는 Codex와 Claude Code에서 이 저장소를 연결해 씁니다.
+쉽게 말하면: 한국어 편집기, 이미지 작업대, SDD 전 검토는 지금 Codex만 확인했습니다. How It Works와 SDDx는 Codex와 Claude Code에서 이 저장소를 연결해 씁니다.
 
 ## 공유 지원 문장
 
@@ -15,6 +15,8 @@ image-workbench: Codex-only; generate/edit requires Codex image generation and l
 how-it-works: Codex and Claude Code supported for local or repository-based use.
 
 pre-sdd-review: Codex supported; other hosts not_measured.
+
+sddx: Claude Code and Codex supported for local or repository-based use.
 
 ## 이식과 실제 지원
 

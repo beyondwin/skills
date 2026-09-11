@@ -62,3 +62,17 @@ owned_paths = [
   "docs/maintainers/products/pre-sdd-review/",
 ]
 verify_stages = ["product-contract", "pre-sdd-review-contract", "pre-sdd-review-evidence", "python-compile"]
+
+[[products]]
+name = "sddx"
+display_name = "SDDx"
+skill_path = "skills/sddx"
+test_path = "tests/products/sddx"
+maintainer_docs = "docs/maintainers/products/sddx"
+supported_hosts = ["claude-code", "codex"]
+owned_paths = [
+  "skills/sddx/",
+  "tests/products/sddx/",
+  "docs/maintainers/products/sddx/",
+]
+verify_stages = ["product-contract", "sddx-contract", "python-compile"]

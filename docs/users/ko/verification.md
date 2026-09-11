@@ -22,6 +22,7 @@ python3 scripts/verify.py
 - how-it-works-contract
 - pre-sdd-review-contract
 - pre-sdd-review-evidence
+- sddx-contract
 - python-compile
 
 `windows-portable`는 `image-contract`, `image-inspector`, `pre-sdd-review-evidence`를 뺍니다. 이식 가능한 `pre-sdd-review-contract`는 남깁니다. 라이브 `--execute`는 넣지 않습니다.
@@ -31,7 +32,7 @@ python3 scripts/verify.py --profile full
 python3 scripts/verify.py --profile windows-portable
 ```
 
-제품 안내는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md)를 보세요.
+제품 안내는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md), [`sddx`](../../../skills/sddx/README.md)를 보세요.
 
 `pre-sdd-review`만 검증하려면 다음 명령을 씁니다.
 

@@ -2,9 +2,9 @@
 
 [한국어](README.md)
 
-Four skills live here. Korean Writing Editor, Image Workbench, and Pre-SDD
-Review install in Codex. How It Works links this repo for Codex and Claude
-Code.
+Five skills live here. Korean Writing Editor, Image Workbench, and Pre-SDD
+Review install in Codex. How It Works and SDDx link this repo for Codex and
+Claude Code.
 
 [![CI](https://github.com/beyondwin/skills/actions/workflows/verify.yml/badge.svg)](https://github.com/beyondwin/skills/actions/workflows/verify.yml)
 [![Release](https://img.shields.io/github/v/release/beyondwin/skills)](https://github.com/beyondwin/skills/releases)
@@ -14,8 +14,8 @@ The license is Apache-2.0.
 
 ## Standalone products
 
-The current standalone products are these four. The catalog bundle `v2.0.0`
-does not include How It Works or Pre-SDD Review.
+The current standalone products are these five. The catalog bundle `v2.0.0`
+does not include How It Works, Pre-SDD Review, or SDDx.
 
 | Skill | Role | Hosts |
 | --- | --- | --- |
@@ -23,6 +23,7 @@ does not include How It Works or Pre-SDD Review.
 | [`image-workbench`](skills/image-workbench/README.en.md) | Plans, makes, or edits PNG/JPG images that belong in this project. | Codex |
 | [`how-it-works`](skills/how-it-works/README.en.md) | Explains how one machine works, at a depth you pick, in writing and diagrams. | Codex, Claude Code |
 | [`pre-sdd-review`](skills/pre-sdd-review/README.en.md) | Checks an approved design and implementation plan against repository reality immediately before SDD, repairs the documents, and re-reviews them. | Codex |
+| [`sddx`](skills/sddx/README.en.md) | Runs Superpowers SDD with an external Cursor or Grok implementer. | Claude Code, Codex |
 
 Each product README has install and first-call steps.
 
@@ -39,6 +40,8 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-re
 
 The How It Works public path is
 https://github.com/beyondwin/skills/tree/main/skills/how-it-works.
+The SDDx public path is
+https://github.com/beyondwin/skills/tree/main/skills/sddx.
 See [local links](docs/users/en/install-local.md).
 
 Install, update, uninstall, and the third-party installer are in
