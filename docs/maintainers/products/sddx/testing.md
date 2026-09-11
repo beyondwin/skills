@@ -241,10 +241,11 @@ exit 0이었습니다. 마지막 관측 결과 문서는 내용·링크·diff를
 
 ## 리뷰어 effort 증거
 
-공급자 없는 증거는 `tests/products/sddx/test_contract.py`의 세 검사입니다.
-`.claude-plugin` 페이로드가 sddx에만 허용되는지, `plugin.json`이 제품명을
-가리키는지, `agents/claude-code/`에 정의가 정확히 하나이고 `name`이 파일명과 같고
-`effort`가 `xhigh`이며 `model` 키가 없고 `disallowedTools`가 Edit·Write·
+공급자 없는 증거는 `tests/products/sddx/test_contract.py`의 계약 검사입니다.
+`.claude-plugin` 페이로드가 sddx에만 허용되고 다른 제품에는 거부되는지,
+`plugin.json`이 제품명을 가리키는지, `plugin.json`의 version이 `release.toml`의
+버전과 같은지, `agents/claude-code/`에 정의가 정확히 하나이고 `name`이 파일명과
+같고 `effort`가 `xhigh`이며 `model` 키가 없고 `disallowedTools`가 Edit·Write·
 NotebookEdit를 막는지 확인합니다.
 
 라이브 확인은 하나입니다. 배포되는 제품 파일을 링크한 상태에서
