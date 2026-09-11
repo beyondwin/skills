@@ -121,6 +121,9 @@ Record every review dispatch in the ledger. High is one line,
 `Task N review: sddx default — high`. XHigh must name a trigger and a
 referent, `Task N review: sddx-reviewer-xhigh — <trigger>: <path or brief
 phrase>`. A trigger you cannot tie to a path is not a trigger; use High.
+The model is not part of these lines; it is always the orchestrator's. If the
+host cannot confirm the model ID, record that once for the run rather than on
+each dispatch.
 
 This section's effort escalation is Claude Code only. On Codex the definition
 is absent, so report that the requested effort cannot be set and continue. A
