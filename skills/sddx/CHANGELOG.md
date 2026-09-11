@@ -4,6 +4,18 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 1.0.2 - 2026-09-11
+
+### Fixed
+
+- Worker dispatch supplies complete task context and repeats the boundary against retrieving the full plan, including through shell/search tools.
+- Completion checks compare tool-call/results evidence with the worker's required scope-deviations report; missing evidence cannot count as verified compliance.
+- Test reports preserve full wrapper commands and distinguish test exits from wrapper exits.
+
+### Changed
+
+- Every native reviewer follows the active orchestrator model, with High or XHigh selected by review risk, overriding generic SDD model selection.
+
 ## 1.0.1 - 2026-09-11
 
 ### Fixed

@@ -14,13 +14,14 @@
 
 Superpowers SDD는 worktree, ledger, task-brief, review-package, 리뷰어
 프롬프트, fix loop, whole-branch review를 소유합니다. `sddx`는 인자 해석,
-backend picker, `resolve_backend.py`, implementer argv, worker 제약만
-소유합니다. SDD 본문을 이 스킬에 복사하지 않습니다.
+backend picker, `resolve_backend.py`, implementer argv, worker 제약·실행 증거
+확인, 리뷰 모델·effort 선택을 소유합니다. SDD 본문을 이 스킬에 복사하지 않습니다.
 
 ## 하드 게이트
 
-설치된 Superpowers `subagent-driven-development`를 그대로 따르고, implementer
-dispatch만 바꿉니다. Superpowers 파일을 고치지 않습니다. 오케스트레이터
+설치된 Superpowers `subagent-driven-development`의 흐름을 따르며 implementer
+dispatch, 리뷰 모델·effort, worker 증거 확인에 SDDx 규칙을 우선합니다.
+Superpowers 파일을 고치지 않습니다. 오케스트레이터
 세션에서 구현하지 않습니다.
 
 명시적인 `/sddx` 또는 `$sddx`, 또는 명시적인 외부 implementer 요청이 없으면
@@ -51,6 +52,19 @@ task reviewer, scoped re-reviewer, 최종 리뷰어는 호스트 네이티브입
 Claude Code는 Task, Codex는 `spawn_agent`입니다. 구현 worker만 외부
 프로세스입니다.
 
+모든 task 리뷰·재리뷰·최종 리뷰는 dispatch 시점의 오케스트레이터 모델을
+따릅니다. 일반 SDD의 저비용 모델 선택이나 최종 최상위 모델 선택보다 이 규칙이
+우선합니다. 호스트가 지원하면 모델을 상속하고, 명시해야 하면 확인된 동일 모델 ID를
+사용합니다. 특정 모델 계열로 고정하거나 리뷰만 다른 모델로 내리지 않습니다.
+모델 ID를 확인할 수 없으면 상속 사실과 ID 미확인을 기록하며 추측하지 않습니다.
+
+리뷰 effort는 세션 effort와 별도로 지정합니다. 명확한 요구사항·국소 수정·단순
+통합은 High, 복잡한 작업 간 영향·동시성·권한/보안·반복해서 놓친 결함은 XHigh입니다.
+재리뷰에는 원래 결함의 위험도도 적용합니다. diff가 작아졌다는 이유만으로 낮추지
+않습니다. ledger에 모델 또는 상속 여부, effort, 선택 이유를 적습니다. 호스트에서
+동일 모델이나 요청 effort를 지정할 수 없으면 그 한계를 보고하고 임의 대체하지
+않습니다. 별도 설정 파일이나 승인 단계를 추가하지 않습니다.
+
 구현 effort는 기본 High입니다. 복잡한 동시성, race, 얽힌 부작용, 또는 이
 task에서 High 리뷰가 이미 실패한 경우에만 XHigh입니다. 설계 모호함은
 XHigh가 아니라 오케스트레이터 ruling입니다. worker가 `NEEDS_CONTEXT` 또는
@@ -80,8 +94,28 @@ worker와 worker가 실행한 작업이 종료된 뒤에는 성공과 실패 모
 남은 차이와 상태 기록 위치를 ledger에 남깁니다. 생성 설정과 복원 상태는 제품
 산출물이나 커밋 대상이 아닙니다.
 
+dispatch 전 컨트롤러는 task-brief에 필요한 조건과 task 참고자료를 완결합니다.
+전체 계획을 참고자료로 전달하지 않으며 새 호출과 resume 모두에 문서 경계를
+직접 명시합니다. brief의 `Search paths:`에 구체적인 source/test 파일·디렉터리를
+적고 worker는 명시된 파일부터 직접 읽습니다. 검색이 필요하면 이 경로를 도구 인자로
+지정하며, 파일 glob만으로 경로가 제한된다고 가정하지 않습니다. 검색 경로가 없으면
+명시된 파일을 직접 읽거나 컨트롤러에 누락 경로를 요청합니다. 전체 workspace 내용
+검색은 하지 않습니다. worker는 필요한 source/test를 읽을 수 있으나 전체 계획은
+링크·shell·검색·Git 이력으로도 읽지 않습니다. 부족한 결정은 `NEEDS_CONTEXT`입니다.
+
+worker 보고에는 scope deviations 항목이 필수입니다. 시도/수행한 행동·대상·결과를
+기록하며, 계획 원문을 다시 복사하지 않습니다. 이탈한 뒤 정정했어도 clean `DONE`이
+아닙니다. 테스트 wrapper를 사용하면 전체 명령과 실제 테스트 exit를 구분합니다.
+
 프로세스 exit 0만으로 task를 완료 처리하지 않습니다. worker report의 테스트
-결과, task 변경 커밋, 네이티브 리뷰를 확인해야 합니다. `BLOCKED`,
+결과, task 변경 커밋, 실제 tool-call/results 기록, 네이티브 리뷰를 확인해야 합니다.
+ledger의 역할 준수는 `PASS`, `FAIL`, `UNVERIFIED`로 적습니다. 읽기 시도와 실제
+내용 반환을 구분하고 shell·검색 도구 결과도 확인합니다. 검색에 계획 일부 줄이
+반환돼도 계획 내용 읽기에 해당합니다. 금지된 문서 읽기 성공은 테스트
+성공과 무관하게 `FAIL`, 기록 누락·불완전은 `UNVERIFIED`이며 둘 다 clean `DONE`으로
+승격하지 않습니다. 보고서와 다른 관측을 리뷰어에게 전달합니다. 이후 인정이나 정상
+호출로 앞선 위반을 지우지 않습니다. 기존 ruling으로 필요한 조치를 판단합니다.
+`BLOCKED`,
 `NEEDS_CONTEXT`, 보고서 누락, 불명확한 결과는 `DONE`이 아닙니다.
 `DONE_WITH_CONCERNS`는 기존 ruling 절차로 처리하며, 검증만 한 응답에는 새
 커밋을 요구하지 않습니다.

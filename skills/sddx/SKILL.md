@@ -4,14 +4,15 @@ description: Use when executing a Superpowers implementation plan with an extern
 license: Apache-2.0
 compatibility: Requires a local Git repository, an implementation plan file, and Claude Code or Codex as the orchestrator host. Implementer CLIs are optional and resolved at runtime.
 metadata:
-  version: "1.0.1"
+  version: "1.0.2"
   updated_at: "2026-09-11"
 ---
 
 # SDDx
 
-Use installed Superpowers `subagent-driven-development` unchanged, except
-implementer dispatch.
+Use installed Superpowers `subagent-driven-development` for the workflow.
+SDDx overrides implementer dispatch, reviewer model/effort selection, and
+worker evidence checks below. Keep the remaining SDD workflow unchanged.
 
 <HARD-GATE>
 Do not copy Superpowers SDD into this skill.
@@ -53,7 +54,7 @@ Keep that backend for every later task.
 
 ## Controller
 
-The current session model is the orchestrator and reviewer. Follow
+The current session is the orchestrator. Follow
 subagent-driven-development for worktree, ledger, task-brief,
 review-package, the fix loop, whole-branch review, and
 finishing-a-development-branch.
@@ -62,14 +63,45 @@ When SDD would dispatch an implementer subagent, do not. Dispatch the
 external worker using `references/dispatch.md` and
 `references/worker-prompt.md`.
 
-Process exit 0 is not task completion. Read the worker report and verify
-test results, committed task changes, and native review before marking the
-task complete. BLOCKED, NEEDS_CONTEXT, a missing report, or an unclear result
-must not become DONE. Resolve DONE_WITH_CONCERNS through the existing ruling
-procedure. Do not require a new commit for a verification-only response.
+Process exit 0 is not task completion. Verify the report, actual test exit
+codes, task commits, tool-call/results log, and native review. Record role
+compliance as PASS, FAIL, or UNVERIFIED in the existing ledger. A successful
+prohibited read is FAIL even when tests pass or the report says no concerns.
+Missing or incomplete tool evidence is UNVERIFIED, never PASS. Neither FAIL
+nor UNVERIFIED permits a clean DONE. Check shell commands/results as well as
+file-read and search tools; plan excerpts in search results are prohibited
+content too. An attempted read alone does not prove content was returned.
+Give the reviewer the evidence and any discrepancy with the worker report.
+
+BLOCKED, NEEDS_CONTEXT, a missing report, or an unclear result must not become
+DONE. Resolve concerns through the existing ruling procedure. A later apology
+or compliant call cannot erase an earlier violation. Do not require a new
+commit just to correct a report or verify existing code.
+
+## Reviewers
 
 Task reviewers, scoped re-reviewers, and the final reviewer stay native
-(Claude Code Task or Codex spawn_agent).
+(Claude Code Task or Codex spawn_agent) and use the active orchestrator's
+model. This overrides SDD's cheaper-model and strongest-final-model choices.
+Inherit the model when the host supports it; otherwise specify the confirmed
+orchestrator model ID. Do not pick a separate reviewer model or hardcode a
+preferred model family. If the model ID is unavailable, record it as inherited
+and unknown rather than guess.
+
+Select reviewer effort separately, including on re-review and final review:
+
+| Review scope | Effort |
+| --- | --- |
+| Clear requirements, local changes, straightforward integration | High |
+| Complex cross-task effects, concurrency/races, security/permissions, or repeatedly missed defects | XHigh |
+
+Keep the original defect's risk in scope on re-review; a small diff alone
+does not justify lowering effort. Do not inherit a lower session effort.
+Record model (or inheritance), effort, and a short reason in the ledger.
+If the host cannot preserve the model or set the requested effort, report
+that limitation; do not silently substitute another model or effort.
+
+## Implementer
 
 Effort for the implementer is High unless the task is hard implementation
 (concurrency, races, tangled side effects, or High already failed review

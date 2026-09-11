@@ -20,15 +20,28 @@ subagent-driven-development without an external implementer.
 sddx: Claude Code and Codex supported for local or repository-based use.
 
 The supported host ids are `claude-code` and `codex`. Cursor and Grok CLIs
-are implementer workers, not hosts. The current install files were exercised
-with Codex as orchestrator and Grok CLI as worker in a linked worktree. Three
-Grok calls each completed a direct worker commit and cleanup, including a
-controlled same-session refinement, followed by 14 final tests at exit 0.
+are implementer workers, not hosts. Earlier Codex/Grok linked-worktree
+checks verified direct commits, session resume, and configuration restoration.
+Later checks reproduced prohibited full-plan reads and omitted deviations in
+worker reports. Version-specific observations are recorded in the testing guide below.
 Cursor worker and Claude Code host execution remain `not_measured`. This is
 scope-limited evidence for the measured fixture and versions. Claude.ai,
 Cowork, Skills API upload, and marketplace publication are not supported.
 Shared limits are in
 [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/users/en/compatibility.md).
+
+## Task scope and review
+
+The worker receives a complete task brief and listed references, without
+reopening the full plan. Compare its scope-deviations report with actual tool
+records. Role violations are FAIL; insufficient tool evidence is UNVERIFIED.
+Neither qualifies for clean DONE.
+
+Task reviews, scoped re-reviews, and final review all follow the current
+orchestrator model. Select reviewer effort separately: High for clear local
+changes, XHigh for complex cross-task effects, concurrency, security/permissions,
+or repeatedly missed defects. Report unsupported model/effort controls rather
+than automatically substituting another model.
 
 ## Grok worktree execution
 

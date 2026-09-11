@@ -31,7 +31,7 @@ skills/sddx/              저장소 원본
 ## 공급자 없는 증거
 
 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다. 이 명령은
-패키지 정체와 `resolve_backend.py` 픽스처만 증명합니다. 라이브 모델 품질과
+패키지 정체, resolver 픽스처, sandbox 준비·복원을 검사합니다. 라이브 모델 품질과
 지원 호스트 런타임 동등은 증명하지 않습니다.
 
 ## Grok linked worktree 경계
@@ -49,18 +49,25 @@ worker가 저장소의 공유 Git 메타데이터를 쓸 수 있음을 뜻합니
 
 | 오케스트레이터 호스트 | 구현 worker | 상태 | 관측 범위 |
 | --- | --- | --- | --- |
-| Codex | Grok CLI | measured | macOS 26.5.2, Python 3.14.7, Grok 1.0.25와 `grok-4.6` High에서 새 linked-worktree fixture의 실제 호출 3회 성공 |
+| Codex | Grok CLI | measured | 1.0.2 최종 문구: 실제 3회, 15 tests, 모델 상속·재개·복원 확인; 초기 candidate 검색 노출 실패 별도 보존 |
 | Codex | Cursor CLI | `not_measured` | 현재 설치 파일로 실행하지 않음 |
 | Claude Code | Cursor 또는 Grok CLI | `not_measured` | 현재 설치 파일로 실행하지 않음 |
 
-측정된 세 호출은 서로 다른 두 task와 첫 task의 통제된 same-session 수정으로 구성됐고,
-각 호출에서 worker 직접 커밋, cleanup, native review를 확인했습니다. 최종 fixture 검사는
-14 tests와 전체 diff 검사를 exit 0으로 마쳤습니다. tool trace에서 external skill·전체
-계획 읽기, nested agent, MCP tool 호출이나 역할 위반은 관측되지 않았습니다. 다만 기존
-host integration의 MCP startup 경고는 계속 나타났습니다. 이 결과는 해당 fixture와
-버전의 범위 제한된 성공이며 모든 저장소나 실행의 보장이 아닙니다. 독립 최종 native
-review도 Critical/Important/Minor 0건으로 accept했습니다. 재현 절차와 세부 exit code는
-[테스트](testing.md)에 있습니다.
+1.0.1 최초 fixture에서는 세 호출, 최종 14 tests, 역할 위반 미관측을 확인했습니다.
+이후 독립된 두 fixture에서 각각 세 호출을 다시 측정했으며 최종 15/14 tests와
+커밋·복원은 성공했지만, 새 세션의 전체 계획 읽기가 재현됐습니다. 기존 sandbox
+설정의 바이트와 0640 권한도 후속 실제 호출마다 복원됐습니다. 이전 성공 표본을
+현재의 전면 통과나 역할 준수 보장으로 해석하지 않습니다.
+
+1.0.2는 brief 경계·보고·도구 기록 판정과 리뷰 모델 상속을 보완합니다.
+리뷰어는 호스트 네이티브로 현재 오케스트레이터 모델을 따르고, High/XHigh를 따로
+지정합니다. 호스트에서 해당 제어를 지원하지 않으면 한계를 보고합니다.
+최종 문구의 새 세 호출은 15 tests와 직접 커밋·재개·복원을 통과했고 계획 내용
+노출은 관측되지 않았습니다. 파일명·ignore 규칙 확인에 대한 마지막 worker의
+DONE_WITH_CONCERNS는 실제 기록과 독립 리뷰에 근거한 기존 ruling으로 수용했습니다.
+검색 노출이 있었던 초기 candidate는 별도 실패 기록으로 남습니다.
+Claude Code의 모델·effort 대응과 Cursor event trace는 실제 실행 미측정입니다.
+재현 절차와 버전별 관측은 [테스트](testing.md)에 있습니다.
 
 ## 라이브 증거 경계
 

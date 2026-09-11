@@ -8,6 +8,32 @@ Do not launch a worker from the resolver. Parse one JSON object.
 
 If `available` is false, stop. Do not fail over.
 
+Before dispatch, use SDD's task-brief output and supply all decisions and
+task reference paths needed for this task. Include relevant constraints from
+the plan in the brief; do not send the plan itself as a reference. Source and
+test inspection remains available. When the brief lacks a required decision,
+complete it in the controller rather than ask the worker to recover it from
+the plan. Add `Search paths:` with concrete source/test file or directory
+paths to the brief. Keep planning documents out of that list. The worker
+starts with direct reads of named files and targets any search at these paths;
+a glob without a target path can still search the whole repository.
+
+Put this boundary directly in each new or resumed dispatch prompt, alongside
+the brief and report paths (it also remains in the worker rules):
+
+> Read the brief first. Use its requirements and explicitly listed task
+> references. The controller owns the full plan; do not read it or follow
+> links to it, including through shell/search tools. Missing decisions go
+> back as NEEDS_CONTEXT. Read named source/test files directly first; any
+> search must target the brief's Search paths, not the whole workspace.
+> Report scope deviations even if tests pass.
+
+Capture the CLI's tool-call/results stream in local, uncommitted evidence.
+For Grok, use `--output-format streaming-messages-json`; for Cursor, use the
+local help's supported structured event output. Preserve test commands and
+their actual exits. If the trace is unavailable or incomplete, record role
+compliance as UNVERIFIED. A final message alone is not a tool trace.
+
 Compose the worker command from `argv_prefix` plus controller flags:
 
 - Grok: immediately before starting the worker, prepare its worktree profile:

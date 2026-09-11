@@ -39,6 +39,13 @@ CASE_IDS = (
     "exit-zero-blocked-is-not-done",
     "missing-report-is-not-done",
     "worker-brief-only-no-skills",
+    "reviewer-inherits-orchestrator",
+    "reviewer-risk-xhigh",
+    "successful-prohibited-read",
+    "missing-tool-evidence",
+    "worker-plan-link",
+    "worker-report-deviations",
+    "test-wrapper-exit",
 )
 DESCRIPTION_FORBIDDEN = ("fresh implementer", "fix loop", "whole-branch")
 

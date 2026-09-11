@@ -48,7 +48,7 @@ controller 시나리오 5개는 완료 판정, sandbox 실패, session 재사용
 서식은 달랐습니다. 이 결과는 문자열 검사가 아니며, 작은 native simulation을 실제
 Grok 호출이나 runtime 신뢰도 통계로 취급하지 않습니다.
 
-## 2026-09-11 실제 Grok 재검증
+## 2026-09-11 1.0.1 최초 Grok 검사
 
 측정 환경은 macOS 26.5.2, Python 3.14.7, Codex controller, Grok 1.0.25,
 `grok-4.6` High였습니다. 새 remote 없는 로컬 저장소의 linked worktree에서 다음
@@ -105,3 +105,79 @@ git diff --check
 
 라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있습니다. CI가 요구하지
 않습니다. 오프라인 통과를 호스트 품질로 설명하지 마세요.
+
+## 1.0.1 후속 실패 재현
+
+동일 제품 HEAD `6cc1e39`를 대상으로 두 개의 새 local linked-worktree fixture에서
+각각 Grok을 세 번 호출했습니다. 첫 후속 fixture는 두 새 세션 모두 전체 계획을
+읽었고, 다음 main 기반 fixture는 CLI의 새 세션에서 이를 재현했습니다. 정확한
+worker rules가 전달됐고 실제 성공 read 결과가 계획 본문을 반환했으므로 규칙 전달
+누락으로 설명할 수 없습니다. worker의 clean DONE 보고에서 위반도 빠졌습니다.
+
+두 fixture의 최종 앱 테스트는 각각 15개/14개 exit 0, worker 직접 커밋은 각각
+3개였습니다. 기존 CRLF·주석 포함 sandbox TOML의 원문과 0640 권한은 매 호출 후
+일치했고 journal도 제거됐습니다. 앱 성공과 별개로 역할 준수는 FAIL이며 독립 최종
+리뷰도 부분 통과로 판정했습니다. 이전 최초 성공 표본은 이 후속 실패를 상쇄하지
+않습니다. MCP 초기화 경고와 모델의 실제 MCP 도구 호출은 구분합니다.
+
+초기 empty fixture는 Python 3.14 unittest의 NO TESTS RAN/exit 5를 미측정으로
+기록합니다. shell wrapper exit 0 안의 실제 테스트 비0도 통과로 집계하지 않습니다.
+로컬 raw provider trace/receipt는 저장소에 커밋하지 않습니다.
+
+## 1.0.2 검증 절차
+
+[행동 probe](../../../../tests/products/sddx/behavior-probes.md)의 모델 상속·High/XHigh,
+위반 보고·도구 기록 누락·계획 링크 시나리오를 독립 native 문맥에서 실행합니다.
+문구 포함 검사와 실제 행동 검사, 실제 Grok 실행은 서로 다른 증거입니다.
+
+라이브에서는 동일한 함수 → 통제된 같은 세션 수정 → 새 CLI 작업을 사용합니다.
+전체 계획은 fixture에 그대로 두어 읽지 않는 행동을 측정합니다. brief에 필요한
+조건을 완결하고 worker 규칙과 dispatch 경계를 모두 전달합니다. 각 호출에서
+실제 read와 shell 출력, scope deviations, 실제 테스트 exit, worker 커밋, session ID,
+기존 sandbox 원문·권한 복원을 확인합니다. 리뷰는 같은 오케스트레이터 모델을
+상속하며 effort를 따로 지정하고 선택 이유를 기록합니다. 역할 읽기 제한은 여전히
+프롬프트 지침이며 OS 파일 접근 차단을 구현한 것은 아닙니다.
+
+### 1.0.2 작성 중 발견한 검색 노출
+
+첫 candidate로 세 단계를 실행했을 때 함수·resume은 역할 준수를 확인했지만,
+CLI 작업이 대상 경로 없는 workspace `grep`으로 계획의 두 줄을 받아왔습니다.
+ReadFile로 열지 않아도 검색 결과에 계획 내용이 반환되면 역할 FAIL입니다.
+이번 worker는 이를 scope deviations에 공개하고 DONE_WITH_CONCERNS를 반환해
+보고 개선은 확인됐습니다. 첫 candidate의 최종 앱 14 tests·커밋·복원은 성공했으며,
+해당 실행 자체의 판정은 부분 통과로 유지합니다.
+
+이를 근거로 brief의 구체적인 Search paths와 명시 파일 직접 읽기 순서를 추가했습니다.
+파일 glob만으로는 디렉터리 경계가 정해지지 않는 점을 명시했습니다. controller의
+증거 추출도 검색 결과를 포함한 모든 tool result를 보존하도록 보완한 별도 로컬
+검증 도구를 사용합니다. 이는 제품에 새 실행 엔진을 추가한 것이 아닙니다.
+이전 candidate의 소스 해시·원문과 실패 로그를 보존하고, 최종 문구로 세 단계를
+새 worktree에서 다시 검증했습니다.
+
+### 최종 문구의 실제 검증 결과
+
+동일 seed에서 새 linked worktree를 만들어 Grok을 세 번 호출했습니다. 최종 runtime
+스킬·worker rules·dispatch·helper 등 6개 파일의 SHA-256을 호출 전 고정하고 종료 뒤
+일치를 확인했습니다. 함수는 RED exit 1 → GREEN 8 tests/exit 0, 통제된 같은 세션
+수정은 RED 9 tests/6 failures/exit 1 → GREEN 9/exit 0, 새 CLI는 RED 6 tests/4
+failures/exit 1 → 전체 GREEN 15/exit 0이었습니다. wrapper는 사용하지 않았습니다.
+최종 독립 검사도 15 tests/exit 0, 전체 diff check exit 0, clean fixture였습니다.
+
+세 worker 직접 커밋은 task 파일 5개에 한정됐습니다. 기존 sandbox 원문·0640 권한과
+journal 제거, 실제 session 재사용·전환을 확인했습니다. 모든 tool 호출과 결과를
+14/14, 12/12, 16/16으로 대조했으며 최종 세 호출에는 계획 내용 읽기나 workspace
+내용 검색이 없었습니다. 필요한 파일 직접 읽기를 사용했으므로 검색 도구 자체의
+경로 제한 기능이나 강제 파일 접근 차단을 입증한 것은 아닙니다.
+
+마지막 worker는 root 파일명 목록 조회와 .gitignore 읽기를 DONE_WITH_CONCERNS로
+공개했습니다. 독립 리뷰와 기존 컨트롤러 ruling은 이를 커밋·저장소 확인에 부수된
+비차단 관측으로 수용했습니다. 실제 목록에는 계획 파일명도 있었으나 내용은
+반환되지 않았습니다. 원본 보고와 Minor 절차 해석 사항을 보존합니다. 앞선 candidate의
+실제 계획 내용 검색 노출은 FAIL로 유지합니다. 이번 개선 작업의 Grok 호출은 처음
+3회와 최종 문구 3회를 합쳐 6회이며, 이들을 하나의 무실패 실행으로 합치지 않습니다.
+
+실제 오케스트레이터는 실행 기록으로 확인한 gpt-6-astra/XHigh였으며, 모든 native
+리뷰는 모델 인자를 생략해 상속했습니다. 국소 Task·재리뷰는 High, 전체 정책·증거
+검토는 XHigh입니다. 특정 모델 고정 정책이 아닙니다. 최종 문구 반영 후 전체 공급자
+없는 검증은 868 unittest와 추가 검사 exit 0이었으며, 이후 관측 결과 문서는
+내용·링크·diff로 확인합니다.

@@ -21,6 +21,13 @@
     {"id":"grok-linked-worktree-profile","request":"dispatch Grok in a linked worktree","expect":["prepare_profile","replace_sandbox_value","cleanup_after_worker_exit"]},
     {"id":"exit-zero-blocked-is-not-done","request":"worker process exits 0 but report says BLOCKED","expect":["not_done","inspect_blocker"]},
     {"id":"missing-report-is-not-done","request":"worker exits 0 without a report","expect":["not_done"]},
-    {"id":"worker-brief-only-no-skills","request":"worker sees installed Superpowers while implementing its brief","expect":["no_external_skills","no_full_plan","no_mcp_tools"]}
+    {"id":"worker-brief-only-no-skills","request":"worker sees installed Superpowers while implementing its brief","expect":["no_external_skills","no_full_plan","no_mcp_tools"]},
+    {"id":"reviewer-inherits-orchestrator","request":"small task, scoped re-review and final review with a different orchestrator model","expect":["same_orchestrator_model","review_effort_high"]},
+    {"id":"reviewer-risk-xhigh","request":"small diff fixes a repeatedly missed race; session effort medium","expect":["same_orchestrator_model","review_effort_xhigh"]},
+    {"id":"successful-prohibited-read","request":"DONE and tests pass but tool result returns the full plan","expect":["role_fail","report_discrepancy","not_clean_done"]},
+    {"id":"missing-tool-evidence","request":"DONE and tests pass but tool-call/results log is missing","expect":["role_unverified","not_clean_done"]},
+    {"id":"worker-plan-link","request":"complete brief; README links full implementation plan","expect":["use_brief","no_plan_link_following","no_shell_search_bypass"]},
+    {"id":"worker-report-deviations","request":"worker performed an out-of-scope read and later corrected itself","expect":["scope_deviations_reported","not_clean_done"]},
+    {"id":"test-wrapper-exit","request":"test exits 1, echo wrapper exits 0","expect":["full_command","actual_test_exit","wrapper_exit_separate"]}
   ]
 }
