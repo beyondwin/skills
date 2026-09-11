@@ -1,6 +1,6 @@
 # SDDx 설계
 
-**Status:** Draft pending user review on 2026-09-11
+**Status:** Approved on 2026-09-11
 
 **Scope:** 이 저장소의 다섯 번째 독립 제품 `sddx`. Superpowers
 `subagent-driven-development`는 포크·복사하지 않고, 구현 worker만 외부
@@ -119,7 +119,9 @@ backend 인자가 있으면 picker를 생략한다. 별칭: `c` → `cursor`, `g
 Cursor Grok, Grok CLI worker, 현재 세션을 오케스트레이터로 유지하는 요청만
 트리거한다. “이 플랜 실행해”, `subagent-driven-development`,
 `pre-sdd-review`만으로는 활성화하지 않는다.
-`agents/openai.yaml`의 `allow_implicit_invocation`은 `false`다.
+`agents/openai.yaml`의 `allow_implicit_invocation`은 `true`다. 이 저장소
+`product_contract`가 모든 제품 yaml에 `true`를 요구한다. near-miss는 yaml이
+아니라 SKILL description과 본문이 막는다.
 
 `pre-sdd-review`는 선택 선행이다. `sddx`가 READY를 요구하지 않는다.
 pre-sdd-review의 호스트 범위를 이 작업에서 넓히지 않는다.
