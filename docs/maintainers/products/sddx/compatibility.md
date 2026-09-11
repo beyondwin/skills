@@ -4,7 +4,7 @@
 
 현재 지원 호스트는 제품 목록의 `claude-code`, `codex`입니다. Cursor CLI와
 Grok CLI는 구현 worker이지 호스트가 아닙니다. 지원 범위와 현재 측정 상태는
-별개이며, 초판의 실제 실행 증거는 `not_measured`입니다. Claude.ai, Cowork,
+별개입니다. Claude.ai, Cowork,
 Skills API 업로드, marketplace 게시, 클라우드 동기화는 지원하지 않습니다.
 
 ## 발견 경로
@@ -44,7 +44,23 @@ worker가 저장소의 공유 Git 메타데이터를 쓸 수 있음을 뜻합니
 
 외부 스킬, MCP, 전체 계획을 읽지 말라는 제한은 worker prompt 지침입니다.
 공급자 CLI의 초기화 경고가 없거나 역할 이탈이 불가능하다는 보장은 아닙니다.
-수정된 흐름의 실제 라이브 결과는 Task 3에서 관측한 뒤 기록합니다.
+
+## 측정 상태
+
+| 오케스트레이터 호스트 | 구현 worker | 상태 | 관측 범위 |
+| --- | --- | --- | --- |
+| Codex | Grok CLI | measured | macOS 26.5.2, Python 3.14.7, Grok 1.0.25와 `grok-4.6` High에서 새 linked-worktree fixture의 실제 호출 3회 성공 |
+| Codex | Cursor CLI | `not_measured` | 현재 설치 파일로 실행하지 않음 |
+| Claude Code | Cursor 또는 Grok CLI | `not_measured` | 현재 설치 파일로 실행하지 않음 |
+
+측정된 세 호출은 서로 다른 두 task와 첫 task의 통제된 same-session 수정으로 구성됐고,
+각 호출에서 worker 직접 커밋, cleanup, native review를 확인했습니다. 최종 fixture 검사는
+14 tests와 전체 diff 검사를 exit 0으로 마쳤습니다. tool trace에서 external skill·전체
+계획 읽기, nested agent, MCP tool 호출이나 역할 위반은 관측되지 않았습니다. 다만 기존
+host integration의 MCP startup 경고는 계속 나타났습니다. 이 결과는 해당 fixture와
+버전의 범위 제한된 성공이며 모든 저장소나 실행의 보장이 아닙니다. 독립 최종 native
+review도 Critical/Important/Minor 0건으로 accept했습니다. 재현 절차와 세부 exit code는
+[테스트](testing.md)에 있습니다.
 
 ## 라이브 증거 경계
 

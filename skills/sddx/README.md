@@ -19,9 +19,12 @@ Superpowers SDD를 현재 Claude Code 또는 Codex 세션이 오케스트레이�
 sddx: Claude Code and Codex supported for local or repository-based use.
 
 지원 호스트 id는 `claude-code`, `codex`입니다. Cursor와 Grok CLI는
-구현 worker이지 호스트가 아닙니다. 지금 설치 파일의 실제 실행은
-`not_measured`입니다. Claude.ai, Cowork, Skills API 업로드, marketplace
-게시는 지원하지 않습니다. 공유 한계는
+구현 worker이지 호스트가 아닙니다. 현재 설치 파일은 Codex가 오케스트레이터이고
+Grok CLI가 worker인 linked-worktree 실행에서 실제 검증됐습니다. Grok 호출 3회가
+각각 worker 직접 커밋과 cleanup을 마쳤고, 통제된 same-session 수정과 최종 14 tests
+exit 0을 확인했습니다. Cursor worker와 Claude Code host 실행은 `not_measured`입니다.
+이 결과는 측정한 fixture와 버전의 범위 제한된 증거입니다. Claude.ai, Cowork,
+Skills API 업로드, marketplace 게시는 지원하지 않습니다. 공유 한계는
 [호환성](https://github.com/beyondwin/skills/blob/main/docs/users/ko/compatibility.md)을
 보세요.
 

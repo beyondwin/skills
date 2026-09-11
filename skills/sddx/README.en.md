@@ -20,9 +20,14 @@ subagent-driven-development without an external implementer.
 sddx: Claude Code and Codex supported for local or repository-based use.
 
 The supported host ids are `claude-code` and `codex`. Cursor and Grok CLIs
-are implementer workers, not hosts. Live evidence for the current install
-files is `not_measured`. Claude.ai, Cowork, Skills API upload, and
-marketplace publication are not supported. Shared limits are in
+are implementer workers, not hosts. The current install files were exercised
+with Codex as orchestrator and Grok CLI as worker in a linked worktree. Three
+Grok calls each completed a direct worker commit and cleanup, including a
+controlled same-session refinement, followed by 14 final tests at exit 0.
+Cursor worker and Claude Code host execution remain `not_measured`. This is
+scope-limited evidence for the measured fixture and versions. Claude.ai,
+Cowork, Skills API upload, and marketplace publication are not supported.
+Shared limits are in
 [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/users/en/compatibility.md).
 
 ## Grok worktree execution
