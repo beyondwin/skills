@@ -42,10 +42,14 @@ allowed; these actions alone require no scope concern. Full-plan content and
 secrets remain excluded.
 
 Task reviews, scoped re-reviews, and final review all follow the current
-orchestrator model. Select reviewer effort separately: High for clear local
-changes, XHigh for complex cross-task effects, concurrency, security/permissions,
-or repeatedly missed defects. Report unsupported model/effort controls rather
-than automatically substituting another model.
+orchestrator model. Select reviewer effort separately. On Claude Code, High
+means the normal dispatch with no `model` argument; XHigh means dispatching
+`subagent_type: sddx-reviewer-xhigh`, also with no `model` argument. Use XHigh
+only for changes to locking, ordering, or concurrently shared state; changes to
+an auth, permission, secret, or sandbox boundary; a round 4-5 re-review; or a
+defect the reviews keep missing. Diff size, implementation difficulty, and
+"this is the final review" are not reasons. The escalation definition is Claude
+Code only; on a host without it, report that limitation and continue.
 
 ## Grok worktree execution
 

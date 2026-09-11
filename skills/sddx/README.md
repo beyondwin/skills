@@ -36,10 +36,13 @@ Skills API 업로드, marketplace 게시는 지원하지 않습니다. 공유 �
 작업에 필요한 ignore·빌드·테스트 설정 직접 읽기는 허용하며, 이 행동만으로
 우려사항을 보고하지 않습니다. 전체 계획 본문과 비밀정보는 계속 읽지 않습니다.
 
-Task 리뷰·재리뷰·최종 리뷰는 모두 현재 오케스트레이터 모델을 따릅니다.
-명확한 국소 변경은 High, 복잡한 작업 간 영향·동시성·권한/보안·반복 결함은 XHigh로
-리뷰 effort를 별도 지정합니다. 모델이나 effort를 지원하지 않는 호스트의 한계는
-명시하며 자동으로 다른 모델로 바꾸지 않습니다.
+Task 리뷰·재리뷰·최종 리뷰는 모두 현재 오케스트레이터 모델을 따릅니다. 리뷰
+effort는 별도로 지정합니다. Claude Code에서 High는 `model` 인자 없이 평소대로
+dispatch하는 것이고, XHigh는 `model` 인자 없이 `subagent_type`을
+`sddx-reviewer-xhigh`로 지정하는 것입니다. XHigh는 lock·순서·공유 상태 변경,
+auth·권한·secret·sandbox 경계 변경, round 4–5 재리뷰, 반복해서 놓친 결함일 때만
+씁니다. diff 길이나 구현 난이도, 최종 리뷰라는 사실은 근거가 아닙니다. 승급 정의는
+Claude Code 전용이며, 없는 호스트에서는 그 한계를 보고한 뒤 진행합니다.
 
 ## Grok worktree 실행
 
