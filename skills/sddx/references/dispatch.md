@@ -26,8 +26,10 @@ Compose the worker command from `argv_prefix` plus controller flags:
       argv.extend(["--cwd", str(worktree), "--rules", worker_rules])
 
   `resolved` is the resolver JSON and `worker_rules` is the full text of
-  `worker-prompt.md`. Continue composing the current effort, prompt, and resume
-  arguments. `--disable-web-search` is already in `argv_prefix`.
+  `worker-prompt.md`. Then append `--reasoning-effort high|xhigh` (or `--effort`
+  if local help supports that alias), `--prompt-file <dispatch-file>` or `-p`,
+  and `--resume <id>` for fix rounds 1-3. `--disable-web-search` is already in
+  `argv_prefix`.
   Do not pass `--worktree`. Do not pass `--continue`. Do not paste host
   credentials into the prompt file.
 - Cursor: `--workspace <worktree>` (or `--cwd` if that is what help
