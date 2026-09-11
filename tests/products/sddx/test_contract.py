@@ -106,3 +106,23 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("blocked", worker)
         self.assertIn("credentials", skill)
         self.assertIn("credentials", dispatch)
+
+    def test_sddx_local_link_marker_and_invocations(self) -> None:
+        marker = "<!-- sddx-local-links -->"
+        agents = 'python3 - "$PWD/skills/sddx" "$HOME/.agents/skills/sddx" <<\'PY\''
+        claude = 'python3 - "$PWD/skills/sddx" "$HOME/.claude/skills/sddx" <<\'PY\''
+        unlink_agents = "unlink ~/.agents/skills/sddx"
+        unlink_claude = "unlink ~/.claude/skills/sddx"
+        for relative in (
+            "skills/sddx/README.md",
+            "skills/sddx/README.en.md",
+            "docs/users/ko/install-local.md",
+            "docs/users/en/install-local.md",
+        ):
+            text = (ROOT / relative).read_text(encoding="utf-8")
+            self.assertEqual(text.count(marker), 1, relative)
+            self.assertIn(agents, text)
+            self.assertIn(claude, text)
+            self.assertIn(unlink_agents, text)
+            self.assertIn(unlink_claude, text)
+            self.assertNotIn("ln -s", text)

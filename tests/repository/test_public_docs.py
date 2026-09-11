@@ -772,7 +772,7 @@ class UserGuideFactTests(unittest.TestCase):
             "safety-and-privacy.md": all_products,
             "verification.md": all_products,
             "install-codex.md": CODEX_PRODUCTS,
-            "install-local.md": ("how-it-works",),
+            "install-local.md": ("how-it-works", "sddx"),
         }
         for language in ("ko", "en"):
             readme = "README.en.md" if language == "en" else "README.md"
