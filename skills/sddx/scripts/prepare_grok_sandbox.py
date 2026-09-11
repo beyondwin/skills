@@ -4,6 +4,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 try:
@@ -126,16 +127,38 @@ def _read_journal(state: Path, worktree: Path) -> dict:
 
 
 def _write_config(config: Path, before: str | None, after: str) -> None:
-    current = _read_optional(config)
-    if current != before:
-        raise ValueError("sandbox config changed during preparation")
     if before is None:
         if not config.parent.exists():
             config.parent.mkdir()
-        with config.open("x", encoding="utf-8", newline="") as output:
-            output.write(after)
-    else:
-        config.write_bytes(after.encode("utf-8"))
+
+    descriptor, temp_name = tempfile.mkstemp(
+        prefix=f".{config.name}.", suffix=".tmp", dir=config.parent
+    )
+    temp_path = Path(temp_name)
+    try:
+        if before is not None:
+            os.fchmod(descriptor, config.stat().st_mode & 0o7777)
+        remaining = memoryview(after.encode("utf-8"))
+        while remaining:
+            written = os.write(descriptor, remaining)
+            if written <= 0:
+                raise OSError("failed to write complete sandbox config")
+            remaining = remaining[written:]
+        os.close(descriptor)
+        descriptor = -1
+
+        if _read_optional(config) != before:
+            raise ValueError("sandbox config changed during preparation")
+        if before is None:
+            os.link(temp_path, config)
+            temp_path.unlink()
+        else:
+            os.replace(temp_path, config)
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+        if temp_path.exists():
+            temp_path.unlink()
 
 
 def prepare(worktree: Path, state: Path) -> str:
@@ -179,7 +202,7 @@ def cleanup(worktree: Path, state: Path) -> None:
         if before is None:
             config.unlink()
         else:
-            config.write_bytes(before.encode("utf-8"))
+            _write_config(config, journal["after"], before)
     state.unlink()
     if journal["created_dir"] and config.parent.exists():
         if not any(config.parent.iterdir()):

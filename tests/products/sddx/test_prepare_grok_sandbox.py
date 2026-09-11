@@ -7,6 +7,7 @@ import tempfile
 import tomllib
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -206,6 +207,89 @@ class SandboxTests(unittest.TestCase):
             self.module.cleanup(self.wt, self.state)
 
         self.assertEqual(sentinel.read_bytes(), before)
+
+    def test_state_parent_symlink_is_rejected_without_touching_target(self):
+        outside = self.base / "outside evidence"
+        outside.mkdir()
+        sentinel = outside / "sentinel"
+        before = b"sentinel bytes\n"
+        sentinel.write_bytes(before)
+        linked_parent = self.wt / ".superpowers/sdd/linked"
+        linked_parent.symlink_to(outside, target_is_directory=True)
+        state = linked_parent / "grok-sandbox.json"
+
+        with self.assertRaises(ValueError):
+            self.module.prepare(self.wt, state)
+        with self.assertRaises(ValueError):
+            self.module.cleanup(self.wt, state)
+
+        self.assertEqual(sentinel.read_bytes(), before)
+        self.assertFalse((outside / "grok-sandbox.json").exists())
+
+    def test_non_regular_config_and_state_are_rejected(self):
+        self.config.parent.mkdir()
+        self.config.mkdir()
+        with self.subTest(path="config"):
+            with self.assertRaises(ValueError):
+                self.module.prepare(self.wt, self.state)
+            with self.assertRaises(ValueError):
+                self.module.cleanup(self.wt, self.state)
+        self.config.rmdir()
+
+        self.state.mkdir()
+        with self.subTest(path="state"):
+            with self.assertRaises(ValueError):
+                self.module.prepare(self.wt, self.state)
+            with self.assertRaises(ValueError):
+                self.module.cleanup(self.wt, self.state)
+
+    def test_short_write_during_prepare_preserves_original_and_recovery(self):
+        self.config.parent.mkdir()
+        before = b"# original config\r\n"
+        self.config.write_bytes(before)
+        real_write = os.write
+        writes = 0
+
+        def short_then_fail(fd, data):
+            nonlocal writes
+            writes += 1
+            if writes == 1:
+                return real_write(fd, data[: max(1, len(data) // 2)])
+            raise OSError("injected write failure")
+
+        with mock.patch.object(self.module.os, "write", side_effect=short_then_fail):
+            with self.assertRaises(OSError):
+                self.module.prepare(self.wt, self.state)
+
+        self.assertGreaterEqual(writes, 2)
+        self.assertEqual(self.config.read_bytes(), before)
+        self.assertTrue(self.state.exists())
+        self.assertEqual(list(self.config.parent.glob(".sandbox.toml.*.tmp")), [])
+
+        self.module.cleanup(self.wt, self.state)
+        self.assertEqual(self.config.read_bytes(), before)
+        self.assertFalse(self.state.exists())
+
+    def test_atomic_restore_failure_keeps_applied_config_and_journal(self):
+        self.config.parent.mkdir()
+        before = b"# original config\r\n"
+        self.config.write_bytes(before)
+        self.module.prepare(self.wt, self.state)
+        applied = self.config.read_bytes()
+
+        with mock.patch.object(
+            self.module.os, "replace", side_effect=OSError("injected replace failure")
+        ):
+            with self.assertRaises(OSError):
+                self.module.cleanup(self.wt, self.state)
+
+        self.assertEqual(self.config.read_bytes(), applied)
+        self.assertTrue(self.state.exists())
+        self.assertEqual(list(self.config.parent.glob(".sandbox.toml.*.tmp")), [])
+
+        self.module.cleanup(self.wt, self.state)
+        self.assertEqual(self.config.read_bytes(), before)
+        self.assertFalse(self.state.exists())
 
     def test_invalid_journal_is_rejected_without_changing_config(self):
         self.config.parent.mkdir()
