@@ -129,7 +129,7 @@ class ProductBuildTests(unittest.TestCase):
             shutil.copytree(ROOT / "skills" / "how-it-works", skill)
             changelog = skill / "CHANGELOG.md"
             original = changelog.read_text(encoding="utf-8")
-            mutated = re.sub(r"(?m)^## 2\.0\.0 - [0-9]{4}-[0-9]{2}-[0-9]{2}\n", "", original, count=1)
+            mutated = re.sub(r"(?m)^## 2\.0\.1 - [0-9]{4}-[0-9]{2}-[0-9]{2}\n", "", original, count=1)
             self.assertNotEqual(mutated, original)
             changelog.write_text(mutated, encoding="utf-8")
             with self.assertRaises(ReleaseError) as raised:
