@@ -238,6 +238,8 @@ def validate_product(skill_root: Path, registry: ProductRegistry) -> list[str]:
     allowed_top_level = ALLOWED_TOP_LEVEL
     if skill_root.name == "pre-sdd-review":
         allowed_top_level = allowed_top_level | {"evidence"}
+    if skill_root.name == "sddx":
+        allowed_top_level = allowed_top_level | {".claude-plugin"}
     for child in skill_root.iterdir():
         if _is_ignored_residue(child.name):
             continue

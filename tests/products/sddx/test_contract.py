@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -10,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.lib.product_contract import parse_skill_frontmatter
+from scripts.lib.product_contract import parse_skill_frontmatter, validate_product
 from scripts.lib.product_registry import load_registry
 from tests.repository.test_installation_contract import installation_block
 
@@ -154,6 +156,28 @@ class SddxContractTests(unittest.TestCase):
                 installation_block("skills/how-it-works/README.md"),
                 relative,
             )
+
+    def test_claude_plugin_directory_is_allowed_for_sddx(self) -> None:
+        registry = load_registry(ROOT / "products.toml")
+        with tempfile.TemporaryDirectory() as directory:
+            copied = Path(directory) / "sddx"
+            shutil.copytree(SKILL, copied, ignore=shutil.ignore_patterns("__pycache__"))
+            plugin_dir = copied / ".claude-plugin"
+            plugin_dir.mkdir(exist_ok=True)
+            (plugin_dir / "plugin.json").write_text('{"name": "sddx"}\n', encoding="utf-8")
+            self.assertEqual(validate_product(copied, registry), [])
+
+    def test_claude_plugin_directory_is_allowed_only_for_sddx(self) -> None:
+        registry = load_registry(ROOT / "products.toml")
+        with tempfile.TemporaryDirectory() as directory:
+            copied = Path(directory) / "how-it-works"
+            shutil.copytree(ROOT / "skills" / "how-it-works", copied,
+                            ignore=shutil.ignore_patterns("__pycache__"))
+            plugin_dir = copied / ".claude-plugin"
+            plugin_dir.mkdir()
+            (plugin_dir / "plugin.json").write_text('{"name": "how-it-works"}\n', encoding="utf-8")
+            self.assertIn("unexpected top-level file: .claude-plugin",
+                          validate_product(copied, registry))
 
 
 def _python_fence_after(relative: str, marker: str) -> str:
