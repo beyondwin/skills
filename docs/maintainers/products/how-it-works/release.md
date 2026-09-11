@@ -6,8 +6,9 @@
 [버저닝](../../repository/versioning.md)을 따릅니다.
 
 공개 how-it-works 릴리스는 아직 없습니다. 이 제품은 통합 `v2.0.0` GitHub
-Release와 불변 카탈로그 lock에 포함되지 않았습니다. 현재 독립 공개 후보
-메타데이터는 `2.0.0`입니다. tag, publication, GitHub Release는 만들지 않았습니다.
+Release와 불변 카탈로그 lock에 포함되지 않았습니다. 현재 독립 버전은
+`release.toml`이 소유합니다. tag, publication, GitHub Release는 만들지
+않았습니다.
 
 ## SemVer 예시
 
@@ -24,20 +25,9 @@ Release와 불변 카탈로그 lock에 포함되지 않았습니다. 현재 독�
 
 ## 검사, 빌드, 다운로드
 
-`2.0.0` 검사·빌드·다운로드 확인:
-
-```bash
-python3 scripts/verify.py --skill how-it-works
-python3 scripts/release.py check --product how-it-works
-python3 scripts/release.py build --product how-it-works --output <new-empty-directory>
-python3 scripts/release.py verify-download --product how-it-works --input <fresh-download-directory>
-```
-
-`check`는 깨끗한 추적 트리, SemVer, CHANGELOG, 태그 충돌, 제품 범위와 필수
-검증을 확인합니다. `build`는 새 빈 출력 디렉터리만 쓰고 standalone ZIP 하나와
-`SHA256SUMS`를 만듭니다. `verify-download`는 새로 받은 바이트의 checksum, ZIP
-구조, 추출 payload hash, 제품 검증과 설치 smoke를 확인합니다. 로컬 `dist/`는
-공개 증거가 아닙니다.
+공통 check / build / verify-download 명령은
+[`docs/maintainers/repository/release.md`](../../repository/release.md)를
+보세요. 제품 검사는 `python3 scripts/release.py check --product how-it-works`입니다.
 
 제품 태그는 `how-it-works-v<version>`입니다. 태그와 Draft는 명시적 출시
 작업입니다. 로컬 빌드의 부수 효과가 아닙니다.

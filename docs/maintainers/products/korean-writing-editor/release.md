@@ -19,26 +19,18 @@
 설치 파일이 바뀌면 `release.toml`과 `SKILL.md` 버전 결정과 제품 CHANGELOG
 항목이 같은 변경에 있어야 합니다.
 
-`2.0.2` 릴리스 증거에는 runner 18 제품 검증, 서른세 개 오프라인 케이스
+릴리스 증거에는 runner 18 제품 검증, 서른세 개 오프라인 케이스
 (`normative=10 preservation=8 noop=6 voice=4 trigger=5`), 복사하거나 추출한
 standalone payload의 README 상대 링크 검사가 모두 포함되어야 합니다. 저장소
-원본 payload 통과만으로 ZIP 검증을 대신하지 않습니다. 현재 `2.0.2`는 로컬
-준비 대상이며, 새 GitHub 태그나 Release가 발행되었다는 뜻이 아닙니다.
+원본 payload 통과만으로 ZIP 검증을 대신하지 않습니다. 현재 독립 버전은
+`release.toml`이 소유합니다. 로컬 준비만으로 새 GitHub 태그나 Release가
+발행되었다는 뜻이 아닙니다.
 
 ## 검사, 빌드, 다운로드
 
-```bash
-python3 scripts/verify.py --skill korean-writing-editor
-python3 scripts/release.py check --product korean-writing-editor
-python3 scripts/release.py build --product korean-writing-editor --output <new-empty-directory>
-python3 scripts/release.py verify-download --product korean-writing-editor --input <fresh-download-directory>
-```
-
-`check`는 깨끗한 추적 트리, SemVer, CHANGELOG, 태그 충돌, 제품 범위와 필수
-검증을 확인합니다. `build`는 새 빈 출력 디렉터리만 쓰고 standalone ZIP 하나와
-`SHA256SUMS`를 만듭니다. `verify-download`는 새로 받은 바이트의 checksum, ZIP
-구조, 추출 payload hash, 제품 검증과 설치 smoke를 확인합니다. 로컬 `dist/`는
-공개 증거가 아닙니다.
+공통 check / build / verify-download 명령은
+[`docs/maintainers/repository/release.md`](../../repository/release.md)를
+보세요. 제품 검사는 `python3 scripts/release.py check --product korean-writing-editor`입니다.
 
 제품 태그는 `korean-writing-editor-v<version>`입니다. 기존 통합 태그 `v2.0.0`의
 standalone ZIP은 레거시 기준선입니다. 제품 한정 태그

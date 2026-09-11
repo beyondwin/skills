@@ -4,6 +4,8 @@
 live-check 경계를 소유합니다. 모델의 실제 리뷰 품질을 측정했다고 주장하지
 않습니다.
 
+공급자 없는 픽스처 경로는 `tests/products/pre-sdd-review/`입니다.
+
 ## Required provider-free command
 
 공급자 자격 증명과 모델 호출 없이 제품 계약을 실행합니다.

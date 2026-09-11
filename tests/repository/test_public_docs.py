@@ -91,8 +91,8 @@ PRE_SDD_REVIEW_SUPPORT = (
 PRE_SDD_SHARED_SECTION_DIGESTS = {
     ("ko", "safety"): "2308378028288c8a57547252818cdfa6e6392b1fe53d6b113659b273dda03547",
     ("en", "safety"): "f41ea8a8d2dd98f3d6b37eeacca8a488fc6bf046b4971c636ae56239df6876ab",
-    ("ko", "verification"): "b2e63b8c98fe4aec48f8bc5ff3721f1ff7bb5c9e2c2ec7f44dfd343a77c7aa26",
-    ("en", "verification"): "bf532dac4cd0c9fb3d8072901731cd8276c694726428dee80fe73aef1e0ecbae",
+    ("ko", "verification"): "327cbc6c71a97fde2228619f7dc7576b45789057521c395321a89d2cd47b6b30",
+    ("en", "verification"): "f5480b8e646862741994f96291d243501dd6b78febd75dd34a355f53cf60ac61",
 }
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
@@ -921,6 +921,12 @@ class UserGuideFactTests(unittest.TestCase):
                 f"{document.name} must not treat offline fixtures as live quality evidence",
             )
 
+    def test_verification_guide_does_not_list_product_fixture_directories(self) -> None:
+        for language in ("ko", "en"):
+            text = _read(ROOT / "docs" / "users" / language / "verification.md")
+            self.assertNotIn("tests/products/korean-writing-editor/offline/", text)
+            self.assertNotIn("`tests/products/image-workbench/`", text)
+
     def test_shared_guides_name_current_evidence_dimensions(self) -> None:
         for language in ("ko", "en"):
             with self.subTest(language=language):
@@ -1706,6 +1712,17 @@ class MaintainerStructureTests(unittest.TestCase):
             path = ROOT / relative
             self.assertFalse(path.exists(), f"{relative} must not remain after migration")
 
+    def test_product_testing_docs_own_fixture_paths(self) -> None:
+        expected = {
+            "korean-writing-editor": "tests/products/korean-writing-editor/offline/",
+            "image-workbench": "tests/products/image-workbench/",
+            "how-it-works": "tests/products/how-it-works/",
+            "pre-sdd-review": "tests/products/pre-sdd-review/",
+        }
+        for name, path in expected.items():
+            text = _read(ROOT / "docs" / "maintainers" / "products" / name / "testing.md")
+            self.assertIn(path, text, name)
+
 
 class MaintainerProtocolTests(unittest.TestCase):
     def test_architecture_owns_payload_and_test_separation(self) -> None:
@@ -1845,10 +1862,10 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertNotIn("@how-it-works", compatibility_text)
         self.assertIn("tests/products/how-it-works/live/smoke-record.json", compatibility_text)
         self.assertIn("release.toml", release_text)
-        self.assertIn("2.0.0", release_text)
+        self.assertIn("docs/maintainers/repository/release.md", release_text)
         self.assertIn("python3 scripts/release.py check --product how-it-works", release_text)
-        self.assertIn("python3 scripts/release.py build --product how-it-works", release_text)
-        self.assertIn(
+        self.assertNotIn("python3 scripts/release.py build --product how-it-works", release_text)
+        self.assertNotIn(
             "python3 scripts/release.py verify-download --product how-it-works",
             release_text,
         )

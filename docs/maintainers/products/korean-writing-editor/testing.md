@@ -2,7 +2,8 @@
 
 `tests/products/korean-writing-editor/offline/cases.json`과
 `tests/products/korean-writing-editor/offline/run.py`에서 서른세 개 속성
-케이스와 변이 검사를 그대로 유지하세요.
+케이스와 변이 검사를 그대로 유지하세요. 오프라인 픽스처 경로는
+`tests/products/korean-writing-editor/offline/`입니다.
 
 `--scope full`은 `README.md`와 `README.en.md`도 필수 payload 파일로 읽고,
 복사한 standalone payload에서 모든 로컬 링크가 payload 내부의 실제 파일로

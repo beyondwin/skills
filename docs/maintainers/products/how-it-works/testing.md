@@ -2,6 +2,8 @@
 
 모델 서비스 없이 확인하는 규칙과, 선택적이고 비용이 들 수 있는 실제 실행 확인을 섞지 마세요. 사용자 주제, 모델 서비스 대화, 비공개 로그를 Git 테스트 예시로 커밋하지 마세요.
 
+픽스처 경로는 `tests/products/how-it-works/`입니다.
+
 ## 공급자 없는 증거
 
 필수 증거는 `python3 scripts/verify.py --skill how-it-works`입니다.

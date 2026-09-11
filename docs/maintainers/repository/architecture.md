@@ -50,6 +50,8 @@ README, CHANGELOG, `release.toml`, 라이선스, 실행에 필요한 파일은 �
 `python3 scripts/inspect_asset.py`로 호출합니다. 저장소 상대 `skills/`
 경로로 호출하지 않습니다.
 
+제품별 픽스처 경로의 세부는 각 제품 `testing.md`가 소유합니다.
+
 ## 인터페이스
 
 - 플러그인 발견: `catalog/plugin/.codex-plugin/plugin.json`이 카탈로그
@@ -62,15 +64,6 @@ README, CHANGELOG, `release.toml`, 라이선스, 실행에 필요한 파일은 �
 - 스킬 식별: 디렉터리 이름, `SKILL.md` `name`, 해당 제품 `release.toml` 이름이
   같아야 합니다. `release.toml` 버전과 `SKILL.md` `metadata.version`도 같아야
   합니다. `license: Apache-2.0`은 최상위 frontmatter입니다.
-- 한국어 오프라인 러너: `tests/products/korean-writing-editor/offline/run.py --skill-root PATH`.
-  케이스는 러너 옆에 둡니다.
-- 이미지 평가기: `tests/products/image-workbench/run.py --skill-root PATH`.
-  케이스는 러너 옆에 둡니다.
-- inspector: 실제 스킬 루트에서 `python3 scripts/inspect_asset.py`를 해석합니다.
-- 라이브 실행 도구: 소스 스킬은 `<repo>/skills/korean-writing-editor`입니다.
-  보고서는 명시된 무시 증거 루트 아래에 둡니다.
-- pre-sdd-review 계약: `tests/products/pre-sdd-review/test_contract.py`.
-  케이스는 같은 디렉터리의 `cases.json`과 `fixtures/`입니다.
 - 공개 사실: 한영 사용자 문서는 명령, 지원 상태, 한계가 일치해야 합니다.
   현재 버전 리터럴은 제품 `release.toml`이 소유합니다.
 

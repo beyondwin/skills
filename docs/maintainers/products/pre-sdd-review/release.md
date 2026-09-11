@@ -5,21 +5,18 @@ version source is `skills/pre-sdd-review/release.toml`. `SKILL.md`의
 `metadata.version`은 검증된 복사본입니다. `CHANGELOG.md`는 사람이 읽는 계약
 이력입니다.
 
-제품 식별자는 `release.toml`의 `pre-sdd-review` `version 3.0.1`입니다.
-
 ## Check, build, and verify download
 
 공급자 없는 제품 검증을 실행한 뒤 새 빈 디렉터리에 패키징합니다. 따로 받은
-디렉터리에서 바이트를 검증합니다.
+디렉터리에서 바이트를 검증합니다. 공통 check / build / verify-download 명령은
+[`docs/maintainers/repository/release.md`](../../repository/release.md)를
+보세요. 제품 검사는 `python3 scripts/release.py check --product pre-sdd-review`입니다.
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
   -s tests/products/pre-sdd-review -p 'test_contract.py' -v
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
   -s tests/products/pre-sdd-review/evidence -p 'test_*.py' -v
-python3 scripts/release.py check --product pre-sdd-review
-python3 scripts/release.py build --product pre-sdd-review --output <new-empty-directory>
-python3 scripts/release.py verify-download --product pre-sdd-review --input <fresh-download-directory>
 ```
 
 `check`는 tracked product scope, SemVer, changelog, 필수 verification을

@@ -47,16 +47,13 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 ## Offline fixtures
 
-The offline suites prove the deterministic contract only. See each product README for that product's fixtures.
+The offline suites prove the deterministic contract only. Product fixture paths live in each product maintainer `testing.md`.
 
 Current Korean offline coverage is 33 cases (`normative=10`); the other fixture categories are unchanged. New Korean live evidence uses runner 18; historical runner receipts do not prove a runner 18 execution. Image coverage is 31 fixtures and 17 mutations.
 
 For Korean candidates, hard failures take precedence as `failed`. After hard checks pass, unobserved meaning, attribution, or requested edit execution yields `partially_verified`; offline contract success alone is not a live status. For How, fence/hop validity, loading, syntax, and meaning require separate evidence. The historical smoke remains `historical-unbound`; current metadata binding alone proves no model execution.
 
-- `korean-writing-editor`: `tests/products/korean-writing-editor/offline/`
-- `image-workbench`: `tests/products/image-workbench/`
-- `how-it-works`: `tests/products/how-it-works/`
-- `pre-sdd-review`: `tests/products/pre-sdd-review/`. Provider-free fixtures validate only instruction and package contracts. They do not prove reviewer independence, semantic completeness, or live review quality.
+Provider-free fixtures validate only instruction and package contracts. They do not prove reviewer independence, semantic completeness, or live review quality.
 
 The evidence stage under `tests/products/pre-sdd-review/evidence/` checks `evidence.py`. It makes no network, model, provider, or telemetry call.
 

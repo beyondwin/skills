@@ -382,9 +382,9 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### SDD handoff", "8a629dd12d78e2c08e77e7c1d057d0e450b135bc0633d5b62c8c926665976bca"),
 )
 MAINTAINER_CANONICAL_DIGEST = "34a9d592814bddd72ecb4929c4699f9525f5f0718db2fa0d33ad588848cd1815"
-TESTING_CANONICAL_DIGEST = "3dc92aa2bf002335965f9d836d978d28f96b1f0355bce398a7d3e2b71451be60"
+TESTING_CANONICAL_DIGEST = "9f006678d43f1ea431998b8fce4aca4ebcd9a856b0499c08cc15b5cfbf0031fe"
 COMPATIBILITY_CANONICAL_DIGEST = "e47297cbf13ae9b9d8ebde193338247f70a1329e0e3e73eb104bb4d249c02561"
-RELEASE_CANONICAL_DIGEST = "9445b6741f095a4bc79da1bbf2f20426903269e8d704acdc86d61a44f8f47d0b"
+RELEASE_CANONICAL_DIGEST = "30c68c2005e9cd6bffb03543dff5ba0847b5073aca12fea324af4016b70e10f1"
 
 
 def section(text: str, start: str, end: str) -> str:
@@ -622,28 +622,18 @@ def compatibility_document_errors(text: str) -> tuple[str, ...]:
     return tuple(errors)
 
 
-def fenced_code_blocks(text: str) -> tuple[str, ...]:
-    return tuple(re.findall(r"```[^\n]*\n(.*?)\n```", text, re.DOTALL))
-
-
 def release_document_errors(text: str) -> tuple[str, ...]:
     release = tomllib.loads((SKILL / "release.toml").read_text(encoding="utf-8"))
     errors: list[str] = []
     if whole_document_digest(text) != RELEASE_CANONICAL_DIGEST:
         errors.append("release document differs from the closed canonical contract")
-    identity = f"`{release['name']}` `version {release['version']}`"
-    if identity not in text or f"`skills/{release['name']}/release.toml`" not in text:
+    if f"`skills/{release['name']}/release.toml`" not in text:
         errors.append("release identity or version source differs")
-    commands = (
-        f"python3 scripts/release.py check --product {release['name']}",
-        f"python3 scripts/release.py build --product {release['name']} --output <new-empty-directory>",
-        f"python3 scripts/release.py verify-download --product {release['name']} --input <fresh-download-directory>",
-    )
-    if not all(command in text for command in commands):
+    check = f"python3 scripts/release.py check --product {release['name']}"
+    if check not in text:
         errors.append("release commands differ")
-    command_lines = tuple(line for block in fenced_code_blocks(text) for line in block.splitlines())
-    if not all(command in command_lines for command in commands):
-        errors.append("release commands must be fenced command lines")
+    if "docs/maintainers/repository/release.md" not in text:
+        errors.append("release commands differ")
     return tuple(errors)
 
 
@@ -1504,8 +1494,7 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         for fact in (
             "version source is `skills/pre-sdd-review/release.toml`",
             "python3 scripts/release.py check --product pre-sdd-review",
-            "python3 scripts/release.py build --product pre-sdd-review",
-            "python3 scripts/release.py verify-download --product pre-sdd-review",
+            "docs/maintainers/repository/release.md",
         ):
             self.assertIn(fact, release)
         self.assertIn("no tag or github release is created by these commands.", normalized_release)

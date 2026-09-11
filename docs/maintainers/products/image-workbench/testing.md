@@ -1,7 +1,8 @@
 # image-workbench 테스트
 
 픽스처 스키마나 판정 규칙을 바꾸려면 평가기 self-test와 긍정/near-miss
-픽스처를 먼저 고칩니다. RED를 확인한 뒤 구현합니다.
+픽스처를 먼저 고칩니다. RED를 확인한 뒤 구현합니다. 픽스처 경로는
+`tests/products/image-workbench/`입니다.
 
 ## 결정적 픽스처
 
