@@ -12,14 +12,16 @@ records.
 [`docs/users/`](../users/), [`docs/maintainers/`](../maintainers/), 각 제품
 README를 보세요.
 
-진행 중인 설계:
+진행 중인 설계·계획:
 
 - [문서 구조 설계](specs/2026-09-11-documentation-structure-design.md)
+- [문서 구조 구현 계획](plans/2026-09-11-documentation-structure.md)
 
 완료된 문서는 Git 이력에서 확인할 수 있습니다.
 
-In-progress specs:
+In-progress specs and plans:
 
 - [Documentation structure design](specs/2026-09-11-documentation-structure-design.md)
+- [Documentation structure implementation plan](plans/2026-09-11-documentation-structure.md)
 
 Completed documents remain available in Git history.
