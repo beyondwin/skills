@@ -77,8 +77,10 @@ ledger에는 모든 리뷰 dispatch를 적습니다. High는 한 줄이고, XHig
 
 정의는 `.claude-plugin/plugin.json`과 `agents/claude-code/`를 통해 skills-dir
 플러그인으로 Claude Code에 전달됩니다. 설치 링크는 두 개 그대로이며 새 설치 단계를
-추가하지 않습니다. Codex에는 정의가 없으므로 요청 effort를 지정할 수 없다고 보고한
-뒤 진행하며, 정의 부재로 실행을 BLOCKED로 세우지 않습니다.
+추가하지 않습니다. 정의가 없으면 — Codex에는 항상 없고, Claude Code에서도 로딩에
+실패하면 없습니다 — 요청 effort를 지정할 수 없다고 보고한 뒤 기본 dispatch로
+진행합니다. 다른 모델이나 effort로 대체하지 않고, 정의를 새로 만들지도 않습니다.
+정의 부재로 실행을 BLOCKED로 세우지 않습니다.
 
 구현 effort는 기본 High입니다. 복잡한 동시성, race, 얽힌 부작용, 또는 이
 task에서 High 리뷰가 이미 실패한 경우에만 XHigh입니다. 설계 모호함은

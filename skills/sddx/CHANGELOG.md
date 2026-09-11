@@ -12,7 +12,7 @@ All notable changes to this product are documented in this file.
 
 ### Changed
 
-- Native reviewers follow the active orchestrator model, and effort is High unless a named trigger in the diff calls for XHigh. This overrides generic SDD model selection.
+- Native reviewers follow the active orchestrator model, and effort is High unless a named trigger in the changed paths calls for XHigh. This overrides generic SDD model selection.
 
 ### Fixed
 

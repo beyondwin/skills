@@ -198,11 +198,16 @@ class SddxContractTests(unittest.TestCase):
 
     def test_claude_code_agents_are_closed_and_escalation_only(self) -> None:
         directory = SKILL / "agents" / "claude-code"
-        definitions = sorted(path.name for path in directory.glob("*.md"))
+        definitions = sorted(
+            path.relative_to(directory).as_posix() for path in directory.rglob("*.md")
+        )
         self.assertEqual(definitions, ["sddx-reviewer-xhigh.md"])
         self.assertEqual(
             sorted(path.name for path in directory.iterdir() if path.is_file()),
             ["sddx-reviewer-xhigh.md"],
+        )
+        self.assertEqual(
+            sorted(path.name for path in directory.iterdir() if path.is_dir()), []
         )
         frontmatter = parse_skill_frontmatter(
             (directory / "sddx-reviewer-xhigh.md").read_text(encoding="utf-8")

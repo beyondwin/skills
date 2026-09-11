@@ -75,6 +75,8 @@ external skill 읽기를 제안했고, 같은 상황에 `candidate-worker.md` �
 행동, 모델별 성능 비교, 통계적 성공률을 뜻하지 않습니다. 실제 호출과 대응한 근거는
 [maintainer testing](../../../docs/maintainers/products/sddx/testing.md)에 기록합니다.
 
+## 리뷰어 effort probe
+
 리뷰어 effort probe는 오케스트레이터가 어떤 `subagent_type`을 dispatch하고 ledger에
 무엇을 적는지로 판정합니다. 문자열 포함 검사는 통과로 치지 않습니다. baseline과
 안내 적용본을 각각 독립 문맥에서 받아 비교하며, baseline이 이미 같은 선택을 하면 그

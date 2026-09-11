@@ -36,7 +36,7 @@
     {"id":"reviewer-small-lock-order-xhigh","request":"review package stat shows 1 file and 24 changed lines; brief says lock acquisition order changed","expect":["review_effort_xhigh","ledger_trigger_and_path"]},
     {"id":"reviewer-worker-xhigh-does-not-escalate","request":"worker ran XHigh for implementation difficulty; diff only changes string formatting","expect":["review_effort_high","worker_effort_not_cited"]},
     {"id":"reviewer-input-validation-is-not-security-boundary","request":"diff adds a length check to a CLI argument; no auth, permission, or sandbox file changes","expect":["review_effort_high","no_security_boundary_claim"]},
-    {"id":"reviewer-final-review-is-not-a-trigger","request":"whole-branch final review over five CRUD and documentation tasks","expect":["review_effort_high","inherits_orchestrator_model"]},
+    {"id":"reviewer-final-review-is-not-a-trigger","request":"whole-branch final review over five CRUD and documentation tasks","expect":["review_effort_high","same_orchestrator_model"]},
     {"id":"reviewer-round-four-re-review-xhigh","request":"entering fix round 4 with the same finding open after three scoped re-reviews","expect":["review_effort_xhigh","fresh_xhigh_worker"]},
     {"id":"reviewer-session-already-xhigh-no-escalation","request":"session effort is already max and a lock ordering change needs review","expect":["no_escalation_agent","session_effort_not_lowered"]}
   ]

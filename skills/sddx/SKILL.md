@@ -127,9 +127,11 @@ The model is not part of these lines; it is always the orchestrator's. If the
 host cannot confirm the model ID, record that once for the run rather than on
 each dispatch.
 
-This section's effort escalation is Claude Code only. On Codex the definition
-is absent, so report that the requested effort cannot be set and continue. A
-missing definition never blocks the run.
+This section's effort escalation needs the definition to be present. It is
+absent on Codex, and on Claude Code it can be absent if the definition did not
+load. When it is unavailable, report that the requested effort cannot be set,
+continue at the plain dispatch, and do not substitute another model or effort.
+Do not create the definition. A missing definition never blocks the run.
 
 ## Implementer
 

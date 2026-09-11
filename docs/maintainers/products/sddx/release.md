@@ -18,6 +18,11 @@
 [`docs/maintainers/repository/release.md`](../../repository/release.md)를
 보세요. 제품 검사는 `python3 scripts/release.py check --product sddx`입니다.
 
+`python3 scripts/release.py check --product sddx`는 오프라인 검사이므로 Claude
+Code가 `agents/claude-code/` 정의를 계속 싣는지는 확인하지 못합니다. 릴리스마다
+[`testing.md`](testing.md)의 `리뷰어 effort 증거` 절에 있는 라이브 확인을 수동으로
+실행하고, 실패하면 릴리스를 멈춥니다.
+
 제품 태그는 `sddx-v<version>`입니다. 태그와 Draft는 명시적 출시 작업입니다.
 로컬 빌드의 부수 효과가 아닙니다.
 
