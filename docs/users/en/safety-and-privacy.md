@@ -32,6 +32,14 @@ Recording is optional; a receipt error does not change the semantic verdict. Sch
 Atomic local storage gives cooperating clients consistency; it is not a signed audit log resistant to malicious local tampering.
 An `outcome` label (`good`, `false-ready`, `noisy`, `abandoned`) is an observation recorded by a person or the SDD worker after SDD or implementation ends and may be re-recorded to correct it. Labels are self-improvement evidence, not objective quality judgments or audit-grade proof. Reading the log is an agent's task: `summary` returns JSON whose anomalies and chains carry run_id values.
 
+## External SDD implementation
+
+A live `sddx` worker transmits plan and worktree contents to the Cursor or
+xAI provider. That transfer follows those CLIs' data controls. Default
+`verify.py` and CI do not invoke Cursor or Grok CLI. Do not commit worker
+transcripts, credentials, or provider receipts. The controller does not put
+host secrets into the worker prompt.
+
 ## High-stakes requests
 
 For high-stakes legal, medical, or financial Korean text, default to mechanical `correct` or `diagnose`. `how-it-works` slices in those domains explain mechanism only. Image Workbench holds when material rights or privacy are unknown.

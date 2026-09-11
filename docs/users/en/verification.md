@@ -34,10 +34,11 @@ python3 scripts/verify.py --profile windows-portable
 
 Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md), [`sddx`](../../../skills/sddx/README.en.md).
 
-To verify only `pre-sdd-review`, run:
+To verify only `pre-sdd-review` or `sddx`, run:
 
 ```bash
 python3 scripts/verify.py --skill pre-sdd-review
+python3 scripts/verify.py --skill sddx
 ```
 
 ## Shared evidence sentences

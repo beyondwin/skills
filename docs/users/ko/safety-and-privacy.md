@@ -32,6 +32,14 @@ record에는 저장소 상대 경로, 디렉터리 이름, 해시, 열거값, �
 
 `outcome` label(`good`, `false-ready`, `noisy`, `abandoned`)은 SDD나 구현이 끝난 뒤 사람이나 SDD 워커가 남기는 관찰입니다. 다시 기록해 정정할 수 있습니다. label은 자기개선 evidence입니다. 객관적 품질 판정이나 감사 등급 증거가 아닙니다. 로그 읽기는 에이전트의 일입니다. `summary`는 JSON을 돌려줍니다. anomalies와 chains에 run_id가 붙어 있습니다.
 
+## 외부 SDD 구현
+
+`sddx`의 라이브 worker는 계획과 worktree 내용을 Cursor 또는 xAI 공급자에게
+보냅니다. 그 전송은 해당 CLI의 데이터 통제를 따릅니다. 기본 `verify.py`와
+CI는 Cursor나 Grok CLI를 호출하지 않습니다. worker 대화, 자격 증명, 공급자
+receipt를 커밋하지 마세요. 컨트롤러는 호스트 비밀을 worker 프롬프트에 넣지
+않습니다.
+
 ## 이해관계가 큰 요청
 
 법률·의료·금융처럼 이해관계가 큰 한국어 글은 기계적 `correct` 또는 `diagnose`가 기본입니다. `how-it-works`의 해당 슬라이스는 메커니즘만 설명합니다. `image-workbench`는 권리·개인정보가 불명이면 보류합니다.

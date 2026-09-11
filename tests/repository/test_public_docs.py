@@ -919,6 +919,12 @@ class UserGuideFactTests(unittest.TestCase):
         self.assertIn("`how-it-works` slices", english)
         self.assertNotIn("Gra" + "spic slices", english)
 
+    def test_safety_guide_mentions_sddx_without_live_cli_in_ci(self) -> None:
+        for language in ("ko", "en"):
+            text = _read(ROOT / "docs" / "users" / language / "safety-and-privacy.md")
+            self.assertIn("sddx", text)
+            self.assertNotIn("CURSOR_API_KEY", text)
+
     def test_verification_owns_offline_live_evidence_and_profiles(self) -> None:
         for document in (
             ROOT / "docs" / "users" / "ko" / "verification.md",

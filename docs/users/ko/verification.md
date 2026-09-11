@@ -34,10 +34,11 @@ python3 scripts/verify.py --profile windows-portable
 
 제품 안내는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md), [`sddx`](../../../skills/sddx/README.md)를 보세요.
 
-`pre-sdd-review`만 검증하려면 다음 명령을 씁니다.
+`pre-sdd-review` 또는 `sddx`만 검증하려면 다음 명령을 씁니다.
 
 ```bash
 python3 scripts/verify.py --skill pre-sdd-review
+python3 scripts/verify.py --skill sddx
 ```
 
 ## 공유 증거 문장
