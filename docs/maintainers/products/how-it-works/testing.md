@@ -54,7 +54,7 @@ marker, 옛 직접 `ln -s` 명령 제거, payload 밖 문서에 대한 깨진 �
 라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있습니다. CI가 요구하지
 않습니다. 페이로드 계약 통과를 라이브 호출 증거로 설명하지 마세요.
 
-제품 지원은 Codex/Claude Code 그대로이며 현재 2.0.0의 실제 실행 증거는
+제품 지원은 Codex/Claude Code 그대로이며 현재 설치 파일의 실제 실행 증거는
 `not_measured`입니다. 지원 대상과 현재 측정 상태를 같은 조건으로 계산하지 않습니다.
 과거 `live/smoke-record.json`의 schema 1 바이트와 날짜·클라이언트·판정은 유지합니다.
 이 기록은 `historical-unbound`이며 당시 payload hash나 model을 추정하지 않습니다.

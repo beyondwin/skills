@@ -9,7 +9,7 @@
 복사한 standalone payload에서 모든 로컬 링크가 payload 내부의 실제 파일로
 해결되는지 검사합니다. 저장소 문서 링크는 절대 GitHub URL이므로 네트워크로
 응답 상태를 확인하지 않습니다. 제품 패키지 회귀는 `release.toml`, `SKILL.md`,
-날짜가 있는 `2.0.2` CHANGELOG 항목과 깨진 README 링크의 거부를 함께 확인합니다.
+날짜가 있는 CHANGELOG 항목과 깨진 README 링크의 거부를 함께 확인합니다.
 
 ## 결정적 픽스처
 

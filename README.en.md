@@ -39,7 +39,7 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-re
 
 The How It Works public path is
 https://github.com/beyondwin/skills/tree/main/skills/how-it-works.
-Local links are in [Local links](docs/users/en/install-local.md).
+See [local links](docs/users/en/install-local.md).
 
 Install, update, uninstall, and the third-party installer are in
 [Installation](docs/users/en/installation.md).

@@ -92,7 +92,7 @@ PRE_SDD_SHARED_SECTION_DIGESTS = {
     ("ko", "safety"): "2308378028288c8a57547252818cdfa6e6392b1fe53d6b113659b273dda03547",
     ("en", "safety"): "f41ea8a8d2dd98f3d6b37eeacca8a488fc6bf046b4971c636ae56239df6876ab",
     ("ko", "verification"): "327cbc6c71a97fde2228619f7dc7576b45789057521c395321a89d2cd47b6b30",
-    ("en", "verification"): "f5480b8e646862741994f96291d243501dd6b78febd75dd34a355f53cf60ac61",
+    ("en", "verification"): "ad01ddd1ef2e0c9c1ebbba2d0d3b228cef8f81a3d7feed755764b7677eddbf40",
 }
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
@@ -534,7 +534,7 @@ def pre_sdd_shared_contract_errors(
             "비-Windows의 `windows-portable` 통과는 native Windows 지원을 증명하지 않습니다.",
         ),
         ("en", "verification"): (
-            "Provider-free fixtures validate only instruction and package contracts.",
+            "`pre-sdd-review` provider-free fixtures validate only instruction and package contracts.",
             "They do not prove reviewer independence, semantic completeness, or live review quality.",
             "A non-Windows `windows-portable` pass does not prove native Windows support.",
         ),
@@ -630,6 +630,15 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
                 for heading in forbidden:
                     self.assertNotIn(heading, text, f"{product.name}/{filename} {heading}")
                 self.assertNotIn("### Contract", text)
+            for phrase in (
+                "이 프로젝트 자체는 텔레메트리를 넣지 않습니다.",
+                "This project itself has no telemetry.",
+                "이 제품은 텔레메트리나 업로드 경로를 추가하지 않습니다.",
+                "This product adds no telemetry or upload path.",
+                "오프라인 스위트는 결정적 계약만 증명합니다.",
+                "The offline suites prove the deterministic contract only.",
+            ):
+                self.assertNotIn(phrase, text, f"{product.name}/{filename}")
 
     def test_how_it_works_readmes_include_supported_host_install_call_and_result(self) -> None:
         for filename in ("README.md", "README.en.md"):
@@ -834,6 +843,8 @@ class UserGuideFactTests(unittest.TestCase):
             self.assertIn(HOW_IT_WORKS_UNLINK_AGENTS, text)
             self.assertIn(HOW_IT_WORKS_UNLINK_CLAUDE, text)
             self.assertNotIn("$skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor", text)
+            for name in CODEX_PRODUCTS:
+                self.assertNotIn(INSTALLER_COMMANDS[name], text, rel)
 
     def test_how_it_works_install_and_remove_share_agents_destination(self) -> None:
         installer = INSTALLER_COMMANDS["how-it-works"]
@@ -926,6 +937,8 @@ class UserGuideFactTests(unittest.TestCase):
             text = _read(ROOT / "docs" / "users" / language / "verification.md")
             self.assertNotIn("tests/products/korean-writing-editor/offline/", text)
             self.assertNotIn("`tests/products/image-workbench/`", text)
+            self.assertNotIn("tests/products/how-it-works/", text)
+            self.assertNotIn("`tests/products/pre-sdd-review/`", text)
 
     def test_shared_guides_name_current_evidence_dimensions(self) -> None:
         for language in ("ko", "en"):
@@ -1804,6 +1817,7 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("producer", testing_text.lower())
         self.assertIn("reviewer", testing_text.lower())
         self.assertIn("release.toml", release_text)
+        self.assertIn("docs/maintainers/repository/release.md", release_text)
         self.assertIn("python3 scripts/release.py check --product korean-writing-editor", release_text)
 
     def test_image_protocol_preserves_route_authorization_spec_and_inspector(self) -> None:
@@ -1824,6 +1838,7 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("inspector", testing_text)
         self.assertIn("inspect_asset.py", testing_text)
         self.assertIn("release.toml", release_text)
+        self.assertIn("docs/maintainers/repository/release.md", release_text)
         self.assertIn("python3 scripts/release.py check --product image-workbench", release_text)
 
     def test_how_it_works_protocol_maps_contract_testing_compatibility_and_release(self) -> None:

@@ -53,7 +53,7 @@ Current Korean offline coverage is 33 cases (`normative=10`); the other fixture 
 
 For Korean candidates, hard failures take precedence as `failed`. After hard checks pass, unobserved meaning, attribution, or requested edit execution yields `partially_verified`; offline contract success alone is not a live status. For How, fence/hop validity, loading, syntax, and meaning require separate evidence. The historical smoke remains `historical-unbound`; current metadata binding alone proves no model execution.
 
-Provider-free fixtures validate only instruction and package contracts. They do not prove reviewer independence, semantic completeness, or live review quality.
+`pre-sdd-review` provider-free fixtures validate only instruction and package contracts. They do not prove reviewer independence, semantic completeness, or live review quality.
 
 The evidence stage under `tests/products/pre-sdd-review/evidence/` checks `evidence.py`. It makes no network, model, provider, or telemetry call.
 

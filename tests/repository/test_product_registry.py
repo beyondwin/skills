@@ -22,6 +22,7 @@ from scripts.lib.product_registry import (  # noqa: E402
     validate_registry,
 )
 from scripts.lib.verification import REGISTERED_STAGE_NAMES  # noqa: E402
+from tests.repository.test_public_docs import CODEX_PRODUCTS  # noqa: E402
 
 
 def _product(
@@ -397,9 +398,7 @@ class RegistryDocumentationTests(unittest.TestCase):
             "safety-and-privacy.md",
             "verification.md",
         )
-        codex_products = tuple(
-            product for product in self.registry.products if product.name != "how-it-works"
-        )
+        codex_products = tuple(self.registry.require(name) for name in CODEX_PRODUCTS)
         how_it_works = self.registry.require("how-it-works")
         for language, readme in (("ko", "README.md"), ("en", "README.en.md")):
             for guide in shared_guides:

@@ -631,9 +631,9 @@ def release_document_errors(text: str) -> tuple[str, ...]:
         errors.append("release identity or version source differs")
     check = f"python3 scripts/release.py check --product {release['name']}"
     if check not in text:
-        errors.append("release commands differ")
+        errors.append("release check pointer differs")
     if "docs/maintainers/repository/release.md" not in text:
-        errors.append("release commands differ")
+        errors.append("repository release owner pointer differs")
     return tuple(errors)
 
 
