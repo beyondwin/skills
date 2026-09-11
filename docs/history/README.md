@@ -12,6 +12,14 @@ records.
 [`docs/users/`](../users/), [`docs/maintainers/`](../maintainers/), 각 제품
 README를 보세요.
 
-현재 진행 중인 설계·계획은 없습니다. 완료된 문서는 Git 이력에서 확인할 수 있습니다.
+진행 중인 설계:
 
-There are no in-progress specs or plans. Completed documents remain available in Git history.
+- [문서 구조 설계](specs/2026-09-11-documentation-structure-design.md)
+
+완료된 문서는 Git 이력에서 확인할 수 있습니다.
+
+In-progress specs:
+
+- [Documentation structure design](specs/2026-09-11-documentation-structure-design.md)
+
+Completed documents remain available in Git history.
