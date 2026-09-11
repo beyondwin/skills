@@ -922,8 +922,14 @@ class UserGuideFactTests(unittest.TestCase):
     def test_safety_guide_mentions_sddx_without_live_cli_in_ci(self) -> None:
         for language in ("ko", "en"):
             text = _read(ROOT / "docs" / "users" / language / "safety-and-privacy.md")
+            lowered = text.lower()
             self.assertIn("sddx", text)
+            self.assertIn("worktree", lowered)
+            self.assertTrue("xai" in lowered or "cursor" in lowered)
+            self.assertIn("verify.py", text)
             self.assertNotIn("CURSOR_API_KEY", text)
+            verify = _read(ROOT / "docs" / "users" / language / "verification.md")
+            self.assertIn("python3 scripts/verify.py --skill sddx", verify)
 
     def test_verification_owns_offline_live_evidence_and_profiles(self) -> None:
         for document in (

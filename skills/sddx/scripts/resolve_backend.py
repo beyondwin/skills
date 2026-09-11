@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import shutil
 import subprocess
 import sys
@@ -29,7 +28,9 @@ def _run(executable: str, arguments: list[str], timeout: float = 5.0) -> str:
 
 def _is_grok_identity(text: str) -> bool:
     blob = text.lower()
-    return "grok build" in blob or "xai-grok" in blob or "grok " in blob
+    if "grok build" in blob or "xai-grok" in blob:
+        return True
+    return any(line.startswith("grok ") for line in blob.splitlines())
 
 
 def _is_cursor_identity(text: str) -> bool:

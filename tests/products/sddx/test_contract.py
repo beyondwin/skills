@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -11,6 +12,7 @@ if str(ROOT) not in sys.path:
 
 from scripts.lib.product_contract import parse_skill_frontmatter
 from scripts.lib.product_registry import load_registry
+from tests.repository.test_installation_contract import installation_block
 
 SKILL = ROOT / "skills" / "sddx"
 CASES = ROOT / "tests" / "products" / "sddx" / "cases.json"
@@ -126,3 +128,17 @@ class SddxContractTests(unittest.TestCase):
             self.assertIn(unlink_agents, text)
             self.assertIn(unlink_claude, text)
             self.assertNotIn("ln -s", text)
+            self.assertEqual(
+                _python_fence_after(relative, marker),
+                installation_block("skills/how-it-works/README.md"),
+                relative,
+            )
+
+
+def _python_fence_after(relative: str, marker: str) -> str:
+    text = (ROOT / relative).read_text(encoding="utf-8")
+    tail = text.split(marker, 1)[1]
+    match = re.match(r"\s*```python\n(.*?)\n```", tail, re.S)
+    if match is None:
+        raise AssertionError(f"Python block must follow marker: {relative}")
+    return match.group(1)

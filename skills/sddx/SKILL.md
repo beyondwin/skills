@@ -35,7 +35,8 @@ per invocation.
 `c` means `cursor`. `g` means `grok`. With a backend argument, skip the
 picker. Without one, ask once for this plan.
 
-- Claude Code: AskUserQuestion with Cursor Grok and Grok CLI.
+- Claude Code: AskUserQuestion. Options are Cursor Agent CLI (Grok model)
+  and Grok Build CLI.
 - Codex: numbered options, wait for one answer.
 
 If only one backend is available, show that fact and the missing backend

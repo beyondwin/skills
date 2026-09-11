@@ -84,7 +84,6 @@ class RegistryParsingTests(unittest.TestCase):
                 "pre-sdd-review",
                 "sddx",
             ),
-
         )
 
     def test_explanation_product_has_measured_supported_hosts(self) -> None:

@@ -199,8 +199,11 @@ class ResolveBackendTests(unittest.TestCase):
         self.assertIn(result["reason"], ("not_found", "identity_mismatch"))
 
     def test_cli_unknown_backend_exits_2(self) -> None:
+        from io import StringIO
+
         module = self._load()
-        self.assertEqual(module.main(["--backend", "warp", "--json"]), 2)
+        with mock.patch("sys.stderr", new=StringIO()):
+            self.assertEqual(module.main(["--backend", "warp", "--json"]), 2)
 
     def test_cli_json_line_for_missing_backend(self) -> None:
         module = self._load()

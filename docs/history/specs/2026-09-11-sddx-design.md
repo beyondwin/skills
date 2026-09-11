@@ -336,7 +336,6 @@ SKILL.md는 활성화, 하드 게이트, SDD 참조, picker, effort, ledger 두 
 tests/products/sddx/test_contract.py
 tests/products/sddx/test_resolve_backend.py
 tests/products/sddx/cases.json
-tests/products/sddx/fixtures/binaries/
 docs/maintainers/products/sddx/{contract,testing,compatibility,release}.md
 ```
 
