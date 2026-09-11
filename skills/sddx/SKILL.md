@@ -117,6 +117,8 @@ Escalation is a floor, not a ceiling. If the session already runs at XHigh or
 above, the plain dispatch already satisfies it, so do not use the escalation
 agent and do not lower the session.
 
+Agent definitions ship with the skill. Do not create or edit one during a run.
+
 Record every review dispatch in the ledger. High is one line,
 `Task N review: sddx default — high`. XHigh must name a trigger and a
 referent, `Task N review: sddx-reviewer-xhigh — <trigger>: <path or brief
@@ -173,8 +175,8 @@ as review-passable DONE.
 - Escalating when the session already runs at XHigh or above
 - Writing or editing an agent definition during a run
 
-All of these mean: stop, restore the overlay, continue SDD with the
-external worker.
+All of these except the reviewer flags mean: stop, restore the overlay,
+continue SDD with the external worker.
 
 For the reviewer flags the remedy is different: stop, re-dispatch the review
 with the correct definition and no `model` override, and record it in the
