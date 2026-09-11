@@ -94,18 +94,37 @@ orchestrator model ID. Do not pick a separate reviewer model or hardcode a
 preferred model family. If the model ID is unavailable, record it as inherited
 and unknown rather than guess.
 
-Select reviewer effort separately, including on re-review and final review:
+Select reviewer effort separately, including on re-review and final review.
+On Claude Code, High means dispatching the reviewer the way SDD already does,
+with no `model` argument, so model and session effort are both inherited.
+XHigh means dispatching `subagent_type: sddx-reviewer-xhigh`, still with no
+`model` argument. Never pass a `model` argument that is not the orchestrator's
+own model; on Claude Code that means passing none at all.
 
 | Review scope | Effort |
 | --- | --- |
 | Clear requirements, local changes, straightforward integration | High |
-| Complex cross-task effects, concurrency/races, security/permissions, or repeatedly missed defects | XHigh |
+| Changes to locking, ordering, or concurrently shared state; changes to an auth, permission, secret, or sandbox boundary; a round 4-5 re-review; a defect the reviews keep missing | XHigh |
 
-Keep the original defect's risk in scope on re-review; a small diff alone
-does not justify lowering effort. Do not inherit a lower session effort.
-Record model (or inheritance), effort, and a short reason in the ledger.
-If the host cannot preserve the model or set the requested effort, report
-that limitation; do not silently substitute another model or effort.
+Decide from the review-package stat, the task brief, the changed paths, and
+the ledger. Do not read the diff body to pick effort; that is reviewing the
+task yourself and it pollutes controller context. File count, line count, a
+hard implementation, a short diff, and "this is the final review" are not
+triggers. A re-review keeps the original defect's risk; a smaller diff alone
+does not lower it.
+
+Escalation is a floor, not a ceiling. If the session already runs at XHigh or
+above, the plain dispatch already satisfies it, so do not use the escalation
+agent and do not lower the session.
+
+Record every review dispatch in the ledger. High is one line,
+`Task N review: sddx default — high`. XHigh must name a trigger and a
+referent, `Task N review: sddx-reviewer-xhigh — <trigger>: <path or brief
+phrase>`. A trigger you cannot tie to a path is not a trigger; use High.
+
+This section's effort escalation is Claude Code only. On Codex the definition
+is absent, so report that the requested effort cannot be set and continue. A
+missing definition never blocks the run.
 
 ## Implementer
 
@@ -138,6 +157,22 @@ as review-passable DONE.
 - Controller editing application code
 - Worker git push, publish, or shared-branch update
 - Pasting host secrets into the worker prompt
+- Reviewer XHigh because the diff is long
+- Reviewer High because the diff is short
+- Reviewer XHigh because the worker ran XHigh
+- Final review XHigh because it is final
+- Reviewer XHigh to be safe
+- Reading the diff body to pick reviewer effort
+- Re-dispatching at XHigh to clear `Cannot verify from diff`
+- Lowering the reviewer model because effort is XHigh
+- `sddx-reviewer-xhigh` in the ledger without a trigger and a path
+- Passing a `model` override to a reviewer
+- Escalating when the session already runs at XHigh or above
+- Writing or editing an agent definition during a run
 
 All of these mean: stop, restore the overlay, continue SDD with the
 external worker.
+
+For the reviewer flags the remedy is different: stop, re-dispatch the review
+with the correct definition and no `model` override, and record it in the
+ledger.
