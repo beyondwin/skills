@@ -4,7 +4,7 @@ description: Use when executing a Superpowers implementation plan with an extern
 license: Apache-2.0
 compatibility: Requires a local Git repository, an implementation plan file, and Claude Code or Codex as the orchestrator host. Implementer CLIs are optional and resolved at runtime.
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
   updated_at: "2026-09-11"
 ---
 
@@ -61,6 +61,12 @@ finishing-a-development-branch.
 When SDD would dispatch an implementer subagent, do not. Dispatch the
 external worker using `references/dispatch.md` and
 `references/worker-prompt.md`.
+
+Process exit 0 is not task completion. Read the worker report and verify
+test results, committed task changes, and native review before marking the
+task complete. BLOCKED, NEEDS_CONTEXT, a missing report, or an unclear result
+must not become DONE. Resolve DONE_WITH_CONCERNS through the existing ruling
+procedure. Do not require a new commit for a verification-only response.
 
 Task reviewers, scoped re-reviewers, and the final reviewer stay native
 (Claude Code Task or Codex spawn_agent).

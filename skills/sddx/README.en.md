@@ -25,6 +25,14 @@ files is `not_measured`. Claude.ai, Cowork, Skills API upload, and
 marketplace publication are not supported. Shared limits are in
 [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/users/en/compatibility.md).
 
+## Grok worktree execution
+
+Running the Grok backend in a linked worktree requires Python 3.11+.
+SDDx prepares a working Git write profile so the worker can commit. Generated
+configuration and recovery state are excluded from installation files and
+commits; after the worker exits, SDDx restores the prior configuration or
+removes the generated one.
+
 ## Install
 
 Clone the repo, then make two links. The first link serves Codex. The second

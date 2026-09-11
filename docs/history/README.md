@@ -18,6 +18,8 @@ README를 보세요.
 - [문서 구조 구현 계획](plans/2026-09-11-documentation-structure.md)
 - [SDDx 설계](specs/2026-09-11-sddx-design.md)
 - [SDDx 구현 계획](plans/2026-09-11-sddx.md)
+- [SDDx worktree 실행 개선 설계](specs/2026-09-11-worktree-reliability-design.md)
+- [SDDx worktree 실행 개선 계획](plans/2026-09-11-worktree-reliability-plan.md)
 
 완료된 문서는 Git 이력에서 확인할 수 있습니다.
 
@@ -27,5 +29,7 @@ In-progress specs and plans:
 - [Documentation structure implementation plan](plans/2026-09-11-documentation-structure.md)
 - [SDDx design](specs/2026-09-11-sddx-design.md)
 - [SDDx implementation plan](plans/2026-09-11-sddx.md)
+- [SDDx worktree reliability design](specs/2026-09-11-worktree-reliability-design.md)
+- [SDDx worktree reliability implementation plan](plans/2026-09-11-worktree-reliability-plan.md)
 
 Completed documents remain available in Git history.

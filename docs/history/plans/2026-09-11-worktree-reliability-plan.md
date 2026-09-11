@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3.11+ 표준 라이브러리(`pathlib`, `subprocess`, `json`, `tomllib`, `unittest`), Git, 설치된 Grok CLI 및 Superpowers.
 
-**Spec:** [승인된 설계](2026-09-11-worktree-reliability-design.md).
+**Spec:** [승인된 설계](../specs/2026-09-11-worktree-reliability-design.md).
 
 ## Global Constraints
 
@@ -32,7 +32,7 @@
 
 설계 기준 제품 코드는 `3901249`, 승인 설계 커밋은 `e36ee44`다.
 실행 시작 때 실제 Git 상태를 다시 확인하고 기존 변경을 보존한다.
-이 계획은 제품 소유 문서 경로에 저장한다. 실제 구현을 격리할 때는 실행 시점에
+이 계획은 진행 중인 이력 계획 경로에 저장한다. 실제 구현을 격리할 때는 실행 시점에
 `using-git-worktrees` 절차를 사용한다.
 
 | 파일 | 책임 |

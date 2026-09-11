@@ -67,6 +67,25 @@ resume합니다. 라운드 4–5는 fresh worker와 XHigh입니다. worker에
 필요로 하면 멈추고 `BLOCKED`입니다. 그 결과를 리뷰 통과 DONE으로 쓰지
 않습니다.
 
+## Grok worktree 프로파일과 완료 판정
+
+Grok implementer dispatch는 worker 실행 직전에 `prepare_grok_sandbox.py
+prepare`를 호출하고, 반환된 작업용 프로파일로 resolver `argv_prefix`의 기존
+`--sandbox` 값 하나를 교체합니다. worker prompt 전체를 `--rules`로 넘깁니다.
+prepare가 실패하면 worker를 시작하지 않습니다.
+
+worker와 worker가 실행한 작업이 종료된 뒤에는 성공과 실패 모두에서
+`prepare_grok_sandbox.py cleanup`을 호출합니다. 새 task와 resume은 같은
+준비·실행·종료·정리 순서를 씁니다. 정리 실패 시 다른 파일을 덮어쓰지 않고
+남은 차이와 상태 기록 위치를 ledger에 남깁니다. 생성 설정과 복원 상태는 제품
+산출물이나 커밋 대상이 아닙니다.
+
+프로세스 exit 0만으로 task를 완료 처리하지 않습니다. worker report의 테스트
+결과, task 변경 커밋, 네이티브 리뷰를 확인해야 합니다. `BLOCKED`,
+`NEEDS_CONTEXT`, 보고서 누락, 불명확한 결과는 `DONE`이 아닙니다.
+`DONE_WITH_CONCERNS`는 기존 ruling 절차로 처리하며, 검증만 한 응답에는 새
+커밋을 요구하지 않습니다.
+
 ## Backend 해석
 
 컨트롤러는 로드된 스킬 루트에서 `scripts/resolve_backend.py`를 실행합니다.
@@ -78,6 +97,10 @@ Grok 후보는 PATH의 `grok`뿐입니다. `agent`는 Grok 후보가 아닙니�
 후보는 `cursor-agent`, 그다음 신원이 Cursor Agent CLI인 `cursor`입니다.
 `agent`는 Cursor 후보가 아닙니다. Grok Build 신원을 Cursor로 채택하지
 않습니다.
+
+Grok resolver는 `--sandbox`, `--rules`, `--disable-web-search`를 포함한 필수
+실행 플래그를 확인하고, 기본 `argv_prefix`에 `--sandbox workspace`를 넣습니다.
+resolver 자체는 파일을 쓰거나 worker를 시작하지 않습니다.
 
 ## 함께 고칠 파일
 

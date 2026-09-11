@@ -35,6 +35,10 @@ CASE_IDS = (
     "one-available-backend-still-confirms",
     "worker-no-host-outside-side-effects",
     "no-credentials-in-worker-prompt",
+    "grok-linked-worktree-profile",
+    "exit-zero-blocked-is-not-done",
+    "missing-report-is-not-done",
+    "worker-brief-only-no-skills",
 )
 DESCRIPTION_FORBIDDEN = ("fresh implementer", "fix loop", "whole-branch")
 
@@ -82,6 +86,13 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("resolve_backend.py", text)
         self.assertIn("--resume", text)
         self.assertIn("Do not pass `--worktree`", text)
+
+    def test_dispatch_prepares_and_cleans_grok_profile(self):
+        text = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
+        self.assertIn("prepare_grok_sandbox.py", text)
+        self.assertIn("--state", text)
+        self.assertIn("cleanup", text)
+        self.assertIn("--rules", text)
 
     def test_hosts_are_not_backends(self) -> None:
         registry = load_registry(ROOT / "products.toml")

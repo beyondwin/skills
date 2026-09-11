@@ -26,6 +26,7 @@ Usage: grok [OPTIONS]
       --reasoning-effort <EFFORT>
       --disable-web-search
       --sandbox <PROFILE>
+      --rules <RULES>
   -p, --single <PROMPT>
   -r, --resume [<SESSION_ID>]
 """
@@ -37,6 +38,7 @@ Usage: grok [OPTIONS]
       --reasoning-effort <EFFORT>
       --disable-web-search
       --sandbox <PROFILE>
+      --rules <RULES>
   -p, --single <PROMPT>
   -r, --resume [<SESSION_ID>]
 """
@@ -181,6 +183,19 @@ class ResolveBackendTests(unittest.TestCase):
             result = module.resolve("grok")
         self.assertFalse(result["available"])
         self.assertEqual(result["reason"], "missing_flags")
+
+    def test_required_execution_flags_cannot_be_missing(self):
+        module = self._load()
+        for flag in ("--rules", "--sandbox", "--disable-web-search"):
+            help_text = "\n".join(
+                line for line in GROK_HELP.splitlines() if flag not in line
+            )
+            with self.subTest(flag=flag):
+                _write_cli(self.bindir, "grok", GROK_VERSION, help_text)
+                with mock.patch.dict(os.environ, self._path(), clear=False):
+                    result = module.resolve("grok")
+                self.assertFalse(result["available"])
+                self.assertEqual(result["reason"], "missing_flags")
 
     def test_cursor_binary_with_cursor_identity_is_available(self) -> None:
         _write_cli(self.bindir, "cursor", CURSOR_VERSION, CURSOR_HELP, CURSOR_MODELS)

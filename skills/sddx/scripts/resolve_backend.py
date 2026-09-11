@@ -41,8 +41,11 @@ def _is_cursor_identity(text: str) -> bool:
 
 
 def _grok_flags_ok(help_text: str) -> bool:
+    required_execution_flags = ("--sandbox", "--rules", "--disable-web-search")
+    has_execution_flags = all(flag in help_text for flag in required_execution_flags)
     return (
-        "--cwd" in help_text
+        has_execution_flags
+        and "--cwd" in help_text
         and "--no-plan" in help_text
         and "--no-subagents" in help_text
         and "--always-approve" in help_text
@@ -106,9 +109,9 @@ def resolve(backend_arg: str) -> dict[str, Any]:
             "--no-subagents",
             "--always-approve",
             "--disable-web-search",
+            "--sandbox",
+            "workspace",
         ]
-        if "--sandbox" in help_text:
-            argv.extend(["--sandbox", "workspace"])
         return _available(backend, executable, identity, argv)
 
     executable = shutil.which("cursor-agent")

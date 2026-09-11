@@ -25,6 +25,13 @@ sddx: Claude Code and Codex supported for local or repository-based use.
 [호환성](https://github.com/beyondwin/skills/blob/main/docs/users/ko/compatibility.md)을
 보세요.
 
+## Grok worktree 실행
+
+Grok backend로 linked worktree에서 실행하려면 Python 3.11+가 필요합니다.
+SDDx는 worker가 커밋할 수 있도록 작업용 Git 쓰기 프로파일을 준비합니다.
+이때 만든 설정과 복원 상태는 설치 파일과 커밋에서 제외하고, worker가 종료되면
+기존 설정을 복원하거나 생성한 설정을 제거합니다.
+
 ## 설치
 
 저장소를 클론한 뒤 링크 두 개를 겁니다. 첫 링크는 Codex, 둘째는 Claude
