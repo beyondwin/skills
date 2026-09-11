@@ -28,30 +28,6 @@ REGISTRY = load_registry(ROOT / "products.toml")
 
 VERSION_LITERAL_RE = re.compile(r"\b[0-9]+\.[0-9]+\.[0-9]+\b")
 
-PRE_SDD_PRODUCT_HEADINGS = {
-    "README.md": (
-        "## 이 스킬이 해결하는 문제",
-        "## 사용해야 할 때와 사용하지 말아야 할 때",
-        "## 설치",
-        "## 첫 호출",
-        "## 결과와 기본 흐름",
-        "## 안전과 개인정보",
-        "## 운영과 한계",
-        "## 호환성과 검증 수준",
-        "## 변경 이력과 관리자 문서",
-    ),
-    "README.en.md": (
-        "## Purpose",
-        "## When to use and not use",
-        "## Install",
-        "## First call",
-        "## Expected result",
-        "## Safety and privacy",
-        "## Operations and limits",
-        "## Supported hosts and verification",
-        "## Changelog and maintainer docs",
-    ),
-}
 PRODUCT_README_HEADINGS = {
     "README.md": (
         "## 목적",
@@ -60,10 +36,7 @@ PRODUCT_README_HEADINGS = {
         "## 설치",
         "## 첫 호출",
         "## 예상 결과",
-        "## 안전과 개인정보",
-        "## 검증",
-        "## 업데이트와 제거",
-        "## 변경 이력과 관리자 문서",
+        "## 더 보기",
     ),
     "README.en.md": (
         "## Purpose",
@@ -72,10 +45,28 @@ PRODUCT_README_HEADINGS = {
         "## Install",
         "## First call",
         "## Expected result",
+        "## See also",
+    ),
+}
+FORBIDDEN_PRODUCT_README_H2 = {
+    "README.md": (
+        "## 안전과 개인정보",
+        "## 검증",
+        "## 업데이트와 제거",
+        "## 변경 이력과 관리자 문서",
+        "## 이 스킬이 해결하는 문제",
+        "## 사용해야 할 때와 사용하지 말아야 할 때",
+        "## 결과와 기본 흐름",
+        "## 운영과 한계",
+        "## 호환성과 검증 수준",
+    ),
+    "README.en.md": (
         "## Safety and privacy",
         "## Verification",
         "## Update and remove",
         "## Changelog and maintainer docs",
+        "## Operations and limits",
+        "## Supported hosts and verification",
     ),
 }
 INSTALLER_COMMANDS = {
@@ -620,10 +611,7 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
                     text.startswith(f"# {product.display_name}\n"),
                     f"{product.name}/{filename} title",
                 )
-                if product.name == "pre-sdd-review":
-                    headings = PRE_SDD_PRODUCT_HEADINGS[filename]
-                else:
-                    headings = PRODUCT_README_HEADINGS[filename]
+                headings = PRODUCT_README_HEADINGS[filename]
                 last = -1
                 for heading in headings:
                     pos = text.find(heading)
@@ -635,6 +623,14 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
                     )
                     last = pos
 
+    def test_product_readmes_omit_shared_safety_verify_and_update_headings(self) -> None:
+        for product in REGISTRY.products:
+            for filename, forbidden in FORBIDDEN_PRODUCT_README_H2.items():
+                text = _read(ROOT / product.skill_path / filename)
+                for heading in forbidden:
+                    self.assertNotIn(heading, text, f"{product.name}/{filename} {heading}")
+                self.assertNotIn("### Contract", text)
+
     def test_how_it_works_readmes_include_supported_host_install_call_and_result(self) -> None:
         for filename in ("README.md", "README.en.md"):
             path = ROOT / "skills/how-it-works" / filename
@@ -643,8 +639,6 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
             self.assertTrue(installation_block(path.relative_to(ROOT).as_posix()))
             self.assertIn(HOW_IT_WORKS_AGENTS_INVOCATION, text)
             self.assertIn(HOW_IT_WORKS_CLAUDE_INVOCATION, text)
-            self.assertIn(HOW_IT_WORKS_UNLINK_AGENTS, text)
-            self.assertIn(HOW_IT_WORKS_UNLINK_CLAUDE, text)
             self.assertIn("$how-it-works", text)
             self.assertIn("/how-it-works", text)
             self.assertNotIn("@how-it-works", text)
@@ -678,10 +672,6 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
                 self.assertIn(f"{public}/compatibility.md", text)
                 self.assertIn(f"{public}/release.md", text)
                 self.assertNotIn(f"docs/maintainers/{product.name}.md", text)
-                self.assertTrue(
-                    "inspect" in text.lower() or "확인" in text,
-                    f"{path.relative_to(ROOT).as_posix()} must describe the update check",
-                )
 
 
 class RootCatalogTests(unittest.TestCase):
@@ -867,7 +857,6 @@ class UserGuideFactTests(unittest.TestCase):
             text = _read(ROOT / "skills/how-it-works" / filename)
             self.assertIn(installer, text)
             self.assertIn("~/.agents/skills/how-it-works", text)
-            self.assertIn(HOW_IT_WORKS_UNLINK_AGENTS, text)
             for dest in codex_home_targets:
                 self.assertNotIn(dest, text)
             if "~/.codex/skills/how-it-works" in text:

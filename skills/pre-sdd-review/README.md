@@ -2,7 +2,7 @@
 
 [English](README.en.md)
 
-## 이 스킬이 해결하는 문제
+## 목적
 
 승인된 설계와 구현 계획이 서로 맞고, 지금 저장소에서 실행 가능한지 SDD 직전에
 확인합니다. 기본 흐름은 **검토 → 문서 개선 → 재검토**입니다. 핵심은 구현자가
@@ -17,7 +17,7 @@
 그 베이스가 현재 `HEAD`의 조상인지 확인합니다. 해석할 수 없거나 조상이 아니면
 다른 checkout을 추측하지 않고 `BLOCKED`를 반환합니다.
 
-## 사용해야 할 때와 사용하지 말아야 할 때
+## 사용할 때와 사용하지 않을 때
 
 승인된 설계 명세와 구현 계획이 이미 있고, SDD나 계획 실행 직전에 두 문서와
 저장소 현실을 대조할 때 사용합니다.
@@ -25,6 +25,13 @@
 처음 설계나 계획을 작성할 때, 구현 코드·PR을 검토할 때, 출시 준비를 확인할 때,
 일반 문서를 교정할 때는 사용하지 않습니다. 외부 요청에 구현이 포함되지 않으면
 이 스킬은 SDD를 시작하지 않습니다.
+
+## 지원 호스트
+
+pre-sdd-review: Codex supported; other hosts not_measured.
+
+지금은 Codex에서만 지원합니다. 다른 호스트는
+[호환성](https://github.com/beyondwin/skills/blob/main/docs/users/ko/compatibility.md)을 보세요.
 
 ## 설치
 
@@ -40,8 +47,7 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-re
 python3 "<skill-root>/evidence/evidence.py" --version
 ```
 
-갱신하거나 지울 때는 설치 폴더를 먼저 확인하세요. 절차는
-[설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/installation.md)를 보세요.
+나머지 설치 방법은 [설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/install-codex.md)를 보세요.
 
 ## 첫 호출
 
@@ -57,7 +63,7 @@ $pre-sdd-review docs/history/specs/<design>.md docs/history/plans/<plan>.md
 `review-only`는 명시 모드입니다. 첫 판정만 받고 문서를 변경하지 않으려면 아래처럼
 부릅니다.
 
-## 결과와 기본 흐름
+## 예상 결과
 
 기본 모드에서는 새 읽기 전용 검토자가 증거 기반 발견을 남깁니다. 제어 에이전트가
 해결된 설계 명세와 구현 계획만 고친 뒤, 바뀐 범위만 다시 검토합니다.
@@ -94,86 +100,17 @@ public/private 데이터 경계, 게시·과금·메시징·프로덕션 변경 
 계획의 `**Spec:**`에서 해석한 값을 넘기며, 해석할 수 없으면 생략하고 `BLOCKED`로
 끝냅니다. 도중에 끝나면 `abandon`으로 run을 닫습니다.
 
-### Contract
+영수증은 `~/.pre-sdd-review/`에 로컬로만 남습니다. 로컬 파일 저장은 서명된
+audit log가 아닙니다. `outcome`과 `summary`는
+[evidence README](evidence/README.md)를 보세요.
 
-- `primary-input`: `plan-primary`, `spec-resolves-design`
-- `plan-cardinality`: `one-plan-per-invocation`, `no-aggregate-ready`
-- `editable-surfaces`: `resolved-design-specification`, `resolved-implementation-plan`
-- `review-only`: `no-mutation`
-- `repair-flow`: `review-repair-bounded-impact-re-review`
-- `repair-impact`: `structural-trigger-only`, `direct-consumers`
-- `repair-passes`: `at-most-two`
-- `verdicts`: `READY`, `REVISE`, `BLOCKED`
-- `second-reviewer`: `conditional-only`
-- `risk-triggers`: `framework-runtime-removal`, `schema-data-deletion`, `auth-security-boundary`, `data-boundary-change`, `external-side-effects`
-- `freshness`: `fingerprints`, `content-change-invalidates`
-- `required-base`: `pre-dispatch-ancestor-check`
-- `handoff`: `unresolved-packet`
-- `sdd`: `outer-request-implementation-only`
-- `evidence`: `optional`, `non-blocking`, `controller-local-run-id`
+## 더 보기
 
-## 안전과 개인정보
-
-검토자는 읽기 전용입니다. 자동 변경 범위는 위 `Contract`의 두 해결된 문서뿐입니다.
-승인된 ADR·시각 권위, 애플리케이션 코드, 테스트, 설정, 생성물, 관련 없는 문서는
-별도 제품 결정 없이는 변경하지 않습니다.
-
-영수증은 `~/.pre-sdd-review/runs/<run-id>.json`에 로컬로만 남습니다(schema 3).
-개인 32바이트 `.identity-salt`와 checkout·Git 디렉터리 경로의 HMAC으로
-checkout 결속을 만들고, 영수증에는 표시 이름 `repo`와 `repo_key`만 저장합니다.
-salt와 identity 입력 경로는 출력하거나 저장하지 않습니다. checkout 이동, clone,
-다른 worktree, salt 유실, 다른 evidence home은 원래 결속으로 취급할 수 없습니다.
-schema 2 기록은 `historical-unbound` 읽기 전용으로 보존합니다.
-
-기록에는 저장소 상대 경로, 디렉터리 이름, 해시, 열거값, 짧은 paraphrase만
-넣습니다. 원문, 절대 경로, prompts, transcripts, credentials는 넣지 마세요.
-기록기는 자동 비밀 탐지를 하지 않습니다.
-
-로컬 파일 저장은 악의적인 로컬 변조를 막는 서명된 audit log가 아닙니다.
-`outcome` 라벨(`good`, `false-ready`, `noisy`, `abandoned`)은 SDD가 끝난 뒤
-사람이나 SDD 워커가 남기는 관찰이며 다시 기록해 정정할 수 있습니다. 라벨은
-자기개선용 evidence이지 객관적·감사 등급 증거가 아닙니다.
-
-자세한 내용은 [안전과 개인정보](https://github.com/beyondwin/skills/blob/main/docs/users/ko/safety-and-privacy.md)를 보세요.
-
-## 운영과 한계
-
-명령은 `start`, `finish`, `abandon`, `outcome`, `show`, `summary` 여섯 개입니다.
-정확한 인자, stdin 형식, 크기 제한은 [evidence 안내](evidence/README.md)를
-따릅니다.
-
-로그는 에이전트가 읽도록 만들어졌습니다. 개선점을 찾을 때는 에이전트에게
-`summary`를 실행하게 하고 `anomalies`와 `chains`부터 보게 하세요. 모든 집계에
-`run_id`가 붙어 있어 `show --run-id`로 바로 내려갈 수 있습니다. 후보 픽스처
-자동 선정, 자동 스킬 변경, client/model ranking은 하지 않습니다.
-`invalid_records`는 filter 전 전체 scan 손상을 세고, verdict 전체 합계와
-`normal_verdict`/`anomalous_verdict`, checkout 결속 합계를 나눠 보여줍니다.
-이는 모델 품질 측정이나 서명된 감사 증명이 아닙니다.
-
-버전 원본은 `release.toml`이고 `SKILL.md`의 `metadata.version`은 검증된 복제
-값입니다. 기록기는 이전 `runs/<year>/<month>/` 영수증을 읽지 않으며, 영수증 삭제는
-파일 삭제로 충분합니다.
-
-## 호환성과 검증 수준
-
-pre-sdd-review: Codex supported; other hosts not_measured.
-
-Codex만 독립 읽기 전용 검토와 저장소 조사를 포함해 측정되었습니다. 다른 호스트는
-[호환성](https://github.com/beyondwin/skills/blob/main/docs/users/ko/compatibility.md)을 보세요.
-
-제공자 없는 검증은 패키지·지시문·픽스처 계약만 증명하며 실제 모델 검토 품질을
-증명하지 않습니다. 선택적 live 검사는 명시적이고 로컬에서만 하며 비용이 들 수
-있고, CI에서는 요구하지 않습니다. 자세한 내용은
-[검증](https://github.com/beyondwin/skills/blob/main/docs/users/ko/verification.md)을 보세요.
-
-기록기는 Python 3.11+ 표준 라이브러리만 쓰며 macOS에서 provider-free 테스트로
-검증됐습니다. Linux와 native Windows는 각 환경에서 evidence 단계가 직접 실행될
-때까지 `not_measured`입니다.
-
-## 변경 이력과 관리자 문서
-
+- [안전과 개인정보](https://github.com/beyondwin/skills/blob/main/docs/users/ko/safety-and-privacy.md)
+- [검증](https://github.com/beyondwin/skills/blob/main/docs/users/ko/verification.md)
 - [CHANGELOG](CHANGELOG.md)
 - [계약](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/pre-sdd-review/contract.md)
 - [테스트](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/pre-sdd-review/testing.md)
 - [호환성](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/pre-sdd-review/compatibility.md)
 - [릴리스](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/pre-sdd-review/release.md)
+- [evidence README](evidence/README.md)

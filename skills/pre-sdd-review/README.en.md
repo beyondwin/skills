@@ -29,6 +29,13 @@ Do not use it to write an initial design or plan, review implementation code or
 a pull request, verify a release, proofread, or generally improve documentation.
 The skill does not start SDD unless the outer request includes implementation.
 
+## Supported hosts
+
+pre-sdd-review: Codex supported; other hosts not_measured.
+
+Codex is the measured host today. Other hosts are in
+[Compatibility](https://github.com/beyondwin/skills/blob/main/docs/users/en/compatibility.md).
+
 ## Install
 
 In Codex, pass the public GitHub path to `$skill-installer`.
@@ -43,8 +50,8 @@ The local evidence recorder is not installed.
 python3 "<skill-root>/evidence/evidence.py" --version
 ```
 
-Inspect the install folder before update or remove. Shared steps are in
-[Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/installation.md).
+Shared install steps are in
+[Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/install-codex.md).
 
 ## First call
 
@@ -105,89 +112,17 @@ it resolved from the plan's `**Spec:**` field; when it cannot, it omits the
 design and ends with `BLOCKED`. An invocation that ends early closes its run
 with `abandon`.
 
-### Contract
+Receipts stay local under `~/.pre-sdd-review/`. Local file storage is not a
+signed audit log. `outcome` and `summary` are in the
+[evidence README](evidence/README.md).
 
-- `primary-input`: `plan-primary`, `spec-resolves-design`
-- `plan-cardinality`: `one-plan-per-invocation`, `no-aggregate-ready`
-- `editable-surfaces`: `resolved-design-specification`, `resolved-implementation-plan`
-- `review-only`: `no-mutation`
-- `repair-flow`: `review-repair-bounded-impact-re-review`
-- `repair-impact`: `structural-trigger-only`, `direct-consumers`
-- `repair-passes`: `at-most-two`
-- `verdicts`: `READY`, `REVISE`, `BLOCKED`
-- `second-reviewer`: `conditional-only`
-- `risk-triggers`: `framework-runtime-removal`, `schema-data-deletion`, `auth-security-boundary`, `data-boundary-change`, `external-side-effects`
-- `freshness`: `fingerprints`, `content-change-invalidates`
-- `required-base`: `pre-dispatch-ancestor-check`
-- `handoff`: `unresolved-packet`
-- `sdd`: `outer-request-implementation-only`
-- `evidence`: `optional`, `non-blocking`, `controller-local-run-id`
+## See also
 
-## Safety and privacy
-
-Reviewers are read-only. Automatic mutation is limited to the two resolved
-documents in the `Contract` above. Accepted ADRs, visual authority,
-application code, tests, configuration, generated artifacts, and unrelated
-documentation require a separate product decision.
-
-Receipts stay local as `~/.pre-sdd-review/runs/<run-id>.json` (schema 3). A
-private 32-byte `.identity-salt` and HMAC of the checkout and Git directory
-paths create the checkout binding; receipts store only the display `repo` and
-`repo_key`. The salt and identity input paths are never printed or stored. A
-moved checkout, clone, other worktree, lost salt, or different evidence home
-cannot be treated as the original binding. Schema 2 records remain read-only
-as `historical-unbound`.
-
-Records hold repository-relative paths, a directory name, hashes, enum values,
-and short paraphrases only. Never put source text, absolute paths, prompts,
-transcripts, or credentials in a record. The recorder does not detect secrets.
-
-Local file storage is not a signed audit log resistant to malicious local
-tampering. An `outcome` label (`good`, `false-ready`, `noisy`, `abandoned`) is
-an observation recorded by a person or the SDD worker after SDD ends and may be
-re-recorded to correct it. Labels are self-improvement evidence, not objective
-or audit-grade proof.
-
-Details are in [Safety and privacy](https://github.com/beyondwin/skills/blob/main/docs/users/en/safety-and-privacy.md).
-
-## Operations and limits
-
-The command surface is `start`, `finish`, `abandon`, `outcome`, `show`, and
-`summary`. For exact arguments, the stdin shape, and size limits, use the
-[evidence guide](evidence/README.md).
-
-The log is written for agents. To look for improvements, have an agent run
-`summary` and read `anomalies` and `chains` first. Every aggregate carries
-`run_id` values so it can drop into `show --run-id`. There is no automatic
-fixture selection, skill mutation, or client/model ranking. `invalid_records`
-counts scan-wide damage before filters, while total verdict counts,
-`normal_verdict`/`anomalous_verdict`, and checkout binding counts remain
-separate. These are not model-quality measurements or signed audit proof.
-
-The version source is `release.toml`; `SKILL.md` `metadata.version` is a
-verified copy. The recorder ignores older `runs/<year>/<month>/` receipts.
-Deleting a receipt is deleting its file.
-
-## Supported hosts and verification
-
-pre-sdd-review: Codex supported; other hosts not_measured.
-
-Only Codex has measured support for isolated read-only review and repository
-inspection. Other hosts are in [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/users/en/compatibility.md).
-
-Provider-free verification proves package, instruction, and fixture contracts,
-not live review quality. Optional live checks are explicit, local, potentially
-billable, and never required by CI. Details are in
-[Verification](https://github.com/beyondwin/skills/blob/main/docs/users/en/verification.md).
-
-The recorder uses only the Python 3.11+ standard library and is verified by
-the provider-free suite on macOS. Linux and native Windows remain
-`not_measured` until the evidence stage runs there.
-
-## Changelog and maintainer docs
-
-- [CHANGELOG](CHANGELOG.md)
+- [Safety and privacy](https://github.com/beyondwin/skills/blob/main/docs/users/en/safety-and-privacy.md)
+- [Verification](https://github.com/beyondwin/skills/blob/main/docs/users/en/verification.md)
+- [Changelog](CHANGELOG.md)
 - [Contract](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/pre-sdd-review/contract.md)
 - [Testing](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/pre-sdd-review/testing.md)
 - [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/pre-sdd-review/compatibility.md)
 - [Release](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/pre-sdd-review/release.md)
+- [evidence README](evidence/README.md)

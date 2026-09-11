@@ -4,8 +4,8 @@ description: Use when the user wants to understand how a mechanism or flow works
 license: Apache-2.0
 compatibility: Requires an Agent Skills host that can read this directory and return Markdown text.
 metadata:
-  version: "2.0.0"
-  updated_at: "2026-09-08"
+  version: "2.0.1"
+  updated_at: "2026-09-11"
 ---
 
 # how-it-works

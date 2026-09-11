@@ -696,11 +696,11 @@ class ProductDownloadTests(unittest.TestCase):
             for info, data in items:
                 text = data.decode("utf-8")
                 if info.filename == "how-it-works/release.toml":
-                    text = text.replace('version = "2.0.0"', 'version = "9.9.9"')
+                    text = text.replace('version = "2.0.1"', 'version = "9.9.9"')
                     self.assertNotEqual(text.encode("utf-8"), data)
                     data = text.encode("utf-8")
                 elif info.filename == "how-it-works/SKILL.md":
-                    text = text.replace('version: "2.0.0"', 'version: "9.9.9"')
+                    text = text.replace('version: "2.0.1"', 'version: "9.9.9"')
                     self.assertNotEqual(text.encode("utf-8"), data)
                     data = text.encode("utf-8")
                 yield info, data

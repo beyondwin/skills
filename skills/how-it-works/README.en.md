@@ -97,7 +97,7 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-wor
 ```
 
 Shared install steps are in
-[Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/installation.md).
+[Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/install-local.md).
 
 ## First call
 
@@ -146,51 +146,11 @@ Skeleton:
 Next: {exactly one move}
 ````
 
-## Safety and privacy
+## See also
 
-The skill does not persist user topics as test examples or logs. Citations are
-user-visible URLs from the current turn. They are not a private corpus.
-Medical, legal, or financial slices explain mechanism only. They are not
-advice.
-
-Details are in
-[Safety and privacy](https://github.com/beyondwin/skills/blob/main/docs/users/en/safety-and-privacy.md).
-
-## Verification
-
-Provider-free verification is
-`python3 scripts/verify.py --skill how-it-works`. Offline fixtures prove
-the documented rules only. They do not prove live host quality.
-
-Optional live scoring is pass/fail from observable output in a fresh session.
-Calls may use subscription/API quota. Do not use private or user prompts.
-Do not commit full responses. Keep temporary files outside the repository
-and delete them after scoring. A host that fails the same-build criteria is
-unsupported.
-
-Shared evidence limits are in
-[Verification](https://github.com/beyondwin/skills/blob/main/docs/users/en/verification.md).
-
-## Update and remove
-
-Inspect the exact install target before update or remove.
-
-```bash
-ls -ld ~/.agents/skills/how-it-works ~/.claude/skills/how-it-works
-unlink ~/.agents/skills/how-it-works
-unlink ~/.claude/skills/how-it-works
-```
-
-Do not delete the parent `skills` directory or a home directory. Shared
-steps are in
-[Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/installation.md).
-
-Check the current version in `SKILL.md` `metadata.version` and
-[CHANGELOG](CHANGELOG.md).
-
-## Changelog and maintainer docs
-
-- [CHANGELOG](CHANGELOG.md)
+- [Safety and privacy](https://github.com/beyondwin/skills/blob/main/docs/users/en/safety-and-privacy.md)
+- [Verification](https://github.com/beyondwin/skills/blob/main/docs/users/en/verification.md)
+- [Changelog](CHANGELOG.md)
 - [Contract](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/how-it-works/contract.md)
 - [Testing](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/how-it-works/testing.md)
 - [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/how-it-works/compatibility.md)

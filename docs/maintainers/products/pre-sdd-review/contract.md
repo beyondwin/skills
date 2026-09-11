@@ -255,3 +255,21 @@ ranking follows from it.
 ### SDD handoff
 
 Do not start SDD unless the outer request explicitly asks for implementation.
+
+### Contract
+
+- `primary-input`: `plan-primary`, `spec-resolves-design`
+- `plan-cardinality`: `one-plan-per-invocation`, `no-aggregate-ready`
+- `editable-surfaces`: `resolved-design-specification`, `resolved-implementation-plan`
+- `review-only`: `no-mutation`
+- `repair-flow`: `review-repair-bounded-impact-re-review`
+- `repair-impact`: `structural-trigger-only`, `direct-consumers`
+- `repair-passes`: `at-most-two`
+- `verdicts`: `READY`, `REVISE`, `BLOCKED`
+- `second-reviewer`: `conditional-only`
+- `risk-triggers`: `framework-runtime-removal`, `schema-data-deletion`, `auth-security-boundary`, `data-boundary-change`, `external-side-effects`
+- `freshness`: `fingerprints`, `content-change-invalidates`
+- `required-base`: `pre-dispatch-ancestor-check`
+- `handoff`: `unresolved-packet`
+- `sdd`: `outer-request-implementation-only`
+- `evidence`: `optional`, `non-blocking`, `controller-local-run-id`

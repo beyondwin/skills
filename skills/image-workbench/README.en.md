@@ -31,7 +31,7 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-work
 ```
 
 Shared install steps are in
-[Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/installation.md).
+[Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/install-codex.md).
 
 ## First call
 
@@ -59,33 +59,11 @@ bitstream decoding, visual quality, or rights clearance. Open every final
 candidate for visual review. `--output facts.json` can update a separate JSON
 report, but rejects any output that refers to the input image before writing.
 
-## Safety and privacy
+## See also
 
-Every input image has exactly one role. The role is `edit_target`,
-`subject_reference`, `style_reference`, or `compositing_input`. A reference
-does not confer rights to reproduce a person, mark, or protected work.
-Unknown consent for a person, mark, or example image is a hold.
-
-Details are in
-[Safety and privacy](https://github.com/beyondwin/skills/blob/main/docs/users/en/safety-and-privacy.md).
-
-## Verification
-
-Offline checks cover the documented rules only. They do not prove live image
-quality. Evidence limits are in
-[Verification](https://github.com/beyondwin/skills/blob/main/docs/users/en/verification.md).
-
-## Update and remove
-
-Inspect the install folder before update or remove. Shared steps are in
-[Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/installation.md).
-
-Check the current version in `SKILL.md` `metadata.version` and
-[CHANGELOG](CHANGELOG.md).
-
-## Changelog and maintainer docs
-
-- [CHANGELOG](CHANGELOG.md)
+- [Safety and privacy](https://github.com/beyondwin/skills/blob/main/docs/users/en/safety-and-privacy.md)
+- [Verification](https://github.com/beyondwin/skills/blob/main/docs/users/en/verification.md)
+- [Changelog](CHANGELOG.md)
 - [Contract](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/image-workbench/contract.md)
 - [Testing](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/image-workbench/testing.md)
 - [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/image-workbench/compatibility.md)

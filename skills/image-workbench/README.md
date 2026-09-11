@@ -30,7 +30,7 @@ Codex에서는 공개 GitHub 경로를 `$skill-installer`에 전달합니다.
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
 ```
 
-나머지 설치 방법은 [설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/installation.md)를 보세요.
+나머지 설치 방법은 [설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/install-codex.md)를 보세요.
 
 ## 첫 호출
 
@@ -56,31 +56,10 @@ $image-workbench 이 프로젝트 랜딩 페이지 hero 이미지를 만들어�
 후보는 반드시 열어서 확인합니다. `--output facts.json`은 별도 JSON 보고서를
 갱신할 수 있지만 입력 이미지와 같은 파일을 가리키면 쓰기 전에 거부합니다.
 
-## 안전과 개인정보
+## 더 보기
 
-입력 이미지의 역할은 하나입니다. 역할은 `edit_target`, `subject_reference`,
-`style_reference`, 또는 `compositing_input`입니다. 참조 이미지는 사람,
-상표, 보호된 작업을 복제할 권리를 주지 않습니다. 인물·상표·예시 이미지의
-consent(동의)가 불명하면 보류합니다.
-
-자세한 내용은 [안전과 개인정보](https://github.com/beyondwin/skills/blob/main/docs/users/ko/safety-and-privacy.md)를
-보세요.
-
-## 검증
-
-오프라인 검사는 정해진 규칙만 확인합니다. 실제 이미지 품질을 증명하지 않습니다.
-증거 한계는 [검증](https://github.com/beyondwin/skills/blob/main/docs/users/ko/verification.md)을 보세요.
-
-## 업데이트와 제거
-
-바꾸거나 지우기 전에 설치 폴더를 확인하세요. 절차는
-[설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/installation.md)를 보세요.
-
-현재 버전은 `SKILL.md`의 `metadata.version`과 [CHANGELOG](CHANGELOG.md)에서
-봅니다.
-
-## 변경 이력과 관리자 문서
-
+- [안전과 개인정보](https://github.com/beyondwin/skills/blob/main/docs/users/ko/safety-and-privacy.md)
+- [검증](https://github.com/beyondwin/skills/blob/main/docs/users/ko/verification.md)
 - [CHANGELOG](CHANGELOG.md)
 - [계약](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/image-workbench/contract.md)
 - [테스트](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/image-workbench/testing.md)

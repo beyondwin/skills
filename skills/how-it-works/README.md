@@ -95,7 +95,7 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-wor
 ```
 
 나머지 설치 방법은
-[설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/installation.md)를
+[설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/install-local.md)를
 보세요.
 
 ## 첫 호출
@@ -143,51 +143,10 @@ $how-it-works DNS 길
 다음 / Next: {exactly one move}
 ````
 
-## 안전과 개인정보
+## 더 보기
 
-사용자 주제를 테스트 예시나 로그로 저장하지 않습니다. 인용은 그 턴에서 가져온
-URL만 보입니다. 비공개 코퍼스가 아닙니다. 의료·법률·금융 슬라이스는
-메커니즘만 설명합니다. 조언이 아닙니다.
-
-자세한 내용은
-[안전과 개인정보](https://github.com/beyondwin/skills/blob/main/docs/users/ko/safety-and-privacy.md)를
-보세요.
-
-## 검증
-
-모델 없는 검증은 `python3 scripts/verify.py --skill how-it-works`입니다.
-오프라인 테스트 예시는 정해진 규칙만 증명합니다. 라이브 호스트 품질을 증명하지
-않습니다.
-
-Optional live scoring is pass/fail from observable output in a fresh session.
-Calls may use subscription/API quota. Do not use private or user prompts.
-Do not commit full responses. Keep temporary files outside the repository
-and delete them after scoring. A host that fails the same-build criteria is
-unsupported.
-
-공유 증거 한계는
-[검증](https://github.com/beyondwin/skills/blob/main/docs/users/ko/verification.md)을
-보세요.
-
-## 업데이트와 제거
-
-갱신하거나 지울 때는 설치 대상을 먼저 확인하세요.
-
-```bash
-ls -ld ~/.agents/skills/how-it-works ~/.claude/skills/how-it-works
-unlink ~/.agents/skills/how-it-works
-unlink ~/.claude/skills/how-it-works
-```
-
-상위 `skills` 폴더나 홈 디렉터리는 지우지 마세요. 자세한 절차는
-[설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/installation.md)를
-보세요.
-
-현재 버전은 `SKILL.md`의 `metadata.version`과 [CHANGELOG](CHANGELOG.md)에서
-봅니다.
-
-## 변경 이력과 관리자 문서
-
+- [안전과 개인정보](https://github.com/beyondwin/skills/blob/main/docs/users/ko/safety-and-privacy.md)
+- [검증](https://github.com/beyondwin/skills/blob/main/docs/users/ko/verification.md)
 - [CHANGELOG](CHANGELOG.md)
 - [계약](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/how-it-works/contract.md)
 - [테스트](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/how-it-works/testing.md)

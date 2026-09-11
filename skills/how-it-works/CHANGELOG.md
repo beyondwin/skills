@@ -4,7 +4,15 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
-No changes yet.
+## 2.0.1 - 2026-09-11
+
+### Changed
+
+- Standalone README now uses the shared heading set and points install procedures at the split user guides.
+
+### Notes
+
+- No GitHub tag or GitHub Release is created.
 
 ## 2.0.0 - 2026-09-08
 

@@ -31,7 +31,7 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-wri
 ```
 
 Shared install steps are in
-[Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/installation.md).
+[Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/install-codex.md).
 
 ## First call
 
@@ -49,35 +49,11 @@ spelling, spacing, and clearly required local grammar only. `polish` applies
 those required corrections first, then optionally improves readability and
 local flow.
 
-## Safety and privacy
+## See also
 
-The skill does not persist user text as test examples, logs, or a voice profile.
-It does not send text to unofficial spelling services. It does not browse
-for facts unless the user separately asks.
-
-For high-stakes legal, medical, or financial material, default to mechanical
-`correct` or `diagnose`.
-
-Details are in
-[Safety and privacy](https://github.com/beyondwin/skills/blob/main/docs/users/en/safety-and-privacy.md).
-
-## Verification
-
-Offline checks cover the documented rules only. They do not prove live editing
-quality. Evidence limits are in
-[Verification](https://github.com/beyondwin/skills/blob/main/docs/users/en/verification.md).
-
-## Update and remove
-
-Inspect the install folder before update or remove. Shared steps are in
-[Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/installation.md).
-
-Check the current version in `SKILL.md` `metadata.version` and
-[CHANGELOG](CHANGELOG.md).
-
-## Changelog and maintainer docs
-
-- [CHANGELOG](CHANGELOG.md)
+- [Safety and privacy](https://github.com/beyondwin/skills/blob/main/docs/users/en/safety-and-privacy.md)
+- [Verification](https://github.com/beyondwin/skills/blob/main/docs/users/en/verification.md)
+- [Changelog](CHANGELOG.md)
 - [Contract](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/korean-writing-editor/contract.md)
 - [Testing](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/korean-writing-editor/testing.md)
 - [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/korean-writing-editor/compatibility.md)

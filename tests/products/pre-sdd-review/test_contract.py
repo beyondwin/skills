@@ -23,7 +23,7 @@ from scripts.lib.product_registry import load_registry  # noqa: E402
 SKILL = ROOT / "skills" / "pre-sdd-review"
 CASES = ROOT / "tests" / "products" / "pre-sdd-review" / "cases.json"
 FIXTURES = ROOT / "tests" / "products" / "pre-sdd-review" / "fixtures"
-TARGET_VERSION = "3.0.0"
+TARGET_VERSION = "3.0.1"
 PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     {
         "CHANGELOG.md",
@@ -39,7 +39,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "486aa0c5cadabbfa3e5426552ecc4e7b97d3c3f9e394b6a52e8a13d99e8bad34",
+    "SKILL.md": "3f2dc37c5adae7b2cedf9842feaf40392da12d1e0cc6bb5ad877fcd99799b088",
     "references/reviewer-protocol.md": (
         "8b28feb6c897341917cdde06411cadf8aea1f815f10608fa7ce709d12b77821f"
     ),
@@ -321,26 +321,22 @@ ENGLISH_FACTS = (
     "~/.pre-sdd-review/",
 )
 KOREAN_README_HEADINGS = (
-    "## 이 스킬이 해결하는 문제",
-    "## 사용해야 할 때와 사용하지 말아야 할 때",
+    "## 목적",
+    "## 사용할 때와 사용하지 않을 때",
+    "## 지원 호스트",
     "## 설치",
     "## 첫 호출",
-    "## 결과와 기본 흐름",
-    "## 안전과 개인정보",
-    "## 운영과 한계",
-    "## 호환성과 검증 수준",
-    "## 변경 이력과 관리자 문서",
+    "## 예상 결과",
+    "## 더 보기",
 )
 ENGLISH_README_HEADINGS = (
     "## Purpose",
     "## When to use and not use",
+    "## Supported hosts",
     "## Install",
     "## First call",
     "## Expected result",
-    "## Safety and privacy",
-    "## Operations and limits",
-    "## Supported hosts and verification",
-    "## Changelog and maintainer docs",
+    "## See also",
 )
 MAINTAINERS = ROOT / "docs" / "maintainers" / "products" / "pre-sdd-review"
 DEFAULT_FIRST_CALL = (
@@ -373,34 +369,6 @@ README_CONTRACT = (
     ("sdd", ("outer-request-implementation-only",)),
     ("evidence", ("optional", "non-blocking", "controller-local-run-id")),
 )
-README_CANONICAL_SECTION_DIGESTS = {
-    "ko": (
-        ("## 이 스킬이 해결하는 문제", "34742e41af70cad0eea87b0a6335332097205550174c666b9360ddcfd4f76ddd"),
-        ("## 사용해야 할 때와 사용하지 말아야 할 때", "63634fe6e87d9b53d0d13d628ab18747c164c33aa432c03e6ab095e7fd94e2b4"),
-        ("## 설치", "a037729d9f288741bc50c17f7ed6c6ad1a122b669b3f1b1406374b2eac108192"),
-        ("## 첫 호출", "50b99daba0033aa7cc24a42ae5c07ffbe75c93d9ce270f2dcfbc48cc64ef82a2"),
-        ("## 결과와 기본 흐름", "767a58ed8f949cede87fd8a0c2bb4cb2ed02522a14c1a852827038261b9f2fc5"),
-        ("## 안전과 개인정보", "0290d8394cb6097d33cc3d28d750ec5b38b14daf4202f06c8543b32ab658cfb6"),
-        ("## 운영과 한계", "0fa6e54e8efc3d8dbd1441acf89229166cc81afb67ef4387f7aa2dfd58a5b9a5"),
-        ("## 호환성과 검증 수준", "baab6694eb07df0a85e89c1e30eaf53074cfcafc09efe25c82e71eab45ec98ca"),
-        ("## 변경 이력과 관리자 문서", "bbe52e903896c2e9b265f189c77b88c12bebe1e331af3c0afeb72098b8d9c011"),
-    ),
-    "en": (
-        ("## Purpose", "d1b0ca1b776d1b9f0ca9748e3bf2f5264e4ab2e6f091d83c998a230ee5659aa3"),
-        ("## When to use and not use", "2daaa6de8f1623ab571cc1639b7b5097241c02e5f420b92ed48ecf1a401d926e"),
-        ("## Install", "3059098891619289fba676e8256a35c3abe74b65a03d34f874afc253467e337a"),
-        ("## First call", "304e4697f6a40a2d522f18757ed7e464c4a8fde253c885fdf82ac1152ebb5b2a"),
-        ("## Expected result", "878e1b880bd85b1d0d048084fa7ffb2059acf70900a40dc05c78d5b05fc5f6ed"),
-        ("## Safety and privacy", "38b9938371030f1d81e491c82aad770b3f0cf7210c6ab83243c3b70596b3db7c"),
-        ("## Operations and limits", "30cc7c2ca3ac91f633417a6ca57bcb070be8edd5d6ef15574e35e82163df792c"),
-        ("## Supported hosts and verification", "165a5b1b758c9e87c1e5b3796b05dcbf10f3045672c7a9c4c90898c0cb7f8f92"),
-        ("## Changelog and maintainer docs", "d8564c37ce946ed96d43a606dd471a9b813f8b8f6b468b727452895dc56ebd63"),
-    ),
-}
-README_CANONICAL_DOCUMENT_DIGESTS = {
-    "ko": "2b22b0ef15ac4880efa8a2c8fe514ed469e3458830b40398283abbcc2610e487",
-    "en": "cc6359c72c043c3bc97ef2f795591ca3bebc757fc2031f24679c30cdeac8effd",
-}
 MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Authority order", "3156a43d665d21723ce61b333c7c34f30abd2e6d288c472d5eec5878e5ef8321"),
     ("### Editable paths", "4c7d511afb38f386f06926cfa9b7b6307a7d2fb9e1b69ae0254021ca7fbaba8e"),
@@ -413,10 +381,10 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Freshness", "496291e8542f8f110b1f9e17647c86b83b42d58720382ce68437bb5601cd09ae"),
     ("### SDD handoff", "8a629dd12d78e2c08e77e7c1d057d0e450b135bc0633d5b62c8c926665976bca"),
 )
-MAINTAINER_CANONICAL_DIGEST = "492f7097647017ed3bae0505fbaa63ee8122ea1f5590e16c7552b1df9069e09c"
+MAINTAINER_CANONICAL_DIGEST = "34a9d592814bddd72ecb4929c4699f9525f5f0718db2fa0d33ad588848cd1815"
 TESTING_CANONICAL_DIGEST = "3dc92aa2bf002335965f9d836d978d28f96b1f0355bce398a7d3e2b71451be60"
 COMPATIBILITY_CANONICAL_DIGEST = "e47297cbf13ae9b9d8ebde193338247f70a1329e0e3e73eb104bb4d249c02561"
-RELEASE_CANONICAL_DIGEST = "a2a311c654c1a983236950ee8ce7e2747d3899900ab6e406819ee61e8dd23ddc"
+RELEASE_CANONICAL_DIGEST = "9445b6741f095a4bc79da1bbf2f20426903269e8d704acdc86d61a44f8f47d0b"
 
 
 def section(text: str, start: str, end: str) -> str:
@@ -507,7 +475,7 @@ def product_payload_contract_errors(skill_root: Path) -> tuple[str, ...]:
     return tuple(errors)
 
 
-def parse_readme_contract(text: str) -> tuple[tuple[str, tuple[str, ...]], ...]:
+def parse_product_contract(text: str) -> tuple[tuple[str, tuple[str, ...]], ...]:
     contract = subsection(text, "### Contract")
     entries = re.findall(r"^- `([a-z-]+)`: (.+)$", contract, re.MULTILINE)
     return tuple((name, tuple(re.findall(r"`([A-Za-z0-9-]+)`", value))) for name, value in entries)
@@ -516,25 +484,18 @@ def parse_readme_contract(text: str) -> tuple[tuple[str, tuple[str, ...]], ...]:
 def readme_contract_errors(text: str) -> tuple[str, ...]:
     errors: list[str] = []
     language = "en" if markdown_section(text, "## Purpose") else "ko"
-    if whole_document_digest(text) != README_CANONICAL_DOCUMENT_DIGESTS[language]:
-        errors.append("README differs from the closed canonical document")
-    canonical_sections = README_CANONICAL_SECTION_DIGESTS[language]
+    expected_headings = ENGLISH_README_HEADINGS if language == "en" else KOREAN_README_HEADINGS
     actual_headings = tuple(
         heading for level, heading, _ in markdown_headings(text) if level == 2
     )
-    if actual_headings != tuple(heading for heading, _ in canonical_sections) or any(
-        canonical_digest(markdown_section(text, heading)) != digest
-        for heading, digest in canonical_sections
-    ):
-        errors.append("README sensitive sections differ from the canonical contract")
+    if actual_headings != expected_headings:
+        errors.append("README headings differ from the product contract")
     first_call_heading = "## First call" if language == "en" else "## 첫 호출"
     first_call = markdown_section(text, first_call_heading)
     if not first_call:
         errors.append("missing First call section")
     if pre_sdd_invocations(first_call) != (DEFAULT_FIRST_CALL,):
         errors.append("first call must contain only the approved invocation")
-    if parse_readme_contract(text) != README_CONTRACT:
-        errors.append("bounded README contract differs from the product contract")
     return tuple(errors)
 
 
@@ -989,17 +950,16 @@ class PreSddReviewContractTests(unittest.TestCase):
         )
         self.assertEqual(frontmatter["name"], "pre-sdd-review")
 
-    def test_release_sources_target_v3_0_0(self) -> None:
+    def test_release_sources_target_current_patch(self) -> None:
         release = tomllib.loads((SKILL / "release.toml").read_text(encoding="utf-8"))
         frontmatter = parse_skill_frontmatter(
             (SKILL / "SKILL.md").read_text(encoding="utf-8")
         )
+        changelog = (SKILL / "CHANGELOG.md").read_text(encoding="utf-8")
         self.assertEqual(release["version"], TARGET_VERSION)
         self.assertEqual(frontmatter["metadata"]["version"], TARGET_VERSION)
-        self.assertIn(
-            f"## {TARGET_VERSION} - 2026-09-08",
-            (SKILL / "CHANGELOG.md").read_text(encoding="utf-8"),
-        )
+        self.assertIn(f"## {TARGET_VERSION} - 2026-09-11", changelog)
+        self.assertIn("## 3.0.0 - 2026-09-08", changelog)
 
     def test_required_implementation_base_blocks_before_reviewer_dispatch(self) -> None:
         skill = re.sub(
@@ -1421,11 +1381,15 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         normalized_korean = re.sub(r"\s+", " ", korean)
         self.assertIn("`review-only`는 같은 검토를 하지만 아무 파일도 변경하지 않습니다.", normalized_korean)
         self.assertIn("`review-only` changes nothing", re.sub(r"\s+", " ", english))
-        for text, allowlist in (
-            (normalized_korean, "`editable-surfaces`: `resolved-design-specification`, `resolved-implementation-plan`"),
-            (re.sub(r"\s+", " ", english), "`editable-surfaces`: `resolved-design-specification`, `resolved-implementation-plan`"),
-        ):
-            self.assertIn(allowlist, text)
+        contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
+        allowlist = (
+            "`editable-surfaces`: `resolved-design-specification`, "
+            "`resolved-implementation-plan`"
+        )
+        self.assertIn(allowlist, contract)
+        self.assertNotIn("proposed decision record", contract)
+        self.assertNotIn("directly referenced", re.sub(r"\s+", " ", contract))
+        for text in (normalized_korean, re.sub(r"\s+", " ", english)):
             self.assertNotIn("proposed decision record", text)
             self.assertNotIn("directly referenced", text)
 
@@ -1587,98 +1551,41 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
     def test_readme_contract_is_bounded_symmetric_and_has_one_first_call(self) -> None:
         korean = (SKILL / "README.md").read_text(encoding="utf-8")
         english = (SKILL / "README.en.md").read_text(encoding="utf-8")
+        contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
         self.assertEqual(readme_contract_errors(korean), ())
         self.assertEqual(readme_contract_errors(english), ())
-        self.assertEqual(parse_readme_contract(korean), parse_readme_contract(english))
+        self.assertEqual(parse_product_contract(contract), README_CONTRACT)
+        self.assertNotIn("### Contract", korean)
+        self.assertNotIn("### Contract", english)
 
     def test_readme_validator_rejects_wrong_command_asymmetry_and_third_surface(self) -> None:
         korean = (SKILL / "README.md").read_text(encoding="utf-8")
         english = (SKILL / "README.en.md").read_text(encoding="utf-8")
+        contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
         self.assertEqual(readme_contract_errors(korean), ())
         self.assertEqual(readme_contract_errors(english), ())
         wrong_command = english.replace(DEFAULT_FIRST_CALL, "$pre-sdd-review docs/other.md docs/plan.md")
         self.assertIn("first call must contain only the approved invocation", readme_contract_errors(wrong_command))
-        asymmetric = korean.replace("`at-most-two`", "`at-most-three`")
-        self.assertIn("bounded README contract differs from the product contract", readme_contract_errors(asymmetric))
-        third_surface = english.replace(
-            "`resolved-implementation-plan`",
-            "`resolved-implementation-plan`, `proposed-decision-record`",
-        )
-        self.assertIn("bounded README contract differs from the product contract", readme_contract_errors(third_surface))
         indented_command = english.replace(
             DEFAULT_FIRST_CALL,
             f"{DEFAULT_FIRST_CALL}\n  $pre-sdd-review docs/extra.md docs/extra-plan.md",
         )
         self.assertIn("first call must contain only the approved invocation", readme_contract_errors(indented_command))
-        extra_prose = english + "\nThe controller may also edit release notes.\n"
-        self.assertIn(
-            "README sensitive sections differ from the canonical contract",
-            readme_contract_errors(extra_prose),
-        )
         missing_heading = english.replace("## First call", "## Invocation")
         self.assertIn("missing First call section", readme_contract_errors(missing_heading))
-
-    def test_readme_validator_rejects_every_round_four_semantic_bypass(self) -> None:
-        english = (SKILL / "README.en.md").read_text(encoding="utf-8")
-        mutations = (
-            english + "\nThe controller is authorized to revise release notes.\n",
-            english.replace(
-                "The plan path is primary.",
-                "The design path is primary.",
-            ),
-            english.replace(
-                "`review-only` changes nothing",
-                "`review-only` may update the plan",
-            ),
-            english.replace(
-                "There are at most two repair passes.",
-                "There are three repair passes.",
-            ),
-            english.replace("## First call", "## Invocation").replace(
-                "```text\n$skill-installer",
-                "```text\n## First call\n$skill-installer",
-            ),
+        self.assertIn("README headings differ from the product contract", readme_contract_errors(missing_heading))
+        fenced_heading = english.replace("## First call", "## Invocation").replace(
+            "```text\n$skill-installer",
+            "```text\n## First call\n$skill-installer",
         )
-        for mutation in mutations:
-            with self.subTest(mutation=mutation):
-                self.assertIn(
-                    "README sensitive sections differ from the canonical contract",
-                    readme_contract_errors(mutation),
-                )
-
-    def test_readme_validator_rejects_round_five_preamble_authority(self) -> None:
-        english = (SKILL / "README.en.md").read_text(encoding="utf-8")
-        anchor = "[한국어](README.md)\n"
-        mutations = (
-            english.replace(
-                anchor,
-                anchor + "\nThe design path, not the plan path, is primary.\n",
-                1,
-            ),
-            english.replace(
-                anchor,
-                anchor + "\nThe controller is authorized to edit release notes.\n",
-                1,
-            ),
+        self.assertIn("README headings differ from the product contract", readme_contract_errors(fenced_heading))
+        asymmetric = contract.replace("`at-most-two`", "`at-most-three`")
+        self.assertNotEqual(parse_product_contract(asymmetric), README_CONTRACT)
+        third_surface = contract.replace(
+            "`resolved-implementation-plan`",
+            "`resolved-implementation-plan`, `proposed-decision-record`",
         )
-        for mutation in mutations:
-            with self.subTest(mutation=mutation):
-                self.assertIn(
-                    "README differs from the closed canonical document",
-                    readme_contract_errors(mutation),
-                )
-
-    def test_whole_document_digest_rejects_indented_readme_h1(self) -> None:
-        english = (SKILL / "README.en.md").read_text(encoding="utf-8")
-        indented_h1 = english.replace(
-            "# Pre-SDD Review\n",
-            "    # Pre-SDD Review\n",
-            1,
-        )
-        self.assertIn(
-            "README differs from the closed canonical document",
-            readme_contract_errors(indented_h1),
-        )
+        self.assertNotEqual(parse_product_contract(third_surface), README_CONTRACT)
 
     def test_whole_document_digest_rejects_indented_release_fence(self) -> None:
         release = (MAINTAINERS / "release.md").read_text(encoding="utf-8")

@@ -29,7 +29,7 @@ Codex에서는 공개 GitHub 경로를 `$skill-installer`에 전달합니다.
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
 ```
 
-나머지 설치 방법은 [설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/installation.md)를 보세요.
+나머지 설치 방법은 [설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/install-codex.md)를 보세요.
 
 ## 첫 호출
 
@@ -46,32 +46,10 @@ $korean-writing-editor 오탈자만 고쳐줘: (한국어 원문)
 띄어쓰기, 분명히 고쳐야 하는 국소 문법만 고칩니다. `polish`도 이 필수
 교정을 먼저 하고, 필요할 때만 가독성과 국소 흐름을 추가로 다듬습니다.
 
-## 안전과 개인정보
+## 더 보기
 
-준 글을 테스트 예시, 로그, 말투 프로필로 남기지 않습니다. 비공식 맞춤법
-사이트로 보내지 않습니다. 따로 시키지 않으면 사실을 찾아오지 않습니다.
-
-법률·의료·금융처럼 이해관계가 큰 글은 기계적 `correct` 또는 `diagnose`가
-기본입니다.
-
-자세한 내용은 [안전과 개인정보](https://github.com/beyondwin/skills/blob/main/docs/users/ko/safety-and-privacy.md)를
-보세요.
-
-## 검증
-
-오프라인 검사는 정해진 규칙만 확인합니다. 실제 교정 품질을 증명하지 않습니다.
-증거 한계는 [검증](https://github.com/beyondwin/skills/blob/main/docs/users/ko/verification.md)을 보세요.
-
-## 업데이트와 제거
-
-바꾸거나 지우기 전에 설치 폴더를 확인하세요. 절차는
-[설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/installation.md)를 보세요.
-
-현재 버전은 `SKILL.md`의 `metadata.version`과 [CHANGELOG](CHANGELOG.md)에서
-봅니다.
-
-## 변경 이력과 관리자 문서
-
+- [안전과 개인정보](https://github.com/beyondwin/skills/blob/main/docs/users/ko/safety-and-privacy.md)
+- [검증](https://github.com/beyondwin/skills/blob/main/docs/users/ko/verification.md)
 - [CHANGELOG](CHANGELOG.md)
 - [계약](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/korean-writing-editor/contract.md)
 - [테스트](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/korean-writing-editor/testing.md)

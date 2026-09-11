@@ -4,6 +4,8 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 3.0.1 - 2026-09-11
+
 ### Fixed
 
 - Recorder JSON lines keep a single LF on Windows text stdout, so release
@@ -12,6 +14,11 @@ All notable changes to this product are documented in this file.
 ### Changed
 
 - Product README language was simplified with no behaviour change.
+- Standalone README now uses the shared heading set and points install procedures at the split user guides.
+
+### Notes
+
+- No GitHub tag or GitHub Release is created.
 
 ## 3.0.0 - 2026-09-08
 
