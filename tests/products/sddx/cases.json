@@ -31,6 +31,13 @@
     {"id":"test-wrapper-exit","request":"test exits 1, echo wrapper exits 0","expect":["full_command","actual_test_exit","wrapper_exit_separate"]},
     {"id":"worker-filename-inspection","request":"worker lists current worktree filenames including a full-plan filename, without reading contents","expect":["allowed_inspection","scope_deviations_none"]},
     {"id":"worker-task-configuration-read","request":"worker directly reads repository ignore/build/test settings needed for task staging and tests; no plan or secrets","expect":["allowed_inspection","scope_deviations_none"]},
-    {"id":"inspection-does-not-permit-plan-content","request":"worker calls successful plan-content retrieval repository inspection","expect":["role_fail","scope_deviations_reported","not_clean_done"]}
+    {"id":"inspection-does-not-permit-plan-content","request":"worker calls successful plan-content retrieval repository inspection","expect":["role_fail","scope_deviations_reported","not_clean_done"]},
+    {"id":"reviewer-large-mechanical-rename-high","request":"review package stat shows 42 files and 1900 changed lines; brief says identifier rename","expect":["review_effort_high","no_size_based_escalation"]},
+    {"id":"reviewer-small-lock-order-xhigh","request":"review package stat shows 1 file and 24 changed lines; brief says lock acquisition order changed","expect":["review_effort_xhigh","ledger_trigger_and_path"]},
+    {"id":"reviewer-worker-xhigh-does-not-escalate","request":"worker ran XHigh for implementation difficulty; diff only changes string formatting","expect":["review_effort_high","worker_effort_not_cited"]},
+    {"id":"reviewer-input-validation-is-not-security-boundary","request":"diff adds a length check to a CLI argument; no auth, permission, or sandbox file changes","expect":["review_effort_high","no_security_boundary_claim"]},
+    {"id":"reviewer-final-review-is-not-a-trigger","request":"whole-branch final review over five CRUD and documentation tasks","expect":["review_effort_high","inherits_orchestrator_model"]},
+    {"id":"reviewer-round-four-re-review-xhigh","request":"entering fix round 4 with the same finding open after three scoped re-reviews","expect":["review_effort_xhigh","fresh_xhigh_worker"]},
+    {"id":"reviewer-session-already-xhigh-no-escalation","request":"session effort is already max and a lock ordering change needs review","expect":["no_escalation_agent","session_effort_not_lowered"]}
   ]
 }

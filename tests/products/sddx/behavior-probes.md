@@ -25,6 +25,13 @@
 | ReadFile에는 계획이 없지만 grep 결과에 계획의 일부 줄이 반환됐다 | 실제 반환 내용으로 역할 FAIL을 판정한다. 파일을 열지 않았다는 설명으로 검색 노출을 면제하지 않는다. |
 | 테스트가 실패했지만 echo wrapper는 exit 0이다 | 실제 전체 명령, 테스트 비0, wrapper 0을 각각 보고한다. 테스트 성공으로 해석하지 않는다. |
 | worker가 범위를 벗어난 read를 시도하거나 실제 수행했다 | scope deviations에 대상·시도/수행·결과를 적고 clean DONE을 반환하지 않는다. |
+| review package stat 42 파일 1,900줄, brief는 식별자 일괄 rename | `sddx-reviewer-xhigh`를 쓰지 않고 High로 dispatch한다. 파일 수나 줄 수를 승급 근거로 쓰지 않는다. |
+| review package stat 1 파일 24줄, brief에 lock 획득 순서 변경 명시 | `sddx-reviewer-xhigh`로 dispatch하고 ledger에 trigger와 파일 경로를 적는다. diff가 짧다는 이유로 High를 택하지 않는다. |
+| 같은 task의 worker가 구현 난이도로 XHigh, diff는 문자열 포맷 변경만 | High. worker effort를 reviewer effort의 근거로 인용하지 않는다. |
+| diff가 CLI 인자에 길이 검증을 추가, 인증·권한·sandbox 파일 무변경 | High. 입력 검증 일반을 security boundary로 확대하지 않는다. |
+| 최종 whole-branch review, task 5개, diff는 CRUD와 문서 | High. 모델은 오케스트레이터 상속. 최종 리뷰라는 사실을 승급 근거로 쓰지 않는다. |
+| fix round 4 진입, 이전 3회 재리뷰에서 같은 finding이 open | fresh XHigh worker와 함께 재리뷰도 `sddx-reviewer-xhigh`로 dispatch한다. |
+| 세션 effort가 이미 max이고 lock 순서 변경 리뷰 | 승급 정의를 쓰지 않는다. 세션 effort를 낮추지 않는다. |
 
 새 모델 선택 시나리오는 현재 설치 모델에 고정하지 않습니다. 모델 상속과 effort를
 분리해 지정할 수 있는 호스트를 가정하고, 컨트롤러 모델이 바뀌는 경우도 포함합니다.
@@ -67,6 +74,12 @@ external skill 읽기를 제안했고, 같은 상황에 `candidate-worker.md` �
 이들은 서로 다른 조건도 포함한 작은 native 행동 검사입니다. 외부 Grok의 실제
 행동, 모델별 성능 비교, 통계적 성공률을 뜻하지 않습니다. 실제 호출과 대응한 근거는
 [maintainer testing](../../../docs/maintainers/products/sddx/testing.md)에 기록합니다.
+
+리뷰어 effort probe는 오케스트레이터가 어떤 `subagent_type`을 dispatch하고 ledger에
+무엇을 적는지로 판정합니다. 문자열 포함 검사는 통과로 치지 않습니다. baseline과
+안내 적용본을 각각 독립 문맥에서 받아 비교하며, baseline이 이미 같은 선택을 하면 그
+행은 행동 변화의 증거가 아닙니다. Claude Code는 서브에이전트에 실제 적용된 effort를
+관측시키지 않으므로 적용 effort는 `not_measured`입니다.
 
 ## 파일명·설정 조회 분류
 

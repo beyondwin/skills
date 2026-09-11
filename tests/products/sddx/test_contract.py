@@ -51,6 +51,13 @@ CASE_IDS = (
     "worker-filename-inspection",
     "worker-task-configuration-read",
     "inspection-does-not-permit-plan-content",
+    "reviewer-large-mechanical-rename-high",
+    "reviewer-small-lock-order-xhigh",
+    "reviewer-worker-xhigh-does-not-escalate",
+    "reviewer-input-validation-is-not-security-boundary",
+    "reviewer-final-review-is-not-a-trigger",
+    "reviewer-round-four-re-review-xhigh",
+    "reviewer-session-already-xhigh-no-escalation",
 )
 DESCRIPTION_FORBIDDEN = ("fresh implementer", "fix loop", "whole-branch")
 
