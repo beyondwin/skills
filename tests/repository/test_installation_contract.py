@@ -12,8 +12,8 @@ ROOT = Path(__file__).resolve().parents[2]
 DOCUMENTS = (
     "skills/how-it-works/README.md",
     "skills/how-it-works/README.en.md",
-    "docs/users/ko/installation.md",
-    "docs/users/en/installation.md",
+    "docs/users/ko/install-local.md",
+    "docs/users/en/install-local.md",
 )
 MARKER = "<!-- how-it-works-local-links -->"
 

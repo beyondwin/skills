@@ -160,13 +160,22 @@ PRODUCT_README_PATHS = tuple(
 )
 USER_GUIDES = (
     ROOT / "docs" / "users" / "ko" / "installation.md",
+    ROOT / "docs" / "users" / "ko" / "install-codex.md",
+    ROOT / "docs" / "users" / "ko" / "install-local.md",
     ROOT / "docs" / "users" / "ko" / "compatibility.md",
     ROOT / "docs" / "users" / "ko" / "safety-and-privacy.md",
     ROOT / "docs" / "users" / "ko" / "verification.md",
     ROOT / "docs" / "users" / "en" / "installation.md",
+    ROOT / "docs" / "users" / "en" / "install-codex.md",
+    ROOT / "docs" / "users" / "en" / "install-local.md",
     ROOT / "docs" / "users" / "en" / "compatibility.md",
     ROOT / "docs" / "users" / "en" / "safety-and-privacy.md",
     ROOT / "docs" / "users" / "en" / "verification.md",
+)
+CODEX_PRODUCTS = (
+    "korean-writing-editor",
+    "image-workbench",
+    "pre-sdd-review",
 )
 DOCS_INDEX = ROOT / "docs" / "README.md"
 HISTORY_README = ROOT / "docs" / "history" / "README.md"
@@ -750,14 +759,26 @@ class UserGuideFactTests(unittest.TestCase):
         for document in USER_GUIDES:
             _assert_exists(self, document)
 
-    def test_shared_user_docs_link_back_to_all_product_readmes(self) -> None:
-        for document in USER_GUIDES:
-            _assert_exists(self, document)
-            text = _read(document)
-            language = "en" if "docs/users/en/" in document.as_posix() else "ko"
-            filename = "README.en.md" if language == "en" else "README.md"
-            for product in REGISTRY.products:
-                self.assertIn(f"{product.skill_path.as_posix()}/{filename}", text)
+    def test_shared_user_docs_link_back_to_owned_product_readmes(self) -> None:
+        all_products = tuple(product.name for product in REGISTRY.products)
+        owned = {
+            "installation.md": all_products,
+            "compatibility.md": all_products,
+            "safety-and-privacy.md": all_products,
+            "verification.md": all_products,
+            "install-codex.md": CODEX_PRODUCTS,
+            "install-local.md": ("how-it-works",),
+        }
+        for language in ("ko", "en"):
+            readme = "README.en.md" if language == "en" else "README.md"
+            for filename, names in owned.items():
+                text = _read(ROOT / "docs" / "users" / language / filename)
+                for name in names:
+                    self.assertIn(
+                        f"skills/{name}/{readme}",
+                        text,
+                        f"{language}/{filename} {name}",
+                    )
 
     def test_compatibility_owns_the_registered_support_sentences(self) -> None:
         for document in (
@@ -784,34 +805,43 @@ class UserGuideFactTests(unittest.TestCase):
         for unsupported in ("skills api upload supported", "cowork supported", "claude.ai supported"):
             self.assertNotIn(unsupported, active.lower())
 
-    def test_installation_covers_install_update_and_inspection(self) -> None:
-        for document in (
-            ROOT / "docs" / "users" / "ko" / "installation.md",
-            ROOT / "docs" / "users" / "en" / "installation.md",
-        ):
-            _assert_exists(self, document)
-            text = _read(document)
+    def test_installation_index_is_chooser_only(self) -> None:
+        for language in ("ko", "en"):
+            path = ROOT / "docs" / "users" / language / "installation.md"
+            text = _read(path)
+            self.assertNotIn("<!-- how-it-works-local-links -->", text)
+            self.assertNotIn("$skill-installer https://github.com", text)
+            self.assertNotIn("python3 scripts/verify.py", text)
+            self.assertIn("install-codex.md", text)
+            self.assertIn("install-local.md", text)
+            self.assertIn("skills/pre-sdd-review/evidence/README.md", text)
+            for name in REGISTRY.names:
+                self.assertIn(name, text)
+
+    def test_install_codex_owns_codex_install_update_and_npx(self) -> None:
+        for language in ("ko", "en"):
+            text = _read(ROOT / "docs" / "users" / language / "install-codex.md")
             self.assertIn("$skill-installer", text)
-            for path in PRIMARY_INSTALL_PATHS:
-                self.assertIn(path, text)
+            for name in CODEX_PRODUCTS:
+                self.assertIn(INSTALLER_COMMANDS[name], text)
+            self.assertNotIn(INSTALLER_COMMANDS["how-it-works"], text)
+            self.assertNotIn("<!-- how-it-works-local-links -->", text)
             self.assertIn(OPTIONAL_NPX, text)
             self.assertIn(GIT_CLONE, text)
-            self.assertIn("python3 scripts/verify.py", text)
-            lowered = text.lower()
-            self.assertTrue(
-                "inspect" in lowered or "확인" in text,
-                f"{document.name} must inspect the exact target before update/uninstall",
-            )
-            self.assertTrue(
-                "third-party" in lowered or "제3자" in text,
-                f"{document.name} must label the npx installer as third-party",
-            )
+            self.assertTrue("inspect" in text.lower() or "확인" in text)
+            self.assertTrue("third-party" in text.lower() or "제3자" in text)
+
+    def test_install_local_owns_how_it_works_links(self) -> None:
+        for language in ("ko", "en"):
+            rel = f"docs/users/{language}/install-local.md"
+            text = _read(ROOT / rel)
             self.assertIn(HOW_IT_WORKS_MKDIR, text)
-            self.assertTrue(installation_block(document.relative_to(ROOT).as_posix()))
+            self.assertTrue(installation_block(rel))
             self.assertIn(HOW_IT_WORKS_AGENTS_INVOCATION, text)
             self.assertIn(HOW_IT_WORKS_CLAUDE_INVOCATION, text)
             self.assertIn(HOW_IT_WORKS_UNLINK_AGENTS, text)
             self.assertIn(HOW_IT_WORKS_UNLINK_CLAUDE, text)
+            self.assertNotIn("$skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor", text)
 
     def test_how_it_works_install_and_remove_share_agents_destination(self) -> None:
         installer = INSTALLER_COMMANDS["how-it-works"]
@@ -819,32 +849,20 @@ class UserGuideFactTests(unittest.TestCase):
             "${CODEX_HOME:-$HOME/.codex}/skills/how-it-works",
             "$CODEX_HOME/skills/how-it-works",
         )
-        guides = (
-            (
-                ROOT / "docs" / "users" / "en" / "installation.md",
-                "## Primary install (Codex)",
-                "## How It Works local links",
-            ),
-            (
-                ROOT / "docs" / "users" / "ko" / "installation.md",
-                "## 기본 설치 (Codex)",
-                "## How It Works 로컬 링크",
-            ),
-        )
-        for path, start, end in guides:
-            text = _read(path)
-            start_at = text.index(start)
-            end_at = text.index(end)
-            self.assertLess(start_at, end_at, path.name)
-            primary = text[start_at:end_at]
-            self.assertNotIn(installer, primary, f"{path.name} primary Codex block")
+        for language in ("ko", "en"):
+            codex = _read(ROOT / "docs" / "users" / language / "install-codex.md")
+            local = _read(ROOT / "docs" / "users" / language / "install-local.md")
+            self.assertNotIn(installer, codex, f"{language}/install-codex.md")
             for dest in codex_home_targets:
-                self.assertNotIn(dest, text)
-            if "~/.codex/skills/how-it-works" in text:
-                self.assertIn("unlink ~/.codex/skills/how-it-works", text)
-            self.assertIn("~/.agents/skills/how-it-works", text)
-            self.assertIn(HOW_IT_WORKS_UNLINK_AGENTS, text)
-            self.assertIn(HOW_IT_WORKS_UNLINK_CLAUDE, text)
+                self.assertNotIn(dest, codex)
+                self.assertNotIn(dest, local)
+            if "~/.codex/skills/how-it-works" in local:
+                self.assertIn("unlink ~/.codex/skills/how-it-works", local)
+            if "~/.codex/skills/how-it-works" in codex:
+                self.assertIn("unlink ~/.codex/skills/how-it-works", codex)
+            self.assertIn("~/.agents/skills/how-it-works", local)
+            self.assertIn(HOW_IT_WORKS_UNLINK_AGENTS, local)
+            self.assertIn(HOW_IT_WORKS_UNLINK_CLAUDE, local)
         for filename in ("README.md", "README.en.md"):
             text = _read(ROOT / "skills/how-it-works" / filename)
             self.assertIn(installer, text)
@@ -950,18 +968,23 @@ class UserGuideFactTests(unittest.TestCase):
             )
 
     def test_pre_sdd_review_shared_guides_preserve_scope_and_evidence_limits(self) -> None:
-        korean_installation = _read(ROOT / "docs/users/ko/installation.md")
-        english_installation = _read(ROOT / "docs/users/en/installation.md")
+        korean_codex = _read(ROOT / "docs/users/ko/install-codex.md")
+        english_codex = _read(ROOT / "docs/users/en/install-codex.md")
         installer = INSTALLER_COMMANDS["pre-sdd-review"]
-        self.assertIn(installer, korean_installation)
-        self.assertIn(installer, english_installation)
-        for text in (korean_installation, english_installation):
-            self.assertIn("python3 skills/pre-sdd-review/evidence/evidence.py --version", text)
-            self.assertIn("~/.pre-sdd-review/", text)
-            self.assertNotIn("--bin-dir", text)
-            self.assertNotIn("install.py", text)
-            self.assertNotIn("pre-sdd-review-evidence launcher", text)
-            self.assertNotIn("~/.local/bin/pre-sdd-review-evidence", text)
+        self.assertIn(installer, korean_codex)
+        self.assertIn(installer, english_codex)
+        evidence = _read(ROOT / "skills/pre-sdd-review/evidence/README.md")
+        self.assertIn(
+            "python3 skills/pre-sdd-review/evidence/evidence.py --version",
+            evidence,
+        )
+        for language in ("ko", "en"):
+            for filename in ("installation.md", "install-codex.md", "install-local.md"):
+                text = _read(ROOT / "docs/users" / language / filename)
+                self.assertNotIn("--bin-dir", text)
+                self.assertNotIn("install.py", text)
+                self.assertNotIn("pre-sdd-review-evidence launcher", text)
+                self.assertNotIn("~/.local/bin/pre-sdd-review-evidence", text)
 
         korean_safety = _read(ROOT / "docs/users/ko/safety-and-privacy.md")
         english_safety = _read(ROOT / "docs/users/en/safety-and-privacy.md")
@@ -1160,10 +1183,20 @@ class UserGuideFactTests(unittest.TestCase):
 
 
 class DocumentationArchitectureTests(unittest.TestCase):
-    def test_only_four_user_guides_exist_per_language(self) -> None:
-        expected = {"installation.md", "compatibility.md", "safety-and-privacy.md", "verification.md"}
+    def test_six_user_guides_exist_per_language(self) -> None:
+        expected = {
+            "installation.md",
+            "install-codex.md",
+            "install-local.md",
+            "compatibility.md",
+            "safety-and-privacy.md",
+            "verification.md",
+        }
         for language in ("ko", "en"):
-            self.assertEqual({p.name for p in (ROOT / "docs/users" / language).glob("*.md")}, expected)
+            self.assertEqual(
+                {p.name for p in (ROOT / "docs/users" / language).glob("*.md")},
+                expected,
+            )
             self.assertFalse((ROOT / "docs" / language).exists())
 
     def test_live_docs_omit_removed_evidence_installer_names(self) -> None:

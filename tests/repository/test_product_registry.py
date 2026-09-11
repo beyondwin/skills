@@ -391,16 +391,39 @@ class RegistryDocumentationTests(unittest.TestCase):
                 self.assertIn(maintainer, text, filename)
                 for host in product.supported_hosts:
                     self.assertIn(host, text.lower(), f"{product.name}/{filename}")
-            for language, readme in (("ko", "README.md"), ("en", "README.en.md")):
-                for guide in (
-                    "installation.md",
-                    "compatibility.md",
-                    "safety-and-privacy.md",
-                    "verification.md",
-                ):
-                    text = (ROOT / "docs" / "users" / language / guide).read_text(
-                        encoding="utf-8"
-                    )
-                    label = f"{language}/{guide}"
+        shared_guides = (
+            "installation.md",
+            "compatibility.md",
+            "safety-and-privacy.md",
+            "verification.md",
+        )
+        codex_products = tuple(
+            product for product in self.registry.products if product.name != "how-it-works"
+        )
+        how_it_works = self.registry.require("how-it-works")
+        for language, readme in (("ko", "README.md"), ("en", "README.en.md")):
+            for guide in shared_guides:
+                text = (ROOT / "docs" / "users" / language / guide).read_text(
+                    encoding="utf-8"
+                )
+                label = f"{language}/{guide}"
+                for product in self.registry.products:
                     self.assertIn(product.name, text, label)
                     self.assertIn(f"{product.skill_path.as_posix()}/{readme}", text, label)
+            codex_text = (ROOT / "docs" / "users" / language / "install-codex.md").read_text(
+                encoding="utf-8"
+            )
+            for product in codex_products:
+                label = f"{language}/install-codex.md"
+                self.assertIn(product.name, codex_text, label)
+                self.assertIn(f"{product.skill_path.as_posix()}/{readme}", codex_text, label)
+            local_text = (ROOT / "docs" / "users" / language / "install-local.md").read_text(
+                encoding="utf-8"
+            )
+            local_label = f"{language}/install-local.md"
+            self.assertIn(how_it_works.name, local_text, local_label)
+            self.assertIn(
+                f"{how_it_works.skill_path.as_posix()}/{readme}",
+                local_text,
+                local_label,
+            )

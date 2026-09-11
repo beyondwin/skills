@@ -1,0 +1,61 @@
+# Codex 설치
+
+[English](../en/install-codex.md) · [설치](installation.md) · [호환성](compatibility.md) · [안전과 개인정보](safety-and-privacy.md) · [검증](verification.md)
+
+## 기본 설치 (Codex)
+
+`$skill-installer`는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md)에 씁니다. 같은 폴더가 이미 있으면 설치기는 멈춥니다. 이 세 스킬의 기본 위치는 `$CODEX_HOME/skills/<skill-name>`입니다. `CODEX_HOME`이 없으면 `~/.codex/skills`입니다. How It Works는 여기가 아닙니다.
+
+```text
+$skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
+$skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
+$skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-review
+```
+
+설치한 뒤 새 대화에서 제품 README의 첫 호출을 쓰세요.
+
+## 선택적 제3자 설치기
+
+이 경로는 한국어 편집기에만 해당합니다.
+
+```text
+npx skills add beyondwin/skills --skill korean-writing-editor
+```
+
+이 `npx` 명령은 제3자 설치기입니다. 자체 릴리스와 텔레메트리 정책을 따릅니다. 다른 스킬은 위 기본 설치나 [로컬 링크](install-local.md)를 쓰세요.
+
+## Codex 전용 Git 클론
+
+`npx`를 쓰지 않으면 저장소를 클론합니다. 그다음 Codex가 기대하는 스킬 폴더에, 확인된 디렉터리만 복사합니다.
+
+```bash
+git clone https://github.com/beyondwin/skills.git
+cd skills
+SKILL_SOURCE="$PWD/skills/korean-writing-editor"
+SKILL_TARGET="${CODEX_HOME:-$HOME/.codex}/skills/korean-writing-editor"
+ls -ld "$SKILL_SOURCE"
+ls -ld "$SKILL_TARGET"
+```
+
+`$SKILL_TARGET`이 없거나, 이 스킬을 가리키는 안전한 링크임이 확인된 경우에만 복사하세요. 이미 있는 실제 디렉터리는 덮어쓰지 말고 멈추세요. `image-workbench`와 `pre-sdd-review`도 같은 방식으로 정확한 폴더만 다룹니다.
+
+## 갱신과 제거
+
+갱신·제거 전에 정확한 대상을 확인하세요.
+
+```bash
+SKILL_TARGET="${CODEX_HOME:-$HOME/.codex}/skills/korean-writing-editor"
+ls -ld "$SKILL_TARGET"
+```
+
+확인 항목:
+
+- 경로가 이 스킬 이름과 일치하는가
+- 실제 디렉터리인가, 심볼릭 링크인가, 다른 곳을 가리키는가
+- `SKILL.md`의 `name`과 `metadata.version`이 기대한 값인가
+
+이 스킬임이 확인된 뒤에만 그 경로만 지우세요. 호스트의 일반 제거를 쓰거나, 대상을 치운 뒤 `$skill-installer`로 다시 설치하세요. 상위 `skills` 디렉터리나 홈 디렉터리를 지우지 마세요. 기존 설치를 확인 없이 교체하지 마세요.
+
+`image-workbench`와 `pre-sdd-review`도 같은 확인 순서를 각각 `.../skills/image-workbench`, `.../skills/pre-sdd-review`에 적용합니다.
+
+설치·갱신·제거는 정확한 대상만 다룹니다. 원격 스크립트를 셸에 파이프하지 마세요. 대상을 확인하지 않고 덮어쓰지 마세요. 상위 스킬 디렉터리를 지우지 마세요. 기존 설치를 자동으로 바꾸지 마세요.

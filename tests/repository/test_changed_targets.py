@@ -144,6 +144,8 @@ class TargetMappingTests(RegistryRoutingTestCase):
             "README.en.md",
             "docs/users/en/installation.md",
             "docs/users/ko/verification.md",
+            "docs/users/ko/install-codex.md",
+            "docs/users/en/install-local.md",
             "docs/maintainers/README.md",
             "docs/maintainers/repository/architecture.md",
         ):

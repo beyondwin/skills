@@ -8,6 +8,12 @@ network call, and is never installed: run it from the skill root.
 python3 "<skill-root>/evidence/evidence.py" --version
 ```
 
+From a clone of this repository:
+
+```sh
+python3 skills/pre-sdd-review/evidence/evidence.py --version
+```
+
 The compatibility handshake is exactly `skill_name=pre-sdd-review` and
 `schema=3`. The canonical version output is one JSON line followed by one LF:
 
