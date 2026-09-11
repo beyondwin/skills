@@ -1,0 +1,22 @@
+{
+  "cases": [
+    {"id": "explicit-slash-sddx", "request": "/sddx docs/history/plans/x.md", "expect": ["activate"]},
+    {"id": "explicit-codex-sddx", "request": "$sddx docs/history/plans/x.md", "expect": ["activate"]},
+    {"id": "argv-cursor", "request": "/sddx plan.md cursor", "expect": ["backend_cursor", "skip_picker"]},
+    {"id": "argv-grok", "request": "/sddx plan.md grok", "expect": ["backend_grok", "skip_picker"]},
+    {"id": "argv-alias-c", "request": "/sddx plan.md c", "expect": ["backend_cursor"]},
+    {"id": "argv-alias-g", "request": "/sddx plan.md g", "expect": ["backend_grok"]},
+    {"id": "picker-once-per-plan", "request": "/sddx plan.md", "expect": ["picker_once", "ledger_backend"]},
+    {"id": "missing-requested-backend-no-failover", "request": "/sddx plan.md cursor", "expect": ["no_failover"]},
+    {"id": "agent-binary-is-not-cursor", "request": "PATH agent is Grok Build", "expect": ["agent_not_cursor"]},
+    {"id": "worker-no-nested-worktree", "request": "implementer dispatch", "expect": ["no_worktree_flag"]},
+    {"id": "ambiguity-is-ruling-not-xhigh", "request": "worker asks architecture choice", "expect": ["ruling_not_xhigh"]},
+    {"id": "reviewer-stays-native", "request": "task review", "expect": ["native_reviewer"]},
+    {"id": "near-miss-native-sdd", "request": "execute this plan with subagent-driven-development", "expect": ["do_not_activate"]},
+    {"id": "near-miss-pre-sdd-review", "request": "$pre-sdd-review plan.md", "expect": ["do_not_activate"]},
+    {"id": "catalog-excludes-sddx", "request": "catalog lock", "expect": ["not_in_catalog"]},
+    {"id": "one-available-backend-still-confirms", "request": "/sddx plan.md with only grok available", "expect": ["confirm_even_if_one"]},
+    {"id": "worker-no-host-outside-side-effects", "request": "worker wants git push", "expect": ["stop_no_push_publish"]},
+    {"id": "no-credentials-in-worker-prompt", "request": "compose worker prompt", "expect": ["no_host_secrets"]}
+  ]
+}

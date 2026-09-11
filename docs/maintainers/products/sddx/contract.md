@@ -17,6 +17,56 @@ Superpowers SDD는 worktree, ledger, task-brief, review-package, 리뷰어
 backend picker, `resolve_backend.py`, implementer argv, worker 제약만
 소유합니다. SDD 본문을 이 스킬에 복사하지 않습니다.
 
+## 하드 게이트
+
+설치된 Superpowers `subagent-driven-development`를 그대로 따르고, implementer
+dispatch만 바꿉니다. Superpowers 파일을 고치지 않습니다. 오케스트레이터
+세션에서 구현하지 않습니다.
+
+명시적인 `/sddx` 또는 `$sddx`, 또는 명시적인 외부 implementer 요청이 없으면
+네이티브 SDD, executing-plans, writing-plans, `pre-sdd-review`로는
+활성화하지 않습니다.
+
+## 호출과 picker
+
+인자는 `sddx <plan-file> [cursor|grok|c|g]`입니다. plan 경로가 없거나 파일이
+아니면 추측하지 않고 멈춥니다. 한 호출은 계획 하나입니다.
+
+backend 인자가 있으면 picker를 생략합니다. `c`는 `cursor`, `g`는 `grok`입니다.
+인자가 없으면 이 계획에서 한 번만 고릅니다. Claude Code는 AskUserQuestion,
+Codex는 번호 있는 선택지를 한 번 묻고 답을 기다립니다. task마다 backend를
+다시 묻지 않습니다. 고른 값은 ledger에 `Backend: cursor|grok`로 적고 그
+plan의 모든 task에 유지합니다.
+
+사용 가능한 backend가 하나뿐이어도 그 사실과 빠진 backend `reason`을 보여
+주고, argv가 없으면 확인을 받은 뒤에만 진행합니다. 하나뿐이라고 자동
+선택하지 않습니다.
+
+요청한 backend가 없으면 다른 쪽으로 바꾸지 않고 멈춥니다. 둘 다 없으면
+`BLOCKED`입니다.
+
+## 리뷰어와 effort
+
+task reviewer, scoped re-reviewer, 최종 리뷰어는 호스트 네이티브입니다.
+Claude Code는 Task, Codex는 `spawn_agent`입니다. 구현 worker만 외부
+프로세스입니다.
+
+구현 effort는 기본 High입니다. 복잡한 동시성, race, 얽힌 부작용, 또는 이
+task에서 High 리뷰가 이미 실패한 경우에만 XHigh입니다. 설계 모호함은
+XHigh가 아니라 오케스트레이터 ruling입니다. worker가 `NEEDS_CONTEXT` 또는
+`BLOCKED`를 반환하면 ruling한 뒤 같은 backend로 다시 보냅니다.
+
+새 task는 새 worker입니다. fix 라운드 1–3은 같은 worker session을
+resume합니다. 라운드 4–5는 fresh worker와 XHigh입니다. worker에
+`--worktree`를 넘기지 않습니다. cwd는 현재 Superpowers worktree입니다.
+
+## Worker 부작용과 비밀
+
+호스트 자격 증명이나 환경 값을 worker prompt나 `--prompt-file`에 넣지
+않습니다. worker가 push, publish, 공유 브랜치 갱신처럼 호스트 밖 부작용을
+필요로 하면 멈추고 `BLOCKED`입니다. 그 결과를 리뷰 통과 DONE으로 쓰지
+않습니다.
+
 ## Backend 해석
 
 컨트롤러는 로드된 스킬 루트에서 `scripts/resolve_backend.py`를 실행합니다.
@@ -35,6 +85,10 @@ Grok 후보는 PATH의 `grok`뿐입니다. `agent`는 Grok 후보가 아닙니�
 
 - 호스트 또는 backend 정체: `products.toml`, 이 계약, 제품 README, 공개
   호환성 안내, `tests/products/sddx/`
+- 활성화·picker·하드 게이트: `skills/sddx/SKILL.md`,
+  `skills/sddx/references/dispatch.md`,
+  `skills/sddx/references/worker-prompt.md`,
+  `tests/products/sddx/cases.json`, `tests/products/sddx/test_contract.py`
 - `resolve_backend.py` 신원·플래그 규칙: `skills/sddx/scripts/resolve_backend.py`,
   `tests/products/sddx/test_resolve_backend.py`
 - 버전과 설치 파일: `skills/sddx/release.toml`, `SKILL.md`, `CHANGELOG.md`
