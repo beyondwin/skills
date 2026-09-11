@@ -1,5 +1,5 @@
 schema_version = 1
 name = "sddx"
-version = "1.0.3"
+version = "1.1.0"
 tag_prefix = "sddx-v"
 license = "Apache-2.0"

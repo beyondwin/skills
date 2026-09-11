@@ -58,12 +58,27 @@ Claude Code는 Task, Codex는 `spawn_agent`입니다. 구현 worker만 외부
 사용합니다. 특정 모델 계열로 고정하거나 리뷰만 다른 모델로 내리지 않습니다.
 모델 ID를 확인할 수 없으면 상속 사실과 ID 미확인을 기록하며 추측하지 않습니다.
 
-리뷰 effort는 세션 effort와 별도로 지정합니다. 명확한 요구사항·국소 수정·단순
-통합은 High, 복잡한 작업 간 영향·동시성·권한/보안·반복해서 놓친 결함은 XHigh입니다.
-재리뷰에는 원래 결함의 위험도도 적용합니다. diff가 작아졌다는 이유만으로 낮추지
-않습니다. ledger에 모델 또는 상속 여부, effort, 선택 이유를 적습니다. 호스트에서
-동일 모델이나 요청 effort를 지정할 수 없으면 그 한계를 보고하고 임의 대체하지
-않습니다. 별도 설정 파일이나 승인 단계를 추가하지 않습니다.
+리뷰 effort는 세션 effort와 별도로 지정합니다. Claude Code에서 High는 SDD가 쓰던
+방식 그대로 `model` 인자 없이 dispatch하는 것이고, XHigh는 `model` 인자 없이
+`subagent_type`을 `sddx-reviewer-xhigh`로 지정하는 것입니다. 리뷰어에 `model`
+오버라이드를 넘기지 않습니다.
+
+XHigh trigger는 lock·순서·공유 상태 변경, auth·권한·secret·sandbox 경계 변경,
+round 4–5 재리뷰, 반복해서 놓친 결함입니다. 판단 근거는 review-package stat, task
+brief, 변경 파일 경로, ledger이며 diff 본문을 읽어 정하지 않습니다. 파일 수, 줄 수,
+구현 난이도, 짧은 diff, 최종 리뷰라는 사실은 trigger가 아닙니다. 재리뷰는 원래
+결함의 위험도를 유지합니다.
+
+승급은 바닥이지 천장이 아닙니다. 세션 effort가 이미 XHigh 이상이면 승급 정의를
+쓰지 않고 세션을 낮추지도 않습니다.
+
+ledger에는 모든 리뷰 dispatch를 적습니다. High는 한 줄이고, XHigh는 trigger와
+구체 경로를 함께 적습니다. 대지 못하면 High입니다.
+
+정의는 `.claude-plugin/plugin.json`과 `agents/claude-code/`를 통해 skills-dir
+플러그인으로 Claude Code에 전달됩니다. 설치 링크는 두 개 그대로이며 새 설치 단계를
+추가하지 않습니다. Codex에는 정의가 없으므로 요청 effort를 지정할 수 없다고 보고한
+뒤 진행하며, 정의 부재로 실행을 BLOCKED로 세우지 않습니다.
 
 구현 effort는 기본 High입니다. 복잡한 동시성, race, 얽힌 부작용, 또는 이
 task에서 High 리뷰가 이미 실패한 경우에만 XHigh입니다. 설계 모호함은

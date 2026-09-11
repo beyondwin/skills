@@ -4,24 +4,23 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
-## 1.0.3 - 2026-09-11
+## 1.1.0 - 2026-09-11
 
-### Fixed
+### Added
 
-- Define Search paths as content-search boundaries; allow filename-only inspection within the worktree and direct reads of task-needed repository ignore/build/test configuration.
-- Align worker, dispatch and reviewer rules so permitted inspection alone is reported without a scope concern; full-plan content and secrets remain prohibited.
-
-## 1.0.2 - 2026-09-11
-
-### Fixed
-
-- Worker dispatch supplies complete task context and repeats the boundary against retrieving the full plan, including through shell/search tools.
-- Completion checks compare tool-call/results evidence with the worker's required scope-deviations report; missing evidence cannot count as verified compliance.
-- Test reports preserve full wrapper commands and distinguish test exits from wrapper exits.
+- A bundled Claude Code reviewer agent raises review effort to XHigh without a new install step; the existing skill link carries it.
 
 ### Changed
 
-- Every native reviewer follows the active orchestrator model, with High or XHigh selected by review risk, overriding generic SDD model selection.
+- Native reviewers follow the active orchestrator model, and effort is High unless a named trigger in the diff calls for XHigh. This overrides generic SDD model selection.
+
+### Fixed
+
+- Worker dispatch supplies complete task context and repeats the boundary against retrieving the full plan, including through shell and search tools.
+- Completion checks compare tool-call and results evidence with the worker's required scope-deviations report; missing evidence cannot count as verified compliance.
+- Test reports preserve full wrapper commands and distinguish test exits from wrapper exits.
+- Define Search paths as content-search boundaries; allow filename-only inspection within the worktree and direct reads of task-needed repository ignore/build/test configuration.
+- Align worker, dispatch and reviewer rules so permitted inspection alone is reported without a scope concern; full-plan content and secrets remain prohibited.
 
 ## 1.0.1 - 2026-09-11
 

@@ -12,7 +12,11 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.lib.product_contract import parse_skill_frontmatter, validate_product
+from scripts.lib.product_contract import (
+    load_product_release,
+    parse_skill_frontmatter,
+    validate_product,
+)
 from scripts.lib.product_registry import load_registry
 from tests.repository.test_installation_contract import installation_block
 
@@ -209,6 +213,11 @@ class SddxContractTests(unittest.TestCase):
         disallowed = str(frontmatter.get("disallowedTools", ""))
         for tool in ("Edit", "Write", "NotebookEdit"):
             self.assertIn(tool, disallowed)
+
+    def test_plugin_manifest_version_matches_the_release(self) -> None:
+        manifest = json.loads((SKILL / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
+        release = load_product_release(SKILL)
+        self.assertEqual(manifest["version"], release.version)
 
 
 def _python_fence_after(relative: str, marker: str) -> str:

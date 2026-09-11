@@ -25,8 +25,14 @@ skills/sddx/              저장소 원본
 | Codex | `$sddx` | `~/.agents/skills/sddx` |
 | Claude Code | `/sddx` | `~/.claude/skills/sddx` |
 
-`agents/openai.yaml`은 선택적 Codex 표시 메타데이터입니다. 런타임 필수 파일이
-아닙니다.
+`agents/openai.yaml`은 Codex 표시 메타데이터이며 선택적입니다. 런타임 필수
+파일이 아닙니다.
+`agents/claude-code/sddx-reviewer-xhigh.md`는 성격이 다릅니다. Claude Code 런타임
+정의이고, skills-dir 플러그인 로딩을 통해 전달됩니다. 로딩은 배포되는 제품 파일로
+한 번 확인했으며, 서브에이전트에 실제 적용된 effort는 `not_measured`입니다.
+
+사용자 프로젝트의 `.claude/agents/`에 같은 이름의 정의가 있으면 그쪽이 우선합니다.
+제품 접두사를 붙인 이름 외에 방어 수단이 없습니다.
 
 ## 공급자 없는 증거
 

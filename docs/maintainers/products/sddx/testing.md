@@ -238,3 +238,19 @@ Runtime 6개 파일의 해시가 호출 전·후 동일했습니다. 전체 공�
 868 unittest와 추가 검사 exit 0, 제품 검사는 24개 계약·45개 SDDx 테스트와 compile
 exit 0이었습니다. 마지막 관측 결과 문서는 내용·링크·diff를 확인합니다. 이전 버전의
 실패와 모호함 기록은 이 새 결과로 덮어쓰지 않습니다.
+
+## 리뷰어 effort 증거
+
+공급자 없는 증거는 `tests/products/sddx/test_contract.py`의 세 검사입니다.
+`.claude-plugin` 페이로드가 sddx에만 허용되는지, `plugin.json`이 제품명을
+가리키는지, `agents/claude-code/`에 정의가 정확히 하나이고 `name`이 파일명과 같고
+`effort`가 `xhigh`이며 `model` 키가 없고 `disallowedTools`가 Edit·Write·
+NotebookEdit를 막는지 확인합니다.
+
+라이브 확인은 하나입니다. 배포되는 제품 파일을 링크한 상태에서
+`claude -p --agent sddx-reviewer-xhigh`를 실행해 정의가 로드되는지 봅니다. 이
+확인은 로딩만 증명하며 적용된 effort를 증명하지 않습니다.
+
+계약 검사는 파일이 존재한다는 것까지만 증명합니다. Claude Code가 skills-dir
+플러그인에서 agents를 계속 싣는지는 증명하지 못하므로, 릴리스마다 위 라이브 확인을
+반복합니다. 확인에 실패하면 정의가 조용히 사라진 상태이므로 릴리스를 멈춥니다.
