@@ -112,8 +112,9 @@ backend 인자가 있으면 picker를 생략한다. 별칭: `c` → `cursor`, `g
 - Codex: 번호 있는 선택지를 한 번 묻고 답을 기다린다.
 
 사용 가능한 backend가 하나면 그 사실과 빠진 backend 이유를 보여 주고, 인자
-없이 진행할 때도 확인을 받는다. 인자가 가리키는 backend가 없으면 다른
-쪽으로 바꾸지 않고 멈춘다. 둘 다 없으면 `BLOCKED`다.
+없이 진행할 때도 확인을 받는다. 하나뿐이라고 자동 선택하지 않는다. 인자가
+가리키는 backend가 없으면 다른 쪽으로 바꾸지 않고 멈춘다. 둘 다 없으면
+`BLOCKED`다.
 
 암묵 호출은 약하다. description은 `/sddx`, `$sddx`, 외부 implementer,
 Cursor Grok, Grok CLI worker, 현재 세션을 오케스트레이터로 유지하는 요청만
@@ -203,7 +204,10 @@ Grok 모델 id가 없으면 그 backend는 없는 것과 같다.
 무인 실행을 위해 도구 자동 승인은 허용한다. 파일 접근은 workspace
 sandbox가 있으면 켠다. Grok worker는 `--disable-web-search`를 붙인다.
 Cursor worker는 `--plugin-dir`를 붙이지 않고, 컨트롤러가 MCP를 승인하지
-않는다. 컨트롤러 세션의 자격 증명을 프롬프트에 붙여 넣지 않는다.
+않는다. 컨트롤러 세션의 자격 증명·환경 값을 worker 프롬프트나
+`--prompt-file`에 붙여 넣지 않는다. 라이브 worker는 계획과 worktree 내용을
+선택한 Cursor 또는 xAI 공급자에게 보낸다. 기본 `verify.py`는 그 CLI를
+호출하지 않는다.
 
 ### 7. `resolve_backend.py`
 
@@ -246,14 +250,16 @@ python3 "<skill-root>/scripts/resolve_backend.py" --backend <cursor|grok|c|g> --
 
 필수 능력은 `--help`로 확인한다. 없으면 `missing_flags`다.
 
-Grok: cwd, no-plan, no-subagents, reasoning-effort 또는 effort, headless
-prompt, resume, always-approve.
+Grok: `--cwd`, no-plan, no-subagents, reasoning-effort 또는 effort, headless
+prompt, resume, always-approve. `--cwd`가 help에 없으면 `missing_flags`다.
 Cursor: headless print, force/yolo, trust, workspace/cwd, model, resume.
 
-`argv_prefix`는 실행 파일과 고정 플래그만 담는다. prompt 파일, effort 값,
-resume id는 컨트롤러가 붙인다.
+`argv_prefix`는 실행 파일과 고정 플래그만 담는다. Grok 고정 플래그에
+`--disable-web-search`를 포함한다. prompt 파일, effort 값, resume id,
+`--cwd`/`--workspace`는 컨트롤러가 붙인다.
 
-테스트는 PATH에 가짜 바이너리를 넣어 이 규칙을 잠근다. 실제 Cursor/Grok
+테스트는 PATH에 가짜 바이너리를 넣어 이 규칙을 잠근다. `cursor-agent`만이
+아니라 신원이 Cursor Agent CLI인 `cursor` 후보도 잠근다. 실제 Cursor/Grok
 계정을 쓰지 않는다.
 
 ### 8. 실패와 정지
@@ -283,7 +289,10 @@ resume id는 컨트롤러가 붙인다.
 ### 9. 설치
 
 how-it-works와 같이 저장소 로컬 링크다. `$skill-installer` 세 Codex 전용
-제품 목록에 넣지 않는다.
+제품 목록(`install-codex.md`의 세 명령)에 넣지 않는다. how-it-works처럼
+제품 README에는 공개 GitHub 경로를 가리키는 `$skill-installer
+https://github.com/beyondwin/skills/tree/main/skills/sddx` 한 줄을 둔다.
+이 줄은 Codex 전용 설치기가 아니라 공개 경로 이름이다.
 
 ```text
 skills/sddx/
@@ -375,6 +384,9 @@ catalog 비포함, `resolve_backend.py` 픽스처를 본다. 라이브 CLI, 과�
 - `near-miss-native-sdd`
 - `near-miss-pre-sdd-review`
 - `catalog-excludes-sddx`
+- `one-available-backend-still-confirms`
+- `worker-no-host-outside-side-effects`
+- `no-credentials-in-worker-prompt`
 
 선택 라이브 점검은 로컬·명시적·CI 밖이다. 통과한 오프라인을 호스트 품질로
 설명하지 않는다.
