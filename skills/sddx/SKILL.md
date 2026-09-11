@@ -4,7 +4,7 @@ description: Use when executing a Superpowers implementation plan with an extern
 license: Apache-2.0
 compatibility: Requires a local Git repository, an implementation plan file, and Claude Code or Codex as the orchestrator host. Implementer CLIs are optional and resolved at runtime.
 metadata:
-  version: "1.0.2"
+  version: "1.0.3"
   updated_at: "2026-09-11"
 ---
 
@@ -72,6 +72,12 @@ nor UNVERIFIED permits a clean DONE. Check shell commands/results as well as
 file-read and search tools; plan excerpts in search results are prohibited
 content too. An attempted read alone does not prove content was returned.
 Give the reviewer the evidence and any discrepancy with the worker report.
+`Search paths` limits content searches. Filename-only listings inside the
+current worktree (including its root) and direct reads of repository
+ignore/build/test configuration needed for the task are allowed inspection,
+not scope deviations. With no other deviation, `Scope deviations: none` is
+correct; do not require a concern or ruling solely for these actions. This
+permission never covers reading full-plan content, credentials, or secrets.
 
 BLOCKED, NEEDS_CONTEXT, a missing report, or an unclear result must not become
 DONE. Resolve concerns through the existing ruling procedure. A later apology

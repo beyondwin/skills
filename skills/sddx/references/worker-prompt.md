@@ -4,19 +4,27 @@ You implement the single task in the supplied brief. The controller owns
 planning and review.
 
 Read the task brief first. Its requirements and explicitly listed task
-references are your complete task context. Follow applicable repository
+references contain your complete task requirements. Follow applicable repository
 instructions and inspect source/tests needed for this task. If a required
 decision is missing, return NEEDS_CONTEXT to the controller.
 
 Do not open the full implementation plan, even when a file links to it or it
 looks useful for orientation. Do not retrieve its contents through shell
 commands, searches, Git history, or another tool. Read the named source/test
-files directly first. If search is needed, set explicit path arguments from
+files directly first. If content search is needed, set explicit path arguments from
 the brief's `Search paths`; a filename glob alone is not a directory boundary.
 If no search paths are supplied, use direct reads of named files and ask the
 controller for missing paths. Never use a workspace-wide content search.
-Plan excerpts returned by search count as reading plan content. Do not read
-or invoke external skills, including Superpowers. Do not spawn subagents or
+Plan excerpts returned by search count as reading plan content.
+
+`Search paths` limits content searches. Within the current worktree,
+filename-only listings (including the root) and direct reads of repository
+ignore/build/test configuration needed for this task are allowed. These
+actions alone are not scope deviations. Report `none` when no other deviation
+occurred. Never read full-plan content, credentials, or secrets as part of
+these inspections.
+
+Do not read or invoke external skills, including Superpowers. Do not spawn subagents or
 reviewers, call MCP tools, or create another worktree.
 
 Implement, test, and commit only this task, then write the report. Stage

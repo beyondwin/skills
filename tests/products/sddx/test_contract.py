@@ -46,6 +46,9 @@ CASE_IDS = (
     "worker-plan-link",
     "worker-report-deviations",
     "test-wrapper-exit",
+    "worker-filename-inspection",
+    "worker-task-configuration-read",
+    "inspection-does-not-permit-plan-content",
 )
 DESCRIPTION_FORBIDDEN = ("fresh implementer", "fix loop", "whole-branch")
 

@@ -97,11 +97,17 @@ worker와 worker가 실행한 작업이 종료된 뒤에는 성공과 실패 모
 dispatch 전 컨트롤러는 task-brief에 필요한 조건과 task 참고자료를 완결합니다.
 전체 계획을 참고자료로 전달하지 않으며 새 호출과 resume 모두에 문서 경계를
 직접 명시합니다. brief의 `Search paths:`에 구체적인 source/test 파일·디렉터리를
-적고 worker는 명시된 파일부터 직접 읽습니다. 검색이 필요하면 이 경로를 도구 인자로
+적고 worker는 명시된 파일부터 직접 읽습니다. 내용 검색이 필요하면 이 경로를 도구 인자로
 지정하며, 파일 glob만으로 경로가 제한된다고 가정하지 않습니다. 검색 경로가 없으면
 명시된 파일을 직접 읽거나 컨트롤러에 누락 경로를 요청합니다. 전체 workspace 내용
 검색은 하지 않습니다. worker는 필요한 source/test를 읽을 수 있으나 전체 계획은
 링크·shell·검색·Git 이력으로도 읽지 않습니다. 부족한 결정은 `NEEDS_CONTEXT`입니다.
+
+`Search paths`는 내용 검색을 제한합니다. 현재 worktree 안의 파일명 목록 조회
+(root 포함)와 해당 task에 필요한 저장소 ignore·빌드·테스트 설정 직접 읽기는
+허용된 확인입니다. 이 행동만으로 scope deviation이나 별도 ruling을 요구하지
+않습니다. 다른 이탈이 없으면 `Scope deviations: none`이 맞습니다. 이 허용은
+전체 계획 본문·자격 증명·비밀정보 읽기를 포함하지 않습니다.
 
 worker 보고에는 scope deviations 항목이 필수입니다. 시도/수행한 행동·대상·결과를
 기록하며, 계획 원문을 다시 복사하지 않습니다. 이탈한 뒤 정정했어도 clean `DONE`이

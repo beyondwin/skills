@@ -4,6 +4,13 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 1.0.3 - 2026-09-11
+
+### Fixed
+
+- Define Search paths as content-search boundaries; allow filename-only inspection within the worktree and direct reads of task-needed repository ignore/build/test configuration.
+- Align worker, dispatch and reviewer rules so permitted inspection alone is reported without a scope concern; full-plan content and secrets remain prohibited.
+
 ## 1.0.2 - 2026-09-11
 
 ### Fixed

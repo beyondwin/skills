@@ -15,8 +15,13 @@ test inspection remains available. When the brief lacks a required decision,
 complete it in the controller rather than ask the worker to recover it from
 the plan. Add `Search paths:` with concrete source/test file or directory
 paths to the brief. Keep planning documents out of that list. The worker
-starts with direct reads of named files and targets any search at these paths;
+starts with direct reads of named files and targets content searches at these paths;
 a glob without a target path can still search the whole repository.
+`Search paths` limits content searches. Filename-only listings inside the
+current worktree, including its root, and direct reads of repository
+ignore/build/test configuration needed for this task are allowed inspection.
+These actions alone are not scope deviations. They never permit reading
+full-plan content, credentials, or secrets.
 
 Put this boundary directly in each new or resumed dispatch prompt, alongside
 the brief and report paths (it also remains in the worker rules):
@@ -24,9 +29,12 @@ the brief and report paths (it also remains in the worker rules):
 > Read the brief first. Use its requirements and explicitly listed task
 > references. The controller owns the full plan; do not read it or follow
 > links to it, including through shell/search tools. Missing decisions go
-> back as NEEDS_CONTEXT. Read named source/test files directly first; any
-> search must target the brief's Search paths, not the whole workspace.
-> Report scope deviations even if tests pass.
+> back as NEEDS_CONTEXT. Read named source/test files directly first; content
+> searches must target the brief's Search paths, not the whole workspace.
+> Within this worktree, filename-only listings and direct reads of repository
+> ignore/build/test configuration needed for this task are allowed and are
+> not scope deviations. Never read full-plan content, credentials, or secrets
+> through these inspections. Report actual scope deviations even if tests pass.
 
 Capture the CLI's tool-call/results stream in local, uncommitted evidence.
 For Grok, use `--output-format streaming-messages-json`; for Cursor, use the

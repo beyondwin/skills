@@ -36,6 +36,10 @@ The worker receives a complete task brief and listed references, without
 reopening the full plan. Compare its scope-deviations report with actual tool
 records. Role violations are FAIL; insufficient tool evidence is UNVERIFIED.
 Neither qualifies for clean DONE.
+`Search paths` limits content searches. Filename-only listings in the current
+worktree and direct reads of task-needed ignore/build/test configuration are
+allowed; these actions alone require no scope concern. Full-plan content and
+secrets remain excluded.
 
 Task reviews, scoped re-reviews, and final review all follow the current
 orchestrator model. Select reviewer effort separately: High for clear local

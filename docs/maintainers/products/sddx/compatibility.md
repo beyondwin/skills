@@ -49,7 +49,7 @@ worker가 저장소의 공유 Git 메타데이터를 쓸 수 있음을 뜻합니
 
 | 오케스트레이터 호스트 | 구현 worker | 상태 | 관측 범위 |
 | --- | --- | --- | --- |
-| Codex | Grok CLI | measured | 1.0.2 최종 문구: 실제 3회, 15 tests, 모델 상속·재개·복원 확인; 초기 candidate 검색 노출 실패 별도 보존 |
+| Codex | Grok CLI | measured | 1.0.3: 실제 2회, 10/8 tests, 파일명·설정 조회의 none 보고와 경로 지정 검색 확인; 이전 버전 실패 별도 보존 |
 | Codex | Cursor CLI | `not_measured` | 현재 설치 파일로 실행하지 않음 |
 | Claude Code | Cursor 또는 Grok CLI | `not_measured` | 현재 설치 파일로 실행하지 않음 |
 
@@ -66,6 +66,11 @@ worker가 저장소의 공유 Git 메타데이터를 쓸 수 있음을 뜻합니
 노출은 관측되지 않았습니다. 파일명·ignore 규칙 확인에 대한 마지막 worker의
 DONE_WITH_CONCERNS는 실제 기록과 독립 리뷰에 근거한 기존 ruling으로 수용했습니다.
 검색 노출이 있었던 초기 candidate는 별도 실패 기록으로 남습니다.
+1.0.3은 파일명 목록·작업에 필요한 설정 직접 읽기의 허용과 none 보고 기준을
+명시합니다. 새 두 세션에서 실제 해당 조회와 native/shell 내용 검색을 함께 수행하고,
+각각 10개·8개 테스트 및 설정 복원을 확인했습니다. 두 원본 보고는 허용된 조회를
+공개하고도 불필요한 scope concern 없이 DONE/none이었습니다. 이는 해당 fixture의
+관측이며 일반적인 준수율이나 강제 파일 접근 차단을 증명하지 않습니다.
 Claude Code의 모델·effort 대응과 Cursor event trace는 실제 실행 미측정입니다.
 재현 절차와 버전별 관측은 [테스트](testing.md)에 있습니다.
 
