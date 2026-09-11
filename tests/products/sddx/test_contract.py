@@ -179,6 +179,30 @@ class SddxContractTests(unittest.TestCase):
             self.assertIn("unexpected top-level file: .claude-plugin",
                           validate_product(copied, registry))
 
+    def test_plugin_manifest_names_the_product(self) -> None:
+        manifest = json.loads((SKILL / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["name"], "sddx")
+        self.assertIn("description", manifest)
+        self.assertIn("version", manifest)
+
+    def test_claude_code_agents_are_closed_and_escalation_only(self) -> None:
+        directory = SKILL / "agents" / "claude-code"
+        definitions = sorted(path.name for path in directory.glob("*.md"))
+        self.assertEqual(definitions, ["sddx-reviewer-xhigh.md"])
+        self.assertEqual(
+            sorted(path.name for path in directory.iterdir() if path.is_file()),
+            ["sddx-reviewer-xhigh.md"],
+        )
+        frontmatter = parse_skill_frontmatter(
+            (directory / "sddx-reviewer-xhigh.md").read_text(encoding="utf-8")
+        )
+        self.assertEqual(frontmatter.get("name"), "sddx-reviewer-xhigh")
+        self.assertEqual(frontmatter.get("effort"), "xhigh")
+        self.assertNotIn("model", frontmatter)
+        disallowed = str(frontmatter.get("disallowedTools", ""))
+        for tool in ("Edit", "Write", "NotebookEdit"):
+            self.assertIn(tool, disallowed)
+
 
 def _python_fence_after(relative: str, marker: str) -> str:
     text = (ROOT / relative).read_text(encoding="utf-8")
