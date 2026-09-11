@@ -43,8 +43,10 @@ CLI 성공·실패 출력을 검사합니다. 표준 `tomllib`를 사용하므�
 독립 문맥에서 native 모델이 제안한 행동을 컨트롤러가 수동 판정합니다. 2026-09-11
 controller 시나리오 5개는 완료 판정, sandbox 실패, session 재사용·전환 기준을 모두
 통과했습니다. 별도의 worker 역할 합성 표본에서는 external skill 읽기 제안이 baseline
-2/5에서 최종 안내 적용 후 0/5로 줄었습니다. 이 결과는 문자열 검사가 아니며, 작은
-native simulation을 실제 Grok 호출이나 runtime 신뢰도 통계로 취급하지 않습니다.
+2/5에서 candidate worker 안내 적용 후 0/5로 줄었습니다. 다섯 guided 응답은
+`candidate-worker.md`를 읽었고, 최종 역할 문장과 내용은 같지만 기존 문단의 순서와
+서식은 달랐습니다. 이 결과는 문자열 검사가 아니며, 작은 native simulation을 실제
+Grok 호출이나 runtime 신뢰도 통계로 취급하지 않습니다.
 
 ## 2026-09-11 실제 Grok 재검증
 
@@ -63,9 +65,10 @@ native simulation을 실제 Grok 호출이나 runtime 신뢰도 통계로 취급
    확인합니다.
 
 실제 provider 호출은 세 번이었고 모두 worker exit 0, cleanup exit 0, report `DONE`,
-worker 직접 커밋으로 끝났습니다. 첫 task는 RED 7 tests exit 1 뒤 GREEN 7 tests
-exit 0, 통제된 same-session 수정은 RED 8 tests exit 1 뒤 GREEN 8 tests exit 0,
-둘째 task는 RED 14 tests exit 1 뒤 GREEN 14 tests exit 0이었습니다. 둘째 task의
+worker 직접 커밋으로 끝났습니다. 첫 task는 구현 전 `textnorm` 부재로 loader-error
+test 1개를 실행한 RED exit 1 뒤 GREEN 7 tests exit 0, 통제된 same-session 수정은
+RED 8 tests exit 1 뒤 GREEN 8 tests exit 0이었고, 둘째 task는 RED 14 tests
+exit 1 뒤 GREEN 14 tests exit 0이었습니다. 둘째 task의
 RED/GREEN은 shell wrapper exit 0 안의 실제 test exit를 별도로 확인했습니다. 원래
 구현 결함은 발견되지 않았으며, same-session 변경은 미리 승인된 추가 요구의 resume
 동작을 검증한 것입니다.
