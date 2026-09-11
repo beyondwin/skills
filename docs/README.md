@@ -11,6 +11,8 @@ How to change it is in the maintainer docs.
 설치, 호환성, 안전, 검증은 [`docs/users/`](users/)에 있습니다.
 
 - [한국어 설치](users/ko/installation.md) · [English installation](users/en/installation.md)
+- [Codex 설치](users/ko/install-codex.md) · [Codex install](users/en/install-codex.md)
+- [로컬 링크](users/ko/install-local.md) · [Local links](users/en/install-local.md)
 - [호환성](users/ko/compatibility.md) · [Compatibility](users/en/compatibility.md)
 - [안전과 개인정보](users/ko/safety-and-privacy.md) · [Safety and privacy](users/en/safety-and-privacy.md)
 - [검증](users/ko/verification.md) · [Verification](users/en/verification.md)

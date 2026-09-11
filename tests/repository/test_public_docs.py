@@ -721,6 +721,7 @@ class RootCatalogTests(unittest.TestCase):
         for href in (
             "docs/README.md",
             "docs/users/ko/installation.md",
+            "docs/users/ko/install-local.md",
             "docs/users/ko/compatibility.md",
             "docs/users/ko/safety-and-privacy.md",
             "docs/users/ko/verification.md",
@@ -733,6 +734,7 @@ class RootCatalogTests(unittest.TestCase):
         for href in (
             "docs/README.md",
             "docs/users/en/installation.md",
+            "docs/users/en/install-local.md",
             "docs/users/en/compatibility.md",
             "docs/users/en/safety-and-privacy.md",
             "docs/users/en/verification.md",
@@ -1243,6 +1245,18 @@ class DocumentationArchitectureTests(unittest.TestCase):
             self.assertIn(f"{product.skill_path.as_posix()}/README.en.md", text)
         self.assertIn("docs/maintainers/", text)
         self.assertIn("docs/history/", text)
+
+    def test_docs_index_links_split_install_guides(self) -> None:
+        text = _read(ROOT / "docs" / "README.md")
+        for href in (
+            "users/ko/install-codex.md",
+            "users/ko/install-local.md",
+            "users/en/install-codex.md",
+            "users/en/install-local.md",
+            "users/ko/installation.md",
+            "users/en/installation.md",
+        ):
+            self.assertIn(href, text)
 
     def test_repository_guides_cover_registry_release_catalog_and_migrations(self) -> None:
         registry_doc = ROOT / "docs" / "maintainers" / "repository" / "products-registry.md"

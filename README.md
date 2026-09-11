@@ -39,8 +39,9 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-re
 
 How It Works 공개 경로는
 https://github.com/beyondwin/skills/tree/main/skills/how-it-works 입니다.
+로컬 연결은 [로컬 링크](docs/users/ko/install-local.md)를 보세요.
 
-설치·갱신·제거, How It Works 로컬 연결, 제3자 설치기는
+설치·갱신·제거, 제3자 설치기는
 [설치](docs/users/ko/installation.md)를 보세요.
 
 저장소를 검사하려면:
