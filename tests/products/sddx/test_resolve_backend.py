@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import stat
 import sys
 import tempfile
@@ -58,10 +59,8 @@ CURSOR_MODELS = "gpt-5\ncomposer\ngrok-4\n"
 NO_GROK_MODELS = "gpt-5\ncomposer\n"
 
 
-def _write_cli(directory: Path, name: str, version: str, help_text: str, models: str = "") -> Path:
-    path = directory / name
-    path.write_text(
-        f"#!{sys.executable}\n"
+def _cli_body(version: str, help_text: str, models: str) -> str:
+    return (
         "import sys\n"
         f"VERSION = {version!r}\n"
         f"HELP = {help_text!r}\n"
@@ -77,9 +76,23 @@ def _write_cli(directory: Path, name: str, version: str, help_text: str, models:
         "    sys.stdout.write(MODELS)\n"
         "    raise SystemExit(0)\n"
         "sys.stderr.write('unexpected\\n')\n"
-        "raise SystemExit(2)\n",
-        encoding="utf-8",
+        "raise SystemExit(2)\n"
     )
+
+
+def _write_cli(directory: Path, name: str, version: str, help_text: str, models: str = "") -> Path:
+    body = _cli_body(version, help_text, models)
+    if os.name == "nt":
+        script = directory / f"{name}.py"
+        script.write_text(body, encoding="utf-8")
+        path = directory / f"{name}.cmd"
+        path.write_text(
+            f'@echo off\r\n"{sys.executable}" "{script}" %*\r\n',
+            encoding="utf-8",
+        )
+        return path
+    path = directory / name
+    path.write_text(f"#!{sys.executable}\n{body}", encoding="utf-8")
     path.chmod(path.stat().st_mode | stat.S_IXUSR)
     return path
 
@@ -104,6 +117,36 @@ class ResolveBackendTests(unittest.TestCase):
             del sys.modules["resolve_backend"]
         return importlib.import_module("resolve_backend")
 
+    def test_fixture_cli_is_discoverable_on_path(self) -> None:
+        _write_cli(self.bindir, "grok", GROK_VERSION, GROK_HELP)
+        with mock.patch.dict(os.environ, self._path(), clear=False):
+            found = shutil.which("grok")
+        self.assertIsNotNone(found)
+        self.assertEqual(Path(found).stem, "grok")
+
+    def test_windows_cmd_wrapper_is_invoked_through_comspec(self) -> None:
+        module = self._load()
+        with mock.patch.object(module.os, "name", "nt"):
+            with mock.patch.dict(module.os.environ, {"ComSpec": r"C:\Windows\system32\cmd.exe"}, clear=False):
+                command = module._command(r"C:\tools\grok.cmd", ["--version"])
+        self.assertEqual(command[:4], [r"C:\Windows\system32\cmd.exe", "/d", "/s", "/c"])
+        self.assertIn("grok.cmd", command[4])
+        self.assertIn("--version", command[4])
+
+    def test_windows_exe_is_invoked_directly(self) -> None:
+        module = self._load()
+        with mock.patch.object(module.os, "name", "nt"):
+            command = module._command(r"C:\tools\grok.exe", ["--version"])
+        self.assertEqual(command, [r"C:\tools\grok.exe", "--version"])
+
+    @unittest.skipUnless(os.name == "nt", "cmd.exe PATH wrappers are a Windows lookup")
+    def test_windows_cmd_fixture_prints_grok_version(self) -> None:
+        path = _write_cli(self.bindir, "grok", GROK_VERSION, GROK_HELP)
+        module = self._load()
+        with mock.patch.dict(os.environ, self._path(), clear=False):
+            text = module._run(str(path), ["--version"])
+        self.assertIn("grok 1.0.25", text)
+
     def test_grok_available_uses_grok_binary_only(self) -> None:
         _write_cli(self.bindir, "grok", GROK_VERSION, GROK_HELP)
         _write_cli(self.bindir, "agent", GROK_VERSION, GROK_HELP)
@@ -113,7 +156,7 @@ class ResolveBackendTests(unittest.TestCase):
         self.assertTrue(result["available"])
         self.assertEqual(result["backend"], "grok")
         self.assertEqual(result["reason"], None)
-        self.assertTrue(result["executable"].endswith("/grok"))
+        self.assertEqual(Path(result["executable"]).stem, "grok")
         self.assertIn("--no-plan", result["argv_prefix"])
         self.assertIn("--no-subagents", result["argv_prefix"])
         self.assertIn("--always-approve", result["argv_prefix"])
@@ -203,7 +246,7 @@ class ResolveBackendTests(unittest.TestCase):
         with mock.patch.dict(os.environ, self._path(), clear=False):
             result = module.resolve("cursor")
         self.assertTrue(result["available"])
-        self.assertTrue(result["executable"].endswith("/cursor"))
+        self.assertEqual(Path(result["executable"]).stem, "cursor")
 
     def test_cursor_binary_with_grok_identity_is_not_adopted(self) -> None:
         _write_cli(self.bindir, "cursor", GROK_VERSION, GROK_HELP)

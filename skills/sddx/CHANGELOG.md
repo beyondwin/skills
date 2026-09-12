@@ -4,6 +4,13 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 1.1.1 - 2026-09-12
+
+### Fixed
+
+- Grok sandbox config rewrite no longer requires POSIX `fchmod`, so an existing `sandbox.toml` can be prepared and restored on Windows.
+- Backend resolution runs Windows `.cmd`/`.bat` PATH wrappers through `cmd.exe`, so identity probes work for batch launchers.
+
 ## 1.1.0 - 2026-09-11
 
 ### Added

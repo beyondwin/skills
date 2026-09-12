@@ -10,10 +10,13 @@
 
 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다.
 `tests/products/sddx/test_resolve_backend.py`는 PATH에 가짜 바이너리를
-넣어 신원 규칙을 잠급니다. 실제 Cursor/Grok 계정을 쓰지 않습니다.
+넣어 신원 규칙을 잠급니다. Windows에서는 PATHEXT가 찾는 `.cmd` 런처를 쓰고,
+resolver는 그 런처를 `cmd.exe`로 실행합니다. 실제 Cursor/Grok 계정을 쓰지
+않습니다.
 `tests/products/sddx/test_prepare_grok_sandbox.py`는 임시 저장소와 실제 linked
 worktree를 만들고 Git 경로 계산, 기존 TOML 원문 복원, 재진입, 심볼릭 링크 거절,
-CLI 성공·실패 출력을 검사합니다. 표준 `tomllib`를 사용하므로 Python 3.11 이상이
+`fchmod` 없는 다시 쓰기, CLI 성공·실패 출력을 검사합니다. Git 경로는 pathlib로
+정규화해 비교합니다. 표준 `tomllib`를 사용하므로 Python 3.11 이상이
 필요합니다.
 
 생성되는 `sddx-worktree` 프로파일의 `read_write`는 linked worktree의 Git 디렉터리와
