@@ -51,10 +51,10 @@ OUTPUT_CHROME = (
     "{high-stakes banner or omit}",
     "## 한 줄 / One sentence",
     "## 지도 / Map",
-    "```mermaid",
-    "{diagram source}",
     "1. **H1** — {what moves or changes}",
     "2. **H2** — {what moves or changes}",
+    "```mermaid",
+    "{diagram source}",
     "## 본문 / Body",
     "## 지금 다루지 않은 것 / Adjacent slices",
     "다음 / Next: {exactly one move}",
@@ -526,14 +526,31 @@ class HowItWorksPayloadTests(unittest.TestCase):
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         self.assertIn("`흐름` → 흐름", text)
         self.assertIn("Type inference does not fill `rung`", text)
-        self.assertIn("Do not silently pick a depth", text)
+        self.assertIn("Never replace a filled rung", text)
+        self.assertIn("default 그림", text)
+        self.assertNotIn("Do not silently pick a depth", text)
         aliases = section(text, "Silent aliases", "If the prompt already uses domain words")
         self.assertNotIn("흐름", aliases)
+        self.assertIn("감이 안 와", aliases)
+
+    def test_missing_depth_explains_at_default_picture(self) -> None:
+        text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("Do not explain until `slice` is a cut mechanism", text)
+        self.assertIn("Explain in the same turn", text)
+        self.assertIn("Announce the rung in the intent line", text)
+        self.assertIn("Missing rung takes default 그림", text)
+        self.assertIn("| 바로 | slice is a cut mechanism |", text)
+        self.assertIn("- **그림** — 한 장 (default)", text)
+        self.assertNotIn(
+            "Do not explain until `slice`, `type`, `rung`, and `language` are filled",
+            text,
+        )
+        self.assertNotIn("- **길** — 누가 무엇을 넘기는지 (default)", text)
 
     def test_v2_explicit_depth_precedence_contract(self) -> None:
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         self.assertIn(
-            "explicit rung > explicit depth alias > existing jargon default > one necessary question",
+            "explicit rung > explicit depth alias > existing jargon default > default 그림",
             text,
         )
         self.assertIn("Interpret numeric aliases only when explicitly selecting depth", text)
@@ -575,6 +592,27 @@ class HowItWorksPayloadTests(unittest.TestCase):
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         self.assertIn("default **뼈대**", text)
         self.assertIn("Explicit 쉽게/한눈에/한 장 selects 그림 even with jargon", text)
+
+    def test_picture_body_does_not_restate_hops(self) -> None:
+        output = _reference("output.md")
+        self.assertIn("그림 hops are the map; Body does not walk the hops again", output)
+        self.assertIn("Analogy, if used, comes after the hops", output)
+        self.assertIn(
+            "그림: Map hops only; Body is identity and use. 길 walks the hops on a sequence diagram",
+            output,
+        )
+        self.assertNotIn(
+            "Walk the hops. 길 gets the sequence diagram. 그림 gets boxes only",
+            output,
+        )
+
+    def test_korean_picture_target_keeps_cache_in_the_same_movie(self) -> None:
+        korean = _reference("korean.md")
+        self.assertIn("묻다, 맡기다, 적어 두다, 만료되다", korean)
+        self.assertIn("가까운 기억", korean)
+        self.assertNotIn("컴퓨터는 숫자 주소를 본다", korean)
+        self.assertIn("여러분이", korean)
+        self.assertIn("답니다", korean)
 
     def test_high_stakes_banners_are_language_specific(self) -> None:
         text = _reference("stakes.md")
