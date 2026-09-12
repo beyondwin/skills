@@ -30,14 +30,76 @@ Codex에서는 공개 GitHub 경로를 `$skill-installer`에 전달합니다.
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
 ```
 
-나머지 설치 방법은 [설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/install-codex.md)를 보세요.
+나머지 Codex 설치 방법은 [설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/install-codex.md)를 보세요.
+
+Grok에서는 저장소를 클론한 뒤 `~/.agents/skills`에 링크 하나를 겁니다.
+
+```bash
+git clone https://github.com/beyondwin/skills.git
+cd skills
+mkdir -p ~/.agents/skills
+```
+
+아래 일회성 Python 블록은 source와 target을 인자로 받습니다. source가 실제 스킬
+디렉터리인지 먼저 확인하고, 같은 링크는 성공으로 처리합니다. 다른 링크, 깨진 링크,
+파일, 디렉터리는 자동으로 바꾸지 않습니다. 대상이 검사 뒤 생기는 경우에도 멈추므로
+직접 확인한 뒤 다시 실행해야 합니다.
+
+<!-- image-workbench-local-links -->
+```python
+import os
+import sys
+from pathlib import Path
+
+if len(sys.argv) != 3:
+    raise SystemExit("usage: python3 - SOURCE TARGET")
+source = Path(sys.argv[1]).expanduser().resolve(strict=True)
+target = Path(os.path.abspath(os.path.expanduser(sys.argv[2])))
+if not source.is_dir() or not (source / "SKILL.md").is_file():
+    raise SystemExit("source must be a skill directory")
+if target.is_symlink():
+    try:
+        same = target.resolve(strict=True) == source
+    except (OSError, RuntimeError):
+        same = False
+    if same:
+        print("already linked")
+        raise SystemExit(0)
+    raise SystemExit("refusing different or dangling link")
+if target.exists():
+    raise SystemExit("refusing existing file or directory")
+target.parent.mkdir(parents=True, exist_ok=True)
+try:
+    target.symlink_to(source, target_is_directory=True)
+except FileExistsError:
+    raise SystemExit("target appeared during installation; inspect it before retrying")
+print("linked")
+```
+
+이 블록을 quoted here-document의 표준입력으로 넣고 한 번 실행합니다. 호출은
+`python3 - "$PWD/skills/image-workbench" "$HOME/.agents/skills/image-workbench" <<'PY'`로
+시작합니다. 다음 줄에 위 Python 블록을 그대로 넣고 마지막 줄을 `PY`로 닫습니다.
+source와 target 인자의 따옴표를 유지하세요.
+
+링크는 확인한 뒤에만 제거합니다.
+
+```bash
+ls -ld ~/.agents/skills/image-workbench
+unlink ~/.agents/skills/image-workbench
+```
+
+`~/.grok`나 `~/.codex` 복사본을 만들지 마세요. 나머지 로컬 링크 방법은
+[설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/install-local.md)를
+보세요.
 
 ## 첫 호출
 
-설치 다음 대화에서 이렇게 부릅니다.
+설치 다음 대화에서 이렇게 부릅니다. Codex는 `$image-workbench`, Grok는
+`/image-workbench`입니다.
 
 ```text
 $image-workbench 이 프로젝트 랜딩 페이지 hero 이미지를 만들어줘.
+/image-workbench 이 프로젝트 랜딩 페이지 hero 이미지를 만들어줘.
 ```
 
 ## 예상 결과

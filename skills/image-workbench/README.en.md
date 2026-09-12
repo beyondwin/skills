@@ -30,15 +30,77 @@ In Codex, pass the public GitHub path to `$skill-installer`.
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
 ```
 
-Shared install steps are in
+Shared Codex install steps are in
 [Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/install-codex.md).
+
+For Grok, clone the repo and make one link under `~/.agents/skills`.
+
+```bash
+git clone https://github.com/beyondwin/skills.git
+cd skills
+mkdir -p ~/.agents/skills
+```
+
+The one-shot Python block below takes source and target as arguments. It first
+validates that source is a skill directory and treats the same link as success.
+It does not replace a different link, dangling link, file, or directory. It also
+stops if the target appears after inspection, so inspect it before retrying.
+
+<!-- image-workbench-local-links -->
+```python
+import os
+import sys
+from pathlib import Path
+
+if len(sys.argv) != 3:
+    raise SystemExit("usage: python3 - SOURCE TARGET")
+source = Path(sys.argv[1]).expanduser().resolve(strict=True)
+target = Path(os.path.abspath(os.path.expanduser(sys.argv[2])))
+if not source.is_dir() or not (source / "SKILL.md").is_file():
+    raise SystemExit("source must be a skill directory")
+if target.is_symlink():
+    try:
+        same = target.resolve(strict=True) == source
+    except (OSError, RuntimeError):
+        same = False
+    if same:
+        print("already linked")
+        raise SystemExit(0)
+    raise SystemExit("refusing different or dangling link")
+if target.exists():
+    raise SystemExit("refusing existing file or directory")
+target.parent.mkdir(parents=True, exist_ok=True)
+try:
+    target.symlink_to(source, target_is_directory=True)
+except FileExistsError:
+    raise SystemExit("target appeared during installation; inspect it before retrying")
+print("linked")
+```
+
+Put this block on standard input through a quoted here-document and run it once.
+The invocation starts with
+`python3 - "$PWD/skills/image-workbench" "$HOME/.agents/skills/image-workbench" <<'PY'`.
+Place the Python block above unchanged on the following lines and close with `PY`
+on its own line. Keep the source and target arguments quoted.
+
+Inspect the link before removing it.
+
+```bash
+ls -ld ~/.agents/skills/image-workbench
+unlink ~/.agents/skills/image-workbench
+```
+
+Do not create a `~/.grok` or `~/.codex` duplicate. Shared local-link steps are in
+[Local links](https://github.com/beyondwin/skills/blob/main/docs/users/en/install-local.md).
 
 ## First call
 
-After install, invoke it on the next turn:
+After install, invoke it on the next turn. Codex uses `$image-workbench`. Grok
+uses `/image-workbench`.
 
 ```text
 $image-workbench Make a landing-page hero image for this project.
+/image-workbench Make a landing-page hero image for this project.
 ```
 
 ## Expected result
