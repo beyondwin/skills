@@ -37,7 +37,7 @@ EXPECTED_CATEGORY_COUNTS = {
     "preservation": 8,
     "noop": 6,
     "voice": 4,
-    "trigger": 5,
+    "trigger": 6,
 }
 CASE_ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 STRING_LIST_FIELDS = ("must_preserve", "required_substrings", "forbidden_substrings")
@@ -57,6 +57,7 @@ DESCRIPTION_REQUIRED_TERMS = (
 )
 MODE_TERMS = ("diagnose", "correct", "polish")
 TIER_TERMS = ("fast", "balanced", "frontier")
+OUTPUT_RECIPE_TERMS = ("first non-whitespace", "excluded task", "correct` or `polish")
 REQUIRED_HEADINGS = {
     "SKILL.md": (
         "# Korean Writing Editor",
@@ -324,6 +325,11 @@ def validate_skill_tree(skill_root: pathlib.Path, scope: str) -> list[str]:
             version = metadata.get("version")
         if not isinstance(version, str) or not version:
             errors.append("skill tree: SKILL.md metadata.version must be a string")
+        for term in OUTPUT_RECIPE_TERMS:
+            if not _contains_term(skill_text, term):
+                errors.append(
+                    f"skill tree: SKILL.md missing output-recipe term {term!r}"
+                )
 
     for relative in ("SKILL.md", "references/editorial-guide.md"):
         text = present.get(relative)
@@ -386,6 +392,17 @@ def run_mutation_checks(cases: list[dict[str, object]]) -> list[str]:
         if not evaluate_candidate(mutated):
             errors.append("mutation: flipping negation produced no error")
 
+        hedge = dict(negation)
+        hedge["candidate"] = (
+            str(negation["candidate"]).replace(
+                "출시하지 않을 수 있다", "출시하지 않을 수도 있다"
+            )
+        )
+        if not evaluate_candidate(hedge):
+            errors.append(
+                "mutation: replacing 수 있다 with 수도 있다 produced no error"
+            )
+
     modality = by_id.get("meaning-modality-02")
     if modality is None:
         errors.append("mutation: missing meaning-modality-02")
@@ -426,6 +443,26 @@ def run_mutation_checks(cases: list[dict[str, object]]) -> list[str]:
                 "mutation: adding process preamble produced no error"
             )
 
+        english_preamble = dict(spacing)
+        english_preamble["candidate"] = (
+            "Using the Korean writing editor skill to correct typos."
+            + str(spacing["candidate"])
+        )
+        if not evaluate_candidate(english_preamble):
+            errors.append(
+                "mutation: adding English skill-usage preamble produced no error"
+            )
+
+        korean_preamble = dict(spacing)
+        korean_preamble["candidate"] = (
+            "한국어 교정 스킬을 확인한 뒤 오탈자만 고치겠습니다."
+            + str(spacing["candidate"])
+        )
+        if not evaluate_candidate(korean_preamble):
+            errors.append(
+                "mutation: adding Korean skill-usage preamble produced no error"
+            )
+
     for mode, suffix in (("correct", "09"), ("polish", "10")):
         case_id = f"norm-grammar-particle-{mode}-{suffix}"
         case = by_id.get(case_id)
@@ -443,6 +480,20 @@ def run_mutation_checks(cases: list[dict[str, object]]) -> list[str]:
                 errors.append(
                     f"mutation: grammar or voice corruption escaped {case_id}"
                 )
+
+    translation = by_id.get("trigger-translation-03")
+    if translation is None:
+        errors.append("mutation: missing trigger-translation-03")
+    else:
+        mutated = dict(translation)
+        mutated["candidate"] = (
+            str(translation["candidate"])
+            + " There is a meeting tomorrow morning."
+        )
+        if not evaluate_candidate(mutated):
+            errors.append(
+                "mutation: fulfilling a translation near-miss produced no error"
+            )
 
     return errors
 
@@ -576,6 +627,8 @@ class EvaluatorTests(unittest.TestCase):
                 "사용할수",
                 "켜야 할 필요는",
                 "요청은 오탈자",
+                "Using the",
+                "한국어 교정 스킬",
             ],
             "rationale": (
                 "Dependent-noun spacing plus already-correct obligation "
@@ -600,6 +653,40 @@ class EvaluatorTests(unittest.TestCase):
         )
         self.assertIn(
             "norm-spacing-can-01: forbidden substring present '요청은 오탈자'",
+            evaluate_candidate(case),
+        )
+
+    def test_obligation_case_matches_live_forbidden_substrings(self):
+        live = json.loads(
+            pathlib.Path(__file__).with_name("cases.json").read_text(encoding="utf-8")
+        )
+        live_case = next(
+            case for case in live["cases"] if case["id"] == "norm-spacing-can-01"
+        )
+        self.assertEqual(
+            self.obligation_case()["forbidden_substrings"],
+            live_case["forbidden_substrings"],
+        )
+
+    def test_rejects_english_skill_usage_preamble_candidate(self):
+        case = self.obligation_case()
+        case["candidate"] = (
+            "Using the Korean writing editor skill to correct typos."
+            + case["candidate"]
+        )
+        self.assertIn(
+            "norm-spacing-can-01: forbidden substring present 'Using the'",
+            evaluate_candidate(case),
+        )
+
+    def test_rejects_korean_skill_usage_preamble_candidate(self):
+        case = self.obligation_case()
+        case["candidate"] = (
+            "한국어 교정 스킬을 확인한 뒤 오탈자만 고치겠습니다."
+            + case["candidate"]
+        )
+        self.assertIn(
+            "norm-spacing-can-01: forbidden substring present '한국어 교정 스킬'",
             evaluate_candidate(case),
         )
 
@@ -656,7 +743,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     print(
-        "33 cases: "
+        "34 cases: "
         f"normative={category_counts['normative']} "
         f"preservation={category_counts['preservation']} "
         f"noop={category_counts['noop']} "

@@ -19,8 +19,8 @@
 설치 파일이 바뀌면 `release.toml`과 `SKILL.md` 버전 결정과 제품 CHANGELOG
 항목이 같은 변경에 있어야 합니다.
 
-릴리스 증거에는 runner 18 제품 검증, 서른세 개 오프라인 케이스
-(`normative=10 preservation=8 noop=6 voice=4 trigger=5`), 복사하거나 추출한
+릴리스 증거에는 runner 18 제품 검증, 서른네 개 오프라인 케이스
+(`normative=10 preservation=8 noop=6 voice=4 trigger=6`), 복사하거나 추출한
 standalone payload의 README 상대 링크 검사가 모두 포함되어야 합니다. 저장소
 원본 payload 통과만으로 ZIP 검증을 대신하지 않습니다. 현재 독립 버전은
 `release.toml`이 소유합니다. 로컬 준비만으로 새 GitHub 태그나 Release가

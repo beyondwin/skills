@@ -51,7 +51,7 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 The offline suites prove the deterministic contract only. Product fixture paths live in each product maintainer `testing.md`.
 
-Current Korean offline coverage is 33 cases (`normative=10`); the other fixture categories are unchanged. New Korean live evidence uses runner 18; historical runner receipts do not prove a runner 18 execution. Image coverage is 31 fixtures and 17 mutations.
+Current Korean offline coverage is 34 cases (`normative=10 preservation=8 noop=6 voice=4 trigger=6`). New Korean live evidence uses runner 18; historical runner receipts do not prove a runner 18 execution. Image coverage is 31 fixtures and 17 mutations.
 
 For Korean candidates, hard failures take precedence as `failed`. After hard checks pass, unobserved meaning, attribution, or requested edit execution yields `partially_verified`; offline contract success alone is not a live status. For How, fence/hop validity, loading, syntax, and meaning require separate evidence. The historical smoke remains `historical-unbound`; current metadata binding alone proves no model execution.
 

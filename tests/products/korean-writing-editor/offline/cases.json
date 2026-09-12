@@ -16,7 +16,13 @@
       "expected_noop": false,
       "must_preserve": ["반드시 켤 필요는 없습니다"],
       "required_substrings": ["사용할 수"],
-      "forbidden_substrings": ["사용할수", "켜야 할 필요는", "요청은 오탈자"],
+      "forbidden_substrings": [
+        "사용할수",
+        "켜야 할 필요는",
+        "요청은 오탈자",
+        "Using the",
+        "한국어 교정 스킬"
+      ],
       "rationale": "Dependent-noun spacing plus already-correct obligation wording; no process preamble."
     },
     {
@@ -594,6 +600,29 @@
       "required_substrings": ["결과 공유가 늦어져서 미안해요."],
       "forbidden_substrings": ["번역하면"],
       "rationale": "Former kws- invocation is a near-miss; do not activate."
+    },
+    {
+      "id": "trigger-diagnose-06",
+      "category": "trigger",
+      "request": "고치지 말고 어색한 부분만 알려줘: 지금 상태에선 배포할수 있다.",
+      "source": "지금 상태에선 배포할수 있다.",
+      "candidate": "- 배포할수: 의존명사 수 앞 띄어쓰기가 필요합니다 (normative-rule).",
+      "candidate_trigger": true,
+      "candidate_mode": "diagnose",
+      "candidate_tier": "fast",
+      "expected_trigger": true,
+      "expected_mode": "diagnose",
+      "expected_tier": "fast",
+      "expected_noop": false,
+      "must_preserve": ["배포할수"],
+      "required_substrings": ["배포할수"],
+      "forbidden_substrings": [
+        "지금 상태에선 배포할 수 있다.",
+        "Using the",
+        "Using korean-writing-editor",
+        "한국어 교정 스킬"
+      ],
+      "rationale": "Diagnose names the spacing issue without a rewritten draft or process preamble."
     }
   ]
 }

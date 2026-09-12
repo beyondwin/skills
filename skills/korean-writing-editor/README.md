@@ -33,7 +33,15 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-wri
 
 ## 첫 호출
 
-설치 다음 대화에서 이렇게 부릅니다.
+설치 다음 대화에서 이렇게 부릅니다. 기본은 윤문입니다. 이식 가능한 접두는
+`$korean-writing-editor`와 `/korean-writing-editor`입니다. 측정된 호스트는
+Codex입니다.
+
+```text
+$korean-writing-editor 자연스럽게 다듬어줘: (한국어 원문)
+```
+
+오탈자만 고치려면:
 
 ```text
 $korean-writing-editor 오탈자만 고쳐줘: (한국어 원문)
