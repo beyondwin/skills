@@ -14,7 +14,9 @@
 결정적 테스트 예시:
 
 - `broad-slice`는 문명 명사를 세 조각으로 자르고 질문 하나입니다.
-- `missing-rung`은 닫힌 깊이 질문 하나이며 칸을 조용히 채우지 않습니다.
+- `missing-rung`은 `/how-it-works DNS 흐름`이며 유형만 채우고 기본 그림으로
+  같은 턴에 설명합니다. 닫힌 깊이 질문이 아닙니다.
+- `default-dns-picture`는 `/how-it-works DNS`이며 기본 그림 설명입니다.
 - `explicit-dns-path`는 채팅 필수 산출 여섯 가지이며 호스트 도구를 요구하지 않습니다.
 - `implicit-positive`는 의도한 암묵 활성화입니다.
 - `near-miss-debug`와 `near-miss-eli5`는 활성화하지 않습니다. `/eli5`는 이 스킬이 아닙니다.

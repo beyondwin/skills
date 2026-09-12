@@ -9,8 +9,30 @@
     {
       "id": "missing-rung",
       "prompt": "/how-it-works DNS 흐름",
-      "must": ["one_closed_question"],
-      "forbidden": ["silent_rung"]
+      "must": [
+        "picture_default",
+        "claim",
+        "mermaid",
+        "numbered_hops",
+        "body",
+        "adjacent_slices",
+        "next_move"
+      ],
+      "forbidden": ["one_closed_question", "skeleton_default"]
+    },
+    {
+      "id": "default-dns-picture",
+      "prompt": "/how-it-works DNS",
+      "must": [
+        "picture_default",
+        "claim",
+        "mermaid",
+        "numbered_hops",
+        "body",
+        "adjacent_slices",
+        "next_move"
+      ],
+      "forbidden": ["one_closed_question", "skeleton_default"]
     },
     {
       "id": "explicit-dns-path",
