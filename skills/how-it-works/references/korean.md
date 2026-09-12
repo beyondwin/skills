@@ -10,6 +10,8 @@ Do not run korean-writing-editor. These rules apply to the complete chat output.
 - Do not synonym-spin to sound human.
 - Do not raise 가능성이 있다 into 확실하다, or advice into 해야 한다.
 - Gloss once: 리베이스(rebase), then one form.
+- Causal verbs: 묻다, 맡기다, 적어 두다, 만료되다.
+- Open with a lived snag, then the joint. Do not open with a definition.
 - One language per reply. No KO+EN duplicate.
 
 Intent line:
@@ -22,4 +24,4 @@ Forbidden 그림 (do not emit):
 
 그림 target:
 
-> 사이트 이름은 사람이 읽고, 컴퓨터는 숫자 주소를 써요. DNS는 이름에 연결된 주소를 조회하는 체계예요.
+> 사이트 이름을 쳤는데, 패킷이 나갈 곳은 숫자 주소예요. DNS는 가까운 기억부터 보고, 없으면 이름 나무의 권한 있는 서버까지 물어 가는 조회예요.
