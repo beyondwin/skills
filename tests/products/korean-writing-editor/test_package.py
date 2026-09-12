@@ -23,7 +23,7 @@ RUNNER = (
 )
 CASES = RUNNER.with_name("cases.json")
 EXPECTED_SUMMARY = (
-    "33 cases: normative=10 preservation=8 noop=6 voice=4 trigger=5"
+    "34 cases: normative=10 preservation=8 noop=6 voice=4 trigger=6"
 )
 PAYLOAD_FILES = (
     "SKILL.md",
@@ -45,7 +45,7 @@ class KoreanPackageTests(unittest.TestCase):
     def test_korean_offline_runner_accepts_explicit_skill_root(self) -> None:
         result = run_offline("--scope", "full", "--skill-root", str(SKILL_ROOT))
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("33 cases:", result.stdout)
+        self.assertIn("34 cases:", result.stdout)
         self.assertIn(EXPECTED_SUMMARY, result.stdout)
         self.assertIn("mutation checks: PASS", result.stdout)
 

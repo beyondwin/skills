@@ -37,7 +37,7 @@ EXPECTED_CATEGORY_COUNTS = {
     "preservation": 8,
     "noop": 6,
     "voice": 4,
-    "trigger": 5,
+    "trigger": 6,
 }
 CASE_ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 STRING_LIST_FIELDS = ("must_preserve", "required_substrings", "forbidden_substrings")
@@ -57,6 +57,7 @@ DESCRIPTION_REQUIRED_TERMS = (
 )
 MODE_TERMS = ("diagnose", "correct", "polish")
 TIER_TERMS = ("fast", "balanced", "frontier")
+OUTPUT_RECIPE_TERMS = ("first non-whitespace", "excluded task", "correct` or `polish")
 REQUIRED_HEADINGS = {
     "SKILL.md": (
         "# Korean Writing Editor",
@@ -324,6 +325,11 @@ def validate_skill_tree(skill_root: pathlib.Path, scope: str) -> list[str]:
             version = metadata.get("version")
         if not isinstance(version, str) or not version:
             errors.append("skill tree: SKILL.md metadata.version must be a string")
+        for term in OUTPUT_RECIPE_TERMS:
+            if not _contains_term(skill_text, term):
+                errors.append(
+                    f"skill tree: SKILL.md missing output-recipe term {term!r}"
+                )
 
     for relative in ("SKILL.md", "references/editorial-guide.md"):
         text = present.get(relative)
@@ -656,7 +662,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     print(
-        "33 cases: "
+        "34 cases: "
         f"normative={category_counts['normative']} "
         f"preservation={category_counts['preservation']} "
         f"noop={category_counts['noop']} "
