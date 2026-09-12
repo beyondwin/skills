@@ -257,14 +257,14 @@ class ValidateSkillRejectionTests(unittest.TestCase):
         def mutate(skill):
             path = skill / "SKILL.md"
             original = path.read_text(encoding="utf-8")
-            mutated = original.replace('version: "2.0.3"', 'version: "1.0.0"', 1)
+            mutated = original.replace('version: "2.1.0"', 'version: "1.0.0"', 1)
             self.assertNotEqual(mutated, original)
             path.write_text(mutated, encoding="utf-8")
 
         staged = self._mutated(source, mutate)
         errors = "\n".join(validate_product(staged, REGISTRY))
         self.assertIn(
-            "release.toml version 2.0.3 != SKILL.md version 1.0.0",
+            "release.toml version 2.1.0 != SKILL.md version 1.0.0",
             errors,
         )
 

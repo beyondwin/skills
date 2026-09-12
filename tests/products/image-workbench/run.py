@@ -15,7 +15,7 @@ from collections import Counter
 
 
 CANONICAL_COMPATIBILITY = (
-    "Requires Codex built-in image generation and local image viewing for generate or edit mode. "
+    "Requires Codex or Grok built-in image generation and local image viewing for generate or edit mode. "
     "Brief and audit modes can run read-only."
 )
 TOP_LEVEL_REQUIRED_KEYS = frozenset(("name", "description", "compatibility", "metadata"))
@@ -245,7 +245,7 @@ class EvaluatorTests(unittest.TestCase):
         skill_md = (self.payload_source_root() / "SKILL.md").read_text(encoding="utf-8")
         self.assertRegex(
             skill_md,
-            r"(?m)^compatibility: Requires Codex built-in image generation and local image viewing for generate or edit mode\. Brief and audit modes can run read-only\.\s*$",
+            rf"(?m)^compatibility: {re.escape(CANONICAL_COMPATIBILITY)}\s*$",
         )
         self.assertNotRegex(skill_md, r"(?m)^  compatibility:")
         with tempfile.TemporaryDirectory() as directory:
@@ -841,7 +841,7 @@ EXPECTED_CATEGORY_COUNTS = {
     "authorization": 5,
     "spec": 5,
     "hybrid": 4,
-    "handoff": 5,
+    "handoff": 6,
     "trust": 3,
 }
 CASE_ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -1469,6 +1469,24 @@ def validate_skill_tree(skill_root: pathlib.Path, scope: str) -> list[str]:
         for phrase, error in (
             ("built-in image generation only", "SKILL.md: missing built-in-only execution wording"),
             ("never a silent provider/CLI switch", "SKILL.md: missing no-silent-fallback wording"),
+            (
+                "Do not report a host session preview path as the project-bound final file.",
+                "SKILL.md: missing session-preview-not-final wording",
+            ),
+            ("image_gen", "SKILL.md: missing Grok image_gen tool name"),
+            ("image_edit", "SKILL.md: missing Grok image_edit tool name"),
+            (
+                "Map ImageSpec canvas to aspect_ratio when it is a ratio.",
+                "SKILL.md: missing canvas-to-aspect_ratio wording",
+            ),
+            (
+                "Do not pass n or count.",
+                "SKILL.md: missing no-n-or-count wording",
+            ),
+            (
+                "A pixel size that disagrees with aspect ratio is not itself a hold unless ImageSpec acceptance makes those pixels a critical condition.",
+                "SKILL.md: missing pixel-mismatch-not-hold wording",
+            ),
             ("Produce one useful first candidate by default.", "SKILL.md: missing default-candidate limit"),
             (
                 "One tool call per explicitly requested distinct asset or variant.",
@@ -1628,7 +1646,7 @@ def _validate_fixtures(
         if not case_errors:
             errors.extend(evaluate_candidate(case))
     if len(cases) != sum(EXPECTED_CATEGORY_COUNTS.values()):
-        errors.append(f"fixtures: expected 31 cases, found {len(cases)}")
+        errors.append(f"fixtures: expected 32 cases, found {len(cases)}")
     for category, expected in EXPECTED_CATEGORY_COUNTS.items():
         actual = category_counts[category]
         if actual != expected:
@@ -1671,7 +1689,7 @@ def main(argv: list[str] | None = None) -> int:
             print(error, file=sys.stderr)
         return 1
     print(
-        "31 cases: "
+        "32 cases: "
         f"routing={counts['routing']} "
         f"authorization={counts['authorization']} "
         f"spec={counts['spec']} "

@@ -1,11 +1,11 @@
 ---
 name: image-workbench
-description: Use when the user asks to plan, generate, edit, compare, or production-check a raster image asset that must fit a local project, preserve input constraints, or be saved and integrated. Inspect project context, compile a compact ImageSpec, use Codex image generation only for a clear generation or edit request, validate the result, and save non-destructively. Do not use for casual one-off image requests, SVG or code-native assets, actual frontend implementation, or copying external prompt galleries.
+description: Use when the user asks to plan, generate, edit, compare, or production-check a raster image asset that must fit a local project, preserve input constraints, or be saved and integrated. Inspect project context, compile a compact ImageSpec, use the current host's built-in image generation only for a clear generation or edit request, validate the result, and save non-destructively. Do not use for casual one-off image requests, SVG or code-native assets, actual frontend implementation, or copying external prompt galleries.
 license: Apache-2.0
-compatibility: Requires Codex built-in image generation and local image viewing for generate or edit mode. Brief and audit modes can run read-only.
+compatibility: Requires Codex or Grok built-in image generation and local image viewing for generate or edit mode. Brief and audit modes can run read-only.
 metadata:
-  version: "2.0.3"
-  updated_at: "2026-09-11"
+  version: "2.1.0"
+  updated_at: "2026-09-12"
 ---
 
 # Image Workbench
@@ -55,10 +55,28 @@ brief is complex, an edit has several inputs, or integration matters.
 
 ## Execute The Authorized Route
 
-For authorized `generate` or `edit` work, use Codex built-in image generation
-only. Before an edit, open the local edit target and confirm its role and
-invariants. If the built-in tool is unavailable, report a hold and offer an
-explicit fallback; never a silent provider/CLI switch.
+For authorized `generate` or `edit` work, use the current host's built-in image generation only.
+
+| Host | generate | edit |
+| --- | --- | --- |
+| Codex | bundled image generation | bundled image edit |
+| Grok | `image_gen` | `image_edit` |
+
+Before an edit, open the local edit target and confirm its role and
+invariants. On Grok, map `image_edit` inputs in this order: one
+`edit_target`, then optional `subject_reference`, `style_reference`,
+`compositing_input`. If the built-in tool is unavailable, report a hold
+and offer an explicit fallback; never a silent provider/CLI switch.
+
+Do not report a host session preview path as the project-bound final file.
+Copy a Grok session result into a new or versioned project sibling first,
+then inspect that project path.
+
+Map ImageSpec canvas to aspect_ratio when it is a ratio. If only pixels
+are known, choose the nearest supported ratio and report measured pixels
+after inspection. Do not pass n or count. A pixel size that disagrees
+with aspect ratio is not itself a hold unless ImageSpec acceptance makes
+those pixels a critical condition.
 
 ## Inspect And Evaluate
 
@@ -88,7 +106,9 @@ changed.
 
 Hold when an edit target is ambiguous, material rights or privacy are unknown,
 an exact deliverable lacks a deterministic route, or a final path/dimensions
-cannot be verified. Offer one material question or an explicit fallback. Do
+cannot be verified. Report a moderation block without prompt-evasion retries.
+A named person without a reference is a rights hold; do not create a likeness
+with pure `image_gen`. Offer one material question or an explicit fallback. Do
 not silently switch tools, overwrite a file, or claim a live visual result from
 offline evidence.
 

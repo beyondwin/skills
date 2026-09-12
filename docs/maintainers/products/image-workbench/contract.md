@@ -2,7 +2,10 @@
 
 route(어디로 가는지), authorization(언제 만들어도 되는지), ImageSpec, rubric(채점표), inspector(파일 확인기), 테스트 예시, 버전을 함께
 유지하세요. 공개 설치 안내는 제품 `README.md`/`README.en.md`와 `docs/users/`에
-있습니다. 이 스킬은 Codex-only입니다.
+있습니다. generate/edit는 Codex 번들 이미지 도구 또는 Grok `image_gen`/
+`image_edit`만 씁니다. 호스트 세션 미리보기 경로는 프로젝트 최종 파일이
+아닙니다. 오프라인 픽스처의 `builtin_imagegen`은 현재 호스트의 내장 이미지
+도구 호출을 뜻합니다.
 
 ## 트리거와 기본값
 
