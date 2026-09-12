@@ -76,7 +76,10 @@ Map ImageSpec canvas to aspect_ratio when it is a ratio. If only pixels
 are known, choose the nearest supported ratio and report measured pixels
 after inspection. Do not pass n or count. A pixel size that disagrees
 with aspect ratio is not itself a hold unless ImageSpec acceptance makes
-those pixels a critical condition.
+those pixels a critical condition. Do not call image_to_video or
+reference_to_video. Single-image edit keeps the source aspect ratio. If
+ImageSpec canvas differs from the source, report that difference and
+follow the tool default unless a ratio change is explicit.
 
 ## Inspect And Evaluate
 
@@ -98,9 +101,10 @@ Produce one useful first candidate by default. One tool call per explicitly requ
 ## Save And Integrate
 
 Save non-destructively: use a new or versioned sibling unless replacement is
-explicitly authorized. Report the final path or preview, prompt, operation or
-route, and critical evidence statuses; say whether consuming code or metadata
-changed.
+explicitly authorized. Report the project-bound final path after copy, or a
+preview-only result when the user asked for preview only. Include prompt,
+operation or route, and critical evidence statuses; say whether consuming
+code or metadata changed.
 
 ## Failure And Holds
 

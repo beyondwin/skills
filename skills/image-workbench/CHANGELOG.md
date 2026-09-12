@@ -11,12 +11,16 @@ All notable changes to this product are documented in this file.
 - Host-native generate/edit table for Codex bundled tools and Grok
   `image_gen`/`image_edit`.
 - A host session preview path is not a project-bound final file; copy into a
-  project sibling before inspection.
+  project sibling before inspection, then report that project path.
+- Grok generate/edit does not call `image_to_video` or `reference_to_video`.
+  Single-image edit keeps the source aspect ratio unless a ratio change is
+  explicit.
 
 ### Notes
 
-- Grok is a supported host after recorded smoke on this build. No GitHub
-  tag or GitHub Release is created.
+- Grok is a supported host after recorded smoke on this build. Offline tests
+  bind that claim to four `pass` values and the current `SKILL.md` hash. No
+  GitHub tag or GitHub Release is created.
 
 ## 2.0.3 - 2026-09-11
 

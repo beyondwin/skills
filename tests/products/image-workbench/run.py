@@ -1487,6 +1487,18 @@ def validate_skill_tree(skill_root: pathlib.Path, scope: str) -> list[str]:
                 "A pixel size that disagrees with aspect ratio is not itself a hold unless ImageSpec acceptance makes those pixels a critical condition.",
                 "SKILL.md: missing pixel-mismatch-not-hold wording",
             ),
+            (
+                "Do not call image_to_video or reference_to_video.",
+                "SKILL.md: missing no-video-tools wording",
+            ),
+            (
+                "Single-image edit keeps the source aspect ratio.",
+                "SKILL.md: missing single-edit-source-aspect wording",
+            ),
+            (
+                "Report the project-bound final path after copy",
+                "SKILL.md: missing project-path-after-copy report wording",
+            ),
             ("Produce one useful first candidate by default.", "SKILL.md: missing default-candidate limit"),
             (
                 "One tool call per explicitly requested distinct asset or variant.",
