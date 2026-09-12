@@ -13,11 +13,13 @@ paths. They are point-in-time records, not the current contract.
 아직 진행 중:
 
 - [how-it-works 첫 화면 그림 설계](specs/2026-09-12-how-it-works-first-picture-design.md)
+- [how-it-works 첫 화면 그림 구현 계획](plans/2026-09-12-how-it-works-first-picture.md)
 - [image-workbench Grok 호스트 지원 설계](specs/2026-09-12-image-workbench-grok-host-design.md)
 - [image-workbench Grok 호스트 지원 구현 계획](plans/2026-09-12-image-workbench-grok-host.md)
 
 Still in progress:
 
 - [how-it-works first-picture design](specs/2026-09-12-how-it-works-first-picture-design.md)
+- [how-it-works first-picture plan](plans/2026-09-12-how-it-works-first-picture.md)
 - [image-workbench Grok host support design](specs/2026-09-12-image-workbench-grok-host-design.md)
 - [image-workbench Grok host support plan](plans/2026-09-12-image-workbench-grok-host.md)

@@ -1,8 +1,7 @@
 # how-it-works 첫 화면 그림과 게이트 제거 설계
 
-**Status:** Draft for review. Approved in conversation on 2026-09-12: approach B,
-interaction section, 그림 quality section, SemVer 3.0.0, live quality out of
-scope.
+**Status:** Approved in conversation on 2026-09-12. Live quality is out of
+scope. Implementation plan is next.
 
 **Scope:** 기존 제품 `how-it-works`의 설명 전 깊이 질문과 그림 레시피. 첫 답의
 기본 칸을 **그림**으로 바꾸고, 같은 턴에서 설명한다. 필수 여섯 산출과
@@ -222,12 +221,25 @@ Dump gate에서 “설명해줘 → 한 질문”은 폐기한다. 잘못된 슬
 
 - 우선순위 끝: `one necessary question` → `default 그림`
 - `Do not silently pick a depth` 삭제. `Never replace a filled rung`과
-  intent 알림을 잠근다.
+  `Announce the rung in the intent line`을 잠근다.
+- HARD-GATE: `Do not explain until \`slice\` is a cut mechanism`과
+  `Explain in the same turn`. 옛 문장 `Do not explain until \`slice\`,
+  \`type\`, \`rung\`, and \`language\` are filled`는 없어야 한다.
+- Paths `바로`는 `slice is a cut mechanism`. 픽커는 `**그림** — 한 장
+  (default)`이고 `**길** — 누가 무엇을 넘기는지 (default)`는 없어야 한다.
+- dump gate: `Missing rung takes default 그림`.
+- 디버그/eli5 잠금 부분문자열 `Do not use the rung picker`와 쉬운 별칭
+  `Explicit 쉽게/한눈에/한 장 selects 그림 even with jargon`은 유지한다.
+  `감이 안 와`는 silent aliases에만 추가한다.
+- `output.md` 그림 본문: `그림 hops are the map; Body does not walk the hops
+  again`. 흐름 행: `그림: Map hops only; Body is identity and use`. 옛 행
+  `Walk the hops. 길 gets the sequence diagram. 그림 gets boxes only`는
+  없어야 한다.
 - `OUTPUT_CHROME` 지도 절: 번호 홉, 그다음 머메이드 펜스.
 - `CASE_IDS`에 `default-dns-picture` 추가. `HOW_IT_WORKS_FIXTURE_IDS`에도
   같은 id를 넣는다.
-- 버전 핀 `2.0.1` → `3.0.0` (`test_contract.py`,
-  `tests/repository/test_release_contract.py`).
+- 버전 핀 `2.0.1` → `3.0.0`은 게이트 문자열 잠금 다음 작업에서만 바꾼다
+  (`test_contract.py`, `tests/repository/test_release_contract.py`).
 
 `testing.md`: `missing-rung` 설명을 “DNS 흐름은 유형만 채우고 기본 그림으로
 같은 턴에 설명한다”로 바꾼다. 페이로드 통과가 라이브 품질이 아님을 유지한다.
