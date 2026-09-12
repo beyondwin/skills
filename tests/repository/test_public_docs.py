@@ -80,7 +80,7 @@ KOREAN_SUPPORT = (
     "korean-writing-editor: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke."
 )
 IMAGE_SUPPORT = (
-    "image-workbench: Codex-only; generate/edit requires Codex image generation and local image viewing."
+    "image-workbench: Codex and Grok supported; generate/edit requires the current host's built-in image generation and local image viewing."
 )
 HOW_IT_WORKS_SUPPORT = (
     "how-it-works: Codex and Claude Code supported for local or repository-based use."
@@ -94,8 +94,8 @@ SDDX_SUPPORT = (
 PRE_SDD_SHARED_SECTION_DIGESTS = {
     ("ko", "safety"): "2308378028288c8a57547252818cdfa6e6392b1fe53d6b113659b273dda03547",
     ("en", "safety"): "f41ea8a8d2dd98f3d6b37eeacca8a488fc6bf046b4971c636ae56239df6876ab",
-    ("ko", "verification"): "327cbc6c71a97fde2228619f7dc7576b45789057521c395321a89d2cd47b6b30",
-    ("en", "verification"): "ad01ddd1ef2e0c9c1ebbba2d0d3b228cef8f81a3d7feed755764b7677eddbf40",
+    ("ko", "verification"): "8ab6f6e263cfed59bd74b6a22834d769dcf9ba89897aedd02bcd09119cbec72a",
+    ("en", "verification"): "8b8fce4ca2dadfe51fa243db1d0e56cd703921b3d5173fdd02c8360e6df7dbaf",
 }
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
@@ -962,7 +962,7 @@ class UserGuideFactTests(unittest.TestCase):
                 base = ROOT / "docs/users" / language
                 verification = _read(base / "verification.md")
                 for phrase in (
-                    "33", "normative=10", "runner 18", "31", "17",
+                    "33", "normative=10", "runner 18", "32", "17",
                     "14 cases / 17 repeats", "119 / 3 / 122 / 38 / 160",
                     "hard", "failed", "partially_verified", "fence/hop",
                     "loading", "syntax", "meaning", "schema 2", "schema 3",

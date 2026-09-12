@@ -17,9 +17,11 @@ UI, actual screen implementation, or copying an external prompt gallery.
 
 ## Supported hosts
 
-image-workbench: Codex-only; generate/edit requires Codex image generation and local image viewing.
+image-workbench: Codex and Grok supported; generate/edit requires the current host's built-in image generation and local image viewing.
 
-Codex is the measured host today. Other hosts are in
+The supported host ids are `codex` and `grok`. Generate/edit requires the
+current host's built-in image generation and local image viewing. Shared
+limits are in
 [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/users/en/compatibility.md).
 
 ## Install

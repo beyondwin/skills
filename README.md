@@ -2,9 +2,9 @@
 
 [English](README.en.md)
 
-스킬 다섯 개를 모아 둔 저장소입니다. Korean Writing Editor, Image Workbench,
-Pre-SDD Review는 Codex에서 설치합니다. How It Works와 SDDx는 Codex와 Claude
-Code에서 이 저장소를 연결해 씁니다.
+스킬 다섯 개를 모아 둔 저장소입니다. Korean Writing Editor와 Pre-SDD Review는
+Codex에서 설치합니다. Image Workbench는 Codex와 Grok에서 설치합니다. How It
+Works와 SDDx는 Codex와 Claude Code에서 이 저장소를 연결해 씁니다.
 
 [![CI](https://github.com/beyondwin/skills/actions/workflows/verify.yml/badge.svg)](https://github.com/beyondwin/skills/actions/workflows/verify.yml)
 [![Release](https://img.shields.io/github/v/release/beyondwin/skills)](https://github.com/beyondwin/skills/releases)
@@ -20,7 +20,7 @@ Pre-SDD Review, SDDx가 들어 있지 않습니다.
 | 스킬 | 역할 | 호스트 |
 | --- | --- | --- |
 | [`korean-writing-editor`](skills/korean-writing-editor/README.md) | 있는 한국어 글을 받아, 뜻은 그대로 두고 맞춤법과 문장을 고칩니다. | Codex |
-| [`image-workbench`](skills/image-workbench/README.md) | 이 프로젝트에 넣을 PNG·JPG 같은 이미지를 기획하고 만들고 고칩니다. | Codex |
+| [`image-workbench`](skills/image-workbench/README.md) | 이 프로젝트에 넣을 PNG·JPG 같은 이미지를 기획하고 만들고 고칩니다. | Codex, Grok |
 | [`how-it-works`](skills/how-it-works/README.md) | 한 기계가 어떻게 도는지, 고른 깊이로 그림과 글로 설명합니다. | Codex, Claude Code |
 | [`pre-sdd-review`](skills/pre-sdd-review/README.md) | 승인된 설계와 구현 계획을 SDD 직전에 저장소 현실과 대조하고 문서를 고쳐 다시 검토합니다. | Codex |
 | [`sddx`](skills/sddx/README.md) | Superpowers SDD의 구현만 외부 Cursor 또는 Grok CLI에 넘깁니다. | Claude Code, Codex |
@@ -42,7 +42,8 @@ How It Works 공개 경로는
 https://github.com/beyondwin/skills/tree/main/skills/how-it-works 입니다.
 SDDx 공개 경로는
 https://github.com/beyondwin/skills/tree/main/skills/sddx 입니다.
-로컬 연결은 [로컬 링크](docs/users/ko/install-local.md)를 보세요.
+How It Works와 SDDx, 그리고 Grok의 Image Workbench는
+[로컬 링크](docs/users/ko/install-local.md)를 보세요.
 
 설치·갱신·제거, 제3자 설치기는
 [설치](docs/users/ko/installation.md)를 보세요.

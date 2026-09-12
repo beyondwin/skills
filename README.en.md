@@ -2,9 +2,9 @@
 
 [한국어](README.md)
 
-Five skills live here. Korean Writing Editor, Image Workbench, and Pre-SDD
-Review install in Codex. How It Works and SDDx link this repo for Codex and
-Claude Code.
+Five skills live here. Korean Writing Editor and Pre-SDD Review install in
+Codex. Image Workbench installs in Codex and Grok. How It Works and SDDx
+link this repo for Codex and Claude Code.
 
 [![CI](https://github.com/beyondwin/skills/actions/workflows/verify.yml/badge.svg)](https://github.com/beyondwin/skills/actions/workflows/verify.yml)
 [![Release](https://img.shields.io/github/v/release/beyondwin/skills)](https://github.com/beyondwin/skills/releases)
@@ -20,7 +20,7 @@ does not include How It Works, Pre-SDD Review, or SDDx.
 | Skill | Role | Hosts |
 | --- | --- | --- |
 | [`korean-writing-editor`](skills/korean-writing-editor/README.en.md) | Takes Korean text you already have and fixes spelling and sentences without changing the meaning. | Codex |
-| [`image-workbench`](skills/image-workbench/README.en.md) | Plans, makes, or edits PNG/JPG images that belong in this project. | Codex |
+| [`image-workbench`](skills/image-workbench/README.en.md) | Plans, makes, or edits PNG/JPG images that belong in this project. | Codex, Grok |
 | [`how-it-works`](skills/how-it-works/README.en.md) | Explains how one machine works, at a depth you pick, in writing and diagrams. | Codex, Claude Code |
 | [`pre-sdd-review`](skills/pre-sdd-review/README.en.md) | Checks an approved design and implementation plan against repository reality immediately before SDD, repairs the documents, and re-reviews them. | Codex |
 | [`sddx`](skills/sddx/README.en.md) | Runs Superpowers SDD with an external Cursor or Grok implementer. | Claude Code, Codex |
@@ -42,7 +42,8 @@ The How It Works public path is
 https://github.com/beyondwin/skills/tree/main/skills/how-it-works.
 The SDDx public path is
 https://github.com/beyondwin/skills/tree/main/skills/sddx.
-See [local links](docs/users/en/install-local.md).
+How It Works, SDDx, and Grok Image Workbench use
+[local links](docs/users/en/install-local.md).
 
 Install, update, uninstall, and the third-party installer are in
 [Installation](docs/users/en/installation.md).

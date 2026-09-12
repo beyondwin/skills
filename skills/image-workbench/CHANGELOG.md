@@ -15,8 +15,8 @@ All notable changes to this product are documented in this file.
 
 ### Notes
 
-- Registry `grok` claim is a separate smoke-gated step in the same release
-  train. No GitHub tag or GitHub Release is created.
+- Grok is a supported host after recorded smoke on this build. No GitHub
+  tag or GitHub Release is created.
 
 ## 2.0.3 - 2026-09-11
 

@@ -17,9 +17,10 @@
 
 ## 지원 호스트
 
-image-workbench: Codex-only; generate/edit requires Codex image generation and local image viewing.
+image-workbench: Codex and Grok supported; generate/edit requires the current host's built-in image generation and local image viewing.
 
-지금은 Codex에서만 지원합니다. 다른 호스트는
+지원 호스트 id는 `codex`, `grok`입니다. 생성·편집은 현재 호스트의 내장 이미지
+도구와 로컬 이미지 보기가 필요합니다. 공유 한계는
 [호환성](https://github.com/beyondwin/skills/blob/main/docs/users/ko/compatibility.md)을 보세요.
 
 ## 설치

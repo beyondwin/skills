@@ -1,15 +1,16 @@
 # image-workbench 호환성
 
-현재 지원 호스트는 제품 레지스트리의 `codex`뿐입니다. 이 제품은
-Codex-only입니다. 다른 호스트의 비슷한 이미지 도구가 있어도 호환이 되지는
-않습니다.
+현재 지원 호스트는 제품 레지스트리의 `codex`, `grok`입니다. Grok
+generate/edit는 `image_gen`/`image_edit`와 로컬 이미지 보기가 필요합니다.
+다른 호스트의 비슷한 이미지 도구가 있어도 호환이 되지는 않습니다.
 
 ## 필요한 호스트 능력
 
 - 로컬 Agent Skills 디렉터리 설치와 `SKILL.md` 파일 접근
 - `brief`와 `audit`은 읽기 전용으로 돌 수 있습니다
-- `generate`와 `edit`는 Codex 내장 이미지 생성과 로컬 이미지 보기가
-  필요합니다. 이 전제가 없으면 생성·편집 지원을 주장하지 마세요
+- `generate`와 `edit`는 현재 호스트의 내장 이미지 생성과 로컬 이미지 보기가
+  필요합니다. Codex는 번들 이미지 도구, Grok는 `image_gen`/`image_edit`입니다.
+  이 전제가 없으면 생성·편집 지원을 주장하지 마세요
 
 ## 공급자 없는 증거
 
@@ -24,7 +25,10 @@ Codex-only입니다. 다른 호스트의 비슷한 이미지 도구가 있어도
 요구하지 않습니다. 오프라인 통과를 라이브 시각 결과로 바꾸지 마세요. 사용자
 이미지, 비공개 참조, 생성 매체, 자격 증명, receipt는 커밋하지 않습니다.
 
-운영 절차는 [테스트](testing.md)를 따릅니다.
+Grok 4항 smoke 기록은
+`tests/products/image-workbench/live/smoke-record.json`에 있습니다. 운영
+절차는 [테스트](testing.md)와 `tests/products/image-workbench/live/README.md`를
+따릅니다.
 
 ## 새 호스트 지원
 
