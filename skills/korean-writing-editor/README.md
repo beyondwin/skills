@@ -33,18 +33,26 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-wri
 
 ## 첫 호출
 
-설치 다음 대화에서 이렇게 부릅니다.
+다음처럼 부릅니다. 기본은 글을 자연스럽게 다듬는 것입니다.
+
+```text
+$korean-writing-editor 자연스럽게 다듬어줘: (한국어 원문)
+```
+
+맞춤법과 띄어쓰기만 고치려면:
 
 ```text
 $korean-writing-editor 오탈자만 고쳐줘: (한국어 원문)
 ```
 
+`$korean-writing-editor`와 `/korean-writing-editor` 둘 다 됩니다. 지금은
+Codex에서 확인했습니다.
+
 ## 예상 결과
 
-기본은 `polish`입니다. 읽기 쉽게 조금 다듬되 뜻과 말투는 유지합니다.
-`diagnose`는 문제만 말하고 글을 고치지 않습니다. `correct`는 맞춤법,
-띄어쓰기, 분명히 고쳐야 하는 국소 문법만 고칩니다. `polish`도 이 필수
-교정을 먼저 하고, 필요할 때만 가독성과 국소 흐름을 추가로 다듬습니다.
+기본(`polish`)은 읽기 쉽게 조금 다듬고 뜻과 말투는 유지합니다. 문제만
+보려면 `diagnose`입니다. 글을 다시 쓰지 않습니다. 오탈자만 고치려면
+`correct`입니다. 맞춤법·띄어쓰기·분명히 틀린 문법만 고칩니다.
 
 ## 더 보기
 

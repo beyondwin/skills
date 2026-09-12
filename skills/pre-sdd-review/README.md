@@ -83,7 +83,9 @@ $pre-sdd-review review-only docs/history/specs/<design>.md docs/history/plans/<p
 - `REVISE`: 고칠 수 있는 중요한 문서 결함이 남았습니다.
 - `BLOCKED`: 필요한 입력·권위·저장소 증거가 없습니다.
 
-한 호출은 발견 1회와 제한된 재검토로 끝납니다. 권위를 보존하는 수정은 승인
+한 호출은 발견 1회와 제한된 재검토로 끝납니다. 첫 검토에서 발견이 없으면
+수리와 재검토를 건너뛰고 `READY`입니다. 여러 계획을 나눈 호출은 한 호스트에서
+겹치지 않게 순서대로 실행합니다. 권위를 보존하는 수정은 승인
 없이 적용하고, 제품 결정이 필요할 때만 한 번에 묻습니다. `REVISE`나 `BLOCKED`
 뒤에는 자동으로 다시 실행하지 않습니다.
 
@@ -93,12 +95,13 @@ public/private 데이터 경계, 게시·과금·메시징·프로덕션 변경 
 하며, 문서 밖 Git 변경도 경로·명령·인터페이스·영향 범위 근거를 바꾸면 같은
 규칙을 적용합니다. 새 제품 결정이 필요하면 `BLOCKED`입니다.
 
-호환되는 로컬 기록기가 있으면 의미 검토 전 `start`, 최종 판정 뒤 `finish`를
-호출하고 `Evidence: recorded; run_id=<run-id>`를 출력합니다. 기록기가 없거나
-호환되지 않거나 권한 오류가 나면 검토는 계속되고
+호환되는 로컬 기록기가 있으면 먼저 `summary`를 보고, 의미 검토 전 `start`,
+최종 판정 뒤 `finish`를 호출하고 `Evidence: recorded; run_id=<run-id>`를
+출력합니다. 같은 계획의 pending run과 도중에 끝난 호출은 `abandon`으로
+닫습니다. 기록기가 없거나 호환되지 않거나 권한 오류가 나면 검토는 계속되고
 `Evidence: not_recorded; reason=<code>`를 출력합니다. 설계 경로는 컨트롤러가
 계획의 `**Spec:**`에서 해석한 값을 넘기며, 해석할 수 없으면 생략하고 `BLOCKED`로
-끝냅니다. 도중에 끝나면 `abandon`으로 run을 닫습니다.
+끝냅니다.
 
 영수증은 `~/.pre-sdd-review/`에 로컬로만 남습니다. 로컬 파일 저장은 서명된
 audit log가 아닙니다. `outcome`과 `summary`는

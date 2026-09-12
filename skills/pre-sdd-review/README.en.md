@@ -91,6 +91,8 @@ There are at most two repair passes. The final verdict is one of:
 - `BLOCKED`: required input, authority, or repository evidence is unavailable.
 
 One invocation ends after one discovery stage and its bounded re-reviews.
+If the first review finds nothing, skip repair and re-review and return
+`READY`. Split plans on one host run one after another.
 Authority-preserving repairs need no approval; only a real product decision
 creates one consolidated checkpoint. The controller never automatically
 repeats an invocation after `REVISE` or `BLOCKED`.
@@ -103,14 +105,14 @@ document invalidates its fingerprints and requires re-review. Repository
 changes do the same when they alter evidence for a path, command, interface, or
 blast-radius claim. A new product decision is always `BLOCKED`.
 
-When a compatible local recorder is present, the controller calls `start`
-before semantic review, calls `finish` after the final verdict, and prints
-`Evidence: recorded; run_id=<run-id>`. If the recorder is unavailable,
-incompatible, or denied by permissions, review continues and it prints
-`Evidence: not_recorded; reason=<code>`. The controller passes the design path
-it resolved from the plan's `**Spec:**` field; when it cannot, it omits the
-design and ends with `BLOCKED`. An invocation that ends early closes its run
-with `abandon`.
+When a compatible local recorder is present, the controller reads `summary`
+first, calls `start` before semantic review, calls `finish` after the final
+verdict, and prints `Evidence: recorded; run_id=<run-id>`. Same-plan pending
+runs and invocations that end early close with `abandon`. If the recorder is
+unavailable, incompatible, or denied by permissions, review continues and it
+prints `Evidence: not_recorded; reason=<code>`. The controller passes the
+design path it resolved from the plan's `**Spec:**` field; when it cannot, it
+omits the design and ends with `BLOCKED`.
 
 Receipts stay local under `~/.pre-sdd-review/`. Local file storage is not a
 signed audit log. `outcome` and `summary` are in the

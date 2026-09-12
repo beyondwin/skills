@@ -23,7 +23,7 @@ from scripts.lib.product_registry import load_registry  # noqa: E402
 SKILL = ROOT / "skills" / "pre-sdd-review"
 CASES = ROOT / "tests" / "products" / "pre-sdd-review" / "cases.json"
 FIXTURES = ROOT / "tests" / "products" / "pre-sdd-review" / "fixtures"
-TARGET_VERSION = "3.0.1"
+TARGET_VERSION = "3.0.2"
 PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     {
         "CHANGELOG.md",
@@ -39,7 +39,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "3f2dc37c5adae7b2cedf9842feaf40392da12d1e0cc6bb5ad877fcd99799b088",
+    "SKILL.md": "4b81061bc3587c1c3296f2ebf03f8be425c07ee335893ee9bce5607e0bb2139a",
     "references/reviewer-protocol.md": (
         "8b28feb6c897341917cdde06411cadf8aea1f815f10608fa7ce709d12b77821f"
     ),
@@ -65,6 +65,10 @@ CASE_IDS = (
     "evidence-review-only",
     "evidence-resolution-blocked",
     "evidence-outcome-optional",
+    "summary-before-start",
+    "serialize-split-plans",
+    "zero-findings-skip-closure",
+    "repair-pass-accounting",
     "near-miss-write-spec",
     "near-miss-write-plan",
     "near-miss-code-review",
@@ -381,8 +385,8 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Freshness", "496291e8542f8f110b1f9e17647c86b83b42d58720382ce68437bb5601cd09ae"),
     ("### SDD handoff", "8a629dd12d78e2c08e77e7c1d057d0e450b135bc0633d5b62c8c926665976bca"),
 )
-MAINTAINER_CANONICAL_DIGEST = "34a9d592814bddd72ecb4929c4699f9525f5f0718db2fa0d33ad588848cd1815"
-TESTING_CANONICAL_DIGEST = "9f006678d43f1ea431998b8fce4aca4ebcd9a856b0499c08cc15b5cfbf0031fe"
+MAINTAINER_CANONICAL_DIGEST = "56bbef647b1463f4b251f214ef1860625097c24629f8fe6df83641e903f84d57"
+TESTING_CANONICAL_DIGEST = "a039ca6f54797abb8eaa5b4df91bea06942345f1c94aa1225e8d580f304ce302"
 COMPATIBILITY_CANONICAL_DIGEST = "f52632a7d45a0e749ff91921df941238bd8f59ec172ce5b809cd4e5f0364e7b2"
 RELEASE_CANONICAL_DIGEST = "30c68c2005e9cd6bffb03543dff5ba0847b5073aca12fea324af4016b70e10f1"
 
@@ -948,7 +952,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         changelog = (SKILL / "CHANGELOG.md").read_text(encoding="utf-8")
         self.assertEqual(release["version"], TARGET_VERSION)
         self.assertEqual(frontmatter["metadata"]["version"], TARGET_VERSION)
-        self.assertIn(f"## {TARGET_VERSION} - 2026-09-11", changelog)
+        self.assertIn(f"## {TARGET_VERSION} - 2026-09-12", changelog)
         self.assertIn("## 3.0.0 - 2026-09-08", changelog)
 
     def test_required_implementation_base_blocks_before_reviewer_dispatch(self) -> None:
@@ -1050,6 +1054,18 @@ class PreSddReviewContractTests(unittest.TestCase):
 
         self.assertIn("one discovery stage", skill)
         self.assertIn("발견 단계 한 번", contract)
+        self.assertIn("summary --last 20", skill)
+        self.assertIn("same `repo` display name and plan path are `pending`", skill)
+        self.assertIn("do not overlap them", skill)
+        self.assertIn("do not use the controlling agent as a substitute independent primary", skill)
+        self.assertIn("distinct agents obtained", skill)
+        self.assertIn("If the first review has zero findings, skip repair and closure", skill)
+        self.assertIn("`repair_passes` counts only passes that produced at least one `repaired` finding", skill)
+        self.assertIn("does not copy a previous finding's `repair_pass`", skill)
+        self.assertIn("summary --last 20", contract)
+        self.assertIn("do not overlap them", contract)
+        self.assertIn("If the first review has zero findings, skip repair and closure", contract)
+        self.assertIn("`repair_passes` counts only passes that produced at least one `repaired` finding", contract)
 
         for document in (skill, protocol):
             self.assertIn("unmapped material finding", document)
@@ -1111,7 +1127,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         evidence = section(body, "## Optional local evidence", "## Select reviewers")
         normalized = re.sub(r"\s+", " ", evidence)
 
-        ordered = ("evidence.py\" --version", "start", "semantic review", "finish", "Evidence:", "abandon", "outcome")
+        ordered = ("evidence.py\" --version", "summary", "start", "semantic review", "finish", "Evidence:", "abandon", "outcome")
         positions = tuple(normalized.index(item) for item in ordered)
         self.assertEqual(positions, tuple(sorted(positions)))
         for fact in (
@@ -1169,6 +1185,10 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertEqual(cases["evidence-review-only"], ("review_only_receipt", "no_document_mutation"))
         self.assertEqual(cases["evidence-resolution-blocked"], ("BLOCKED", "design_omitted_from_start", "design_recorded_null"))
         self.assertEqual(cases["evidence-outcome-optional"], ("verdict_unchanged", "outcome_not_controller_duty", "one_label_after_sdd"))
+        self.assertEqual(cases["summary-before-start"], ("summary_before_start", "abandon_same_plan_pending", "reuse_unchanged_handoff"))
+        self.assertEqual(cases["serialize-split-plans"], ("serialize_split_plans", "no_controller_as_independent_primary", "reviewers_are_distinct_agents"))
+        self.assertEqual(cases["zero-findings-skip-closure"], ("READY", "zero_findings", "skip_repair", "skip_closure"))
+        self.assertEqual(cases["repair-pass-accounting"], ("repair_pass_requires_repaired_finding", "no_copied_repair_pass", "unresolved_repair_pass_null"))
 
     def test_authority_and_risk_selection_are_ordered_and_conditional(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -1483,8 +1503,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "not_measured",
         ):
             self.assertIn(fact, normalized_testing)
-        self.assertEqual(len(CASE_IDS), 24)
-        self.assertIn("exactly twenty-four개의", normalized_testing)
+        self.assertEqual(len(CASE_IDS), 28)
+        self.assertIn("exactly twenty-eight개의", normalized_testing)
         self.assertIn("Codex is supported", compatibility)
         self.assertIn("Every other host is `not_measured`", compatibility)
         self.assertIn("## Evidence recorder compatibility", compatibility)

@@ -35,19 +35,26 @@ Shared install steps are in
 
 ## First call
 
-After install, invoke it on the next turn:
+Call it like this. The default is a light polish.
+
+```text
+$korean-writing-editor Polish this naturally: (Korean source)
+```
+
+For spelling and spacing only:
 
 ```text
 $korean-writing-editor Fix typos only: (Korean source)
 ```
 
+Both `$korean-writing-editor` and `/korean-writing-editor` work. Codex is
+the host we have checked.
+
 ## Expected result
 
-The default is `polish`: small readability edits that keep meaning and
-voice. `diagnose` names problems and does not rewrite. `correct` fixes
-spelling, spacing, and clearly required local grammar only. `polish` applies
-those required corrections first, then optionally improves readability and
-local flow.
+The default (`polish`) makes the text a bit easier to read and keeps
+meaning and voice. `diagnose` names problems and does not rewrite.
+`correct` fixes spelling, spacing, and clearly broken grammar only.
 
 ## See also
 

@@ -94,8 +94,8 @@ SDDX_SUPPORT = (
 PRE_SDD_SHARED_SECTION_DIGESTS = {
     ("ko", "safety"): "2308378028288c8a57547252818cdfa6e6392b1fe53d6b113659b273dda03547",
     ("en", "safety"): "f41ea8a8d2dd98f3d6b37eeacca8a488fc6bf046b4971c636ae56239df6876ab",
-    ("ko", "verification"): "8ab6f6e263cfed59bd74b6a22834d769dcf9ba89897aedd02bcd09119cbec72a",
-    ("en", "verification"): "8b8fce4ca2dadfe51fa243db1d0e56cd703921b3d5173fdd02c8360e6df7dbaf",
+    ("ko", "verification"): "88628f33fb8df212d0de464e06b6f8f66e282174d601099c18a0376223054fd8",
+    ("en", "verification"): "e2b3e4e15494f709c9f190de49731eaa9527bea09753ea564825996e6cc40669",
 }
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
@@ -962,7 +962,7 @@ class UserGuideFactTests(unittest.TestCase):
                 base = ROOT / "docs/users" / language
                 verification = _read(base / "verification.md")
                 for phrase in (
-                    "33", "normative=10", "runner 18", "32", "17",
+                    "34", "normative=10", "runner 18", "32", "17",
                     "14 cases / 17 repeats", "119 / 3 / 122 / 38 / 160",
                     "hard", "failed", "partially_verified", "fence/hop",
                     "loading", "syntax", "meaning", "schema 2", "schema 3",

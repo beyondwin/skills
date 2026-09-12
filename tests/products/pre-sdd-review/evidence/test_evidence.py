@@ -331,6 +331,36 @@ class AbandonOutcomeShowTests(unittest.TestCase):
     def tearDown(self) -> None:
         self.directory.cleanup()
 
+    def test_mutation_commands_remove_lock_files(self) -> None:
+        identity = self.home / ".identity.lock"
+        locks = self.home / "locks"
+        self.assertFalse(identity.exists())
+        self.assertEqual(list(locks.glob("*.lock")), [])
+
+        code, _, err = finish(self.home, self.repo, self.run_id, finish_payload())
+        self.assertEqual(code, 0, err)
+        self.assertFalse(identity.exists())
+        self.assertEqual(list(locks.glob("*.lock")), [])
+
+        code, _, err = run(
+            ["outcome", "--run-id", self.run_id, "--label", "good"],
+            home=self.home,
+            cwd=self.repo,
+        )
+        self.assertEqual(code, 0, err)
+        self.assertFalse(identity.exists())
+        self.assertEqual(list(locks.glob("*.lock")), [])
+
+        abandoned = start(self.home, self.repo, self.skill)
+        code, _, err = run(
+            ["abandon", "--run-id", abandoned, "--reason", "other"],
+            home=self.home,
+            cwd=self.repo,
+        )
+        self.assertEqual(code, 0, err)
+        self.assertFalse(identity.exists())
+        self.assertEqual(list(locks.glob("*.lock")), [])
+
     def test_abandon_closes_a_pending_run_with_each_reason(self) -> None:
         for reason in ("user-cancelled", "input-changed", "scope-changed", "input-format-fixed", "other"):
             with self.subTest(reason=reason):

@@ -127,3 +127,12 @@ text as quoted data.
   add legal advice, or restyle it as universal legal prose without explicit
   scope and separate source verification. The same default applies to medical
   and financial claims.
+- **Reply shape.** For `correct` or `polish`, the reply starts with the
+  edited sentence, not `Using korean-writing-editor`. For `diagnose`, the
+  first line names the issue. Class: output recipe, not a style rule.
+- **Already-correct possibility.** `현재 계획으로는 출시하지 않을 수 있다.`
+  stays `수 있다`. Do not write `수도 있다`. Valid in `correct` and
+  `polish`. Class: already-correct local form.
+- **Excluded translation.** `이 문장을 영어로 번역해줘: 내일 오전에 회의가
+  있습니다.` is a near-miss. Do not translate it in the same turn. Class:
+  excluded task.

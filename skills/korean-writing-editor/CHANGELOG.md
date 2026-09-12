@@ -4,6 +4,24 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 2.0.4 - 2026-09-12
+
+### Changed
+
+- In `correct` and `polish`, the reply is the edited text. In `diagnose`,
+  the first line is the finding. Do not start with “using this skill…”.
+- If a phrase is already correct, keep it in `polish` too. If the request
+  is not editing (for example translation), do not do that other job in
+  the same reply.
+- The first README example is a light polish. Typo-only `correct` is the
+  second example.
+
+### Notes
+
+- Offline fixtures are now 34 cases (`trigger=6`). Fixture pass still does
+  not prove live model quality. This release does not add a recorded host
+  smoke or a runner 18 live execute.
+
 ## 2.0.3 - 2026-09-11
 
 ### Changed

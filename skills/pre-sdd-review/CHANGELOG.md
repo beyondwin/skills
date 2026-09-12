@@ -4,6 +4,24 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 3.0.2 - 2026-09-12
+
+### Fixed
+
+- Controllers consult `summary` before `start`, close same-plan pending runs, and reuse an unchanged `REVISE`/`BLOCKED` handoff.
+- Split plan reviews on one host run one after another. A reused controller thread is not an independent primary.
+- A first review with zero findings skips repair and closure.
+- `repair_passes` counts only passes with a repaired finding.
+- Mutation lock files are removed when the command releases them.
+
+### Changed
+
+- Product READMEs state the summary-before-start, serialize, and zero-finding skip rules.
+
+### Notes
+
+- No GitHub tag or GitHub Release is created.
+
 ## 3.0.1 - 2026-09-11
 
 ### Fixed

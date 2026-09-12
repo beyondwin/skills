@@ -22,10 +22,10 @@ from scripts.lib.product_contract import (  # noqa: E402
 from scripts.lib.product_registry import load_registry  # noqa: E402
 
 EXPECTED = {
-    "korean-writing-editor": "2.0.3",
+    "korean-writing-editor": "2.0.4",
     "image-workbench": "2.1.0",
     "how-it-works": "2.0.1",
-    "pre-sdd-review": "3.0.1",
+    "pre-sdd-review": "3.0.2",
     "sddx": "1.1.0",
 }
 REGISTRY = load_registry(ROOT / "products.toml")
@@ -53,9 +53,9 @@ class ProductReleaseTests(unittest.TestCase):
 
     def test_pre_sdd_review_current_archive_identity(self) -> None:
         product = load_product_release(ROOT / "skills/pre-sdd-review")
-        self.assertEqual(product.version, "3.0.1")
-        self.assertEqual(product.tag, "pre-sdd-review-v3.0.1")
-        self.assertEqual(product.artifact_name, "pre-sdd-review-v3.0.1.zip")
+        self.assertEqual(product.version, "3.0.2")
+        self.assertEqual(product.tag, "pre-sdd-review-v3.0.2")
+        self.assertEqual(product.artifact_name, "pre-sdd-review-v3.0.2.zip")
 
     def test_each_product_owns_an_independent_release_manifest(self) -> None:
         self.assertEqual(set(self.registry.names), set(EXPECTED))
@@ -120,7 +120,7 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         root = self._copy("korean-writing-editor")
         manifest = root / "release.toml"
         original = manifest.read_text(encoding="utf-8")
-        mutated = original.replace('version = "2.0.3"', 'version = "2.0"', 1)
+        mutated = original.replace('version = "2.0.4"', 'version = "2.0"', 1)
         self.assertNotEqual(mutated, original)
         manifest.write_text(mutated, encoding="utf-8")
         errors = "\n".join(validate_product(root, REGISTRY))

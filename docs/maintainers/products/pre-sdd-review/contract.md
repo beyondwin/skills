@@ -16,7 +16,8 @@ resolved design specification을 찾습니다. 그다음 명시적으로 binding
 
 한 호출은 구현 계획 하나만 검토합니다. 여러 계획 중 어느 것인지 분명하지
 않으면 정확한 계획 경로를 다시 받습니다. 받을 수 없으면 `BLOCKED`입니다.
-계획을 나눠 여러 번 호출해도 전체를 묶은 `READY`는 만들지 않습니다. 공유
+계획을 나눠 여러 번 호출해도 전체를 묶은 `READY`는 만들지 않습니다. On one
+host, run those invocations one after another; do not overlap them. 공유
 설계가 나중 호출에서 바뀌면, 이전 설계 지문에 의존한 계획 판정을 다시
 검토합니다.
 
@@ -47,7 +48,10 @@ resolved design specification을 찾습니다. 그다음 명시적으로 binding
 기본 검토자는 새로 오고, 독립적이며 `read-only`입니다. 검토자는 증거와
 가장 작은 권위 보존 수정만 보고합니다. 문서를 고치는 것은 controlling
 agent만 합니다. 아래 목록만 수정할 수 있습니다. 기능, dependency, host
-claim, 제품 결정을 추가하지 않습니다.
+claim, 제품 결정을 추가하지 않습니다. If a fresh independent reviewer cannot
+be obtained, do not use the controlling agent as a substitute independent
+primary. Evidence `reviewers` counts distinct agents obtained for the logical
+roles, not intended roles.
 
 ### Editable paths
 
@@ -115,7 +119,9 @@ Evidence `reviewer_count` records logical roles, not cumulative agent calls.
 ## Default flow, verdicts, and freshness
 
 한 호출은 발견 단계 한 번과 수정 최대 두 번, 범위 제한 재검토로
-끝납니다. 수정이 스키마, 타입, 인터페이스, 상태 전이, 조건부 수정 면,
+끝납니다. If the first review has zero findings, skip repair and closure
+and return `READY`. `repair_passes` counts only passes that produced at least one `repaired` finding.
+A new invocation does not copy a previous finding's `repair_pass`. 수정이 스키마, 타입, 인터페이스, 상태 전이, 조건부 수정 면,
 작업 간 계약, 검증 의미, 공개/비공개 경계를 바꾸면 제어 에이전트가 짧은
 영향 범위 표를 만듭니다. 표에는 바뀐 주장, 바뀐 심볼·상태·경로·명령,
 직접 소비자, 이웃 작업 인터페이스, `modify | verified-no-change | unresolved`
@@ -168,7 +174,11 @@ controller runs `python3 "<skill-root>/evidence/evidence.py" --version` from
 the loaded skill root and records only when the handshake is exactly
 `skill_name=pre-sdd-review` and `schema=3`. Its canonical line is
 `{"cli_version":"3.0.0","schema":3,"skill_name":"pre-sdd-review"}` followed
-by one LF. The controller calls `start` before semantic review and `finish`
+by one LF. When compatible, the controller runs `summary --last 20` before `start`. If
+the same `repo` display name and plan path are `pending`, it `abandon`s that
+run. If the latest completed verdict for that plan is `REVISE` or `BLOCKED`
+and the document hashes are unchanged, it reuses the prior handoff. Otherwise
+it calls `start` before semantic review and `finish`
 once after the verdict and repairs are final. It prints exactly one
 `Evidence:` line. If the recorder is unavailable or fails, report
 `Evidence: not_recorded; reason=<code>`; this cannot change `READY`, `REVISE`, or `BLOCKED`.
@@ -195,7 +205,8 @@ transcripts, command output, environment values, credentials, salt, or
 identity path material. Local files are not a signed audit log.
 
 The evidence home keeps `.identity-salt` as private 32-byte local state and
-uses `.identity.lock` plus `locks/<run-id>.lock` for mutations. The normalized
+uses `.identity.lock` plus `locks/<run-id>.lock` for mutations. After the
+command releases a lock, it removes that lock file. The normalized
 checkout root and Git directory feed HMAC only; the record stores their derived
 `repo_key` and the `repo` display name. A moved checkout, clone, other worktree,
 lost salt, or different evidence home cannot be treated as the original
