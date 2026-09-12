@@ -7,7 +7,7 @@
 | 스킬 | 방법 | 문서 |
 | --- | --- | --- |
 | `korean-writing-editor` | Codex `$skill-installer` | [Codex 설치](install-codex.md) |
-| `image-workbench` | Codex `$skill-installer`, Grok 로컬 링크 | [Codex 설치](install-codex.md), [로컬 링크](install-local.md) |
+| `image-workbench` | Codex `$skill-installer`, Grok 바로가기 | [Codex 설치](install-codex.md), [로컬 링크](install-local.md) |
 | `pre-sdd-review` | Codex `$skill-installer` | [Codex 설치](install-codex.md). 기록기는 [evidence README](../../../skills/pre-sdd-review/evidence/README.md) |
 | `how-it-works` | 저장소 로컬 링크 | [로컬 링크](install-local.md) |
 | `sddx` | 저장소 로컬 링크 | [로컬 링크](install-local.md) |

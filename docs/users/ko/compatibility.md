@@ -24,7 +24,7 @@ sddx: Claude Code and Codex supported for local or repository-based use.
 
 `how-it-works`는 로컬 또는 저장소 기준으로 Codex와 Claude Code를 지원합니다. Claude.ai, Cowork, Skills API 업로드, marketplace 게시는 지원하지 않습니다.
 
-`image-workbench` 생성·편집은 현재 호스트의 내장 이미지 도구와 로컬 이미지 보기가 필요합니다. Grok 설치 경로는 `~/.agents/skills/image-workbench`입니다. 다른 호스트의 비슷한 도구는 호환이 아닙니다.
+`image-workbench`로 그림을 만들거나 고치려면 지금 쓰는 프로그램의 그림 도구와, 결과를 열어 보는 기능이 필요합니다. Grok 바로가기는 `~/.agents/skills/image-workbench`입니다. 다른 프로그램의 비슷한 도구만으로는 지원이 아닙니다.
 
 `pre-sdd-review`의 다른 호스트는 `not_measured`입니다.
 
@@ -36,6 +36,6 @@ sddx: Claude Code and Codex supported for local or repository-based use.
 
 설치·링크·제거는 [설치](installation.md)를 보세요. 검증은 [검증](verification.md)을 보세요.
 
-Windows에서 의미 있는 검사는 한국어 편집기 오프라인 스위트와 저장소 계약입니다. `image-workbench` 생성·편집은 현재 호스트의 내장 이미지 도구와 로컬 이미지 보기가 있는 환경에서만 주장하세요.
+Windows에서 의미 있는 검사는 한국어 편집기 오프라인 스위트와 저장소 계약입니다. `image-workbench`로 그림을 만들거나 고친다고 말하려면, 그 프로그램에 그림 도구가 있고 결과를 열 수 있어야 합니다.
 
 라이선스는 Apache-2.0입니다.

@@ -116,7 +116,7 @@ Do not create host-specific copies. First-call examples are in the [`sddx` READM
 
 ## image-workbench
 
-For `image-workbench`, clone the repo and make one Grok shortcut. The public GitHub path is https://github.com/beyondwin/skills/tree/main/skills/image-workbench. Grok looks in `~/.agents/skills/image-workbench`. Do not create a `~/.grok` or `~/.codex` duplicate.
+For `image-workbench` on Grok, clone the repo and make one shortcut. The public GitHub path is https://github.com/beyondwin/skills/tree/main/skills/image-workbench. Grok looks in `~/.agents/skills/image-workbench`. Do not copy the skill into `~/.grok` or `~/.codex`.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -124,10 +124,9 @@ cd skills
 mkdir -p ~/.agents/skills
 ```
 
-The one-shot Python block below takes source and target as arguments. It first
-validates that source is a skill directory and treats the same link as success.
-It does not replace a different link, dangling link, file, or directory. It also
-stops if the target appears after inspection, so inspect it before retrying.
+The Python below creates that shortcut. It checks that the source is a skill
+folder. If the same shortcut already exists, it leaves it. It will not replace a
+different shortcut, file, or folder.
 
 <!-- image-workbench-local-links -->
 ```python
@@ -160,13 +159,11 @@ except FileExistsError:
 print("linked")
 ```
 
-Put this block on standard input through a quoted here-document and run it once.
-The invocation starts with
+Run it once in a terminal. The first line is
 `python3 - "$PWD/skills/image-workbench" "$HOME/.agents/skills/image-workbench" <<'PY'`.
-Place the Python block above unchanged on the following lines and close with `PY`
-on its own line. Keep the source and target arguments quoted.
+Paste the Python above on the next lines and end with `PY`. Keep the path quotes.
 
-Do not create host-specific copies. First-call examples are in the [`image-workbench` README](../../../skills/image-workbench/README.en.md).
+Do not make extra copies per host. First-call examples are in the [`image-workbench` README](../../../skills/image-workbench/README.en.md).
 
 ## Update and uninstall
 

@@ -7,7 +7,7 @@ The skills you can install are [`korean-writing-editor`](../../../skills/korean-
 | Skill | Method | Guide |
 | --- | --- | --- |
 | `korean-writing-editor` | Codex `$skill-installer` | [Codex install](install-codex.md) |
-| `image-workbench` | Codex `$skill-installer`, Grok local link | [Codex install](install-codex.md), [Local links](install-local.md) |
+| `image-workbench` | Codex `$skill-installer`, Grok shortcut | [Codex install](install-codex.md), [Local links](install-local.md) |
 | `pre-sdd-review` | Codex `$skill-installer` | [Codex install](install-codex.md). Recorder: [evidence README](../../../skills/pre-sdd-review/evidence/README.md) |
 | `how-it-works` | Repository local links | [Local links](install-local.md) |
 | `sddx` | Repository local links | [Local links](install-local.md) |

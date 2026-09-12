@@ -4,6 +4,11 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- User-facing install and support wording uses ordinary terms. Codex and
+  Grok install links are labeled separately.
+
 ## 2.1.0 - 2026-09-12
 
 ### Changed

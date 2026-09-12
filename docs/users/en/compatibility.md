@@ -24,7 +24,7 @@ A matching folder layout does not mean that host is supported. Adding a new supp
 
 `how-it-works` supports Codex and Claude Code for local or repository-based use. Claude.ai, Cowork, Skills API upload, and marketplace publication are not supported.
 
-`image-workbench` generate/edit requires the current host's built-in image generation and local image viewing. Grok install is `~/.agents/skills/image-workbench`. Similar tools in another host do not establish compatibility.
+`image-workbench` can make or edit an image only when this host has its own image tool and you can open the result. The Grok shortcut is `~/.agents/skills/image-workbench`. A similar tool on another host is not support.
 
 Other hosts for `pre-sdd-review` remain `not_measured`.
 
@@ -36,6 +36,6 @@ The catalog plugin name is `beyondwin-skills`. That does not mean a marketplace 
 
 Install, link, and remove steps are in [Installation](installation.md). Verification is in [Verification](verification.md).
 
-Windows-meaningful checks are the Korean-editor offline suite and repository contracts. Do not claim `image-workbench` generate or edit support except where that host's built-in image generation and local image viewing are present.
+Windows-meaningful checks are the Korean-editor offline suite and repository contracts. Do not say `image-workbench` can make or edit images unless that host has its own image tool and you can open the result.
 
 The license is Apache-2.0.

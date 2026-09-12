@@ -114,7 +114,7 @@ Claude Code 호출은
 
 ## image-workbench
 
-`image-workbench`는 저장소를 받은 뒤 Grok용 바로가기 하나를 겁니다. 공개 경로는 https://github.com/beyondwin/skills/tree/main/skills/image-workbench 입니다. Grok는 `~/.agents/skills/image-workbench`에서 찾습니다. `~/.grok`나 `~/.codex` 복사본을 만들지 마세요.
+`image-workbench`를 Grok에서 쓰려면 저장소를 받은 뒤 바로가기 하나를 만듭니다. 공개 경로는 https://github.com/beyondwin/skills/tree/main/skills/image-workbench 입니다. Grok는 `~/.agents/skills/image-workbench`에서 찾습니다. `~/.grok`나 `~/.codex`에 복사본을 만들지 마세요.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -122,10 +122,8 @@ cd skills
 mkdir -p ~/.agents/skills
 ```
 
-아래 일회성 Python 블록은 source와 target을 인자로 받습니다. source가 실제 스킬
-디렉터리인지 먼저 확인하고, 같은 링크는 성공으로 처리합니다. 다른 링크, 깨진 링크,
-파일, 디렉터리는 자동으로 바꾸지 않습니다. 대상이 검사 뒤 생기는 경우에도 멈추므로
-직접 확인한 뒤 다시 실행해야 합니다.
+아래 Python 코드가 바로가기를 만듭니다. 스킬 폴더가 맞는지 확인하고, 이미 같은
+바로가기가 있으면 그대로 둡니다. 다른 바로가기나 파일이 있으면 덮어쓰지 않습니다.
 
 <!-- image-workbench-local-links -->
 ```python
@@ -158,12 +156,12 @@ except FileExistsError:
 print("linked")
 ```
 
-이 블록을 quoted here-document의 표준입력으로 넣고 한 번 실행합니다. 호출은
-`python3 - "$PWD/skills/image-workbench" "$HOME/.agents/skills/image-workbench" <<'PY'`로
-시작합니다. 다음 줄에 위 Python 블록을 그대로 넣고 마지막 줄을 `PY`로 닫습니다.
-source와 target 인자의 따옴표를 유지하세요.
+터미널에서 한 번 실행합니다. 첫 줄은
+`python3 - "$PWD/skills/image-workbench" "$HOME/.agents/skills/image-workbench" <<'PY'`
+입니다. 그다음 줄에 위 Python 코드를 그대로 넣고, 마지막 줄은 `PY`입니다. 경로
+따옴표는 빼지 마세요.
 
-호스트마다 따로 복사하지 마세요. 첫 호출은 [`image-workbench` README](../../../skills/image-workbench/README.md)를 보세요.
+복사본을 만들지 마세요. 첫 호출은 [`image-workbench` README](../../../skills/image-workbench/README.md)를 보세요.
 
 ## 갱신과 제거
 

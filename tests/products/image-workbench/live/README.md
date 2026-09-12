@@ -1,32 +1,32 @@
 # image-workbench live smoke
 
-CI does not run these steps. Do not commit generated images, receipts,
-prompts, or absolute home paths.
+CI does not run these steps. Do not commit generated pictures, receipts,
+prompts, or home paths like `/Users/...`.
 
-Probe (before a support claim):
+Host check (do this before saying Grok is supported):
 
-1. From the repository root, link
-   `skills/image-workbench` to `$HOME/.agents/skills/image-workbench`
-   with the documented Python installer.
-2. `grok inspect` (and `grok inspect --json` if available) must list
-   skill name `image-workbench` and a path ending in
+1. From the repository root, install the documented Python shortcut from
+   `skills/image-workbench` to `$HOME/.agents/skills/image-workbench`.
+2. `grok inspect` (and `grok inspect --json` if available) must show the
+   skill name `image-workbench` and a path under
    `.agents/skills/image-workbench`.
-3. The running Grok session must expose `image_gen` and `image_edit`.
-4. One synthetic non-personal `image_gen` result may land under a
-   session `images/` path. Copy it to a throwaway project file and run
-   `python3 scripts/inspect_asset.py` from the skill root. Delete the
-   files. Do not git-add them.
+3. This Grok session must have `image_gen` and `image_edit`.
+4. Make one fake still-life (no real person). If the file lands in the
+   session `images/` folder, copy it to a throwaway project file, run
+   `python3 scripts/inspect_asset.py` from the skill folder, then delete
+   the files. Do not git-add them.
 
-Four-item smoke (after SKILL.md host table exists):
+Four checks (after the SKILL.md host table exists):
 
-1. Discovery: same `grok inspect` path check.
-2. Explicit `/image-workbench` brief: no image tool call.
-3. Implicit project-raster activate; `kws-image-workbench` no-op.
-4. One generate or edit: project `new_file`, inspector pass, open the
-   candidate. Do not treat the session preview path as the final file.
+1. Find the skill: same `grok inspect` path check.
+2. Call `/image-workbench` for a brief only. Do not make an image.
+3. Ask for a project hero image without the slash command: the skill
+   should start. Then `kws-image-workbench …` should do nothing.
+4. Make or edit one image: save a new project file, inspector pass, open
+   it. Do not treat the chat preview path as the final file.
 
-Record results in `smoke-record.json` only. Fields: `date`,
+Write results only in `smoke-record.json`. Fields: `date`,
 `grok_identity`, `skill_version`, `skill_md_sha256`, `probe`,
 `discovery`, `explicit_brief`, `implicit_and_near_miss`,
 `output_contract`, optional inspector `format`/`width`/`height`.
-Values for the four smokes are `pass`, `fail`, or `not_run`.
+The four checks are `pass`, `fail`, or `not_run`.

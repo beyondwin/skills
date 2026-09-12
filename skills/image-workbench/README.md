@@ -19,21 +19,21 @@
 
 image-workbench: Codex and Grok supported; generate/edit requires the current host's built-in image generation and local image viewing.
 
-지원 호스트 id는 `codex`, `grok`입니다. 생성·편집은 현재 호스트의 내장 이미지
-도구와 로컬 이미지 보기가 필요합니다. 공유 한계는
+지금은 `codex`와 `grok`에서 씁니다. 그림을 만들거나 고치려면 그 프로그램에
+그림 도구가 있고, 결과를 열어서 볼 수 있어야 합니다. 한계는
 [호환성](https://github.com/beyondwin/skills/blob/main/docs/users/ko/compatibility.md)을 보세요.
 
 ## 설치
 
-Codex에서는 공개 GitHub 경로를 `$skill-installer`에 전달합니다.
+Codex에서는 공개 GitHub 주소를 `$skill-installer`에 넣습니다.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
 ```
 
-나머지 Codex 설치 방법은 [설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/install-codex.md)를 보세요.
+자세한 Codex 설치는 [Codex 설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/install-codex.md)를 보세요.
 
-Grok에서는 저장소를 클론한 뒤 `~/.agents/skills`에 링크 하나를 겁니다.
+Grok에서는 이 저장소를 받은 뒤, Grok가 찾는 폴더에 바로가기 하나만 만듭니다.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -41,10 +41,8 @@ cd skills
 mkdir -p ~/.agents/skills
 ```
 
-아래 일회성 Python 블록은 source와 target을 인자로 받습니다. source가 실제 스킬
-디렉터리인지 먼저 확인하고, 같은 링크는 성공으로 처리합니다. 다른 링크, 깨진 링크,
-파일, 디렉터리는 자동으로 바꾸지 않습니다. 대상이 검사 뒤 생기는 경우에도 멈추므로
-직접 확인한 뒤 다시 실행해야 합니다.
+아래 Python 코드가 바로가기를 만듭니다. 스킬 폴더가 맞는지 확인하고, 이미 같은
+바로가기가 있으면 그대로 둡니다. 다른 바로가기나 파일이 있으면 덮어쓰지 않습니다.
 
 <!-- image-workbench-local-links -->
 ```python
@@ -77,21 +75,21 @@ except FileExistsError:
 print("linked")
 ```
 
-이 블록을 quoted here-document의 표준입력으로 넣고 한 번 실행합니다. 호출은
-`python3 - "$PWD/skills/image-workbench" "$HOME/.agents/skills/image-workbench" <<'PY'`로
-시작합니다. 다음 줄에 위 Python 블록을 그대로 넣고 마지막 줄을 `PY`로 닫습니다.
-source와 target 인자의 따옴표를 유지하세요.
+터미널에서 한 번 실행합니다. 첫 줄은
+`python3 - "$PWD/skills/image-workbench" "$HOME/.agents/skills/image-workbench" <<'PY'`
+입니다. 그다음 줄에 위 Python 코드를 그대로 넣고, 마지막 줄은 `PY`입니다. 경로
+따옴표는 빼지 마세요.
 
-링크는 확인한 뒤에만 제거합니다.
+바로가기는 확인한 뒤에만 지웁니다.
 
 ```bash
 ls -ld ~/.agents/skills/image-workbench
 unlink ~/.agents/skills/image-workbench
 ```
 
-`~/.grok`나 `~/.codex` 복사본을 만들지 마세요. 나머지 로컬 링크 방법은
-[설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/install-local.md)를
-보세요.
+`~/.grok`나 `~/.codex`에 복사본을 만들지 마세요. 같은 방법이
+[로컬 링크](https://github.com/beyondwin/skills/blob/main/docs/users/ko/install-local.md)에도
+있습니다.
 
 ## 첫 호출
 
@@ -110,14 +108,14 @@ $image-workbench 이 프로젝트 랜딩 페이지 hero 이미지를 만들어�
 고칩니다. `audit`은 점검만 하고 만들지 않습니다. `brief`와 `audit`은 읽기
 전용입니다. 생성·편집 요청이 분명할 때만 이미지를 만듭니다.
 
-최종 파일은 스킬 폴더에서 `python3 scripts/inspect_asset.py`로 파일 형식과
-크기를 확인합니다.
+프로젝트에 넣을 최종 파일은 스킬 폴더에서 `python3 scripts/inspect_asset.py`로
+형식과 크기를 확인합니다. 대화 창에만 보이는 미리보기 경로는 최종 파일이
+아닙니다.
 
-검사기는 PNG·JPEG·WebP의 필수 구조만 확인합니다. 통과해도
-파일을 끝까지 해석했거나, 그림이 좋아 보이거나, 써도 되는 권리가
-있다는 뜻은 아닙니다. 최종
-후보는 반드시 열어서 확인합니다. `--output facts.json`은 별도 JSON 보고서를
-갱신할 수 있지만 입력 이미지와 같은 파일을 가리키면 쓰기 전에 거부합니다.
+이 검사는 PNG·JPEG·WebP의 기본 구조만 봅니다. 통과해도 그림이 좋거나, 파일을
+끝까지 읽었거나, 써도 되는 권리가 있다는 뜻은 아닙니다. 최종 후보는 반드시
+열어서 확인합니다. `--output facts.json`은 별도 JSON만 갱신할 수 있고, 입력
+이미지를 덮어쓰려 하면 거부합니다.
 
 ## 더 보기
 

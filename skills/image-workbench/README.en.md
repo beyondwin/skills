@@ -19,9 +19,8 @@ UI, actual screen implementation, or copying an external prompt gallery.
 
 image-workbench: Codex and Grok supported; generate/edit requires the current host's built-in image generation and local image viewing.
 
-The supported host ids are `codex` and `grok`. Generate/edit requires the
-current host's built-in image generation and local image viewing. Shared
-limits are in
+It runs on `codex` and `grok` today. To make or edit an image, that host needs
+its own image tool and a way to open the result. Limits are in
 [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/users/en/compatibility.md).
 
 ## Install
@@ -32,10 +31,10 @@ In Codex, pass the public GitHub path to `$skill-installer`.
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
 ```
 
-Shared Codex install steps are in
-[Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/install-codex.md).
+Full Codex steps are in
+[Codex install](https://github.com/beyondwin/skills/blob/main/docs/users/en/install-codex.md).
 
-For Grok, clone the repo and make one link under `~/.agents/skills`.
+In Grok, clone this repo and make one shortcut where Grok looks for skills.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -43,10 +42,9 @@ cd skills
 mkdir -p ~/.agents/skills
 ```
 
-The one-shot Python block below takes source and target as arguments. It first
-validates that source is a skill directory and treats the same link as success.
-It does not replace a different link, dangling link, file, or directory. It also
-stops if the target appears after inspection, so inspect it before retrying.
+The Python below creates that shortcut. It checks that the source is a skill
+folder. If the same shortcut already exists, it leaves it. It will not replace a
+different shortcut, file, or folder.
 
 <!-- image-workbench-local-links -->
 ```python
@@ -79,20 +77,18 @@ except FileExistsError:
 print("linked")
 ```
 
-Put this block on standard input through a quoted here-document and run it once.
-The invocation starts with
+Run it once in a terminal. The first line is
 `python3 - "$PWD/skills/image-workbench" "$HOME/.agents/skills/image-workbench" <<'PY'`.
-Place the Python block above unchanged on the following lines and close with `PY`
-on its own line. Keep the source and target arguments quoted.
+Paste the Python above on the next lines and end with `PY`. Keep the path quotes.
 
-Inspect the link before removing it.
+Inspect the shortcut before deleting it.
 
 ```bash
 ls -ld ~/.agents/skills/image-workbench
 unlink ~/.agents/skills/image-workbench
 ```
 
-Do not create a `~/.grok` or `~/.codex` duplicate. Shared local-link steps are in
+Do not copy the skill into `~/.grok` or `~/.codex`. The same steps are in
 [Local links](https://github.com/beyondwin/skills/blob/main/docs/users/en/install-local.md).
 
 ## First call
@@ -113,15 +109,14 @@ existing image. `audit` only inspects and does not create. `brief` and
 `audit` are read-only. An image is created only when the generate or edit
 request is clear.
 
-For a final project file, run `python3 scripts/inspect_asset.py` from this
-skill folder to check the file format and size.
+For a file that will live in the project, run
+`python3 scripts/inspect_asset.py` from this skill folder to check format and
+size. A preview path that exists only in the chat is not the final file.
 
-The inspector checks selected required structures, including PNG CRCs,
-scanline filters and indexed palettes, the first JPEG SOS header, and
-interpreted WebP header/version fields. Passing does not prove complete
-bitstream decoding, visual quality, or rights clearance. Open every final
-candidate for visual review. `--output facts.json` can update a separate JSON
-report, but rejects any output that refers to the input image before writing.
+That check looks at basic PNG, JPEG, or WebP structure only. A pass does not
+mean the picture looks good, the whole file was decoded, or you have the
+rights to use it. Open every final candidate. `--output facts.json` can update
+a separate JSON report; it refuses to overwrite the input image.
 
 ## See also
 
