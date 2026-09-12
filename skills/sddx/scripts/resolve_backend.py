@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -12,10 +13,18 @@ from typing import Any
 ALIASES = {"c": "cursor", "g": "grok", "cursor": "cursor", "grok": "grok"}
 
 
+def _command(executable: str, arguments: list[str]) -> list[str]:
+    command = [executable, *arguments]
+    if os.name == "nt" and os.path.splitext(executable)[1].lower() in {".cmd", ".bat"}:
+        comspec = os.environ.get("ComSpec") or "cmd.exe"
+        return [comspec, "/d", "/s", "/c", subprocess.list2cmdline(command)]
+    return command
+
+
 def _run(executable: str, arguments: list[str], timeout: float = 5.0) -> str:
     try:
         completed = subprocess.run(
-            [executable, *arguments],
+            _command(executable, arguments),
             check=False,
             capture_output=True,
             text=True,

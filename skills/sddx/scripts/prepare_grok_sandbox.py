@@ -137,7 +137,9 @@ def _write_config(config: Path, before: str | None, after: str) -> None:
     temp_path = Path(temp_name)
     try:
         if before is not None:
-            os.fchmod(descriptor, config.stat().st_mode & 0o7777)
+            fchmod = getattr(os, "fchmod", None)
+            if fchmod is not None:
+                fchmod(descriptor, config.stat().st_mode & 0o7777)
         remaining = memoryview(after.encode("utf-8"))
         while remaining:
             written = os.write(descriptor, remaining)

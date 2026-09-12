@@ -67,7 +67,7 @@ class SandboxTests(unittest.TestCase):
             "read_write": sorted(
                 {
                     str((self.repo / ".git").resolve()),
-                    git(self.wt, "rev-parse", "--absolute-git-dir"),
+                    str(Path(git(self.wt, "rev-parse", "--absolute-git-dir")).resolve()),
                 }
             ),
         }
@@ -368,6 +368,16 @@ class SandboxTests(unittest.TestCase):
         self.module.cleanup(self.wt, self.state)
 
         self.assertEqual(self.config.read_bytes(), before)
+
+    def test_rewrite_without_fchmod_preserves_original_bytes_after_cleanup(self):
+        self.config.parent.mkdir()
+        before = b"# original config\r\n"
+        self.config.write_bytes(before)
+        with mock.patch.object(self.module.os, "fchmod", None, create=True):
+            self.assertEqual(self.module.prepare(self.wt, self.state), "sddx-worktree")
+            self.module.cleanup(self.wt, self.state)
+        self.assertEqual(self.config.read_bytes(), before)
+        self.assertFalse(self.state.exists())
 
     def test_state_parent_must_exist_inside_worktree_superpowers(self):
         outside = self.base / "outside"
