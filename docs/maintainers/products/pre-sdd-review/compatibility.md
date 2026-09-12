@@ -19,6 +19,7 @@ Markdown 패키지를 읽을 수 있어도 같은 검토자 격리와 저장소 
 | --- | --- |
 | `claude-code` | `not_measured` |
 | `codex` | `supported` |
+| `grok` | `not_measured` |
 
 ## Evidence recorder compatibility
 
