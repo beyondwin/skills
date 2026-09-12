@@ -26,7 +26,7 @@ EXPECTED = {
     "image-workbench": "2.1.0",
     "how-it-works": "2.0.1",
     "pre-sdd-review": "3.0.2",
-    "sddx": "1.1.0",
+    "sddx": "1.1.1",
 }
 REGISTRY = load_registry(ROOT / "products.toml")
 
