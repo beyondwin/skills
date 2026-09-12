@@ -196,7 +196,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
     def test_v2_release_and_repeatable_install_contract(self) -> None:
         from scripts.lib.product_contract import load_product_release
 
-        self.assertEqual(load_product_release(SKILL).version, "2.0.1")
+        self.assertEqual(load_product_release(SKILL).version, "3.0.0")
         for filename in ("README.md", "README.en.md"):
             text = (SKILL / filename).read_text(encoding="utf-8")
             self.assertIn("<!-- how-it-works-local-links -->\n```python\n", text)
@@ -211,7 +211,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
         self.assertEqual(set(frontmatter), PORTABLE_FIELDS)
         self.assertEqual(frontmatter["name"], "how-it-works")
         self.assertEqual(frontmatter["license"], "Apache-2.0")
-        self.assertEqual(frontmatter["metadata"]["version"], "2.0.1")
+        self.assertEqual(frontmatter["metadata"]["version"], "3.0.0")
 
     def test_frontmatter_has_no_host_tool_requirement(self) -> None:
         frontmatter = parse_skill_frontmatter((SKILL / "SKILL.md").read_text(encoding="utf-8"))

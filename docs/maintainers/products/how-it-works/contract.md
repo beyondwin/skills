@@ -10,16 +10,17 @@
 원리부터, 그림으로, 어떻게 돌아가, 감이 안 와도 활성화입니다. `/eli5`와
 “explain like I’m 5”는 다른 스킬입니다. 이 스킬에서는 아무 일도 하지 않습니다.
 
-설명 전에 `slice`, `type`, `rung`, `language`를 채웁니다. 칸은 그림, 길, 뼈대,
-허점이며 picker의 추천 첫 칸은 길입니다. 깊이 우선순위는 `explicit rung > explicit depth
-alias > existing jargon default > one necessary question`입니다. 명시한
-그림/길/뼈대/허점 또는 picture/path/skeleton/fracture가 가장 먼저 적용됩니다.
-`쉽게`/`한눈에`/`한 장`은 jargon(`rebase`, `TTL`, `Raft`)이 있어도 그림입니다.
-jargon 기본 뼈대는 명시한 rung이나 깊이 별칭이 없을 때만 적용합니다. 숫자 별칭
-`5→그림`, `10→길`, `15→뼈대`, `20→허점`은 `깊이 5`, `depth 20`, 깊이 선택
-질문에 대한 `10`처럼 깊이를 명시적으로 고른 경우에만 해석합니다. `Raft term
-20`, `HTTP/2`, `5개 노드`의 숫자는 주제 데이터입니다. 한 번에 닫힌 깊이 질문
-하나만 하며 채워진 칸은 바꾸거나 다시 묻지 않습니다.
+설명 전에 `slice`, `type`, `rung`, `language`를 채웁니다. type과 language는
+추론합니다. 칸은 그림, 길, 뼈대, 허점이며 picker의 추천 첫 칸은 그림입니다.
+깊이 우선순위는 `explicit rung > explicit depth alias > existing jargon default
+> default 그림`입니다. 명시한 그림/길/뼈대/허점 또는
+picture/path/skeleton/fracture가 가장 먼저 적용됩니다.
+`쉽게`/`한눈에`/`한 장`/`감이 안 와`는 jargon(`rebase`, `TTL`, `Raft`)이
+있어도 그림입니다. jargon 기본 뼈대는 명시한 rung이나 깊이 별칭이 없을 때만
+적용합니다. 숫자 별칭 `5→그림`, `10→길`, `15→뼈대`, `20→허점`은 깊이를
+명시적으로 고른 경우에만 해석합니다. `Raft term 20`, `HTTP/2`, `5개 노드`의
+숫자는 주제 데이터입니다. 채워진 칸은 바꾸지 않습니다. 깊이가 비면 기본
+그림을 intent에 알리고 같은 턴에서 설명합니다.
 
 ## 출력
 
@@ -35,6 +36,9 @@ mermaid 렌더러는 필수가 아닙니다. 렌더러가 없어도 실패가 �
 4. rung-specific body — 고른 깊이의 본문
 5. adjacent slices — 지금 다루지 않은 옆 설명
 6. one next move — 다음에 할 일 하나
+
+그림의 지도 절은 번호 홉이 머메이드 소스보다 앞입니다. 그림 본문은 홉을
+다시 걷지 않습니다.
 
 크롬과 홉 ID 규칙은 `skills/how-it-works/references/output.md`가 소유합니다.
 mermaid가 시각 채널입니다. 손으로 그린 HTML 상자는 다이어그램이 아닙니다.
@@ -65,10 +69,10 @@ mermaid가 시각 채널입니다. 손으로 그린 HTML 상자는 다이어그�
 
 ## 버전과 설치
 
-현재 제품 계약 버전은 `2.0.0`입니다. 원본은
+현재 제품 계약 버전은 `3.0.0`입니다. 원본은
 `skills/how-it-works/release.toml`이며 `SKILL.md`의 `metadata.version`은 같은
 값을 복제합니다. `metadata.updated_at`과 `CHANGELOG.md`의 버전 날짜는 실제 구현일
-`2026-09-08`을 사용합니다. 이 메타데이터는 tag, 공개, GitHub Release가 생겼다는
+`2026-09-12`를 사용합니다. 이 메타데이터는 tag, 공개, GitHub Release가 생겼다는
 뜻이 아닙니다.
 
 두 제품 README는 `<!-- how-it-works-local-links -->` 바로 뒤의 Python 블록을

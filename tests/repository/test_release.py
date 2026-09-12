@@ -129,7 +129,7 @@ class ProductBuildTests(unittest.TestCase):
             shutil.copytree(ROOT / "skills" / "how-it-works", skill)
             changelog = skill / "CHANGELOG.md"
             original = changelog.read_text(encoding="utf-8")
-            mutated = re.sub(r"(?m)^## 2\.0\.1 - [0-9]{4}-[0-9]{2}-[0-9]{2}\n", "", original, count=1)
+            mutated = re.sub(r"(?m)^## 3\.0\.0 - [0-9]{4}-[0-9]{2}-[0-9]{2}\n", "", original, count=1)
             self.assertNotEqual(mutated, original)
             changelog.write_text(mutated, encoding="utf-8")
             with self.assertRaises(ReleaseError) as raised:
@@ -696,11 +696,11 @@ class ProductDownloadTests(unittest.TestCase):
             for info, data in items:
                 text = data.decode("utf-8")
                 if info.filename == "how-it-works/release.toml":
-                    text = text.replace('version = "2.0.1"', 'version = "9.9.9"')
+                    text = text.replace('version = "3.0.0"', 'version = "9.9.9"')
                     self.assertNotEqual(text.encode("utf-8"), data)
                     data = text.encode("utf-8")
                 elif info.filename == "how-it-works/SKILL.md":
-                    text = text.replace('version: "2.0.1"', 'version: "9.9.9"')
+                    text = text.replace('version: "3.0.0"', 'version: "9.9.9"')
                     self.assertNotEqual(text.encode("utf-8"), data)
                     data = text.encode("utf-8")
                 yield info, data

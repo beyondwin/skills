@@ -103,6 +103,13 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-wor
 명시 호출은 Codex에서 `$how-it-works`, Claude Code에서 `/how-it-works`입니다.
 
 ```text
+$how-it-works DNS
+/how-it-works DNS
+```
+
+명시 길은 그대로입니다.
+
+```text
 $how-it-works DNS 길
 /how-it-works DNS 길
 ```
@@ -130,11 +137,12 @@ $how-it-works DNS 길
 
 ## 지도 / Map
 
+1. **H1** — {what moves or changes}
+2. **H2** — {what moves or changes}
+
 ```mermaid
 {diagram source}
 ```
-
-1. **H1** — {what moves or changes}
 
 ## 본문 / Body
 

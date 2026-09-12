@@ -4,6 +4,28 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 3.0.0 - 2026-09-12
+
+### Breaking
+
+- Default rung is 그림. A missing depth is filled by precedence, announced
+  in the intent line, and explained in the same turn. The old last step
+  `one necessary question` is removed.
+- Picture Map prints numbered hops before Mermaid source. Body at 그림
+  does not walk the hops again.
+
+### Changed
+
+- `감이 안 와` is a silent 그림 alias. Type word `흐름` still does not fill
+  rung. Jargon without a depth alias remains 뼈대.
+- First-call README examples use `$how-it-works DNS` / `/how-it-works DNS`.
+  Explicit `DNS 길` remains a path example.
+
+### Notes
+
+- Live model quality stays `not_measured`. Fixture pass is not host
+  execution evidence. No GitHub tag or GitHub Release is created.
+
 ## 2.0.1 - 2026-09-11
 
 ### Changed

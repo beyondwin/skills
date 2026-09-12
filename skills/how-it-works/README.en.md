@@ -105,6 +105,11 @@ Explicit calls are `$how-it-works` on Codex and `/how-it-works` on Claude
 Code.
 
 ```text
+$how-it-works DNS
+/how-it-works DNS
+```
+
+```text
 $how-it-works Explain DNS as a path.
 /how-it-works Explain DNS as a path.
 ```
@@ -133,11 +138,12 @@ Skeleton:
 
 ## Map
 
+1. **H1** — {what moves or changes}
+2. **H2** — {what moves or changes}
+
 ```mermaid
 {diagram source}
 ```
-
-1. **H1** — {what moves or changes}
 
 ## Body
 
