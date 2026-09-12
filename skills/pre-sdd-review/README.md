@@ -60,8 +60,8 @@ $pre-sdd-review docs/history/specs/<design>.md docs/history/plans/<plan>.md
 실제로는 계획의 `**Spec:**` 필드가 설계 명세를 정합니다. 인자로 쓴 설계 경로는
 이 권위를 덮어쓰지 않습니다.
 
-`review-only`는 명시 모드입니다. 첫 판정만 받고 문서를 변경하지 않으려면 아래처럼
-부릅니다.
+`review-only`는 명시 모드입니다. 첫 판정만 받고 문서를 변경하지 않으려면
+예상 결과의 `review-only` 예를 보세요.
 
 ## 예상 결과
 

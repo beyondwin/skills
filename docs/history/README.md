@@ -10,12 +10,8 @@ paths. They are point-in-time records, not the current contract.
 [`docs/README.md`](../README.md), [`docs/users/`](../users/),
 [`docs/maintainers/`](../maintainers/), 각 제품 README를 보세요.
 
-아직 진행 중:
+지금은 진행 중인 설계가 없습니다. 끝난 image-workbench Grok 호스트 지원은
+제품 README와 [image-workbench 관리자 문서](../maintainers/products/image-workbench/)에
+있습니다.
 
-- [image-workbench Grok 호스트 지원 설계](specs/2026-09-12-image-workbench-grok-host-design.md)
-- [image-workbench Grok 호스트 지원 구현 계획](plans/2026-09-12-image-workbench-grok-host.md)
-
-Still in progress:
-
-- [image-workbench Grok host support design](specs/2026-09-12-image-workbench-grok-host-design.md)
-- [image-workbench Grok host support plan](plans/2026-09-12-image-workbench-grok-host.md)
+There are no in-progress specs or plans right now.

@@ -19,16 +19,15 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
   -s tests/products/pre-sdd-review/evidence -p 'test_*.py' -v
 ```
 
-`check`는 tracked product scope, SemVer, changelog, 필수 verification을
-확인합니다. `build`는 새 빈 출력 디렉터리에 standalone ZIP 하나와
-`SHA256SUMS`만 씁니다. `verify-download`는 fresh bytes, checksum, ZIP structure, extracted payload
-hash, exact payload manifest, extracted `evidence.py --version` canonical JSON,
-product verification을 확인합니다. 로컬 build output은 public-release evidence가
-아닙니다.
+`check`는 추적된 제품 범위, SemVer, changelog, 필수 검증을 확인합니다.
+`build`는 새 빈 출력 디렉터리에 standalone ZIP 하나와 `SHA256SUMS`만 씁니다.
+`verify-download`는 새로 받은 바이트, checksum, ZIP 구조, 추출 payload hash,
+정확한 payload 목록, 추출한 `evidence.py --version` 정규 JSON, 제품 검증을
+확인합니다. 로컬 빌드 결과는 공개 릴리스 증거가 아닙니다.
 
-Release payload keeps `evidence/evidence.py` non-executable; it is run with
-`python3` and never installed. Native Windows stays `not_measured` unless a
-native Python 3.11 evidence run is recorded.
+릴리스 payload의 `evidence/evidence.py`는 실행 비트가 없습니다. `python3`로
+돌리고 설치하지 않습니다. native Python 3.11 evidence 실행을 기록하기 전까지
+native Windows는 `not_measured`입니다.
 
 no tag or GitHub Release is created by these commands.
 

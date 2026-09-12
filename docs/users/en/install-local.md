@@ -2,6 +2,9 @@
 
 [한국어](../ko/install-local.md) · [Installation](installation.md) · [Compatibility](compatibility.md) · [Safety and privacy](safety-and-privacy.md) · [Verification](verification.md)
 
+The Python below is the same for how-it-works, sddx, and image-workbench. It
+creates a shortcut and will not overwrite.
+
 For `how-it-works`, clone the repo and make two shortcuts. The public GitHub path is https://github.com/beyondwin/skills/tree/main/skills/how-it-works. The first link serves Codex. The second serves Claude Code. Codex looks in `~/.agents/skills/how-it-works`. Do not create a `~/.codex` or `~/.grok` duplicate.
 
 ```bash

@@ -1,7 +1,8 @@
 # 문서 / Documentation
 
 어디를 보면 되는지 가리킵니다. 각 스킬의 쓰임새는 제품 README에, 변경 규칙은
-관리자 문서에 있습니다.
+관리자 문서에 있습니다. 트리가 어떻게 나뉘는지는
+[저장소 구조](maintainers/repository/architecture.md)를 보세요.
 
 This page only routes readers. How to use a skill is in that product README.
 How to change it is in the maintainer docs.
@@ -22,7 +23,7 @@ How to change it is in the maintainer docs.
 각 현재 독립 제품의 한국어·영어 README를 읽습니다.
 
 - [`korean-writing-editor`](../skills/korean-writing-editor/README.md) · [English](../skills/korean-writing-editor/README.en.md) — Codex
-- [`image-workbench`](../skills/image-workbench/README.md) · [English](../skills/image-workbench/README.en.md) — Codex
+- [`image-workbench`](../skills/image-workbench/README.md) · [English](../skills/image-workbench/README.en.md) — Codex, Grok
 - [`how-it-works`](../skills/how-it-works/README.md) · [English](../skills/how-it-works/README.en.md) — Codex, Claude Code
 - [`pre-sdd-review`](../skills/pre-sdd-review/README.md) · [English](../skills/pre-sdd-review/README.en.md) — Codex, SDD 전 문서 검토
 - [`sddx`](../skills/sddx/README.md) · [English](../skills/sddx/README.en.md) — Codex, Claude Code, 외부 SDD implementer

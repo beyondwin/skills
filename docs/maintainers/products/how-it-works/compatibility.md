@@ -8,6 +8,9 @@ Cursor는 과거 실행 도구에 Computer Use(`node_repl` / `@oai/sky`)가 없�
 미측정이었으며 지원 대상이 아닙니다. Claude.ai, Cowork, Skills API 업로드, marketplace 게시,
 클라우드 동기화는 지원하지 않습니다. 호스트마다 따로 복사하지 마세요.
 
+말 뜻: `not_measured`는 아직 확인하지 않음, `historical-unbound`는 예전 기록,
+`current-bounded`는 버전과 hash만 묶였다는 뜻입니다.
+
 ## 발견 경로
 
 ```text

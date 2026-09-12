@@ -6,6 +6,8 @@ The current standalone products are [`korean-writing-editor`](../../../skills/ko
 
 In short: the Korean editor and Pre-SDD Review are confirmed on Codex today. Image Workbench is confirmed on Codex and Grok. How It Works and SDDx link this repo for Codex and Claude Code.
 
+A host is the program that runs the skill. A smoke is a recorded live run. `not_measured` means not checked yet. `historical-unbound` is an old record. `current-bounded` means only version and hash are bound.
+
 ## Shared support sentences
 
 korean-writing-editor: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.

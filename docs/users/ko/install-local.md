@@ -2,6 +2,9 @@
 
 [English](../en/install-local.md) · [설치](installation.md) · [호환성](compatibility.md) · [안전과 개인정보](safety-and-privacy.md) · [검증](verification.md)
 
+아래 Python은 how-it-works, sddx, image-workbench가 같습니다. 덮어쓰지 않는
+바로가기를 만듭니다.
+
 `how-it-works`는 저장소를 받은 뒤 바로가기 두 개를 겁니다. 공개 경로는 https://github.com/beyondwin/skills/tree/main/skills/how-it-works 입니다. 첫 링크는 Codex, 둘째는 Claude Code입니다. Codex는 `~/.agents/skills/how-it-works`에서 찾습니다. `~/.codex`나 `~/.grok` 복사본을 만들지 마세요.
 
 ```bash

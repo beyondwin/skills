@@ -1,6 +1,7 @@
 # sddx 호환성
 
 이 문서는 SDDx의 오케스트레이터 호스트와 구현 worker 경계를 소유합니다.
+호스트는 스킬을 실행하는 프로그램이고, worker는 구현만 맡는 외부 CLI입니다.
 
 현재 지원 호스트는 제품 목록의 `claude-code`, `codex`입니다. Cursor CLI와
 Grok CLI는 구현 worker이지 호스트가 아닙니다. 지원 범위와 현재 측정 상태는

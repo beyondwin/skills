@@ -1,6 +1,10 @@
 # Contributing
 
-This repository currently ships five standalone products:
+This repository currently ships five standalone products. Where documents live
+is in [docs/README.md](docs/README.md). How the tree is split is in
+[architecture](docs/maintainers/repository/architecture.md).
+
+The products are:
 
 - `korean-writing-editor`
 - `image-workbench`

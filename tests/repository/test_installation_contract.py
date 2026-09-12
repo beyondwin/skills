@@ -186,5 +186,43 @@ class InstallationContractTests(unittest.TestCase):
                         self.assertFalse((base / "missing").exists())
 
 
+LINKER_FIXTURE = ROOT / "tests" / "repository" / "fixtures" / "link-skill.py"
+LINKER_SURFACES = (
+    ("skills/how-it-works/README.md", "<!-- how-it-works-local-links -->"),
+    ("skills/how-it-works/README.en.md", "<!-- how-it-works-local-links -->"),
+    ("docs/users/ko/install-local.md", "<!-- how-it-works-local-links -->"),
+    ("docs/users/en/install-local.md", "<!-- how-it-works-local-links -->"),
+    ("skills/sddx/README.md", "<!-- sddx-local-links -->"),
+    ("skills/sddx/README.en.md", "<!-- sddx-local-links -->"),
+    ("docs/users/ko/install-local.md", "<!-- sddx-local-links -->"),
+    ("docs/users/en/install-local.md", "<!-- sddx-local-links -->"),
+    ("skills/image-workbench/README.md", "<!-- image-workbench-local-links -->"),
+    ("skills/image-workbench/README.en.md", "<!-- image-workbench-local-links -->"),
+    ("docs/users/ko/install-local.md", "<!-- image-workbench-local-links -->"),
+    ("docs/users/en/install-local.md", "<!-- image-workbench-local-links -->"),
+)
+
+
+def documented_linker(relative: str, marker: str) -> str:
+    text = (ROOT / relative).read_text(encoding="utf-8")
+    if text.count(marker) != 1:
+        raise AssertionError(f"one installation block required: {relative} {marker}")
+    tail = text.split(marker, 1)[1]
+    match = re.match(r"\s*```python\n(.*?)\n```", tail, re.S)
+    if match is None:
+        raise AssertionError(f"Python block must follow marker: {relative} {marker}")
+    return match.group(1)
+
+
+class CanonicalLinkerFixtureTests(unittest.TestCase):
+    def test_every_documented_linker_matches_the_fixture(self) -> None:
+        expected = LINKER_FIXTURE.read_text(encoding="utf-8")
+        if expected.endswith("\n"):
+            expected = expected[:-1]
+        for relative, marker in LINKER_SURFACES:
+            with self.subTest(relative=relative, marker=marker):
+                self.assertEqual(documented_linker(relative, marker), expected)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -7,6 +7,7 @@
 
 ## 저장소
 
+- 트리가 어떻게 나뉘는지는 [저장소 구조](docs/maintainers/repository/architecture.md)를 보세요.
 - 제품·소유 경로는 [products.toml](products.toml), 기여 범위는 [CONTRIBUTING.md](CONTRIBUTING.md)를 따릅니다.
 - `skills/<name>/`을 수정할 때 `tests/products/<name>/`와 `docs/maintainers/products/<name>/`의 계약을 확인합니다.
 - `catalog/`의 고정 묶음은 제품 수정과 별개로 유지합니다. 지원 호스트 변경은 제품 목록·문서·테스트에 함께 반영합니다.

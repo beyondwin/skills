@@ -7,7 +7,7 @@
 마지막 공개 카탈로그는 `beyondwin-skills` `2.0.0`입니다. 그 릴리스는 공개
 `v2.0.0`의 `image-workbench`와 `korean-writing-editor` 설치 파일만
 고정(lock)합니다. 지금 `skills/` 개발과, 아직 묶음에 없는 `how-it-works`,
-`pre-sdd-review`는 카탈로그 소스가 아닙니다.
+`pre-sdd-review`, `sddx`는 카탈로그 소스가 아닙니다.
 
 지원되는 카탈로그 아티팩트는 공개된 플러그인 ZIP뿐입니다. 저장소 루트는 개별
 스킬을 설치하는 곳입니다. 플러그인 정보는

@@ -4,6 +4,8 @@
 
 Required verification runs without credentials or models. A pass means the repo rules match today. It does not mean a model edits well or that images look good.
 
+In short: a fixture is a saved test example. A smoke is a recorded live run. `not_measured` means not checked in this environment yet. `historical-unbound` is an old record, not current execution evidence. `current-bounded` means only version and hash are bound.
+
 ```bash
 python3 scripts/verify.py
 ```

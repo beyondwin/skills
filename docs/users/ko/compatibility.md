@@ -6,6 +6,8 @@
 
 쉽게 말하면: 한국어 편집기와 SDD 전 검토는 지금 Codex만 확인했습니다. 이미지 작업대는 Codex와 Grok에서 확인했습니다. How It Works와 SDDx는 Codex와 Claude Code에서 이 저장소를 연결해 씁니다.
 
+말 뜻: 호스트는 스킬을 실행하는 프로그램입니다. smoke는 실제로 한 번 돌려 본 기록입니다. `not_measured`는 아직 확인하지 않음, `historical-unbound`는 예전 기록, `current-bounded`는 버전과 hash만 묶였다는 뜻입니다.
+
 ## 공유 지원 문장
 
 korean-writing-editor: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.

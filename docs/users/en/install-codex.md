@@ -4,7 +4,7 @@
 
 ## Primary install (Codex)
 
-Use `$skill-installer` for [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), and [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md). The installer stops if the destination already exists. The default destination for those three skills is `$CODEX_HOME/skills/<skill-name>`. If `CODEX_HOME` is unset, that is `~/.codex/skills`. How It Works is not this destination.
+Use `$skill-installer` for [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), and [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md). The installer stops if the destination already exists. The default destination for those three skills is `$CODEX_HOME/skills/<skill-name>`. If `CODEX_HOME` is unset, that is `~/.codex/skills`. How It Works and SDDx are not this destination.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor

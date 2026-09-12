@@ -4,7 +4,7 @@
 
 ## 기본 설치 (Codex)
 
-`$skill-installer`는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md)에 씁니다. 같은 폴더가 이미 있으면 설치기는 멈춥니다. 이 세 스킬의 기본 위치는 `$CODEX_HOME/skills/<skill-name>`입니다. `CODEX_HOME`이 없으면 `~/.codex/skills`입니다. How It Works는 여기가 아닙니다.
+`$skill-installer`는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md)에 씁니다. 같은 폴더가 이미 있으면 설치기는 멈춥니다. 이 세 스킬의 기본 위치는 `$CODEX_HOME/skills/<skill-name>`입니다. `CODEX_HOME`이 없으면 `~/.codex/skills`입니다. How It Works와 SDDx는 여기가 아닙니다.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
