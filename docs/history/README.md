@@ -1,45 +1,23 @@
 # 기록 / History
 
-이 디렉터리는 **진행 중인** 설계와 구현 계획만 둡니다. 옛 이름과 경로가 남아
-있을 수 있으며, 현재 계약을 정의하지 않습니다.
+여기에는 **아직 끝나지 않은** 설계와 구현 계획만 둡니다. 옛 이름이나 경로가
+남아 있을 수 있습니다. 이 파일들은 현재 계약을 정의하지 않습니다.
 
 Files here are in-progress specs and plans. They may contain old names and
-paths, and they do not define the current contract. They are point-in-time
-records.
+paths. They are point-in-time records, not the current contract.
 
-끝난 계획, 쓰이지 않는 현장 관찰, 이미 산 문서가 대신하는 스펙은 두지 않습니다.
-지금 쓰는 안내와 계약은 [`docs/README.md`](../README.md),
-[`docs/users/`](../users/), [`docs/maintainers/`](../maintainers/), 각 제품
-README를 보세요.
+끝난 문서는 지웁니다. Git 이력에서 볼 수 있습니다. 지금 쓰는 안내는
+[`docs/README.md`](../README.md), [`docs/users/`](../users/),
+[`docs/maintainers/`](../maintainers/), 각 제품 README를 보세요.
 
-진행 중인 설계·계획:
+아직 진행 중:
 
 - [how-it-works 첫 화면 그림 설계](specs/2026-09-12-how-it-works-first-picture-design.md)
-- [korean-writing-editor 출력 고정 설계](specs/2026-09-12-korean-writing-editor-output-stickiness-design.md)
-- [korean-writing-editor 출력 고정 구현 계획](plans/2026-09-12-korean-writing-editor-output-stickiness.md)
 - [image-workbench Grok 호스트 지원 설계](specs/2026-09-12-image-workbench-grok-host-design.md)
 - [image-workbench Grok 호스트 지원 구현 계획](plans/2026-09-12-image-workbench-grok-host.md)
-- [문서 구조 설계](specs/2026-09-11-documentation-structure-design.md)
-- [문서 구조 구현 계획](plans/2026-09-11-documentation-structure.md)
-- [SDDx 설계](specs/2026-09-11-sddx-design.md)
-- [SDDx 구현 계획](plans/2026-09-11-sddx.md)
-- [SDDx worktree 실행 개선 설계](specs/2026-09-11-worktree-reliability-design.md)
-- [SDDx worktree 실행 개선 계획](plans/2026-09-11-worktree-reliability-plan.md)
 
-완료된 문서는 Git 이력에서 확인할 수 있습니다.
-
-In-progress specs and plans:
+Still in progress:
 
 - [how-it-works first-picture design](specs/2026-09-12-how-it-works-first-picture-design.md)
-- [korean-writing-editor output stickiness design](specs/2026-09-12-korean-writing-editor-output-stickiness-design.md)
-- [korean-writing-editor output stickiness implementation plan](plans/2026-09-12-korean-writing-editor-output-stickiness.md)
 - [image-workbench Grok host support design](specs/2026-09-12-image-workbench-grok-host-design.md)
-- [image-workbench Grok host support implementation plan](plans/2026-09-12-image-workbench-grok-host.md)
-- [Documentation structure design](specs/2026-09-11-documentation-structure-design.md)
-- [Documentation structure implementation plan](plans/2026-09-11-documentation-structure.md)
-- [SDDx design](specs/2026-09-11-sddx-design.md)
-- [SDDx implementation plan](plans/2026-09-11-sddx.md)
-- [SDDx worktree reliability design](specs/2026-09-11-worktree-reliability-design.md)
-- [SDDx worktree reliability implementation plan](plans/2026-09-11-worktree-reliability-plan.md)
-
-Completed documents remain available in Git history.
+- [image-workbench Grok host support plan](plans/2026-09-12-image-workbench-grok-host.md)

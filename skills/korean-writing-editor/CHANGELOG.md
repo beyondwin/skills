@@ -8,14 +8,13 @@ All notable changes to this product are documented in this file.
 
 ### Changed
 
-- Default `correct` and `polish` replies are the edited text; `diagnose`
-  replies start with the finding. Process narration is a failed shape, not
-  an extra prohibition.
-- Already-correct local forms stay unchanged in `polish` as well as
-  `correct`. Near-miss handoffs do not perform the excluded task in the
-  same turn.
-- The first-call README example is conservative `polish`. Typo-only
-  `correct` is the second example.
+- In `correct` and `polish`, the reply is the edited text. In `diagnose`,
+  the first line is the finding. Do not start with “using this skill…”.
+- If a phrase is already correct, keep it in `polish` too. If the request
+  is not editing (for example translation), do not do that other job in
+  the same reply.
+- The first README example is a light polish. Typo-only `correct` is the
+  second example.
 
 ### Notes
 
