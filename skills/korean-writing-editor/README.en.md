@@ -35,7 +35,15 @@ Shared install steps are in
 
 ## First call
 
-After install, invoke it on the next turn:
+After install, invoke it on the next turn. The default is polish. Portable
+prefixes are `$korean-writing-editor` and `/korean-writing-editor`. Codex
+is the measured host.
+
+```text
+$korean-writing-editor Polish this naturally: (Korean source)
+```
+
+For typos only:
 
 ```text
 $korean-writing-editor Fix typos only: (Korean source)
