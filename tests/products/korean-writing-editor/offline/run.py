@@ -392,6 +392,17 @@ def run_mutation_checks(cases: list[dict[str, object]]) -> list[str]:
         if not evaluate_candidate(mutated):
             errors.append("mutation: flipping negation produced no error")
 
+        hedge = dict(negation)
+        hedge["candidate"] = (
+            str(negation["candidate"]).replace(
+                "출시하지 않을 수 있다", "출시하지 않을 수도 있다"
+            )
+        )
+        if not evaluate_candidate(hedge):
+            errors.append(
+                "mutation: replacing 수 있다 with 수도 있다 produced no error"
+            )
+
     modality = by_id.get("meaning-modality-02")
     if modality is None:
         errors.append("mutation: missing meaning-modality-02")
@@ -432,6 +443,26 @@ def run_mutation_checks(cases: list[dict[str, object]]) -> list[str]:
                 "mutation: adding process preamble produced no error"
             )
 
+        english_preamble = dict(spacing)
+        english_preamble["candidate"] = (
+            "Using the Korean writing editor skill to correct typos."
+            + str(spacing["candidate"])
+        )
+        if not evaluate_candidate(english_preamble):
+            errors.append(
+                "mutation: adding English skill-usage preamble produced no error"
+            )
+
+        korean_preamble = dict(spacing)
+        korean_preamble["candidate"] = (
+            "한국어 교정 스킬을 확인한 뒤 오탈자만 고치겠습니다."
+            + str(spacing["candidate"])
+        )
+        if not evaluate_candidate(korean_preamble):
+            errors.append(
+                "mutation: adding Korean skill-usage preamble produced no error"
+            )
+
     for mode, suffix in (("correct", "09"), ("polish", "10")):
         case_id = f"norm-grammar-particle-{mode}-{suffix}"
         case = by_id.get(case_id)
@@ -449,6 +480,20 @@ def run_mutation_checks(cases: list[dict[str, object]]) -> list[str]:
                 errors.append(
                     f"mutation: grammar or voice corruption escaped {case_id}"
                 )
+
+    translation = by_id.get("trigger-translation-03")
+    if translation is None:
+        errors.append("mutation: missing trigger-translation-03")
+    else:
+        mutated = dict(translation)
+        mutated["candidate"] = (
+            str(translation["candidate"])
+            + " There is a meeting tomorrow morning."
+        )
+        if not evaluate_candidate(mutated):
+            errors.append(
+                "mutation: fulfilling a translation near-miss produced no error"
+            )
 
     return errors
 

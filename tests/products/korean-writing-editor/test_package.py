@@ -130,7 +130,7 @@ class KoreanPackageTests(unittest.TestCase):
         self.assertTrue(CASES.is_file(), "cases.json is absent")
         payload = json.loads(CASES.read_text(encoding="utf-8"))
         self.assertEqual(payload["version"], "1")
-        self.assertEqual(len(payload["cases"]), 33)
+        self.assertEqual(len(payload["cases"]), 34)
         runner_text = RUNNER.read_text(encoding="utf-8")
         self.assertIn("--skill-root", runner_text)
         self.assertIn('with_name("cases.json")', runner_text)
