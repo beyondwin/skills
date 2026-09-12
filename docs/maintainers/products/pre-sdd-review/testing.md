@@ -6,7 +6,7 @@ live-check 경계를 소유합니다. 모델의 실제 리뷰 품질을 측정�
 
 공급자 없는 픽스처 경로는 `tests/products/pre-sdd-review/`입니다.
 
-## Required provider-free command
+## 공급자 없는 증거
 
 공급자 자격 증명과 모델 호출 없이 제품 계약을 실행합니다.
 
@@ -21,7 +21,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
 
 `evidence/evidence.py` 기록기의 schema 3 checkout 결속, schema 2 read-only
 legacy 처리, mutation lock, 손상 record 격리, 여섯 명령, summary 관찰 집계
-계약은 별도 provider-free 단계로 실행합니다. 기록기는
+계약은 별도 공급자 없는 단계로 실행합니다. 기록기는
 `python3 skills/pre-sdd-review/evidence/evidence.py`로 돌리며 설치하지
 않습니다.
 
@@ -39,17 +39,17 @@ maintainer contract가 같은 lifecycle을 설명하는지 확인하는 일관�
 provider나 실제 모델을 호출하지 않으므로 실제 모델 리뷰 품질은
 `not_measured`입니다.
 
-## Exact fixture boundary
+## 픽스처 경계
 
-`cases.json`은 exactly twenty-eight개의 activation, default-flow, review-only,
-verdict, risk, freshness, evidence, near-miss 사례를 소유합니다. `fixtures/`는 정확히
+`cases.json`은 활성화, 기본 흐름, review-only, 판정, 위험, freshness,
+evidence, near-miss 사례를 정확히 스물여덟 개 소유합니다. `fixtures/`는 정확히
 `ready`, `missing-coverage`, `false-verification`, `runtime-removal`,
-`repair-induced-schema-consumer`, `state-machine-vacuous-pass`, and
+`repair-induced-schema-consumer`, `state-machine-vacuous-pass`,
 `conditional-edit-surface` 일곱 합성 저장소를 소유합니다. 각 저장소에는
-`design.md`, `plan.md`, `repository.json`, and `expected.json`만 둡니다.
+`design.md`, `plan.md`, `repository.json`, `expected.json`만 둡니다.
 
-픽스처는 제한된 합성 계약이지 말뭉치가 아닙니다. user documents,
-private prompts, credentials, transcripts, full model responses를 픽스처,
+픽스처는 제한된 합성 계약이지 말뭉치가 아닙니다. 사용자 문서, 비공개
+프롬프트, 자격 증명, 대화 기록, 모델 응답 전체를 픽스처,
 테스트 로그, 커밋된 live record에 저장하지 않습니다.
 
 ### Case inventory
@@ -93,7 +93,7 @@ private prompts, credentials, transcripts, full model responses를 픽스처,
 - `runtime-removal`: `design.md`, `expected.json`, `plan.md`, `repository.json`
 - `state-machine-vacuous-pass`: `design.md`, `expected.json`, `plan.md`, `repository.json`
 
-## Optional fresh-session live checks
+## 선택적 라이브 검사
 
 라이브 검사는 로컬이고, 명시적이며, 선택적입니다. 비용이 들 수 있습니다.
 CI는 요구하지 않습니다. 새 Codex 세션과 민감하지 않은 합성 설계·계획만
@@ -107,8 +107,8 @@ v1.1 전진 확인은 정답을 숨긴 채 `repair-induced-schema-consumer`,
 권위 이탈이 없어야 합니다. 기존 `ready` 픽스처는 공급자 없는 긍정 대조입니다.
 이 점검은 반복 평가나 일반 품질 측정을 대신하지 않습니다.
 
-Evidence 테스트는 임시 Git 저장소와 합성 skill root만 사용합니다. source text,
-raw path, prompt, transcript, credential을 기록에 넣지 않습니다. `outcome`
+Evidence 테스트는 임시 Git 저장소와 합성 skill root만 사용합니다. 원문,
+경로 원본, 프롬프트, 대화 기록, 자격 증명을 기록에 넣지 않습니다. `outcome`
 label과 정상/이상 verdict 분리는 관찰자 입력이며 모델 품질이나 감사급 증명이
 아닙니다. 손상 record 수는 filter 전 전체 scan에서 확인합니다. native
 Windows, Linux, Claude Code, Cursor, Grok은 각 native 또는 live 단계가

@@ -42,4 +42,4 @@ Release와 불변 카탈로그 lock에 포함되지 않았습니다. 현재 독�
 - 원격 검증 실패: Draft를 비공개로 유지합니다. 로컬 성공을 공개 증거로 대체하지 않습니다.
 - 이 제품 실패: 다른 제품의 버전, 태그, Release와 카탈로그 lock을 바꾸지 않습니다.
 
-no tag or GitHub Release is created by these commands.
+이 명령은 태그 또는 GitHub Release를 만들지 않습니다.

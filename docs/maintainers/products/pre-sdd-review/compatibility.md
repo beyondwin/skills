@@ -2,11 +2,11 @@
 
 이 문서는 Pre-SDD Review의 측정된 호스트 경계를 소유합니다.
 
-## Supported host
+## 지원 호스트
 
-Codex is supported. 측정된 계약이 로컬 Git 저장소, 읽을 수 있는 설계와
+지금은 Codex만 지원합니다. 측정된 계약이 로컬 Git 저장소, 읽을 수 있는 설계와
 계획 파일, 저장소 조사, 격리된 읽기 전용 검토자를 요구하기 때문입니다.
-Every other host is `not_measured`.
+다른 호스트는 모두 `not_measured`입니다.
 폴더 모양이 같다고 같은 검토자 격리와 저장소 동작이 있는 것은 아닙니다.
 입증하기 전에는 지원으로 올리지 않습니다.
 
@@ -22,7 +22,7 @@ Every other host is `not_measured`.
 | `codex` | `supported` |
 | `grok` | `not_measured` |
 
-## Evidence recorder compatibility
+## 기록기 호환성
 
 기록기 이식은 의미 호스트 표와 별개입니다. Codex, Claude Code, Cursor, Grok는
 로드된 스킬 루트의 같은 `evidence/evidence.py`를 쓰고, 데이터 루트
@@ -45,7 +45,7 @@ locking을 씁니다. `show`, `summary`, `--version`은 읽기 전용이며 그 
 잡지 않습니다. 이 구분으로 native Windows 변경 지원을 주장하거나 Windows를
 `not_measured` 위로 올리지 않습니다.
 
-## Evidence limit
+## 증거 한계
 
 필수 공급자 없는 명령은 [테스트](testing.md)에 있습니다. 이 명령은 결정적
 패키지와 지시문 계약만 증명합니다. 라이브 검토 품질이나 호스트 간 동등은

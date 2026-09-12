@@ -9,7 +9,7 @@
 각 따로 설치하는 스킬에 적용됩니다.
 
 저장소 루트는 개별 스킬을 GitHub 경로로 설치하는 작업 공간입니다.
-The repository root does not own plugin metadata.
+플러그인 메타데이터는 루트가 소유하지 않습니다.
 카탈로그 플러그인 정보는 `catalog/plugin/.codex-plugin/plugin.json`에
 있습니다. 카탈로그 릴리스 때 플러그인 ZIP 루트로 복사됩니다. 지원되는 카탈로그
 결과물은 공개된 플러그인 ZIP뿐입니다.
@@ -56,6 +56,8 @@ flowchart TB
 ## 말 뜻
 
 계약 식별자는 영어 그대로 둡니다. 아래는 읽는 말만 풀어 쓴 것입니다.
+`SKILL.md`와 런타임 `references/`는 에이전트가 읽는 실행 계약이라 영어입니다.
+사람이 읽는 한국어는 제품 README입니다.
 
 | 말 | 뜻 |
 | --- | --- |

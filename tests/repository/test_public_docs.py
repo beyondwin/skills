@@ -134,7 +134,7 @@ HOW_IT_WORKS_FIXTURE_IDS = (
     "no-fetched-source",
 )
 RELEASE_NO_PUBLICATION = (
-    "no tag or GitHub Release is created by these commands."
+    "이 명령은 태그 또는 GitHub Release를 만들지 않습니다."
 )
 OFFLINE_EVIDENCE = "Offline fixtures: deterministic contract evidence only."
 LIVE_EVIDENCE = (
@@ -1345,7 +1345,10 @@ class DocumentationArchitectureTests(unittest.TestCase):
         self.assertIn("`legacy-bundle`은 신뢰 lock", release_text)
         self.assertIn("과거 payload가 새 hardening을 상속했다는 뜻은 아닙니다", release_text)
         catalog_text = _read(catalog_doc)
-        self.assertIn("Registry products do not automatically enter v2.0.0", catalog_text)
+        self.assertIn(
+            "현재 독립 제품이 카탈로그 lock이나 공개 `v2.0.0`\n번들에 자동으로 들어가지 않습니다",
+            catalog_text,
+        )
         migrations_text = _read(migrations_doc)
         self.assertIn("76e6bf4ebbc9430aee9a04a5b780ae38330f3021", migrations_text)
         self.assertIn(
@@ -1779,7 +1782,7 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("2.0.0", text)
         self.assertIn("catalog/plugin/.codex-plugin/plugin.json", text)
         self.assertIn("catalog/catalog.lock.json", text)
-        self.assertIn("does not own plugin metadata", text)
+        self.assertIn("플러그인 메타데이터는 루트가 소유하지 않습니다", text)
         self.assertIn("공통 경로, unknown 경로, 빈 diff, diff 실패", text)
         self.assertIn("selector 없는 전체 검사", text)
         self.assertIn("제품 전용 변경일 때만 해당 제품 selector로 좁은 검사", text)

@@ -35,4 +35,4 @@ Code가 `agents/claude-code/` 정의를 계속 싣는지는 확인하지 못합�
 - 패키징 실패: 새 출력 디렉터리에서 다시 빌드합니다. 부분 결과를 재사용하지 않습니다.
 - 이 제품 실패: 다른 제품의 버전, 태그, Release와 카탈로그 lock을 바꾸지 않습니다.
 
-no tag or GitHub Release is created by these commands.
+이 명령은 태그 또는 GitHub Release를 만들지 않습니다.

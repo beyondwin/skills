@@ -3,7 +3,7 @@
 이 문서는 Pre-SDD Review의 활성화 조건, 권위 순서, 리뷰어 격리,
 문서 수정 경계, finding, freshness, verdict, SDD handoff를 소유합니다.
 
-## Activation and input resolution
+## 활성화와 입력 해석
 
 승인된 설계 명세와 구현 계획이 모두 있을 때만 씁니다. SDD나 계획 실행
 직전 준비 상태를 볼 때 활성화합니다. 처음 설계나 계획을 쓸 때는 쓰지
@@ -16,8 +16,8 @@
 
 한 호출은 구현 계획 하나만 검토합니다. 여러 계획 중 어느 것인지 분명하지
 않으면 정확한 계획 경로를 다시 받습니다. 받을 수 없으면 `BLOCKED`입니다.
-계획을 나눠 여러 번 호출해도 전체를 묶은 `READY`는 만들지 않습니다. On one
-host, run those invocations one after another; do not overlap them. 공유
+계획을 나눠 여러 번 호출해도 전체를 묶은 `READY`는 만들지 않습니다. 같은
+호스트에서는 나눈 호출을 겹치지 않고 하나씩 실행합니다. 공유
 설계가 나중 호출에서 바뀌면, 이전 설계 지문에 의존한 계획 판정을 다시
 검토합니다.
 
@@ -27,7 +27,7 @@ host, run those invocations one after another; do not overlap them. 공유
 해석할 수 없거나 `HEAD`의 조상이 아니면 불일치를 남기고 `BLOCKED`를 반환합니다.
 다른 checkout을 임의로 검토하거나 고치지 않습니다.
 
-## Authority order
+## 권위 순서
 
 충돌은 아래 순서로 해석합니다.
 
@@ -43,7 +43,7 @@ host, run those invocations one after another; do not overlap them. 공유
 대체할 권위가 아닙니다. 수리에 새 제품 결정이 필요하면 충돌을 보존하고
 `BLOCKED`를 반환합니다.
 
-## Reviewer isolation and repair allowlist
+## 검토자 격리와 수정 허용 목록
 
 기본 검토자는 새로 오고, 독립적이며 `read-only`입니다. 검토자는 증거와
 가장 작은 권위 보존 수정만 보고합니다. 문서를 고치는 것은 제어 에이전트만
@@ -67,7 +67,7 @@ host, run those invocations one after another; do not overlap them. 공유
 - `generated artifacts`
 - `unrelated documentation`
 
-## Review passes and findings
+## 검토 패스와 발견
 
 프로토콜은 정확히 `five passes`를 실행합니다.
 
@@ -79,11 +79,11 @@ host, run those invocations one after another; do not overlap them. 공유
 4. verification falsification;
 5. readiness verdict.
 
-Use only two severities: `BLOCKER` and `IMPORTANT`. Use only five finding
-classes: `authority-drift`, `repo-reality`, `coverage`, `ordering`, and
-`verification-gap`. A finding records its ID, severity, class, exact document
-location, evidence, concrete consequence, and smallest document fix. Zero
-findings is valid.
+심각도는 `BLOCKER`와 `IMPORTANT` 둘뿐입니다. 발견 분류는
+`authority-drift`, `repo-reality`, `coverage`, `ordering`,
+`verification-gap` 다섯입니다. 발견에는 ID, 심각도, 분류, 정확한 문서
+위치, 증거, 구체적 결과, 가장 작은 문서 수정을 적습니다. 발견이 0개인
+것도 유효합니다.
 
 ### Severities
 
@@ -102,7 +102,7 @@ findings is valid.
 
 ### Conditional risk triggers
 
-A second reviewer is conditional only, never routine.
+두 번째 검토자는 `conditional only`이며 매번 부르지 않습니다.
 
 - `framework or runtime removal`
 - `schema migration or data deletion`
@@ -110,17 +110,17 @@ A second reviewer is conditional only, never routine.
 - `public/private data-boundary changes`
 - `external side effects such as publishing, billing, messaging, or production mutations`
 
-Across the entire invocation, use at most two review roles: one primary role
-and one focused risk role when triggered. A fresh re-review may replace an
-agent, but it does not add a review role or broaden the triggered risk class.
-Evidence `reviewer_count` records logical roles, not cumulative agent calls.
+호출 전체에서 검토 역할은 최대 둘입니다. 기본 역할 하나와, 조건이 있을
+때의 집중 위험 역할 하나입니다. 새 재검토는 에이전트를 바꿀 수 있지만
+역할을 추가하거나 위험 분류를 넓히지 않습니다. Evidence
+`reviewer_count`는 누적 호출이 아니라 논리 역할을 셉니다.
 
-## Default flow, verdicts, and freshness
+## 기본 흐름, 판정, freshness
 
 한 호출은 발견 단계 한 번과 수정 최대 두 번, 범위 제한 재검토로
-끝납니다. If the first review has zero findings, skip repair and closure
-and return `READY`. `repair_passes` counts only passes that produced at least one `repaired` finding.
-A new invocation does not copy a previous finding's `repair_pass`. 수정이
+끝납니다. 첫 검토에서 발견이 없으면 수리와 종료 재검토를 건너뛰고
+`READY`입니다. `repair_passes`는 실제로 `repaired` 발견이 나온 패스만
+셉니다. 새 호출은 이전 발견의 `repair_pass`를 복사하지 않습니다. 수정이
 스키마, 타입, 인터페이스, 상태 전이, 조건부 수정 면, 작업 간 계약, 검증
 의미, 공개/비공개 경계를 바꾸면 제어 에이전트가 짧은 영향 범위 표를
 만듭니다. 표에는 바뀐 주장, 바뀐 심볼·상태·경로·명령, 직접 소비자, 이웃
@@ -140,9 +140,9 @@ A new invocation does not copy a previous finding's `repair_pass`. 수정이
 
 ### Verdicts
 
-- `READY`: no unresolved finding requires invention or permits a materially wrong implementation to pass planned evidence.
-- `REVISE`: a repairable material document defect remains.
-- `BLOCKED`: required input, authority, or repository evidence is unavailable or would require a new product decision.
+- `READY`: 남은 문제를 추측하지 않고, 계획된 증거가 잘못된 구현을 통과시키지 않습니다.
+- `REVISE`: 고칠 수 있는 중요한 문서 결함이 남았습니다.
+- `BLOCKED`: 필요한 입력·권위·저장소 증거가 없거나 새 제품 결정이 필요합니다.
 
 아래 freshness 목록과 invalidation 규칙을 최종 보고에 그대로 기록합니다.
 
@@ -161,12 +161,12 @@ A new invocation does not copy a previous finding's `repair_pass`. 수정이
 `BLOCKED`는 미해결 발견과 다음 범위를 담은 인계 묶음을 반환합니다. 새 권위가
 필요하면 판정은 `BLOCKED`입니다.
 
-Authority-preserving repair에는 승인 질문을 하지 않습니다. 사용자 권위가
-필요하면 exact decisions를 one consolidated user checkpoint로 묶습니다. Do not
-automatically start another invocation after `REVISE` or `BLOCKED`. 문서, 권위,
-저장소 증거가 바뀌지 않았다면 이전 handoff를 재사용합니다.
+권위를 보존하는 수정에는 승인 질문을 하지 않습니다. 사용자 권위가
+필요하면 필요한 결정을 승인 요청 하나로 묶습니다. `REVISE`나
+`BLOCKED` 뒤에 자동으로 다시 호출하지 않습니다. 문서, 권위,
+저장소 증거가 바뀌지 않았다면 이전 인계를 재사용합니다.
 
-## Optional evidence contract
+## 선택 기록기 계약
 
 기록기는 선택 계약입니다. 권위 순서, 리뷰어 프로토콜, 수정 허용 목록, 판정
 규칙을 바꾸지 않습니다. 컨트롤러는 로드된 스킬 루트에서
@@ -177,10 +177,11 @@ handshake가 정확히 `skill_name=pre-sdd-review`와 `schema=3`일 때만
 LF 하나입니다. 호환되면 `start` 전에 `summary --last 20`을 실행합니다. 같은
 `repo` 표시 이름과 계획 경로가 `pending`이면 그 run을 `abandon`합니다. 그
 계획의 마지막 완료 판정이 `REVISE` 또는 `BLOCKED`이고 문서 해시가 같으면
-이전 handoff를 재사용합니다. 아니면 의미 검토 전에 `start`하고, 판정과
+이전 인계를 재사용합니다. 아니면 의미 검토 전에 `start`하고, 판정과
 수정이 끝난 뒤 `finish`를 한 번 호출합니다. `Evidence:` 줄은 정확히
 하나입니다. 기록기가 없거나 실패하면
-`Evidence: not_recorded; reason=<code>`를 보고하며, this cannot change `READY`, `REVISE`, or `BLOCKED`.
+`Evidence: not_recorded; reason=<code>`를 보고하며, 이 실패가
+`READY`, `REVISE`, `BLOCKED`를 바꾸지는 않습니다.
 
 schema 2 pending run은 `historical-unbound`이며 읽기 전용입니다. 보존하고,
 기록을 이어가려면 새 run을 시작합니다. 과거 기록의 checkout 결속을 추정하지
@@ -196,9 +197,9 @@ schema 2 pending run은 `historical-unbound`이며 읽기 전용입니다. 보�
 기록기는 `~/.pre-sdd-review/runs/` 아래의 경로, 해시, Git 사실, 검증, 원자적
 파일 교체, 집계를 소유합니다. 의미 발견, 수정, 프로토콜 관찰, 판정은 리뷰어와
 컨트롤러만 소유합니다. record에는 저장소 상대 경로, 디렉터리 이름,
-`repo_key`, 해시, 열거값, 정수, 시각, 짧은 paraphrase만 넣습니다. never
-source text, absolute paths, prompts, provider transcripts, command output,
-environment values, credentials, salt, or identity path material. 로컬 파일은
+`repo_key`, 해시, 열거값, 정수, 시각, 짧은 paraphrase만 넣습니다. 원문,
+절대 경로, 프롬프트, 공급자 대화, 명령 출력, 환경 값, 자격 증명, salt,
+신원 경로 재료는 넣지 않습니다. 로컬 파일은
 서명된 audit log가 아닙니다.
 
 evidence home은 `.identity-salt`를 로컬 비공개 32-byte 상태로 두고,
@@ -224,7 +225,8 @@ checkout, clone, 다른 worktree, 잃어버린 salt, 다른 evidence home은 원
 
 `outcome`은 컨트롤러 일이 아닙니다. SDD나 구현이 끝난 뒤 사람이나 SDD
 워커가 라벨 하나(`good`, `false-ready`, `noisy`, `abandoned`)와 선택 메모를
-남깁니다. `false-ready` requires a `READY` verdict and a label may be re-recorded. `summary`는 에이전트용 JSON입니다. counts, cost, 계획별 chains,
+남깁니다. `false-ready`는 `READY` 판정이 있어야 하고, 라벨은 다시 기록할 수
+있습니다. `summary`는 에이전트용 JSON입니다. counts, cost, 계획별 chains,
 반복 발견 패턴, anomalies에 각각 `run_id`가 붙습니다. 이 값으로 스킬을
 자동 수정하거나, 픽스처를 내보내거나, client/model 순위를 매기지 않습니다.
 
@@ -249,7 +251,7 @@ checkout, clone, 다른 worktree, 잃어버린 salt, 다른 evidence home은 원
 - program ledger
 - evidence probe cache
 
-## Handoff
+## 인계
 
 `READY`이면 해결된 설계와 계획의 정확한 경로와 final fingerprints를
 출력합니다. 검토와 구현이 이어지는 흐름에서는 고치기 전 복사본이 아니라
@@ -257,7 +259,7 @@ checkout, clone, 다른 worktree, 잃어버린 salt, 다른 evidence home은 원
 
 ### SDD handoff
 
-Do not start SDD unless the outer request explicitly asks for implementation.
+바깥 요청이 구현을 명시하지 않으면 SDD를 시작하지 않습니다.
 
 ### Contract
 

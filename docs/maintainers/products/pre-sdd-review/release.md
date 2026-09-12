@@ -1,11 +1,11 @@
 # pre-sdd-review 릴리스
 
 이 문서는 Pre-SDD Review의 독립 패키징 절차를 소유합니다.
-version source is `skills/pre-sdd-review/release.toml`. `SKILL.md`의
+버전 원본은 `skills/pre-sdd-review/release.toml`입니다. `SKILL.md`의
 `metadata.version`은 검증된 복사본입니다. `CHANGELOG.md`는 사람이 읽는 계약
 이력입니다.
 
-## Check, build, and verify download
+## 검사, 빌드, 다운로드
 
 공급자 없는 제품 검증을 실행한 뒤 새 빈 디렉터리에 패키징합니다. 따로 받은
 디렉터리에서 바이트를 검증합니다. 공통 check / build / verify-download 명령은
@@ -29,9 +29,9 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
 돌리고 설치하지 않습니다. native Python 3.11 evidence 실행을 기록하기 전까지
 native Windows는 `not_measured`입니다.
 
-no tag or GitHub Release is created by these commands.
+이 명령은 태그 또는 GitHub Release를 만들지 않습니다.
 
-## Failure recovery
+## 실패 복구
 
 제품 파일, 버전 결정, changelog, 테스트를 고치고 실패한 명령을 다시
 실행합니다. 부분 산출물을 재사용하지 마세요. 새 빈 디렉터리에서만 다시

@@ -4,7 +4,6 @@
 메타데이터는 `catalog/plugin/.codex-plugin/plugin.json`에 있습니다. 저장소
 루트에 두지 않습니다. 카탈로그는 제품 계약을 소유하지 않습니다. 이미 공개되어
 원격 검증을 통과한 스킬 릴리스만 채택합니다.
-Registry products do not automatically enter v2.0.0.
 `products.toml`에 있는 현재 독립 제품이 카탈로그 lock이나 공개 `v2.0.0`
 번들에 자동으로 들어가지 않습니다.
 
