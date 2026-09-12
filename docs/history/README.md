@@ -14,6 +14,8 @@ README를 보세요.
 
 진행 중인 설계·계획:
 
+- [image-workbench Grok 호스트 지원 설계](specs/2026-09-12-image-workbench-grok-host-design.md)
+- [image-workbench Grok 호스트 지원 구현 계획](plans/2026-09-12-image-workbench-grok-host.md)
 - [문서 구조 설계](specs/2026-09-11-documentation-structure-design.md)
 - [문서 구조 구현 계획](plans/2026-09-11-documentation-structure.md)
 - [SDDx 설계](specs/2026-09-11-sddx-design.md)
@@ -25,6 +27,8 @@ README를 보세요.
 
 In-progress specs and plans:
 
+- [image-workbench Grok host support design](specs/2026-09-12-image-workbench-grok-host-design.md)
+- [image-workbench Grok host support implementation plan](plans/2026-09-12-image-workbench-grok-host.md)
 - [Documentation structure design](specs/2026-09-11-documentation-structure-design.md)
 - [Documentation structure implementation plan](plans/2026-09-11-documentation-structure.md)
 - [SDDx design](specs/2026-09-11-sddx-design.md)
