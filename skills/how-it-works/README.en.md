@@ -129,6 +129,8 @@ The six required items are:
 5. adjacent slices — nearby explanations you are not covering now
 6. one next move — exactly one thing to do next
 
+At picture, Map prints the numbered hop list before the mermaid fence. Body does not walk the hops again.
+
 Skeleton:
 
 ````markdown

@@ -128,6 +128,8 @@ $how-it-works DNS 길
 5. adjacent slices — 지금 다루지 않은 옆 설명
 6. one next move — 다음에 할 일 하나
 
+그림의 지도 절은 번호 홉이 머메이드 소스보다 앞입니다. 그림 본문은 홉을 다시 걷지 않습니다.
+
 골격:
 
 ````markdown

@@ -114,6 +114,8 @@ The explanation is complete in this chat reply. Do not wait for a renderer. Incl
 5. adjacent slices this reply does not cover
 6. one next move
 
+At 그림, Map prints the numbered hop list before the mermaid fence. Body does not walk the hops again.
+
 A missing renderer is not a failed task. Keep the Mermaid source and the numbered hop list.
 Keep the baseline Mermaid and numbered hops at every rung. At 허점, add the
 failure/regime table to the body without replacing the map. Keep hop identifiers
