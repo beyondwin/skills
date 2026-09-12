@@ -193,7 +193,7 @@ class SectionHelperTests(unittest.TestCase):
 
 
 class HowItWorksPayloadTests(unittest.TestCase):
-    def test_v2_release_and_repeatable_install_contract(self) -> None:
+    def test_release_and_repeatable_install_contract(self) -> None:
         from scripts.lib.product_contract import load_product_release
 
         self.assertEqual(load_product_release(SKILL).version, "3.0.0")
@@ -237,7 +237,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
             text,
         )
 
-    def test_v2_changelog_records_one_turn_emit_instruction(self) -> None:
+    def test_changelog_records_one_turn_emit_instruction(self) -> None:
         text = (SKILL / "CHANGELOG.md").read_text(encoding="utf-8")
         self.assertIn("## 2.0.0 - 2026-09-08", text)
         release = text.split("## 2.0.0 - 2026-09-08", 1)[1].split("\n## ", 1)[0]
@@ -547,7 +547,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
         )
         self.assertNotIn("- **길** — 누가 무엇을 넘기는지 (default)", text)
 
-    def test_v2_explicit_depth_precedence_contract(self) -> None:
+    def test_explicit_depth_precedence_contract(self) -> None:
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         self.assertIn(
             "explicit rung > explicit depth alias > existing jargon default > default 그림",
@@ -557,7 +557,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
         self.assertNotIn("jargon wins", text)
         self.assertNotIn("Aliases (쉽게, 한눈에, `5`) do not count as naming 그림", text)
 
-    def test_v2_fracture_and_stakes_contract(self) -> None:
+    def test_fracture_and_stakes_contract(self) -> None:
         output = _reference("output.md")
         stakes = _reference("stakes.md")
         sources = _reference("sources.md")
@@ -605,11 +605,14 @@ class HowItWorksPayloadTests(unittest.TestCase):
             "Walk the hops. 길 gets the sequence diagram. 그림 gets boxes only",
             output,
         )
+        self.assertIn("4–6 boxes", output)
+        self.assertNotIn("5–7 boxes", output)
 
     def test_korean_picture_target_keeps_cache_in_the_same_movie(self) -> None:
         korean = _reference("korean.md")
         self.assertIn("묻다, 맡기다, 적어 두다, 만료되다", korean)
         self.assertIn("가까운 기억", korean)
+        self.assertIn("만료되면", korean)
         self.assertNotIn("컴퓨터는 숫자 주소를 본다", korean)
         self.assertIn("여러분이", korean)
         self.assertIn("답니다", korean)

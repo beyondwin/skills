@@ -64,7 +64,7 @@ Use only the selected language for headings, intent lines, body, banner, and nex
 
 | Rung | Map | Body | Forbidden |
 | --- | --- | --- | --- |
-| **그림** | Numbered hops first, then a happy-path pipeline, 5–7 boxes | Identity, use, ≤2-joint backbone. 그림 hops are the map; Body does not walk the hops again. Analogy, if used, comes after the hops, then the break line. | Baby talk, second metaphor, formulas, `여러분`, `답니다`, hop restatement |
+| **그림** | Numbered hops first, then a happy-path pipeline, 4–6 boxes | Identity, use, ≤2-joint backbone. 그림 hops are the map; Body does not walk the hops again. Analogy, if used, comes after the hops, then the break line. | Baby talk, second metaphor, formulas, `여러분`, `답니다`, hop restatement |
 | **길** | `sequenceDiagram`, 4–6 actors, same path, message numbers = hop IDs | Numbered hops: who holds it, what they hand off, where it stops on failure | New metaphor, architecture hairball |
 | **뼈대** | Same sequence + `alt`/`opt` (cache, error) | Terms as labels on hops already seen. What happens if you change one part. Common mistakes. Optional second flowchart of the hidden decision | Restarting from 그림, pizza |
 | **허점** | Same baseline Mermaid and numbered hops | Failure/regime table: where the picture fails, where it applies, rivals mapped onto the same slots, and how to inspect. Collapse to the one-liner | Table-only map, re-teaching 그림, name-dropping without a one-line “what they showed” |

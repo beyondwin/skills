@@ -2,7 +2,7 @@
 
 현재 지원 호스트는 제품 목록의 `codex`, `claude-code`입니다. 이 두
 호스트만 로컬 또는 저장소 기준으로 지원합니다. 지원 범위와 현재 측정 상태는
-별개이며, 2.0.0의 실제 실행 증거는 `not_measured`입니다. Grok는 과거
+별개이며, 현재 페이로드의 실제 실행 증거는 `not_measured`입니다. Grok는 과거
 `--max-turns 1` 라이브 실행 확인에서 필수 산출을 내지 못해 지원하지 않습니다.
 Cursor는 과거 실행 도구에 Computer Use(`node_repl` / `@oai/sky`)가 없어
 미측정이었으며 지원 대상이 아닙니다. Claude.ai, Cowork, Skills API 업로드, marketplace 게시,

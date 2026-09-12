@@ -655,7 +655,18 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
             self.assertIn(HOW_IT_WORKS_CLAUDE_INVOCATION, text)
             self.assertIn("$how-it-works", text)
             self.assertIn("/how-it-works", text)
+            self.assertIn("$how-it-works DNS\n/how-it-works DNS\n", text)
             self.assertNotIn("@how-it-works", text)
+            if filename == "README.md":
+                self.assertIn("명시 길은 그대로입니다.", text)
+                self.assertIn("$how-it-works DNS 길\n/how-it-works DNS 길\n", text)
+            else:
+                self.assertIn("The explicit path example is unchanged.", text)
+                self.assertIn(
+                    "$how-it-works Explain DNS as a path.\n"
+                    "/how-it-works Explain DNS as a path.\n",
+                    text,
+                )
             for host in ("codex", "claude-code"):
                 self.assertIn(host, text.lower(), f"{filename} {host}")
             for phrase in HOW_IT_WORKS_EXPECTED_EN:
@@ -1894,7 +1905,11 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("/how-it-works", compatibility_text)
         self.assertNotIn("@how-it-works", compatibility_text)
         self.assertIn("tests/products/how-it-works/live/smoke-record.json", compatibility_text)
+        self.assertIn("현재 페이로드의 실제 실행 증거는 `not_measured`", compatibility_text)
+        self.assertNotIn("2.0.0의 실제 실행 증거", compatibility_text)
         self.assertIn("release.toml", release_text)
+        self.assertIn("기본 그림 칸을 유지하는 새 선택 별칭", release_text)
+        self.assertNotIn("기본 길 칸을 유지하는 새 선택 별칭", release_text)
         self.assertIn("docs/maintainers/repository/release.md", release_text)
         self.assertIn("python3 scripts/release.py check --product how-it-works", release_text)
         self.assertNotIn("python3 scripts/release.py build --product how-it-works", release_text)

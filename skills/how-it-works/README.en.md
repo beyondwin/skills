@@ -109,6 +109,8 @@ $how-it-works DNS
 /how-it-works DNS
 ```
 
+The explicit path example is unchanged.
+
 ```text
 $how-it-works Explain DNS as a path.
 /how-it-works Explain DNS as a path.
