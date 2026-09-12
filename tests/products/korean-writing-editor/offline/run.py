@@ -627,6 +627,8 @@ class EvaluatorTests(unittest.TestCase):
                 "사용할수",
                 "켜야 할 필요는",
                 "요청은 오탈자",
+                "Using the",
+                "한국어 교정 스킬",
             ],
             "rationale": (
                 "Dependent-noun spacing plus already-correct obligation "
@@ -651,6 +653,40 @@ class EvaluatorTests(unittest.TestCase):
         )
         self.assertIn(
             "norm-spacing-can-01: forbidden substring present '요청은 오탈자'",
+            evaluate_candidate(case),
+        )
+
+    def test_obligation_case_matches_live_forbidden_substrings(self):
+        live = json.loads(
+            pathlib.Path(__file__).with_name("cases.json").read_text(encoding="utf-8")
+        )
+        live_case = next(
+            case for case in live["cases"] if case["id"] == "norm-spacing-can-01"
+        )
+        self.assertEqual(
+            self.obligation_case()["forbidden_substrings"],
+            live_case["forbidden_substrings"],
+        )
+
+    def test_rejects_english_skill_usage_preamble_candidate(self):
+        case = self.obligation_case()
+        case["candidate"] = (
+            "Using the Korean writing editor skill to correct typos."
+            + case["candidate"]
+        )
+        self.assertIn(
+            "norm-spacing-can-01: forbidden substring present 'Using the'",
+            evaluate_candidate(case),
+        )
+
+    def test_rejects_korean_skill_usage_preamble_candidate(self):
+        case = self.obligation_case()
+        case["candidate"] = (
+            "한국어 교정 스킬을 확인한 뒤 오탈자만 고치겠습니다."
+            + case["candidate"]
+        )
+        self.assertIn(
+            "norm-spacing-can-01: forbidden substring present '한국어 교정 스킬'",
             evaluate_candidate(case),
         )
 

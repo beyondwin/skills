@@ -94,8 +94,8 @@ SDDX_SUPPORT = (
 PRE_SDD_SHARED_SECTION_DIGESTS = {
     ("ko", "safety"): "2308378028288c8a57547252818cdfa6e6392b1fe53d6b113659b273dda03547",
     ("en", "safety"): "f41ea8a8d2dd98f3d6b37eeacca8a488fc6bf046b4971c636ae56239df6876ab",
-    ("ko", "verification"): "813317c48d3867023fcf9029788a12ae8bc6d911020e2d9ec3fc97f77342e106",
-    ("en", "verification"): "9db3fc62002c3c41e3b10124ba8ee8890a31771a24e6e3f5874163b33fdf9d45",
+    ("ko", "verification"): "b529c165aed15766a37a73b3a6aa9720e45b667b203983cfdf58e3068931486f",
+    ("en", "verification"): "675cd39a4a9248950ad1c612269cfb6d9be0ea48ed3fcc1e9dd710f5e660be38",
 }
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
