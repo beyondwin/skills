@@ -124,6 +124,7 @@ HOW_IT_WORKS_EXPECTED_EN = (
 HOW_IT_WORKS_FIXTURE_IDS = (
     "broad-slice",
     "missing-rung",
+    "default-dns-picture",
     "explicit-dns-path",
     "implicit-positive",
     "near-miss-debug",

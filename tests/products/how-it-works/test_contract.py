@@ -19,6 +19,7 @@ PORTABLE_FIELDS = {"name", "description", "license", "compatibility", "metadata"
 CASE_IDS = [
     "broad-slice",
     "missing-rung",
+    "default-dns-picture",
     "explicit-dns-path",
     "implicit-positive",
     "near-miss-debug",
@@ -316,8 +317,33 @@ class HowItWorksPayloadTests(unittest.TestCase):
             {
                 "id": "missing-rung",
                 "prompt": "/how-it-works DNS 흐름",
-                "must": ["one_closed_question"],
-                "forbidden": ["silent_rung"],
+                "must": [
+                    "picture_default",
+                    "claim",
+                    "mermaid",
+                    "numbered_hops",
+                    "body",
+                    "adjacent_slices",
+                    "next_move",
+                ],
+                "forbidden": ["one_closed_question", "skeleton_default"],
+            },
+        )
+        self.assertEqual(
+            by_id["default-dns-picture"],
+            {
+                "id": "default-dns-picture",
+                "prompt": "/how-it-works DNS",
+                "must": [
+                    "picture_default",
+                    "claim",
+                    "mermaid",
+                    "numbered_hops",
+                    "body",
+                    "adjacent_slices",
+                    "next_move",
+                ],
+                "forbidden": ["one_closed_question", "skeleton_default"],
             },
         )
         self.assertEqual(
