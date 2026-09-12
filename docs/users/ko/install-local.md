@@ -112,6 +112,57 @@ Claude Code 호출은
 
 호스트마다 따로 복사하지 마세요. 첫 호출은 [`sddx` README](../../../skills/sddx/README.md)를 보세요.
 
+## image-workbench
+
+`image-workbench`를 Grok에서 쓰려면 저장소를 받은 뒤 바로가기 하나를 만듭니다. 공개 경로는 https://github.com/beyondwin/skills/tree/main/skills/image-workbench 입니다. Grok는 `~/.agents/skills/image-workbench`에서 찾습니다. `~/.grok`나 `~/.codex`에 복사본을 만들지 마세요.
+
+```bash
+git clone https://github.com/beyondwin/skills.git
+cd skills
+mkdir -p ~/.agents/skills
+```
+
+아래 Python 코드가 바로가기를 만듭니다. 스킬 폴더가 맞는지 확인하고, 이미 같은
+바로가기가 있으면 그대로 둡니다. 다른 바로가기나 파일이 있으면 덮어쓰지 않습니다.
+
+<!-- image-workbench-local-links -->
+```python
+import os
+import sys
+from pathlib import Path
+
+if len(sys.argv) != 3:
+    raise SystemExit("usage: python3 - SOURCE TARGET")
+source = Path(sys.argv[1]).expanduser().resolve(strict=True)
+target = Path(os.path.abspath(os.path.expanduser(sys.argv[2])))
+if not source.is_dir() or not (source / "SKILL.md").is_file():
+    raise SystemExit("source must be a skill directory")
+if target.is_symlink():
+    try:
+        same = target.resolve(strict=True) == source
+    except (OSError, RuntimeError):
+        same = False
+    if same:
+        print("already linked")
+        raise SystemExit(0)
+    raise SystemExit("refusing different or dangling link")
+if target.exists():
+    raise SystemExit("refusing existing file or directory")
+target.parent.mkdir(parents=True, exist_ok=True)
+try:
+    target.symlink_to(source, target_is_directory=True)
+except FileExistsError:
+    raise SystemExit("target appeared during installation; inspect it before retrying")
+print("linked")
+```
+
+터미널에서 한 번 실행합니다. 첫 줄은
+`python3 - "$PWD/skills/image-workbench" "$HOME/.agents/skills/image-workbench" <<'PY'`
+입니다. 그다음 줄에 위 Python 코드를 그대로 넣고, 마지막 줄은 `PY`입니다. 경로
+따옴표는 빼지 마세요.
+
+복사본을 만들지 마세요. 첫 호출은 [`image-workbench` README](../../../skills/image-workbench/README.md)를 보세요.
+
 ## 갱신과 제거
 
 `how-it-works` 링크는 확인한 뒤에만 제거합니다.
@@ -128,6 +179,13 @@ unlink ~/.claude/skills/how-it-works
 ls -ld ~/.agents/skills/sddx ~/.claude/skills/sddx
 unlink ~/.agents/skills/sddx
 unlink ~/.claude/skills/sddx
+```
+
+`image-workbench` 링크는 확인한 뒤에만 제거합니다.
+
+```bash
+ls -ld ~/.agents/skills/image-workbench
+unlink ~/.agents/skills/image-workbench
 ```
 
 상위 `skills` 디렉터리나 홈 디렉터리를 지우지 마세요. 설치·갱신·제거는 정확한 대상만 다룹니다. 원격 스크립트를 셸에 파이프하지 마세요. 대상을 확인하지 않고 덮어쓰지 마세요. 기존 설치를 자동으로 바꾸지 마세요.

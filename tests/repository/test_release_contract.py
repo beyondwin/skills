@@ -23,7 +23,7 @@ from scripts.lib.product_registry import load_registry  # noqa: E402
 
 EXPECTED = {
     "korean-writing-editor": "2.0.4",
-    "image-workbench": "2.0.3",
+    "image-workbench": "2.1.0",
     "how-it-works": "3.0.0",
     "pre-sdd-review": "3.0.2",
     "sddx": "1.1.0",

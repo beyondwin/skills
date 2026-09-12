@@ -51,7 +51,7 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 오프라인 스위트는 결정적 계약만 증명합니다. 제품별 픽스처 경로는 각 제품 관리자 `testing.md`를 보세요.
 
-현재 Korean 오프라인은 34개(`normative=10 preservation=8 noop=6 voice=4 trigger=6`)입니다. 새 Korean 라이브 증거는 runner 18을 사용하며 과거 runner 영수증은 runner 18 실행을 증명하지 않습니다. Image는 31개 픽스처와 17개 mutation을 검사합니다.
+현재 Korean 오프라인은 34개(`normative=10 preservation=8 noop=6 voice=4 trigger=6`)입니다. 새 Korean 라이브 증거는 runner 18을 사용하며 과거 runner 영수증은 runner 18 실행을 증명하지 않습니다. Image는 32개 픽스처와 17개 mutation을 검사합니다.
 
 Korean 후보는 hard 실패가 있으면 `failed`가 우선합니다. hard 검사를 통과해도 의미·귀속·요청된 편집 실행이 미관측이면 `partially_verified`입니다. 오프라인 계약 성공만으로 라이브 상태를 부여하지 않습니다. How의 fence/hop, loading, syntax, meaning은 별도 증거가 필요합니다. 과거 smoke는 `historical-unbound`이며 현재 메타데이터 결속만으로 모델 실행을 증명하지 않습니다.
 

@@ -27,7 +27,7 @@ display_name = "Image Workbench"
 skill_path = "skills/image-workbench"
 test_path = "tests/products/image-workbench"
 maintainer_docs = "docs/maintainers/products/image-workbench"
-supported_hosts = ["codex"]
+supported_hosts = ["codex", "grok"]
 owned_paths = [
   "skills/image-workbench/",
   "tests/products/image-workbench/",

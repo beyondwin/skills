@@ -2,15 +2,15 @@
 
 [English](../en/compatibility.md) · [설치](installation.md)
 
-현재 독립 제품은 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md), [`sddx`](../../../skills/sddx/README.md)입니다. How It Works와 SDDx는 Codex와 Claude Code에서 씁니다. 나머지 세 제품은 Codex에서만 지원합니다.
+현재 독립 제품은 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md), [`sddx`](../../../skills/sddx/README.md)입니다. How It Works와 SDDx는 Codex와 Claude Code에서 씁니다. Korean Writing Editor와 Pre-SDD Review는 Codex에서만 지원합니다. Image Workbench는 Codex와 Grok에서 지원합니다.
 
-쉽게 말하면: 한국어 편집기, 이미지 작업대, SDD 전 검토는 지금 Codex만 확인했습니다. How It Works와 SDDx는 Codex와 Claude Code에서 이 저장소를 연결해 씁니다.
+쉽게 말하면: 한국어 편집기와 SDD 전 검토는 지금 Codex만 확인했습니다. 이미지 작업대는 Codex와 Grok에서 확인했습니다. How It Works와 SDDx는 Codex와 Claude Code에서 이 저장소를 연결해 씁니다.
 
 ## 공유 지원 문장
 
 korean-writing-editor: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
 
-image-workbench: Codex-only; generate/edit requires Codex image generation and local image viewing.
+image-workbench: Codex and Grok supported; generate/edit requires the current host's built-in image generation and local image viewing.
 
 how-it-works: Codex and Claude Code supported for local or repository-based use.
 
@@ -24,7 +24,7 @@ sddx: Claude Code and Codex supported for local or repository-based use.
 
 `how-it-works`는 로컬 또는 저장소 기준으로 Codex와 Claude Code를 지원합니다. Claude.ai, Cowork, Skills API 업로드, marketplace 게시는 지원하지 않습니다.
 
-`image-workbench`는 Codex 전용입니다. 다른 호스트의 비슷한 도구는 호환이 아닙니다.
+`image-workbench`로 그림을 만들거나 고치려면 지금 쓰는 프로그램의 그림 도구와, 결과를 열어 보는 기능이 필요합니다. Grok 바로가기는 `~/.agents/skills/image-workbench`입니다. 다른 프로그램의 비슷한 도구만으로는 지원이 아닙니다.
 
 `pre-sdd-review`의 다른 호스트는 `not_measured`입니다.
 
@@ -36,6 +36,6 @@ sddx: Claude Code and Codex supported for local or repository-based use.
 
 설치·링크·제거는 [설치](installation.md)를 보세요. 검증은 [검증](verification.md)을 보세요.
 
-Windows에서 의미 있는 검사는 한국어 편집기 오프라인 스위트와 저장소 계약입니다. `image-workbench` 생성·편집은 Codex가 있는 환경에서만 주장하세요.
+Windows에서 의미 있는 검사는 한국어 편집기 오프라인 스위트와 저장소 계약입니다. `image-workbench`로 그림을 만들거나 고친다고 말하려면, 그 프로그램에 그림 도구가 있고 결과를 열 수 있어야 합니다.
 
 라이선스는 Apache-2.0입니다.

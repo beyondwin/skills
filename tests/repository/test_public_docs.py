@@ -80,7 +80,7 @@ KOREAN_SUPPORT = (
     "korean-writing-editor: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke."
 )
 IMAGE_SUPPORT = (
-    "image-workbench: Codex-only; generate/edit requires Codex image generation and local image viewing."
+    "image-workbench: Codex and Grok supported; generate/edit requires the current host's built-in image generation and local image viewing."
 )
 HOW_IT_WORKS_SUPPORT = (
     "how-it-works: Codex and Claude Code supported for local or repository-based use."
@@ -94,8 +94,8 @@ SDDX_SUPPORT = (
 PRE_SDD_SHARED_SECTION_DIGESTS = {
     ("ko", "safety"): "2308378028288c8a57547252818cdfa6e6392b1fe53d6b113659b273dda03547",
     ("en", "safety"): "f41ea8a8d2dd98f3d6b37eeacca8a488fc6bf046b4971c636ae56239df6876ab",
-    ("ko", "verification"): "b529c165aed15766a37a73b3a6aa9720e45b667b203983cfdf58e3068931486f",
-    ("en", "verification"): "675cd39a4a9248950ad1c612269cfb6d9be0ea48ed3fcc1e9dd710f5e660be38",
+    ("ko", "verification"): "88628f33fb8df212d0de464e06b6f8f66e282174d601099c18a0376223054fd8",
+    ("en", "verification"): "e2b3e4e15494f709c9f190de49731eaa9527bea09753ea564825996e6cc40669",
 }
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
@@ -773,7 +773,7 @@ class UserGuideFactTests(unittest.TestCase):
             "safety-and-privacy.md": all_products,
             "verification.md": all_products,
             "install-codex.md": CODEX_PRODUCTS,
-            "install-local.md": ("how-it-works", "sddx"),
+            "install-local.md": ("how-it-works", "sddx", "image-workbench"),
         }
         for language in ("ko", "en"):
             readme = "README.en.md" if language == "en" else "README.md"
@@ -963,7 +963,7 @@ class UserGuideFactTests(unittest.TestCase):
                 base = ROOT / "docs/users" / language
                 verification = _read(base / "verification.md")
                 for phrase in (
-                    "34", "normative=10", "runner 18", "31", "17",
+                    "34", "normative=10", "runner 18", "32", "17",
                     "14 cases / 17 repeats", "119 / 3 / 122 / 38 / 160",
                     "hard", "failed", "partially_verified", "fence/hop",
                     "loading", "syntax", "meaning", "schema 2", "schema 3",
