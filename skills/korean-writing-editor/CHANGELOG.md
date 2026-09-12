@@ -4,6 +4,25 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 2.0.4 - 2026-09-12
+
+### Changed
+
+- Default `correct` and `polish` replies are the edited text; `diagnose`
+  replies start with the finding. Process narration is a failed shape, not
+  an extra prohibition.
+- Already-correct local forms stay unchanged in `polish` as well as
+  `correct`. Near-miss handoffs do not perform the excluded task in the
+  same turn.
+- The first-call README example is conservative `polish`. Typo-only
+  `correct` is the second example.
+
+### Notes
+
+- Offline fixtures are now 34 cases (`trigger=6`). Fixture pass still does
+  not prove live model quality. This release does not add a recorded host
+  smoke or a runner 18 live execute.
+
 ## 2.0.3 - 2026-09-11
 
 ### Changed

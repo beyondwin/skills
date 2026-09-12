@@ -1,8 +1,9 @@
 # korean-writing-editor 테스트
 
 `tests/products/korean-writing-editor/offline/cases.json`과
-`tests/products/korean-writing-editor/offline/run.py`에서 서른세 개 속성
-케이스와 변이 검사를 그대로 유지하세요. 오프라인 픽스처 경로는
+`tests/products/korean-writing-editor/offline/run.py`에서 서른네 개 속성
+케이스(`normative=10 preservation=8 noop=6 voice=4 trigger=6`)와 변이 검사를
+그대로 유지하세요. 오프라인 픽스처 경로는
 `tests/products/korean-writing-editor/offline/`입니다.
 
 `--scope full`은 `README.md`와 `README.en.md`도 필수 payload 파일로 읽고,
@@ -26,6 +27,10 @@
   같은 명백한 중복 조사 오류가 두 모드에서 모두 교정되는지 확인합니다. 원문
   오류를 그대로 둔 후보와 양가적인 마지막 절을 확신으로 바꾼 후보는 각각의
   독립 변이 검사에 실패해야 합니다.
+- `trigger-diagnose-06`은 diagnose 소견이며 다시 쓴 초안과 과정 서문이
+  있으면 실패한다. `norm-spacing-can-01`의 영문·한글 스킬 사용 서문,
+  `meaning-negation-01`의 `수도 있다` 치환, `trigger-translation-03`의
+  거절 후 번역 변이는 각각 실패해야 한다.
 - 픽스처 통과는 오프라인 오라클 계약만 증명합니다. 라이브 모델 품질을
   증명하지 않습니다.
 

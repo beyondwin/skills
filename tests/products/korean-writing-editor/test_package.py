@@ -77,17 +77,17 @@ class KoreanPackageTests(unittest.TestCase):
                         self.assertTrue(resolved.is_relative_to(staged.resolve()))
                         self.assertTrue(resolved.is_file())
 
-    def test_release_target_and_skill_version_are_203(self) -> None:
+    def test_release_target_and_skill_version_are_204(self) -> None:
         release = tomllib.loads(
             (SKILL_ROOT / "release.toml").read_text(encoding="utf-8")
         )
-        self.assertEqual(release["version"], "2.0.3")
+        self.assertEqual(release["version"], "2.0.4")
         self.assertIn(
-            'version: "2.0.3"',
+            'version: "2.0.4"',
             (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8"),
         )
         changelog = (SKILL_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-        self.assertRegex(changelog, r"(?m)^## 2\.0\.3 - \d{4}-\d{2}-\d{2}$")
+        self.assertRegex(changelog, r"(?m)^## 2\.0\.4 - \d{4}-\d{2}-\d{2}$")
 
     def test_full_scope_rejects_a_broken_readme_link_in_a_copied_payload(
         self,
@@ -113,7 +113,7 @@ class KoreanPackageTests(unittest.TestCase):
         self.assertIn("name: korean-writing-editor", text)
         self.assertIn("license: Apache-2.0", text)
         self.assertIn("compatibility:", text)
-        self.assertIn('version: "2.0.3"', text)
+        self.assertIn('version: "2.0.4"', text)
         for relative in PAYLOAD_FILES:
             self.assertTrue(
                 (SKILL_ROOT / relative).is_file(),
