@@ -4,8 +4,8 @@ description: Use when an approved design spec and implementation plan already ex
 license: Apache-2.0
 compatibility: Requires a local Git repository, readable design and plan files, and Codex subagent support for independent review.
 metadata:
-  version: "3.0.1"
-  updated_at: "2026-09-11"
+  version: "3.0.2"
+  updated_at: "2026-09-12"
 ---
 
 # Pre-SDD Review
@@ -38,7 +38,8 @@ resolvable `**Spec:**` path, do not guess among nearby files: return `BLOCKED`.
 If the input is ambiguous between multiple plans, ask for one exact plan when
 the user is available; otherwise return `BLOCKED` instead of inventing an
 aggregate verdict. A request naming several plans may be split into separate
-invocations, but each verdict remains plan-local. Do not emit an aggregate
+invocations, but each verdict remains plan-local. On one host, run those
+invocations one after another; do not overlap them. Do not emit an aggregate
 `READY`. If a later invocation changes a shared design, rerun every earlier
 plan whose evidence depended on the previous design fingerprint.
 
@@ -75,7 +76,10 @@ a path, command, interface, or blast-radius claim used as review evidence.
 Run `python3 "<skill-root>/evidence/evidence.py" --version` from the actual
 loaded skill root without installing anything. Parse its canonical JSON and
 record only when `skill_name=pre-sdd-review` and `schema=3`. When compatible,
-call `start` before semantic review with the skill root, the repository, the
+run `summary --last 20` before `start`. If the latest completed verdict for
+that plan is `REVISE` or `BLOCKED`, `show` that run and compare `plan.sha_end`
+and `design.sha_end` with the current documents; if they match, reuse the
+prior handoff and do not start a new review. Otherwise call `start` before semantic review with the skill root, the repository, the
 primary plan, the design path resolved from the plan's `**Spec:**` field, the
 host client id, the host-reported model string (or `unknown`), and the mode.
 If `**Spec:**` cannot be resolved, omit `--design` and return `BLOCKED`; the
@@ -90,7 +94,9 @@ one `Evidence:` line: `Evidence: recorded; run_id=<run-id>` or
 incompatible, or permission-failing recorder must continue the review and
 never changes the semantic verdict. If the invocation ends before `finish`,
 call `abandon` with one of `user-cancelled`, `input-changed`, `scope-changed`,
-`input-format-fixed`, or `other`; never leave a run pending.
+`input-format-fixed`, or `other`; never leave a run pending. If the same `repo`
+display name and plan path are `pending`, close that run with `other` or
+`input-changed` before a new `start`.
 
 A schema 2 pending run is `historical-unbound` and read-only. Preserve it and
 start a new run if recording is still wanted; never infer a checkout identity
@@ -120,7 +126,10 @@ Across the entire invocation, use at most two review roles: one primary role
 and, when triggered, one focused risk role. A fresh re-review may replace the
 agent in either role, but it does not add a review role or broaden the
 triggered risk class. Evidence `reviewer_count` records these logical roles,
-not cumulative fresh agent calls.
+not cumulative fresh agent calls. If a fresh independent reviewer cannot be
+obtained, do not use the controlling agent as a substitute independent primary.
+Evidence `reviewers` counts distinct agents obtained for the logical roles, not
+intended roles. A reused or unavailable role is `execution=degraded`.
 
 ## Default mode: review -> repair documents -> scoped re-review
 
@@ -139,7 +148,10 @@ resolve plan -> resolve plan **Spec:** -> read binding references
 ```
 
 After the first review, repair only findings that have an
-authority-preserving document correction.
+authority-preserving document correction. If the first review has zero findings, skip repair and closure
+and return `READY`. `repair_passes` counts only passes that produced at least one `repaired` finding.
+A new invocation does not copy a previous finding's `repair_pass`. Unresolved
+handoff findings use `repair_pass` null.
 
 If a repair changes a schema, type, interface, state transition, conditional
 mutation surface, cross-task producer/consumer contract, verification meaning,

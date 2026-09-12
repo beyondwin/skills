@@ -47,7 +47,8 @@ Attempts to mutate it fail with `legacy-record-read-only`.
 ## Locks and commands
 
 Mutations serialize identity creation with `.identity.lock` and a run change
-with `locks/<run-id>.lock`. These locks require supported OS file locking.
+with `locks/<run-id>.lock`. After the command releases the lock, it removes
+that lock file. These locks require supported OS file locking.
 Read-only `show`, `summary`, and `--version` do not require locking. Native
 Windows mutation support is not advertised because this implementation uses
 POSIX `fcntl.flock` when a mutation needs a lock.
@@ -80,7 +81,9 @@ rewrite or override the semantic verdict.
 
 ## Reading the log
 
-The log is for agents. `summary` returns `runs`, `counts`, `cost`, `chains`
+The log is for agents. Before `start`, run `summary --last 20`. Close a
+same-plan `pending` run; if the latest `REVISE` or `BLOCKED` hashes still
+match, reuse that handoff. `summary` returns `runs`, `counts`, `cost`, `chains`
 (checkout-bound plans reviewed more than once), `findings` (with
 `repeated_patterns`), and `anomalies`; every drill-down entry carries `run_id`
 values for `show`. Start from `anomalies` and `chains`.

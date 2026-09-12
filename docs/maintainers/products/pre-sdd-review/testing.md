@@ -41,7 +41,7 @@ provider나 실제 모델을 호출하지 않으므로 실제 모델 리뷰 품�
 
 ## Exact fixture boundary
 
-`cases.json`은 exactly twenty-four개의 activation, default-flow, review-only,
+`cases.json`은 exactly twenty-eight개의 activation, default-flow, review-only,
 verdict, risk, freshness, evidence, near-miss 사례를 소유합니다. `fixtures/`는 정확히
 `ready`, `missing-coverage`, `false-verification`, `runtime-removal`,
 `repair-induced-schema-consumer`, `state-machine-vacuous-pass`, and
@@ -74,6 +74,10 @@ private prompts, credentials, transcripts, full model responses를 픽스처,
 - `evidence-review-only`
 - `evidence-resolution-blocked`
 - `evidence-outcome-optional`
+- `summary-before-start`
+- `serialize-split-plans`
+- `zero-findings-skip-closure`
+- `repair-pass-accounting`
 - `near-miss-write-spec`
 - `near-miss-write-plan`
 - `near-miss-code-review`

@@ -16,7 +16,7 @@ import sys
 import tempfile
 import uuid
 from collections.abc import Iterator, Mapping
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from pathlib import Path
 from typing import TextIO
 
@@ -285,6 +285,8 @@ def _file_lock(path: Path) -> Iterator[None]:
     finally:
         if descriptor is not None:
             os.close(descriptor)
+            with suppress(OSError):
+                path.unlink()
 
 
 def _identity_salt(home: Path, *, create: bool) -> bytes:

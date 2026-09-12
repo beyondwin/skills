@@ -101,6 +101,26 @@
       "expect": ["verdict_unchanged", "outcome_not_controller_duty", "one_label_after_sdd"]
     },
     {
+      "id": "summary-before-start",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md with a compatible local evidence recorder after an earlier pending run for the same plan",
+      "expect": ["summary_before_start", "abandon_same_plan_pending", "reuse_unchanged_handoff"]
+    },
+    {
+      "id": "serialize-split-plans",
+      "request": "$pre-sdd-review sample-app/plan-a.md then sample-app/plan-b.md on the same host",
+      "expect": ["serialize_split_plans", "no_controller_as_independent_primary", "reviewers_are_distinct_agents"]
+    },
+    {
+      "id": "zero-findings-skip-closure",
+      "request": "$pre-sdd-review sample-app/ready-design.md sample-app/ready-plan.md with zero findings after the first review",
+      "expect": ["READY", "zero_findings", "skip_repair", "skip_closure"]
+    },
+    {
+      "id": "repair-pass-accounting",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a prior REVISE handoff",
+      "expect": ["repair_pass_requires_repaired_finding", "no_copied_repair_pass", "unresolved_repair_pass_null"]
+    },
+    {
       "id": "near-miss-write-spec",
       "request": "Write a design specification for sample-app.",
       "expect": ["not_activated"]
