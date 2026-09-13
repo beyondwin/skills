@@ -88,18 +88,25 @@ worker writes `report.md` itself; the runner never does. The runner never
 prepares or cleans up the Grok profile. The controller keeps the order:
 prepare, run, confirm the exit, clean up. There is no automatic retry anywhere.
 
+`--timeout <seconds>` bounds one attempt's wall-clock. It defaults to 3600, and
+`--timeout 0` waits without a bound. When it fires the runner sends the worker
+SIGTERM, waits ten seconds, kills it if it is still alive, records `state`
+`timed_out`, and exits 124. Only the worker process itself is signalled, so
+descendants it started are not pursued; no process tree is cleaned up here.
+
 Read a running or finished attempt only through `scripts/run_worker.py status`.
 It is read-only and interprets nothing. The default answer is metadata, log
 sizes, and whether `report.md` exists, never a log body. A body window needs
 `--stream`; it defaults to 2048 bytes with a maximum of 8192, and the whole
 JSON answer is capped at 64 KiB. Never dump a whole log into the session.
 
-`run.json` holds process facts only. `state` is one of `starting`, `running`,
-`exited`, `launch_failed`, or `interrupted`, which is process state and not
-task state. Process exit 0 is not a clean DONE. The wrapper exit follows the
-worker's; a POSIX signal returns `128 + signal` while `run.json.exit_code`
-keeps the real negative return code; a launch failure is 2 and a handled
-interrupt is 130. Exit 2 is ambiguous between a launch failure and a worker
+`run.json` holds process facts only. Its `schema_version` is 2, and `state` is
+one of `starting`, `running`, `exited`, `launch_failed`, `timed_out`, or
+`interrupted`, which is process state and not task state. Process exit 0 is not
+a clean DONE. The wrapper exit follows the worker's; a POSIX signal returns
+`128 + signal` while `run.json.exit_code` keeps the real negative return code;
+a launch failure is 2, a handled interrupt is 130, and an attempt ended by its
+own timeout is 124. Exit 2 is ambiguous between a launch failure and a worker
 that legitimately exited 2, so read `run.json.state` to tell them apart; if the
 attempt directory is absent, or present without `run.json`, the launch was
 refused before the attempt was created and the `BLOCKED:` line on stderr is the
@@ -111,9 +118,9 @@ effort in the model ID, so the runner refuses a model whose declared effort
 contradicts `--effort`, and `configured_effort` holds the effort read from the
 ID; when the ID declares no effort it stays `null` and the applied effort is
 `unknown`. Requested and configured effort are recorded separately and neither
-proves what the model actually applied. A change to the shared
-product source applies to new runs only — no run in progress is converted or
-restarted automatically.
+proves what the model actually applied. A change to the shared product source
+applies to new runs only — no run in progress is converted or restarted
+automatically.
 
 ## Real measurement limits
 

@@ -215,19 +215,28 @@ resolver `model_ids`에서 고른 `--model`을 요구하고 `--sandbox-profile`�
 2048바이트, 최대 8192바이트, JSON 응답 전체는 64 KiB로 제한됩니다. 로그 전체를
 세션에 출력하지 않습니다.
 
-`run.json`은 프로세스 사실만 담습니다. `schema_version` 1과 함께 `backend`,
+`run.json`은 프로세스 사실만 담습니다. `schema_version` 2와 함께 `backend`,
 `identity`, `model`, `worktree`, `attempt_dir`, `brief_sha256`, `resume_id`,
-`requested_effort`, `configured_effort`, `state`, `pid`, `exit_code`,
-`started_at`, `ended_at`, `error`를 기록합니다. `state`는 `starting`, `running`,
-`exited`, `launch_failed`, `interrupted` 중 하나이며 task 상태가 아닙니다.
-프로세스 exit 0은 깨끗한 DONE이 아닙니다.
+`session_id`, `requested_effort`, `configured_effort`, `state`, `pid`,
+`exit_code`, `started_at`, `ended_at`, `error`를 기록합니다. `state`는 `starting`,
+`running`, `exited`, `launch_failed`, `timed_out`, `interrupted` 중 하나이며 task
+상태가 아닙니다. 프로세스 exit 0은 깨끗한 DONE이 아닙니다. `session_id`는 worker가
+제 스트림에 보고한 세션 ID이고, 스트림이 아무것도 보고하지 않으면 `null`입니다.
 
 래퍼 exit는 worker의 exit를 따릅니다. POSIX 시그널은 `128 + signal`을 반환하고
 `run.json.exit_code`에는 실제 음수 returncode가 남습니다. 실행 실패는 2, 처리된
-중단은 130입니다. exit 2는 실행 실패와 worker가 정말 2로 끝난 경우가 겹치므로
-`run.json.state`로 구분하며, 시도 디렉터리가 없거나 `run.json` 없이 있으면
-시도가 만들어지기 전에 실행이 거부된 것이고 stderr의 `BLOCKED:` 줄이 그
-이유입니다.
+중단은 130, 시도가 제 시간 제한에 걸려 끝난 경우는 124입니다. exit 2는 실행
+실패와 worker가 정말 2로 끝난 경우가 겹치므로 `run.json.state`로 구분하며, 시도
+디렉터리가 없거나 `run.json` 없이 있으면 시도가 만들어지기 전에 실행이 거부된
+것이고 stderr의 `BLOCKED:` 줄이 그 이유입니다.
+
+`--timeout <초>`는 한 시도의 실제 경과 시간을 제한합니다. 기본값은 3600이고
+`--timeout 0`은 제한 없이 기다립니다. 제한에 걸리면 러너는 worker에 SIGTERM을
+보내고 10초를 기다린 뒤 그래도 살아 있으면 kill한 다음, `state`를 `timed_out`으로
+두고 실제 `exit_code`와 스트림이 보고한 session ID를 기록한 뒤 124로 끝냅니다.
+신호는 worker 프로세스 하나에만 보냅니다. worker는 터미널 인터럽트가 닿도록
+컨트롤러와 같은 프로세스 그룹에 남으므로, worker가 시작한 자식 프로세스는 쫓아가지
+않습니다. 인터럽트 경로와 같은 한계이며 프로세스 트리를 정리했다고 적지 않습니다.
 
 요청 effort와 설정 effort는 따로 기록합니다. Cursor는 effort를 플래그가 아니라
 모델 ID에 담으므로, 러너는 선언된 effort가 `--effort`와 어긋나는 모델을 거부하고

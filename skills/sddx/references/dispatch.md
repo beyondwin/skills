@@ -29,11 +29,15 @@ When `available` is true:
   ids; pass one of them to the runner as `--model`.
 
 Choose that id by effort, not by position: the order is the account's own
-listing order and can change. Take the `model_ids` entry whose declared effort
-segment equals the requested effort; among several matches prefer the highest
-version number, then the entry without `-fast`. If no entry declares the
-requested effort, report that the requested effort is unavailable on this
-account rather than substituting a different one.
+listing order and can change. Strip one trailing `-fast` first — it is a
+serving variant, not an effort — and take the `model_ids` entry whose final
+segment then equals the requested effort. That is the same reading
+`model_effort()` performs in `run_worker.py`, which refuses a `--model` whose
+declared effort contradicts `--effort`; there is one rule here, not two. Among
+several matches prefer the highest version, comparing the dot-separated
+components as numbers so that `4.10` outranks `4.9`, and then the entry without
+`-fast`. If no entry declares the requested effort, report that the requested
+effort is unavailable on this account rather than substituting a different one.
 
 Use the `output_format` value this host's resolver returned. Do not hardcode a
 format per backend, and do not add a second `--sandbox` or a second approval

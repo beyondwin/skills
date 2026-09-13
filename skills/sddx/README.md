@@ -80,18 +80,25 @@ worker 실행 경로는 `scripts/run_worker.py run` 하나입니다. 공급자 �
 않습니다. 순서는 컨트롤러가 지키는 prepare → run → 종료 확인 → cleanup입니다.
 자동 재시도는 어디에도 없습니다.
 
+`--timeout <초>`는 한 시도의 경과 시간을 제한합니다. 기본값은 3600이고
+`--timeout 0`은 제한 없이 기다립니다. 제한에 걸리면 러너는 worker에 SIGTERM을
+보내고 10초 뒤에도 살아 있으면 kill한 다음 `state`를 `timed_out`으로 적고 124로
+끝냅니다. 신호는 worker 프로세스 하나에만 보내므로 worker가 시작한 자식
+프로세스는 쫓아가지 않습니다. 프로세스 트리를 정리했다고 적지 않습니다.
+
 진행 중이거나 끝난 시도는 `scripts/run_worker.py status`로만 읽습니다. 이 명령은
 읽기 전용이고 아무것도 해석하지 않습니다. 기본 응답은 메타데이터, 로그 크기,
 `report.md` 존재 여부이며 로그 본문은 나오지 않습니다. 본문 창은 `--stream`으로
 요청하고 기본 2048바이트, 최대 8192바이트이며 JSON 응답 전체는 64 KiB로
 제한됩니다. 로그 전체를 세션에 쏟지 않습니다.
 
-`run.json`은 프로세스 사실만 담습니다. `state`는 `starting`, `running`, `exited`,
-`launch_failed`, `interrupted` 중 하나이며 task 상태가 아닙니다. 프로세스 exit 0은
-깨끗한 DONE이 아닙니다. 래퍼 exit는 worker의 exit를 따르고, POSIX 시그널은
-`128 + signal`을 반환하며 `run.json.exit_code`에는 실제 음수 반환값이 남습니다.
-실행 실패는 2, 처리된 중단은 130입니다. exit 2는 실행 실패와 worker가 정말 2로
-끝난 경우가 겹치므로 `run.json.state`로 구분하며, 시도 디렉터리가 없거나
+`run.json`은 프로세스 사실만 담습니다. `schema_version`은 2이고, `state`는
+`starting`, `running`, `exited`, `launch_failed`, `timed_out`, `interrupted` 중
+하나이며 task 상태가 아닙니다. 프로세스 exit 0은 깨끗한 DONE이 아닙니다. 래퍼
+exit는 worker의 exit를 따르고, POSIX 시그널은 `128 + signal`을 반환하며
+`run.json.exit_code`에는 실제 음수 반환값이 남습니다. 실행 실패는 2, 처리된
+중단은 130, 시간 제한에 걸린 시도는 124입니다. exit 2는 실행 실패와 worker가 정말
+2로 끝난 경우가 겹치므로 `run.json.state`로 구분하며, 시도 디렉터리가 없거나
 `run.json` 없이 있으면 시도가 만들어지기 전에 실행이 거부된 것이고 stderr의
 `BLOCKED:` 줄이 그 이유입니다.
 
@@ -100,8 +107,8 @@ worker 실행 경로는 `scripts/run_worker.py run` 하나입니다. 공급자 �
 러너는 선언된 effort가 `--effort`와 어긋나는 모델을 거부하고 `configured_effort`에는
 ID에서 읽은 effort가 들어갑니다. ID가 effort를 선언하지 않으면 `null`로 남고 실제
 적용 effort는 `unknown`입니다. 요청 effort와 설정 effort를 따로 적으며, 둘 중 어느
-쪽도 모델이 실제로 쓴 effort를 증명하지 않습니다. 공유 제품 소스를 고쳐도 진행 중인 실행은 자동으로 바뀌거나 다시
-시작되지 않고 새 실행부터 적용됩니다.
+쪽도 모델이 실제로 쓴 effort를 증명하지 않습니다. 공유 제품 소스를 고쳐도 진행
+중인 실행은 자동으로 바뀌거나 다시 시작되지 않고 새 실행부터 적용됩니다.
 
 ## 실제 측정 한계
 
