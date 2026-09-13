@@ -23,6 +23,7 @@ import codecs
 import contextlib
 import hashlib
 import json
+import math
 import os
 import subprocess
 import sys
@@ -65,6 +66,16 @@ STREAM_FILES = {"stdout": STDOUT_NAME, "stderr": STDERR_NAME}
 DEFAULT_WINDOW_BYTES = 2048
 MAX_WINDOW_BYTES = 8192
 MAX_RESPONSE_BYTES = 64 * 1024
+
+# A worker log can reach many megabytes, and the init event that names the
+# session is the first line of every stream measured so far. These bounds keep
+# the session scan to that prefix instead of the whole provider log.
+SESSION_SCAN_BYTES = 64 * 1024
+SESSION_SCAN_LINES = 200
+# Only Cursor's spelling has been observed. The others are accepted because a
+# rule written to one provider's shape is exactly what this runner keeps getting
+# wrong, not because any of them has been seen.
+SESSION_ID_KEYS = ("session_id", "sessionId", "chatId", "chat_id")
 
 # The reading boundary from the design spec's R4, repeated in every dispatch so a
 # resumed attempt carries it too.
@@ -189,7 +200,12 @@ def model_effort(model_id: str) -> str | None:
 
 
 def _validated_backend(options: RunOptions) -> str:
-    """Reject backend/option combinations the resolver contract cannot express."""
+    """Reject the option combinations this runner cannot honestly launch.
+
+    Those are the backend pairings the resolver contract cannot express, and
+    the attempt's own timeout. Both are refused from here, before the attempt
+    directory exists, so a rejected option leaves nothing behind to read.
+    """
     if options.backend not in ALIASES:
         raise ValueError(f"unknown backend: {options.backend}")
     backend = ALIASES[options.backend]
@@ -215,10 +231,11 @@ def _validated_backend(options: RunOptions) -> str:
             )
     if options.resume_id is not None and not options.resume_id:
         raise ValueError("resume id must be a known non-empty session id")
-    # Written as a refusal of everything that is not zero or more, so a NaN is
-    # refused here rather than reaching `wait` as an unbounded wait.
-    if not options.timeout >= 0:
-        raise ValueError("timeout must be a non-negative number of seconds")
+    # Refused here rather than at `wait`: a NaN compares false against every
+    # bound, and an infinity would be a second, undocumented spelling of "no
+    # timeout" when `--timeout 0` already owns that meaning.
+    if not math.isfinite(options.timeout) or options.timeout < 0:
+        raise ValueError("timeout must be a finite, non-negative number of seconds")
     return backend
 
 
@@ -285,17 +302,6 @@ def build_argv(
 def _blocked(message: str) -> int:
     print(f"BLOCKED: {message}", file=sys.stderr)
     return 2
-
-
-# A worker log can reach many megabytes, and the init event that names the
-# session is the first line of every stream measured so far. These bounds keep
-# the scan to that prefix instead of the whole provider log.
-SESSION_SCAN_BYTES = 64 * 1024
-SESSION_SCAN_LINES = 200
-# Only Cursor's spelling has been observed. The others are accepted because a
-# rule written to one provider's shape is exactly what this runner keeps getting
-# wrong, not because any of them has been seen.
-SESSION_ID_KEYS = ("session_id", "sessionId", "chatId", "chat_id")
 
 
 def read_session_id(path: Path) -> str | None:
@@ -440,25 +446,7 @@ def run_worker(options: RunOptions) -> int:
 
         metadata.update(state="running", pid=process.pid)
         write_metadata(metadata_path, metadata)
-        try:
-            # `wait(timeout=0)` expires immediately, so a zero timeout must not
-            # reach it: zero is the documented way to ask for no bound at all.
-            code = process.wait(timeout=options.timeout) if options.timeout else process.wait()
-        except subprocess.TimeoutExpired:
-            # Only this child is pursued. It shares the controller's process
-            # group on purpose, so there is no group signal to send and anything
-            # the worker started is left exactly where it is.
-            _end_process(process)
-            metadata.update(
-                state="timed_out",
-                exit_code=process.poll(),
-                ended_at=utc_now(),
-                error="the attempt exceeded its timeout",
-                session_id=read_session_id(stdout_path),
-            )
-            write_metadata(metadata_path, metadata)
-            return TIMEOUT_EXIT
-        except KeyboardInterrupt:
+        def interrupted() -> int:
             # Record only the exit actually recovered. The process tree is left
             # alone and Grok cleanup stays the controller's call.
             metadata.update(
@@ -472,6 +460,34 @@ def run_worker(options: RunOptions) -> int:
             )
             write_metadata(metadata_path, metadata)
             return 130
+
+        try:
+            # `wait(timeout=0)` expires immediately, so a zero timeout must not
+            # reach it: zero is the documented way to ask for no bound at all.
+            code = process.wait(timeout=options.timeout) if options.timeout else process.wait()
+        except subprocess.TimeoutExpired:
+            try:
+                # Only this child is pursued. It shares the controller's process
+                # group on purpose, so there is no group signal to send and
+                # anything the worker started is left exactly where it is.
+                _end_process(process)
+                metadata.update(
+                    state="timed_out",
+                    exit_code=process.poll(),
+                    ended_at=utc_now(),
+                    error="the attempt exceeded its timeout",
+                    session_id=read_session_id(stdout_path),
+                )
+                write_metadata(metadata_path, metadata)
+            except KeyboardInterrupt:
+                # Ending the child can take twenty seconds, and a Ctrl-C inside
+                # that window must not leave `run.json` frozen at `running`.
+                # What is recorded is what actually happened: an interrupt that
+                # arrived while the timeout was still being carried out.
+                return interrupted()
+            return TIMEOUT_EXIT
+        except KeyboardInterrupt:
+            return interrupted()
         metadata.update(
             state="exited",
             exit_code=code,

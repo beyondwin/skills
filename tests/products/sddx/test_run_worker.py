@@ -19,6 +19,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -115,18 +116,29 @@ BEHAVIOUR_SIGNAL = (
     "time.sleep(10)\n"
 )
 BEHAVIOUR_SLEEP = "time.sleep(10)\nraise SystemExit(0)\n"
-BEHAVIOUR_SESSION_THEN_SLEEP = (
-    "sys.stdout.write(json.dumps({'type': 'system', 'subtype': 'init',\n"
-    "    'session_id': " + repr("synthetic-session-0005") + "}) + '\\n')\n"
-    "sys.stdout.flush()\n"
-    "time.sleep(30)\n"
-)
-BEHAVIOUR_IGNORES_SIGTERM = (
-    "signal.signal(signal.SIGTERM, signal.SIG_IGN)\n"
-    "sys.stdout.write('ignoring SIGTERM\\n')\n"
-    "sys.stdout.flush()\n"
-    "time.sleep(30)\n"
-)
+TIMED_OUT_SESSION_ID = "synthetic-session-0005"
+
+
+def behaviour_session_then_sleep(ready: Path) -> str:
+    """Report a session, then touch `ready` and outlive any test's timeout."""
+    return (
+        "sys.stdout.write(json.dumps({'type': 'system', 'subtype': 'init',\n"
+        "    'session_id': " + repr(TIMED_OUT_SESSION_ID) + "}) + '\\n')\n"
+        "sys.stdout.flush()\n"
+        "open(" + repr(str(ready)) + ", 'w').close()\n"
+        "time.sleep(30)\n"
+    )
+
+
+def behaviour_ignores_sigterm(ready: Path) -> str:
+    """Survive SIGTERM, and touch `ready` only once that is actually true."""
+    return (
+        "signal.signal(signal.SIGTERM, signal.SIG_IGN)\n"
+        "open(" + repr(str(ready)) + ", 'w').close()\n"
+        "sys.stdout.write('ignoring SIGTERM\\n')\n"
+        "sys.stdout.flush()\n"
+        "time.sleep(30)\n"
+    )
 BEHAVIOUR_REPORT_PROCESS_GROUP = (
     "sys.stdout.write('PGID:' + str(os.getpgrp()) + '\\n')\n"
     "raise SystemExit(0)\n"
@@ -317,6 +329,33 @@ class RunnerFixture(unittest.TestCase):
         finally:
             os.dup2(saved, 0)
             os.close(saved)
+
+    @contextlib.contextmanager
+    def ready_popen(self, module, ready: Path):
+        """Start the attempt's clock only once the child says it is ready.
+
+        The bound the runner honours begins when it starts waiting, so a child
+        that must reach one statement before the bound expires is synchronised
+        here rather than by widening the bound until it usually wins the race.
+        The resolver must already be pinned when this is used: it patches the
+        `Popen` the whole standard library reaches for.
+        """
+
+        class ReadyPopen(subprocess.Popen):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                deadline = time.monotonic() + 30
+                while not ready.exists() and time.monotonic() < deadline:
+                    time.sleep(0.01)
+
+        with mock.patch.object(module.subprocess, "Popen", ReadyPopen):
+            yield
+
+    def pinned_resolver(self, module, backend: str = "grok"):
+        """The real resolver result, captured once so no probe runs later."""
+        with self.on_synthetic_path():
+            resolved = module.resolve(backend)
+        return mock.patch.object(module, "resolve", return_value=resolved)
 
     def worker_invocations(self) -> list[list[str]]:
         if not self.argv_log.exists():
@@ -1280,6 +1319,19 @@ class SessionIdReadingTests(RunnerFixture):
         )
         self.assertEqual(module.read_session_id(path), "synthetic-from-chatId")
 
+    def test_an_earlier_line_beats_a_higher_priority_key_on_a_later_line(self) -> None:
+        module = self.load()
+        # Line order is the outer rule; key order only decides within one line.
+        # A reader that loops the keys on the outside answers with line two, and
+        # handing that ID to `--resume` resumes the wrong session.
+        path = self.stream(
+            json.dumps({"type": "system", "chat_id": "synthetic-from-line-one"})
+            + "\n"
+            + json.dumps({"type": "system", "session_id": "synthetic-from-line-two"})
+            + "\n"
+        )
+        self.assertEqual(module.read_session_id(path), "synthetic-from-line-one")
+
     def test_lines_that_are_not_json_objects_are_skipped(self) -> None:
         module = self.load()
         path = self.stream(
@@ -1463,10 +1515,15 @@ class AttemptTimeoutTests(RunnerFixture):
         import signal
 
         module = self.load()
-        self.write_grok(BEHAVIOUR_IGNORES_SIGTERM)
-        # The real grace is ten seconds; a test must not wait it out.
-        with mock.patch.object(module, "TERMINATE_GRACE_SECONDS", 0.3):
-            code = self.invoke(module, self.options(module, timeout=0.5))
+        ready = self.base / "sigterm-handler-installed"
+        self.write_grok(behaviour_ignores_sigterm(ready))
+        # The real grace is ten seconds; a test must not wait it out. The child
+        # must also have installed its handler before the bound expires, or it
+        # dies of the SIGTERM this test exists to prove it survives.
+        with self.pinned_resolver(module):
+            with mock.patch.object(module, "TERMINATE_GRACE_SECONDS", 0.3):
+                with self.ready_popen(module, ready):
+                    code = self.invoke(module, self.options(module, timeout=0.5))
         self.assertEqual(code, 124)
         metadata = self.metadata()
         self.assertEqual(metadata["state"], "timed_out")
@@ -1474,12 +1531,17 @@ class AttemptTimeoutTests(RunnerFixture):
 
     def test_a_timed_out_attempt_still_records_the_session_id(self) -> None:
         module = self.load()
-        self.write_grok(BEHAVIOUR_SESSION_THEN_SLEEP)
-        # Two seconds, not one: the child has to start Python before it writes.
-        self.assertEqual(self.invoke(module, self.options(module, timeout=2.0)), 124)
+        ready = self.base / "session-reported"
+        self.write_grok(behaviour_session_then_sleep(ready))
+        # The bound starts once the child has written and flushed its init line,
+        # so this asserts what was recorded, never who won a startup race.
+        with self.pinned_resolver(module):
+            with self.ready_popen(module, ready):
+                code = self.invoke(module, self.options(module, timeout=0.5))
+        self.assertEqual(code, 124)
         metadata = self.metadata()
         self.assertEqual(metadata["state"], "timed_out")
-        self.assertEqual(metadata["session_id"], "synthetic-session-0005")
+        self.assertEqual(metadata["session_id"], TIMED_OUT_SESSION_ID)
 
     def test_zero_timeout_waits_for_a_slow_worker(self) -> None:
         module = self.load()
@@ -1488,6 +1550,43 @@ class AttemptTimeoutTests(RunnerFixture):
         code = self.invoke(module, self.options(module, timeout=0))
         self.assertEqual(code, 0)
         self.assertEqual(self.metadata()["state"], "exited")
+
+    def test_an_interrupt_while_the_timeout_is_carried_out_is_still_130(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        started: list[subprocess.Popen] = []
+
+        class RecordingPopen(subprocess.Popen):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                started.append(self)
+
+        # Ending the child is a window up to twenty seconds wide. A Ctrl-C
+        # inside it must not escape as a traceback over a `run.json` frozen at
+        # `running`; it is an interrupt, recorded as one.
+        with self.pinned_resolver(module):
+            with mock.patch.object(module, "_end_process", side_effect=KeyboardInterrupt):
+                with mock.patch.object(module.subprocess, "Popen", RecordingPopen):
+                    code = self.invoke(module, self.options(module, timeout=0.5))
+        self.assertEqual(len(started), 1)
+        process = started[0]
+        self.addCleanup(lambda: subprocess.Popen.wait(process))
+        self.addCleanup(process.kill)
+        self.assertEqual(code, 130)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "interrupted")
+        self.assertEqual(metadata["error"], "the controller interrupted the attempt")
+        self.assertIsNotNone(metadata["ended_at"])
+
+    def test_an_infinite_timeout_never_starts_a_worker(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_OK)
+        # `--timeout 0` already means "wait without a bound"; an infinity would
+        # be a second spelling of it that the contract never defined.
+        code = self.invoke(module, self.options(module, timeout=float("inf")))
+        self.assertEqual(code, 2)
+        self.assert_no_worker_invocation()
+        self.assertFalse(self.attempt.exists())
 
     def test_a_negative_timeout_never_starts_a_worker(self) -> None:
         module = self.load()

@@ -144,8 +144,8 @@ SIGTERM, waits ten seconds, kills it if it is still alive, records `state`
 `timed_out` with the real `exit_code` and the session ID the stream reported,
 and exits 124. Only the worker process itself is signalled. It shares the
 controller's process group so that a terminal interrupt reaches it, so
-descendants the worker started are not pursued, exactly as on the interrupt
-path: confirm they have exited before cleanup.
+descendants the worker started are not pursued and no process tree is cleaned
+up here. Confirm those have exited yourself before cleanup.
 
 Do not pass `--worktree` to the provider CLI. Do not pass `--continue`. Do not
 copy host credentials or environment values into the brief or the dispatch.
@@ -160,11 +160,13 @@ process state, not task state; process exit 0 is not a clean DONE.
 The wrapper exit follows the worker's exit. A POSIX signal returns
 `128 + signal` while `run.json.exit_code` keeps the real negative returncode.
 A launch failure is 2, a handled controller interrupt is 130, and an attempt
-ended by its own timeout is 124. Exit 2 is ambiguous between a launch failure
-and a worker that legitimately exited 2, so read `run.json.state` to tell them
-apart; if the attempt directory is absent, or present without `run.json`, the
-launch was refused before the attempt was created and the `BLOCKED:` line on
-stderr is the reason.
+ended by its own timeout is 124. A handled interrupt signals nothing at all: it
+records the exit it recovered, which may be none, and leaves the worker and
+everything under it running for you to confirm. Exit 2 is ambiguous between a
+launch failure and a worker that legitimately exited 2, so read
+`run.json.state` to tell them apart; if the attempt directory is absent, or
+present without `run.json`, the launch was refused before the attempt was
+created and the `BLOCKED:` line on stderr is the reason.
 
 There is no automatic retry. Cursor carries its effort in the model ID rather
 than on a flag, so the runner refuses a `--model` whose declared effort
