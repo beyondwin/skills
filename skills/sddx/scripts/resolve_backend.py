@@ -32,6 +32,17 @@ _MODEL_ID = re.compile(r"grok[0-9A-Za-z._-]*")
 
 _UNTRANSPORTABLE = ("\n", "\r", "\x00")
 
+# `cmd.exe` pairs `%` signs left to right and substitutes any name that resolves.
+_PERCENT_NAME = re.compile(r"%([^%\r\n]+)%")
+
+
+def _expandable_percent_name(argument: str) -> str | None:
+    for name in _PERCENT_NAME.findall(argument):
+        # Windows upper-cases environment names; `os.environ` mirrors that.
+        if name in os.environ or name.upper() in os.environ:
+            return name
+    return None
+
 
 def _quote_for_cmd(argument: str) -> str:
     """Quote one argument so `cmd.exe` and the child's CRT both read it back whole.
@@ -46,14 +57,27 @@ def _quote_for_cmd(argument: str) -> str:
     backslash run before a quote as an escape. `subprocess.list2cmdline` handles
     only the CRT layer, which is why it is not enough here.
 
-    Known limit: `%NAME%` for a variable that is actually defined is expanded by
-    `cmd.exe` and cannot be escaped inside quotes. Undefined names survive as
-    literal text. sddx passes flags, paths and model ids here and routes free text
-    through `--prompt-file`, so this does not reach worker prompts.
+    `%NAME%` cannot be escaped inside quotes, so an argument naming a variable that
+    actually resolves is rejected rather than silently rewritten. Undefined names are
+    inert to `cmd.exe` and pass through as literal text.
+
+    This rests on two documented conventions rather than OS guarantees. Batch `%*`
+    substitution is a single left-to-right pass whose inserted text is not rescanned
+    for `%` — without that, an undefined `%NAME%` would be deleted at the batch layer
+    (batch deletes undefined names, unlike the `/c` line, which leaves them literal).
+    And reading `""` inside a quoted region as one literal quote is the MSVC CRT /
+    `CommandLineToArgvW` convention, which a child using its own argv parser need not
+    follow.
     """
     for forbidden in _UNTRANSPORTABLE:
         if forbidden in argument:
             raise ValueError(f"argument cannot cross a cmd.exe wrapper: {argument!r}")
+    name = _expandable_percent_name(argument)
+    if name is not None:
+        raise ValueError(
+            f"argument cannot cross a cmd.exe wrapper: {argument!r} "
+            f"(cmd.exe would expand %{name}%)"
+        )
     quoted = ['"']
     backslashes = 0
     for char in argument:

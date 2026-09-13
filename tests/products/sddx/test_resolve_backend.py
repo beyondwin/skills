@@ -57,6 +57,11 @@ GROK_HELP_WITH_EFFORT_ALIAS = GROK_HELP.replace("--reasoning-effort", "--effort"
 GROK_HELP_WITH_SHORT_PROMPT_ONLY = GROK_HELP.replace(
     "  -p, --single <PROMPT>", "  -p <PROMPT>"
 )
+GROK_HELP_PROMPT_FILE_ONLY = GROK_HELP.replace(
+    "  -p, --single <PROMPT>\n", "      --prompt-file <PATH>\n"
+)
+# No prompt flag at all. `--no-plan` survives, so a substring test still "finds" `-p`.
+GROK_HELP_WITHOUT_PROMPT_FLAG = GROK_HELP.replace("  -p, --single <PROMPT>\n", "")
 
 CURSOR_VERSION = "cursor-agent 2026.08.07\n"
 CURSOR_HELP = """
@@ -94,6 +99,10 @@ CURSOR_HELP_WITHOUT_STREAM_JSON = CURSOR_HELP.replace(
     "      --output-format <text|json>\n",
 )
 CURSOR_HELP_WITH_CWD = CURSOR_HELP.replace("--workspace <path>", "--cwd <path>")
+# Declares the plural `--models` and no `--model`, so a substring test still "finds" it.
+CURSOR_HELP_PLURAL_MODEL_ONLY = CURSOR_HELP.replace(
+    "      --model <model>\n", "      --models\n"
+)
 
 CURSOR_MODELS = "gpt-5\ncomposer\ngrok-4\n"
 NO_GROK_MODELS = "gpt-5\ncomposer\n"
@@ -197,6 +206,12 @@ class ResolveBackendTests(unittest.TestCase):
         env["PATH"] = str(self.bindir)
         return env
 
+    def _windows_env(self, module, **overrides: str):
+        """Deterministic child environment: ComSpec set, SYNTHETIC_VALUE guaranteed absent."""
+        env = {"ComSpec": r"C:\Windows\system32\cmd.exe", "SDDX_UNRELATED": "1"}
+        env.update(overrides)
+        return mock.patch.dict(module.os.environ, env, clear=True)
+
     def _load(self):
         import importlib
 
@@ -249,7 +264,7 @@ class ResolveBackendTests(unittest.TestCase):
     def test_windows_cmd_wrapper_is_invoked_through_comspec(self) -> None:
         module = self._load()
         with mock.patch.object(module.os, "name", "nt"):
-            with mock.patch.dict(module.os.environ, {"ComSpec": r"C:\Windows\system32\cmd.exe"}, clear=False):
+            with self._windows_env(module):
                 command = module._command(r"C:\tools\grok.cmd", ["--version"])
         self.assertEqual(command[:4], [r"C:\Windows\system32\cmd.exe", "/d", "/s", "/c"])
         self.assertIn("grok.cmd", command[4])
@@ -259,7 +274,7 @@ class ResolveBackendTests(unittest.TestCase):
     def test_windows_cmd_wrapper_quotes_hostile_arguments(self) -> None:
         module = self._load()
         with mock.patch.object(module.os, "name", "nt"):
-            with mock.patch.dict(module.os.environ, {"ComSpec": r"C:\Windows\system32\cmd.exe"}, clear=False):
+            with self._windows_env(module):
                 command = module._command(r"C:\tools\my dir\grok.cmd", HOSTILE_ARGUMENTS)
         expected = (
             '""C:\\tools\\my dir\\grok.cmd" '
@@ -279,7 +294,7 @@ class ResolveBackendTests(unittest.TestCase):
         # to reach subprocess as a string or every .cmd probe is mangled.
         module = self._load()
         with mock.patch.object(module.os, "name", "nt"):
-            with mock.patch.dict(module.os.environ, {"ComSpec": r"C:\Windows\system32\cmd.exe"}, clear=False):
+            with self._windows_env(module):
                 plain = module._subprocess_args(r"C:\tools\grok.cmd", ["--version"])
                 hostile = module._subprocess_args(r"C:\tools\my dir\grok.cmd", HOSTILE_ARGUMENTS)
         self.assertEqual(
@@ -316,6 +331,28 @@ class ResolveBackendTests(unittest.TestCase):
                 with self.subTest(argument=argument):
                     with self.assertRaises(ValueError):
                         module._command(r"C:\tools\grok.cmd", [argument])
+
+    def test_windows_cmd_wrapper_rejects_expandable_percent_names(self) -> None:
+        # cmd.exe expands %NAME% even inside quotes, so an argument naming a variable
+        # that actually resolves would be silently rewritten. Reject it instead.
+        module = self._load()
+        with mock.patch.object(module.os, "name", "nt"):
+            with self._windows_env(module, SDDX_DEFINED_VALUE="secret"):
+                with self.assertRaises(ValueError):
+                    module._command(r"C:\tools\grok.cmd", ["%SDDX_DEFINED_VALUE%"])
+                with self.assertRaises(ValueError):
+                    module._command(r"C:\tools\grok.cmd", ["prefix %SDDX_DEFINED_VALUE% suffix"])
+                # An undefined name is inert to cmd.exe and must survive as literal text.
+                command = module._command(r"C:\tools\grok.cmd", ["%SDDX_UNDEFINED_VALUE%"])
+        self.assertEqual(command[4], '""C:\\tools\\grok.cmd" "%SDDX_UNDEFINED_VALUE%""')
+
+    def test_direct_invocation_never_rejects_percent_names(self) -> None:
+        # A .exe has no cmd.exe layer, so %NAME% is just text and must pass untouched.
+        module = self._load()
+        with mock.patch.object(module.os, "name", "nt"):
+            with self._windows_env(module, SDDX_DEFINED_VALUE="secret"):
+                command = module._command(r"C:\tools\grok.exe", ["%SDDX_DEFINED_VALUE%"])
+        self.assertEqual(command, [r"C:\tools\grok.exe", "%SDDX_DEFINED_VALUE%"])
 
     def test_windows_exe_is_invoked_directly(self) -> None:
         module = self._load()
@@ -401,6 +438,17 @@ class ResolveBackendTests(unittest.TestCase):
     # help parsing helpers
     # ------------------------------------------------------------------
 
+    def test_declares_requires_a_standalone_token(self) -> None:
+        # Substring matching would confirm flags that the CLI never declared: `-p`
+        # hides inside `--no-plan`, and `--model` inside the plural `--models`.
+        module = self._load()
+        self.assertIs(module._declares("      --no-plan\n", "-p"), False)
+        self.assertIs(module._declares("      --models\n", "--model"), False)
+        self.assertIs(module._declares("      --prompt-file <PATH>\n", "-p"), False)
+        self.assertIs(module._declares("  -p, --single <PROMPT>\n", "-p"), True)
+        self.assertIs(module._declares("      --model <model>\n", "--model"), True)
+        self.assertIs(module._declares("      --no-plan\n", "--no-plan"), True)
+
     def test_model_list_commands_reads_declarations_only(self) -> None:
         module = self._load()
         self.assertEqual(module.model_list_commands(CURSOR_HELP), [["models"], ["--list-models"]])
@@ -461,6 +509,17 @@ class ResolveBackendTests(unittest.TestCase):
     def test_grok_falls_back_to_short_prompt_flag(self) -> None:
         self._write_cli("grok", GROK_VERSION, GROK_HELP_WITH_SHORT_PROMPT_ONLY)
         self.assertEqual(self._resolve("grok")["launch"]["prompt_flag"], "-p")
+
+    def test_grok_prompt_file_without_short_flag(self) -> None:
+        self._write_cli("grok", GROK_VERSION, GROK_HELP_PROMPT_FILE_ONLY)
+        self.assertEqual(self._resolve("grok")["launch"]["prompt_flag"], "--prompt-file")
+
+    def test_grok_without_any_prompt_flag_is_missing_flags(self) -> None:
+        # `--no-plan` is still declared, so only standalone-token matching rejects this.
+        self._write_cli("grok", GROK_VERSION, GROK_HELP_WITHOUT_PROMPT_FLAG)
+        result = self._resolve("grok")
+        self.assertFalse(result["available"])
+        self.assertEqual(result["reason"], "missing_flags")
 
     def test_grok_uses_confirmed_effort_alias(self) -> None:
         self._write_cli("grok", GROK_VERSION, GROK_HELP_WITH_EFFORT_ALIAS)
@@ -583,6 +642,19 @@ class ResolveBackendTests(unittest.TestCase):
         result = self._resolve("cursor")
         self.assertFalse(result["available"])
         self.assertEqual(result["reason"], "no_grok_model")
+
+    def test_cursor_plural_models_option_is_not_a_model_flag(self) -> None:
+        # `--models` is not `--model`; only standalone-token matching rejects this.
+        self._write_cli(
+            "cursor-agent",
+            CURSOR_VERSION,
+            CURSOR_HELP_PLURAL_MODEL_ONLY,
+            {"models": (0, CURSOR_MODELS, ""), "--list-models": (0, CURSOR_MODELS, "")},
+        )
+        result = self._resolve("cursor")
+        self.assertFalse(result["available"])
+        self.assertEqual(result["reason"], "missing_flags")
+        self.assertEqual(self._calls(), [])
 
     def test_cursor_named_binary_with_grok_identity_is_mismatch(self) -> None:
         self._write_cli("cursor-agent", GROK_VERSION, GROK_HELP)
