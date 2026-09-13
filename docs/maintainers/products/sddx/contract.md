@@ -169,6 +169,16 @@ JSON 객체의 키는 `backend`, `available`, `executable`, `identity`,
 하드코딩하지 않습니다. 없는 backend의 `reason`은 `not_found`,
 `identity_mismatch`, `missing_flags`, `no_grok_model` 중 하나입니다.
 
+알려진 미검증 가정: Cursor의 `prompt_flag`는 `null`로 고정돼 있어
+`build_argv`(`run_worker.py:227-229`)가 prompt를 이름 없는 위치 인자로 덧붙이지만,
+`_cursor_flags_ok`는 여덟 가지 기능을 확인하면서도 그 CLI가 위치 인자 prompt를
+받는지는 확인하지 않습니다. 같은 계열로 이 게이트는 `--resume`이 *선언*됐는지만
+보고 값을 *받는지*는 보지 않는데, `build_argv:220-221`이 위치 인자 prompt 바로
+앞에 `--resume <id>`를 넣으므로 값을 받지 않는 `--resume`은 prompt를 조용히 다른
+자리로 밀어냅니다. 이 가정은 `launch` 키 집합을 고정하면서 두 확인 중 어느 쪽도
+요구하지 않은 스펙 §5 실행 계약에서 비롯합니다. 따라서 이 브랜치의 결함이 아니라
+다음 개정에서 닫을 스펙 공백입니다.
+
 `2.0.0`의 비호환 변경은 Cursor 필수 기능입니다. Cursor resolver는 headless
 print(`--print` 또는 `-p`), `--trust`, `--auto-review`, `--sandbox`, 확인된
 `stream-json` 출력 형식, 그리고 모델 목록 명령이 실제로 성공해 돌려준 Grok 모델

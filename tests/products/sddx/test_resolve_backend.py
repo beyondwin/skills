@@ -49,6 +49,12 @@ Usage: grok [OPTIONS]
 GROK_HELP_WITHOUT_OUTPUT_FORMAT = GROK_HELP.replace(
     "      --output-format <streaming-messages-json>\n", ""
 )
+# Declares the format value under a differently named option and no
+# `--output-format`, so only checking both halves rejects this.
+GROK_HELP_FORMAT_VALUE_UNDER_OTHER_OPTION = GROK_HELP.replace(
+    "      --output-format <streaming-messages-json>",
+    "      --json-mode <text|streaming-messages-json>",
+)
 GROK_HELP_WITH_PROMPT_FILE = GROK_HELP.replace(
     "  -p, --single <PROMPT>",
     "      --prompt-file <PATH>\n  -p, --single <PROMPT>",
@@ -99,6 +105,14 @@ CURSOR_HELP_WITHOUT_STREAM_JSON = CURSOR_HELP.replace(
     "      --output-format <text|json>\n",
 )
 CURSOR_HELP_WITH_CWD = CURSOR_HELP.replace("--workspace <path>", "--cwd <path>")
+# Declares the format value under a differently named option and no
+# `--output-format`, so only checking both halves rejects this.
+CURSOR_HELP_FORMAT_VALUE_UNDER_OTHER_OPTION = CURSOR_HELP.replace(
+    "      --output-format <text|json|stream-json>",
+    "      --json-mode <text|json|stream-json>",
+)
+# Declares only the short print flag; the resolver must fall back to `-p`.
+CURSOR_HELP_SHORT_PRINT_ONLY = CURSOR_HELP.replace("  -p, --print", "  -p")
 # Declares the plural `--models` and no `--model`, so a substring test still "finds" it.
 CURSOR_HELP_PLURAL_MODEL_ONLY = CURSOR_HELP.replace(
     "      --model <model>\n", "      --models\n"
@@ -531,6 +545,18 @@ class ResolveBackendTests(unittest.TestCase):
         self.assertFalse(result["available"])
         self.assertEqual(result["reason"], "missing_flags")
 
+    def test_grok_format_value_without_the_option_is_missing_flags(self) -> None:
+        # The value token alone does not prove `--output-format` exists, and
+        # `build_argv` emits that option on every launch.
+        self._write_cli(
+            "grok", GROK_VERSION, GROK_HELP_FORMAT_VALUE_UNDER_OTHER_OPTION
+        )
+        result = self._resolve("grok")
+        self.assertFalse(result["available"])
+        self.assertEqual(result["reason"], "missing_flags")
+        self.assertIsNone(result["launch"])
+        self.assertIsNone(result["argv_prefix"])
+
     def test_agent_only_grok_is_not_found_for_grok_backend(self) -> None:
         self._write_cli("agent", GROK_VERSION, GROK_HELP)
         result = self._resolve("grok")
@@ -655,6 +681,37 @@ class ResolveBackendTests(unittest.TestCase):
         self.assertFalse(result["available"])
         self.assertEqual(result["reason"], "missing_flags")
         self.assertEqual(self._calls(), [])
+
+    def test_cursor_format_value_without_the_option_is_missing_flags(self) -> None:
+        # The value token alone does not prove `--output-format` exists, and
+        # `build_argv` emits that option on every launch.
+        self._write_cli(
+            "cursor-agent",
+            CURSOR_VERSION,
+            CURSOR_HELP_FORMAT_VALUE_UNDER_OTHER_OPTION,
+            {"models": (0, CURSOR_MODELS, "")},
+        )
+        result = self._resolve("cursor")
+        self.assertFalse(result["available"])
+        self.assertEqual(result["reason"], "missing_flags")
+        self.assertIsNone(result["launch"])
+        self.assertEqual(result["model_ids"], [])
+        self.assertEqual(self._calls(), [], "probed models despite missing flags")
+
+    def test_cursor_print_flag_falls_back_to_short_flag(self) -> None:
+        self._write_cli(
+            "cursor-agent",
+            CURSOR_VERSION,
+            CURSOR_HELP_SHORT_PRINT_ONLY,
+            {"models": (0, CURSOR_MODELS, "")},
+        )
+        result = self._resolve("cursor")
+        self.assertTrue(result["available"])
+        self.assertEqual(
+            result["argv_prefix"][1:],
+            ["-p", "--trust", "--auto-review", "--sandbox", "enabled"],
+        )
+        self.assertNotIn("--print", result["argv_prefix"])
 
     def test_cursor_named_binary_with_grok_identity_is_mismatch(self) -> None:
         self._write_cli("cursor-agent", GROK_VERSION, GROK_HELP)

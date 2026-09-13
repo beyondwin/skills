@@ -282,7 +282,14 @@ def run_worker(options: RunOptions) -> int:
         write_metadata(metadata_path, metadata)
         return _blocked(message)
 
-    resolved = resolve(backend)
+    try:
+        resolved = resolve(backend)
+    except (OSError, ValueError):
+        # The resolver is total by contract; this keeps that contract total for the
+        # runner too, so a raise is a recorded `launch_failed` rather than a
+        # traceback over a `run.json` frozen at `starting`. The original message can
+        # quote an executable path, so it is not kept.
+        return fail("could not resolve the backend")
     if not resolved["available"]:
         return fail(f"{backend} backend is unavailable: {resolved['reason']}")
     if backend != "grok" and options.model not in resolved["model_ids"]:

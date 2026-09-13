@@ -88,6 +88,15 @@ Windows의 npm 방식 `.cmd` 셰임 실행은 launch failure로 기록됩니다.
 Cursor dispatch 텍스트는 여러 줄인데 `cmd.exe` 명령줄은 줄바꿈을 담을 수 없습니다.
 의도한 선택이며, 대안은 이전 전송 방식의 조용한 인자 훼손이었습니다.
 
+`_expandable_percent_name`은 `cmd.exe` 의사 변수(`%CD%`, `%DATE%`, `%TIME%`,
+`%RANDOM%`, `%ERRORLEVEL%`, `%CMDCMDLINE%`)를 거르지 않습니다. 이 이름들은
+`os.environ`에 나타나지 않는데 판정이 `os.environ`만 보기 때문입니다. 지금은
+도달할 수 없습니다. Grok은 항상 여러 줄 `--rules`를, Cursor는 항상 여러 줄 인라인
+dispatch를 싣기 때문에 모든 `.cmd` 실행은 위의 `_UNTRANSPORTABLE` 검사에서 먼저
+실패하고, 인자가 짧은 나머지 `_quote_for_cmd` 호출자는 `_probe`의 고정 리터럴뿐
+입니다. 위의 여러 줄 `.cmd` 제한을 푸는 날 이 경로는 도달 가능해지므로 같은
+변경에서 함께 고쳐야 합니다.
+
 Grok의 `--rules`는 시도 디렉터리에 보존되지 않습니다. 규칙 본문이 명령줄로만
 전달되고 스펙이 시도 디렉터리를 정확히 여섯 파일로 고정하므로,
 `skills/sddx/references/worker-prompt.md`를 고치면 과거 Grok 시도를 저장된 증거만으로

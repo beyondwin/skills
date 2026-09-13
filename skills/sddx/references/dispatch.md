@@ -136,7 +136,9 @@ The wrapper exit follows the worker's exit. A POSIX signal returns
 `128 + signal` while `run.json.exit_code` keeps the real negative returncode.
 A launch failure is 2 and a handled controller interrupt is 130. Exit 2 is
 ambiguous between a launch failure and a worker that legitimately exited 2, so
-read `run.json.state` to tell them apart.
+read `run.json.state` to tell them apart; if the attempt directory is absent,
+or present without `run.json`, the launch was refused before the attempt was
+created and the `BLOCKED:` line on stderr is the reason.
 
 There is no automatic retry. Cursor has no confirmed effort control, so its
 `configured_effort` is null and the applied effort is unknown; record it as

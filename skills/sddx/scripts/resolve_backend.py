@@ -225,6 +225,9 @@ def _grok_flags_ok(help_text: str) -> bool:
         all(_declares(help_text, flag) for flag in required)
         and _grok_effort_flag(help_text) is not None
         and _grok_prompt_flag(help_text) is not None
+        # Both halves: `build_argv` always emits `--output-format <value>`, so a CLI
+        # that spells the value under some other option cannot carry that argv.
+        and _declares(help_text, "--output-format")
         and _declares(help_text, GROK_OUTPUT_FORMAT)
     )
 
@@ -238,6 +241,8 @@ def _cursor_flags_ok(help_text: str) -> bool:
         and (_declares(help_text, "--workspace") or _declares(help_text, "--cwd"))
         and _declares(help_text, "--model")
         and _declares(help_text, "--resume")
+        # Both halves, for the same reason as the Grok gate above.
+        and _declares(help_text, "--output-format")
         and _declares(help_text, CURSOR_OUTPUT_FORMAT)
     )
 
