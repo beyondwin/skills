@@ -122,6 +122,35 @@ CURSOR_MODELS = "gpt-5\ncomposer\ngrok-4\n"
 NO_GROK_MODELS = "gpt-5\ncomposer\n"
 PROSE_ONLY_MODELS = "Available models include grok and others\ngpt-5\n"
 
+# The shape the shipped CLI actually prints: a header, one `<id> - <Description>` line
+# per model, and a trailing tip paragraph. Every value here is synthetic — only the
+# format is taken from the real listing. `composer-2.5 - Grok-like reasoning` is the
+# description trap: "grok" appears after the separator and must not yield an ID.
+CURSOR_MODELS_LISTING = """Available models
+
+auto - Auto (default)
+gpt-5.3-codex-low - Codex 5.3 Low
+cursor-grok-9.1-high-fast - Cursor Grok 9.1 Fast
+composer-2.5 - Grok-like reasoning
+cursor-grok-9.0-high - Cursor Grok 9.0
+cursor-grok-9.1-low - Cursor Grok 9.1 Low
+cursor-grok-9.1-high - Cursor Grok 9.1
+cursor-grok-9.1-xhigh-fast - Cursor Grok 9.1 Extra High Fast
+kimi-k3-low - Kimi K3 Low
+
+Tip: use --model <id> (or /model <id> in interactive mode) to switch. \
+Parameterized models also accept quoted overrides, \
+e.g. --model 'claude-opus-4-8[context=1m,effort=high,fast=false]'.
+"""
+# Source order, and the `-fast` variant deliberately precedes the plain high tier.
+CURSOR_MODELS_LISTING_IDS = [
+    "cursor-grok-9.1-high-fast",
+    "cursor-grok-9.0-high",
+    "cursor-grok-9.1-low",
+    "cursor-grok-9.1-high",
+    "cursor-grok-9.1-xhigh-fast",
+]
+
 MARKER_NAME = "worker-invocations.log"
 CALL_LOG_NAME = "model-list-calls.log"
 
@@ -474,7 +503,7 @@ class ResolveBackendTests(unittest.TestCase):
         )
         self.assertEqual(module.model_list_commands(CURSOR_HELP_WITHOUT_MODEL_LIST), [])
 
-    def test_parse_model_ids_accepts_bare_grok_tokens_only(self) -> None:
+    def test_parse_model_ids_reads_the_id_column_only(self) -> None:
         module = self._load()
         self.assertEqual(module.parse_model_ids(CURSOR_MODELS), ["grok-4"])
         self.assertEqual(module.parse_model_ids(NO_GROK_MODELS), [])
@@ -482,6 +511,59 @@ class ResolveBackendTests(unittest.TestCase):
         self.assertEqual(
             module.parse_model_ids("grok-4-fast\n  grok-3 \ngrok-4-fast\nGrok 4\n"),
             ["grok-4-fast", "grok-3"],
+        )
+
+    def test_parse_model_ids_accepts_described_and_bare_ids(self) -> None:
+        module = self._load()
+        for text, expected in (
+            # The shipped `<id> - <Description>` shape, ID returned exactly as printed.
+            ("cursor-grok-4.6-high - Cursor Grok 4.6\n", ["cursor-grok-4.6-high"]),
+            (
+                "cursor-grok-4.6-xhigh-fast - Cursor Grok 4.6 Extra High Fast\n",
+                ["cursor-grok-4.6-xhigh-fast"],
+            ),
+            # A bare token on its own line is still a legitimate listing shape.
+            ("grok-4\n", ["grok-4"]),
+            ("grok-4 - Grok 4\n", ["grok-4"]),
+        ):
+            with self.subTest(text=text):
+                self.assertEqual(module.parse_model_ids(text), expected)
+
+    def test_parse_model_ids_rejects_descriptions_headers_and_prose(self) -> None:
+        module = self._load()
+        for label, text in (
+            # No `grok` in the ID column.
+            ("auto", "auto - Auto (default)\n"),
+            ("gpt", "gpt-5.3-codex-low - Codex 5.3 Low\n"),
+            ("composer", "composer-2.5 - Composer 2.5\n"),
+            ("kimi", "kimi-k3-low - Kimi K3 Low\n"),
+            # `grok` only in the description: the ID column is all the rule ever sees.
+            ("description mentions grok", "composer-2.5 - Grok-like reasoning\n"),
+            ("header", "Available models\n"),
+            ("prose", "Available models include grok and others\n"),
+            (
+                "tip paragraph",
+                "Tip: use --model <id> (or /model <id> in interactive mode) to switch."
+                " Parameterized models also accept quoted overrides, e.g."
+                " --model 'claude-opus-4-8[context=1m,effort=high,fast=false]'.\n",
+            ),
+            ("blank lines", "\n   \n\n"),
+        ):
+            with self.subTest(rejects=label):
+                self.assertEqual(module.parse_model_ids(text), [])
+
+    def test_parse_model_ids_keeps_source_order_without_duplicates(self) -> None:
+        module = self._load()
+        self.assertEqual(
+            module.parse_model_ids(CURSOR_MODELS_LISTING), CURSOR_MODELS_LISTING_IDS
+        )
+        self.assertEqual(
+            module.parse_model_ids(
+                "cursor-grok-9.1-high - Cursor Grok 9.1\n"
+                "cursor-grok-9.1-low - Cursor Grok 9.1 Low\n"
+                "cursor-grok-9.1-high - Cursor Grok 9.1\n"
+            ),
+            ["cursor-grok-9.1-high", "cursor-grok-9.1-low"],
         )
 
     # ------------------------------------------------------------------
@@ -623,6 +705,30 @@ class ResolveBackendTests(unittest.TestCase):
         result = self._resolve("cursor")
         self.assert_cursor_contract(result)
         self.assertEqual(result["launch"]["cwd_flag"], "--workspace")
+
+    def test_cursor_accepts_the_real_listing_format(self) -> None:
+        # Regression: the shipped parser required the whole stripped line to be one
+        # bare `grok...` token, so every `<id> - <Description>` line the real CLI
+        # prints was dropped and the backend resolved `no_grok_model`.
+        self._write_cli(
+            "cursor-agent",
+            CURSOR_VERSION,
+            CURSOR_HELP,
+            {
+                "models": (0, CURSOR_MODELS_LISTING, ""),
+                "--list-models": (0, CURSOR_MODELS_LISTING, ""),
+            },
+        )
+        result = self._resolve("cursor")
+        self.assertIs(result["available"], True)
+        self.assertIsNone(result["reason"])
+        self.assertEqual(result["model_ids"], CURSOR_MODELS_LISTING_IDS)
+        self.assertEqual(
+            result["argv_prefix"][1:],
+            ["--print", "--trust", "--auto-review", "--sandbox", "enabled"],
+        )
+        self.assertEqual(result["launch"]["output_format"], "stream-json")
+        self.assertEqual(self._calls(), ["models"])
 
     def test_cursor_cwd_flag_falls_back_to_cwd(self) -> None:
         self._write_cli(

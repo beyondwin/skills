@@ -26,9 +26,15 @@ _TOKEN_BOUNDARY = r"(?<![\w-]){token}(?![\w-])"
 # is therefore never taken as a declaration.
 _SUBCOMMAND_LINE = re.compile(r"^\s+(?P<name>[A-Za-z][\w-]*)(?:\s{2,}\S.*)?\s*$")
 
-# Model identifiers are bare tokens; anything with a space or other punctuation is
-# prose from the CLI's own banner and is not a usable `--model` value.
-_MODEL_ID = re.compile(r"grok[0-9A-Za-z._-]*")
+# A model identifier is a bare token: it starts alphanumeric and then holds only
+# letters, digits, `.`, `_` and `-`. Anything with a space, quote, bracket, comma or
+# `=` is prose from the CLI's own banner and is not a usable `--model` value. The
+# leading character class is mandatory so that an empty candidate (a blank line) can
+# never match.
+_MODEL_ID = re.compile(r"[0-9A-Za-z][0-9A-Za-z._-]*")
+
+# A model listing prints `<id> - <Description>`; some CLIs print the id alone.
+_ID_DESCRIPTION_SEPARATOR = " - "
 
 _UNTRANSPORTABLE = ("\n", "\r", "\x00")
 
@@ -174,11 +180,34 @@ def model_list_commands(help_text: str) -> list[list[str]]:
 
 
 def parse_model_ids(text: str) -> list[str]:
+    """Grok model IDs a listing actually printed, in source order, without duplicates.
+
+    The rule reads the ID column and nothing else. A listing line is either
+    `<id> - <Description>` or a bare `<id>`, so the candidate is whatever precedes the
+    first ` - ` separator, or the whole stripped line when there is no separator. The
+    candidate is adopted only when it is a single bare token of model-id shape
+    (`_MODEL_ID`) that contains `grok`; the ID is returned exactly as printed and is
+    never synthesised, mutated or given an effort suffix.
+
+    Deciding on the ID column rather than searching the line is what rejects a
+    description: `composer-2.5 - Grok-like reasoning` mentions grok only after the
+    separator, and the description is never looked at, so it yields no candidate. Prose
+    and banners (`Available models`, `Available models include grok and others`, the
+    `Tip: use --model ...` paragraph) fail the single-token test — they carry spaces,
+    and the tip's `claude-opus-4-8[context=1m,effort=high,fast=false]` also carries
+    brackets, quotes, commas and `=`, none of which `_MODEL_ID` admits. Matching is
+    case-insensitive on the `grok` substring only, mirroring `_is_grok_identity`; the
+    returned text is untouched.
+    """
     model_ids: list[str] = []
     for line in text.splitlines():
-        candidate = line.strip()
-        if _MODEL_ID.fullmatch(candidate) and candidate not in model_ids:
-            model_ids.append(candidate)
+        head, separator, _ = line.strip().partition(_ID_DESCRIPTION_SEPARATOR)
+        candidate = head.strip() if separator else line.strip()
+        if not _MODEL_ID.fullmatch(candidate):
+            continue
+        if "grok" not in candidate.lower() or candidate in model_ids:
+            continue
+        model_ids.append(candidate)
     return model_ids
 
 
