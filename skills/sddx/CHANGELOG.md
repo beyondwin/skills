@@ -41,22 +41,35 @@ Target version `2.0.0`. No public tag or GitHub Release is created here.
 - `resolve_backend.py --json` adds `launch` (`cwd_flag`, `prompt_flag`,
   `effort_flag`, `output_format`, or null when unavailable) and `model_ids`.
 - `references/current-state.md` holds the ledger current-state block template.
+- `run.json` and `status` carry `session_id`, read from the worker's own
+  output stream, so `--resume` can be given an id the previous run actually
+  reported instead of always falling back to a fresh worker.
+- `scripts/run_worker.py run --timeout <seconds>` bounds one attempt's
+  wall-clock, defaulting to 3600; `0` waits indefinitely. On expiry the runner
+  sends SIGTERM, waits ten seconds, then SIGKILL, records `state: timed_out`
+  with the real `exit_code`, and returns 124. Descendants the worker started
+  are not pursued, for the same reason the interrupt path leaves the process
+  tree alone.
 
 ### Changed
 
-- `run.json` records process facts only. `state` is one of `starting`,
-  `running`, `exited`, `launch_failed`, or `interrupted`, which is process
-  state and not task state. Process exit 0 is still not a clean DONE.
+- `run.json` records process facts only, at `schema_version` 2. `state` is one
+  of `starting`, `running`, `exited`, `launch_failed`, `interrupted`, or
+  `timed_out`, which is process state and not task state. Process exit 0 is
+  still not a clean DONE.
 - The wrapper exit follows the worker's exit. A POSIX signal returns
   `128 + signal` while `run.json.exit_code` keeps the real negative return
   code; a launch failure is 2 and a handled interrupt is 130. Exit 2 is
   ambiguous between a launch failure and a worker that legitimately exited 2,
   so `run.json.state` is the discriminator; if the attempt directory is absent,
   or present without `run.json`, the launch was refused before the attempt was
-  created and the `BLOCKED:` line on stderr is the reason.
-- Requested and configured effort are recorded separately. Cursor has no
-  confirmed effort control, so its `configured_effort` is null and the applied
-  effort is recorded as unknown rather than as the requested value.
+  created and the `BLOCKED:` line on stderr is the reason. A timeout is 124.
+- Requested and configured effort are recorded separately. Cursor carries
+  effort in the model id, so `run_worker.py run` refuses a `--model` whose
+  declared effort contradicts `--effort`, and `configured_effort` holds the
+  effort read off the id. An id that declares no effort is still accepted and
+  leaves `configured_effort` null, because the applied effort is then genuinely
+  unknown.
 - There is no automatic retry in any helper.
 - A change to the shared product source applies to new runs only. No run in
   progress is converted or restarted automatically; resume an existing run
