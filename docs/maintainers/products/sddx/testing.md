@@ -299,10 +299,12 @@ NotebookEdit를 이름으로 포함하는지 확인합니다. 이 검사는 필�
 
 이 버전에서는 제품 소유자 승인 아래 Claude Code × Cursor 조합으로 실제 공급자를
 호출했습니다. macOS 26.6.2 arm64, `cursor-agent 2026.09.10-fd3934a`, 모델
-`cursor-grok-4.6-high`로 worker 시도 세 번을 실행했고, 승인 동작·적용 effort·
-session ID 회수와 `--resume`·실제 worker 타임아웃·시도 생성 전 거절을 관측했습니다.
-Grok worker, Codex 호스트의 worker 실행, Windows 실행은 실행하지 않았으므로
-`not_measured`로 남습니다. 관측한 한 조합의 결과를 나머지로 넓히지 않습니다.
+`cursor-grok-4.6-high`로 worker 시도 세 번을 실행했고, 승인 동작·모델 ID 수락과
+`configured_effort` 기록·session ID 회수와 `--resume`·실제 worker 타임아웃·시도
+생성 전 거절을 관측했습니다. 모델이 실제 적용한 effort는 이번에도 관측하지
+못했으므로 `not_measured`로 남습니다. 요청·설정 effort는 적용값의 증거가 아니며,
+공급자가 모델 ID를 수락했다는 사실도 마찬가지입니다. Grok worker, Codex 호스트의
+worker 실행, Windows 실행은 실행하지 않았으므로 `not_measured`로 남습니다. 관측한 한 조합의 결과를 나머지로 넓히지 않습니다.
 조합별 표와 항목별 측정 상태는 [호환성](compatibility.md)이 소유합니다.
 
 ### 실제 관측
