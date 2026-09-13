@@ -107,6 +107,11 @@ BEHAVIOUR_SIGNAL = (
     "time.sleep(10)\n"
 )
 BEHAVIOUR_SLEEP = "time.sleep(10)\nraise SystemExit(0)\n"
+BEHAVIOUR_REPORT_STDIN = (
+    "data = sys.stdin.read()\n"
+    "sys.stdout.write('STDIN:' + repr(data) + '\\n')\n"
+    "raise SystemExit(0)\n"
+)
 BEHAVIOUR_OK = "sys.stdout.write('{\"type\": \"assistant\"}\\n')\nraise SystemExit(0)\n"
 
 # Arguments a controller may legitimately need to hand a worker. `%SYNTHETIC_VALUE%`
@@ -256,6 +261,28 @@ class RunnerFixture(unittest.TestCase):
         with mock.patch.dict(os.environ, {"PATH": str(self.bindir)}, clear=False):
             with contextlib.redirect_stderr(self.stderr):
                 yield
+
+    @contextlib.contextmanager
+    def inherited_stdin(self, text: str):
+        """Put readable text on file descriptor 0 for the duration of the block.
+
+        A child inherits descriptor 0, not `sys.stdin`, so this is the only way to
+        tell a deliberately closed standard input apart from one that merely
+        happened to be empty.
+        """
+        source = self.base / "inherited-stdin.txt"
+        source.write_text(text, encoding="utf-8")
+        try:
+            saved = os.dup(0)
+        except OSError as error:  # pragma: no cover - platform gate
+            self.skipTest(f"standard input cannot be redirected here: {error}")
+        try:
+            with source.open("rb") as handle:
+                os.dup2(handle.fileno(), 0)
+            yield
+        finally:
+            os.dup2(saved, 0)
+            os.close(saved)
 
     def worker_invocations(self) -> list[list[str]]:
         if not self.argv_log.exists():
@@ -501,6 +528,44 @@ class AttemptDirectoryTests(RunnerFixture):
         self.assert_no_worker_invocation()
         self.assertEqual(list(outside.iterdir()), [])
 
+    @unittest.skipUnless(hasattr(os, "symlink"), "symlinks are unavailable here")
+    def test_symlink_at_the_attempt_directory_itself_is_refused(self) -> None:
+        module = self.load()
+        self.write_grok()
+        outside = self.base / "outside-target"
+        outside.mkdir()
+        link = self.evidence / "attempt-link"
+        try:
+            link.symlink_to(outside, target_is_directory=True)
+        except (OSError, NotImplementedError) as error:  # pragma: no cover - gate
+            self.skipTest(f"symlink creation is unavailable: {error}")
+        code = self.invoke(module, self.options(module, attempt_dir=link))
+        self.assertEqual(code, 2)
+        self.assert_no_worker_invocation()
+        self.assertEqual(list(outside.iterdir()), [])
+        self.assertTrue(link.is_symlink(), "the link itself must be left in place")
+
+    def test_parent_traversal_out_of_the_evidence_tree_is_refused(self) -> None:
+        module = self.load()
+        self.write_grok()
+        escape = self.evidence / "attempt-1" / ".." / ".." / "escaped-attempt"
+        code = self.invoke(module, self.options(module, attempt_dir=escape))
+        self.assertEqual(code, 2)
+        self.assert_no_worker_invocation()
+        self.assertFalse((self.worktree / "escaped-attempt").exists())
+
+    def test_relative_attempt_directory_is_refused(self) -> None:
+        module = self.load()
+        self.write_grok()
+        relative = Path(".superpowers") / "attempt-relative"
+        self.assertFalse(relative.is_absolute())
+        # Resolved against the caller's working directory, which is not this
+        # worktree, so it lands outside the evidence tree and is rejected.
+        code = self.invoke(module, self.options(module, attempt_dir=relative))
+        self.assertEqual(code, 2)
+        self.assert_no_worker_invocation()
+        self.assertFalse((self.evidence / "attempt-relative").exists())
+
     def test_missing_attempt_parent_is_refused(self) -> None:
         module = self.load()
         self.write_grok()
@@ -732,6 +797,16 @@ class WorkerExecutionTests(RunnerFixture):
         self.assertEqual(metadata["state"], "interrupted")
         self.assertIsNone(metadata["exit_code"])
         self.assertIsNone(process.poll(), "runner must not kill the worker process tree")
+
+    def test_worker_standard_input_is_closed_rather_than_inherited(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_REPORT_STDIN)
+        with self.inherited_stdin("IMPLICIT APPROVAL\n"):
+            code = self.invoke(module, self.options(module))
+        self.assertEqual(code, 0)
+        # The worker must read end-of-file, not the controller's terminal: nothing
+        # waiting on descriptor 0 may be delivered to it as implicit approval.
+        self.assertEqual((self.attempt / "worker.jsonl").read_bytes(), b"STDIN:''\n")
 
     def test_no_environment_value_reaches_the_prompt_or_the_metadata(self) -> None:
         module = self.load()
