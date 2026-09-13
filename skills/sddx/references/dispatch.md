@@ -109,8 +109,18 @@ The runner writes six files there: `brief.md`, `dispatch.md`, `worker.jsonl`
 (raw stdout), `stderr.log`, `run.json`, and `report.md`, which the worker
 writes itself — the runner never writes the report. Grok receives the worker
 rules through `--rules` and Cursor receives them inline in the dispatch text;
-the controller does not compose either. Pass `--model` only for Cursor, and
-`--resume` only with a session ID the previous run actually reported.
+the controller does not compose either.
+
+`--model` and `--sandbox-profile` are each required for one backend and
+rejected for the other. Grok requires `--sandbox-profile <prepared-profile>`
+and rejects `--model`, because it selects its own model. Cursor requires
+`--model <confirmed-grok-id>` from the resolver's `model_ids` and rejects
+`--sandbox-profile`, because it uses its own sandbox mode.
+
+Pass `--resume` only with a session ID the previous run actually reported. If a
+fix round has no reported session ID — `Worker session: none` in the
+current-state block — use the SDD fallback: a fresh worker plus the previous
+attempt's `report.md` named in the brief. Never guess an ID.
 
 Do not pass `--worktree` to the provider CLI. Do not pass `--continue`. Do not
 copy host credentials or environment values into the brief or the dispatch.

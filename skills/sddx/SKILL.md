@@ -65,8 +65,8 @@ two different explicit choices, confirm which one to use.
   numbered options; wait for one answer.
 
 If only one backend is available, show that fact and the missing backend
-`reason`, then still confirm before proceeding. Do not auto-select the only
-CLI.
+`reason`, then still confirm before proceeding, unless this request already
+made an explicit choice. Do not auto-select the only CLI.
 
 Run `python3 "<skill-root>/scripts/resolve_backend.py" --backend <id> --json`
 from the loaded skill root. If `available` is false for the requested
