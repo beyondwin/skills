@@ -56,25 +56,35 @@ worker가 저장소의 공유 Git 메타데이터를 쓸 수 있음을 뜻합니
 
 ## 2.0.0 측정 상태
 
-이 표는 `2.0.0` 설치 파일만 다룹니다. 네 조합 가운데 실제 공급자를 호출한 것은
-하나도 없습니다. 이 버전의 검증은 오프라인 검사뿐입니다.
+이 표는 `2.0.0` 설치 파일만 다룹니다. 네 조합 가운데 제품 소유자 승인 아래 실제
+공급자를 호출한 것은 Claude Code × Cursor 한 조합뿐입니다. 측정 환경은 macOS
+26.6.2 arm64, `cursor-agent 2026.09.10-fd3934a`, 모델 `cursor-grok-4.6-high`이며
+worker 시도 세 번입니다. 나머지 세 조합은 여전히 `not_measured`이고, 측정한 한
+조합의 결과를 나머지로 넓히지 않습니다.
 
 | 오케스트레이터 호스트 | 구현 worker | `2.0.0` 실제 실행 | 근거 |
 | --- | --- | --- | --- |
-| Claude Code | Cursor CLI | `not_measured` | 이 버전으로 호출하지 않음 |
-| Claude Code | Grok CLI | `not_measured` | 이 버전으로 호출하지 않음 |
-| Codex | Cursor CLI | `not_measured` | 이 버전으로 호출하지 않음 |
-| Codex | Grok CLI | `not_measured` | 이 버전으로 호출하지 않음 |
+| Claude Code | Cursor CLI | `measured` | worker 시도 세 번이 각각 브리핑된 작업을 구현하고 브리프의 테스트를 실행하고 커밋한 뒤 `report.md`를 직접 규정 형식으로 씀 |
+| Claude Code | Grok CLI | `not_measured` | resolver는 실제 `grok 1.0.30`에 `available: true`를 돌려주지만 Grok worker는 한 번도 띄우지 않음 |
+| Codex | Cursor CLI | `not_measured` | Codex 호스트는 오프라인 검사와 탐지 probe만 실행했고 모델 실행 전에 멈춤 |
+| Codex | Grok CLI | `not_measured` | 위와 같음 |
 
-같은 기준으로 `not_measured`인 항목이 더 있습니다.
+항목별로도 측정한 것과 측정하지 않은 것을 나눠 적습니다. `measured` 줄은 위
+한 조합에서 관측한 사실이며 그 이상을 뜻하지 않습니다.
 
 | 항목 | `2.0.0` 상태 | 근거 |
 | --- | --- | --- |
-| 실제 Cursor 승인 동작 | `not_measured` | `--auto-review`·`--sandbox` 선언만 확인했고 실제 승인 흐름은 호출하지 않음 |
+| 실제 Cursor 승인 동작 | `measured` | resolver가 만든 argv(`--print --trust --auto-review --sandbox enabled`)로 파일 쓰기·테스트 실행·`git commit`을 포함한 도구 호출 22개가 stdin `DEVNULL`, 대화형 프롬프트 없이 실행됨. 스트림의 init 이벤트는 `permissionMode: "default"` |
+| 모델이 실제 적용한 effort | `measured` | `--effort high`와 `--model cursor-grok-4.6-high` 요청에 init 이벤트가 `"model": "Cursor Grok 4.6 High"`를 보고했고 `run.json`의 `configured_effort`는 `high` |
+| session ID 회수와 `--resume` | `measured` | 실제 스트림에서 회수한 `session_id`를 `--resume`으로 돌려주자 같은 `session_id`를 보고하는 시도가 돌아왔고 worker가 작업을 이어감 |
+| 실제 worker의 타임아웃 | `measured` | 실제 worker에 `--timeout 5`를 걸어 래퍼 exit 124, `state: timed_out`, `exit_code: 143`, `session_id` 기록을 확인했고 그 시도가 남긴 프로세스는 없음 |
+| 시도 생성 전 거절 | `measured` | effort와 모델 ID의 모순, 그리고 `--timeout inf`가 각각 시도 디렉터리가 만들어지기 전에 exit 2와 `BLOCKED:` 줄로 거절됨 |
 | 실제 Cursor OS 격리 | `not_measured` | `--sandbox enabled`는 선언 확인이며 실제 격리 범위를 측정하지 않음 |
+| Grok 스트림 형태 | `not_measured` | Grok worker를 실행하지 않았으므로 `streaming-messages-json` 스트림을 관측하지 못했고, `read_session_id`의 `session_id` 이외 키 철자는 확인되지 않음 |
+| Codex 호스트의 worker 실행 | `not_measured` | Codex 호스트는 오프라인 검사와 탐지 probe까지만 수행함 |
 | Claude Code agent 정의 로딩 | `not_measured` | `2.0.0` 파일로 `claude -p --agent sddx-reviewer-xhigh` 확인을 수행하지 않음 |
-| 모델이 실제 적용한 effort | `not_measured` | 요청·설정 effort만 기록하며 적용값을 확인할 경로가 없음 |
-| Windows argv 전송 | `not_measured` | `.cmd` 왕복 테스트는 `skipUnless(os.name == "nt")`이고 개발 macOS 체크아웃에서 skip됨 |
+| Windows 실행과 argv 전송 | `not_measured` | `.cmd` 왕복 테스트는 `skipUnless(os.name == "nt")`이고 개발 macOS 체크아웃에서 skip됨. skip은 통과가 아님 |
+| 새 세션 전환과 일반 역할 준수 | `not_measured` | 위 세 시도 밖의 역할 준수와 세션 전환은 관측하지 않음 |
 
 Windows 행은 저장소의 `windows-latest`/`windows-portable` CI 행에서 실제로
 실행됩니다. `sddx-contract`는 `WINDOWS_EXCLUDED_STAGES`

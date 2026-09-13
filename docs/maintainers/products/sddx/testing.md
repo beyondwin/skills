@@ -295,21 +295,25 @@ NotebookEdit를 이름으로 포함하는지 확인합니다. 이 검사는 필�
 | 오프라인 helper·argv 계약 검사 | 실행함 |
 | 지침 문구 검사 | 실행함 |
 | native 행동 probe | 이 버전에서 새로 실행하지 않음 |
-| 실제 공급자 실행 | 실행하지 않음 (`not_measured`) |
+| 실제 공급자 실행 | Claude Code × Cursor 한 조합만 실행함 (`measured`). 나머지 세 조합은 `not_measured` |
 
-이 버전에서는 공급자 호출과 라이브 모델 검증을 별도 승인 없이 수행하지 않았고
-승인도 없었습니다. 따라서 Claude Code·Codex와 Cursor·Grok의 네 조합은 모두
-실제 실행 `not_measured`입니다. 조합별 표와 그 밖의 미측정 항목은
-[호환성](compatibility.md)이 소유합니다.
+이 버전에서는 제품 소유자 승인 아래 Claude Code × Cursor 조합으로 실제 공급자를
+호출했습니다. macOS 26.6.2 arm64, `cursor-agent 2026.09.10-fd3934a`, 모델
+`cursor-grok-4.6-high`로 worker 시도 세 번을 실행했고, 승인 동작·적용 effort·
+session ID 회수와 `--resume`·실제 worker 타임아웃·시도 생성 전 거절을 관측했습니다.
+Grok worker, Codex 호스트의 worker 실행, Windows 실행은 실행하지 않았으므로
+`not_measured`로 남습니다. 관측한 한 조합의 결과를 나머지로 넓히지 않습니다.
+조합별 표와 항목별 측정 상태는 [호환성](compatibility.md)이 소유합니다.
 
 ### 실제 관측
 
-`tests/products/sddx/`의 discovery 검사(`sddx-contract`)는 212개 테스트에 skip
+`tests/products/sddx/`의 discovery 검사(`sddx-contract`)는 260개 테스트에 skip
 3개로 통과했습니다. skip 3개는 모두 실제 `cmd.exe`가 필요한 Windows 검사입니다.
 파일별로는 `test_contract` 24, `test_extract_task` 29,
-`test_prepare_grok_sandbox` 22, `test_resolve_backend` 51(skip 2),
-`test_run_worker` 55(skip 1), `test_worker_status` 31입니다. 이전 기록의 45개
-SDDx 테스트는 Task 1–4의 새 파일이 discovery에 들어오기 전 숫자입니다.
+`test_prepare_grok_sandbox` 22, `test_resolve_backend` 62(skip 2),
+`test_run_worker` 89(skip 1), `test_worker_status` 34입니다. 이전 기록의 45개
+SDDx 테스트는 Task 1–4의 새 파일이 discovery에 들어오기 전 숫자이고, 212개는 이
+버전의 session ID 회수와 시도 타임아웃 작업이 들어오기 전 숫자입니다.
 
 `verify.py`가 출력한 `python-compile` 단계 인자에 `skills/sddx/scripts`가
 들어 있으므로 `extract_task.py`, `run_worker.py`, `resolve_backend.py`,
@@ -340,6 +344,6 @@ Step 3의 네 명령은 최종 상태에서 모두 exit 0입니다.
 `repository-contract` 361, `korean-package` 9, `korean-offline`,
 `korean-live-unit` 244, `korean-live-dry-run`, `image-contract`,
 `image-inspector` 48, `how-it-works-contract` 56, `pre-sdd-review-contract` 54,
-`pre-sdd-review-evidence` 61, `sddx-contract` 212(skip 3), `python-compile`.
+`pre-sdd-review-evidence` 61, `sddx-contract` 260(skip 3), `python-compile`.
 새 버전에서 다른 제품 단계가 모두 통과하므로 이 버전 변경이 다른 제품을 건드리지
 않았음을 확인합니다. 오프라인 단계가 모두 통과해도 실제 공급자 실행 증거는 아닙니다.

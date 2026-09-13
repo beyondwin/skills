@@ -1,7 +1,9 @@
 """Launch one sddx worker attempt and preserve the evidence it will be judged on.
 
 This is not an orchestrator. It has no scheduler, no retry, no backend failover,
-no provider-event parsing, and no process-tree management. It never decides
+and no process-tree management. The one provider event it reads is the session
+ID the worker reports in its own stream; no other event is parsed and no log
+body is interpreted anywhere here. It never decides
 whether a task succeeded: a process exit of 0 is not task completion, and the
 files written here prove only what was handed to the CLI, never that OS
 isolation held or that the model obeyed its instructions.

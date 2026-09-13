@@ -160,9 +160,13 @@ process state, not task state; process exit 0 is not a clean DONE.
 The wrapper exit follows the worker's exit. A POSIX signal returns
 `128 + signal` while `run.json.exit_code` keeps the real negative returncode.
 A launch failure is 2, a handled controller interrupt is 130, and an attempt
-ended by its own timeout is 124. A handled interrupt signals nothing at all: it
-records the exit it recovered, which may be none, and leaves the worker and
-everything under it running for you to confirm. Exit 2 is ambiguous between a
+ended by its own timeout is 124. A handled interrupt records the exit it
+recovered, which may be none, and `run.json` does not say which of two routes
+reached that record: an interrupt while the runner was only waiting signals
+nothing at all and leaves the worker running, while an interrupt during a
+timeout's own SIGTERM and SIGKILL arrives after the worker has been signalled
+and is probably dead. Confirm the worker and anything it started have exited
+yourself either way, before Grok cleanup. Exit 2 is ambiguous between a
 launch failure and a worker that legitimately exited 2, so read
 `run.json.state` to tell them apart; if the attempt directory is absent, or
 present without `run.json`, the launch was refused before the attempt was
