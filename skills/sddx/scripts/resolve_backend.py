@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -12,27 +13,149 @@ from typing import Any
 
 ALIASES = {"c": "cursor", "g": "grok", "cursor": "cursor", "grok": "grok"}
 
+GROK_OUTPUT_FORMAT = "streaming-messages-json"
+CURSOR_OUTPUT_FORMAT = "stream-json"
+CURSOR_SANDBOX_MODE = "enabled"
+
+# A help entry counts as declared only when the token stands on its own. Plain
+# substring tests confuse `-p` with `--prompt-file` and `--model` with `--models`.
+_TOKEN_BOUNDARY = r"(?<![\w-]){token}(?![\w-])"
+
+# A subcommand listing indents the command name and separates the description by
+# a column gap. Prose such as "  models are listed below" keeps a single space and
+# is therefore never taken as a declaration.
+_SUBCOMMAND_LINE = re.compile(r"^\s+(?P<name>[A-Za-z][\w-]*)(?:\s{2,}\S.*)?\s*$")
+
+# Model identifiers are bare tokens; anything with a space or other punctuation is
+# prose from the CLI's own banner and is not a usable `--model` value.
+_MODEL_ID = re.compile(r"grok[0-9A-Za-z._-]*")
+
+_UNTRANSPORTABLE = ("\n", "\r", "\x00")
+
+
+def _quote_for_cmd(argument: str) -> str:
+    """Quote one argument so `cmd.exe` and the child's CRT both read it back whole.
+
+    A `.cmd`/`.bat` wrapper is parsed twice: once by `cmd.exe` for the `/c` command
+    line and once by the batch file when it forwards `%*`. Only double quotes are
+    inert across both layers, so every argument is quoted unconditionally and an
+    embedded quote is doubled (`""`) rather than backslash-escaped: doubling keeps
+    the quote count balanced, which keeps `& | < > ^ ( )` inside a quoted region at
+    both layers, and the CRT argv parser reads `""` inside quotes as one literal
+    quote. Backslashes that run into a quote are doubled because the CRT treats a
+    backslash run before a quote as an escape. `subprocess.list2cmdline` handles
+    only the CRT layer, which is why it is not enough here.
+
+    Known limit: `%NAME%` for a variable that is actually defined is expanded by
+    `cmd.exe` and cannot be escaped inside quotes. Undefined names survive as
+    literal text. sddx passes flags, paths and model ids here and routes free text
+    through `--prompt-file`, so this does not reach worker prompts.
+    """
+    for forbidden in _UNTRANSPORTABLE:
+        if forbidden in argument:
+            raise ValueError(f"argument cannot cross a cmd.exe wrapper: {argument!r}")
+    quoted = ['"']
+    backslashes = 0
+    for char in argument:
+        if char == "\\":
+            backslashes += 1
+            continue
+        if char == '"':
+            quoted.append("\\" * (backslashes * 2))
+            quoted.append('""')
+        else:
+            quoted.append("\\" * backslashes)
+            quoted.append(char)
+        backslashes = 0
+    quoted.append("\\" * (backslashes * 2))
+    quoted.append('"')
+    return "".join(quoted)
+
+
+def _is_cmd_wrapper(executable: str) -> bool:
+    return os.name == "nt" and os.path.splitext(executable)[1].lower() in {".cmd", ".bat"}
+
 
 def _command(executable: str, arguments: list[str]) -> list[str]:
     command = [executable, *arguments]
-    if os.name == "nt" and os.path.splitext(executable)[1].lower() in {".cmd", ".bat"}:
+    if _is_cmd_wrapper(executable):
         comspec = os.environ.get("ComSpec") or "cmd.exe"
-        return [comspec, "/d", "/s", "/c", subprocess.list2cmdline(command)]
+        # `/s` strips the outermost quote pair, so wrap the whole line in one more.
+        line = " ".join(_quote_for_cmd(part) for part in command)
+        return [comspec, "/d", "/s", "/c", f'"{line}"']
     return command
 
 
-def _run(executable: str, arguments: list[str], timeout: float = 5.0) -> str:
+def _subprocess_args(executable: str, arguments: list[str]) -> list[str] | str:
+    """What to hand `subprocess`; use this rather than `_command` to launch.
+
+    On Windows `subprocess` joins a list with `list2cmdline`, which escapes every
+    `"` as `\\"`. `cmd.exe` does not unescape backslashes, so a line already escaped
+    for `cmd.exe` must reach `subprocess` as a string or the wrapper is mangled.
+    """
+    command = _command(executable, arguments)
+    if _is_cmd_wrapper(executable):
+        return f"{subprocess.list2cmdline(command[:4])} {command[4]}"
+    return command
+
+
+def _probe(
+    executable: str, arguments: list[str], timeout: float = 5.0
+) -> subprocess.CompletedProcess[str] | None:
     try:
-        completed = subprocess.run(
-            _command(executable, arguments),
+        return subprocess.run(
+            _subprocess_args(executable, arguments),
             check=False,
             capture_output=True,
             text=True,
             timeout=timeout,
         )
     except (OSError, subprocess.TimeoutExpired):
+        return None
+
+
+def _run(executable: str, arguments: list[str], timeout: float = 5.0) -> str:
+    # `_run` is total by contract: it reports failure as an empty string and never
+    # raises. `_probe` deliberately lets an untransportable argument surface, so that
+    # one failure mode is absorbed here rather than in `_probe`.
+    try:
+        completed = _probe(executable, arguments, timeout)
+    except ValueError:
+        return ""
+    if completed is None:
         return ""
     return f"{completed.stdout or ''}\n{completed.stderr or ''}"
+
+
+def _declares(help_text: str, token: str) -> bool:
+    return re.search(_TOKEN_BOUNDARY.format(token=re.escape(token)), help_text) is not None
+
+
+def _declares_subcommand(help_text: str, name: str) -> bool:
+    for line in help_text.splitlines():
+        match = _SUBCOMMAND_LINE.match(line)
+        if match is not None and match.group("name") == name:
+            return True
+    return False
+
+
+def model_list_commands(help_text: str) -> list[list[str]]:
+    """Read-only model listing commands the CLI declares, in probe order."""
+    commands: list[list[str]] = []
+    if _declares_subcommand(help_text, "models"):
+        commands.append(["models"])
+    if _declares(help_text, "--list-models"):
+        commands.append(["--list-models"])
+    return commands
+
+
+def parse_model_ids(text: str) -> list[str]:
+    model_ids: list[str] = []
+    for line in text.splitlines():
+        candidate = line.strip()
+        if _MODEL_ID.fullmatch(candidate) and candidate not in model_ids:
+            model_ids.append(candidate)
+    return model_ids
 
 
 def _is_grok_identity(text: str) -> bool:
@@ -49,30 +172,60 @@ def _is_cursor_identity(text: str) -> bool:
     return "cursor-agent" in blob or "cursor agent" in blob or "cursor cli" in blob
 
 
+def _grok_prompt_flag(help_text: str) -> str | None:
+    for flag in ("--prompt-file", "--single", "-p"):
+        if _declares(help_text, flag):
+            return flag
+    return None
+
+
+def _grok_effort_flag(help_text: str) -> str | None:
+    for flag in ("--reasoning-effort", "--effort"):
+        if _declares(help_text, flag):
+            return flag
+    return None
+
+
 def _grok_flags_ok(help_text: str) -> bool:
-    required_execution_flags = ("--sandbox", "--rules", "--disable-web-search")
-    has_execution_flags = all(flag in help_text for flag in required_execution_flags)
+    required = (
+        "--sandbox",
+        "--rules",
+        "--disable-web-search",
+        "--cwd",
+        "--no-plan",
+        "--no-subagents",
+        "--always-approve",
+        "--resume",
+    )
     return (
-        has_execution_flags
-        and "--cwd" in help_text
-        and "--no-plan" in help_text
-        and "--no-subagents" in help_text
-        and "--always-approve" in help_text
-        and ("--reasoning-effort" in help_text or "--effort" in help_text)
-        and ("--single" in help_text or "-p" in help_text)
-        and "--resume" in help_text
+        all(_declares(help_text, flag) for flag in required)
+        and _grok_effort_flag(help_text) is not None
+        and _grok_prompt_flag(help_text) is not None
+        and _declares(help_text, GROK_OUTPUT_FORMAT)
     )
 
 
 def _cursor_flags_ok(help_text: str) -> bool:
     return (
-        ("--print" in help_text or "-p" in help_text)
-        and ("--force" in help_text or "--yolo" in help_text)
-        and "--trust" in help_text
-        and ("--workspace" in help_text or "--cwd" in help_text)
-        and "--model" in help_text
-        and "--resume" in help_text
+        (_declares(help_text, "--print") or _declares(help_text, "-p"))
+        and _declares(help_text, "--trust")
+        and _declares(help_text, "--auto-review")
+        and _declares(help_text, "--sandbox")
+        and (_declares(help_text, "--workspace") or _declares(help_text, "--cwd"))
+        and _declares(help_text, "--model")
+        and _declares(help_text, "--resume")
+        and _declares(help_text, CURSOR_OUTPUT_FORMAT)
     )
+
+
+def _cursor_model_ids(executable: str, help_text: str) -> list[str]:
+    for arguments in model_list_commands(help_text):
+        probe = _probe(executable, arguments)
+        if probe is not None and probe.returncode == 0:
+            model_ids = parse_model_ids(probe.stdout)
+            if model_ids:
+                return model_ids
+    return []
 
 
 def _unavailable(backend: str, reason: str) -> dict[str, Any]:
@@ -83,10 +236,19 @@ def _unavailable(backend: str, reason: str) -> dict[str, Any]:
         "identity": None,
         "argv_prefix": None,
         "reason": reason,
+        "launch": None,
+        "model_ids": [],
     }
 
 
-def _available(backend: str, executable: str, identity: str, argv: list[str]) -> dict[str, Any]:
+def _available(
+    backend: str,
+    executable: str,
+    identity: str,
+    argv: list[str],
+    launch: dict[str, Any],
+    model_ids: list[str],
+) -> dict[str, Any]:
     line = identity.strip().splitlines()[0] if identity.strip() else identity
     return {
         "backend": backend,
@@ -95,6 +257,8 @@ def _available(backend: str, executable: str, identity: str, argv: list[str]) ->
         "identity": line,
         "argv_prefix": argv,
         "reason": None,
+        "launch": launch,
+        "model_ids": model_ids,
     }
 
 
@@ -121,7 +285,14 @@ def resolve(backend_arg: str) -> dict[str, Any]:
             "--sandbox",
             "workspace",
         ]
-        return _available(backend, executable, identity, argv)
+        launch = {
+            "cwd_flag": "--cwd",
+            "prompt_flag": _grok_prompt_flag(help_text),
+            "effort_flag": _grok_effort_flag(help_text),
+            "output_format": GROK_OUTPUT_FORMAT,
+        }
+        # The Grok CLI selects its own model; `model_ids` exists for Cursor.
+        return _available(backend, executable, identity, argv, launch, [])
 
     executable = shutil.which("cursor-agent")
     if executable is None:
@@ -139,13 +310,19 @@ def resolve(backend_arg: str) -> dict[str, Any]:
         return _unavailable(backend, "identity_mismatch")
     if not _cursor_flags_ok(help_text):
         return _unavailable(backend, "missing_flags")
-    models = _run(executable, ["models"]) + _run(executable, ["--list-models"])
-    if "grok" not in models.lower():
+    model_ids = _cursor_model_ids(executable, help_text)
+    if not model_ids:
         return _unavailable(backend, "no_grok_model")
-    force = "--force" if "--force" in help_text else "--yolo"
-    print_flag = "--print" if "--print" in help_text else "-p"
-    argv = [executable, print_flag, force, "--trust"]
-    return _available(backend, executable, identity, argv)
+    print_flag = "--print" if _declares(help_text, "--print") else "-p"
+    cwd_flag = "--workspace" if _declares(help_text, "--workspace") else "--cwd"
+    argv = [executable, print_flag, "--trust", "--auto-review", "--sandbox", CURSOR_SANDBOX_MODE]
+    launch = {
+        "cwd_flag": cwd_flag,
+        "prompt_flag": None,
+        "effort_flag": None,
+        "output_format": CURSOR_OUTPUT_FORMAT,
+    }
+    return _available(backend, executable, identity, argv, launch, model_ids)
 
 
 def main(argv: list[str] | None = None) -> int:
