@@ -27,14 +27,18 @@ _TOKEN_BOUNDARY = r"(?<![\w-]){token}(?![\w-])"
 _SUBCOMMAND_LINE = re.compile(r"^\s+(?P<name>[A-Za-z][\w-]*)(?:\s{2,}\S.*)?\s*$")
 
 # A model identifier is a bare token: it starts alphanumeric and then holds only
-# letters, digits, `.`, `_` and `-`. Anything with a space, quote, bracket, comma or
-# `=` is prose from the CLI's own banner and is not a usable `--model` value. The
-# leading character class is mandatory so that an empty candidate (a blank line) can
-# never match.
+# letters, digits, `.`, `_` and `-`. Anything carrying a space, quote, bracket, comma
+# or `=` is prose from the CLI's own banner and is not a usable `--model` value. The
+# leading character class is what refuses `-grok-4`, `.grok-4` and `_grok-4`: an
+# identifier starting with `-` would be read as an option rather than a value by the
+# CLI it is handed to, and `.`/`_` starts are listing decoration, not identifiers.
 _MODEL_ID = re.compile(r"[0-9A-Za-z][0-9A-Za-z._-]*")
 
-# A model listing prints `<id> - <Description>`; some CLIs print the id alone.
-_ID_DESCRIPTION_SEPARATOR = " - "
+# A listing separates the ID from its description either by ` - ` or by a column gap.
+# `_SUBCOMMAND_LINE` above already reads the CLI's other listing that way, so the two
+# rules agree. A tab is a column gap on its own; spaces need a run of two, because a
+# single space is how prose joins words.
+_COLUMN_SEPARATOR = re.compile(r" - |\t|\s{2,}")
 
 _UNTRANSPORTABLE = ("\n", "\r", "\x00")
 
@@ -182,27 +186,29 @@ def model_list_commands(help_text: str) -> list[list[str]]:
 def parse_model_ids(text: str) -> list[str]:
     """Grok model IDs a listing actually printed, in source order, without duplicates.
 
-    The rule reads the ID column and nothing else. A listing line is either
-    `<id> - <Description>` or a bare `<id>`, so the candidate is whatever precedes the
-    first ` - ` separator, or the whole stripped line when there is no separator. The
-    candidate is adopted only when it is a single bare token of model-id shape
-    (`_MODEL_ID`) that contains `grok`; the ID is returned exactly as printed and is
-    never synthesised, mutated or given an effort suffix.
+    The rule reads the ID column and nothing else. A listing line is `<id>` alone, or
+    `<id>` followed by a description behind a column separator — ` - `, a tab, or a run
+    of two or more whitespace characters, whichever occurs first. The candidate is
+    everything before that separator, or the whole stripped line when the line holds
+    none; whitespace next to the separator belongs to the gap, so a padded
+    `id  - description` still yields `id`. The candidate is adopted only when it is a
+    single bare token of model-id shape (`_MODEL_ID`) that contains `grok`. The ID is
+    returned exactly as printed — never synthesised, mutated or given an effort suffix;
+    only the containment test is case-insensitive, so an ID printed as
+    `cursor-Grok-4.6-high` is adopted and returned with its capitals intact.
 
-    Deciding on the ID column rather than searching the line is what rejects a
-    description: `composer-2.5 - Grok-like reasoning` mentions grok only after the
-    separator, and the description is never looked at, so it yields no candidate. Prose
-    and banners (`Available models`, `Available models include grok and others`, the
-    `Tip: use --model ...` paragraph) fail the single-token test — they carry spaces,
-    and the tip's `claude-opus-4-8[context=1m,effort=high,fast=false]` also carries
-    brackets, quotes, commas and `=`, none of which `_MODEL_ID` admits. Matching is
-    case-insensitive on the `grok` substring only, mirroring `_is_grok_identity`; the
-    returned text is untouched.
+    Deciding on the ID column is what rejects a description: `composer-2.5 - Grok-like
+    reasoning` and its column-gap twin mention grok only after the separator, which is
+    never examined, so neither yields a candidate. Prose and banners (`Available
+    models`, `Available models include grok and others`, the `Tip: use --model ...`
+    paragraph) carry no separator at all — single spaces join their words — so the whole
+    line becomes the candidate and fails the single-token test on those spaces.
     """
     model_ids: list[str] = []
     for line in text.splitlines():
-        head, separator, _ = line.strip().partition(_ID_DESCRIPTION_SEPARATOR)
-        candidate = head.strip() if separator else line.strip()
+        stripped = line.strip()
+        separator = _COLUMN_SEPARATOR.search(stripped)
+        candidate = stripped[: separator.start()] if separator is not None else stripped
         if not _MODEL_ID.fullmatch(candidate):
             continue
         if "grok" not in candidate.lower() or candidate in model_ids:

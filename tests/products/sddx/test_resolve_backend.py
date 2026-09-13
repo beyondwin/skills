@@ -503,7 +503,9 @@ class ResolveBackendTests(unittest.TestCase):
         )
         self.assertEqual(module.model_list_commands(CURSOR_HELP_WITHOUT_MODEL_LIST), [])
 
-    def test_parse_model_ids_reads_the_id_column_only(self) -> None:
+    def test_parse_model_ids_keeps_the_bare_token_fixtures(self) -> None:
+        # None of these inputs carries a column separator, so every line is judged
+        # whole. This is the plan's original listing shape and it must keep working.
         module = self._load()
         self.assertEqual(module.parse_model_ids(CURSOR_MODELS), ["grok-4"])
         self.assertEqual(module.parse_model_ids(NO_GROK_MODELS), [])
@@ -528,6 +530,71 @@ class ResolveBackendTests(unittest.TestCase):
         ):
             with self.subTest(text=text):
                 self.assertEqual(module.parse_model_ids(text), expected)
+
+    def test_parse_model_ids_accepts_a_whitespace_column_gap(self) -> None:
+        # A listing may separate the columns by alignment rather than by ` - `.
+        # Catches: narrowing the separator back to ` - ` alone (either alternative
+        # removed leaves one of these lines unparsed and the backend unusable).
+        module = self._load()
+        for label, text, expected in (
+            ("aligned spaces", "cursor-grok-4.6-high    Cursor Grok 4.6\n", ["cursor-grok-4.6-high"]),
+            ("single tab", "cursor-grok-4.6-low\tCursor Grok 4.6 Low\n", ["cursor-grok-4.6-low"]),
+            ("tab run", "grok-4\t\tGrok 4\n", ["grok-4"]),
+            # Whitespace before a ` - ` is part of the column gap, not part of the ID.
+            ("padded dash", "cursor-grok-4.6-high  - Cursor Grok 4.6\n", ["cursor-grok-4.6-high"]),
+            ("tab then dash", "cursor-grok-4.6-xhigh\t - Cursor Grok 4.6 XHigh\n",
+             ["cursor-grok-4.6-xhigh"]),
+        ):
+            with self.subTest(gap=label):
+                self.assertEqual(module.parse_model_ids(text), expected)
+        self.assertEqual(
+            module.parse_model_ids(
+                "Available models\n"
+                "\n"
+                "auto            Auto (default)\n"
+                "cursor-grok-9.1-high-fast   Cursor Grok 9.1 Fast\n"
+                "composer-2.5    Grok-like reasoning\n"
+                "cursor-grok-9.1-low         Cursor Grok 9.1 Low\n"
+            ),
+            ["cursor-grok-9.1-high-fast", "cursor-grok-9.1-low"],
+        )
+
+    def test_parse_model_ids_ignores_a_description_behind_a_whitespace_gap(self) -> None:
+        # The widened separator must not widen what is read: the description is still
+        # never examined. Catches: testing the whole line for `grok` instead of the ID
+        # column, which the column-gap shape would otherwise make easy to slip in.
+        module = self._load()
+        for label, text in (
+            ("aligned spaces", "composer-2.5    Grok-like reasoning\n"),
+            ("single tab", "composer-2.5\tGrok-like reasoning\n"),
+            ("grok late in the description", "auto      Auto, unlike grok models\n"),
+        ):
+            with self.subTest(rejects=label):
+                self.assertEqual(module.parse_model_ids(text), [])
+
+    def test_parse_model_ids_rejects_option_shaped_candidates(self) -> None:
+        # `_MODEL_ID` must start alphanumeric: an ID beginning with `-` would be read
+        # as an option rather than a value by the CLI it is handed to, and `.`/`_`
+        # starts are listing decoration, not identifiers. Catches: dropping the
+        # mandatory leading character class from `_MODEL_ID`.
+        module = self._load()
+        for candidate in ("-grok-4", ".grok-4", "_grok-4", "--grok-4"):
+            with self.subTest(rejects=candidate):
+                self.assertEqual(module.parse_model_ids(f"{candidate} - Grok 4\n"), [])
+                self.assertEqual(module.parse_model_ids(f"{candidate}\n"), [])
+        # The same line without the leading punctuation is accepted, so the rejection
+        # above is the leading class and nothing else.
+        self.assertEqual(module.parse_model_ids("grok-4 - Grok 4\n"), ["grok-4"])
+
+    def test_parse_model_ids_matches_grok_case_insensitively_and_keeps_the_text(self) -> None:
+        # Catches: deleting `.lower()` from the containment test, and any mutation that
+        # stores a case-folded copy instead of the ID the CLI printed.
+        module = self._load()
+        self.assertEqual(
+            module.parse_model_ids("cursor-Grok-4.6-high - Cursor Grok 4.6\n"),
+            ["cursor-Grok-4.6-high"],
+        )
+        self.assertEqual(module.parse_model_ids("GROK-4\n"), ["GROK-4"])
 
     def test_parse_model_ids_rejects_descriptions_headers_and_prose(self) -> None:
         module = self._load()
