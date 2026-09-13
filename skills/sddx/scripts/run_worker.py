@@ -6,6 +6,10 @@ whether a task succeeded: a process exit of 0 is not task completion, and the
 files written here prove only what was handed to the CLI, never that OS
 isolation held or that the model obeyed its instructions.
 
+The `status` subcommand is the read-only half of the same file: it reports what
+an attempt directory holds and, on request, one explicitly bounded byte window of
+a raw log. It launches nothing, writes nothing, and interprets nothing.
+
 The controller prepares the Grok sandbox profile before calling this runner and
 cleans it up afterwards, once it has confirmed the worker and anything it
 started have exited. The runner neither prepares nor cleans up, and it does not
@@ -15,6 +19,7 @@ guarantee process-tree exit.
 from __future__ import annotations
 
 import argparse
+import codecs
 import contextlib
 import hashlib
 import json
@@ -45,6 +50,14 @@ STDOUT_NAME = "worker.jsonl"
 STDERR_NAME = "stderr.log"
 METADATA_NAME = "run.json"
 REPORT_NAME = "report.md"
+
+# The reading bounds from the design spec's R4. A window is a byte range, not a
+# line, a JSON event, or a call/result pair: nothing here promises that a preview
+# contains anything whole except the characters it decoded.
+STREAM_FILES = {"stdout": STDOUT_NAME, "stderr": STDERR_NAME}
+DEFAULT_WINDOW_BYTES = 2048
+MAX_WINDOW_BYTES = 8192
+MAX_RESPONSE_BYTES = 64 * 1024
 
 # The reading boundary from the design spec's R4, repeated in every dispatch so a
 # resumed attempt carries it too.
@@ -341,6 +354,169 @@ def run_worker(options: RunOptions) -> int:
     return code if code >= 0 else 128 - code
 
 
+def _log_size(path: Path) -> int:
+    """The current byte size of a log, or 0 when the runner never created it."""
+    try:
+        return path.stat().st_size
+    except FileNotFoundError:
+        return 0
+
+
+def read_metadata(path: Path) -> dict[str, Any] | None:
+    """The attempt record, or `None` when the runner never wrote one.
+
+    An absent `run.json` is reported as absent rather than as a failure: an
+    interrupted runner is exactly when the controller most needs the raw
+    evidence. A record that exists but cannot be read honestly is an error,
+    because reporting its contents would be a guess.
+    """
+    try:
+        text = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return None
+    except UnicodeDecodeError as error:
+        raise ValueError(f"{METADATA_NAME} is not UTF-8 text") from error
+    try:
+        value = json.loads(text)
+    except json.JSONDecodeError as error:
+        raise ValueError(f"{METADATA_NAME} is not readable JSON") from error
+    if not isinstance(value, dict):
+        raise ValueError(f"{METADATA_NAME} must hold a JSON object")
+    if value.get("schema_version") != SCHEMA_VERSION:
+        raise ValueError(f"{METADATA_NAME} schema_version must be {SCHEMA_VERSION}")
+    return value
+
+
+def read_window(path: Path, stream: str, offset: int, max_bytes: int) -> dict[str, Any]:
+    """One bounded byte window of a growing log, read without consuming a partial character.
+
+    The size comes from the same handle the bytes come from, so both describe one
+    view of a file that may still be growing. This call's end of file is not the
+    end of the input: an incomplete UTF-8 suffix is reported through
+    `pending_bytes` and left where it is, so the next call can read that
+    character whole once the rest of it lands.
+    """
+    try:
+        handle = path.open("rb")
+    except FileNotFoundError as error:
+        raise ValueError(f"{path.name} does not exist in this attempt directory") from error
+    with handle:
+        size = os.fstat(handle.fileno()).st_size
+        if offset > size:
+            raise ValueError(f"offset is past the {size} byte end of {path.name}")
+        handle.seek(offset)
+        chunk = handle.read(min(max_bytes, size - offset))
+
+    decoder = codecs.getincrementaldecoder("utf-8")("replace")
+    preview = decoder.decode(chunk, final=False)
+    pending, _ = decoder.getstate()
+    consumed = len(chunk) - len(pending)
+    next_offset = offset + consumed
+    if consumed == 0 and pending and offset + len(chunk) < size:
+        # Bytes already follow this window, so the character is not merely
+        # unfinished: the window is too small to hold it. Reporting it as a wait
+        # would stall a caller on a file that has nothing left to deliver.
+        raise ValueError(
+            f"max_bytes {max_bytes} is too small to decode a character at offset {offset}"
+        )
+
+    decode_errors = False
+    if consumed:
+        try:
+            chunk[:consumed].decode("utf-8")
+        except UnicodeDecodeError:
+            # The invalid bytes stay on disk exactly as written; only this
+            # preview shows them replaced.
+            decode_errors = True
+
+    return {
+        "stream": stream,
+        "offset": offset,
+        "next_offset": next_offset,
+        "size": size,
+        "preview": preview,
+        "has_more": next_offset < size,
+        "decode_errors": decode_errors,
+        "pending_bytes": len(pending),
+    }
+
+
+def read_status(
+    attempt_dir: Path,
+    *,
+    stream: str | None = None,
+    offset: int = 0,
+    max_bytes: int = DEFAULT_WINDOW_BYTES,
+) -> dict[str, Any]:
+    """Read-only facts about one attempt, plus one bounded log window on request.
+
+    Nothing here launches, writes, retries, or checks a billing state, and
+    nothing here interprets a log: a provider event's `type`, a `DONE` in the
+    text, and a `402` in the text are bytes at an offset and nothing more. The
+    default payload never carries a log body, because a controller asking how an
+    attempt is doing must not pay for the transcript to find out.
+    """
+    if stream is not None and stream not in STREAM_FILES:
+        raise ValueError(f"stream must be one of {sorted(STREAM_FILES)}")
+    if offset < 0:
+        raise ValueError("offset must not be negative")
+    if not 1 <= max_bytes <= MAX_WINDOW_BYTES:
+        raise ValueError(f"max_bytes must be between 1 and {MAX_WINDOW_BYTES}")
+
+    # Resolved against the caller's working directory: unlike `run`, a query is
+    # not confined to a worktree, because the controller names the directory it
+    # already owns.
+    attempt = Path(os.path.abspath(attempt_dir))
+    if not attempt.is_dir():
+        raise ValueError("attempt directory does not exist")
+
+    payload: dict[str, Any] = {
+        "attempt_dir": str(attempt),
+        "metadata": read_metadata(attempt / METADATA_NAME),
+        "stdout_bytes": _log_size(attempt / STDOUT_NAME),
+        "stderr_bytes": _log_size(attempt / STDERR_NAME),
+        "report_exists": (attempt / REPORT_NAME).is_file(),
+    }
+    if stream is None:
+        return payload
+
+    window = read_window(attempt / STREAM_FILES[stream], stream, offset, max_bytes)
+    # The streamed log's reported size is the one the window was cut from, so the
+    # two cannot disagree about a file that grew between two stat calls.
+    payload[f"{stream}_bytes"] = window["size"]
+    payload.update(window)
+    return payload
+
+
+def render_status(payload: dict[str, Any]) -> str:
+    """Serialize a status payload, refusing to answer over the response limit.
+
+    An over-limit answer is an error, never a quiet truncation: a controller that
+    received a trimmed preview would take it for the whole window and advance
+    past bytes it never saw.
+    """
+    document = json.dumps(payload, ensure_ascii=False, indent=2)
+    measured = len(document.encode("utf-8"))
+    if measured > MAX_RESPONSE_BYTES:
+        raise ValueError(
+            f"the response is {measured} bytes, over the {MAX_RESPONSE_BYTES} byte limit; "
+            "ask for a smaller --max-bytes"
+        )
+    return document
+
+
+def status_command(attempt_dir: Path, stream: str | None, offset: int, max_bytes: int) -> int:
+    """Print one status document, or report an input error as exit 2."""
+    try:
+        document = render_status(
+            read_status(attempt_dir, stream=stream, offset=offset, max_bytes=max_bytes)
+        )
+    except (OSError, ValueError) as error:
+        return _blocked(str(error))
+    print(document)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="run_worker.py", description=__doc__)
     subcommands = parser.add_subparsers(dest="command", required=True)
@@ -353,11 +529,20 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--model")
     run.add_argument("--resume", dest="resume_id")
     run.add_argument("--sandbox-profile")
+    status = subcommands.add_parser(
+        "status", help="report attempt facts and, on request, one bounded log window"
+    )
+    status.add_argument("--attempt-dir", required=True, type=Path)
+    status.add_argument("--stream", help="stdout or stderr; omit for facts and sizes only")
+    status.add_argument("--offset", type=int, default=0)
+    status.add_argument("--max-bytes", type=int, default=DEFAULT_WINDOW_BYTES)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.command == "status":
+        return status_command(args.attempt_dir, args.stream, args.offset, args.max_bytes)
     options = RunOptions(
         backend=args.backend,
         worktree=args.worktree,
