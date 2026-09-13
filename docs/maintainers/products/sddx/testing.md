@@ -311,13 +311,35 @@ NotebookEdit를 이름으로 포함하는지 확인합니다. 이 검사는 필�
 `test_run_worker` 55(skip 1), `test_worker_status` 31입니다. 이전 기록의 45개
 SDDx 테스트는 Task 1–4의 새 파일이 discovery에 들어오기 전 숫자입니다.
 
-`python-compile` 대상 경로에는 `skills/sddx/scripts`가 포함되므로
-`extract_task.py`, `run_worker.py`, `resolve_backend.py`,
-`prepare_grok_sandbox.py`가 모두 컴파일됩니다.
+`verify.py`가 출력한 `python-compile` 단계 인자에 `skills/sddx/scripts`가
+들어 있으므로 `extract_task.py`, `run_worker.py`, `resolve_backend.py`,
+`prepare_grok_sandbox.py`가 모두 이 단계에서 컴파일됩니다.
 
-`product-contract` 단계는 이 버전에서 실패합니다.
+`product-contract` 단계는 통과합니다. 작업 도중에는
 `tests/repository/test_release_contract.py`의 `EXPECTED` 표가 sddx를 이전 버전
 문자열로 고정하고 있어 `test_each_product_owns_an_independent_release_manifest`가
-`release.toml`의 새 버전과 불일치합니다. 이 태스크의 수정 범위에 해당 테스트가
-없으므로 우회하지 않고 실패로 기록합니다. 저장소 쪽에서 그 표를 새 버전으로
-갱신해야 `verify.py`의 product/전체 단계가 다시 통과합니다.
+`release.toml`의 새 버전과 어긋났습니다. 이 변경에서 그 표의 sddx 행 하나를 새
+버전으로 갱신했고 다른 제품 행은 건드리지 않았습니다. 갱신 뒤 `product-contract`는
+24개 테스트로 통과합니다. 제품 버전을 올릴 때는 이 표의 해당 행도 같은 변경에
+포함해야 합니다.
+
+Step 3의 네 명령은 최종 상태에서 모두 exit 0입니다.
+
+| 명령 | exit |
+| --- | --- |
+| `python3 scripts/verify.py --skill sddx` | 0 |
+| `python3 scripts/verify.py` | 0 |
+| `python3 scripts/release.py check --product sddx` | 0 |
+| `git diff --check` | 0 |
+
+`release.py check`는 출력 없이 통과합니다. 이 명령은 제품 소유 경로와 공용 릴리스
+코드의 작업 트리가 깨끗할 때만 통과하므로 커밋 뒤에 실행합니다.
+
+제품 검사는 `product-contract`, `sddx-contract`, `python-compile` 세 단계를 모두
+실행했습니다. 전체 검사는 12개 단계를 모두 실행해 통과했습니다:
+`repository-contract` 361, `korean-package` 9, `korean-offline`,
+`korean-live-unit` 244, `korean-live-dry-run`, `image-contract`,
+`image-inspector` 48, `how-it-works-contract` 56, `pre-sdd-review-contract` 54,
+`pre-sdd-review-evidence` 61, `sddx-contract` 212(skip 3), `python-compile`.
+새 버전에서 다른 제품 단계가 모두 통과하므로 이 버전 변경이 다른 제품을 건드리지
+않았음을 확인합니다. 오프라인 단계가 모두 통과해도 실제 공급자 실행 증거는 아닙니다.
