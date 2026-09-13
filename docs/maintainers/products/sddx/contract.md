@@ -229,10 +229,11 @@ resolver `model_ids`에서 고른 `--model`을 요구하고 `--sandbox-profile`�
 시도가 만들어지기 전에 실행이 거부된 것이고 stderr의 `BLOCKED:` 줄이 그
 이유입니다.
 
-요청 effort와 설정 effort는 따로 기록합니다. Cursor에는 확인된 effort 제어가
-없어 `configured_effort`가 `null`이고 적용된 effort는 `unknown`입니다. 어느
-쪽도 모델이 실제로 적용한 effort를 증명하지 않으므로 요청값을 적용값으로 적지
-않습니다.
+요청 effort와 설정 effort는 따로 기록합니다. Cursor는 effort를 플래그가 아니라
+모델 ID에 담으므로, 러너는 선언된 effort가 `--effort`와 어긋나는 모델을 거부하고
+`configured_effort`에는 ID에서 읽은 effort가 들어갑니다. ID가 effort를 선언하지
+않으면 `null`로 남고 적용된 effort는 `unknown`입니다. 어느 쪽도 모델이 실제로
+적용한 effort를 증명하지 않으므로 요청값을 적용값으로 적지 않습니다.
 
 ## 현재 상태
 

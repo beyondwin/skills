@@ -28,7 +28,14 @@ if str(ROOT) not in sys.path:
 
 SCRIPTS = ROOT / "skills" / "sddx" / "scripts"
 
-DEFAULT_KEYS = {"attempt_dir", "metadata", "stdout_bytes", "stderr_bytes", "report_exists"}
+DEFAULT_KEYS = {
+    "attempt_dir",
+    "metadata",
+    "session_id",
+    "stdout_bytes",
+    "stderr_bytes",
+    "report_exists",
+}
 WINDOW_KEYS = {
     "stream",
     "offset",
@@ -69,10 +76,11 @@ class StatusFixture(unittest.TestCase):
 
     def write_metadata(self, **overrides) -> dict[str, object]:
         value: dict[str, object] = {
-            "schema_version": 1,
+            "schema_version": 2,
             "backend": "grok",
             "identity": "grok 1.0.25",
             "model": None,
+            "session_id": None,
             "worktree": str(self.base / "worktree"),
             "attempt_dir": str(self.attempt),
             "brief_sha256": "0" * 64,
@@ -218,9 +226,35 @@ class MetadataTests(StatusFixture):
 
     def test_unknown_metadata_schema_version_is_an_error(self) -> None:
         module = self.load()
-        self.write_metadata(schema_version=2)
-        with self.assertRaises(ValueError):
-            module.read_status(self.attempt)
+        # Both directions: a superseded record is as unreadable as a future one,
+        # because its fields are not the ones this reader reports.
+        for version in (1, 3):
+            with self.subTest(schema_version=version):
+                self.write_metadata(schema_version=version)
+                with self.assertRaises(ValueError):
+                    module.read_status(self.attempt)
+
+    def test_status_reports_the_recorded_worker_session(self) -> None:
+        module = self.load()
+        # Invented here; the controller reads it instead of opening the raw log.
+        self.write_metadata(session_id="synthetic-session-0009")
+        payload = module.read_status(self.attempt)
+        self.assertEqual(payload["session_id"], "synthetic-session-0009")
+        self.assertEqual(json.loads(module.render_status(payload))["session_id"],
+                         "synthetic-session-0009")
+
+    def test_an_unreported_session_is_null_rather_than_absent(self) -> None:
+        module = self.load()
+        self.write_metadata(session_id=None)
+        self.assertIsNone(module.read_status(self.attempt)["session_id"])
+
+    def test_status_without_metadata_reports_no_session(self) -> None:
+        module = self.load()
+        self.write_stdout(b'{"session_id": "synthetic-unrecorded"}\n')
+        payload = module.read_status(self.attempt)
+        self.assertIsNone(payload["metadata"])
+        # `status` reports the record, never an opinion about the log body.
+        self.assertIsNone(payload["session_id"])
 
     def test_absent_attempt_directory_is_an_error(self) -> None:
         module = self.load()

@@ -121,6 +121,14 @@ BEHAVIOUR_REPORT_STDIN = (
     "raise SystemExit(0)\n"
 )
 BEHAVIOUR_OK = "sys.stdout.write('{\"type\": \"assistant\"}\\n')\nraise SystemExit(0)\n"
+# The session ID below is invented for this file; no provider ever issued it.
+SESSION_ID = "synthetic-session-0001"
+BEHAVIOUR_SESSION_INIT = (
+    "sys.stdout.write(json.dumps({'type': 'system', 'subtype': 'init',\n"
+    "    'session_id': " + repr(SESSION_ID) + ", 'model': 'Synthetic Model'}) + '\\n')\n"
+    "sys.stdout.write(json.dumps({'type': 'assistant'}) + '\\n')\n"
+    "raise SystemExit(0)\n"
+)
 
 # Arguments a controller may legitimately need to hand a worker. `%SYNTHETIC_VALUE%`
 # is a made-up name that must survive as literal text; none of these are secrets.
@@ -138,6 +146,7 @@ METADATA_FIELDS = {
     "backend",
     "identity",
     "model",
+    "session_id",
     "worktree",
     "attempt_dir",
     "brief_sha256",
@@ -721,7 +730,7 @@ class WorkerExecutionTests(RunnerFixture):
         code = self.invoke(module, self.options(module))
         self.assertEqual(code, 7)
         metadata = self.metadata()
-        self.assertEqual(metadata["schema_version"], 1)
+        self.assertEqual(metadata["schema_version"], 2)
         self.assertEqual(metadata["state"], "exited")
         self.assertEqual(metadata["exit_code"], 7)
         self.assertEqual(metadata["backend"], "grok")
@@ -1201,6 +1210,191 @@ class MetadataWriteTests(RunnerFixture):
         parsed = datetime.fromisoformat(stamp)
         self.assertIsNotNone(parsed.tzinfo)
         self.assertEqual(parsed.utcoffset().total_seconds(), 0)
+
+
+class SessionIdReadingTests(RunnerFixture):
+    """`read_session_id` reads a bounded prefix of a provider stream, or nothing."""
+
+    def stream(self, text: str) -> Path:
+        path = self.base / "worker.jsonl"
+        path.write_text(text, encoding="utf-8")
+        return path
+
+    def test_first_reported_session_id_wins(self) -> None:
+        module = self.load()
+        path = self.stream(
+            json.dumps(
+                {
+                    "type": "system",
+                    "subtype": "init",
+                    "session_id": "synthetic-session-first",
+                    "model": "Synthetic Model",
+                }
+            )
+            + "\n"
+            + json.dumps({"type": "system", "session_id": "synthetic-session-later"})
+            + "\n"
+        )
+        self.assertEqual(module.read_session_id(path), "synthetic-session-first")
+
+    def test_every_measured_key_spelling_is_accepted(self) -> None:
+        module = self.load()
+        for key in ("session_id", "sessionId", "chatId", "chat_id"):
+            with self.subTest(key=key):
+                path = self.stream(json.dumps({"type": "system", key: "synthetic-id"}) + "\n")
+                self.assertEqual(module.read_session_id(path), "synthetic-id")
+
+    def test_keys_are_read_in_the_specified_order_within_one_line(self) -> None:
+        module = self.load()
+        path = self.stream(
+            json.dumps(
+                {
+                    "chat_id": "synthetic-from-chat-id",
+                    "chatId": "synthetic-from-chatId",
+                    "sessionId": "synthetic-from-sessionId",
+                    "session_id": "synthetic-from-session-id",
+                }
+            )
+            + "\n"
+        )
+        self.assertEqual(module.read_session_id(path), "synthetic-from-session-id")
+        path = self.stream(
+            json.dumps({"chat_id": "synthetic-from-chat-id", "chatId": "synthetic-from-chatId"})
+            + "\n"
+        )
+        self.assertEqual(module.read_session_id(path), "synthetic-from-chatId")
+
+    def test_lines_that_are_not_json_objects_are_skipped(self) -> None:
+        module = self.load()
+        path = self.stream(
+            "not json at all\n"
+            "[1, 2, 3]\n"
+            '"a bare string"\n'
+            '{"type": "assistant", "text": "trunca\n'
+            + json.dumps({"session_id": "synthetic-session-0002"})
+            + "\n"
+        )
+        self.assertEqual(module.read_session_id(path), "synthetic-session-0002")
+
+    def test_a_value_that_is_not_a_non_empty_string_is_not_an_id(self) -> None:
+        module = self.load()
+        path = self.stream(
+            json.dumps({"session_id": 1234})
+            + "\n"
+            + json.dumps({"session_id": ""})
+            + "\n"
+            + json.dumps({"session_id": None})
+            + "\n"
+            + json.dumps({"session_id": ["synthetic-session-list"]})
+            + "\n"
+            + json.dumps({"session_id": "synthetic-session-0003"})
+            + "\n"
+        )
+        self.assertEqual(module.read_session_id(path), "synthetic-session-0003")
+
+    def test_an_id_past_the_line_bound_is_not_read(self) -> None:
+        module = self.load()
+        filler = "".join(
+            json.dumps({"type": "assistant", "index": index}) + "\n" for index in range(200)
+        )
+        path = self.stream(filler + json.dumps({"session_id": "synthetic-too-late"}) + "\n")
+        self.assertIsNone(module.read_session_id(path))
+
+    def test_an_id_past_the_byte_bound_is_not_read(self) -> None:
+        module = self.load()
+        # Eight lines only, so the line bound cannot be what stops this scan.
+        filler = "".join(
+            json.dumps({"type": "assistant", "text": "x" * 9000}) + "\n" for _ in range(8)
+        )
+        self.assertGreater(len(filler.encode("utf-8")), 64 * 1024)
+        path = self.stream(filler + json.dumps({"session_id": "synthetic-too-far"}) + "\n")
+        self.assertIsNone(module.read_session_id(path))
+
+    def test_an_id_inside_the_bounds_is_still_read(self) -> None:
+        module = self.load()
+        filler = "".join(
+            json.dumps({"type": "assistant", "index": index}) + "\n" for index in range(150)
+        )
+        self.assertLess(len(filler.encode("utf-8")), 64 * 1024)
+        path = self.stream(filler + json.dumps({"session_id": "synthetic-in-bounds"}) + "\n")
+        self.assertEqual(module.read_session_id(path), "synthetic-in-bounds")
+
+    def test_a_missing_unreadable_or_empty_stream_is_none(self) -> None:
+        module = self.load()
+        self.assertIsNone(module.read_session_id(self.base / "no-such-stream.jsonl"))
+        self.assertIsNone(module.read_session_id(self.base))
+        self.assertIsNone(module.read_session_id(self.stream("")))
+
+    def test_undecodable_bytes_never_raise(self) -> None:
+        module = self.load()
+        path = self.base / "worker.jsonl"
+        path.write_bytes(
+            b'\xff\xfe{"session_id": "synthetic-mangled"}\n'
+            + json.dumps({"session_id": "synthetic-session-0004"}).encode("utf-8")
+            + b"\n"
+        )
+        self.assertEqual(module.read_session_id(path), "synthetic-session-0004")
+
+
+class SessionIdRecordingTests(RunnerFixture):
+    """The attempt record carries the session the worker itself reported."""
+
+    def test_reported_session_id_reaches_the_metadata(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SESSION_INIT)
+        code = self.invoke(module, self.options(module))
+        self.assertEqual(code, 0)
+        metadata = self.metadata()
+        self.assertEqual(metadata["session_id"], SESSION_ID)
+        self.assertEqual(metadata["state"], "exited")
+
+    def test_a_stream_without_a_session_id_records_null(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_OK)
+        self.assertEqual(self.invoke(module, self.options(module)), 0)
+        self.assertIsNone(self.metadata()["session_id"])
+
+    def test_the_interrupt_path_records_the_session_id(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        with self.on_synthetic_path():
+            resolved = module.resolve("grok")
+        started: list[subprocess.Popen] = []
+
+        class InterruptingPopen(subprocess.Popen):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                started.append(self)
+
+            def wait(self, timeout=None):  # noqa: D102 - controller pressed Ctrl-C
+                raise KeyboardInterrupt
+
+        # Stubbed rather than raced against the child: this asserts the call site
+        # exists on the interrupt path, not how fast a synthetic worker writes.
+        with mock.patch.object(module, "resolve", return_value=resolved):
+            with mock.patch.object(module, "read_session_id", return_value="synthetic-resumable"):
+                with mock.patch.object(module.subprocess, "Popen", InterruptingPopen):
+                    code = self.invoke(module, self.options(module))
+        self.assertEqual(len(started), 1)
+        process = started[0]
+        self.addCleanup(lambda: subprocess.Popen.wait(process))
+        self.addCleanup(process.kill)
+        self.assertEqual(code, 130)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "interrupted")
+        self.assertEqual(metadata["session_id"], "synthetic-resumable")
+
+    def test_a_launch_failure_never_looks_for_a_session_id(self) -> None:
+        module = self.load()
+        # No worker ran, so there is no stream to read: asking would be a guess.
+        with mock.patch.object(
+            module, "read_session_id", side_effect=AssertionError("no stream exists")
+        ):
+            code = self.invoke(module, self.options(module))
+        self.assertEqual(code, 2)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "launch_failed")
+        self.assertIsNone(metadata["session_id"])
 
 
 if __name__ == "__main__":

@@ -124,20 +124,24 @@ and rejects `--model`, because it selects its own model. Cursor requires
 `--model <confirmed-grok-id>` from the resolver's `model_ids` and rejects
 `--sandbox-profile`, because it uses its own sandbox mode.
 
-Pass `--resume` only with a session ID the previous run actually reported. If a
-fix round has no reported session ID — `Worker session: none` in the
-current-state block — use the SDD fallback: a fresh worker plus the previous
-attempt's `report.md` named in the brief. Never guess an ID.
+Pass `--resume` only with a session ID the previous run actually reported. The
+runner reads that ID out of the worker's own stream and records it as
+`run.json.session_id`, which the `status` output carries too; take it from
+there rather than from the raw log. It is null when the provider's stream
+reported none. If a fix round has no reported session ID — `session_id` null,
+`Worker session: none` in the current-state block — use the SDD fallback: a
+fresh worker plus the previous attempt's `report.md` named in the brief. Never
+guess an ID.
 
 Do not pass `--worktree` to the provider CLI. Do not pass `--continue`. Do not
 copy host credentials or environment values into the brief or the dispatch.
 
-`run.json` holds process facts only: `schema_version` 1, `backend`,
+`run.json` holds process facts only: `schema_version` 2, `backend`,
 `identity`, `model`, `worktree`, `attempt_dir`, `brief_sha256`, `resume_id`,
-`requested_effort`, `configured_effort`, `state`, `pid`, `exit_code`,
-`started_at`, `ended_at`, `error`. `state` is one of `starting`, `running`,
-`exited`, `launch_failed`, or `interrupted`. That is process state, not task
-state; process exit 0 is not a clean DONE.
+`session_id`, `requested_effort`, `configured_effort`, `state`, `pid`,
+`exit_code`, `started_at`, `ended_at`, `error`. `state` is one of `starting`,
+`running`, `exited`, `launch_failed`, or `interrupted`. That is process state,
+not task state; process exit 0 is not a clean DONE.
 
 The wrapper exit follows the worker's exit. A POSIX signal returns
 `128 + signal` while `run.json.exit_code` keeps the real negative returncode.

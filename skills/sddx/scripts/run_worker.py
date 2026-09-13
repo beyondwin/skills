@@ -42,7 +42,7 @@ from resolve_backend import ALIASES, _subprocess_args, resolve  # noqa: E402
 # Resolved against this script, never against the caller's working directory.
 WORKER_RULES_PATH = SCRIPT_DIR.parent / "references" / "worker-prompt.md"
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 EVIDENCE_DIR_NAME = ".superpowers"
 BRIEF_NAME = "brief.md"
 DISPATCH_NAME = "dispatch.md"
@@ -275,6 +275,47 @@ def _blocked(message: str) -> int:
     return 2
 
 
+# A worker log can reach many megabytes, and the init event that names the
+# session is the first line of every stream measured so far. These bounds keep
+# the scan to that prefix instead of the whole provider log.
+SESSION_SCAN_BYTES = 64 * 1024
+SESSION_SCAN_LINES = 200
+# Only Cursor's spelling has been observed. The others are accepted because a
+# rule written to one provider's shape is exactly what this runner keeps getting
+# wrong, not because any of them has been seen.
+SESSION_ID_KEYS = ("session_id", "sessionId", "chatId", "chat_id")
+
+
+def read_session_id(path: Path) -> str | None:
+    """The session ID the worker reported in its own stream, or `None`.
+
+    The stream belongs to the provider, so a line that is not a JSON object is
+    skipped rather than treated as an error and a truncated final line is
+    normal. Within a line the keys are tried in their listed order and the first
+    non-empty string wins. This never raises: an ID that cannot be recovered is
+    a fact to record, not a failure to report.
+    """
+    try:
+        with path.open("rb") as handle:
+            head = handle.read(SESSION_SCAN_BYTES)
+    except OSError:
+        return None
+    lines = head.decode("utf-8", errors="replace").splitlines()[:SESSION_SCAN_LINES]
+    for line in lines:
+        try:
+            event = json.loads(line)
+        except (ValueError, RecursionError):
+            continue
+        if not isinstance(event, dict):
+            continue
+        for key in SESSION_ID_KEYS:
+            value = event.get(key)
+            # A number or a list is not an ID, and neither is an empty string.
+            if isinstance(value, str) and value:
+                return value
+    return None
+
+
 def run_worker(options: RunOptions) -> int:
     """Run one attempt and return the wrapper exit for it.
 
@@ -302,6 +343,7 @@ def run_worker(options: RunOptions) -> int:
         "attempt_dir": str(attempt_dir),
         "brief_sha256": hashlib.sha256(brief_bytes).hexdigest(),
         "resume_id": options.resume_id,
+        "session_id": None,
         "requested_effort": options.effort,
         "configured_effort": None,
         "state": "starting",
@@ -395,10 +437,18 @@ def run_worker(options: RunOptions) -> int:
                 exit_code=process.poll(),
                 ended_at=utc_now(),
                 error="the controller interrupted the attempt",
+                # An interrupted attempt may still be resumable, so the ID the
+                # worker already reported is worth keeping.
+                session_id=read_session_id(stdout_path),
             )
             write_metadata(metadata_path, metadata)
             return 130
-        metadata.update(state="exited", exit_code=code, ended_at=utc_now())
+        metadata.update(
+            state="exited",
+            exit_code=code,
+            ended_at=utc_now(),
+            session_id=read_session_id(stdout_path),
+        )
         write_metadata(metadata_path, metadata)
     return code if code >= 0 else 128 - code
 
@@ -519,9 +569,14 @@ def read_status(
     if not attempt.is_dir():
         raise ValueError("attempt directory does not exist")
 
+    metadata = read_metadata(attempt / METADATA_NAME)
     payload: dict[str, Any] = {
         "attempt_dir": str(attempt),
-        "metadata": read_metadata(attempt / METADATA_NAME),
+        "metadata": metadata,
+        # Surfaced beside the record so a controller can read the session the
+        # attempt reported without opening the raw log. It is still the record's
+        # value: nothing here interprets a log body to produce it.
+        "session_id": metadata.get("session_id") if metadata is not None else None,
         "stdout_bytes": _log_size(attempt / STDOUT_NAME),
         "stderr_bytes": _log_size(attempt / STDERR_NAME),
         "report_exists": (attempt / REPORT_NAME).is_file(),
