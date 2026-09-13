@@ -51,6 +51,13 @@ STDERR_NAME = "stderr.log"
 METADATA_NAME = "run.json"
 REPORT_NAME = "report.md"
 
+# How long one attempt may run before the runner ends it, and how long a child
+# gets to leave on a SIGTERM before it is killed. `--timeout 0` disables the
+# bound entirely.
+DEFAULT_TIMEOUT_SECONDS = 3600.0
+TERMINATE_GRACE_SECONDS = 10.0
+TIMEOUT_EXIT = 124
+
 # The reading bounds from the design spec's R4. A window is a byte range, not a
 # line, a JSON event, or a call/result pair: nothing here promises that a preview
 # contains anything whole except the characters it decoded.
@@ -82,6 +89,7 @@ class RunOptions:
     model: str | None = None
     resume_id: str | None = None
     sandbox_profile: str | None = None
+    timeout: float = DEFAULT_TIMEOUT_SECONDS
 
 
 def utc_now() -> str:
@@ -207,6 +215,10 @@ def _validated_backend(options: RunOptions) -> str:
             )
     if options.resume_id is not None and not options.resume_id:
         raise ValueError("resume id must be a known non-empty session id")
+    # Written as a refusal of everything that is not zero or more, so a NaN is
+    # refused here rather than reaching `wait` as an unbounded wait.
+    if not options.timeout >= 0:
+        raise ValueError("timeout must be a non-negative number of seconds")
     return backend
 
 
@@ -321,7 +333,8 @@ def run_worker(options: RunOptions) -> int:
 
     A normally awaited worker's exit is returned as-is; a POSIX signal death
     becomes `128 + signal` while `run.json` keeps the real negative returncode.
-    A launch failure is 2 and a controller interrupt handled here is 130.
+    A launch failure is 2, a controller interrupt handled here is 130, and an
+    attempt ended by its own timeout is 124.
     """
     try:
         worktree, attempt_dir = _validated_attempt_dir(options.worktree, options.attempt_dir)
@@ -428,7 +441,23 @@ def run_worker(options: RunOptions) -> int:
         metadata.update(state="running", pid=process.pid)
         write_metadata(metadata_path, metadata)
         try:
-            code = process.wait()
+            # `wait(timeout=0)` expires immediately, so a zero timeout must not
+            # reach it: zero is the documented way to ask for no bound at all.
+            code = process.wait(timeout=options.timeout) if options.timeout else process.wait()
+        except subprocess.TimeoutExpired:
+            # Only this child is pursued. It shares the controller's process
+            # group on purpose, so there is no group signal to send and anything
+            # the worker started is left exactly where it is.
+            _end_process(process)
+            metadata.update(
+                state="timed_out",
+                exit_code=process.poll(),
+                ended_at=utc_now(),
+                error="the attempt exceeded its timeout",
+                session_id=read_session_id(stdout_path),
+            )
+            write_metadata(metadata_path, metadata)
+            return TIMEOUT_EXIT
         except KeyboardInterrupt:
             # Record only the exit actually recovered. The process tree is left
             # alone and Grok cleanup stays the controller's call.
@@ -451,6 +480,24 @@ def run_worker(options: RunOptions) -> int:
         )
         write_metadata(metadata_path, metadata)
     return code if code >= 0 else 128 - code
+
+
+def _end_process(process: subprocess.Popen[bytes]) -> None:
+    """Ask this one child to leave, then insist, then stop waiting on it.
+
+    Neither wait is unbounded, because a process that answers neither signal
+    must not turn a timeout into the hang it was added to prevent. What was
+    actually recovered is whatever `poll()` reports afterwards, `None` included.
+    """
+    process.terminate()
+    try:
+        process.wait(timeout=TERMINATE_GRACE_SECONDS)
+        return
+    except subprocess.TimeoutExpired:
+        pass
+    process.kill()
+    with contextlib.suppress(subprocess.TimeoutExpired):
+        process.wait(timeout=TERMINATE_GRACE_SECONDS)
 
 
 def _log_size(path: Path) -> int:
@@ -633,6 +680,12 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--model")
     run.add_argument("--resume", dest="resume_id")
     run.add_argument("--sandbox-profile")
+    run.add_argument(
+        "--timeout",
+        type=float,
+        default=DEFAULT_TIMEOUT_SECONDS,
+        help="seconds before the attempt is ended; 0 waits without a bound",
+    )
     status = subcommands.add_parser(
         "status", help="report attempt facts and, on request, one bounded log window"
     )
@@ -656,6 +709,7 @@ def main(argv: list[str] | None = None) -> int:
         model=args.model,
         resume_id=args.resume_id,
         sandbox_profile=args.sandbox_profile,
+        timeout=args.timeout,
     )
     return run_worker(options)
 

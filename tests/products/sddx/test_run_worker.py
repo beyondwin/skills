@@ -115,6 +115,22 @@ BEHAVIOUR_SIGNAL = (
     "time.sleep(10)\n"
 )
 BEHAVIOUR_SLEEP = "time.sleep(10)\nraise SystemExit(0)\n"
+BEHAVIOUR_SESSION_THEN_SLEEP = (
+    "sys.stdout.write(json.dumps({'type': 'system', 'subtype': 'init',\n"
+    "    'session_id': " + repr("synthetic-session-0005") + "}) + '\\n')\n"
+    "sys.stdout.flush()\n"
+    "time.sleep(30)\n"
+)
+BEHAVIOUR_IGNORES_SIGTERM = (
+    "signal.signal(signal.SIGTERM, signal.SIG_IGN)\n"
+    "sys.stdout.write('ignoring SIGTERM\\n')\n"
+    "sys.stdout.flush()\n"
+    "time.sleep(30)\n"
+)
+BEHAVIOUR_REPORT_PROCESS_GROUP = (
+    "sys.stdout.write('PGID:' + str(os.getpgrp()) + '\\n')\n"
+    "raise SystemExit(0)\n"
+)
 BEHAVIOUR_REPORT_STDIN = (
     "data = sys.stdin.read()\n"
     "sys.stdout.write('STDIN:' + repr(data) + '\\n')\n"
@@ -1395,6 +1411,136 @@ class SessionIdRecordingTests(RunnerFixture):
         metadata = self.metadata()
         self.assertEqual(metadata["state"], "launch_failed")
         self.assertIsNone(metadata["session_id"])
+
+
+class AttemptTimeoutTests(RunnerFixture):
+    """An attempt is bounded in wall-clock time, and says so when the bound fires."""
+
+    def test_the_default_timeout_is_one_hour(self) -> None:
+        module = self.load()
+        self.assertEqual(self.options(module).timeout, 3600)
+        parsed = module.build_parser().parse_args(
+            [
+                "run",
+                "--backend",
+                "grok",
+                "--worktree",
+                str(self.worktree),
+                "--brief",
+                str(self.brief),
+                "--attempt-dir",
+                str(self.attempt),
+                "--effort",
+                "high",
+            ]
+        )
+        self.assertEqual(parsed.timeout, 3600)
+
+    def test_an_expired_timeout_ends_the_attempt_with_124(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        code = self.invoke(module, self.options(module, timeout=0.5))
+        self.assertEqual(code, 124)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "timed_out")
+        self.assertEqual(metadata["error"], "the attempt exceeded its timeout")
+        self.assertIsNotNone(metadata["ended_at"])
+        self.assertIsNotNone(metadata["exit_code"])
+        # The raw evidence of the killed attempt is kept, not discarded.
+        self.assertTrue((self.attempt / "worker.jsonl").exists())
+
+    @unittest.skipUnless(os.name != "nt", "negative returncodes are a POSIX signal convention")
+    def test_a_timed_out_worker_records_the_signal_that_ended_it(self) -> None:
+        import signal
+
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        self.assertEqual(self.invoke(module, self.options(module, timeout=0.5)), 124)
+        self.assertEqual(self.metadata()["exit_code"], -signal.SIGTERM)
+
+    @unittest.skipUnless(os.name != "nt", "SIGTERM cannot be ignored the same way here")
+    def test_a_worker_that_ignores_sigterm_is_killed(self) -> None:
+        import signal
+
+        module = self.load()
+        self.write_grok(BEHAVIOUR_IGNORES_SIGTERM)
+        # The real grace is ten seconds; a test must not wait it out.
+        with mock.patch.object(module, "TERMINATE_GRACE_SECONDS", 0.3):
+            code = self.invoke(module, self.options(module, timeout=0.5))
+        self.assertEqual(code, 124)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "timed_out")
+        self.assertEqual(metadata["exit_code"], -signal.SIGKILL)
+
+    def test_a_timed_out_attempt_still_records_the_session_id(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SESSION_THEN_SLEEP)
+        # Two seconds, not one: the child has to start Python before it writes.
+        self.assertEqual(self.invoke(module, self.options(module, timeout=2.0)), 124)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "timed_out")
+        self.assertEqual(metadata["session_id"], "synthetic-session-0005")
+
+    def test_zero_timeout_waits_for_a_slow_worker(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_DELAYED)
+        # `wait(timeout=0)` expires at once, so zero must not reach it at all.
+        code = self.invoke(module, self.options(module, timeout=0))
+        self.assertEqual(code, 0)
+        self.assertEqual(self.metadata()["state"], "exited")
+
+    def test_a_negative_timeout_never_starts_a_worker(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_OK)
+        code = self.invoke(module, self.options(module, timeout=-1))
+        self.assertEqual(code, 2)
+        self.assert_no_worker_invocation()
+        self.assertFalse(self.attempt.exists())
+        self.assertTrue(self.stderr.getvalue().startswith("BLOCKED: "))
+
+    def test_a_timeout_that_is_not_a_number_never_starts_a_worker(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_OK)
+        code = self.invoke(module, self.options(module, timeout=float("nan")))
+        self.assertEqual(code, 2)
+        self.assert_no_worker_invocation()
+        self.assertFalse(self.attempt.exists())
+
+    def test_the_timeout_option_reaches_the_runner_from_the_command_line(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        with self.on_synthetic_path():
+            code = module.main(
+                [
+                    "run",
+                    "--backend",
+                    "grok",
+                    "--worktree",
+                    str(self.worktree),
+                    "--brief",
+                    str(self.brief),
+                    "--attempt-dir",
+                    str(self.attempt),
+                    "--effort",
+                    "high",
+                    "--sandbox-profile",
+                    "sddx-worktree",
+                    "--timeout",
+                    "0.5",
+                ]
+            )
+        self.assertEqual(code, 124)
+        self.assertEqual(self.metadata()["state"], "timed_out")
+
+    @unittest.skipUnless(os.name != "nt", "process groups are a POSIX concept")
+    def test_the_worker_stays_in_the_controller_process_group(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_REPORT_PROCESS_GROUP)
+        self.assertEqual(self.invoke(module, self.options(module)), 0)
+        reported = (self.attempt / "worker.jsonl").read_text(encoding="utf-8").strip()
+        # A new session would leave a worker running past the controller, and a
+        # killpg on the shared group would take the controller with it.
+        self.assertEqual(reported, f"PGID:{os.getpgrp()}")
 
 
 if __name__ == "__main__":

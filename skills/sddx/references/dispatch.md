@@ -109,7 +109,8 @@ prefix's sandbox value itself. `run_worker.py` never prepares or cleans up.
 
     python3 "<skill-root>/scripts/run_worker.py" run --backend <c|cursor|g|grok> --worktree <worktree> \
         --brief <brief-file> --attempt-dir <new-attempt-dir> --effort <high|xhigh> \
-        [--model <confirmed-grok-id>] [--resume <known-id>] [--sandbox-profile <prepared-profile>]
+        [--model <confirmed-grok-id>] [--resume <known-id>] [--sandbox-profile <prepared-profile>] \
+        [--timeout <seconds>]
 
 `--attempt-dir` must be a new directory under the worktree's `.superpowers/`.
 The runner writes six files there: `brief.md`, `dispatch.md`, `worker.jsonl`
@@ -133,6 +134,15 @@ reported none. If a fix round has no reported session ID — `session_id` null,
 fresh worker plus the previous attempt's `report.md` named in the brief. Never
 guess an ID.
 
+`--timeout <seconds>` bounds one attempt's wall-clock. It defaults to 3600, and
+`--timeout 0` waits without a bound. When it fires the runner sends the worker
+SIGTERM, waits ten seconds, kills it if it is still alive, records `state`
+`timed_out` with the real `exit_code` and the session ID the stream reported,
+and exits 124. Only the worker process itself is signalled. It shares the
+controller's process group so that a terminal interrupt reaches it, so
+descendants the worker started are not pursued, exactly as on the interrupt
+path: confirm they have exited before cleanup.
+
 Do not pass `--worktree` to the provider CLI. Do not pass `--continue`. Do not
 copy host credentials or environment values into the brief or the dispatch.
 
@@ -140,16 +150,17 @@ copy host credentials or environment values into the brief or the dispatch.
 `identity`, `model`, `worktree`, `attempt_dir`, `brief_sha256`, `resume_id`,
 `session_id`, `requested_effort`, `configured_effort`, `state`, `pid`,
 `exit_code`, `started_at`, `ended_at`, `error`. `state` is one of `starting`,
-`running`, `exited`, `launch_failed`, or `interrupted`. That is process state,
-not task state; process exit 0 is not a clean DONE.
+`running`, `exited`, `launch_failed`, `timed_out`, or `interrupted`. That is
+process state, not task state; process exit 0 is not a clean DONE.
 
 The wrapper exit follows the worker's exit. A POSIX signal returns
 `128 + signal` while `run.json.exit_code` keeps the real negative returncode.
-A launch failure is 2 and a handled controller interrupt is 130. Exit 2 is
-ambiguous between a launch failure and a worker that legitimately exited 2, so
-read `run.json.state` to tell them apart; if the attempt directory is absent,
-or present without `run.json`, the launch was refused before the attempt was
-created and the `BLOCKED:` line on stderr is the reason.
+A launch failure is 2, a handled controller interrupt is 130, and an attempt
+ended by its own timeout is 124. Exit 2 is ambiguous between a launch failure
+and a worker that legitimately exited 2, so read `run.json.state` to tell them
+apart; if the attempt directory is absent, or present without `run.json`, the
+launch was refused before the attempt was created and the `BLOCKED:` line on
+stderr is the reason.
 
 There is no automatic retry. Cursor carries its effort in the model ID rather
 than on a flag, so the runner refuses a `--model` whose declared effort
