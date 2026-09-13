@@ -29,9 +29,10 @@ skills/sddx/              저장소 원본
 `agents/openai.yaml`은 Codex 표시 메타데이터이며 선택적입니다. 런타임 필수
 파일이 아닙니다.
 `agents/claude-code/sddx-reviewer-xhigh.md`는 성격이 다릅니다. Claude Code 런타임
-정의이고, skills-dir 플러그인 로딩을 통해 전달됩니다. 로딩은 배포되는 제품 파일로
-한 번 확인했으며, 서브에이전트에 실제 적용된 effort와 `disallowedTools`의 실제
-차단 여부는 모두 `not_measured`입니다.
+정의이고, skills-dir 플러그인 로딩을 통해 전달됩니다. 로딩은 이전 버전의 제품
+파일로 한 번 확인했을 뿐이며 `2.0.0`에서는 다시 확인하지 않았습니다. `2.0.0`의
+정의 로딩, 서브에이전트에 실제 적용된 effort, `disallowedTools`의 실제 차단 여부는
+모두 `not_measured`입니다.
 
 사용자 프로젝트의 `.claude/agents/`에 같은 이름의 정의가 있으면 그쪽이 우선합니다.
 제품 접두사를 붙인 이름 외에 방어 수단이 없습니다.
@@ -53,13 +54,51 @@ worker가 저장소의 공유 Git 메타데이터를 쓸 수 있음을 뜻합니
 외부 스킬, MCP, 전체 계획을 읽지 말라는 제한은 worker prompt 지침입니다.
 공급자 CLI의 초기화 경고가 없거나 역할 이탈이 불가능하다는 보장은 아닙니다.
 
-## 측정 상태
+## 2.0.0 측정 상태
 
-| 오케스트레이터 호스트 | 구현 worker | 상태 | 관측 범위 |
+이 표는 `2.0.0` 설치 파일만 다룹니다. 네 조합 가운데 실제 공급자를 호출한 것은
+하나도 없습니다. 이 버전의 검증은 오프라인 검사뿐입니다.
+
+| 오케스트레이터 호스트 | 구현 worker | `2.0.0` 실제 실행 | 근거 |
 | --- | --- | --- | --- |
-| Codex | Grok CLI | measured | 1.0.3: 실제 2회, 10/8 tests, 파일명·설정 조회의 none 보고와 경로 지정 검색 확인; 이전 버전 실패 별도 보존 |
-| Codex | Cursor CLI | `not_measured` | 현재 설치 파일로 실행하지 않음 |
-| Claude Code | Cursor 또는 Grok CLI | `not_measured` | 현재 설치 파일로 실행하지 않음 |
+| Claude Code | Cursor CLI | `not_measured` | 이 버전으로 호출하지 않음 |
+| Claude Code | Grok CLI | `not_measured` | 이 버전으로 호출하지 않음 |
+| Codex | Cursor CLI | `not_measured` | 이 버전으로 호출하지 않음 |
+| Codex | Grok CLI | `not_measured` | 이 버전으로 호출하지 않음 |
+
+같은 기준으로 `not_measured`인 항목이 더 있습니다.
+
+| 항목 | `2.0.0` 상태 | 근거 |
+| --- | --- | --- |
+| 실제 Cursor 승인 동작 | `not_measured` | `--auto-review`·`--sandbox` 선언만 확인했고 실제 승인 흐름은 호출하지 않음 |
+| 실제 Cursor OS 격리 | `not_measured` | `--sandbox enabled`는 선언 확인이며 실제 격리 범위를 측정하지 않음 |
+| Claude Code agent 정의 로딩 | `not_measured` | `2.0.0` 파일로 `claude -p --agent sddx-reviewer-xhigh` 확인을 수행하지 않음 |
+| 모델이 실제 적용한 effort | `not_measured` | 요청·설정 effort만 기록하며 적용값을 확인할 경로가 없음 |
+| Windows argv 전송 | `not_measured` | `.cmd` 왕복 테스트는 `skipUnless(os.name == "nt")`이고 개발 macOS 체크아웃에서 skip됨 |
+
+Windows 행은 저장소의 `windows-latest`/`windows-portable` CI 행에서 실제로
+실행됩니다. `sddx-contract`는 `WINDOWS_EXCLUDED_STAGES`
+(`scripts/lib/verification.py:14`)에 없습니다. 다만 그 행은 push에서만 돌고 이
+브랜치는 아직 push하지 않았으므로, 지금 시점의 증거는 없습니다. macOS 로컬 검사를
+Windows 증거로 쓰지 않습니다.
+
+## 알려진 플랫폼·증거 한계
+
+Windows의 npm 방식 `.cmd` 셰임 실행은 launch failure로 기록됩니다. worker 규칙과
+Cursor dispatch 텍스트는 여러 줄인데 `cmd.exe` 명령줄은 줄바꿈을 담을 수 없습니다.
+의도한 선택이며, 대안은 이전 전송 방식의 조용한 인자 훼손이었습니다.
+
+Grok의 `--rules`는 시도 디렉터리에 보존되지 않습니다. 규칙 본문이 명령줄로만
+전달되고 스펙이 시도 디렉터리를 정확히 여섯 파일로 고정하므로,
+`skills/sddx/references/worker-prompt.md`를 고치면 과거 Grok 시도를 저장된 증거만으로
+그대로 재현할 수 없습니다. 이는 여섯 파일 계약이 강제한 결과이지 누락이 아닙니다.
+
+## 1.0.x 관측 기록
+
+아래 관측은 모두 `1.0.x` 설치 파일의 기록이며 `2.0.0`의 증거가 아닙니다. 당시
+`Codex × Grok CLI`는 1.0.3에서 실제 2회 호출, 10/8 tests, 파일명·설정 조회의 none
+보고와 경로 지정 검색을 확인했습니다. 같은 시점의 `Codex × Cursor`와
+`Claude Code × Cursor 또는 Grok`은 그때도 `not_measured`였습니다.
 
 1.0.1 최초 fixture에서는 세 호출, 최종 14 tests, 역할 위반 미관측을 확인했습니다.
 이후 독립된 두 fixture에서 각각 세 호출을 다시 측정했으며 최종 15/14 tests와
@@ -79,8 +118,8 @@ DONE_WITH_CONCERNS는 실제 기록과 독립 리뷰에 근거한 기존 ruling�
 각각 10개·8개 테스트 및 설정 복원을 확인했습니다. 두 원본 보고는 허용된 조회를
 공개하고도 불필요한 scope concern 없이 DONE/none이었습니다. 이는 해당 fixture의
 관측이며 일반적인 준수율이나 강제 파일 접근 차단을 증명하지 않습니다.
-Claude Code의 모델·effort 대응과 Cursor event trace는 실제 실행 미측정입니다.
-재현 절차와 버전별 관측은 [테스트](testing.md)에 있습니다.
+Claude Code의 모델·effort 대응과 Cursor event trace는 그때도 실제 실행
+미측정이었습니다. 재현 절차와 버전별 관측은 [테스트](testing.md)에 있습니다.
 
 ## 라이브 증거 경계
 

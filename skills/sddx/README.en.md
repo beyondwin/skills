@@ -20,12 +20,11 @@ subagent-driven-development without an external implementer.
 sddx: Claude Code and Codex supported for local or repository-based use.
 
 The supported host ids are `claude-code` and `codex`. Cursor and Grok CLIs
-are implementer workers, not hosts. Earlier Codex/Grok linked-worktree
-checks verified direct commits, session resume, and configuration restoration.
-Later checks reproduced prohibited full-plan reads and omitted deviations in
-worker reports. Version-specific observations are recorded in the testing guide below.
-Cursor worker and Claude Code host execution remain `not_measured`. This is
-scope-limited evidence for the measured fixture and versions. Claude.ai,
+are implementer workers, not hosts. This version has not been executed against
+any of the four Claude Code / Codex by Cursor / Grok combinations with a real
+provider. All four are `not_measured`. Observations from earlier versions are
+records of those versions, not evidence for this one. The per-combination
+measurement state is the table in the compatibility guide below. Claude.ai,
 Cowork, Skills API upload, and marketplace publication are not supported.
 Shared limits are in
 [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/users/en/compatibility.md).
@@ -50,6 +49,78 @@ an auth, permission, secret, or sandbox boundary; a round 4-5 re-review; or a
 defect the reviews keep missing. Diff size, implementation difficulty, and
 "this is the final review" are not reasons. The escalation definition is Claude
 Code only; on a host without it, report that limitation and continue.
+
+## Choosing and keeping a backend
+
+In `sddx <plan-file> [cursor|grok|c|g]`, `c` means `cursor` and `g` means
+`grok`. The backend comes from an explicit choice in this request, then the
+current state of this same run, then one question. An explicit choice needs no
+re-approval on later tasks. If only one backend is available, the skill shows
+that fact and the missing backend's `reason`, and still confirms before
+proceeding. If the requested backend is missing, it stops instead of switching.
+
+From this major version, a Cursor CLI must declare headless print (`--print`
+or `-p`), `--trust`, `--auto-review`, `--sandbox`, a confirmed `stream-json`
+output format, and at least one Grok model id that a model-list command
+actually returned. An existing Cursor install that does not meet this
+resolves as `available: false` with `reason: missing_flags`. It no longer
+falls back to `--force`/`--yolo` blanket approval, and no option brings that
+back. An unavailable backend's `reason` is one of `not_found`,
+`identity_mismatch`, `missing_flags`, or `no_grok_model`.
+
+Changing backends never passes the previous provider's session ID along and
+never resets the fix-round count. Reviews still inherit the current
+orchestrator model, with effort selected separately and no `model` override.
+
+## Execution helpers and evidence
+
+To cut one task's section out of the plan, the controller runs
+`scripts/extract_task.py <plan-file> --heading "<full heading without #>" --output <file>`.
+Exit 0 is success, 2 is a file or argument error, and 3 means the heading is
+absent, duplicated, or has an empty body. It never overwrites an existing
+output file.
+
+`scripts/run_worker.py run` is the only launch path. Do not hand-compose a
+provider command or write a new execution script for a run. One attempt leaves
+six files in a new directory under the worktree's `.superpowers/`: `brief.md`,
+`dispatch.md`, `worker.jsonl`, `stderr.log`, `run.json`, and `report.md`. The
+worker writes `report.md` itself; the runner never does. The runner never
+prepares or cleans up the Grok profile. The controller keeps the order:
+prepare, run, confirm the exit, clean up. There is no automatic retry anywhere.
+
+Read a running or finished attempt only through `scripts/run_worker.py status`.
+It is read-only and interprets nothing. The default answer is metadata, log
+sizes, and whether `report.md` exists, never a log body. A body window needs
+`--stream`; it defaults to 2048 bytes with a maximum of 8192, and the whole
+JSON answer is capped at 64 KiB. Never dump a whole log into the session.
+
+`run.json` holds process facts only. `state` is one of `starting`, `running`,
+`exited`, `launch_failed`, or `interrupted`, which is process state and not
+task state. Process exit 0 is not a clean DONE. The wrapper exit follows the
+worker's; a POSIX signal returns `128 + signal` while `run.json.exit_code`
+keeps the real negative return code; a launch failure is 2 and a handled
+interrupt is 130. Exit 2 is ambiguous between a launch failure and a worker
+that legitimately exited 2, so read `run.json.state` to tell them apart.
+
+The run's current state lives in one block at the top of the Superpowers SDD
+ledger and nowhere else. Do not add a separate state file. Cursor has no
+confirmed effort control, so `configured_effort` is `null` and the applied
+effort is `unknown`; requested and configured effort are recorded separately
+and neither proves what the model actually applied. A change to the shared
+product source applies to new runs only — no run in progress is converted or
+restarted automatically.
+
+## Real measurement limits
+
+On Windows, launching through an npm-style `.cmd` shim is recorded as a launch
+failure. The worker rules and the Cursor dispatch text are multi-line and a
+`cmd.exe` command line cannot carry a newline, so a recorded failure is
+preferred over silent corruption. Windows argv transport itself was not
+measured on this branch. Grok's `--rules` travels on the command line only and
+is not stored among the attempt directory's six files, so editing
+`references/worker-prompt.md` makes past Grok attempts non-reproducible from
+the stored evidence alone. The full list of unmeasured items is in the
+compatibility guide below.
 
 ## Grok worktree execution
 
@@ -146,8 +217,12 @@ $sddx docs/history/plans/example.md
 
 ## Expected result
 
-The skill asks for a backend once unless argv is present, then runs
-Superpowers SDD with an external implementer and native reviewers.
+With an explicit backend choice the skill proceeds on it; otherwise it picks
+one once for this plan. It then runs Superpowers SDD with an external
+implementer and native reviewers. Every attempt leaves one evidence directory
+and the ledger's current-state block, and completion is judged from the
+report, real test exits, commits, the tool record, and native review — not
+from a process exit.
 
 ## See also
 

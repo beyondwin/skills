@@ -33,11 +33,29 @@ worktree를 만들고 Git 경로 계산, 기존 TOML 원문 복원, 재진입, �
 - Grok 후보는 PATH의 `grok`뿐이다. `agent`만 있으면 `not_found`다.
 - `agent`는 Cursor로 채택되지 않는다.
 - Grok 신원의 `cursor-agent` 또는 `cursor`는 `identity_mismatch`다.
-- Cursor는 headless print, force/yolo, trust, workspace/cwd, model, resume이
-  필요하고 Grok 모델 id가 없으면 `no_grok_model`이다.
+- Cursor는 headless print(`--print` 또는 `-p`), `--trust`, `--auto-review`,
+  `--sandbox`, 확인된 `stream-json` 출력 형식을 모두 선언해야 한다. 하나라도
+  없으면 `missing_flags`이며 force/yolo 일괄 승인으로 물러나지 않는다.
+- Cursor 모델 목록 명령이 성공해 돌려준 Grok 모델 id가 없으면
+  `no_grok_model`이다.
 - Grok help에 `--cwd`가 없으면 `missing_flags`다.
 - argv에 `--worktree`와 `--plugin-dir`가 없다. Grok 고정 플래그에
   `--disable-web-search`가 있다.
+- 없는 backend의 JSON은 `launch`가 `null`이고 `model_ids`가 빈 목록이다.
+
+`tests/products/sddx/test_extract_task.py`는 제목 일치, 본문 경계, 중복·부재·빈
+본문의 exit 3, 인자·파일 오류의 exit 2, 기존 출력 파일 비덮어쓰기를 잠급니다.
+`tests/products/sddx/test_run_worker.py`는 시도 디렉터리 여섯 파일, argv 구성,
+backend별 `--model`/`--sandbox-profile` 배타, `run.json` 필드와 상태, 래퍼 exit
+규칙, 닫힌 stdin, 시도 경로 거절을 검사합니다.
+`tests/products/sddx/test_worker_status.py`는 읽기 전용 응답, 기본 응답에 로그
+본문이 없다는 점, `--stream` 기본 2048·최대 8192바이트, 64 KiB 응답 상한, offset
+처리를 검사합니다. 어느 검사도 공급자를 호출하지 않습니다.
+
+Windows `.cmd` 왕복 검사는 `skipUnless(os.name == "nt")`이므로 macOS·Linux
+체크아웃에서는 skip됩니다. skip을 native Windows 통과로 쓰지 않습니다. 이 검사는
+저장소의 `windows-latest`/`windows-portable` CI 행에서 실행되며 `sddx-contract`는
+`WINDOWS_EXCLUDED_STAGES`에 없습니다.
 
 페이로드 계약 통과는 파일 정체성, 이식 가능한 frontmatter, 금지 문자열만
 증명합니다. 이 공급자 없는 증거만으로 라이브 CLI, 과금, 모델 품질을
@@ -104,10 +122,14 @@ integration의 MCP 초기화·handshake·자동 재시작 경고는 계속 나�
 ```bash
 python3 scripts/verify.py --skill sddx
 python3 scripts/verify.py
+python3 scripts/release.py check --product sddx
 python3 -m unittest tests.products.sddx.test_resolve_backend
 python3 -m unittest discover -s tests/products/sddx -p test_prepare_grok_sandbox.py -v
 git diff --check
 ```
+
+`release.py check`는 제품 소유 경로와 공용 릴리스 코드의 작업 트리가 깨끗할 때만
+통과하므로, 변경을 커밋한 뒤에 실행합니다.
 
 라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있습니다. CI가 요구하지
 않습니다. 오프라인 통과를 호스트 품질로 설명하지 마세요.
@@ -263,3 +285,39 @@ NotebookEdit를 이름으로 포함하는지 확인합니다. 이 검사는 필�
 계약 검사는 파일이 존재한다는 것까지만 증명합니다. Claude Code가 skills-dir
 플러그인에서 agents를 계속 싣는지는 증명하지 못하므로, 릴리스마다 위 라이브 확인을
 반복합니다. 확인에 실패하면 정의가 조용히 사라진 상태이므로 릴리스를 멈춥니다.
+
+## 2.0.0 검증
+
+증거는 네 종류로 나눠 기록하며 서로 대체하지 않습니다.
+
+| 증거 종류 | 이 버전의 상태 |
+| --- | --- |
+| 오프라인 helper·argv 계약 검사 | 실행함 |
+| 지침 문구 검사 | 실행함 |
+| native 행동 probe | 이 버전에서 새로 실행하지 않음 |
+| 실제 공급자 실행 | 실행하지 않음 (`not_measured`) |
+
+이 버전에서는 공급자 호출과 라이브 모델 검증을 별도 승인 없이 수행하지 않았고
+승인도 없었습니다. 따라서 Claude Code·Codex와 Cursor·Grok의 네 조합은 모두
+실제 실행 `not_measured`입니다. 조합별 표와 그 밖의 미측정 항목은
+[호환성](compatibility.md)이 소유합니다.
+
+### 실제 관측
+
+`tests/products/sddx/`의 discovery 검사(`sddx-contract`)는 212개 테스트에 skip
+3개로 통과했습니다. skip 3개는 모두 실제 `cmd.exe`가 필요한 Windows 검사입니다.
+파일별로는 `test_contract` 24, `test_extract_task` 29,
+`test_prepare_grok_sandbox` 22, `test_resolve_backend` 51(skip 2),
+`test_run_worker` 55(skip 1), `test_worker_status` 31입니다. 이전 기록의 45개
+SDDx 테스트는 Task 1–4의 새 파일이 discovery에 들어오기 전 숫자입니다.
+
+`python-compile` 대상 경로에는 `skills/sddx/scripts`가 포함되므로
+`extract_task.py`, `run_worker.py`, `resolve_backend.py`,
+`prepare_grok_sandbox.py`가 모두 컴파일됩니다.
+
+`product-contract` 단계는 이 버전에서 실패합니다.
+`tests/repository/test_release_contract.py`의 `EXPECTED` 표가 sddx를 이전 버전
+문자열로 고정하고 있어 `test_each_product_owns_an_independent_release_manifest`가
+`release.toml`의 새 버전과 불일치합니다. 이 태스크의 수정 범위에 해당 테스트가
+없으므로 우회하지 않고 실패로 기록합니다. 저장소 쪽에서 그 표를 새 버전으로
+갱신해야 `verify.py`의 product/전체 단계가 다시 통과합니다.

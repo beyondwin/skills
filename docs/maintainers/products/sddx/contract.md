@@ -160,6 +160,83 @@ Grok resolver는 `--sandbox`, `--rules`, `--disable-web-search`를 포함한 필
 실행 플래그를 확인하고, 기본 `argv_prefix`에 `--sandbox workspace`를 넣습니다.
 resolver 자체는 파일을 쓰거나 worker를 시작하지 않습니다.
 
+JSON 객체의 키는 `backend`, `available`, `executable`, `identity`,
+`argv_prefix`, `reason`, `launch`, `model_ids`입니다. `launch`는 `cwd_flag`,
+`prompt_flag`, `effort_flag`, `output_format`을 담으며 `available`이 false면
+`null`이고 `model_ids`는 빈 목록입니다. Grok은 자기 모델을 스스로 고르므로
+`model_ids`가 비어 있고, Cursor는 확인된 Grok 모델 id 목록을 돌려줍니다.
+`output_format`은 해당 호스트의 resolver가 돌려준 값을 그대로 쓰며 backend별로
+하드코딩하지 않습니다. 없는 backend의 `reason`은 `not_found`,
+`identity_mismatch`, `missing_flags`, `no_grok_model` 중 하나입니다.
+
+`2.0.0`의 비호환 변경은 Cursor 필수 기능입니다. Cursor resolver는 headless
+print(`--print` 또는 `-p`), `--trust`, `--auto-review`, `--sandbox`, 확인된
+`stream-json` 출력 형식, 그리고 모델 목록 명령이 실제로 성공해 돌려준 Grok 모델
+id를 모두 요구합니다. `--auto-review`, `--sandbox`, 구조화 출력 형식을 선언하지
+않는 기존 Cursor CLI는 `available: false`와 `reason: missing_flags`입니다.
+예전의 `--force`/`--yolo` 일괄 승인 대체 경로는 없어졌고 플래그로 되살릴 수
+없습니다. 해결된 prefix가 이미 headless·승인 플래그를 담으므로 두 번째
+`--sandbox`나 두 번째 승인 플래그를 덧붙이지 않습니다.
+
+## 실행 helper와 시도 증거
+
+컨트롤러는 계획에서 task 구간을 뽑을 때
+`scripts/extract_task.py <plan-file> --heading "<# 없는 제목 전체>" --output <file>`을
+씁니다. `--heading`은 `#` 표시를 뺀 제목 전체입니다. exit 0은 성공, 2는 파일·인자
+오류, 3은 제목 부재·중복 또는 빈 본문입니다. 이미 있는 출력 파일은 덮어쓰지
+않으므로 추출마다 새 경로를 씁니다.
+
+worker 실행은 `scripts/run_worker.py run` 하나입니다. 공급자 명령을 직접
+조합하거나 실행마다 새 실행 스크립트를 만들지 않습니다. `--attempt-dir`는
+worktree `.superpowers/` 아래의 새 디렉터리여야 하며, 러너는 그곳에 `brief.md`,
+`dispatch.md`, `worker.jsonl`, `stderr.log`, `run.json`, `report.md` 여섯 파일을
+남깁니다. `report.md`는 worker가 직접 쓰고 러너는 쓰지 않습니다. 러너는
+`prepare`·`cleanup`을 호출하지 않으며, prepare → run → 종료 확인 → cleanup 순서는
+컨트롤러가 지킵니다. 자동 재시도는 어느 helper에도 없습니다.
+
+`--model`과 `--sandbox-profile`은 각각 한 backend에만 필수이고 다른 쪽에서는
+거부됩니다. Grok은 `--sandbox-profile`을 요구하고 `--model`을 거부하며, Cursor는
+resolver `model_ids`에서 고른 `--model`을 요구하고 `--sandbox-profile`을
+거부합니다.
+
+시도 조회는 `scripts/run_worker.py status`뿐입니다. 읽기 전용이며 아무것도
+해석하지 않습니다. 기본 응답은 메타데이터, 로그 크기, `report.md` 존재 여부이고
+로그 본문은 포함하지 않습니다. 본문 창은 `--stream`이 있어야 하며 기본
+2048바이트, 최대 8192바이트, JSON 응답 전체는 64 KiB로 제한됩니다. 로그 전체를
+세션에 출력하지 않습니다.
+
+`run.json`은 프로세스 사실만 담습니다. `schema_version` 1과 함께 `backend`,
+`identity`, `model`, `worktree`, `attempt_dir`, `brief_sha256`, `resume_id`,
+`requested_effort`, `configured_effort`, `state`, `pid`, `exit_code`,
+`started_at`, `ended_at`, `error`를 기록합니다. `state`는 `starting`, `running`,
+`exited`, `launch_failed`, `interrupted` 중 하나이며 task 상태가 아닙니다.
+프로세스 exit 0은 깨끗한 DONE이 아닙니다.
+
+래퍼 exit는 worker의 exit를 따릅니다. POSIX 시그널은 `128 + signal`을 반환하고
+`run.json.exit_code`에는 실제 음수 returncode가 남습니다. 실행 실패는 2, 처리된
+중단은 130입니다. exit 2는 실행 실패와 worker가 정말 2로 끝난 경우가 겹치므로
+`run.json.state`로 구분합니다.
+
+요청 effort와 설정 effort는 따로 기록합니다. Cursor에는 확인된 effort 제어가
+없어 `configured_effort`가 `null`이고 적용된 effort는 `unknown`입니다. 어느
+쪽도 모델이 실제로 적용한 effort를 증명하지 않으므로 요청값을 적용값으로 적지
+않습니다.
+
+## 현재 상태
+
+한 실행의 현재 상태는 해당 계획의 Superpowers SDD ledger 한 곳에만 둡니다.
+ledger 첫 줄 바로 아래에 `<!-- sddx:current:start -->`와
+`<!-- sddx:current:end -->`로 감싼 블록 하나를 두고 갱신할 때마다 그 내용만
+교체합니다. 블록 아래의 완료 줄과 fix 라운드 이력은 그대로 둡니다. 블록의 필드는
+`skills/sddx/references/current-state.md`가 소유합니다.
+`controller-current-state.md`, `controller-recovery.md` 같은 별도 상태 파일을
+만들지 않습니다. `run.json`은 한 시도의 프로세스 기록이고 ledger는 실행의
+기록이며, 둘을 양방향으로 동기화하지 않습니다.
+
+공유 제품 소스를 바꿔도 진행 중인 실행은 자동으로 전환되거나 다시 시작되지
+않습니다. 변경은 새 실행부터 적용하고, 기존 실행은 ledger 기록과 프로세스를
+확인한 뒤 명시적으로 재개합니다.
+
 ## 함께 고칠 파일
 
 동작 변경을 한 파일에만 넣지 마세요.
@@ -172,4 +249,13 @@ resolver 자체는 파일을 쓰거나 worker를 시작하지 않습니다.
   `tests/products/sddx/cases.json`, `tests/products/sddx/test_contract.py`
 - `resolve_backend.py` 신원·플래그 규칙: `skills/sddx/scripts/resolve_backend.py`,
   `tests/products/sddx/test_resolve_backend.py`
-- 버전과 설치 파일: `skills/sddx/release.toml`, `SKILL.md`, `CHANGELOG.md`
+- task 추출 규칙: `skills/sddx/scripts/extract_task.py`,
+  `tests/products/sddx/test_extract_task.py`
+- 실행·조회 규칙: `skills/sddx/scripts/run_worker.py`,
+  `skills/sddx/references/dispatch.md`,
+  `tests/products/sddx/test_run_worker.py`,
+  `tests/products/sddx/test_worker_status.py`
+- 현재 상태 블록: `skills/sddx/references/current-state.md`,
+  `skills/sddx/SKILL.md`
+- 버전과 설치 파일: `skills/sddx/release.toml`, `SKILL.md`, `CHANGELOG.md`,
+  `skills/sddx/.claude-plugin/plugin.json`

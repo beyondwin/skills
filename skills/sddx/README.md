@@ -19,10 +19,11 @@ Superpowers SDD를 현재 Claude Code 또는 Codex 세션이 오케스트레이�
 sddx: Claude Code and Codex supported for local or repository-based use.
 
 지원 호스트 id는 `claude-code`, `codex`입니다. Cursor와 Grok CLI는
-구현 worker이지 호스트가 아닙니다. 이전 Codex/Grok linked-worktree 검사에서
-직접 커밋·세션 재개·설정 복원은 성공했지만, 후속 검사에서 전체 계획 읽기와
-보고 누락이 재현됐습니다. 버전별 관측과 한계는 아래 테스트 문서에 기록합니다. Cursor worker와 Claude Code host 실행은 `not_measured`입니다.
-이 결과는 측정한 fixture와 버전의 범위 제한된 증거입니다. Claude.ai, Cowork,
+구현 worker이지 호스트가 아닙니다. 이 버전은 Claude Code·Codex와
+Cursor·Grok의 네 조합 가운데 어느 것도 실제 공급자 실행으로 측정하지
+않았습니다. 네 조합 모두 `not_measured`입니다. 이전 버전에서 얻은 Codex/Grok
+관측은 그 버전의 기록이며 이번 버전의 증거가 아닙니다. 조합별 측정 상태는 아래
+호환성 문서의 표에 있습니다. Claude.ai, Cowork,
 Skills API 업로드, marketplace 게시는 지원하지 않습니다. 공유 한계는
 [호환성](https://github.com/beyondwin/skills/blob/main/docs/users/ko/compatibility.md)을
 보세요.
@@ -43,6 +44,71 @@ dispatch하는 것이고, XHigh는 `model` 인자 없이 `subagent_type`을
 auth·권한·secret·sandbox 경계 변경, round 4–5 재리뷰, 반복해서 놓친 결함일 때만
 씁니다. diff 길이나 구현 난이도, 최종 리뷰라는 사실은 근거가 아닙니다. 승급 정의는
 Claude Code 전용이며, 없는 호스트에서는 그 한계를 보고한 뒤 진행합니다.
+
+## Backend 선택과 유지
+
+`sddx <plan-file> [cursor|grok|c|g]`에서 `c`는 `cursor`, `g`는 `grok`입니다.
+backend는 이 요청의 명시적 선택, 같은 실행의 현재 상태, 한 번의 질문 순서로
+정합니다. 명시적 선택은 이후 task에서 다시 승인받지 않습니다. 쓸 수 있는
+backend가 하나뿐이어도 그 사실과 빠진 backend의 `reason`을 보여 주고 확인을
+받은 뒤에 진행합니다. 요청한 backend가 없으면 다른 쪽으로 바꾸지 않고 멈춥니다.
+
+이번 메이저 변경부터 Cursor CLI는 headless print(`--print` 또는 `-p`), `--trust`,
+`--auto-review`, `--sandbox`, 확인된 `stream-json` 출력 형식, 그리고 모델 목록
+명령이 실제로 돌려준 Grok 모델 id를 모두 선언해야 합니다. 조건을 채우지 못하는
+기존 Cursor 설치본은 `available: false`와 `reason: missing_flags`로 나옵니다.
+예전처럼 `--force`/`--yolo` 일괄 승인으로 물러나지 않으며, 이를 되살리는 옵션도
+없습니다. 없는 backend의 `reason`은 `not_found`, `identity_mismatch`,
+`missing_flags`, `no_grok_model` 중 하나입니다.
+
+backend를 바꾸면 이전 공급자의 session ID를 넘기지 않고 fix 라운드 수도
+초기화하지 않습니다. 리뷰는 계속 현재 오케스트레이터 모델을 상속하고 effort만
+따로 지정합니다. 리뷰어에 `model` 오버라이드를 넘기지 않습니다.
+
+## 실행 도구와 증거
+
+계획에서 task 구간을 뽑을 때는 컨트롤러가
+`scripts/extract_task.py <plan-file> --heading "<# 없는 제목 전체>" --output <file>`을
+씁니다. exit 0은 성공, 2는 파일·인자 오류, 3은 제목이 없거나 중복이거나 본문이
+비었다는 뜻입니다. 이미 있는 출력 파일은 덮어쓰지 않습니다.
+
+worker 실행 경로는 `scripts/run_worker.py run` 하나입니다. 공급자 명령을 직접
+조합하거나 실행마다 새 스크립트를 쓰지 않습니다. 한 번의 시도는 worktree의
+`.superpowers/` 아래 새 디렉터리에 `brief.md`, `dispatch.md`, `worker.jsonl`,
+`stderr.log`, `run.json`, `report.md` 여섯 파일을 남깁니다. `report.md`는 worker가
+직접 쓰며 러너가 대신 쓰지 않습니다. 러너는 Grok 프로파일 prepare·cleanup을 하지
+않습니다. 순서는 컨트롤러가 지키는 prepare → run → 종료 확인 → cleanup입니다.
+자동 재시도는 어디에도 없습니다.
+
+진행 중이거나 끝난 시도는 `scripts/run_worker.py status`로만 읽습니다. 이 명령은
+읽기 전용이고 아무것도 해석하지 않습니다. 기본 응답은 메타데이터, 로그 크기,
+`report.md` 존재 여부이며 로그 본문은 나오지 않습니다. 본문 창은 `--stream`으로
+요청하고 기본 2048바이트, 최대 8192바이트이며 JSON 응답 전체는 64 KiB로
+제한됩니다. 로그 전체를 세션에 쏟지 않습니다.
+
+`run.json`은 프로세스 사실만 담습니다. `state`는 `starting`, `running`, `exited`,
+`launch_failed`, `interrupted` 중 하나이며 task 상태가 아닙니다. 프로세스 exit 0은
+깨끗한 DONE이 아닙니다. 래퍼 exit는 worker의 exit를 따르고, POSIX 시그널은
+`128 + signal`을 반환하며 `run.json.exit_code`에는 실제 음수 반환값이 남습니다.
+실행 실패는 2, 처리된 중단은 130입니다. exit 2는 실행 실패와 worker가 정말 2로
+끝난 경우가 겹치므로 `run.json.state`로 구분합니다.
+
+실행의 현재 상태는 Superpowers SDD ledger 맨 위의 블록 한 곳에만 둡니다. 별도
+상태 파일을 만들지 않습니다. Cursor에는 확인된 effort 제어가 없어
+`configured_effort`가 `null`이고 실제 적용 effort는 `unknown`입니다. 요청 effort와
+설정 effort를 따로 적으며, 둘 중 어느 쪽도 모델이 실제로 쓴 effort를 증명하지
+않습니다. 공유 제품 소스를 고쳐도 진행 중인 실행은 자동으로 바뀌거나 다시
+시작되지 않고 새 실행부터 적용됩니다.
+
+## 실제 측정 한계
+
+Windows에서 npm 방식 `.cmd` 래퍼로 실행하면 launch failure로 기록됩니다. worker
+규칙과 Cursor dispatch 텍스트가 여러 줄인데 `cmd.exe` 명령줄은 줄바꿈을 담지
+못하기 때문이며, 조용히 망가뜨리는 대신 실패로 남기는 쪽을 택했습니다. Windows
+argv 전송 자체는 이 브랜치에서 실제로 측정하지 않았습니다. Grok의 `--rules`는
+명령줄로만 전달되고 시도 디렉터리의 여섯 파일에 남지 않으므로,
+`references/worker-prompt.md`를 고치면 과거 Grok 시도를 저장된 증거만으로 그대로
+재현할 수 없습니다. 미측정 항목 전체는 아래 호환성 문서에 있습니다.
 
 ## Grok worktree 실행
 
@@ -137,9 +203,11 @@ $sddx docs/history/plans/example.md
 
 ## 예상 결과
 
-argv가 있으면 그 backend로 진행하고, 없으면 이 계획에서 한 번만
-backend를 고릅니다. 그다음 Superpowers SDD를 외부 implementer와 네이티브
-리뷰어로 실행합니다.
+명시적 backend 선택이 있으면 그 backend로 진행하고, 없으면 이 계획에서 한 번만
+고릅니다. 그다음 Superpowers SDD를 외부 implementer와 네이티브 리뷰어로
+실행합니다. 시도마다 증거 디렉터리 하나와 ledger의 현재 상태 블록이 남고,
+완료 판정은 프로세스 exit가 아니라 보고서·실제 테스트 exit·커밋·도구 기록·
+네이티브 리뷰로 정합니다.
 
 ## 더 보기
 

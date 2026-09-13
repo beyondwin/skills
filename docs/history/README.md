@@ -15,7 +15,8 @@ paths. They are point-in-time records, not the current contract.
 - SDDx 실행 정리: [설계 스펙](2026-09-13-sddx-execution-design.md),
   [구현 계획](2026-09-13-sddx-implementation-plan.md),
   [세션·오픈소스 조사](2026-09-13-sddx-orchestration-research.md).
-  문서 작성 단계이며 제품 구현은 시작하지 않았습니다.
+  계획의 여섯 태스크를 이 브랜치에서 모두 구현했고 병합을 기다립니다.
 
-SDDx execution simplification is in design and planning. Product implementation
-has not started. The links above include the supporting open-source research.
+SDDx execution simplification is implemented on this branch and awaiting merge.
+All six planned tasks have landed. The links above include the supporting
+open-source research.

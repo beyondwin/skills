@@ -4,6 +4,66 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+Target version `2.0.0`. No public tag or GitHub Release is created here.
+
+### Breaking
+
+- Cursor resolution now requires the CLI to declare headless print (`--print`
+  or `-p`), `--trust`, `--auto-review`, `--sandbox`, a confirmed `stream-json`
+  output format, and at least one Grok model id returned by a successful model
+  list. A Cursor CLI that declares none of `--auto-review`, `--sandbox`, and
+  the structured output format now resolves as `available: false` with
+  `reason: missing_flags` instead of falling back to `--force`/`--yolo`.
+  Blanket approval is gone and no flag brings it back.
+- Grok resolution reports the same `available: false` shape; `reason` is one of
+  `not_found`, `identity_mismatch`, `missing_flags`, or `no_grok_model`.
+- Implementer attempts must be launched with `scripts/run_worker.py run`.
+  Hand-composed provider commands and per-run execution scripts are no longer
+  part of the contract.
+- The run's current state lives in exactly one delimited block at the top of
+  the Superpowers SDD ledger. Separate controller state files are prohibited.
+
+### Added
+
+- `scripts/extract_task.py <plan-file> --heading "<heading text without #>"
+  --output <file>` copies one task section out of a plan. Exit 0 is success,
+  2 is a file or argument error, and 3 means the section is absent,
+  duplicated, or empty. It never overwrites an existing output file.
+- `scripts/run_worker.py run` launches one attempt into a new directory under
+  the worktree's `.superpowers/` and preserves `brief.md`, `dispatch.md`,
+  `worker.jsonl`, `stderr.log`, `run.json`, and `report.md`. The worker writes
+  `report.md`; the runner never does. The runner never prepares or cleans up
+  the Grok sandbox profile.
+- `scripts/run_worker.py status` reads one attempt without interpreting it.
+  The default answer is metadata, log sizes, and whether `report.md` exists.
+  A log window needs `--stream` and is bounded: 2048 bytes by default, 8192
+  maximum, with the whole JSON answer capped at 64 KiB.
+- `resolve_backend.py --json` adds `launch` (`cwd_flag`, `prompt_flag`,
+  `effort_flag`, `output_format`, or null when unavailable) and `model_ids`.
+- `references/current-state.md` holds the ledger current-state block template.
+
+### Changed
+
+- `run.json` records process facts only. `state` is one of `starting`,
+  `running`, `exited`, `launch_failed`, or `interrupted`, which is process
+  state and not task state. Process exit 0 is still not a clean DONE.
+- The wrapper exit follows the worker's exit. A POSIX signal returns
+  `128 + signal` while `run.json.exit_code` keeps the real negative return
+  code; a launch failure is 2 and a handled interrupt is 130. Exit 2 is
+  ambiguous between a launch failure and a worker that legitimately exited 2,
+  so `run.json.state` is the discriminator.
+- Requested and configured effort are recorded separately. Cursor has no
+  confirmed effort control, so its `configured_effort` is null and the applied
+  effort is recorded as unknown rather than as the requested value.
+- There is no automatic retry in any helper.
+- A change to the shared product source applies to new runs only. No run in
+  progress is converted or restarted automatically; resume an existing run
+  explicitly after checking its ledger record and its processes.
+- Launching through an npm-style Windows `.cmd` shim is recorded as a launch
+  failure, because the worker rules and the Cursor dispatch text are
+  multi-line and a `cmd.exe` command line cannot carry a newline. This
+  replaces the previous transport's silent argument corruption.
+
 ## 1.1.1 - 2026-09-12
 
 ### Fixed
