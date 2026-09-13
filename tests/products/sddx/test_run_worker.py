@@ -71,6 +71,14 @@ Options:
       --output-format <stream-json>
 """
 CURSOR_MODELS = "grok-4\ngrok-4-fast\n"
+# A synthetic listing whose IDs carry an effort segment, shaped like the real one.
+# No account is read; the text below is written by this test file.
+CURSOR_EFFORT_MODELS = (
+    "cursor-grok-4.6-low - Grok 4.6 Low\n"
+    "cursor-grok-4.6-high - Grok 4.6 High\n"
+    "cursor-grok-4.6-xhigh-fast - Grok 4.6 XHigh Fast\n"
+    "grok-4-fast - Grok 4 Fast\n"
+)
 
 # Synthetic worker behaviours. Each one is the tail of a generated script whose
 # header has already logged the argv it received.
@@ -235,8 +243,9 @@ class RunnerFixture(unittest.TestCase):
     def write_grok(self, behaviour: str = BEHAVIOUR_OK, help_text: str = GROK_HELP) -> Path:
         return self.write_cli("grok", GROK_VERSION, help_text, "", behaviour)
 
-    def write_cursor(self, behaviour: str = BEHAVIOUR_OK) -> Path:
-        return self.write_cli("cursor-agent", CURSOR_VERSION, CURSOR_HELP, CURSOR_MODELS, behaviour)
+    def write_cursor(self, behaviour: str = BEHAVIOUR_OK,
+                     models: str = CURSOR_MODELS) -> Path:
+        return self.write_cli("cursor-agent", CURSOR_VERSION, CURSOR_HELP, models, behaviour)
 
     def options(self, module, **overrides):
         values = {
@@ -478,6 +487,49 @@ class BuildArgvTests(RunnerFixture):
                     self.assertNotIn(flag, argv)
 
 
+class ModelEffortTests(RunnerFixture):
+    """`model_effort` reads effort segments only; it knows no vendor."""
+
+    def test_declared_effort_is_read_from_the_final_segment(self) -> None:
+        module = self.load()
+        for model_id, expected in (
+            ("cursor-grok-4.6-high", "high"),
+            ("cursor-grok-4.6-xhigh-fast", "xhigh"),
+            ("cursor-grok-4.5-medium", "medium"),
+            ("cursor-grok-4.6-low", "low"),
+            ("some-model-none", "none"),
+            ("some-model-minimal", "minimal"),
+            ("some-model-max", "max"),
+        ):
+            with self.subTest(model_id=model_id):
+                self.assertEqual(module.model_effort(model_id), expected)
+
+    def test_an_id_without_an_effort_segment_declares_nothing(self) -> None:
+        module = self.load()
+        for model_id in (
+            "grok-4",
+            "grok-4-fast",
+            "auto",
+            "composer-2.5",
+            "cursor-grok-4.6-high-fast-fast",
+            "",
+        ):
+            with self.subTest(model_id=model_id):
+                self.assertIsNone(module.model_effort(model_id))
+
+    def test_a_two_segment_effort_is_refused_rather_than_misread(self) -> None:
+        module = self.load()
+        # `gpt-5.5-extra-high` declares `extra-high`, not `high`. Guessing here
+        # would report an effort the provider never applied.
+        self.assertIsNone(module.model_effort("gpt-5.5-extra-high"))
+        self.assertIsNone(module.model_effort("gpt-5.5-extra-high-fast"))
+
+    def test_effort_is_read_without_knowing_the_vendor(self) -> None:
+        module = self.load()
+        self.assertEqual(module.model_effort("gpt-5.5-high"), "high")
+        self.assertEqual(module.model_effort("some-vendor-model-xhigh"), "xhigh")
+
+
 class AttemptDirectoryTests(RunnerFixture):
     """Every rejection happens before a single process is started."""
 
@@ -617,6 +669,28 @@ class AttemptDirectoryTests(RunnerFixture):
         self.assertEqual(code, 2)
         self.assert_no_worker_invocation()
         self.assertEqual(self.metadata()["state"], "launch_failed")
+
+    def test_cursor_model_effort_contradicting_the_request_is_refused(self) -> None:
+        module = self.load()
+        self.write_cursor(models=CURSOR_EFFORT_MODELS)
+        options = self.options(
+            module,
+            backend="cursor",
+            model="cursor-grok-4.6-low",
+            effort="xhigh",
+            sandbox_profile=None,
+        )
+        code = self.invoke(module, options)
+        self.assertEqual(code, 2)
+        self.assert_no_worker_invocation()
+        # Refused before the attempt exists: no directory, so no `run.json` either.
+        self.assertFalse(self.attempt.exists())
+        message = self.stderr.getvalue()
+        self.assertIn("BLOCKED:", message)
+        self.assertIn("cursor-grok-4.6-low", message)
+        # Spelled out, because a bare "low" also matches inside the model id.
+        self.assertIn("declares effort low", message)
+        self.assertIn("--effort xhigh", message)
 
     def test_empty_resume_id_never_starts_a_worker(self) -> None:
         module = self.load()
@@ -881,6 +955,40 @@ class WorkerArgvTests(RunnerFixture):
         self.assertEqual(self.metadata()["model"], "grok-4-fast")
         self.assertIsNone(self.metadata()["configured_effort"])
         self.assertEqual(self.metadata()["requested_effort"], "high")
+
+    def test_cursor_model_declaring_no_effort_is_still_accepted(self) -> None:
+        module = self.load()
+        self.write_cursor(models=CURSOR_EFFORT_MODELS)
+        options = self.options(
+            module,
+            backend="cursor",
+            model="grok-4-fast",
+            effort="xhigh",
+            sandbox_profile=None,
+        )
+        code = self.invoke(module, options)
+        self.assertEqual(code, 0)
+        self.assertEqual(len(self.worker_invocations()), 1)
+        self.assertIsNone(self.metadata()["configured_effort"])
+
+    def test_cursor_records_the_effort_its_model_id_declares(self) -> None:
+        module = self.load()
+        self.write_cursor(BEHAVIOUR_OK, models=CURSOR_EFFORT_MODELS)
+        options = self.options(
+            module,
+            backend="cursor",
+            model="cursor-grok-4.6-xhigh-fast",
+            effort="xhigh",
+            sandbox_profile=None,
+        )
+        self.assertEqual(self.invoke(module, options), 0)
+        received = self.worker_argv()
+        # The effort still reaches the provider through the ID, never a flag.
+        self.assertNotIn("--effort", received)
+        self.assertNotIn("--reasoning-effort", received)
+        metadata = self.metadata()
+        self.assertEqual(metadata["configured_effort"], "xhigh")
+        self.assertEqual(metadata["requested_effort"], "xhigh")
 
     def test_relative_worktree_reaches_the_child_as_an_absolute_path(self) -> None:
         module = self.load()

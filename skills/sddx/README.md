@@ -96,10 +96,11 @@ worker 실행 경로는 `scripts/run_worker.py run` 하나입니다. 공급자 �
 `BLOCKED:` 줄이 그 이유입니다.
 
 실행의 현재 상태는 Superpowers SDD ledger 맨 위의 블록 한 곳에만 둡니다. 별도
-상태 파일을 만들지 않습니다. Cursor에는 확인된 effort 제어가 없어
-`configured_effort`가 `null`이고 실제 적용 effort는 `unknown`입니다. 요청 effort와
-설정 effort를 따로 적으며, 둘 중 어느 쪽도 모델이 실제로 쓴 effort를 증명하지
-않습니다. 공유 제품 소스를 고쳐도 진행 중인 실행은 자동으로 바뀌거나 다시
+상태 파일을 만들지 않습니다. Cursor는 effort를 플래그가 아니라 모델 ID에 담으므로,
+러너는 선언된 effort가 `--effort`와 어긋나는 모델을 거부하고 `configured_effort`에는
+ID에서 읽은 effort가 들어갑니다. ID가 effort를 선언하지 않으면 `null`로 남고 실제
+적용 effort는 `unknown`입니다. 요청 effort와 설정 effort를 따로 적으며, 둘 중 어느
+쪽도 모델이 실제로 쓴 effort를 증명하지 않습니다. 공유 제품 소스를 고쳐도 진행 중인 실행은 자동으로 바뀌거나 다시
 시작되지 않고 새 실행부터 적용됩니다.
 
 ## 실제 측정 한계

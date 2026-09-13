@@ -106,10 +106,12 @@ refused before the attempt was created and the `BLOCKED:` line on stderr is the
 reason.
 
 The run's current state lives in one block at the top of the Superpowers SDD
-ledger and nowhere else. Do not add a separate state file. Cursor has no
-confirmed effort control, so `configured_effort` is `null` and the applied
-effort is `unknown`; requested and configured effort are recorded separately
-and neither proves what the model actually applied. A change to the shared
+ledger and nowhere else. Do not add a separate state file. Cursor carries its
+effort in the model ID, so the runner refuses a model whose declared effort
+contradicts `--effort`, and `configured_effort` holds the effort read from the
+ID; when the ID declares no effort it stays `null` and the applied effort is
+`unknown`. Requested and configured effort are recorded separately and neither
+proves what the model actually applied. A change to the shared
 product source applies to new runs only — no run in progress is converted or
 restarted automatically.
 

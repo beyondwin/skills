@@ -28,6 +28,13 @@ When `available` is true:
   `output_format` `stream-json`. `model_ids` holds the confirmed Grok model
   ids; pass one of them to the runner as `--model`.
 
+Choose that id by effort, not by position: the order is the account's own
+listing order and can change. Take the `model_ids` entry whose declared effort
+segment equals the requested effort; among several matches prefer the highest
+version number, then the entry without `-fast`. If no entry declares the
+requested effort, report that the requested effort is unavailable on this
+account rather than substituting a different one.
+
 Use the `output_format` value this host's resolver returned. Do not hardcode a
 format per backend, and do not add a second `--sandbox` or a second approval
 flag: the resolved prefix already carries the headless and approval flags this
@@ -140,9 +147,12 @@ read `run.json.state` to tell them apart; if the attempt directory is absent,
 or present without `run.json`, the launch was refused before the attempt was
 created and the `BLOCKED:` line on stderr is the reason.
 
-There is no automatic retry. Cursor has no confirmed effort control, so its
-`configured_effort` is null and the applied effort is unknown; record it as
-unknown rather than as the requested value.
+There is no automatic retry. Cursor carries its effort in the model ID rather
+than on a flag, so the runner refuses a `--model` whose declared effort
+contradicts `--effort`, and `configured_effort` holds the effort read from the
+ID. When the ID declares no effort, `configured_effort` stays null and the
+applied effort is genuinely unknown; record it as unknown rather than as the
+requested value.
 
 Known limitation: the worker rules and the Cursor dispatch text are
 multi-line, and a `cmd.exe` command line cannot carry a newline, so launching

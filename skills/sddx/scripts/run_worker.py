@@ -150,6 +150,36 @@ def _validated_attempt_dir(worktree: Path, attempt_dir: Path) -> tuple[Path, Pat
     return worktree_abs, attempt_abs
 
 
+# The effort tokens the real Cursor listing actually spells in its model IDs. A
+# segment outside this set is not read as an effort.
+EFFORT_TOKENS = frozenset({"none", "minimal", "low", "medium", "high", "xhigh", "max"})
+
+
+def model_effort(model_id: str) -> str | None:
+    """The effort a model ID declares, or `None` when it declares none.
+
+    Some backends carry effort in the ID rather than on a flag. One trailing
+    `-fast` is stripped first, because it is a serving variant and not an effort;
+    only one, so `...-high-fast-fast` ends on `fast` and declares nothing. What
+    remains is read at its final `-` segment and adopted only if it is a known
+    effort token.
+
+    A two-segment effort such as `extra-high` is refused rather than misread as
+    `high`: reporting a wrong effort is worse than reporting none, and inventing a
+    mapping onto a neighbouring token would be a guess. This reads effort segments
+    only and knows no vendor.
+    """
+    segments = model_id.split("-")
+    if len(segments) > 1 and segments[-1] == "fast":
+        segments = segments[:-1]
+    token = segments[-1]
+    if token not in EFFORT_TOKENS:
+        return None
+    if len(segments) >= 2 and segments[-2] == "extra":
+        return None
+    return token
+
+
 def _validated_backend(options: RunOptions) -> str:
     """Reject backend/option combinations the resolver contract cannot express."""
     if options.backend not in ALIASES:
@@ -167,6 +197,14 @@ def _validated_backend(options: RunOptions) -> str:
             raise ValueError("cursor uses its own sandbox mode; --sandbox-profile is not accepted")
         if not options.model:
             raise ValueError("cursor requires an explicit confirmed model id")
+        declared = model_effort(options.model)
+        if declared is not None and declared != options.effort:
+            # The ID states the effort the provider will apply, so a differing
+            # `--effort` is a contradiction, not a preference to reconcile.
+            raise ValueError(
+                f"cursor model {options.model} declares effort {declared}, "
+                f"which contradicts --effort {options.effort}"
+            )
     if options.resume_id is not None and not options.resume_id:
         raise ValueError("resume id must be a known non-empty session id")
     return backend
@@ -302,6 +340,10 @@ def run_worker(options: RunOptions) -> int:
         metadata["model"] = options.model
     if resolved["launch"]["effort_flag"] is not None:
         metadata["configured_effort"] = options.effort
+    elif options.model is not None:
+        # No flag carries the effort, so the only evidence is the ID itself.
+        # `None` stays `null`: the applied effort is then genuinely unknown.
+        metadata["configured_effort"] = model_effort(options.model)
 
     dispatch_path = attempt_dir / DISPATCH_NAME
     dispatch_text = build_dispatch(
