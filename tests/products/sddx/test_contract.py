@@ -117,6 +117,114 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("cleanup", text)
         self.assertIn("--rules", text)
 
+    def test_current_state_block_is_the_single_controller_record(self) -> None:
+        reference = SKILL / "references" / "current-state.md"
+        self.assertTrue(reference.is_file())
+        text = reference.read_text(encoding="utf-8")
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("references/current-state.md", skill)
+        for marker in ("<!-- sddx:current:start -->", "<!-- sddx:current:end -->"):
+            self.assertIn(marker, text)
+            self.assertIn(marker, skill)
+        self.assertIn("# SDD ledger — plan:", text)
+        self.assertIn("# SDD ledger — plan:", skill)
+        self.assertIn("Task <ID>: complete", skill)
+        for field in (
+            "Next plan",
+            "Backend",
+            "Worker session",
+            "Review host",
+            "Open findings",
+            "Authorized scope",
+            "Host checks pending",
+            "Next action",
+            "Evidence",
+        ):
+            self.assertIn(field, text, field)
+
+    def test_no_parallel_controller_state_file(self) -> None:
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        for name in ("controller-current-state.md", "controller-recovery.md"):
+            self.assertFalse((SKILL / "references" / name).exists(), name)
+            self.assertIn(f"`{name}`", skill, name)
+        self.assertIn(
+            "Do not create `controller-current-state.md`, "
+            "`controller-recovery.md`, or any",
+            skill,
+        )
+
+    def test_helper_scripts_are_named_where_they_are_used(self) -> None:
+        dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        for name in (
+            "extract_task.py",
+            "resolve_backend.py",
+            "prepare_grok_sandbox.py",
+            "run_worker.py",
+        ):
+            self.assertTrue((SKILL / "scripts" / name).is_file(), name)
+            self.assertIn(name, dispatch, name)
+        self.assertIn("run_worker.py", skill)
+        self.assertIn("resolve_backend.py", skill)
+
+    def test_dispatch_runs_the_worker_through_the_runner(self) -> None:
+        text = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
+        self.assertIn("--attempt-dir", text)
+        self.assertIn("--sandbox-profile", text)
+        self.assertIn("run.json", text)
+        self.assertIn("launch_failed", text)
+        self.assertIn("--stream", text)
+        self.assertIn("pending_bytes", text)
+        self.assertIn("output_format", text)
+        self.assertIn("report.md", text)
+
+    def test_input_and_backend_order_ask_once(self) -> None:
+        text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("An explicit choice in this request", text)
+        self.assertIn("The current state of this same run", text)
+        self.assertIn("Ask once", text)
+        self.assertIn("one active plan and one ledger at a time", text)
+        self.assertIn("Never pass the previous provider's session ID", text)
+        lowered = text.lower()
+        self.assertIn("does not reset the fix-round count", lowered)
+
+    def test_host_checks_use_the_existing_statuses(self) -> None:
+        worker = (SKILL / "references" / "worker-prompt.md").read_text(encoding="utf-8")
+        dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        for text in (worker, dispatch, skill):
+            self.assertIn("Worker checks", text)
+            self.assertIn("Host checks", text)
+        self.assertIn("There is\nno other status", worker)
+        self.assertIn("nothing else writes it for you", worker)
+        self.assertIn("402", skill)
+        self.assertIn("do not re-run under the same condition", skill)
+        self.assertIn("no automatic retry", dispatch.lower())
+
+    def test_both_hosts_share_the_same_tooling(self) -> None:
+        text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("spawn_agent", text)
+        self.assertIn("the same product Python scripts", text)
+        self.assertIn("Windows", text)
+
+    def test_replaced_instructions_are_gone(self) -> None:
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
+        for removed in (
+            "If the plan path is missing or is not a file, stop",
+            "One plan per invocation",
+            "Keep that backend for every later task",
+            "report that the requested effort cannot be set",
+        ):
+            self.assertNotIn(removed, skill, removed)
+        for removed in (
+            "For Grok, use `--output-format streaming-messages-json`",
+            "Compose the worker command from `argv_prefix`",
+            'argv.index("--sandbox")',
+            "already in `argv_prefix`",
+        ):
+            self.assertNotIn(removed, dispatch, removed)
+
     def test_hosts_are_not_backends(self) -> None:
         registry = load_registry(ROOT / "products.toml")
         self.assertEqual(registry.require("sddx").supported_hosts, ("claude-code", "codex"))

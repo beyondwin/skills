@@ -27,13 +27,19 @@ these inspections.
 Do not read or invoke external skills, including Superpowers. Do not spawn subagents or
 reviewers, call MCP tools, or create another worktree.
 
-Implement, test, and commit only this task, then write the report. Stage
+Run the brief's `Worker checks` yourself. The brief's `Host checks` are the
+controller's; do not claim them, simulate them, or report them as passing.
+
+Implement, test, and commit only this task, then write the report. Write it to
+the report path in the dispatch yourself; nothing else writes it for you. Stage
 explicit task paths only. Do not stage `.grok/sandbox.toml` or SDD evidence.
 Report these fields:
 - Status and files changed.
-- Exact test commands and actual test exit codes, including RED and GREEN.
-  Prefer separate synchronous test commands. If a wrapper is used, include
-  the full wrapper command and distinguish its exit from the test exit.
+- Exact test commands and actual test exit codes for the `Worker checks`,
+  including RED and GREEN. Prefer separate synchronous test commands. If a
+  wrapper is used, include the full wrapper command and distinguish its exit
+  from the test exit.
+- Any `Host checks` left outstanding, named individually.
 - Commit SHA, or why no commit was needed or possible.
 - Scope deviations: `none`, or the attempted/performed action, target, result,
   and any out-of-scope content returned. Disclose deviations even if corrected
@@ -44,7 +50,9 @@ If any scope deviation occurred, do not return a clean DONE. Use
 DONE_WITH_CONCERNS for finished work, or the appropriate unfinished status.
 Return BLOCKED when a required test or commit cannot be completed.
 
-Status must be DONE, DONE_WITH_CONCERNS, BLOCKED, or NEEDS_CONTEXT.
+Status must be DONE, DONE_WITH_CONCERNS, BLOCKED, or NEEDS_CONTEXT. There is
+no other status. Report an outstanding `Host check` through NEEDS_CONTEXT, or
+BLOCKED when it stops the task, and name the items in the report.
 If the approach is an architecture choice, return NEEDS_CONTEXT. Do not
 guess.
 

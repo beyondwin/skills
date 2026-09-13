@@ -30,27 +30,84 @@ Prefer explicit invocation: `$sddx` on Codex and `/sddx` on Claude Code.
 
     sddx <plan-file> [cursor|grok|c|g]
 
-If the plan path is missing or is not a file, stop. Do not guess. One plan
-per invocation.
+A file link or a plain-language reference to the same plan carries the same
+meaning as the path argument. Read it as the plan path; do not build a
+separate parser for it.
 
-`c` means `cursor`. `g` means `grok`. With a backend argument, skip the
-picker. Without one, ask once for this plan.
+A plan together with its spec, ADR, and reference documents is one plan. Keep
+one active plan and one ledger at a time. If a parent program plan states an
+order, follow it. If the user gave an order for independent plans, run them in
+turn and record the next plan's link in the current-state block. Never merge
+sub-plan conditions into one run, and never guess an order from file names or
+dates.
+
+Ask once, and only when one of these holds:
+
+- The plan path is absent or invalid.
+- The order of independent plans is unclear.
+- A parallel task's owned files or interfaces collide.
+
+Nothing else about the input needs a question. Do not stop on a path you can
+still resolve by asking for it once.
+
+`c` means `cursor`. `g` means `grok`. Decide the backend in this order:
+
+1. An explicit choice in this request.
+2. The current state of this same run.
+3. Ask once.
+
+An explicit choice needs no re-approval on later tasks. If one message gives
+two different explicit choices, confirm which one to use.
 
 - Claude Code: AskUserQuestion. Options are Cursor Agent CLI (Grok model)
   and Grok Build CLI.
-- Codex: numbered options, wait for one answer.
+- Codex: the available question tool, otherwise a short text question with
+  numbered options; wait for one answer.
 
 If only one backend is available, show that fact and the missing backend
-`reason`, then still confirm before proceeding when argv is absent. Do not
-auto-select the only CLI.
+`reason`, then still confirm before proceeding. Do not auto-select the only
+CLI.
 
 Run `python3 "<skill-root>/scripts/resolve_backend.py" --backend <id> --json`
 from the loaded skill root. If `available` is false for the requested
 backend, stop and report `reason`. Do not automatically switch backends.
 If both backends are unavailable, stop as BLOCKED.
 
-Write `Backend: cursor|grok` into the Superpowers SDD ledger for this plan.
-Keep that backend for every later task.
+Record `Backend: cursor|grok — <why it was chosen>` in the current-state block
+of the Superpowers SDD ledger for this plan, and keep that backend until the
+user directs a change. On a user-directed change, confirm the previous run
+exited and that any Grok cleanup finished, then start the next attempt on the
+new backend. Never pass the previous provider's session ID to the new backend.
+Carry over the task, the fix-round count, open findings, and the approved
+scope; a backend change does not reset the fix-round count.
+
+On resume, check the current-state block against the real Git HEAD, the
+uncommitted changes, and the recorded attempt's run state before acting. An
+older `Backend:` line further down the ledger is history, not a current fact.
+
+## Current state
+
+One place holds the current state: the Superpowers SDD ledger for this plan.
+Its first line stays exactly where SDD wrote it:
+
+    # SDD ledger — plan: <plan file path>
+
+Directly beneath it, keep one block delimited by
+`<!-- sddx:current:start -->` and `<!-- sddx:current:end -->`, and replace the
+block's contents on each update. The plan identifier stays outside the block.
+Existing `Task <ID>: complete` lines and the fix-round history below the block
+stay untouched, and new history is appended there once as usual. Update the
+block by editing the ledger the way SDD already edits it: no separate state
+writer, no database.
+
+`references/current-state.md` holds the block template and its fields. Keep
+the block at about thirty lines. Link a long open item to its detail, but
+never drop it from the block.
+
+Do not create `controller-current-state.md`, `controller-recovery.md`, or any
+other parallel state file. `run.json` owns one attempt's process facts; the
+ledger owns user approval, task completion, review, and the next plan. Do not
+sync the two in both directions.
 
 ## Controller
 
@@ -119,19 +176,25 @@ agent and do not lower the session.
 
 Agent definitions ship with the skill. Do not create or edit one during a run.
 
-Record every review dispatch in the ledger. High is one line,
-`Task N review: sddx default — high`. XHigh must name a trigger and a
+Record how each review was actually dispatched, in the ledger. High is one
+line, `Task N review: sddx default — high`. XHigh must name a trigger and a
 referent, `Task N review: sddx-reviewer-xhigh — <trigger>: <path or brief
 phrase>`. A trigger you cannot tie to a path is not a trigger; use High.
-The model is not part of these lines; it is always the orchestrator's. If the
-host cannot confirm the model ID, record that once for the run rather than on
-each dispatch.
+The model is not part of these lines; it is always the orchestrator's. Never
+record an agent name or an applied effort that you did not confirm was used.
+
+Record the review host, model, and effort confirmation once in the
+current-state block, together with its limits, and update it only when it
+changes. That includes a host that cannot confirm the model ID.
 
 This section's effort escalation needs the definition to be present. It is
 absent on Codex, and on Claude Code it can be absent if the definition did not
-load. When it is unavailable, report that the requested effort cannot be set,
-continue at the plain dispatch, and do not substitute another model or effort.
-Do not create the definition. A missing definition never blocks the run.
+load. Record that constraint once for the run in the current-state block, then
+continue at the plain dispatch without repeating the report on later
+dispatches, and do not substitute another model or effort. If the inherited
+session effort is already XHigh or above, the plain dispatch already satisfies
+the requirement and there is no missing definition to report at all. Do not
+create the definition. A missing definition never blocks the run.
 
 ## Implementer
 
@@ -142,7 +205,17 @@ If the worker returns NEEDS_CONTEXT or BLOCKED, rule and re-dispatch.
 
 Fresh worker per task. Resume the same worker session for fix rounds 1-3.
 Rounds 4-5 use a fresh worker at XHigh. Record
-`Task N worker-session: <id>` in the ledger.
+`Task N worker-session: <id>` in the ledger and keep the confirmed session ID
+in the current-state block.
+
+Launch every attempt with `python3 "<skill-root>/scripts/run_worker.py" run`
+as `references/dispatch.md` describes. Do not hand-compose a provider command,
+and do not write a new execution script for a run. Read a running or finished
+attempt only through `run_worker.py status`, which answers within a bounded
+window; never dump a whole worker log into this session.
+
+There is no automatic retry anywhere in these helpers. `run.json.state` is
+process state, not task state, and process exit 0 is not a clean DONE.
 
 Do not pass `--worktree` to the worker. The worker cwd is the current
 Superpowers worktree.
@@ -152,15 +225,71 @@ or `--prompt-file`. If the worker needs a host-outside side effect (push,
 publish, shared-branch update), stop and return BLOCKED. Do not treat that
 as review-passable DONE.
 
+## Errors and host verification
+
+A confirmed provider 402 balance exhaustion, or an auth or permission failure,
+ends the attempt. Record in the current-state block the condition that must
+change, and do not re-run under the same condition. A literal `402` in source
+or test text is not a provider error. Do not blanket-retry a transient error
+either: record cause, changed condition, and justification through the
+existing SDD ruling procedure before another attempt.
+
+The fix-round cap is unchanged. Neither a backend change nor more supplied
+context resets it.
+
+Split verification in the brief under two headings, `Worker checks` and
+`Host checks`. The worker runs the Worker checks. An outstanding host check
+comes back through the existing `NEEDS_CONTEXT` or `BLOCKED` status with the
+items named; there is no new worker status for it. When the host can fill in
+the result and no code change is needed, run the host check here and do not
+call the worker again for the same reason.
+
+A report-only correction is an evidence correction. It does not require a code
+change, a new commit, or a full re-review. A recorded role violation stays
+recorded; a later apology or a later success does not erase it.
+
+Reuse an existing verification only when the relevant source, tests, and
+environment are unchanged. Do not build a separate receipt system for it.
+
+## Hosts
+
+| Item | Claude Code | Codex |
+| --- | --- | --- |
+| Invocation | `/sddx` | `$sddx` |
+| Asking for a backend | AskUserQuestion where available | the available question tool, else a short text question |
+| Extraction, worker launch, log query | the same product Python scripts | the same product Python scripts |
+| Review | native Task, no `model` argument, inherited | native `spawn_agent`, inherited model |
+| XHigh | inherited if already satisfied, else the installed definition | inherited if already satisfied, else only what the host really provides |
+| No escalation mechanism | record the constraint once, then the existing fallback | record the constraint once, then the existing fallback |
+
+A change to the shared product source applies to new runs on both hosts.
+Verify that the real load path points at this product; do not silently fix a
+stale copy somewhere else. An already-running context is not updated
+automatically: apply the change to new runs, and resume an existing run
+explicitly after checking its ledger record and its processes. Do not replace
+Windows support with POSIX-only code.
+
 ## Red flags
 
 - Native implementer subagent
 - Copying SDD into this file
 - Asking for a backend on every task
+- Stopping on a missing plan path instead of asking once
+- Two active plans, or a second ledger
+- Guessing a plan order from file names or dates
 - Raising effort because the design is unclear
 - Treating PATH `agent` as Cursor
 - Auto-failover when Cursor is missing
 - Auto-selecting the only available backend without confirmation
+- Passing the previous provider's session ID to a new backend
+- Resetting the fix-round count after a backend change
+- A second current-state file beside the ledger block
+- Hand-composing a provider command, or a new execution script per run
+- Dumping a whole worker log into this session
+- Re-querying the same status offset in a short loop
+- Retrying after a confirmed 402 without a changed condition
+- Calling the worker again for a host-only check
+- Repeating the missing-definition report on later dispatches
 - Controller editing application code
 - Worker git push, publish, or shared-branch update
 - Pasting host secrets into the worker prompt

@@ -1,30 +1,72 @@
 # Implementer dispatch
 
+## Resolve the backend
+
 From the loaded skill root:
 
     python3 "<skill-root>/scripts/resolve_backend.py" --backend <cursor|grok|c|g> --json
 
-Do not launch a worker from the resolver. Parse one JSON object.
+Do not launch a worker from the resolver. Parse one JSON object with
+`backend`, `available`, `executable`, `identity`, `argv_prefix`, `reason`,
+`launch`, and `model_ids`.
 
-If `available` is false, stop. Do not fail over.
+If `available` is false, stop and report `reason`, which is one of
+`not_found`, `identity_mismatch`, `missing_flags`, or `no_grok_model`.
+`launch` is then null and `model_ids` is empty. Do not fail over.
+
+When `available` is true:
+
+- Grok: `argv_prefix` is `[executable, --no-plan, --no-subagents,
+  --always-approve, --disable-web-search, --sandbox, <workspace>]`. `launch`
+  gives `cwd_flag` `--cwd`, `prompt_flag` `--prompt-file`, `--single`, or
+  `-p`, `effort_flag` `--reasoning-effort` or `--effort`, and `output_format`
+  `streaming-messages-json`. `model_ids` is empty: Grok takes no model
+  argument.
+- Cursor: `argv_prefix` is `[executable, --print` or `-p`, `--trust`,
+  `--auto-review`, `--sandbox`, `enabled]`. `launch` gives `cwd_flag`
+  `--workspace` or `--cwd`, `prompt_flag` null, `effort_flag` null, and
+  `output_format` `stream-json`. `model_ids` holds the confirmed Grok model
+  ids; pass one of them to the runner as `--model`.
+
+Use the `output_format` value this host's resolver returned. Do not hardcode a
+format per backend, and do not add a second `--sandbox` or a second approval
+flag: the resolved prefix already carries the headless and approval flags this
+CLI actually declares.
+
+## Build the brief
 
 Before dispatch, use SDD's task-brief output and supply all decisions and
-task reference paths needed for this task. Include relevant constraints from
-the plan in the brief; do not send the plan itself as a reference. Source and
-test inspection remains available. When the brief lacks a required decision,
-complete it in the controller rather than ask the worker to recover it from
-the plan. Add `Search paths:` with concrete source/test file or directory
-paths to the brief. Keep planning documents out of that list. The worker
-starts with direct reads of named files and targets content searches at these paths;
-a glob without a target path can still search the whole repository.
+task reference paths needed for this task. Extract the task section from the
+plan in the controller:
+
+    python3 "<skill-root>/scripts/extract_task.py" <plan-file> --heading "Task P1: 상태 저장" --output <section-file>
+
+`--heading` is the complete heading text without the leading `#` marks. Exit 0
+is success, 2 is a file or argument error, and 3 is a section-selection error:
+the heading is absent, duplicated, or has an empty body. The command never
+overwrites an existing output file, so write each extraction to a new path.
+
+Include relevant constraints from the plan in the brief; do not send the plan
+itself as a reference. Source and test inspection remains available. When the
+brief lacks a required decision, complete it in the controller rather than ask
+the worker to recover it from the plan. Add `Search paths:` with concrete
+source/test file or directory paths to the brief. Keep planning documents out
+of that list. The worker starts with direct reads of named files and targets
+content searches at these paths; a glob without a target path can still search
+the whole repository.
 `Search paths` limits content searches. Filename-only listings inside the
 current worktree, including its root, and direct reads of repository
 ignore/build/test configuration needed for this task are allowed inspection.
 These actions alone are not scope deviations. They never permit reading
 full-plan content, credentials, or secrets.
 
-Put this boundary directly in each new or resumed dispatch prompt, alongside
-the brief and report paths (it also remains in the worker rules):
+Split verification in the brief under two headings. `Worker checks` are the
+local commands the worker runs and reports with actual exit codes.
+`Host checks` are the ones only this host can run; the worker names the
+outstanding ones in `NEEDS_CONTEXT` or `BLOCKED` instead of claiming them.
+
+The runner writes this reading boundary into every dispatch, new or resumed,
+alongside the brief and report paths (it also remains in the worker rules):
 
 > Read the brief first. Use its requirements and explicitly listed task
 > references. The controller owns the full plan; do not read it or follow
@@ -36,44 +78,87 @@ the brief and report paths (it also remains in the worker rules):
 > not scope deviations. Never read full-plan content, credentials, or secrets
 > through these inspections. Report actual scope deviations even if tests pass.
 
-Capture the CLI's tool-call/results stream in local, uncommitted evidence.
-For Grok, use `--output-format streaming-messages-json`; for Cursor, use the
-local help's supported structured event output. Preserve test commands and
-their actual exits. If the trace is unavailable or incomplete, record role
-compliance as UNVERIFIED. A final message alone is not a tool trace.
+## Order of one attempt
 
-Compose the worker command from `argv_prefix` plus controller flags:
+Complete brief → Grok profile prepare → run → wait on the host's job → the
+status windows you need → confirm the worker and anything it started have
+exited → Grok cleanup → the existing native review.
 
-- Grok: immediately before starting the worker, prepare its worktree profile:
+Never start a new worker before the previous cleanup has finished on the same
+journal path.
 
-      python3 "<skill-root>/scripts/prepare_grok_sandbox.py" prepare --worktree "<worktree>" --state "<evidence-dir>/grok-sandbox.json"
+For Grok, immediately before starting the worker, prepare its worktree
+profile:
 
-  `<skill-root>`, `<worktree>`, and `<evidence-dir>` are absolute paths already
-  established by SDD, not requests for more user input. If preparation fails,
-  do not start the worker. Read the successful JSON as `prepared`, then replace
-  the existing sandbox value in the resolved prefix without adding a second
-  `--sandbox`:
+    python3 "<skill-root>/scripts/prepare_grok_sandbox.py" prepare --worktree "<worktree>" --state "<evidence-dir>/grok-sandbox.json"
 
-      argv = list(resolved["argv_prefix"])
-      sandbox_index = argv.index("--sandbox")
-      argv[sandbox_index + 1] = prepared["profile"]
-      argv.extend(["--cwd", str(worktree), "--rules", worker_rules])
+`<skill-root>`, `<worktree>`, and `<evidence-dir>` are absolute paths already
+established by SDD, not requests for more user input. If preparation fails, do
+not start the worker. Read `profile` out of the successful JSON and pass it to
+the runner as `--sandbox-profile`; the runner substitutes it for the resolved
+prefix's sandbox value itself. `run_worker.py` never prepares or cleans up.
 
-  `resolved` is the resolver JSON and `worker_rules` is the full text of
-  `worker-prompt.md`. Then append `--reasoning-effort high|xhigh` (or `--effort`
-  if local help supports that alias), `--prompt-file <dispatch-file>` or `-p`,
-  and `--resume <id>` for fix rounds 1-3. `--disable-web-search` is already in
-  `argv_prefix`.
-  Do not pass `--worktree`. Do not pass `--continue`. Do not paste host
-  credentials into the prompt file.
-- Cursor: `--workspace <worktree>` (or `--cwd` if that is what help
-  showed), `--model` a grok id from `models`/`--list-models`, headless
-  already in `argv_prefix`. Resume with `--resume <id>` when the previous
-  JSON/output gave an id. If no id, SDD fallback: fresh worker plus the
-  report file.
+## Run
 
-For Grok, confirm the worker and any work it started have exited, then clean up
-after every success or failure:
+    python3 "<skill-root>/scripts/run_worker.py" run --backend <c|cursor|g|grok> --worktree <worktree> \
+        --brief <brief-file> --attempt-dir <new-attempt-dir> --effort <high|xhigh> \
+        [--model <confirmed-grok-id>] [--resume <known-id>] [--sandbox-profile <prepared-profile>]
+
+`--attempt-dir` must be a new directory under the worktree's `.superpowers/`.
+The runner writes six files there: `brief.md`, `dispatch.md`, `worker.jsonl`
+(raw stdout), `stderr.log`, `run.json`, and `report.md`, which the worker
+writes itself — the runner never writes the report. Grok receives the worker
+rules through `--rules` and Cursor receives them inline in the dispatch text;
+the controller does not compose either. Pass `--model` only for Cursor, and
+`--resume` only with a session ID the previous run actually reported.
+
+Do not pass `--worktree` to the provider CLI. Do not pass `--continue`. Do not
+copy host credentials or environment values into the brief or the dispatch.
+
+`run.json` holds process facts only: `schema_version` 1, `backend`,
+`identity`, `model`, `worktree`, `attempt_dir`, `brief_sha256`, `resume_id`,
+`requested_effort`, `configured_effort`, `state`, `pid`, `exit_code`,
+`started_at`, `ended_at`, `error`. `state` is one of `starting`, `running`,
+`exited`, `launch_failed`, or `interrupted`. That is process state, not task
+state; process exit 0 is not a clean DONE.
+
+The wrapper exit follows the worker's exit. A POSIX signal returns
+`128 + signal` while `run.json.exit_code` keeps the real negative returncode.
+A launch failure is 2 and a handled controller interrupt is 130. Exit 2 is
+ambiguous between a launch failure and a worker that legitimately exited 2, so
+read `run.json.state` to tell them apart.
+
+There is no automatic retry. Cursor has no confirmed effort control, so its
+`configured_effort` is null and the applied effort is unknown; record it as
+unknown rather than as the requested value.
+
+Known limitation: the worker rules and the Cursor dispatch text are
+multi-line, and a `cmd.exe` command line cannot carry a newline, so launching
+through an npm-style `.cmd` shim is recorded as a launch failure instead of
+being silently mangled. Do not route around it.
+
+## Watch
+
+Wait on the host's shell job without short polls. Codex `wait_agent` is only
+for native reviewers.
+
+    python3 "<skill-root>/scripts/run_worker.py" status --attempt-dir <attempt-dir>
+    python3 "<skill-root>/scripts/run_worker.py" status --attempt-dir <attempt-dir> --stream stdout|stderr --offset N --max-bytes N
+
+`status` is read-only and interprets nothing. The default answer is metadata,
+log sizes, and whether `report.md` exists — never a log body. A window needs
+`--stream`; it defaults to 2048 bytes with a maximum of 8192, and the whole
+JSON answer is capped at 64 KiB. Read the bounded windows you need. Do not
+print a raw log wholesale into this session, and do not write a new execution
+script for a run.
+
+`pending_bytes > 0` means a UTF-8 character is only half written. Wait on the
+host's job for new bytes; do not re-query the same offset in a short loop.
+
+## Clean up
+
+For Grok, confirm the worker and any work it started have exited, then clean
+up after every success or failure:
 
     python3 "<skill-root>/scripts/prepare_grok_sandbox.py" cleanup --worktree "<worktree>" --state "<evidence-dir>/grok-sandbox.json"
 
@@ -82,7 +167,15 @@ worker. New tasks and resumed fix rounds use the same prepare, launch, exit,
 and cleanup order. If cleanup fails, do not overwrite other files to repair
 it; record the remaining difference and state path in the ledger.
 
-Wait on the shell job without short polls. Codex `wait_agent` is only for
-native reviewers.
+## Evidence
+
+`worker.jsonl` is the CLI's tool-call/results stream and stays local and
+uncommitted with the rest of the attempt directory. Preserve test commands and
+their actual exits. If the trace is unavailable or incomplete, record role
+compliance as UNVERIFIED. A final message alone is not a tool trace.
+
+Record the attempt path and the confirmed session ID in the current-state
+block described by `references/current-state.md`. `run.json` stays the
+attempt's process record; the ledger stays the run's record.
 
 Do not pass `--plugin-dir`. Do not approve extra MCP servers.
