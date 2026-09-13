@@ -100,7 +100,10 @@ task state. Process exit 0 is not a clean DONE. The wrapper exit follows the
 worker's; a POSIX signal returns `128 + signal` while `run.json.exit_code`
 keeps the real negative return code; a launch failure is 2 and a handled
 interrupt is 130. Exit 2 is ambiguous between a launch failure and a worker
-that legitimately exited 2, so read `run.json.state` to tell them apart.
+that legitimately exited 2, so read `run.json.state` to tell them apart; if the
+attempt directory is absent, or present without `run.json`, the launch was
+refused before the attempt was created and the `BLOCKED:` line on stderr is the
+reason.
 
 The run's current state lives in one block at the top of the Superpowers SDD
 ledger and nowhere else. Do not add a separate state file. Cursor has no

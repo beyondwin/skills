@@ -51,7 +51,9 @@ Target version `2.0.0`. No public tag or GitHub Release is created here.
   `128 + signal` while `run.json.exit_code` keeps the real negative return
   code; a launch failure is 2 and a handled interrupt is 130. Exit 2 is
   ambiguous between a launch failure and a worker that legitimately exited 2,
-  so `run.json.state` is the discriminator.
+  so `run.json.state` is the discriminator; if the attempt directory is absent,
+  or present without `run.json`, the launch was refused before the attempt was
+  created and the `BLOCKED:` line on stderr is the reason.
 - Requested and configured effort are recorded separately. Cursor has no
   confirmed effort control, so its `configured_effort` is null and the applied
   effort is recorded as unknown rather than as the requested value.

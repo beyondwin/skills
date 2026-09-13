@@ -91,7 +91,9 @@ worker 실행 경로는 `scripts/run_worker.py run` 하나입니다. 공급자 �
 깨끗한 DONE이 아닙니다. 래퍼 exit는 worker의 exit를 따르고, POSIX 시그널은
 `128 + signal`을 반환하며 `run.json.exit_code`에는 실제 음수 반환값이 남습니다.
 실행 실패는 2, 처리된 중단은 130입니다. exit 2는 실행 실패와 worker가 정말 2로
-끝난 경우가 겹치므로 `run.json.state`로 구분합니다.
+끝난 경우가 겹치므로 `run.json.state`로 구분하며, 시도 디렉터리가 없거나
+`run.json` 없이 있으면 시도가 만들어지기 전에 실행이 거부된 것이고 stderr의
+`BLOCKED:` 줄이 그 이유입니다.
 
 실행의 현재 상태는 Superpowers SDD ledger 맨 위의 블록 한 곳에만 둡니다. 별도
 상태 파일을 만들지 않습니다. Cursor에는 확인된 effort 제어가 없어

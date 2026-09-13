@@ -225,7 +225,9 @@ resolver `model_ids`에서 고른 `--model`을 요구하고 `--sandbox-profile`�
 래퍼 exit는 worker의 exit를 따릅니다. POSIX 시그널은 `128 + signal`을 반환하고
 `run.json.exit_code`에는 실제 음수 returncode가 남습니다. 실행 실패는 2, 처리된
 중단은 130입니다. exit 2는 실행 실패와 worker가 정말 2로 끝난 경우가 겹치므로
-`run.json.state`로 구분합니다.
+`run.json.state`로 구분하며, 시도 디렉터리가 없거나 `run.json` 없이 있으면
+시도가 만들어지기 전에 실행이 거부된 것이고 stderr의 `BLOCKED:` 줄이 그
+이유입니다.
 
 요청 effort와 설정 effort는 따로 기록합니다. Cursor에는 확인된 effort 제어가
 없어 `configured_effort`가 `null`이고 적용된 effort는 `unknown`입니다. 어느
