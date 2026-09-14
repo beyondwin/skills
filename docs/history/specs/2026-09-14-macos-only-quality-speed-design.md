@@ -51,10 +51,12 @@ Ubuntu CI를 없애지 않는다. 싼 POSIX 문이다.
   `WINDOWS_EXCLUDED_STAGES`, 그 프로필만 위한 단계 필터.
 - `python3 scripts/verify.py --profile windows-portable`. 알 수 없는 프로필은
   지금처럼 실패한다. 별칭으로 `full`에 매지 않는다.
-- SDDx `skills/sddx/scripts/resolve_backend.py`의 Win32 전송:
-  `_quote_for_cmd`, `_is_cmd_wrapper`, `_unwrap_cmd_wrapper`,
-  `_windows_command_line`, `_uses_cmd_exe`, `os.name == "nt"`일 때 문자열
-  command line을 만드는 `_subprocess_args` 분기.
+- SDDx `skills/sddx/scripts/resolve_backend.py`의 Win32 전송 묶음 전부:
+  `_UNTRANSPORTABLE`, `_PERCENT_NAME`, `_expandable_percent_name`,
+  `_quote_for_cmd`, `_is_cmd_wrapper`, `_unwrap_cmd_wrapper`(있으면),
+  `_windows_command_line`, `_uses_cmd_exe`, `_command`의 nt/cmd 분기,
+  `os.name == "nt"`일 때 문자열 command line을 만드는 `_subprocess_args`
+  분기. 남은 `_command`는 두지 않는다. `_subprocess_args`만 리스트를 반환한다.
 - 그 경로만 잠그는 테스트: `tests/products/sddx/test_resolve_backend.py`의
   Windows 전송 검사, `tests/products/sddx/test_run_worker.py`의 `.cmd` 픽스처
   왕복, `skipUnless(os.name == "nt")` 검사.
@@ -119,7 +121,9 @@ pre-sdd 공유 절에 있던 Windows 문장은 아래로 교체한다. digest를
 > An Ubuntu `full` CI pass does not prove native macOS support.
 
 호스트 지원 문장(`korean-writing-editor: Codex supported` 등)은 바꾸지 않는다.
-OS와 호스트는 겹치지 않는다.
+OS와 호스트는 겹치지 않는다. `how-it-works`의 `historical-unbound` /
+`current-bounded` 설명 문장은 유지하고, 그 문단의 Windows 한 문장만 위 고정
+문장으로 바꾼다.
 
 ## 제품 문서
 
@@ -213,8 +217,9 @@ SDDx는 이미 대상 `2.0.0` 파괴 구간이다. Windows 거절과 전송 삭�
 
 - 공개 문서가 macOS만 지원하고 Windows/Linux를 미지원으로 말한다.
 - CI include에 `windows-latest`가 없다. `PROFILES`는 `("full",)`뿐이다.
-- SDDx 소스에 `_quote_for_cmd`, `_unwrap_cmd_wrapper`, `_windows_command_line`이
-  없다.
+- SDDx 소스에 `_quote_for_cmd`, `_unwrap_cmd_wrapper`, `_windows_command_line`,
+  `_expandable_percent_name`, `_PERCENT_NAME`, `_UNTRANSPORTABLE`,
+  `_is_cmd_wrapper`, `_uses_cmd_exe`가 없다.
 - Windows로 패치한 SDDx CLI `main`이 시도 디렉터리 없이 exit 2와 고정
   `BLOCKED:` 문장을 낸다.
 - `python3 scripts/verify.py`가 macOS 로컬에서 통과한다. 라이브 호출은 이

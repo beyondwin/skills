@@ -27,11 +27,11 @@
 ## File map
 
 - Modify: `scripts/lib/change_routing.py` — `OS_ROWS`를 Ubuntu `full` 한 줄로
-- Modify: `scripts/lib/verification.py` — `PROFILES = ("full",)`, `WINDOWS_EXCLUDED_STAGES`와 프로필 필터 삭제
+- Modify: `scripts/lib/verification.py` — Task 1에서 `PROFILES = ("full",)`와 프로필 필터만 제거. `WINDOWS_EXCLUDED_STAGES` 상수는 Task 2에서 `test_public_docs.py` import와 함께 삭제한다.
 - Modify: `scripts/verify.py` — choices가 `PROFILES`를 따르므로 별도 분기 없음. 문서 문자열만 필요하면 고친다
 - Modify: `tests/repository/test_changed_targets.py`, `tests/repository/test_community_and_ci.py`, `tests/repository/test_verify.py` — Windows 행·프로필 단언 삭제
 - Modify: `docs/users/ko/verification.md`, `docs/users/en/verification.md`, `docs/users/ko/compatibility.md`, `docs/users/en/compatibility.md` — 고정 문장
-- Modify: `tests/repository/test_public_docs.py` — `windows-portable` 헬퍼 제거, digest·핀 문장 교체
+- Modify: `tests/repository/test_public_docs.py` — `windows-portable` 헬퍼 제거, `WINDOWS_EXCLUDED_STAGES` import 삭제, digest·핀 문장 교체. `historical-unbound`와 `current-bounded` 핀은 유지한다.
 - Modify: `CONTRIBUTING.md`, `AGENTS.md` — 내부 루프와 CI 프로필
 - Modify: 각 제품 `docs/maintainers/products/<name>/compatibility.md`, 해당 `testing.md` / README / `skills/sddx/SKILL.md` / `skills/sddx/CHANGELOG.md`
 - Modify: `skills/sddx/scripts/resolve_backend.py`, `run_worker.py`, `prepare_grok_sandbox.py` — Win32 삭제, Windows CLI 거절
@@ -44,14 +44,14 @@
 
 **Files:**
 - Modify: `scripts/lib/change_routing.py:12-15`
-- Modify: `scripts/lib/verification.py:13-16,243-244`
+- Modify: `scripts/lib/verification.py:13` (`PROFILES`) and the `if profile == "windows-portable":` filter. Do **not** delete `WINDOWS_EXCLUDED_STAGES` in this task.
 - Modify: `tests/repository/test_changed_targets.py` (Windows 행 단언)
 - Modify: `tests/repository/test_community_and_ci.py:88-108`
 - Modify: `tests/repository/test_verify.py` (프로필 루프와 `windows-portable` 전용 테스트)
 
 **Interfaces:**
 - Consumes: 없음
-- Produces: `OS_ROWS = (("ubuntu-latest", "full"),)`; `PROFILES = ("full",)`; `stages(..., profile="windows-portable", ...)`는 `ValueError: unknown profile: windows-portable`
+- Produces: `OS_ROWS = (("ubuntu-latest", "full"),)`; `PROFILES = ("full",)`; `stages(..., profile="windows-portable", ...)`는 `ValueError: unknown profile: windows-portable`. `WINDOWS_EXCLUDED_STAGES`는 이 작업에서 심볼로 남는다.
 
 - [ ] **Step 1: Write the failing routing tests**
 
@@ -89,6 +89,18 @@
 ```
 
 `test_full_repository_matrix_is_two_unselected_os_rows`를 `test_full_repository_matrix_is_one_ubuntu_full_row`로 바꾸고 기대를 `[("ubuntu-latest", "full", "", None)]`만 남긴다.
+
+같은 파일에서 행 수가 OS 두 줄을 가정하는 단언을 한 줄로 고친다. 빠지면 Task 1 커밋 뒤 `test_changed_targets`가 실패한다:
+
+- `test_matrix_rows_follow_targets_order_not_input_order`: `["catalog"] * 2 + ["korean-writing-editor"] * 2` → `["catalog", "korean-writing-editor"]`
+- `test_product_only_pr_retains_narrow_selector`: `len(matrix["include"]), 2` → `1`
+- `test_all_product_paths_retain_narrow_product_selectors`: `len(self.registry.products) * 2` → `len(self.registry.products)`
+- `test_catalog_path_retains_narrow_catalog_selector`: `len(matrix["include"]), 2` → `1`
+- `test_invalid_git_refs_use_full_repository_matrix`: `len(matrix["include"]), 2` → `1`
+- `test_cli_writes_compact_full_matrix_for_main_and_dispatch`: `len(matrix["include"]), 2` → `1`
+- `test_cli_writes_pr_matrix_from_changed_paths`: `len(matrix["include"]), 2` → `1`
+
+그다음 `rg -n "\\* 2|, 2\\)|include\\]\\), 2" tests/repository/test_changed_targets.py`로 OS 행 수 단언이 남았는지 확인한다. `full_repository_matrix()`와 비교만 하고 길이를 2로 고정하지 않는 테스트는 그대로 둔다.
 
 `tests/repository/test_community_and_ci.py`의 `full_rows`와 `pr_os_profiles` 기대를 `[("ubuntu-latest", "full")]` / `{("ubuntu-latest", "full")}`로 바꾼다.
 
@@ -148,7 +160,7 @@ OS_ROWS = (
 PROFILES = ("full",)
 ```
 
-`WINDOWS_EXCLUDED_STAGES` 상수와 `stages()` 안의 `if profile == "windows-portable":` 블록을 삭제한다. `profile not in PROFILES` 분기는 그대로 둔다.
+`stages()` 안의 `if profile == "windows-portable":` 블록만 삭제한다. `WINDOWS_EXCLUDED_STAGES` 상수와 `profile not in PROFILES` 분기는 이 작업에서 그대로 둔다. 상수를 지우면 `tests/repository/test_public_docs.py`가 같은 커밋에서 import 실패한다.
 
 - [ ] **Step 6: Run the Task 1 tests and make sure they pass**
 
@@ -158,7 +170,7 @@ Run:
 python3 -m unittest tests.repository.test_changed_targets tests.repository.test_community_and_ci tests.repository.test_verify
 ```
 
-Expected: PASS. `test_cli_rejects_unknown_profile`의 `"linux"` 거절은 그대로 통과해야 한다.
+Expected: PASS. `test_cli_rejects_unknown_profile`의 `"linux"` 거절은 그대로 통과해야 한다. `WINDOWS_EXCLUDED_STAGES`가 아직 정의되어 있어 `tests.repository.test_public_docs` import는 깨지지 않아야 한다.
 
 - [ ] **Step 7: Commit**
 
@@ -220,7 +232,7 @@ pre-sdd 공유 검증 절 교체 문장:
 
 - [ ] **Step 1: Rewrite the public-doc tests first**
 
-`tests/repository/test_public_docs.py`에서 `WINDOWS_EXCLUDED_STAGES` import, `_WINDOWS_PORTABLE_STAGE_RE`, `_windows_portable_exclusion_sentence`, `_windows_portable_excluded_stages`, `test_windows_portable_user_guides_match_orchestrator_exclusions`를 삭제한다.
+`tests/repository/test_public_docs.py`에서 `WINDOWS_EXCLUDED_STAGES` import, `_WINDOWS_PORTABLE_STAGE_RE`, `_windows_portable_exclusion_sentence`, `_windows_portable_excluded_stages`, `test_windows_portable_user_guides_match_orchestrator_exclusions`를 삭제한다. Task 1이 남긴 `scripts/lib/verification.py`의 `WINDOWS_EXCLUDED_STAGES` 상수도 이 작업에서 삭제한다.
 
 `pre_sdd_shared_contract_errors`의 verification 절 마지막 문장을 스펙 교체 문장으로 바꾼다.
 
@@ -232,10 +244,12 @@ pre-sdd 공유 검증 절 교체 문장:
             self.assertIn("`full`", text)
 ```
 
-`test_shared_guides_name_current_evidence_dimensions`의 compatibility 핀에서 `"native Windows"`를 `"macOS"`와 `"unsupported"`로 바꾼다. 한국어 파일은 `"지원하지"`도 허용하지 말고, 언어별 고정 문장 전체를 핀한다:
+`test_shared_guides_name_current_evidence_dimensions`의 compatibility 핀에서 `"native Windows"`만 빼고 `"historical-unbound"`와 `"current-bounded"`는 남긴다. 그 옆에 언어별 OS 고정 문장을 추가한다:
 
 ```python
                 compatibility = _read(base / "compatibility.md")
+                for phrase in ("historical-unbound", "current-bounded"):
+                    self.assertIn(phrase, compatibility)
                 if language == "ko":
                     self.assertIn(
                         "지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다.",
@@ -272,10 +286,11 @@ Expected: FAIL. 문서가 아직 `windows-portable`과 native Windows 문장을 
 - [ ] **Step 3: Edit the user docs and CONTRIBUTING**
 
 `docs/users/ko/compatibility.md`:
-- `새 native Windows 측정은 없습니다.` 문단을 한국어 호환성 고정 문장으로 교체한다.
-- `Windows에서 의미 있는 검사는 한국어 편집기 오프라인 스위트와 저장소 계약입니다.`를 같은 고정 문장과 모순되지 않게 삭제한다. image-workbench 그림 도구 문장은 남긴다.
+- how-it-works smoke 문단(`historical-unbound`, `current-bounded`, 현재 설치 파일 실행 `not_measured`)은 그대로 둔다.
+- 그 문단의 마지막 문장 `새 native Windows 측정은 없습니다.`만 한국어 호환성 고정 문장으로 교체한다. 문단 전체를 바꾸지 않는다.
+- `Windows에서 의미 있는 검사는 한국어 편집기 오프라인 스위트와 저장소 계약입니다.` 문장은 삭제한다. image-workbench 그림 도구 문장은 남긴다.
 
-`docs/users/en/compatibility.md`도 영어 고정 문장으로 같은 치환을 한다.
+`docs/users/en/compatibility.md`도 영어 고정 문장으로 같은 치환을 한다. how-it-works evidence 문장은 남기고 native Windows 한 문장만 교체한다.
 
 `docs/users/ko/verification.md`:
 - `windows-portable` 제외 설명과 `python3 scripts/verify.py --profile windows-portable` 예제를 지운다.
@@ -336,7 +351,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add docs/users/ko/compatibility.md docs/users/en/compatibility.md docs/users/ko/verification.md docs/users/en/verification.md tests/repository/test_public_docs.py CONTRIBUTING.md
+git add docs/users/ko/compatibility.md docs/users/en/compatibility.md docs/users/ko/verification.md docs/users/en/verification.md tests/repository/test_public_docs.py CONTRIBUTING.md scripts/lib/verification.py
 git commit -m "$(cat <<'EOF'
 docs: declare macOS-only skill support in public guides
 
@@ -453,7 +468,7 @@ EOF
 
 **Interfaces:**
 - Consumes: Task 3의 SKILL 빨간 깃발과 README 거절 문장
-- Produces: `_subprocess_args(executable: str, arguments: list[str], *, env: Mapping[str, str] | None = None) -> list[str]`는 항상 `[executable, *arguments]`를 반환한다. `env`는 명령 벡터에 쓰지 않는다. `Popen` 환경은 `run_worker.py`가 지금처럼 따로 넘긴다.
+- Produces: `_subprocess_args(executable: str, arguments: list[str], *, env: Mapping[str, str] | None = None) -> list[str]`는 항상 `[executable, *arguments]`를 반환한다. `env`는 명령 벡터에 쓰지 않는다. `_command`는 삭제한다.
 - Produces: `refuse_windows() -> int | None` — `os.name == "nt"`이면 stderr에 `BLOCKED: Windows is not a supported OS`를 쓰고 `2`를 반환, 아니면 `None`
 - Produces: `run_worker.main`, `resolve_backend.main`, `prepare_grok_sandbox` 모듈 진입이 파서보다 먼저 `refuse_windows()`를 호출
 
@@ -580,7 +595,13 @@ def main(argv: list[str] | None = None) -> int:
 
 문구와 공백은 `refuse_windows()`와 바이트 단위로 같아야 한다.
 
-그다음 Win32 함수를 삭제한다: `_quote_for_cmd`, `_is_cmd_wrapper`, `_unwrap_cmd_wrapper`, `_windows_command_line`, `_uses_cmd_exe`. `_command` / `_subprocess_args`를 아래로 줄인다:
+그다음 Win32 묶음을 삭제한다. 남은 `_command` 심볼은 두지 않는다:
+
+- `_UNTRANSPORTABLE`, `_PERCENT_NAME`, `_expandable_percent_name`
+- `_quote_for_cmd`, `_is_cmd_wrapper`, `_unwrap_cmd_wrapper`(있으면)
+- `_windows_command_line`, `_uses_cmd_exe`, `_command`
+
+`_subprocess_args`만 남긴다:
 
 ```python
 def _subprocess_args(
@@ -590,11 +611,27 @@ def _subprocess_args(
     return [executable, *arguments]
 ```
 
-`run_worker.py`의 `except ValueError: return fail("an argument cannot cross the backend command transport")`는 `build_argv`의 `ValueError`를 위해 남긴다. `_subprocess_args`는 더 이상 그 이유로 올리지 않는다. 주석 `The Windows transport validates against this same environment.`를 지운다.
+`run_worker.py`가 `_command`를 import하지 않는지 확인한다. `except ValueError: return fail("an argument cannot cross the backend command transport")`는 `build_argv`의 `ValueError`를 위해 남긴다. `_subprocess_args`는 더 이상 그 이유로 올리지 않는다. 주석 `The Windows transport validates against this same environment.`를 지운다.
 
 - [ ] **Step 4: Delete Windows transport tests and `.cmd` fixtures that only serve them**
 
-`tests/products/sddx/test_resolve_backend.py`에서 `os.name`을 `"nt"`로 패치하고 `_command` / `_subprocess_args` 문자열 command line을 기대하는 테스트를 삭제한다. `test_subprocess_args_keep_direct_commands_as_a_list`는 남긴다.
+`tests/products/sddx/test_resolve_backend.py`의 `windows argument transport` 절을 통째로 지우되, `test_subprocess_args_keep_direct_commands_as_a_list`만 그 자리에 남긴다. 이름에 `windows`가 없더라도 함께 지울 것:
+
+- `test_windows_cmd_wrapper_is_invoked_through_comspec`
+- `test_windows_cmd_wrapper_quotes_hostile_arguments`
+- `test_windows_subprocess_args_bypass_list2cmdline`
+- `test_windows_exe_command_line_quotes_newlines`
+- `test_windows_exe_command_line_quotes_spaces`
+- `test_windows_exe_command_line_rejects_nul`
+- `test_windows_cmd_wrapper_rejects_untransportable_arguments`
+- `test_windows_transport_checks_the_actual_child_environment`
+- `test_windows_cmd_wrapper_rejects_expandable_percent_names`
+- `test_direct_invocation_never_rejects_percent_names`
+- `test_windows_exe_is_invoked_directly`
+- `test_windows_cmd_fixture_prints_grok_version`
+- `test_windows_cmd_wrapper_round_trips_arguments`
+
+`_windows_env` 헬퍼와 `.cmd`를 쓰는 `_write_cli` 분기가 이 테스트들만 쓰면 함께 삭제한다.
 
 `tests/products/sddx/test_run_worker.py`에서 `write_cmd`와 `@unittest.skipUnless(os.name == "nt", ...)` 테스트를 삭제한다. `@unittest.skipUnless(os.name != "nt", ...)` POSIX 시그널 테스트는 남긴다.
 
@@ -630,7 +667,7 @@ Run:
 
 ```bash
 python3 scripts/verify.py
-rg -n "windows-portable|_quote_for_cmd|_unwrap_cmd_wrapper|_windows_command_line" scripts skills tests docs/users docs/maintainers skills/sddx
+rg -n "windows-portable|_quote_for_cmd|_unwrap_cmd_wrapper|_windows_command_line|_expandable_percent_name|_PERCENT_NAME|_UNTRANSPORTABLE|_is_cmd_wrapper|_uses_cmd_exe" scripts skills tests docs/users docs/maintainers
 ```
 
 Expected: `python3 scripts/verify.py` exit 0. `rg`는 `docs/history/`와 이 계획·스펙, 그리고 “미지원이라 제거했다”는 CHANGELOG 과거 시제 외에는 `windows-portable` 사용법과 Win32 심볼이 없어야 한다. `catalog/` 히트는 허용한다. `docs/history/` 히트는 허용한다.
@@ -672,4 +709,4 @@ EOF
 
 **Placeholders:** 없음. digest 값은 Step 4 스크립트가 계산한다.
 
-**Types:** `_subprocess_args` → `list[str]`; `refuse_windows` → `int | None`; exit `2`.
+- `_subprocess_args` → `list[str]`; `_command` 없음; `refuse_windows` → `int | None`; exit `2`.
