@@ -316,9 +316,10 @@ Grok은 `grok 1.0.30 (04b7ffed98c6)`으로 모델 인자 없이 worker 시도 �
 수락했다는 사실도, 요청 effort가 명령줄에 실렸다는 사실도 마찬가지입니다.
 worker 경계가 CLI에 의해 강제되는지도 `not_measured`입니다. Grok init 이벤트는
 `--no-subagents`를 넘긴 뒤에도 `spawn_subagent`를 도구 목록에 실었고, 두 시도가
-규칙을 지킨 것은 모델이 지시를 따랐기 때문입니다. Codex 호스트의 worker 실행과
-Windows 실행은 실행하지 않았으므로 `not_measured`로 남습니다. 관측한 두 조합의
-결과를 나머지로 넓히지 않습니다.
+규칙을 지킨 것은 모델이 지시를 따랐기 때문입니다. Codex 호스트의 worker 실행은
+실행하지 않았으므로 `not_measured`로 남습니다. Windows는 지원하지 않으며
+`not_measured` OS 대기열이 아닙니다. 관측한 두 조합의 결과를 나머지로
+넓히지 않습니다.
 조합별 표와 항목별 측정 상태는 [호환성](compatibility.md)이 소유합니다.
 
 ### 실제 관측
