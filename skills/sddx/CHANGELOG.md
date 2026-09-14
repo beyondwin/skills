@@ -91,6 +91,12 @@ Target version `2.0.0`. No public tag or GitHub Release is created here.
 - Product README now matches the measured macOS host/worker table instead of
   saying all four combinations are `not_measured`.
 
+### Fixed
+
+- Windows Win32 worker launches quote newlines on the process command line, so
+  multiline `--rules` and dispatch text survive. npm-style `.cmd` shims still
+  refuse them.
+
 ## 1.1.1 - 2026-09-12
 
 ### Fixed

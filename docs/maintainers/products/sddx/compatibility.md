@@ -113,7 +113,10 @@ Windows 행은 저장소의 `windows-latest`/`windows-portable` CI에서 실제�
 
 Windows의 npm 방식 `.cmd` 셰임 실행은 launch failure로 기록됩니다. worker 규칙과
 Cursor dispatch 텍스트는 여러 줄인데 `cmd.exe` 명령줄은 줄바꿈을 담을 수 없습니다.
-의도한 선택이며, 대안은 이전 전송 방식의 조용한 인자 훼손이었습니다.
+의도한 선택이며, 대안은 이전 전송 방식의 조용한 인자 훼손이었습니다. native
+Win32 이미지는 줄바꿈을 따옴표로 감싼 명령줄로 실행하므로 그 제한을 받지
+않습니다. CI worker 픽스처는 그 이미지를 쓰고, 실제 npm `.cmd` 경로를 우회하지
+않습니다.
 
 `_expandable_percent_name`은 `cmd.exe` 의사 변수(`%CD%`, `%DATE%`, `%TIME%`,
 `%RANDOM%`, `%ERRORLEVEL%`, `%CMDCMDLINE%`)를 거르지 않습니다. 이 이름들은

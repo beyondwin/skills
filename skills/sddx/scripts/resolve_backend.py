@@ -113,6 +113,42 @@ def _is_cmd_wrapper(executable: str) -> bool:
     return os.name == "nt" and os.path.splitext(executable)[1].lower() in {".cmd", ".bat"}
 
 
+def _windows_command_line(command: list[str]) -> str:
+    """Join argv the way the MSVC CRT reads it, including quoting newlines.
+
+    `subprocess.list2cmdline` quotes spaces and tabs but leaves `\\n` and `\\r`
+    bare, so a list handed to `Popen` splits multiline `--rules` on Windows.
+    Returning one string keeps `Popen` from running that conversion.
+    """
+    result: list[str] = []
+    for argument in command:
+        if "\x00" in argument:
+            raise ValueError("argument cannot cross the process command line")
+        need_quotes = (not argument) or any(char in argument for char in ' \t\n\r"')
+        pieces: list[str] = ['"'] if need_quotes else []
+        backslashes: list[str] = []
+        for char in argument:
+            if char == "\\":
+                backslashes.append(char)
+                continue
+            if char == '"':
+                pieces.append("\\" * (len(backslashes) * 2))
+                backslashes = []
+                pieces.append('\\"')
+                continue
+            pieces.extend(backslashes)
+            backslashes = []
+            pieces.append(char)
+        if need_quotes:
+            pieces.extend(backslashes)
+            pieces.extend(backslashes)
+            pieces.append('"')
+        else:
+            pieces.extend(backslashes)
+        result.append("".join(pieces))
+    return " ".join(result)
+
+
 def _command(executable: str, arguments: list[str], *, env: Mapping[str, str] | None = None) -> list[str]:
     command = [executable, *arguments]
     if _is_cmd_wrapper(executable):
@@ -129,12 +165,16 @@ def _subprocess_args(
     """What to hand `subprocess`; use this rather than `_command` to launch.
 
     On Windows `subprocess` joins a list with `list2cmdline`, which escapes every
-    `"` as `\\"`. `cmd.exe` does not unescape backslashes, so a line already escaped
-    for `cmd.exe` must reach `subprocess` as a string or the wrapper is mangled.
+    `"` as `\\"` and does not quote newlines. `cmd.exe` does not unescape
+    backslashes, so a line already escaped for `cmd.exe` must reach `subprocess`
+    as a string or the wrapper is mangled. A Win32 image uses the same string
+    form, with newlines quoted, so multiline `--rules` survive.
     """
     command = _command(executable, arguments, env=env)
     if _is_cmd_wrapper(executable):
         return f"{subprocess.list2cmdline(command[:4])} {command[4]}"
+    if os.name == "nt":
+        return _windows_command_line(command)
     return command
 
 

@@ -363,13 +363,34 @@ class ResolveBackendTests(unittest.TestCase):
 
     def test_subprocess_args_keep_direct_commands_as_a_list(self) -> None:
         module = self._load()
-        with mock.patch.object(module.os, "name", "nt"):
-            command = module._subprocess_args(r"C:\tools\grok.exe", ["--version", "a & b"])
-        self.assertEqual(command, [r"C:\tools\grok.exe", "--version", "a & b"])
         self.assertEqual(
             module._subprocess_args("/usr/bin/grok", ["--version"]),
             ["/usr/bin/grok", "--version"],
         )
+
+    def test_windows_exe_command_line_quotes_newlines(self) -> None:
+        # Break: handing a list to subprocess uses list2cmdline, which does not
+        # quote newlines, so the CRT splits a multiline --rules value.
+        module = self._load()
+        with mock.patch.object(module.os, "name", "nt"):
+            command = module._subprocess_args(
+                r"C:\tools\grok.exe", ["--rules", "first\nsecond"]
+            )
+        self.assertEqual(command, 'C:\\tools\\grok.exe --rules "first\nsecond"')
+
+    def test_windows_exe_command_line_quotes_spaces(self) -> None:
+        module = self._load()
+        with mock.patch.object(module.os, "name", "nt"):
+            command = module._subprocess_args(
+                r"C:\tools\grok.exe", ["--version", "a & b"]
+            )
+        self.assertEqual(command, r'C:\tools\grok.exe --version "a & b"')
+
+    def test_windows_exe_command_line_rejects_nul(self) -> None:
+        module = self._load()
+        with mock.patch.object(module.os, "name", "nt"):
+            with self.assertRaises(ValueError):
+                module._subprocess_args(r"C:\tools\grok.exe", ["nul\x00byte"])
 
     def test_windows_cmd_wrapper_rejects_untransportable_arguments(self) -> None:
         module = self._load()

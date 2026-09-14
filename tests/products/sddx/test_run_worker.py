@@ -269,17 +269,37 @@ class RunnerFixture(unittest.TestCase):
     def write_cli(self, name: str, version: str, help_text: str, models: str,
                   behaviour: str) -> Path:
         body = _cli_body(version, help_text, models, self.argv_log, self.marker, behaviour)
-        if os.name == "nt":
-            script = self.bindir / f"{name}.py"
-            script.write_text(body, encoding="utf-8")
-            path = self.bindir / f"{name}.cmd"
-            path.write_text(
-                f'@echo off\r\n"{sys.executable}" "{script}" %*\r\n', encoding="utf-8"
-            )
+        if os.name != "nt":
+            path = self.bindir / name
+            path.write_text(f"#!{sys.executable}\n{body}", encoding="utf-8")
+            path.chmod(path.stat().st_mode | stat.S_IXUSR)
             return path
-        path = self.bindir / name
-        path.write_text(f"#!{sys.executable}\n{body}", encoding="utf-8")
-        path.chmod(path.stat().st_mode | stat.S_IXUSR)
+        # A `.cmd` shim cannot carry multiline `--rules`. Build a Win32 image
+        # that execs this interpreter, the same shape pip uses for console_scripts.
+        script = self.bindir / f"{name}.py"
+        script.write_bytes(b"#!python\n" + body.encode("utf-8"))
+        from pip._vendor.distlib.scripts import ScriptMaker
+
+        maker = ScriptMaker(str(self.bindir), str(self.bindir))
+        maker.executable = sys.executable
+        maker.variants = {""}
+        maker.clobber = True
+        maker.force = True
+        created = maker.make(f"{name}.py")
+        exes = [Path(path) for path in created if str(path).lower().endswith(".exe")]
+        if not exes:
+            raise RuntimeError(f"could not build a Windows launcher for {name}")
+        return exes[0].resolve()
+
+    def write_cmd(self, name: str, version: str, help_text: str, models: str,
+                  behaviour: str) -> Path:
+        body = _cli_body(version, help_text, models, self.argv_log, self.marker, behaviour)
+        script = self.bindir / f"{name}.py"
+        script.write_text(body, encoding="utf-8")
+        path = self.bindir / f"{name}.cmd"
+        path.write_text(
+            f'@echo off\r\n"{sys.executable}" "{script}" %*\r\n', encoding="utf-8"
+        )
         return path
 
     def write_grok(self, behaviour: str = BEHAVIOUR_OK, help_text: str = GROK_HELP) -> Path:
@@ -1163,6 +1183,9 @@ class WorkerArgvTests(RunnerFixture):
     def test_relative_worktree_reaches_the_child_as_an_absolute_path(self) -> None:
         module = self.load()
         self.write_grok(BEHAVIOUR_OK)
+        here = os.getcwd()
+        self.addCleanup(os.chdir, here)
+        os.chdir(self.base)
         relative = Path(os.path.relpath(self.worktree, Path.cwd()))
         self.assertFalse(relative.is_absolute())
         self.invoke(module, self.options(module, worktree=relative))
@@ -1243,8 +1266,12 @@ class TransportTests(RunnerFixture):
 
     @unittest.skipUnless(os.name == "nt", "a .cmd wrapper round trip needs a real cmd.exe")
     def test_cmd_wrapper_round_trips_hostile_arguments(self) -> None:  # pragma: no cover
-        received = self._round_trip(list(HOSTILE_ARGUMENTS))
-        self.assertEqual(received, list(HOSTILE_ARGUMENTS))
+        module = self.load()
+        executable = self.write_cmd("echoer", "x\n", "x\n", "", BEHAVIOUR_OK)
+        command = module._subprocess_args(str(executable), list(HOSTILE_ARGUMENTS))
+        completed = subprocess.run(command, check=False, capture_output=True)
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertEqual(self.worker_argv(), list(HOSTILE_ARGUMENTS))
 
     def test_untransportable_argument_is_a_launch_failure(self) -> None:
         module = self.load()

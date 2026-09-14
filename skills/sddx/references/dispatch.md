@@ -205,7 +205,8 @@ requested value.
 Known limitation: the worker rules and the Cursor dispatch text are
 multi-line, and a `cmd.exe` command line cannot carry a newline, so launching
 through an npm-style `.cmd` shim is recorded as a launch failure instead of
-being silently mangled. Do not route around it.
+being silently mangled. Do not route around it. A native Win32 image is
+launched with a quoted command line so those newlines survive.
 
 ## Watch
 
