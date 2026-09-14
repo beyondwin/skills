@@ -24,6 +24,8 @@ Usage: grok [OPTIONS]
       --cwd <CWD>
       --no-plan
       --no-subagents
+      --disallowed-tools <TOOLS>
+      --deny <RULE>
       --always-approve
       --reasoning-effort <EFFORT>
       --disable-web-search
@@ -37,6 +39,8 @@ GROK_HELP_WITHOUT_CWD = """
 Usage: grok [OPTIONS]
       --no-plan
       --no-subagents
+      --disallowed-tools <TOOLS>
+      --deny <RULE>
       --always-approve
       --reasoning-effort <EFFORT>
       --disable-web-search
@@ -375,6 +379,16 @@ class ResolveBackendTests(unittest.TestCase):
                     with self.assertRaises(ValueError):
                         module._command(r"C:\tools\grok.cmd", [argument])
 
+    def test_windows_transport_checks_the_actual_child_environment(self) -> None:
+        module = self._load()
+        with mock.patch.object(module, "_is_cmd_wrapper", return_value=True):
+            with self.assertRaises(ValueError):
+                module._subprocess_args("grok.cmd", ["%GROK_CURSOR_MCPS_ENABLED%"],
+                                        env={"GROK_CURSOR_MCPS_ENABLED": "0"})
+            with self.assertRaises(ValueError):
+                module._subprocess_args("grok.cmd", ["%grok_cursor_mcps_enabled%"],
+                                        env={"GROK_CURSOR_MCPS_ENABLED": "0"})
+
     def test_windows_cmd_wrapper_rejects_expandable_percent_names(self) -> None:
         # cmd.exe expands %NAME% even inside quotes, so an argument naming a variable
         # that actually resolves would be silently rewritten. Reject it instead.
@@ -650,6 +664,24 @@ class ResolveBackendTests(unittest.TestCase):
         self.assertIn("--always-approve", result["argv_prefix"])
         self.assertIn("--disable-web-search", result["argv_prefix"])
         self.assertNotIn("--worktree", result["argv_prefix"])
+
+    def test_grok_removes_mcp_tools(self) -> None:
+        self._write_cli("grok", GROK_VERSION, GROK_HELP)
+        argv = self._resolve("grok")["argv_prefix"]
+        self.assertIn("--disallowed-tools", argv)
+        self.assertEqual(argv[argv.index("--disallowed-tools") + 1], "search_tool,use_tool")
+        self.assertIn("--deny", argv)
+        self.assertEqual(argv[argv.index("--deny") + 1], "MCPTool(*)")
+
+    def test_grok_without_value_taking_tool_filters_is_unavailable(self) -> None:
+        for declaration in ("--disallowed-tools <TOOLS>", "--deny <RULE>"):
+            for replacement in ("", declaration.split()[0]):
+                with self.subTest(declaration=declaration, replacement=replacement):
+                    help_text = GROK_HELP.replace(declaration, replacement)
+                    self._write_cli("grok", GROK_VERSION, help_text)
+                    result = self._resolve("grok")
+                    self.assertFalse(result["available"])
+                    self.assertEqual(result["reason"], "missing_flags")
 
     def test_grok_launch_contract(self) -> None:
         self._write_cli("grok", GROK_VERSION, GROK_HELP)

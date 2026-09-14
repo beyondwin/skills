@@ -228,3 +228,10 @@ $sddx docs/history/plans/example.md
 - [테스트](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/sddx/testing.md)
 - [호환성](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/sddx/compatibility.md)
 - [릴리스](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/sddx/release.md)
+
+## Grok 실행 범위
+
+Grok worker는 MCP 호출 도구를 CLI에서 제외하고, 해당 프로세스에서만
+Cursor/Claude MCP 설정 가져오기를 끕니다. 이를 지원하는 `--disallowed-tools`와
+`--deny` 옵션이 없으면 실행하지 않습니다. 전역 설정은 바꾸지 않으며 Grok 자체의
+MCP 초기화나 다른 시작 경고가 모두 사라진다는 뜻은 아닙니다.

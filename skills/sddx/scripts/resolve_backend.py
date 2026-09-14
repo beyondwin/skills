@@ -9,13 +9,15 @@ import re
 import shutil
 import subprocess
 import sys
-from typing import Any
+from typing import Any, Mapping
 
 ALIASES = {"c": "cursor", "g": "grok", "cursor": "cursor", "grok": "grok"}
 
 GROK_OUTPUT_FORMAT = "streaming-messages-json"
 CURSOR_OUTPUT_FORMAT = "stream-json"
 CURSOR_SANDBOX_MODE = "enabled"
+# Do not exclude Agent/task: Grok also removes background shell get/kill tools.
+GROK_DISALLOWED_TOOLS = "search_tool,use_tool"
 
 # A help entry counts as declared only when the token stands on its own. Plain
 # substring tests confuse `-p` with `--prompt-file` and `--model` with `--models`.
@@ -46,15 +48,16 @@ _UNTRANSPORTABLE = ("\n", "\r", "\x00")
 _PERCENT_NAME = re.compile(r"%([^%\r\n]+)%")
 
 
-def _expandable_percent_name(argument: str) -> str | None:
+def _expandable_percent_name(argument: str, env: Mapping[str, str] | None = None) -> str | None:
+    names = {name.upper() for name in (os.environ if env is None else env)}
     for name in _PERCENT_NAME.findall(argument):
         # Windows upper-cases environment names; `os.environ` mirrors that.
-        if name in os.environ or name.upper() in os.environ:
+        if name.upper() in names:
             return name
     return None
 
 
-def _quote_for_cmd(argument: str) -> str:
+def _quote_for_cmd(argument: str, env: Mapping[str, str] | None = None) -> str:
     """Quote one argument so `cmd.exe` and the child's CRT both read it back whole.
 
     A `.cmd`/`.bat` wrapper is parsed twice: once by `cmd.exe` for the `/c` command
@@ -82,7 +85,7 @@ def _quote_for_cmd(argument: str) -> str:
     for forbidden in _UNTRANSPORTABLE:
         if forbidden in argument:
             raise ValueError(f"argument cannot cross a cmd.exe wrapper: {argument!r}")
-    name = _expandable_percent_name(argument)
+    name = _expandable_percent_name(argument, env)
     if name is not None:
         raise ValueError(
             f"argument cannot cross a cmd.exe wrapper: {argument!r} "
@@ -110,24 +113,26 @@ def _is_cmd_wrapper(executable: str) -> bool:
     return os.name == "nt" and os.path.splitext(executable)[1].lower() in {".cmd", ".bat"}
 
 
-def _command(executable: str, arguments: list[str]) -> list[str]:
+def _command(executable: str, arguments: list[str], *, env: Mapping[str, str] | None = None) -> list[str]:
     command = [executable, *arguments]
     if _is_cmd_wrapper(executable):
         comspec = os.environ.get("ComSpec") or "cmd.exe"
         # `/s` strips the outermost quote pair, so wrap the whole line in one more.
-        line = " ".join(_quote_for_cmd(part) for part in command)
+        line = " ".join(_quote_for_cmd(part, env) for part in command)
         return [comspec, "/d", "/s", "/c", f'"{line}"']
     return command
 
 
-def _subprocess_args(executable: str, arguments: list[str]) -> list[str] | str:
+def _subprocess_args(
+    executable: str, arguments: list[str], *, env: Mapping[str, str] | None = None
+) -> list[str] | str:
     """What to hand `subprocess`; use this rather than `_command` to launch.
 
     On Windows `subprocess` joins a list with `list2cmdline`, which escapes every
     `"` as `\\"`. `cmd.exe` does not unescape backslashes, so a line already escaped
     for `cmd.exe` must reach `subprocess` as a string or the wrapper is mangled.
     """
-    command = _command(executable, arguments)
+    command = _command(executable, arguments, env=env)
     if _is_cmd_wrapper(executable):
         return f"{subprocess.list2cmdline(command[:4])} {command[4]}"
     return command
@@ -163,6 +168,12 @@ def _run(executable: str, arguments: list[str], timeout: float = 5.0) -> str:
 
 def _declares(help_text: str, token: str) -> bool:
     return re.search(_TOKEN_BOUNDARY.format(token=re.escape(token)), help_text) is not None
+
+
+def _declares_value_option(help_text: str, flag: str) -> bool:
+    """Require an option declaration with a value placeholder, not prose."""
+    pattern = rf"^\s+(?:-\w,\s+)?{re.escape(flag)}[ \t]+(?:<[^>\n]+>|\[[^]\n]+\])"
+    return re.search(pattern, help_text, re.MULTILINE) is not None
 
 
 def _declares_subcommand(help_text: str, name: str) -> bool:
@@ -258,6 +269,8 @@ def _grok_flags_ok(help_text: str) -> bool:
     )
     return (
         all(_declares(help_text, flag) for flag in required)
+        and _declares_value_option(help_text, "--disallowed-tools")
+        and _declares_value_option(help_text, "--deny")
         and _grok_effort_flag(help_text) is not None
         and _grok_prompt_flag(help_text) is not None
         # Both halves: `build_argv` always emits `--output-format <value>`, so a CLI
@@ -344,6 +357,10 @@ def resolve(backend_arg: str) -> dict[str, Any]:
             executable,
             "--no-plan",
             "--no-subagents",
+            "--disallowed-tools",
+            GROK_DISALLOWED_TOOLS,
+            "--deny",
+            "MCPTool(*)",
             "--always-approve",
             "--disable-web-search",
             "--sandbox",

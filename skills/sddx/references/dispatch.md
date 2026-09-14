@@ -17,6 +17,7 @@ If `available` is false, stop and report `reason`, which is one of
 When `available` is true:
 
 - Grok: `argv_prefix` is `[executable, --no-plan, --no-subagents,
+  --disallowed-tools, search_tool,use_tool, --deny, MCPTool(*),
   --always-approve, --disable-web-search, --sandbox, <workspace>]`. `launch`
   gives `cwd_flag` `--cwd`, `prompt_flag` `--prompt-file`, `--single`, or
   `-p`, `effort_flag` `--reasoning-effort` or `--effort`, and `output_format`
@@ -43,6 +44,25 @@ Use the `output_format` value this host's resolver returned. Do not hardcode a
 format per backend, and do not add a second `--sandbox` or a second approval
 flag: the resolved prefix already carries the headless and approval flags this
 CLI actually declares.
+
+## Grok worker tool boundary
+
+Grok must declare value-taking `--disallowed-tools` and `--deny`; otherwise
+resolution returns `missing_flags`. The prefix removes `search_tool` and `use_tool`, and denies `MCPTool(*)`.
+Do not add `Agent` or `task` to the denylist: the measured CLI also removes
+background shell output/termination tools with that group. `--no-subagents`
+and the worker rule remain, but toolset-level subagent exclusion is not
+claimed. MCP filters do not claim shell or filesystem isolation.
+
+The runner sets `GROK_CURSOR_MCPS_ENABLED=0` and
+`GROK_CLAUDE_MCPS_ENABLED=0` only in the Grok child's environment, on both new
+and resumed attempts. This prevents imported Cursor/Claude MCP startup from
+adding unrelated handshake failures. It does not modify user configuration,
+credentials, or session storage. Native Grok and plugin MCP initialization may
+still happen. Init/inspect server listings can still include configured
+servers; they do not prove a connection or a tool invocation. Inspect the
+actual stderr and tool calls/results. Other startup warnings remain visible.
+Cursor keeps its environment and existing approval/sandbox policy.
 
 ## Build the brief
 

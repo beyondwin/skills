@@ -74,7 +74,7 @@ MAX_RESPONSE_BYTES = 64 * 1024
 # the session scan to that prefix instead of the whole provider log.
 SESSION_SCAN_BYTES = 64 * 1024
 SESSION_SCAN_LINES = 200
-# Only Cursor's spelling has been observed. The others are accepted because a
+# Both measured providers use session_id. The others are accepted because a
 # rule written to one provider's shape is exactly what this runner keeps getting
 # wrong, not because any of them has been seen.
 SESSION_ID_KEYS = ("session_id", "sessionId", "chatId", "chat_id")
@@ -418,8 +418,15 @@ def run_worker(options: RunOptions) -> int:
         argv = build_argv(resolved, options, dispatch_path, rules)
     except (OSError, ValueError):
         return fail("could not build the backend command from the resolver result")
+    # Session-scoped discovery switches: never rewrite user MCP configuration or
+    # relocate authentication/session storage. Native Grok MCP configuration may
+    # still initialize; the resolver separately removes MCP invocation tools.
+    worker_env = None
+    if backend == "grok":
+        worker_env = dict(os.environ)
+        worker_env.update(GROK_CURSOR_MCPS_ENABLED="0", GROK_CLAUDE_MCPS_ENABLED="0")
     try:
-        command = _subprocess_args(argv[0], argv[1:])
+        command = _subprocess_args(argv[0], argv[1:], env=worker_env)
     except ValueError:
         # The transport rejected an argument. Its own message quotes the whole
         # argument, which can be the rules or the dispatch, so it is not kept.
@@ -434,11 +441,11 @@ def run_worker(options: RunOptions) -> int:
         except OSError:
             return fail("could not create the raw worker output files")
         try:
-            # No custom `env`: the transport's `%NAME%` guard reads `os.environ`,
-            # which is exactly what the child inherits.
+            # The Windows transport validates against this same environment.
             process = subprocess.Popen(
                 command,
                 cwd=str(worktree),
+                env=worker_env,
                 stdin=subprocess.DEVNULL,
                 stdout=out,
                 stderr=err,

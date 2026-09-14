@@ -8,6 +8,9 @@ Target version `2.0.0`. No public tag or GitHub Release is created here.
 
 ### Breaking
 
+- Grok now requires value-taking `--disallowed-tools` and `--deny` options.
+  Workers remove `search_tool,use_tool` and deny `MCPTool(*)`.
+
 - Cursor resolution now requires the CLI to declare headless print (`--print`
   or `-p`), `--trust`, `--auto-review`, `--sandbox`, a confirmed `stream-json`
   output format, and at least one Grok model id returned by a successful model
@@ -24,6 +27,10 @@ Target version `2.0.0`. No public tag or GitHub Release is created here.
   the Superpowers SDD ledger. Separate controller state files are prohibited.
 
 ### Added
+
+- Grok workers disable imported Cursor/Claude MCP discovery in their own
+  environment on both new and resumed attempts. Global settings and Cursor
+  execution are preserved. Windows quoting checks the actual child environment.
 
 - `scripts/extract_task.py <plan-file> --heading "<heading text without #>"
   --output <file>` copies one task section out of a plan. Exit 0 is success,

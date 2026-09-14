@@ -38,6 +38,8 @@ Usage: grok [OPTIONS]
       --cwd <CWD>
       --no-plan
       --no-subagents
+      --disallowed-tools <TOOLS>
+      --deny <RULE>
       --always-approve
       --reasoning-effort <EFFORT>
       --disable-web-search
@@ -1640,6 +1642,31 @@ class AttemptTimeoutTests(RunnerFixture):
         # A new session would leave a worker running past the controller, and a
         # killpg on the shared group would take the controller with it.
         self.assertEqual(reported, f"PGID:{os.getpgrp()}")
+
+
+class WorkerEnvironmentTests(RunnerFixture):
+    def test_grok_mcp_discovery_is_disabled_only_in_the_child(self) -> None:
+        module = self.load()
+        names = ("GROK_CURSOR_MCPS_ENABLED", "GROK_CLAUDE_MCPS_ENABLED", "SDDX_TEST_ENV")
+        behaviour = "print(json.dumps({k: os.environ.get(k) for k in " + repr(names) + "}))\n"
+        self.write_grok(behaviour=behaviour)
+        with mock.patch.dict(os.environ, dict.fromkeys(names, "keep")):
+            self.assertEqual(self.invoke(module, self.options(module)), 0)
+            self.assertEqual({k: os.environ[k] for k in names}, dict.fromkeys(names, "keep"))
+        actual = json.loads((self.attempt / "worker.jsonl").read_text())
+        self.assertEqual(actual, {names[0]: "0", names[1]: "0", names[2]: "keep"})
+        argv = self.worker_argv()
+        self.assertEqual(argv[argv.index("--disallowed-tools") + 1], "search_tool,use_tool")
+        self.assertEqual(argv[argv.index("--deny") + 1], "MCPTool(*)")
+
+    def test_cursor_keeps_its_environment_and_argv_policy(self) -> None:
+        module = self.load()
+        self.write_cursor(behaviour="print(os.environ.get('GROK_CURSOR_MCPS_ENABLED'))\n")
+        with mock.patch.dict(os.environ, {"GROK_CURSOR_MCPS_ENABLED": "keep"}):
+            self.assertEqual(self.invoke(module, self.options(module, backend="cursor", model="grok-4", sandbox_profile=None)), 0)
+        self.assertEqual((self.attempt / "worker.jsonl").read_text().strip(), "keep")
+        self.assertNotIn("--disallowed-tools", self.worker_argv())
+        self.assertNotIn("--deny", self.worker_argv())
 
 
 if __name__ == "__main__":

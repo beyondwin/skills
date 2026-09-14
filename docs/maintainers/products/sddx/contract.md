@@ -188,6 +188,25 @@ id를 모두 요구합니다. `--auto-review`, `--sandbox`, 구조화 출력 형
 없습니다. 해결된 prefix가 이미 headless·승인 플래그를 담으므로 두 번째
 `--sandbox`나 두 번째 승인 플래그를 덧붙이지 않습니다.
 
+## Grok worker 도구와 MCP 초기화
+
+Grok resolver는 값을 받는 `--disallowed-tools`와 `--deny` 선언을 요구합니다.
+둘 중 하나라도 없으면 `missing_flags`이며 더 약한 실행으로 대체하지 않습니다.
+`--disallowed-tools search_tool,use_tool`로 MCP 호출용 도구를 제외하고, `--deny MCPTool(*)`를 함께 전달합니다.
+
+runner는 Grok 자식 프로세스에서만 `GROK_CURSOR_MCPS_ENABLED=0`,
+`GROK_CLAUDE_MCPS_ENABLED=0`을 설정합니다. 신규·재개 호출 모두 적용하며
+부모 환경, 전역 설정, 인증·세션 위치는 변경하지 않습니다. Windows 명령 전송의
+퍼센트 변수 검사는 실제 자식 환경을 기준으로 합니다. Cursor에는 이 변경을 적용하지
+않습니다.
+
+이 변경은 Cursor/Claude에서 가져오는 MCP 초기화와 특정 도구 사용 경계를 다룹니다.
+`Agent`/`task` 제외는 명령 결과 조회·종료 도구까지 제거하므로 사용하지 않습니다.
+하위 에이전트는 기존 `--no-subagents`와 worker 지침으로 제한하지만 도구 제거를
+보장하지 않습니다. Grok 자체·플러그인 MCP 초기화, shell을 통한 호출, 파일 접근을 모두 차단하는 격리는
+아닙니다. init/inspect에 표시되는 서버 목록은 실제 연결이나 도구 호출의 증거가
+아니므로 stderr와 실제 도구 기록을 확인합니다. 다른 CLI 시작 경고는 숨기지 않습니다.
+
 ## 실행 helper와 시도 증거
 
 컨트롤러는 계획에서 task 구간을 뽑을 때

@@ -245,3 +245,11 @@ from a process exit.
 - [Testing](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/sddx/testing.md)
 - [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/sddx/compatibility.md)
 - [Release](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/sddx/release.md)
+
+## Grok execution scope
+
+The Grok worker removes MCP invocation tools through CLI filters
+and disables imported Cursor/Claude MCP discovery only for its own process.
+A CLI missing value-taking `--disallowed-tools` or `--deny` is unavailable.
+Global settings are preserved; native Grok MCP initialization and other
+startup warnings may remain.
