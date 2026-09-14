@@ -227,37 +227,34 @@ class TargetMappingTests(RegistryRoutingTestCase):
 
 
 class MatrixSerializationTests(RegistryRoutingTestCase):
-    def test_each_target_runs_ubuntu_full_and_windows_portable(self) -> None:
+    def test_each_target_runs_ubuntu_full_only(self) -> None:
         matrix = matrix_for_targets(["how-it-works"], self.registry)
         rows = matrix["include"]
         self.assertEqual(
             [(row["os"], row["profile"], row["selector"], row["target"]) for row in rows],
             [
                 ("ubuntu-latest", "full", "--skill how-it-works", "how-it-works"),
-                ("windows-latest", "windows-portable", "--skill how-it-works", "how-it-works"),
             ],
         )
 
-    def test_windows_rows_cover_every_selected_target(self) -> None:
+    def test_matrix_has_no_windows_rows(self) -> None:
         matrix = matrix_for_targets(self.all_targets, self.registry)
-        windows = [row for row in matrix["include"] if row["os"] == "windows-latest"]
         self.assertEqual(
-            [(row["target"], row["profile"], row["selector"]) for row in windows],
-            [
-                ("catalog", "windows-portable", "--catalog"),
-                ("korean-writing-editor", "windows-portable", "--skill korean-writing-editor"),
-                ("image-workbench", "windows-portable", "--skill image-workbench"),
-                ("how-it-works", "windows-portable", "--skill how-it-works"),
-                ("pre-sdd-review", "windows-portable", "--skill pre-sdd-review"),
-                ("sddx", "windows-portable", "--skill sddx"),
-            ],
+            [row["os"] for row in matrix["include"]],
+            ["ubuntu-latest"] * len(self.all_targets),
+        )
+        self.assertFalse(
+            any(row["os"] == "windows-latest" for row in matrix["include"])
+        )
+        self.assertFalse(
+            any(row["profile"] == "windows-portable" for row in matrix["include"])
         )
 
     def test_matrix_rows_follow_targets_order_not_input_order(self) -> None:
         matrix = matrix_for_targets(("korean-writing-editor", "catalog"), self.registry)
         self.assertEqual(
             [row["target"] for row in matrix["include"]],
-            ["catalog"] * 2 + ["korean-writing-editor"] * 2,
+            ["catalog", "korean-writing-editor"],
         )
 
     def test_selectors_are_fixed_strings(self) -> None:
@@ -282,13 +279,12 @@ class MatrixSerializationTests(RegistryRoutingTestCase):
         self.assertEqual(json.loads(encoded), matrix)
         self.assertTrue(encoded.startswith('{"include":['))
 
-    def test_full_repository_matrix_is_two_unselected_os_rows(self) -> None:
+    def test_full_repository_matrix_is_one_ubuntu_full_row(self) -> None:
         matrix = full_repository_matrix()
         self.assertEqual(
             [(row["os"], row["profile"], row.get("selector", ""), row.get("target")) for row in matrix["include"]],
             [
                 ("ubuntu-latest", "full", "", None),
-                ("windows-latest", "windows-portable", "", None),
             ],
         )
         for row in matrix["include"]:
@@ -326,7 +322,7 @@ class MatrixSerializationTests(RegistryRoutingTestCase):
             matrix = matrix_for_event(
                 "pull_request", ROOT, self.registry, "base", "head"
             )
-        self.assertEqual(len(matrix["include"]), 2)
+        self.assertEqual(len(matrix["include"]), 1)
         self.assertEqual(
             {row["selector"] for row in matrix["include"]},
             {"--skill how-it-works"},
@@ -340,7 +336,7 @@ class MatrixSerializationTests(RegistryRoutingTestCase):
             matrix = matrix_for_event(
                 "pull_request", ROOT, self.registry, "base", "head"
             )
-        self.assertEqual(len(matrix["include"]), len(self.registry.products) * 2)
+        self.assertEqual(len(matrix["include"]), len(self.registry.products))
         self.assertEqual(
             {row["selector"] for row in matrix["include"]},
             {f"--skill {name}" for name in self.registry.names},
@@ -354,7 +350,7 @@ class MatrixSerializationTests(RegistryRoutingTestCase):
             matrix = matrix_for_event(
                 "pull_request", ROOT, self.registry, "base", "head"
             )
-        self.assertEqual(len(matrix["include"]), 2)
+        self.assertEqual(len(matrix["include"]), 1)
         self.assertEqual(
             {row["selector"] for row in matrix["include"]}, {"--catalog"}
         )
@@ -417,7 +413,7 @@ class ChangedPathAndCliTests(RegistryRoutingTestCase):
             )
 
         self.assertEqual(matrix, full_repository_matrix())
-        self.assertEqual(len(matrix["include"]), 2)
+        self.assertEqual(len(matrix["include"]), 1)
         self.assertTrue(all(row["selector"] == "" for row in matrix["include"]))
 
     def test_cli_writes_compact_full_matrix_for_main_and_dispatch(self) -> None:
@@ -441,7 +437,7 @@ class ChangedPathAndCliTests(RegistryRoutingTestCase):
                 payload = line.split("=", 1)[1]
                 self.assertEqual(payload, serialize_matrix(full_repository_matrix()))
                 matrix = json.loads(payload)
-                self.assertEqual(len(matrix["include"]), 2)
+                self.assertEqual(len(matrix["include"]), 1)
                 self.assertTrue(all(row["selector"] == "" for row in matrix["include"]))
 
     def test_cli_writes_pr_matrix_from_changed_paths(self) -> None:
@@ -489,7 +485,7 @@ class ChangedPathAndCliTests(RegistryRoutingTestCase):
             )
             matrix = json.loads(payload)
             self.assertEqual({row["target"] for row in matrix["include"]}, {"image-workbench"})
-            self.assertEqual(len(matrix["include"]), 2)
+            self.assertEqual(len(matrix["include"]), 1)
 
     def test_cli_returns_nonzero_on_registry_errors(self) -> None:
         import scripts.changed_targets as module

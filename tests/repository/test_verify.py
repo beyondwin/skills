@@ -41,17 +41,6 @@ FULL_STAGE_NAMES = (
     "sddx-contract",
     "python-compile",
 )
-WINDOWS_STAGE_NAMES = (
-    "repository-contract",
-    "korean-package",
-    "korean-offline",
-    "korean-live-unit",
-    "korean-live-dry-run",
-    "how-it-works-contract",
-    "pre-sdd-review-contract",
-    "sddx-contract",
-    "python-compile",
-)
 LIVE_TEST_PATH = (
     ROOT
     / "tests"
@@ -133,22 +122,17 @@ class VerifyStageTests(unittest.TestCase):
         names = [stage.name for stage in self._selected("full")]
         self.assertEqual(names, list(FULL_STAGE_NAMES))
 
-    def test_windows_profile_excludes_unmeasured_native_gates(self) -> None:
-        names = [stage.name for stage in self._selected("windows-portable")]
-        self.assertNotIn("image-contract", names)
-        self.assertNotIn("image-inspector", names)
-        self.assertNotIn("pre-sdd-review-evidence", names)
-
-    def test_windows_profile_contains_portable_gates_in_order(self) -> None:
-        names = [stage.name for stage in self._selected("windows-portable")]
-        self.assertEqual(names, list(WINDOWS_STAGE_NAMES))
-
     def test_unknown_profile_is_rejected(self) -> None:
         with self.assertRaises(ValueError):
             stages(ROOT, "linux", self.registry)
 
+    def test_windows_portable_profile_is_unknown(self) -> None:
+        with self.assertRaises(ValueError) as raised:
+            stages(ROOT, "windows-portable", self.registry)
+        self.assertIn("unknown profile", str(raised.exception))
+
     def test_contract_discovery_runs_first(self) -> None:
-        for profile in ("full", "windows-portable"):
+        for profile in ("full",):
             selected = self._selected(profile)
             self.assertTrue(selected)
             self.assertEqual(selected[0].name, "repository-contract")
@@ -158,7 +142,7 @@ class VerifyStageTests(unittest.TestCase):
             self.assertIn("tests/repository", argv)
 
     def test_every_stage_uses_sys_executable_and_list_argv(self) -> None:
-        for profile in ("full", "windows-portable"):
+        for profile in ("full",):
             for stage in self._selected(profile):
                 self.assertIsInstance(stage.argv, tuple)
                 self.assertTrue(stage.argv, stage.name)
@@ -192,7 +176,7 @@ class VerifyStageTests(unittest.TestCase):
         self.assertIn("tests/products/image-workbench", stage.argv)
 
     def test_korean_live_unit_discovers_live_tests(self) -> None:
-        stage = self._stage("windows-portable", "korean-live-unit")
+        stage = self._stage("full", "korean-live-unit")
         self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
         self.assertIn("tests/products/korean-writing-editor/live", stage.argv)
 
@@ -206,7 +190,7 @@ class VerifyStageTests(unittest.TestCase):
         self.assertNotIn("--preflight", stage.argv)
 
     def test_no_stage_invokes_live_execute(self) -> None:
-        for profile in ("full", "windows-portable"):
+        for profile in ("full",):
             for stage in self._selected(profile):
                 self.assertNotIn("--execute", stage.argv)
                 self.assertNotIn("--preflight", stage.argv)
@@ -342,15 +326,6 @@ class VerifyStageTests(unittest.TestCase):
             ],
         )
 
-    def test_windows_profile_excludes_image_gates_after_skill_selection(self) -> None:
-        names = [
-            stage.name
-            for stage in self._selected("windows-portable", skill="image-workbench")
-        ]
-        self.assertEqual(names, ["product-contract", "python-compile"])
-        self.assertNotIn("image-contract", names)
-        self.assertNotIn("image-inspector", names)
-
     def test_product_contract_runs_release_contract_module(self) -> None:
         stage = self._stage("full", "product-contract", skill="how-it-works")
         self.assertEqual(stage.argv[0], sys.executable)
@@ -401,7 +376,7 @@ class VerifyStageTests(unittest.TestCase):
         self.assertEqual(stage.argv[stage.argv.index("-p") + 1], "test_*.py")
 
     def test_pre_sdd_review_contract_is_portable_unittest_discovery(self) -> None:
-        for profile in ("full", "windows-portable"):
+        for profile in ("full",):
             stage = self._stage(
                 profile,
                 "pre-sdd-review-contract",
@@ -417,22 +392,11 @@ class VerifyStageTests(unittest.TestCase):
         self.assertIn("tests/products/pre-sdd-review/evidence", stage.argv)
         self.assertIn("test_*.py", stage.argv)
 
-    def test_windows_pre_sdd_review_selection_keeps_only_portable_gates(self) -> None:
-        names = [
-            stage.name
-            for stage in self._selected("windows-portable", skill="pre-sdd-review")
-        ]
-        self.assertEqual(
-            names,
-            ["product-contract", "pre-sdd-review-contract", "python-compile"],
-        )
-
     def test_selected_stages_use_sys_executable_and_tuple_argv(self) -> None:
         selections = (
             ("full", "how-it-works", False),
             ("full", "korean-writing-editor", False),
             ("full", "image-workbench", False),
-            ("windows-portable", "image-workbench", False),
             ("full", None, True),
         )
         for profile, skill, catalog in selections:
@@ -541,10 +505,6 @@ class VerifyStageTests(unittest.TestCase):
         finally:
             verify.stages = original  # type: ignore[method-assign]
         self.assertEqual(recorded, [("full", None, True)])
-
-    def test_windows_profile_keeps_korean_live_unit(self) -> None:
-        names = [stage.name for stage in self._selected("windows-portable")]
-        self.assertIn("korean-live-unit", names)
 
     def test_live_unit_module_is_importable_without_fcntl(self) -> None:
         self.assertTrue(LIVE_TEST_PATH.is_file(), "live unit tests are absent")

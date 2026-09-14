@@ -91,10 +91,7 @@ class CiWorkflowTests(unittest.TestCase):
         ]
         self.assertEqual(
             full_rows,
-            [
-                ("ubuntu-latest", "full"),
-                ("windows-latest", "windows-portable"),
-            ],
+            [("ubuntu-latest", "full")],
         )
         pr_os_profiles = {
             (row["os"], row["profile"])
@@ -102,10 +99,7 @@ class CiWorkflowTests(unittest.TestCase):
         }
         self.assertEqual(
             pr_os_profiles,
-            {
-                ("ubuntu-latest", "full"),
-                ("windows-latest", "windows-portable"),
-            },
+            {("ubuntu-latest", "full")},
         )
         self.assertIn("pull_request", workflow)
         self.assertIn("workflow_dispatch", workflow)
