@@ -30,7 +30,7 @@ sddx: Claude Code and Codex supported for local or repository-based use.
 
 `pre-sdd-review`의 다른 호스트는 `not_measured`입니다.
 
-보존된 `how-it-works` smoke는 `historical-unbound`(예전 기록, 지금 실행 증거가 아님)이며 현재 설치 파일·모델 실행 증거와 별개입니다. 현재 설치 파일의 실제 실행은 `not_measured`입니다. `current-bounded`는 버전/hash와 메타데이터만 묶여 있는지 보며, 실제 실행이나 설명 품질을 증명하지 않습니다. 새 native Windows 측정은 없습니다.
+보존된 `how-it-works` smoke는 `historical-unbound`(예전 기록, 지금 실행 증거가 아님)이며 현재 설치 파일·모델 실행 증거와 별개입니다. 현재 설치 파일의 실제 실행은 `not_measured`입니다. `current-bounded`는 버전/hash와 메타데이터만 묶여 있는지 보며, 실제 실행이나 설명 품질을 증명하지 않습니다. 지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다. CI는 Ubuntu에서 `full` 프로필을 돌릴 수 있습니다. 그 통과는 Linux 지원이 아니고 macOS 지원 증거도 아닙니다.
 
 이 저장소의 카탈로그 플러그인 이름은 `beyondwin-skills`입니다. 마켓플레이스에 올라 있다는 뜻이 아닙니다.
 
@@ -38,6 +38,6 @@ sddx: Claude Code and Codex supported for local or repository-based use.
 
 설치·링크·제거는 [설치](installation.md)를 보세요. 검증은 [검증](verification.md)을 보세요.
 
-Windows에서 의미 있는 검사는 한국어 편집기 오프라인 스위트와 저장소 계약입니다. `image-workbench`로 그림을 만들거나 고친다고 말하려면, 그 프로그램에 그림 도구가 있고 결과를 열 수 있어야 합니다.
+`image-workbench`로 그림을 만들거나 고친다고 말하려면, 그 프로그램에 그림 도구가 있고 결과를 열 수 있어야 합니다.
 
 라이선스는 Apache-2.0입니다.

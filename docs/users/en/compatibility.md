@@ -30,7 +30,7 @@ A matching folder layout does not mean that host is supported. Adding a new supp
 
 Other hosts for `pre-sdd-review` remain `not_measured`.
 
-The preserved `how-it-works` smoke is `historical-unbound`; it is separate from current payload and model execution evidence. Actual execution of the current install files is `not_measured`. `current-bounded` validates version/hash and metadata binding only, not actual execution or explanation quality. No new native Windows measurement was made.
+The preserved `how-it-works` smoke is `historical-unbound`; it is separate from current payload and model execution evidence. Actual execution of the current install files is `not_measured`. `current-bounded` validates version/hash and metadata binding only, not actual execution or explanation quality. The supported OS is macOS only. Windows and Linux are unsupported. CI may run the `full` profile on Ubuntu. That pass is not Linux support and is not macOS support evidence.
 
 The catalog plugin name is `beyondwin-skills`. That does not mean a marketplace listing.
 
@@ -38,6 +38,6 @@ The catalog plugin name is `beyondwin-skills`. That does not mean a marketplace 
 
 Install, link, and remove steps are in [Installation](installation.md). Verification is in [Verification](verification.md).
 
-Windows-meaningful checks are the Korean-editor offline suite and repository contracts. Do not say `image-workbench` can make or edit images unless that host has its own image tool and you can open the result.
+Do not say `image-workbench` can make or edit images unless that host has its own image tool and you can open the result.
 
 The license is Apache-2.0.

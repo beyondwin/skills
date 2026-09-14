@@ -11,9 +11,6 @@ from scripts.lib.product_registry import ProductRegistry
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 PROFILES = ("full",)
-WINDOWS_EXCLUDED_STAGES = frozenset(
-    {"image-contract", "image-inspector", "pre-sdd-review-evidence"}
-)
 CATALOG_STAGE_NAMES = (
     "catalog-contract",
     "catalog-release-contract",

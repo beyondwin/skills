@@ -40,6 +40,8 @@ Live provider results are not enough on their own. Include a reproducible case, 
 - Do not include a private prompt, personal Korean text, a private image, credentials, provider receipts, or generated media.
 - Do not add telemetry, a required provider call, or a new skill.
 
+Local inner loop: after a product edit run `python3 scripts/verify.py --skill <name>`. Before merge run `python3 scripts/verify.py`. Live `--execute` only when that product's runtime or execution contract changed, on macOS, and only with explicit approval.
+
 ## Verification
 
 Required local verification is credential-free and provider-free:
@@ -48,6 +50,6 @@ Required local verification is credential-free and provider-free:
 python3 scripts/verify.py
 ```
 
-CI runs only `python scripts/verify.py --profile <full|windows-portable>`. It does not use secrets, live `--execute`/`--preflight`, a provider CLI, or a remote image call.
+CI runs only `python scripts/verify.py --profile full`. It does not use secrets, live `--execute`/`--preflight`, a provider CLI, or a remote image call. An Ubuntu CI pass is not macOS support evidence.
 
 See [SECURITY.md](SECURITY.md) for private vulnerability reporting and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community standards.
