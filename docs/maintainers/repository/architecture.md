@@ -67,6 +67,7 @@ flowchart TB
 | 카탈로그 | 예전에 묶어 낸 플러그인 ZIP. 지금 제품과 버전이 달라도 됨 |
 | lock | 채택한 버전을 고정한 목록 |
 | 호스트 | 스킬을 실행하는 프로그램. Codex, Claude Code, Grok |
+| 지원 OS | macOS만. Windows와 Linux는 미지원. Ubuntu CI 통과는 OS 지원이 아님 |
 | worker | 구현만 맡는 외부 CLI. Cursor, Grok CLI. 호스트가 아님 |
 | selector | 어떤 검사만 돌릴지 고르는 이름. `--skill`, `--catalog` |
 | digest | 문서 지문. 문구가 바뀌면 같이 고침 |

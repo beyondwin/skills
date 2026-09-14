@@ -16,6 +16,8 @@ New skills are not accepted by default. A pull request that adds another skill i
 
 The frozen plugin bundle under `catalog/` is separate from these products. It does not include `how-it-works`, `pre-sdd-review`, or `sddx`.
 
+The supported OS is macOS only. Windows and Linux are unsupported. An Ubuntu CI pass is not OS support evidence.
+
 `how-it-works` and `sddx` currently claim Codex and Claude Code only. Do not broaden host support for `korean-writing-editor` or `pre-sdd-review`. `image-workbench` claims Codex and Grok only after a recorded smoke on the current build.
 
 Host-support changes must update `products.toml`, the matching docs, and tests together.

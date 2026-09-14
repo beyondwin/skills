@@ -2,9 +2,10 @@
 
 [한국어](README.md)
 
-Five skills live here. Korean Writing Editor and Pre-SDD Review install in
-Codex. Image Workbench installs in Codex and Grok. How It Works and SDDx
-link this repo for Codex and Claude Code.
+Five skills live here. The supported OS is macOS. Windows and Linux are
+unsupported. Korean Writing Editor and Pre-SDD Review install in Codex.
+Image Workbench installs in Codex and Grok. How It Works and SDDx link this
+repo for Codex and Claude Code.
 
 [![CI](https://github.com/beyondwin/skills/actions/workflows/verify.yml/badge.svg)](https://github.com/beyondwin/skills/actions/workflows/verify.yml)
 [![Release](https://img.shields.io/github/v/release/beyondwin/skills)](https://github.com/beyondwin/skills/releases)

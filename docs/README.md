@@ -4,8 +4,11 @@
 관리자 문서에 있습니다. 트리가 어떻게 나뉘는지는
 [저장소 구조](maintainers/repository/architecture.md)를 보세요.
 
+지원 OS는 macOS입니다. Windows와 Linux는 지원하지 않습니다. 호스트별 지원은
+[호환성](users/ko/compatibility.md)을 보세요.
+
 This page only routes readers. How to use a skill is in that product README.
-How to change it is in the maintainer docs.
+How to change it is in the maintainer docs. The supported OS is macOS only.
 
 ## 설치하거나 고를 때 / Install or choose
 
@@ -32,9 +35,7 @@ How to change it is in the maintainer docs.
 
 관리자 작업은 [`docs/maintainers/`](maintainers/)를 따릅니다.
 
-## 진행 중인 설계·계획 / In-progress specs and plans
+## 기록 / History
 
-진행 중인 설계·계획은 [`docs/history/`](history/)에 있습니다. 현재 계약을
-정의하지 않습니다. 지금은
-[macOS 전용 지원](history/specs/2026-09-14-macos-only-quality-speed-design.md)과
-[구현 계획](history/plans/2026-09-14-macos-only-quality-speed.md)이 있습니다.
+아직 끝나지 않은 설계만 [`docs/history/`](history/)에 둡니다. 현재 계약을
+정의하지 않습니다. 지금은 비어 있습니다.

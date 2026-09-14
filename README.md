@@ -2,9 +2,10 @@
 
 [English](README.en.md)
 
-스킬 다섯 개를 모아 둔 저장소입니다. Korean Writing Editor와 Pre-SDD Review는
-Codex에서 설치합니다. Image Workbench는 Codex와 Grok에서 설치합니다. How It
-Works와 SDDx는 Codex와 Claude Code에서 이 저장소를 연결해 씁니다.
+스킬 다섯 개를 모아 둔 저장소입니다. 지원 OS는 macOS입니다. Windows와 Linux는
+지원하지 않습니다. Korean Writing Editor와 Pre-SDD Review는 Codex에서
+설치합니다. Image Workbench는 Codex와 Grok에서 설치합니다. How It Works와
+SDDx는 Codex와 Claude Code에서 이 저장소를 연결해 씁니다.
 
 [![CI](https://github.com/beyondwin/skills/actions/workflows/verify.yml/badge.svg)](https://github.com/beyondwin/skills/actions/workflows/verify.yml)
 [![Release](https://img.shields.io/github/v/release/beyondwin/skills)](https://github.com/beyondwin/skills/releases)
