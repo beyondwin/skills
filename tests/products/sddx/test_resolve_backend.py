@@ -343,9 +343,8 @@ class ResolveBackendTests(unittest.TestCase):
         module = self._load()
         self.assertEqual(module._run(str(path), ["models"]), "out\n\nerr\n")
         self.assertEqual(module._run(str(self.bindir / "absent"), ["models"]), "")
-        # _run is total: an argument _probe refuses is reported as failure, not raised.
-        with mock.patch.object(module.os, "name", "nt"):
-            self.assertEqual(module._run(r"C:\tools\grok.cmd", ["line\nbreak"]), "")
+        # _run is total: subprocess.run ValueError (embedded NUL) is failure, not raised.
+        self.assertEqual(module._run(str(path), ["line\x00break"]), "")
 
     # ------------------------------------------------------------------
     # help parsing helpers

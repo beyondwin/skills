@@ -76,8 +76,8 @@ def _probe(
 
 def _run(executable: str, arguments: list[str], timeout: float = 5.0) -> str:
     # `_run` is total by contract: it reports failure as an empty string and never
-    # raises. `_probe` deliberately lets an untransportable argument surface, so that
-    # one failure mode is absorbed here rather than in `_probe`.
+    # raises. `_probe` lets ValueError through so this handler can absorb it;
+    # subprocess.run can still raise ValueError (for example an embedded NUL).
     try:
         completed = _probe(executable, arguments, timeout)
     except ValueError:

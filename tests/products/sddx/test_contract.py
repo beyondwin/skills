@@ -224,6 +224,7 @@ class SddxContractTests(unittest.TestCase):
             "Do not replace\nWindows support with POSIX-only code",
         ):
             self.assertNotIn(removed, skill, removed)
+        self.assertNotIn("POSIX-only code", re.sub(r"\s+", " ", skill))
         for removed in (
             "For Grok, use `--output-format streaming-messages-json`",
             "Compose the worker command from `argv_prefix`",

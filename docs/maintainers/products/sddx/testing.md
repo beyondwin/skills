@@ -324,11 +324,11 @@ worker 경계가 CLI에 의해 강제되는지도 `not_measured`입니다. Grok 
 
 ### 실제 관측
 
-`tests/products/sddx/`의 discovery 검사(`sddx-contract`)는 265개 테스트에 skip
-3개로 통과했습니다. skip 3개는 모두 실제 `cmd.exe`가 필요한 Windows 검사입니다.
+`tests/products/sddx/`의 discovery 검사(`sddx-contract`)는 266개 테스트로
+통과했습니다. `skipUnless(os.name == "nt")` 검사는 없습니다.
 파일별로는 `test_contract` 24, `test_extract_task` 29,
-`test_prepare_grok_sandbox` 22, `test_resolve_backend` 62(skip 2),
-`test_run_worker` 89(skip 1), `test_worker_status` 34입니다. 이전 기록의 45개
+`test_prepare_grok_sandbox` 23, `test_resolve_backend` 57,
+`test_run_worker` 98, `test_worker_status` 35입니다. 이전 기록의 45개
 SDDx 테스트는 Task 1–4의 새 파일이 discovery에 들어오기 전 숫자이고, 212개는 이
 버전의 session ID 회수와 시도 타임아웃 작업이 들어오기 전 숫자입니다.
 
@@ -361,7 +361,7 @@ Step 3의 네 명령은 최종 상태에서 모두 exit 0입니다.
 `repository-contract` 361, `korean-package` 9, `korean-offline`,
 `korean-live-unit` 244, `korean-live-dry-run`, `image-contract`,
 `image-inspector` 48, `how-it-works-contract` 56, `pre-sdd-review-contract` 54,
-`pre-sdd-review-evidence` 61, `sddx-contract` 265(skip 3), `python-compile`.
+`pre-sdd-review-evidence` 61, `sddx-contract` 266, `python-compile`.
 새 버전에서 다른 제품 단계가 모두 통과하므로 이 버전 변경이 다른 제품을 건드리지
 않았음을 확인합니다. 오프라인 단계가 모두 통과해도 실제 공급자 실행 증거는 아닙니다.
 
