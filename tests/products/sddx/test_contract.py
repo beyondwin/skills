@@ -175,6 +175,7 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("launch_failed", text)
         self.assertIn("timed_out", text)
         self.assertIn("session_id", text)
+        self.assertIn("skill_version", text)
         self.assertIn("--stream", text)
         self.assertIn("pending_bytes", text)
         self.assertIn("output_format", text)

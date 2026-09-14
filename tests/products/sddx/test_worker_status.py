@@ -224,6 +224,14 @@ class MetadataTests(StatusFixture):
         with self.assertRaises(ValueError):
             module.read_status(self.attempt)
 
+    def test_schema_two_without_skill_version_is_still_readable(self) -> None:
+        # Break: status starts requiring skill_version and cannot read older attempts.
+        module = self.load()
+        recorded = self.write_metadata()
+        self.assertNotIn("skill_version", recorded)
+        payload = module.read_status(self.attempt)
+        self.assertEqual(payload["metadata"], recorded)
+
     def test_unknown_metadata_schema_version_is_an_error(self) -> None:
         module = self.load()
         # Both directions: a superseded record is as unreadable as a future one,

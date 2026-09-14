@@ -51,6 +51,9 @@ Target version `2.0.0`. No public tag or GitHub Release is created here.
 - `run.json` and `status` carry `session_id`, read from the worker's own
   output stream, so `--resume` can be given an id the previous run actually
   reported instead of always falling back to a fresh worker.
+- `run.json` records `skill_version` from the installed skill's `release.toml`.
+  A missing or unreadable version refuses the launch before the attempt
+  directory is created. Older schema 2 records without the field stay readable.
 - `scripts/run_worker.py run --timeout <seconds>` bounds one attempt's
   wall-clock, defaulting to 3600; `0` waits indefinitely. On expiry the runner
   sends SIGTERM, waits ten seconds, then SIGKILL, records `state: timed_out`

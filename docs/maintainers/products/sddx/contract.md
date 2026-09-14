@@ -236,8 +236,11 @@ resolver `model_ids`에서 고른 `--model`을 요구하고 `--sandbox-profile`�
 
 `run.json`은 프로세스 사실만 담습니다. `schema_version` 2와 함께 `backend`,
 `identity`, `model`, `worktree`, `attempt_dir`, `brief_sha256`, `resume_id`,
-`session_id`, `requested_effort`, `configured_effort`, `state`, `pid`,
-`exit_code`, `started_at`, `ended_at`, `error`를 기록합니다. `state`는 `starting`,
+`session_id`, `requested_effort`, `configured_effort`, `skill_version`, `state`,
+`pid`, `exit_code`, `started_at`, `ended_at`, `error`를 기록합니다.
+`skill_version`은 설치된 스킬의 `release.toml` 버전이며 시작 때 한 번만 적습니다.
+없거나 읽을 수 없으면 시도 디렉터리를 만들기 전에 실행을 거부합니다. 필드가 없는
+예전 schema 2 기록은 그대로 읽습니다. `state`는 `starting`,
 `running`, `exited`, `launch_failed`, `timed_out`, `interrupted` 중 하나이며 task
 상태가 아닙니다. 프로세스 exit 0은 깨끗한 DONE이 아닙니다. `session_id`는 worker가
 제 스트림에 보고한 세션 ID이고, 스트림이 아무것도 보고하지 않으면 `null`입니다.

@@ -30,6 +30,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import tomllib
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -108,6 +109,27 @@ class RunOptions:
 def utc_now() -> str:
     """A timezone-aware UTC timestamp, so attempts stay comparable across hosts."""
     return datetime.now(timezone.utc).isoformat()
+
+
+def read_skill_version(root: Path | None = None) -> str:
+    """The installed skill's release.toml version, or a short refusal.
+
+    The runner lives next to the rest of the skill, including when the tree was
+    copied without git. A missing or unreadable version is not guessed.
+    """
+    unavailable = "skill version is unavailable"
+    skill_root = SCRIPT_DIR.parent if root is None else root
+    try:
+        data = tomllib.loads((skill_root / "release.toml").read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError) as error:
+        raise ValueError(unavailable) from error
+    version = data.get("version")
+    if type(version) is not str:
+        raise ValueError(unavailable)
+    version = version.strip()
+    if not version:
+        raise ValueError(unavailable)
+    return version
 
 
 def write_metadata(path: Path, value: dict[str, Any]) -> None:
@@ -349,6 +371,7 @@ def run_worker(options: RunOptions) -> int:
         backend = _validated_backend(options)
         brief_bytes = options.brief.read_bytes()
         rules = _worker_rules()
+        skill_version = read_skill_version()
         attempt_dir.mkdir()
         (attempt_dir / BRIEF_NAME).write_bytes(brief_bytes)
     except (OSError, ValueError) as error:
@@ -357,6 +380,7 @@ def run_worker(options: RunOptions) -> int:
     metadata_path = attempt_dir / METADATA_NAME
     metadata: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
+        "skill_version": skill_version,
         "backend": backend,
         "identity": None,
         "model": None,

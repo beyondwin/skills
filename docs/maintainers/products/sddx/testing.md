@@ -46,7 +46,8 @@ worktree를 만들고 Git 경로 계산, 기존 TOML 원문 복원, 재진입, �
 `tests/products/sddx/test_extract_task.py`는 제목 일치, 본문 경계, 중복·부재·빈
 본문의 exit 3, 인자·파일 오류의 exit 2, 기존 출력 파일 비덮어쓰기를 잠급니다.
 `tests/products/sddx/test_run_worker.py`는 시도 디렉터리 여섯 파일, argv 구성,
-backend별 `--model`/`--sandbox-profile` 배타, `run.json` 필드와 상태, 래퍼 exit
+backend별 `--model`/`--sandbox-profile` 배타, `run.json` 필드(`skill_version`
+포함)와 상태, 래퍼 exit
 규칙, 닫힌 stdin, 시도 경로 거절을 검사합니다.
 `tests/products/sddx/test_worker_status.py`는 읽기 전용 응답, 기본 응답에 로그
 본문이 없다는 점, `--stream` 기본 2048·최대 8192바이트, 64 KiB 응답 상한, offset

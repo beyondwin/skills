@@ -15,11 +15,13 @@ import importlib
 import io
 import json
 import os
+import shutil
 import stat
 import subprocess
 import sys
 import tempfile
 import time
+import tomllib
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -183,6 +185,7 @@ METADATA_FIELDS = {
     "resume_id",
     "requested_effort",
     "configured_effort",
+    "skill_version",
     "state",
     "pid",
     "exit_code",
@@ -553,6 +556,63 @@ class BuildArgvTests(RunnerFixture):
                     self.assertNotIn(flag, argv)
 
 
+class SkillVersionTests(unittest.TestCase):
+    """The runner stamps the installed skill's release.toml version, not a hash."""
+
+    def setUp(self) -> None:
+        self.root = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.root, True)
+        sys.path.insert(0, str(SCRIPTS))
+        self.addCleanup(self._drop_scripts_path)
+
+    @staticmethod
+    def _drop_scripts_path() -> None:
+        while str(SCRIPTS) in sys.path:
+            sys.path.remove(str(SCRIPTS))
+
+    def load(self):
+        for name in ("run_worker", "resolve_backend"):
+            sys.modules.pop(name, None)
+        return importlib.import_module("run_worker")
+
+    def write_release(self, body: str) -> None:
+        (self.root / "release.toml").write_text(body, encoding="utf-8")
+
+    def test_skill_version_is_the_release_toml_version(self) -> None:
+        # Break: the helper returns anything other than this literal version string.
+        self.write_release(
+            'schema_version = 1\nname = "sddx"\nversion = "9.9.9"\n'
+            'tag_prefix = "sddx-v"\nlicense = "Apache-2.0"\n'
+        )
+        self.assertEqual(self.load().read_skill_version(self.root), "9.9.9")
+
+    def test_default_root_is_the_installed_skill(self) -> None:
+        # Break: the helper reads some other tree than the scripts' parent.
+        expected = tomllib.loads(
+            (ROOT / "skills" / "sddx" / "release.toml").read_text(encoding="utf-8")
+        )["version"]
+        self.assertEqual(self.load().read_skill_version(), expected)
+
+    def test_missing_release_toml_is_unavailable(self) -> None:
+        # Break: a missing file is treated as a version rather than refused.
+        with self.assertRaises(ValueError) as raised:
+            self.load().read_skill_version(self.root)
+        self.assertEqual(str(raised.exception), "skill version is unavailable")
+
+    def test_release_toml_without_a_version_string_is_unavailable(self) -> None:
+        # Break: a missing or non-string version is recorded as if it were real.
+        for body in (
+            "schema_version = 1\nname = \"sddx\"\n",
+            'schema_version = 1\nversion = 2\n',
+            'schema_version = 1\nversion = "   "\n',
+        ):
+            with self.subTest(body=body):
+                self.write_release(body)
+                with self.assertRaises(ValueError) as raised:
+                    self.load().read_skill_version(self.root)
+                self.assertEqual(str(raised.exception), "skill version is unavailable")
+
+
 class ModelEffortTests(RunnerFixture):
     """`model_effort` reads effort segments only; it knows no vendor."""
 
@@ -777,6 +837,22 @@ class AttemptDirectoryTests(RunnerFixture):
         self.assertIsNone(metadata["exit_code"])
         self.assertIsNotNone(metadata["error"])
 
+    def test_unreadable_skill_version_never_creates_an_attempt(self) -> None:
+        # Break: a broken install still creates an attempt or starts a worker.
+        module = self.load()
+        self.write_grok()
+        with mock.patch.object(
+            module, "read_skill_version",
+            side_effect=ValueError("skill version is unavailable"),
+        ):
+            code = self.invoke(module, self.options(module))
+        self.assertEqual(code, 2)
+        self.assert_no_worker_invocation()
+        self.assertFalse(self.attempt.exists())
+        message = self.stderr.getvalue()
+        self.assertIn("BLOCKED:", message)
+        self.assertIn("skill version is unavailable", message)
+
 
 class WorkerExecutionTests(RunnerFixture):
     """One attempt, launched for real, with its evidence preserved."""
@@ -814,6 +890,34 @@ class WorkerExecutionTests(RunnerFixture):
         copied = (self.attempt / "brief.md").read_bytes()
         self.assertEqual(copied, self.brief.read_bytes())
         self.assertEqual(self.metadata()["brief_sha256"], hashlib.sha256(copied).hexdigest())
+
+    def test_attempt_records_the_skill_release_version(self) -> None:
+        # Break: run.json omits skill_version or stamps a value other than release.toml.
+        module = self.load()
+        self.write_grok(BEHAVIOUR_OK)
+        self.invoke(module, self.options(module))
+        expected = tomllib.loads(
+            (ROOT / "skills" / "sddx" / "release.toml").read_text(encoding="utf-8")
+        )["version"]
+        self.assertEqual(self.metadata()["skill_version"], expected)
+
+    def test_skill_version_is_unchanged_after_the_worker_starts(self) -> None:
+        # Break: later metadata writes drop or replace the version recorded at start.
+        module = self.load()
+        self.write_grok(BEHAVIOUR_OK)
+        observed: list[dict] = []
+        real = module.write_metadata
+
+        def spy(path, value):
+            observed.append(dict(value))
+            real(path, value)
+
+        with mock.patch.object(module, "write_metadata", spy):
+            self.invoke(module, self.options(module))
+        versions = [entry["skill_version"] for entry in observed]
+        self.assertEqual(len(versions), 3)
+        self.assertEqual(versions[0], versions[1])
+        self.assertEqual(versions[1], versions[2])
 
     def test_metadata_fields_match_the_specification(self) -> None:
         module = self.load()

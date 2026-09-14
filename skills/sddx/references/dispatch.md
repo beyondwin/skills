@@ -172,10 +172,13 @@ copy host credentials or environment values into the brief or the dispatch.
 
 `run.json` holds process facts only: `schema_version` 2, `backend`,
 `identity`, `model`, `worktree`, `attempt_dir`, `brief_sha256`, `resume_id`,
-`session_id`, `requested_effort`, `configured_effort`, `state`, `pid`,
-`exit_code`, `started_at`, `ended_at`, `error`. `state` is one of `starting`,
-`running`, `exited`, `launch_failed`, `timed_out`, or `interrupted`. That is
-process state, not task state; process exit 0 is not a clean DONE.
+`session_id`, `requested_effort`, `configured_effort`, `skill_version`, `state`,
+`pid`, `exit_code`, `started_at`, `ended_at`, `error`. `skill_version` is the
+installed skill's `release.toml` version, written once at start. A missing or
+unreadable version refuses the launch before the attempt directory is created.
+Older schema 2 records without the field stay readable. `state` is one of
+`starting`, `running`, `exited`, `launch_failed`, `timed_out`, or `interrupted`.
+That is process state, not task state; process exit 0 is not a clean DONE.
 
 The wrapper exit follows the worker's exit. A POSIX signal returns
 `128 + signal` while `run.json.exit_code` keeps the real negative returncode.
