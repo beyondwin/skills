@@ -21,7 +21,6 @@ from scripts.lib.documentation import (  # noqa: E402
 )
 from scripts.lib.product_contract import validate_product  # noqa: E402
 from scripts.lib.product_registry import load_registry  # noqa: E402
-from scripts.lib.verification import WINDOWS_EXCLUDED_STAGES  # noqa: E402
 from tests.repository.test_installation_contract import installation_block  # noqa: E402
 
 REGISTRY = load_registry(ROOT / "products.toml")
@@ -94,8 +93,8 @@ SDDX_SUPPORT = (
 PRE_SDD_SHARED_SECTION_DIGESTS = {
     ("ko", "safety"): "2308378028288c8a57547252818cdfa6e6392b1fe53d6b113659b273dda03547",
     ("en", "safety"): "f41ea8a8d2dd98f3d6b37eeacca8a488fc6bf046b4971c636ae56239df6876ab",
-    ("ko", "verification"): "88628f33fb8df212d0de464e06b6f8f66e282174d601099c18a0376223054fd8",
-    ("en", "verification"): "e2b3e4e15494f709c9f190de49731eaa9527bea09753ea564825996e6cc40669",
+    ("ko", "verification"): "cb34b0b208450da0f728c7cf5a6ac05bdf841f248d73aa5c9c4ce1b782eb532f",
+    ("en", "verification"): "5c54465611a8091c96ec732171100d25790090a0234860651da0653bb7fc9c8d",
 }
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
@@ -310,47 +309,6 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-_WINDOWS_PORTABLE_STAGE_RE = re.compile(r"`([a-z0-9]+(?:-[a-z0-9]+)*)`")
-
-
-def _windows_portable_exclusion_sentence(text: str) -> str:
-    for line in text.splitlines():
-        stripped = line.strip()
-        if not stripped.startswith("`windows-portable`"):
-            continue
-        if "exclude" in stripped.lower() or "뺍니다" in stripped:
-            return stripped
-    raise AssertionError("missing windows-portable exclusion sentence")
-
-
-def _windows_portable_excluded_stages(sentence: str) -> frozenset[str]:
-    if "뺍니다" in sentence:
-        exclude_part, _, keep_part = sentence.partition("뺍니다")
-    else:
-        parts = re.split(r"(?i)\bkeeps?\b", sentence, maxsplit=1)
-        if "exclude" not in parts[0].lower():
-            raise AssertionError("windows-portable sentence does not exclude stages")
-        exclude_part = parts[0]
-        keep_part = parts[1] if len(parts) > 1 else ""
-    excluded = {
-        name
-        for name in _WINDOWS_PORTABLE_STAGE_RE.findall(exclude_part)
-        if name != "windows-portable"
-    }
-    kept = {
-        name
-        for name in _WINDOWS_PORTABLE_STAGE_RE.findall(keep_part)
-        if name != "windows-portable"
-    }
-    overlap = excluded & kept
-    if overlap:
-        raise AssertionError(
-            "windows-portable lists stages as both excluded and kept: "
-            + ", ".join(sorted(overlap))
-        )
-    return frozenset(excluded)
-
-
 def _assert_exists(test: unittest.TestCase, path: Path) -> None:
     test.assertTrue(path.is_file(), f"{path.relative_to(ROOT).as_posix()} is absent")
 
@@ -536,12 +494,12 @@ def pre_sdd_shared_contract_errors(
         ("ko", "verification"): (
             "`pre-sdd-review`의 공급자 없는 픽스처는 지시와 패키지 계약만 검증합니다.",
             "리뷰어 독립성, 의미 완전성, 라이브 리뷰 품질을 증명하지 않습니다.",
-            "비-Windows의 `windows-portable` 통과는 native Windows 지원을 증명하지 않습니다.",
+            "Ubuntu CI의 `full` 통과는 native macOS 지원을 증명하지 않습니다.",
         ),
         ("en", "verification"): (
             "`pre-sdd-review` provider-free fixtures validate only instruction and package contracts.",
             "They do not prove reviewer independence, semantic completeness, or live review quality.",
-            "A non-Windows `windows-portable` pass does not prove native Windows support.",
+            "An Ubuntu `full` CI pass does not prove native macOS support.",
         ),
     }
     key = (language, document)
@@ -954,7 +912,8 @@ class UserGuideFactTests(unittest.TestCase):
             self.assertIn(LIVE_EVIDENCE, text)
             self.assertIn("python3 scripts/verify.py", text)
             self.assertIn("--profile full", text)
-            self.assertIn("--profile windows-portable", text)
+            self.assertNotIn("windows-portable", text)
+            self.assertIn("`full`", text)
             self.assertTrue(
                 "does not prove" in text.lower() or "증명하지 않습니다" in text,
                 f"{document.name} must not treat offline fixtures as live quality evidence",
@@ -983,8 +942,27 @@ class UserGuideFactTests(unittest.TestCase):
                 ):
                     self.assertIn(phrase, verification)
                 compatibility = _read(base / "compatibility.md")
-                for phrase in ("historical-unbound", "current-bounded", "native Windows"):
+                for phrase in ("historical-unbound", "current-bounded"):
                     self.assertIn(phrase, compatibility)
+                if language == "ko":
+                    self.assertIn(
+                        "지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다.",
+                        compatibility,
+                    )
+                    self.assertIn(
+                        "그 통과는 Linux 지원이 아니고 macOS 지원 증거도 아닙니다.",
+                        compatibility,
+                    )
+                else:
+                    self.assertIn(
+                        "The supported OS is macOS only. Windows and Linux are unsupported.",
+                        compatibility,
+                    )
+                    self.assertIn(
+                        "That pass is not Linux support and is not macOS support evidence.",
+                        compatibility,
+                    )
+                self.assertNotIn("windows-portable", compatibility)
                 safety = _read(base / "safety-and-privacy.md")
                 for phrase in (
                     "receipt", "semantic verdict", "32-byte", ".identity-salt",
@@ -992,18 +970,6 @@ class UserGuideFactTests(unittest.TestCase):
                     "schema 2", "historical-unbound",
                 ):
                     self.assertIn(phrase.lower(), safety.lower())
-
-    def test_windows_portable_user_guides_match_orchestrator_exclusions(self) -> None:
-        for document in (
-            ROOT / "docs" / "users" / "ko" / "verification.md",
-            ROOT / "docs" / "users" / "en" / "verification.md",
-        ):
-            sentence = _windows_portable_exclusion_sentence(_read(document))
-            self.assertEqual(
-                _windows_portable_excluded_stages(sentence),
-                WINDOWS_EXCLUDED_STAGES,
-                document.name,
-            )
 
     def test_pre_sdd_review_shared_guides_preserve_scope_and_evidence_limits(self) -> None:
         korean_codex = _read(ROOT / "docs/users/ko/install-codex.md")

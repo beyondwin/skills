@@ -27,11 +27,10 @@ Stages run in this order. The first failing stage stops the command.
 - sddx-contract
 - python-compile
 
-`windows-portable` excludes `image-contract`, `image-inspector`, and `pre-sdd-review-evidence`. It keeps the portable `pre-sdd-review-contract`. Live `--execute` is not included.
+`full` is the only profile. CI may run `full` on Ubuntu; that pass is not macOS support evidence.
 
 ```bash
 python3 scripts/verify.py --profile full
-python3 scripts/verify.py --profile windows-portable
 ```
 
 Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md), [`sddx`](../../../skills/sddx/README.en.md).
@@ -63,7 +62,7 @@ The evidence stage under `tests/products/pre-sdd-review/evidence/` checks `evide
 
 Pre-SDD reads schema 2 records as `historical-unbound` only. Mutation commands require schema 3 and its checkout binding; preserve a schema 2 pending record and start a new run. Schema 3 `--version` emits the canonical JSON `{"cli_version":"3.0.0","schema":3,"skill_name":"pre-sdd-review"}` followed by one LF and creates no evidence home.
 
-A non-Windows `windows-portable` pass does not prove native Windows support. Native Windows and Linux remain `not_measured` until the evidence stage runs there.
+An Ubuntu `full` CI pass does not prove native macOS support.
 
 A pass does not prove general quality. The license is Apache-2.0.
 

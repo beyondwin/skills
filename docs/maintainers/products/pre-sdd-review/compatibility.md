@@ -22,6 +22,12 @@
 | `codex` | `supported` |
 | `grok` | `not_measured` |
 
+## 지원 OS
+
+지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다. CI는 Ubuntu에서
+`full` 프로필을 돌릴 수 있습니다. 그 통과는 Linux 지원이 아니고 macOS 지원
+증거도 아닙니다.
+
 ## 기록기 호환성
 
 기록기 이식은 의미 호스트 표와 별개입니다. Codex, Claude Code, Cursor, Grok는
@@ -34,16 +40,12 @@
 | Runtime | Status | Evidence boundary |
 | --- | --- | --- |
 | macOS / Python 3.11+ | `verified` | provider-free evidence suite |
-| Linux / Python 3.11+ | `not_measured` | no native run evidence |
-| Windows / Python 3.11+ | `not_measured` | schema 3 mutations require POSIX `fcntl.flock`; read-only commands are not a native support claim |
-
-다른 OS의 `windows-portable` 실행은 단계 선택만 확인합니다. native 지원으로
-올리지 않습니다.
+| Linux / Python 3.11+ | `unsupported` | 제품 미지원. CI POSIX 검사 ≠ Linux 제품 지원 |
+| Windows / Python 3.11+ | `unsupported` | Windows는 지원하지 않습니다 |
 
 schema 3 변경 명령은 `.identity.lock`과 `locks/<run-id>.lock`에 OS 파일
 locking을 씁니다. `show`, `summary`, `--version`은 읽기 전용이며 그 lock을
-잡지 않습니다. 이 구분으로 native Windows 변경 지원을 주장하거나 Windows를
-`not_measured` 위로 올리지 않습니다.
+잡지 않습니다. Windows는 지원하지 않습니다.
 
 ## 증거 한계
 

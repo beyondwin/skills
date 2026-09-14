@@ -110,6 +110,6 @@ v1.1 전진 확인은 정답을 숨긴 채 `repair-induced-schema-consumer`,
 Evidence 테스트는 임시 Git 저장소와 합성 skill root만 사용합니다. 원문,
 경로 원본, 프롬프트, 대화 기록, 자격 증명을 기록에 넣지 않습니다. `outcome`
 label과 정상/이상 verdict 분리는 관찰자 입력이며 모델 품질이나 감사급 증명이
-아닙니다. 손상 record 수는 filter 전 전체 scan에서 확인합니다. native
-Windows, Linux, Claude Code, Cursor, Grok은 각 native 또는 live 단계가
-별도로 실행되기 전까지 `not_measured`입니다.
+아닙니다. 손상 record 수는 filter 전 전체 scan에서 확인합니다. Windows와
+Linux는 지원하지 않습니다. Claude Code, Cursor, Grok은 각 native 또는 live
+단계가 별도로 실행되기 전까지 `not_measured`입니다.

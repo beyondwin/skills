@@ -49,9 +49,8 @@ Attempts to mutate it fail with `legacy-record-read-only`.
 Mutations serialize identity creation with `.identity.lock` and a run change
 with `locks/<run-id>.lock`. After the command releases the lock, it removes
 that lock file. These locks require supported OS file locking.
-Read-only `show`, `summary`, and `--version` do not require locking. Native
-Windows mutation support is not advertised because this implementation uses
-POSIX `fcntl.flock` when a mutation needs a lock.
+Read-only `show`, `summary`, and `--version` do not require locking. Windows
+is not a supported OS; this uses POSIX `fcntl.flock`.
 
 | Command | Arguments | Effect |
 | --- | --- | --- |

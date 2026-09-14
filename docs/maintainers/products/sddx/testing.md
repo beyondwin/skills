@@ -13,13 +13,10 @@
 
 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다.
 `tests/products/sddx/test_resolve_backend.py`는 PATH에 가짜 바이너리를
-넣어 신원 규칙을 잠급니다. Windows에서는 PATHEXT가 찾는 `.cmd` 런처를 쓰고,
-resolver는 그 런처를 `cmd.exe`로 실행합니다. 실제 Cursor/Grok 계정을 쓰지
-않습니다.
-`tests/products/sddx/test_run_worker.py`의 Windows worker 픽스처는 여러 줄
-`--rules`를 실을 수 있는 Win32 이미지를 만들고, `.cmd` 왕복은 그 경로와
-분리된 전용 픽스처로 남깁니다. 합성 CLI는 stdout/stderr를 LF로 고정해
-raw-byte 단언이 Windows 텍스트 변환과 섞이지 않게 합니다.
+넣어 신원 규칙을 잠급니다. 실제 Cursor/Grok 계정을 쓰지 않습니다.
+Windows `.cmd` 왕복과 Win32 전송 픽스처는 삭제 대상이며 Windows 지원
+증거가 아닙니다. 합성 CLI는 stdout/stderr를 LF로 고정해 raw-byte 단언이
+텍스트 변환과 섞이지 않게 합니다.
 `tests/products/sddx/test_prepare_grok_sandbox.py`는 임시 저장소와 실제 linked
 worktree를 만들고 Git 경로 계산, 기존 TOML 원문 복원, 재진입, 심볼릭 링크 거절,
 `fchmod` 없는 다시 쓰기, CLI 성공·실패 출력을 검사합니다. Git 경로는 pathlib로
@@ -57,10 +54,9 @@ backend별 `--model`/`--sandbox-profile` 배타, `run.json` 필드(`skill_versio
 본문이 없다는 점, `--stream` 기본 2048·최대 8192바이트, 64 KiB 응답 상한, offset
 처리를 검사합니다. 어느 검사도 공급자를 호출하지 않습니다.
 
-Windows `.cmd` 왕복 검사는 `skipUnless(os.name == "nt")`이므로 macOS·Linux
-체크아웃에서는 skip됩니다. skip을 native Windows 통과로 쓰지 않습니다. 이 검사는
-저장소의 `windows-latest`/`windows-portable` CI 행에서 실행되며 `sddx-contract`는
-`WINDOWS_EXCLUDED_STAGES`에 없습니다.
+Windows `.cmd` 왕복 검사(`skipUnless(os.name == "nt")`)는 삭제 대상입니다.
+CI에서 돈다고 적지 않으며, skip을 통과나 Windows 지원으로 쓰지 않습니다.
+Windows는 지원하지 않습니다.
 
 페이로드 계약 통과는 파일 정체성, 이식 가능한 frontmatter, 금지 문자열만
 증명합니다. 이 공급자 없는 증거만으로 라이브 CLI, 과금, 모델 품질을
@@ -320,18 +316,19 @@ Grok은 `grok 1.0.30 (04b7ffed98c6)`으로 모델 인자 없이 worker 시도 �
 수락했다는 사실도, 요청 effort가 명령줄에 실렸다는 사실도 마찬가지입니다.
 worker 경계가 CLI에 의해 강제되는지도 `not_measured`입니다. Grok init 이벤트는
 `--no-subagents`를 넘긴 뒤에도 `spawn_subagent`를 도구 목록에 실었고, 두 시도가
-규칙을 지킨 것은 모델이 지시를 따랐기 때문입니다. Codex 호스트의 worker 실행과
-Windows 실행은 실행하지 않았으므로 `not_measured`로 남습니다. 관측한 두 조합의
-결과를 나머지로 넓히지 않습니다.
+규칙을 지킨 것은 모델이 지시를 따랐기 때문입니다. Codex 호스트의 worker 실행은
+실행하지 않았으므로 `not_measured`로 남습니다. Windows는 지원하지 않으며
+`not_measured` OS 대기열이 아닙니다. 관측한 두 조합의 결과를 나머지로
+넓히지 않습니다.
 조합별 표와 항목별 측정 상태는 [호환성](compatibility.md)이 소유합니다.
 
 ### 실제 관측
 
-`tests/products/sddx/`의 discovery 검사(`sddx-contract`)는 265개 테스트에 skip
-3개로 통과했습니다. skip 3개는 모두 실제 `cmd.exe`가 필요한 Windows 검사입니다.
+`tests/products/sddx/`의 discovery 검사(`sddx-contract`)는 266개 테스트로
+통과했습니다. `skipUnless(os.name == "nt")` 검사는 없습니다.
 파일별로는 `test_contract` 24, `test_extract_task` 29,
-`test_prepare_grok_sandbox` 22, `test_resolve_backend` 62(skip 2),
-`test_run_worker` 89(skip 1), `test_worker_status` 34입니다. 이전 기록의 45개
+`test_prepare_grok_sandbox` 23, `test_resolve_backend` 57,
+`test_run_worker` 98, `test_worker_status` 35입니다. 이전 기록의 45개
 SDDx 테스트는 Task 1–4의 새 파일이 discovery에 들어오기 전 숫자이고, 212개는 이
 버전의 session ID 회수와 시도 타임아웃 작업이 들어오기 전 숫자입니다.
 
@@ -364,7 +361,7 @@ Step 3의 네 명령은 최종 상태에서 모두 exit 0입니다.
 `repository-contract` 361, `korean-package` 9, `korean-offline`,
 `korean-live-unit` 244, `korean-live-dry-run`, `image-contract`,
 `image-inspector` 48, `how-it-works-contract` 56, `pre-sdd-review-contract` 54,
-`pre-sdd-review-evidence` 61, `sddx-contract` 265(skip 3), `python-compile`.
+`pre-sdd-review-evidence` 61, `sddx-contract` 266, `python-compile`.
 새 버전에서 다른 제품 단계가 모두 통과하므로 이 버전 변경이 다른 제품을 건드리지
 않았음을 확인합니다. 오프라인 단계가 모두 통과해도 실제 공급자 실행 증거는 아닙니다.
 
@@ -379,8 +376,6 @@ Step 3의 네 명령은 최종 상태에서 모두 exit 0입니다.
   부모 및 관계없는 환경 변수는 보존됩니다. Cursor 환경과 argv 정책도 보존됩니다.
 - Grok argv가 `search_tool,use_tool` 제외와 `MCPTool(*)` 거절을 전달합니다.
   필요한 옵션이 없거나 값을 받지 않으면 resolver가 `missing_flags`를 반환합니다.
-- Windows 명령 전송은 자식 환경에서 새로 정의된 퍼센트 변수와 소문자 표기를
-  거절합니다. 이는 문자열 전송 검사이며 native Windows 실행 증거가 아닙니다.
 
 원인 분리 라이브 probe에서 MCP compatibility 환경 변수만 끈 호출은 handshake
 경고 0건, 도구 제외 옵션만 쓴 호출은 `handshake failed` 4건이었습니다. 둘을 합친
@@ -423,7 +418,7 @@ connected로 표시됩니다.
 GREEN exit 0을 다시 냈습니다. 상태는 `DONE_WITH_CONCERNS`였습니다. 작은 표본의
 역할 준수 관측이며 강제의 증거는 아닙니다.
 
-`python3 scripts/verify.py`는 exit 0이고 SDDx 265 tests(Windows 전용 3개 skip)를
+`python3 scripts/verify.py`는 exit 0이고 SDDx 266 tests를
 포함한 전체 공급자 없는 검사가 통과했습니다. 저장소 검사 361개도 통과했습니다.
 새 테스트는 각각 대응하는 소스 변형에서 실패하는 것을 확인했습니다. 도구 필터 값
 축소, 옵션 판정 제거, 퍼센트 변수 판정 되돌리기, `Popen`의 환경 전달 제거,

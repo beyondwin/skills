@@ -3,6 +3,12 @@
 현재 지원 호스트는 제품 레지스트리의 `codex`뿐입니다. 다른 호스트를
 지원한다고 적지 마세요.
 
+## 지원 OS
+
+지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다. CI는 Ubuntu에서
+`full` 프로필을 돌릴 수 있습니다. 그 통과는 Linux 지원이 아니고 macOS 지원
+증거도 아닙니다.
+
 ## 필요한 호스트 능력
 
 - 로컬 Agent Skills 디렉터리 설치와 `SKILL.md` 파일 접근

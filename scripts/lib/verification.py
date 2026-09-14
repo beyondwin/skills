@@ -10,10 +10,7 @@ from scripts.lib.product_registry import ProductRegistry
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-PROFILES = ("full", "windows-portable")
-WINDOWS_EXCLUDED_STAGES = frozenset(
-    {"image-contract", "image-inspector", "pre-sdd-review-evidence"}
-)
+PROFILES = ("full",)
 CATALOG_STAGE_NAMES = (
     "catalog-contract",
     "catalog-release-contract",
@@ -240,8 +237,6 @@ def stages(
             raise ValueError(f"unknown skill: {skill}") from exc
     else:
         names = _full_stage_names(registry)
-    if profile == "windows-portable":
-        names = tuple(name for name in names if name not in WINDOWS_EXCLUDED_STAGES)
     stage_map = _stage_catalog(root)
     return tuple(stage_map[name] for name in names)
 

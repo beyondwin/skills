@@ -11,6 +11,12 @@ Cursor는 과거 실행 도구에 Computer Use(`node_repl` / `@oai/sky`)가 없�
 말 뜻: `not_measured`는 아직 확인하지 않음, `historical-unbound`는 예전 기록,
 `current-bounded`는 버전과 hash만 묶였다는 뜻입니다.
 
+## 지원 OS
+
+지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다. CI는 Ubuntu에서
+`full` 프로필을 돌릴 수 있습니다. 그 통과는 Linux 지원이 아니고 macOS 지원
+증거도 아닙니다.
+
 ## 발견 경로
 
 ```text

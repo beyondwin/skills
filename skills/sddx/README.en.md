@@ -132,8 +132,8 @@ rules are in the
 
 Grok linked worktrees need Python 3.11+. Grok removes MCP invocation tools
 and will not run without value-taking `--disallowed-tools` and `--deny`.
-On Windows, launching through an npm-style `.cmd` shim is recorded as a
-failure.
+The supported OS is macOS only. Windows and Linux are unsupported. Product
+CLIs refuse Windows.
 
 ## See also
 

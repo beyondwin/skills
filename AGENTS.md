@@ -16,5 +16,7 @@
 ## 검증
 
 - 필수 로컬 검증: `python3 scripts/verify.py`. 제품별 점검: `python3 scripts/verify.py --skill <name>`.
+- 제품 파일만 고치면 `python3 scripts/verify.py --skill <name>`을 먼저 돌립니다. 머지 전에는 `python3 scripts/verify.py`입니다.
+- CI Ubuntu `full` 통과를 macOS 지원 증거로 쓰지 않습니다. 라이브 `--execute`는 해당 제품 런타임·실행 계약이 바뀐 뒤에만, macOS에서, 명시적으로 합니다.
 - 문서만 수정하면 내용·링크·diff를 확인합니다. 변경에 맞는 검증을 하고, 통과한 검사는 새 변경이나 미해결 우려가 없으면 반복하지 않습니다.
 - 기본 검증은 자격 증명과 공급자 호출 없이 실행합니다. 오프라인 통과를 실제 모델 품질이나 다른 환경의 실행 증거로 확대하지 않습니다.

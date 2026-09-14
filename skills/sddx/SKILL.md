@@ -266,8 +266,7 @@ A change to the shared product source applies to new runs on both hosts.
 Verify that the real load path points at this product; do not silently fix a
 stale copy somewhere else. An already-running context is not updated
 automatically: apply the change to new runs, and resume an existing run
-explicitly after checking its ledger record and its processes. Do not replace
-Windows support with POSIX-only code.
+explicitly after checking its ledger record and its processes. The supported OS is macOS. Do not add Windows transport. Refuse Windows at the product CLIs.
 
 ## Red flags
 

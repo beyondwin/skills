@@ -27,11 +27,10 @@ python3 scripts/verify.py
 - sddx-contract
 - python-compile
 
-`windows-portable`는 `image-contract`, `image-inspector`, `pre-sdd-review-evidence`를 뺍니다. 이식 가능한 `pre-sdd-review-contract`는 남깁니다. 라이브 `--execute`는 넣지 않습니다.
+`full`이 유일한 프로필입니다. CI는 Ubuntu에서 `full`을 실행할 수 있으며, 그 통과는 macOS 지원 증거가 아닙니다.
 
 ```bash
 python3 scripts/verify.py --profile full
-python3 scripts/verify.py --profile windows-portable
 ```
 
 제품 안내는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md), [`sddx`](../../../skills/sddx/README.md)를 보세요.
@@ -63,7 +62,7 @@ Evidence 단계는 `tests/products/pre-sdd-review/evidence/`에서 `evidence.py`
 
 Pre-SDD는 schema 2 record를 `historical-unbound`로 읽기만 지원합니다. 변경 명령은 schema 3의 checkout 결속이 필요합니다. schema 2 pending record는 보존하고 새 run을 시작합니다. schema 3 `--version`은 canonical JSON `{"cli_version":"3.0.0","schema":3,"skill_name":"pre-sdd-review"}`과 마지막 LF 하나를 출력하며 evidence home을 만들지 않습니다.
 
-비-Windows의 `windows-portable` 통과는 native Windows 지원을 증명하지 않습니다. native Windows와 Linux는 그 환경에서 evidence 단계가 돌기 전까지 `not_measured`입니다.
+Ubuntu CI의 `full` 통과는 native macOS 지원을 증명하지 않습니다.
 
 통과는 일반 품질을 증명하지 않습니다. 라이선스는 Apache-2.0입니다.
 

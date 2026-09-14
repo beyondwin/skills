@@ -26,8 +26,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
 확인합니다. 로컬 빌드 결과는 공개 릴리스 증거가 아닙니다.
 
 릴리스 payload의 `evidence/evidence.py`는 실행 비트가 없습니다. `python3`로
-돌리고 설치하지 않습니다. native Python 3.11 evidence 실행을 기록하기 전까지
-native Windows는 `not_measured`입니다.
+돌리고 설치하지 않습니다. Windows는 지원하지 않습니다.
 
 이 명령은 태그 또는 GitHub Release를 만들지 않습니다.
 

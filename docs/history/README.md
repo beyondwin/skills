@@ -10,7 +10,12 @@ paths. They are point-in-time records, not the current contract.
 [`docs/README.md`](../README.md), [`docs/users/`](../users/),
 [`docs/maintainers/`](../maintainers/), 각 제품 README를 보세요.
 
-지금은 진행 중인 설계가 없습니다. 끝난 SDDx 실행 정리와 image-workbench Grok
-지원은 각 제품 README와 관리자 문서에 있습니다.
+진행 중인 설계와 계획:
 
-There are no in-progress specs or plans right now.
+- [macOS 전용 지원과 품질 우선 속도](specs/2026-09-14-macos-only-quality-speed-design.md)
+- [구현 계획](plans/2026-09-14-macos-only-quality-speed.md)
+
+끝난 SDDx 실행 정리와 image-workbench Grok 지원은 각 제품 README와 관리자
+문서에 있습니다.
+
+In progress: macOS-only skill support and quality-first speed.
