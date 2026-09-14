@@ -418,7 +418,7 @@ connected로 표시됩니다.
 GREEN exit 0을 다시 냈습니다. 상태는 `DONE_WITH_CONCERNS`였습니다. 작은 표본의
 역할 준수 관측이며 강제의 증거는 아닙니다.
 
-`python3 scripts/verify.py`는 exit 0이고 SDDx 265 tests(Windows 전용 3개 skip)를
+`python3 scripts/verify.py`는 exit 0이고 SDDx 266 tests를
 포함한 전체 공급자 없는 검사가 통과했습니다. 저장소 검사 361개도 통과했습니다.
 새 테스트는 각각 대응하는 소스 변형에서 실패하는 것을 확인했습니다. 도구 필터 값
 축소, 옵션 판정 제거, 퍼센트 변수 판정 되돌리기, `Popen`의 환경 전달 제거,
