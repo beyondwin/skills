@@ -35,4 +35,6 @@ How to change it is in the maintainer docs.
 ## 진행 중인 설계·계획 / In-progress specs and plans
 
 진행 중인 설계·계획은 [`docs/history/`](history/)에 있습니다. 현재 계약을
-정의하지 않습니다. 지금은 진행 중인 설계가 없습니다.
+정의하지 않습니다. 지금은
+[macOS 전용 지원](history/specs/2026-09-14-macos-only-quality-speed-design.md)과
+[구현 계획](history/plans/2026-09-14-macos-only-quality-speed.md)이 있습니다.
