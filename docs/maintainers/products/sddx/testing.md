@@ -295,7 +295,7 @@ NotebookEdit를 이름으로 포함하는지 확인합니다. 이 검사는 필�
 | 오프라인 helper·argv 계약 검사 | 실행함 |
 | 지침 문구 검사 | 실행함 |
 | native 행동 probe | 이 버전에서 새로 실행하지 않음 |
-| 실제 공급자 실행 | Claude Code × Cursor와 Claude Code × Grok 두 조합을 실행함 (`measured`). Codex 호스트의 두 조합은 `not_measured` |
+| 실제 공급자 실행 | 네 조합을 모두 실행함 (`measured`). 조합별·항목별 상태는 [호환성](compatibility.md)이 소유함 |
 
 이 버전에서는 제품 소유자 승인 아래 Claude Code를 호스트로 한 두 조합으로 실제
 공급자를 호출했습니다. 둘 다 macOS 26.6.2 arm64입니다.
@@ -304,8 +304,9 @@ Cursor는 `cursor-agent 2026.09.10-fd3934a`, 모델 `cursor-grok-4.6-high`로 wo
 시도 세 번을 실행했고, 승인 동작·모델 ID 수락과 `configured_effort` 기록·session
 ID 회수와 `--resume`·실제 worker 타임아웃·시도 생성 전 거절을 관측했습니다.
 
-Grok은 `grok 1.0.30 (04b7ffed98c6)`, 모델 `grok-4.6`으로 worker 시도 두 번을
-실행했고, sandbox 프로파일 준비와 정리까지 한 바퀴를 돌렸습니다.
+Grok은 `grok 1.0.30 (04b7ffed98c6)`으로 모델 인자 없이 worker 시도 두 번을
+실행했고(init 이벤트가 보고한 모델은 `grok-4.6`), sandbox 프로파일 준비와
+정리까지 한 바퀴를 돌렸습니다.
 `streaming-messages-json` 스트림의 실제 형태, `--reasoning-effort`가 명령줄에
 실린 사실, session ID 회수와 `--resume`을 관측했습니다.
 
@@ -321,7 +322,7 @@ Windows 실행은 실행하지 않았으므로 `not_measured`로 남습니다. �
 
 ### 실제 관측
 
-`tests/products/sddx/`의 discovery 검사(`sddx-contract`)는 260개 테스트에 skip
+`tests/products/sddx/`의 discovery 검사(`sddx-contract`)는 265개 테스트에 skip
 3개로 통과했습니다. skip 3개는 모두 실제 `cmd.exe`가 필요한 Windows 검사입니다.
 파일별로는 `test_contract` 24, `test_extract_task` 29,
 `test_prepare_grok_sandbox` 22, `test_resolve_backend` 62(skip 2),
@@ -358,6 +359,68 @@ Step 3의 네 명령은 최종 상태에서 모두 exit 0입니다.
 `repository-contract` 361, `korean-package` 9, `korean-offline`,
 `korean-live-unit` 244, `korean-live-dry-run`, `image-contract`,
 `image-inspector` 48, `how-it-works-contract` 56, `pre-sdd-review-contract` 54,
-`pre-sdd-review-evidence` 61, `sddx-contract` 260(skip 3), `python-compile`.
+`pre-sdd-review-evidence` 61, `sddx-contract` 265(skip 3), `python-compile`.
 새 버전에서 다른 제품 단계가 모두 통과하므로 이 버전 변경이 다른 제품을 건드리지
 않았음을 확인합니다. 오프라인 단계가 모두 통과해도 실제 공급자 실행 증거는 아닙니다.
+
+## 2026-09-14 MCP 보완 회귀 검사
+
+위 절은 `bfd1cda`까지의 Claude Code 관측입니다. 이 절은 MCP 도구 필터를 넣으며
+추가한 검사와, 그 뒤 이 저장소에서 다시 돌린 라이브 확인을 기록합니다.
+
+새 공급자 없는 검사는 실제 합성 자식 프로세스에서 다음을 확인합니다.
+
+- Grok에만 Cursor/Claude MCP discovery 환경 변수 두 개가 `0`으로 전달되고,
+  부모 및 관계없는 환경 변수는 보존됩니다. Cursor 환경과 argv 정책도 보존됩니다.
+- Grok argv가 `search_tool,use_tool` 제외와 `MCPTool(*)` 거절을 전달합니다.
+  필요한 옵션이 없거나 값을 받지 않으면 resolver가 `missing_flags`를 반환합니다.
+- Windows 명령 전송은 자식 환경에서 새로 정의된 퍼센트 변수와 소문자 표기를
+  거절합니다. 이는 문자열 전송 검사이며 native Windows 실행 증거가 아닙니다.
+
+원인 분리 라이브 probe에서 MCP compatibility 환경 변수만 끈 호출은 handshake
+경고 0건, 도구 제외 옵션만 쓴 호출은 `handshake failed` 4건이었습니다. 둘을 합친
+초기 candidate 호출은 read_file을 실행하고 exit 0으로 끝났고
+그 candidate의 도구 목록에서는 spawn_subagent/search_tool/use_tool이 함께
+빠졌습니다. 이 목록은 폐기한 candidate의 것이며 실제로 넣은 필터의 결과가
+아닙니다. `Agent`와
+내부 `task` 제외는 명령 결과 조회·종료 도구까지 함께 제거했습니다. `spawn_subagent`
+표기만 제외하면 도구가 그대로 남았습니다. 따라서 최종 변경은 `search_tool,use_tool`
+제외만 채택하고 명령 조회·종료 도구를 보존합니다. 하위 에이전트 경계는 기존
+`--no-subagents`와 worker 지침을 유지하며 도구 제거를 주장하지 않습니다. `inspect`와 init의 MCP 서버 목록에는 가져오기 대상이
+계속 표시됐으므로 그 목록을 실제 연결 증거로 사용하지 않습니다.
+
+공급자 원본 기록은 로컬에만 보존하고 커밋하지 않습니다.
+
+### 병합 전 라이브 재확인
+
+같은 작업 트리에서 네 번 더 실제로 호출했습니다. Grok은 linked worktree에서
+`prepare` → 신규 → `--resume` → `cleanup` 한 바퀴, Cursor는 같은 seed의 다른
+worktree에서 신규와 재개입니다. 네 시도 모두 wrapper exit 0, `state: exited`,
+`exit_code: 0`이고 각각 구현을 커밋한 뒤 `report.md`를 직접 썼습니다. 각 바퀴의
+두 시도는 같은 `session_id`를 보고했습니다.
+
+Grok `prepare`가 만든 `read_write`에는 실제 Git 디렉터리와 공용 Git 디렉터리가
+들어갔고, worker는 그 linked worktree 안에서 직접 커밋했습니다. `cleanup`은
+`{"cleaned": true}`로 자기가 만든 `.grok`을 지웠습니다.
+
+보완 후 Grok init 이벤트의 도구 23개에 `search_tool`과 `use_tool`이 없고
+`spawn_subagent`, `get_command_or_subagent_output`, `kill_command_or_subagent`는
+남아 있습니다. 신규와 재개 양쪽에서 같았습니다. MCP 서버 세 개는 여전히
+connected로 표시됩니다.
+
+네 시도 모두 stderr가 0바이트였습니다. 보완 전 이 저장소의 Grok 시도도 0바이트여서,
+여기서는 MCP discovery 환경 변수의 효과를 가를 수 없습니다. handshake 실패가
+줄었다는 관측은 Codex의 원인 분리 probe 기록이며 이 저장소에서 재현하지 않았습니다.
+
+한 시도에서 브리프가 `-t .`를 붙인 잘못된 discovery 명령을 지정했습니다. worker는
+그 명령을 실제로 실행해 exit 1을 확인하고, 원인(`tests/`에 `__init__.py` 없음)과
+지정 명령의 실제 exit 코드를 보고서에 적은 뒤 유효한 방법으로 RED exit 1 →
+GREEN exit 0을 다시 냈습니다. 상태는 `DONE_WITH_CONCERNS`였습니다. 작은 표본의
+역할 준수 관측이며 강제의 증거는 아닙니다.
+
+`python3 scripts/verify.py`는 exit 0이고 SDDx 265 tests(Windows 전용 3개 skip)를
+포함한 전체 공급자 없는 검사가 통과했습니다. 저장소 검사 361개도 통과했습니다.
+새 테스트는 각각 대응하는 소스 변형에서 실패하는 것을 확인했습니다. 도구 필터 값
+축소, 옵션 판정 제거, 퍼센트 변수 판정 되돌리기, `Popen`의 환경 전달 제거,
+환경 변수를 Cursor에도 적용하기 — 다섯 변형이 모두 잡혔고 소스는
+[호환성](compatibility.md)에 적힌 SHA-256으로 복구했습니다.
