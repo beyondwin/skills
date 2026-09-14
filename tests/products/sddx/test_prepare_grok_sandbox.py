@@ -1,4 +1,6 @@
+import contextlib
 import importlib.util
+import io
 import json
 import os
 import subprocess
@@ -390,6 +392,14 @@ class SandboxTests(unittest.TestCase):
             with self.subTest(state=state), self.assertRaises(ValueError):
                 self.module.prepare(self.wt, state)
         self.assertFalse(self.config.exists())
+
+    def test_main_refuses_windows_before_argparse(self):
+        stderr = io.StringIO()
+        with mock.patch.object(self.module.os, "name", "nt"):
+            with contextlib.redirect_stderr(stderr):
+                code = self.module.main([])
+        self.assertEqual(code, 2)
+        self.assertEqual(stderr.getvalue(), "BLOCKED: Windows is not a supported OS\n")
 
     def test_cli_success_prints_exact_json(self):
         prepare = subprocess.run(

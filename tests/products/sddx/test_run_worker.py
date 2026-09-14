@@ -293,17 +293,6 @@ class RunnerFixture(unittest.TestCase):
             raise RuntimeError(f"could not build a Windows launcher for {name}")
         return exes[0].resolve()
 
-    def write_cmd(self, name: str, version: str, help_text: str, models: str,
-                  behaviour: str) -> Path:
-        body = _cli_body(version, help_text, models, self.argv_log, self.marker, behaviour)
-        script = self.bindir / f"{name}.py"
-        script.write_text(body, encoding="utf-8")
-        path = self.bindir / f"{name}.cmd"
-        path.write_text(
-            f'@echo off\r\n"{sys.executable}" "{script}" %*\r\n', encoding="utf-8"
-        )
-        return path
-
     def write_grok(self, behaviour: str = BEHAVIOUR_OK, help_text: str = GROK_HELP) -> Path:
         return self.write_cli("grok", GROK_VERSION, help_text, "", behaviour)
 
@@ -1266,15 +1255,6 @@ class TransportTests(RunnerFixture):
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertEqual(self.worker_argv(), argv[1:])
 
-    @unittest.skipUnless(os.name == "nt", "a .cmd wrapper round trip needs a real cmd.exe")
-    def test_cmd_wrapper_round_trips_hostile_arguments(self) -> None:  # pragma: no cover
-        module = self.load()
-        executable = self.write_cmd("echoer", "x\n", "x\n", "", BEHAVIOUR_OK)
-        command = module._subprocess_args(str(executable), list(HOSTILE_ARGUMENTS))
-        completed = subprocess.run(command, check=False, capture_output=True)
-        self.assertEqual(completed.returncode, 0, completed.stderr)
-        self.assertEqual(self.worker_argv(), list(HOSTILE_ARGUMENTS))
-
     def test_untransportable_argument_is_a_launch_failure(self) -> None:
         module = self.load()
         self.write_grok(BEHAVIOUR_OK)
@@ -1371,6 +1351,44 @@ class CliTests(RunnerFixture):
         with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as raised:
             module.main([])
         self.assertEqual(raised.exception.code, 2)
+
+    def test_main_run_refuses_windows_before_attempt_dir(self) -> None:
+        module = self.load()
+        attempt = self.base / "missing-attempt"
+        stderr = io.StringIO()
+        argv = [
+            "run",
+            "--backend", "grok",
+            "--worktree", str(self.worktree),
+            "--brief", str(self.brief),
+            "--attempt-dir", str(attempt),
+            "--effort", "high",
+        ]
+        with mock.patch.object(module.os, "name", "nt"):
+            with contextlib.redirect_stderr(stderr):
+                code = module.main(argv)
+        self.assertEqual(code, 2)
+        self.assertEqual(stderr.getvalue(), "BLOCKED: Windows is not a supported OS\n")
+        self.assertFalse(attempt.exists())
+
+    def test_main_status_refuses_windows(self) -> None:
+        module = self.load()
+        stderr = io.StringIO()
+        argv = ["status", "--attempt-dir", str(self.base / "nope")]
+        with mock.patch.object(module.os, "name", "nt"):
+            with contextlib.redirect_stderr(stderr):
+                code = module.main(argv)
+        self.assertEqual(code, 2)
+        self.assertEqual(stderr.getvalue(), "BLOCKED: Windows is not a supported OS\n")
+
+    def test_main_refuses_windows_before_argparse(self) -> None:
+        module = self.load()
+        stderr = io.StringIO()
+        with mock.patch.object(module.os, "name", "nt"):
+            with contextlib.redirect_stderr(stderr):
+                code = module.main([])
+        self.assertEqual(code, 2)
+        self.assertEqual(stderr.getvalue(), "BLOCKED: Windows is not a supported OS\n")
 
     def test_worker_rules_come_from_the_skill_reference_file(self) -> None:
         module = self.load()

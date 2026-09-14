@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import os
 import shutil
 import stat
-import subprocess
 import sys
 import tempfile
 import unittest
@@ -158,18 +159,6 @@ CURSOR_MODELS_LISTING_IDS = [
 MARKER_NAME = "worker-invocations.log"
 CALL_LOG_NAME = "model-list-calls.log"
 
-# Arguments a runner may legitimately need to hand a worker. Every one of them is
-# synthetic: `%SYNTHETIC_VALUE%` is a made-up name that must survive as literal text.
-HOSTILE_ARGUMENTS = [
-    "plain",
-    "with space",
-    "한글 naïve",
-    'embedded "quote" here',
-    "amp & pipe | lt < gt > caret ^ open ( close )",
-    "%SYNTHETIC_VALUE%",
-    "C:\\trailing\\\\",
-]
-
 
 def _cli_body(version: str, help_text: str, responses: dict[str, tuple[int, str, str]],
               marker: Path, call_log: Path) -> str:
@@ -253,12 +242,6 @@ class ResolveBackendTests(unittest.TestCase):
         env["PATH"] = str(self.bindir)
         return env
 
-    def _windows_env(self, module, **overrides: str):
-        """Deterministic child environment: ComSpec set, SYNTHETIC_VALUE guaranteed absent."""
-        env = {"ComSpec": r"C:\Windows\system32\cmd.exe", "SDDX_UNRELATED": "1"}
-        env.update(overrides)
-        return mock.patch.dict(module.os.environ, env, clear=True)
-
     def _load(self):
         import importlib
 
@@ -304,62 +287,22 @@ class ResolveBackendTests(unittest.TestCase):
         self.assertEqual(self._lines(self.marker), ["--print\x1fdo the work"])
         self.marker.unlink()
 
-    # ------------------------------------------------------------------
-    # windows argument transport
-    # ------------------------------------------------------------------
+    def test_main_refuses_windows_before_resolve(self) -> None:
+        module = self._load()
+        stderr = io.StringIO()
+        with mock.patch.object(module.os, "name", "nt"):
+            with contextlib.redirect_stderr(stderr):
+                code = module.main(["--backend", "grok", "--json"])
+        self.assertEqual(code, 2)
+        self.assertEqual(stderr.getvalue(), "BLOCKED: Windows is not a supported OS\n")
 
-    def test_windows_cmd_wrapper_is_invoked_through_comspec(self) -> None:
+    def test_resolve_does_not_refuse_when_os_name_is_nt(self) -> None:
+        self._write_cli("grok", GROK_VERSION, GROK_HELP)
         module = self._load()
         with mock.patch.object(module.os, "name", "nt"):
-            with self._windows_env(module):
-                command = module._command(r"C:\tools\grok.cmd", ["--version"])
-        self.assertEqual(command[:4], [r"C:\Windows\system32\cmd.exe", "/d", "/s", "/c"])
-        self.assertIn("grok.cmd", command[4])
-        self.assertIn("--version", command[4])
-        self.assertEqual(len(command), 5)
-
-    def test_windows_cmd_wrapper_quotes_hostile_arguments(self) -> None:
-        module = self._load()
-        with mock.patch.object(module.os, "name", "nt"):
-            with self._windows_env(module):
-                command = module._command(r"C:\tools\my dir\grok.cmd", HOSTILE_ARGUMENTS)
-        expected = (
-            '""C:\\tools\\my dir\\grok.cmd" '
-            '"plain" '
-            '"with space" '
-            '"한글 naïve" '
-            '"embedded ""quote"" here" '
-            '"amp & pipe | lt < gt > caret ^ open ( close )" '
-            '"%SYNTHETIC_VALUE%" '
-            '"C:\\trailing\\\\\\\\""'
-        )
-        self.assertEqual(command, [r"C:\Windows\system32\cmd.exe", "/d", "/s", "/c", expected])
-
-    def test_windows_subprocess_args_bypass_list2cmdline(self) -> None:
-        # subprocess joins a list with list2cmdline, which escapes a quote as \" .
-        # cmd.exe does not unescape backslashes, so the already cmd-escaped line has
-        # to reach subprocess as a string or every .cmd probe is mangled.
-        module = self._load()
-        with mock.patch.object(module.os, "name", "nt"):
-            with self._windows_env(module):
-                plain = module._subprocess_args(r"C:\tools\grok.cmd", ["--version"])
-                hostile = module._subprocess_args(r"C:\tools\my dir\grok.cmd", HOSTILE_ARGUMENTS)
-        self.assertEqual(
-            plain,
-            r'C:\Windows\system32\cmd.exe /d /s /c ""C:\tools\grok.cmd" "--version""',
-        )
-        self.assertEqual(
-            hostile,
-            'C:\\Windows\\system32\\cmd.exe /d /s /c '
-            '""C:\\tools\\my dir\\grok.cmd" '
-            '"plain" '
-            '"with space" '
-            '"한글 naïve" '
-            '"embedded ""quote"" here" '
-            '"amp & pipe | lt < gt > caret ^ open ( close )" '
-            '"%SYNTHETIC_VALUE%" '
-            '"C:\\trailing\\\\\\\\""',
-        )
+            with mock.patch.dict(os.environ, self._path(), clear=False):
+                resolved = module.resolve("grok")
+        self.assertIn(resolved["available"], (True, False))
 
     def test_subprocess_args_keep_direct_commands_as_a_list(self) -> None:
         module = self._load()
@@ -368,115 +311,6 @@ class ResolveBackendTests(unittest.TestCase):
                 module._subprocess_args("/usr/bin/grok", ["--version"]),
                 ["/usr/bin/grok", "--version"],
             )
-
-    def test_windows_exe_command_line_quotes_newlines(self) -> None:
-        # Break: handing a list to subprocess uses list2cmdline, which does not
-        # quote newlines, so the CRT splits a multiline --rules value.
-        module = self._load()
-        with mock.patch.object(module.os, "name", "nt"):
-            command = module._subprocess_args(
-                r"C:\tools\grok.exe", ["--rules", "first\nsecond"]
-            )
-        self.assertEqual(command, 'C:\\tools\\grok.exe --rules "first\nsecond"')
-
-    def test_windows_exe_command_line_quotes_spaces(self) -> None:
-        module = self._load()
-        with mock.patch.object(module.os, "name", "nt"):
-            command = module._subprocess_args(
-                r"C:\tools\grok.exe", ["--version", "a & b"]
-            )
-        self.assertEqual(command, r'C:\tools\grok.exe --version "a & b"')
-
-    def test_windows_exe_command_line_rejects_nul(self) -> None:
-        module = self._load()
-        with mock.patch.object(module.os, "name", "nt"):
-            with self.assertRaises(ValueError):
-                module._subprocess_args(r"C:\tools\grok.exe", ["nul\x00byte"])
-
-    def test_windows_cmd_wrapper_rejects_untransportable_arguments(self) -> None:
-        module = self._load()
-        with mock.patch.object(module.os, "name", "nt"):
-            for argument in ("line\nbreak", "carriage\rreturn", "nul\x00byte"):
-                with self.subTest(argument=argument):
-                    with self.assertRaises(ValueError):
-                        module._command(r"C:\tools\grok.cmd", [argument])
-
-    def test_windows_transport_checks_the_actual_child_environment(self) -> None:
-        module = self._load()
-        with mock.patch.object(module, "_is_cmd_wrapper", return_value=True):
-            with self.assertRaises(ValueError):
-                module._subprocess_args("grok.cmd", ["%GROK_CURSOR_MCPS_ENABLED%"],
-                                        env={"GROK_CURSOR_MCPS_ENABLED": "0"})
-            with self.assertRaises(ValueError):
-                module._subprocess_args("grok.cmd", ["%grok_cursor_mcps_enabled%"],
-                                        env={"GROK_CURSOR_MCPS_ENABLED": "0"})
-
-    def test_windows_cmd_wrapper_rejects_expandable_percent_names(self) -> None:
-        # cmd.exe expands %NAME% even inside quotes, so an argument naming a variable
-        # that actually resolves would be silently rewritten. Reject it instead.
-        module = self._load()
-        with mock.patch.object(module.os, "name", "nt"):
-            with self._windows_env(module, SDDX_DEFINED_VALUE="secret"):
-                with self.assertRaises(ValueError):
-                    module._command(r"C:\tools\grok.cmd", ["%SDDX_DEFINED_VALUE%"])
-                with self.assertRaises(ValueError):
-                    module._command(r"C:\tools\grok.cmd", ["prefix %SDDX_DEFINED_VALUE% suffix"])
-                # An undefined name is inert to cmd.exe and must survive as literal text.
-                command = module._command(r"C:\tools\grok.cmd", ["%SDDX_UNDEFINED_VALUE%"])
-        self.assertEqual(command[4], '""C:\\tools\\grok.cmd" "%SDDX_UNDEFINED_VALUE%""')
-
-    def test_direct_invocation_never_rejects_percent_names(self) -> None:
-        # A .exe has no cmd.exe layer, so %NAME% is just text and must pass untouched.
-        module = self._load()
-        with mock.patch.object(module.os, "name", "nt"):
-            with self._windows_env(module, SDDX_DEFINED_VALUE="secret"):
-                command = module._command(r"C:\tools\grok.exe", ["%SDDX_DEFINED_VALUE%"])
-        self.assertEqual(command, [r"C:\tools\grok.exe", "%SDDX_DEFINED_VALUE%"])
-
-    def test_windows_exe_is_invoked_directly(self) -> None:
-        module = self._load()
-        with mock.patch.object(module.os, "name", "nt"):
-            command = module._command(r"C:\tools\grok.exe", ["--version", "a & b"])
-        self.assertEqual(command, [r"C:\tools\grok.exe", "--version", "a & b"])
-
-    @unittest.skipUnless(os.name == "nt", "cmd.exe PATH wrappers are a Windows lookup")
-    def test_windows_cmd_fixture_prints_grok_version(self) -> None:
-        path = self._write_cli("grok", GROK_VERSION, GROK_HELP)
-        module = self._load()
-        with mock.patch.dict(os.environ, self._path(), clear=False):
-            text = module._run(str(path), ["--version"])
-        self.assertIn("grok 1.0.25", text)
-
-    @unittest.skipUnless(os.name == "nt", "round trip needs a real cmd.exe")
-    def test_windows_cmd_wrapper_round_trips_arguments(self) -> None:
-        module = self._load()
-        received = self.bindir / "received-argv.json"
-        script = self.bindir / "echo_argv.py"
-        script.write_text(
-            "import json, sys\n"
-            f"with open({str(received)!r}, 'w', encoding='utf-8') as handle:\n"
-            "    json.dump(sys.argv[1:], handle)\n",
-            encoding="utf-8",
-        )
-        wrapper = self.bindir / "echo_argv.cmd"
-        wrapper.write_text(
-            f'@echo off\r\n"{sys.executable}" "{script}" %*\r\n',
-            encoding="utf-8",
-        )
-        env = os.environ.copy()
-        env.pop("SYNTHETIC_VALUE", None)
-        completed = subprocess.run(
-            module._subprocess_args(str(wrapper), HOSTILE_ARGUMENTS),
-            check=False,
-            capture_output=True,
-            text=True,
-            env=env,
-        )
-        self.assertEqual(completed.returncode, 0, completed.stderr)
-        self.assertEqual(
-            json.loads(received.read_text(encoding="utf-8")),
-            HOSTILE_ARGUMENTS,
-        )
 
     # ------------------------------------------------------------------
     # probe primitives

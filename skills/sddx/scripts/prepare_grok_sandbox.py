@@ -212,6 +212,9 @@ def cleanup(worktree: Path, state: Path) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
+    if os.name == "nt":
+        print("BLOCKED: Windows is not a supported OS", file=sys.stderr)
+        return 2
     parser = argparse.ArgumentParser()
     parser.add_argument("action", choices=("prepare", "cleanup"))
     parser.add_argument("--worktree", required=True, type=Path)

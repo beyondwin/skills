@@ -41,7 +41,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from resolve_backend import ALIASES, _subprocess_args, resolve  # noqa: E402
+from resolve_backend import ALIASES, _subprocess_args, refuse_windows, resolve  # noqa: E402
 
 # Resolved against this script, never against the caller's working directory.
 WORKER_RULES_PATH = SCRIPT_DIR.parent / "references" / "worker-prompt.md"
@@ -465,7 +465,6 @@ def run_worker(options: RunOptions) -> int:
         except OSError:
             return fail("could not create the raw worker output files")
         try:
-            # The Windows transport validates against this same environment.
             process = subprocess.Popen(
                 command,
                 cwd=str(worktree),
@@ -746,6 +745,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    refused = refuse_windows()
+    if refused is not None:
+        return refused
     args = build_parser().parse_args(argv)
     if args.command == "status":
         return status_command(args.attempt_dir, args.stream, args.offset, args.max_bytes)

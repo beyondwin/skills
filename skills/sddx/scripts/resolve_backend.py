@@ -42,140 +42,21 @@ _MODEL_ID = re.compile(r"[0-9A-Za-z][0-9A-Za-z._-]*")
 # single space is how prose joins words.
 _COLUMN_SEPARATOR = re.compile(r" - |\t|\s{2,}")
 
-_UNTRANSPORTABLE = ("\n", "\r", "\x00")
-
-# `cmd.exe` pairs `%` signs left to right and substitutes any name that resolves.
-_PERCENT_NAME = re.compile(r"%([^%\r\n]+)%")
+WINDOWS_UNSUPPORTED = "Windows is not a supported OS"
 
 
-def _expandable_percent_name(argument: str, env: Mapping[str, str] | None = None) -> str | None:
-    names = {name.upper() for name in (os.environ if env is None else env)}
-    for name in _PERCENT_NAME.findall(argument):
-        # Windows upper-cases environment names; `os.environ` mirrors that.
-        if name.upper() in names:
-            return name
+def refuse_windows() -> int | None:
+    if os.name == "nt":
+        print(f"BLOCKED: {WINDOWS_UNSUPPORTED}", file=sys.stderr)
+        return 2
     return None
-
-
-def _quote_for_cmd(argument: str, env: Mapping[str, str] | None = None) -> str:
-    """Quote one argument so `cmd.exe` and the child's CRT both read it back whole.
-
-    A `.cmd`/`.bat` wrapper is parsed twice: once by `cmd.exe` for the `/c` command
-    line and once by the batch file when it forwards `%*`. Only double quotes are
-    inert across both layers, so every argument is quoted unconditionally and an
-    embedded quote is doubled (`""`) rather than backslash-escaped: doubling keeps
-    the quote count balanced, which keeps `& | < > ^ ( )` inside a quoted region at
-    both layers, and the CRT argv parser reads `""` inside quotes as one literal
-    quote. Backslashes that run into a quote are doubled because the CRT treats a
-    backslash run before a quote as an escape. `subprocess.list2cmdline` handles
-    only the CRT layer, which is why it is not enough here.
-
-    `%NAME%` cannot be escaped inside quotes, so an argument naming a variable that
-    actually resolves is rejected rather than silently rewritten. Undefined names are
-    inert to `cmd.exe` and pass through as literal text.
-
-    This rests on two documented conventions rather than OS guarantees. Batch `%*`
-    substitution is a single left-to-right pass whose inserted text is not rescanned
-    for `%` — without that, an undefined `%NAME%` would be deleted at the batch layer
-    (batch deletes undefined names, unlike the `/c` line, which leaves them literal).
-    And reading `""` inside a quoted region as one literal quote is the MSVC CRT /
-    `CommandLineToArgvW` convention, which a child using its own argv parser need not
-    follow.
-    """
-    for forbidden in _UNTRANSPORTABLE:
-        if forbidden in argument:
-            raise ValueError(f"argument cannot cross a cmd.exe wrapper: {argument!r}")
-    name = _expandable_percent_name(argument, env)
-    if name is not None:
-        raise ValueError(
-            f"argument cannot cross a cmd.exe wrapper: {argument!r} "
-            f"(cmd.exe would expand %{name}%)"
-        )
-    quoted = ['"']
-    backslashes = 0
-    for char in argument:
-        if char == "\\":
-            backslashes += 1
-            continue
-        if char == '"':
-            quoted.append("\\" * (backslashes * 2))
-            quoted.append('""')
-        else:
-            quoted.append("\\" * backslashes)
-            quoted.append(char)
-        backslashes = 0
-    quoted.append("\\" * (backslashes * 2))
-    quoted.append('"')
-    return "".join(quoted)
-
-
-def _is_cmd_wrapper(executable: str) -> bool:
-    return os.name == "nt" and os.path.splitext(executable)[1].lower() in {".cmd", ".bat"}
-
-
-def _windows_command_line(command: list[str]) -> str:
-    """Join argv the way the MSVC CRT reads it, including quoting newlines.
-
-    `subprocess.list2cmdline` quotes spaces and tabs but leaves `\\n` and `\\r`
-    bare, so a list handed to `Popen` splits multiline `--rules` on Windows.
-    Returning one string keeps `Popen` from running that conversion.
-    """
-    result: list[str] = []
-    for argument in command:
-        if "\x00" in argument:
-            raise ValueError("argument cannot cross the process command line")
-        need_quotes = (not argument) or any(char in argument for char in ' \t\n\r"')
-        pieces: list[str] = ['"'] if need_quotes else []
-        backslashes: list[str] = []
-        for char in argument:
-            if char == "\\":
-                backslashes.append(char)
-                continue
-            if char == '"':
-                pieces.append("\\" * (len(backslashes) * 2))
-                backslashes = []
-                pieces.append('\\"')
-                continue
-            pieces.extend(backslashes)
-            backslashes = []
-            pieces.append(char)
-        if need_quotes:
-            pieces.extend(backslashes)
-            pieces.extend(backslashes)
-            pieces.append('"')
-        else:
-            pieces.extend(backslashes)
-        result.append("".join(pieces))
-    return " ".join(result)
-
-
-def _command(executable: str, arguments: list[str], *, env: Mapping[str, str] | None = None) -> list[str]:
-    command = [executable, *arguments]
-    if _is_cmd_wrapper(executable):
-        comspec = os.environ.get("ComSpec") or "cmd.exe"
-        # `/s` strips the outermost quote pair, so wrap the whole line in one more.
-        line = " ".join(_quote_for_cmd(part, env) for part in command)
-        return [comspec, "/d", "/s", "/c", f'"{line}"']
-    return command
 
 
 def _subprocess_args(
     executable: str, arguments: list[str], *, env: Mapping[str, str] | None = None
-) -> list[str] | str:
-    """What to hand `subprocess`; use this rather than `_command` to launch.
-
-    On Windows `subprocess` joins a list with `list2cmdline`, which escapes every
-    `"` as `\\"` and does not quote newlines. `cmd.exe` does not unescape
-    backslashes, so a line already escaped for `cmd.exe` must reach `subprocess`
-    as a string or the wrapper is mangled. A Win32 image uses the same string
-    form, with newlines quoted, so multiline `--rules` survive.
-    """
-    command = _command(executable, arguments, env=env)
-    if _is_cmd_wrapper(executable):
-        return f"{subprocess.list2cmdline(command[:4])} {command[4]}"
-    if os.name == "nt":
-        return _windows_command_line(command)
-    return command
+) -> list[str]:
+    del env
+    return [executable, *arguments]
 
 
 def _probe(
@@ -447,6 +328,9 @@ def resolve(backend_arg: str) -> dict[str, Any]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    refused = refuse_windows()
+    if refused is not None:
+        return refused
     parser = argparse.ArgumentParser(prog="resolve_backend.py")
     parser.add_argument("--backend", required=True)
     parser.add_argument("--json", action="store_true")
