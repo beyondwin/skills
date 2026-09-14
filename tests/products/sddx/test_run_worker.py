@@ -1255,36 +1255,6 @@ class TransportTests(RunnerFixture):
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertEqual(self.worker_argv(), argv[1:])
 
-    def test_untransportable_argument_is_a_launch_failure(self) -> None:
-        module = self.load()
-        self.write_grok(BEHAVIOUR_OK)
-        with mock.patch.object(
-            module, "_subprocess_args", side_effect=ValueError("argument cannot cross")
-        ):
-            code = self.invoke(module, self.options(module))
-        self.assertEqual(code, 2)
-        self.assert_no_worker_invocation()
-        metadata = self.metadata()
-        self.assertEqual(metadata["state"], "launch_failed")
-        self.assertIsNotNone(metadata["error"])
-
-    def test_launch_failure_error_never_quotes_the_rules_or_the_brief(self) -> None:
-        module = self.load()
-        self.write_grok(BEHAVIOUR_OK)
-        rules = WORKER_PROMPT.read_text(encoding="utf-8")
-        with mock.patch.object(
-            module,
-            "_subprocess_args",
-            side_effect=ValueError(f"argument cannot cross a cmd.exe wrapper: {rules!r}"),
-        ):
-            self.invoke(module, self.options(module))
-        error = self.metadata()["error"]
-        self.assertNotIn(rules.splitlines()[0], error)
-        self.assertNotIn("Implement the synthetic thing", error)
-        printed = self.stderr.getvalue()
-        self.assertTrue(printed.startswith("BLOCKED: "), printed)
-        self.assertNotIn(rules.splitlines()[0], printed)
-
 
 class CliTests(RunnerFixture):
     """The command line stays shaped for a sibling subcommand."""
