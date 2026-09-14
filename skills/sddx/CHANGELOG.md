@@ -85,6 +85,8 @@ Target version `2.0.0`. No public tag or GitHub Release is created here.
   failure, because the worker rules and the Cursor dispatch text are
   multi-line and a `cmd.exe` command line cannot carry a newline. This
   replaces the previous transport's silent argument corruption.
+- Product README now matches the measured macOS host/worker table instead of
+  saying all four combinations are `not_measured`.
 
 ## 1.1.1 - 2026-09-12
 

@@ -1,6 +1,6 @@
 # sddx 호환성
 
-이 문서는 SDDx의 오케스트레이터 호스트와 구현 worker 경계를 소유합니다.
+이 문서는 SDDx가 어느 프로그램에서 돌아가고, 구현은 어디에 넘기는지를 적습니다.
 호스트는 스킬을 실행하는 프로그램이고, worker는 구현만 맡는 외부 CLI입니다.
 
 현재 지원 호스트는 제품 목록의 `claude-code`, `codex`입니다. Cursor CLI와
@@ -103,11 +103,11 @@ Codex 호스트에서 Grok 두 번과 Cursor 재개 한 번입니다. 각 줄은
 | Windows 실행과 argv 전송 | `not_measured` | `.cmd` 왕복 테스트는 `skipUnless(os.name == "nt")`이고 개발 macOS 체크아웃에서 skip됨. skip은 통과가 아님 |
 | 새 세션 전환과 일반 역할 준수 | `not_measured` | 위에 센 시도 밖의 역할 준수와 세션 전환은 관측하지 않음. 관측한 시도에서는 worker가 브리프의 잘못된 검사 명령을 실행해 실패를 확인하고 그 사실을 보고서에 적은 뒤 유효한 방법으로 RED·GREEN을 다시 냈음 |
 
-Windows 행은 저장소의 `windows-latest`/`windows-portable` CI 행에서 실제로
+Windows 행은 저장소의 `windows-latest`/`windows-portable` CI에서 실제로
 실행됩니다. `sddx-contract`는 `WINDOWS_EXCLUDED_STAGES`
-(`scripts/lib/verification.py:14`)에 없습니다. 다만 그 행은 push에서만 돌고 이
-브랜치는 아직 push하지 않았으므로, 지금 시점의 증거는 없습니다. macOS 로컬 검사를
-Windows 증거로 쓰지 않습니다.
+(`scripts/lib/verification.py:14`)에 없습니다. macOS 로컬 검사를 Windows 증거로
+쓰지 않습니다. native Windows에서 그 단계를 돌리기 전까지 Windows 실행과 argv
+전송은 `not_measured`입니다.
 
 ## 알려진 플랫폼·증거 한계
 

@@ -2,7 +2,7 @@
 
 [한국어](../ko/compatibility.md) · [Installation](installation.md)
 
-The current standalone products are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md), and [`sddx`](../../../skills/sddx/README.en.md). How It Works and SDDx currently claim Codex and Claude Code. Korean Writing Editor and Pre-SDD Review keep their registered Codex boundaries. Image Workbench claims Codex and Grok.
+The skills in use are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md), and [`sddx`](../../../skills/sddx/README.en.md). How It Works and SDDx currently claim Codex and Claude Code. Korean Writing Editor and Pre-SDD Review keep their registered Codex boundaries. Image Workbench claims Codex and Grok.
 
 In short: the Korean editor and Pre-SDD Review are confirmed on Codex today. Image Workbench is confirmed on Codex and Grok. How It Works and SDDx link this repo for Codex and Claude Code.
 

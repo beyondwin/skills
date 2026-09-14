@@ -63,7 +63,7 @@ flowchart TB
 | --- | --- |
 | 설치 파일 | 사용자가 받는 스킬 폴더. `skills/<name>/` |
 | 개발 증거 | 테스트·관리자 문서. 설치에 넣지 않음 |
-| 독립 제품 | `products.toml`에 있는, 하나씩 설치하는 스킬 |
+| 독립 제품 | `products.toml`에 있는, 하나씩 설치하는 스킬. 일상어로는 지금 쓰는 스킬 |
 | 카탈로그 | 예전에 묶어 낸 플러그인 ZIP. 지금 제품과 버전이 달라도 됨 |
 | lock | 채택한 버전을 고정한 목록 |
 | 호스트 | 스킬을 실행하는 프로그램. Codex, Claude Code, Grok |
@@ -139,7 +139,7 @@ README, CHANGELOG, `release.toml`, 라이선스, 실행에 필요한 파일은 �
 
 ## 검증 경계
 
-PR matrix는 공통 경로, unknown 경로, 빈 diff, diff 실패이면 selector 없는 전체 검사를 실행합니다. 제품 전용 변경일 때만 해당 제품 selector로 좁은 검사를 실행합니다.
+어떤 검사를 돌릴지는 바뀐 경로로 고릅니다. 공통 경로, unknown 경로, 빈 diff, diff 실패이면 selector 없는 전체 검사를 실행합니다. 제품 전용 변경일 때만 해당 제품 selector로 좁은 검사를 실행합니다.
 
 필수 로컬 검증:
 

@@ -2,7 +2,7 @@
 
 [English](../en/compatibility.md) · [설치](installation.md)
 
-현재 독립 제품은 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md), [`sddx`](../../../skills/sddx/README.md)입니다. How It Works와 SDDx는 Codex와 Claude Code에서 씁니다. Korean Writing Editor와 Pre-SDD Review는 Codex에서만 지원합니다. Image Workbench는 Codex와 Grok에서 지원합니다.
+지금 쓰는 스킬은 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md), [`sddx`](../../../skills/sddx/README.md)입니다. How It Works와 SDDx는 Codex와 Claude Code에서 씁니다. Korean Writing Editor와 Pre-SDD Review는 Codex에서만 지원합니다. Image Workbench는 Codex와 Grok에서 지원합니다.
 
 쉽게 말하면: 한국어 편집기와 SDD 전 검토는 지금 Codex만 확인했습니다. 이미지 작업대는 Codex와 Grok에서 확인했습니다. How It Works와 SDDx는 Codex와 Claude Code에서 이 저장소를 연결해 씁니다.
 

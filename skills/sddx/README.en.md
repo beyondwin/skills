@@ -19,128 +19,16 @@ subagent-driven-development without an external implementer.
 
 sddx: Claude Code and Codex supported for local or repository-based use.
 
-The supported host ids are `claude-code` and `codex`. Cursor and Grok CLIs
-are implementer workers, not hosts. This version has not been executed against
-any of the four Claude Code / Codex by Cursor / Grok combinations with a real
-provider. All four are `not_measured`. Observations from earlier versions are
-records of those versions, not evidence for this one. The per-combination
-measurement state is the table in the compatibility guide below. Claude.ai,
-Cowork, Skills API upload, and marketplace publication are not supported.
-Shared limits are in
+The supported programs are `claude-code` and `codex`. Cursor and Grok CLIs
+are implementer programs only. The contract calls them workers. They are not
+hosts.
+
+On macOS, all four Claude Code / Codex by Cursor / Grok combinations have
+been run for real. What was checked, and what was not, is the table in
+[Compatibility](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/sddx/compatibility.md).
+Claude.ai, Cowork, Skills API upload, and marketplace publication are not
+supported. Shared limits are in
 [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/users/en/compatibility.md).
-
-## Task scope and review
-
-The worker receives a complete task brief and listed references, without
-reopening the full plan. Compare its scope-deviations report with actual tool
-records. Role violations are FAIL; insufficient tool evidence is UNVERIFIED.
-Neither qualifies for clean DONE.
-`Search paths` limits content searches. Filename-only listings in the current
-worktree and direct reads of task-needed ignore/build/test configuration are
-allowed; these actions alone require no scope concern. Full-plan content and
-secrets remain excluded.
-
-Task reviews, scoped re-reviews, and final review all follow the current
-orchestrator model. Select reviewer effort separately. On Claude Code, High
-means the normal dispatch with no `model` argument; XHigh means dispatching
-`subagent_type: sddx-reviewer-xhigh`, also with no `model` argument. Use XHigh
-only for changes to locking, ordering, or concurrently shared state; changes to
-an auth, permission, secret, or sandbox boundary; a round 4-5 re-review; or a
-defect the reviews keep missing. Diff size, implementation difficulty, and
-"this is the final review" are not reasons. The escalation definition is Claude
-Code only; on a host without it, report that limitation and continue.
-
-## Choosing and keeping a backend
-
-In `sddx <plan-file> [cursor|grok|c|g]`, `c` means `cursor` and `g` means
-`grok`. The backend comes from an explicit choice in this request, then the
-current state of this same run, then one question. An explicit choice needs no
-re-approval on later tasks. If only one backend is available, the skill shows
-that fact and the missing backend's `reason`, and still confirms before
-proceeding. If the requested backend is missing, it stops instead of switching.
-
-From this major version, a Cursor CLI must declare headless print (`--print`
-or `-p`), `--trust`, `--auto-review`, `--sandbox`, a confirmed `stream-json`
-output format, and at least one Grok model id that a model-list command
-actually returned. An existing Cursor install that does not meet this
-resolves as `available: false` with `reason: missing_flags`. It no longer
-falls back to `--force`/`--yolo` blanket approval, and no option brings that
-back. An unavailable backend's `reason` is one of `not_found`,
-`identity_mismatch`, `missing_flags`, or `no_grok_model`.
-
-Changing backends never passes the previous provider's session ID along and
-never resets the fix-round count. Reviews still inherit the current
-orchestrator model, with effort selected separately and no `model` override.
-
-## Execution helpers and evidence
-
-To cut one task's section out of the plan, the controller runs
-`scripts/extract_task.py <plan-file> --heading "<full heading without #>" --output <file>`.
-Exit 0 is success, 2 is a file or argument error, and 3 means the heading is
-absent, duplicated, or has an empty body. It never overwrites an existing
-output file.
-
-`scripts/run_worker.py run` is the only launch path. Do not hand-compose a
-provider command or write a new execution script for a run. One attempt leaves
-six files in a new directory under the worktree's `.superpowers/`: `brief.md`,
-`dispatch.md`, `worker.jsonl`, `stderr.log`, `run.json`, and `report.md`. The
-worker writes `report.md` itself; the runner never does. The runner never
-prepares or cleans up the Grok profile. The controller keeps the order:
-prepare, run, confirm the exit, clean up. There is no automatic retry anywhere.
-
-`--timeout <seconds>` bounds one attempt's wall-clock. It defaults to 3600, and
-`--timeout 0` waits without a bound. When it fires the runner sends the worker
-SIGTERM, waits ten seconds, kills it if it is still alive, records `state`
-`timed_out`, and exits 124. Only the worker process itself is signalled, so
-descendants it started are not pursued; no process tree is cleaned up here.
-
-Read a running or finished attempt only through `scripts/run_worker.py status`.
-It is read-only and interprets nothing. The default answer is metadata, log
-sizes, and whether `report.md` exists, never a log body. A body window needs
-`--stream`; it defaults to 2048 bytes with a maximum of 8192, and the whole
-JSON answer is capped at 64 KiB. Never dump a whole log into the session.
-
-`run.json` holds process facts only. Its `schema_version` is 2, and `state` is
-one of `starting`, `running`, `exited`, `launch_failed`, `timed_out`, or
-`interrupted`, which is process state and not task state. Process exit 0 is not
-a clean DONE. The wrapper exit follows the worker's; a POSIX signal returns
-`128 + signal` while `run.json.exit_code` keeps the real negative return code;
-a launch failure is 2, a handled interrupt is 130, and an attempt ended by its
-own timeout is 124. Exit 2 is ambiguous between a launch failure and a worker
-that legitimately exited 2, so read `run.json.state` to tell them apart; if the
-attempt directory is absent, or present without `run.json`, the launch was
-refused before the attempt was created and the `BLOCKED:` line on stderr is the
-reason.
-
-The run's current state lives in one block at the top of the Superpowers SDD
-ledger and nowhere else. Do not add a separate state file. Cursor carries its
-effort in the model ID, so the runner refuses a model whose declared effort
-contradicts `--effort`, and `configured_effort` holds the effort read from the
-ID; when the ID declares no effort it stays `null` and the applied effort is
-`unknown`. Requested and configured effort are recorded separately and neither
-proves what the model actually applied. A change to the shared product source
-applies to new runs only — no run in progress is converted or restarted
-automatically.
-
-## Real measurement limits
-
-On Windows, launching through an npm-style `.cmd` shim is recorded as a launch
-failure. The worker rules and the Cursor dispatch text are multi-line and a
-`cmd.exe` command line cannot carry a newline, so a recorded failure is
-preferred over silent corruption. Windows argv transport itself was not
-measured on this branch. Grok's `--rules` travels on the command line only and
-is not stored among the attempt directory's six files, so editing
-`references/worker-prompt.md` makes past Grok attempts non-reproducible from
-the stored evidence alone. The full list of unmeasured items is in the
-compatibility guide below.
-
-## Grok worktree execution
-
-Running the Grok backend in a linked worktree requires Python 3.11+.
-SDDx prepares a working Git write profile so the worker can commit. Generated
-configuration and recovery state are excluded from installation files and
-commits; after the worker exits, SDDx restores the prior configuration or
-removes the generated one.
 
 ## Install
 
@@ -229,12 +117,23 @@ $sddx docs/history/plans/example.md
 
 ## Expected result
 
-With an explicit backend choice the skill proceeds on it; otherwise it picks
-one once for this plan. It then runs Superpowers SDD with an external
-implementer and native reviewers. Every attempt leaves one evidence directory
-and the ledger's current-state block, and completion is judged from the
-report, real test exits, commits, the tool record, and native review — not
-from a process exit.
+The implementer is chosen with `sddx <plan-file> [cursor|grok|c|g]`. `c` means
+cursor and `g` means grok. If the request has no choice, the skill asks once
+for this plan. If only one implementer is available, it still shows that fact
+and the missing side's reason, then confirms before continuing. If the
+requested side is missing, it stops instead of switching.
+
+The worker receives a complete task and listed references, without reopening
+the full plan. Completion is judged from the report, real test exits, commits,
+the tool record, and native review — not from a process exit. Every attempt
+leaves a directory under the worktree's `.superpowers/`. Commands and judgment
+rules are in the
+[contract](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/sddx/contract.md).
+
+Grok linked worktrees need Python 3.11+. Grok removes MCP invocation tools
+and will not run without value-taking `--disallowed-tools` and `--deny`.
+On Windows, launching through an npm-style `.cmd` shim is recorded as a
+failure.
 
 ## See also
 
@@ -245,11 +144,3 @@ from a process exit.
 - [Testing](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/sddx/testing.md)
 - [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/sddx/compatibility.md)
 - [Release](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/sddx/release.md)
-
-## Grok execution scope
-
-The Grok worker removes MCP invocation tools through CLI filters
-and disables imported Cursor/Claude MCP discovery only for its own process.
-A CLI missing value-taking `--disallowed-tools` or `--deny` is unavailable.
-Global settings are preserved; native Grok MCP initialization and other
-startup warnings may remain.

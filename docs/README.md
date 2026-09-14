@@ -20,13 +20,13 @@ How to change it is in the maintainer docs.
 
 ## 제품을 쓸 때 / Use a product
 
-각 현재 독립 제품의 한국어·영어 README를 읽습니다.
+지금 쓰는 각 스킬의 한국어·영어 README를 읽습니다.
 
 - [`korean-writing-editor`](../skills/korean-writing-editor/README.md) · [English](../skills/korean-writing-editor/README.en.md) — Codex
 - [`image-workbench`](../skills/image-workbench/README.md) · [English](../skills/image-workbench/README.en.md) — Codex, Grok
 - [`how-it-works`](../skills/how-it-works/README.md) · [English](../skills/how-it-works/README.en.md) — Codex, Claude Code
 - [`pre-sdd-review`](../skills/pre-sdd-review/README.md) · [English](../skills/pre-sdd-review/README.en.md) — Codex, SDD 전 문서 검토
-- [`sddx`](../skills/sddx/README.md) · [English](../skills/sddx/README.en.md) — Codex, Claude Code, 외부 SDD implementer
+- [`sddx`](../skills/sddx/README.md) · [English](../skills/sddx/README.en.md) — Codex, Claude Code, 외부 구현
 
 ## 유지·변경·릴리스 / Maintain, change, or release
 
@@ -35,4 +35,4 @@ How to change it is in the maintainer docs.
 ## 진행 중인 설계·계획 / In-progress specs and plans
 
 진행 중인 설계·계획은 [`docs/history/`](history/)에 있습니다. 현재 계약을
-정의하지 않습니다.
+정의하지 않습니다. 지금은 진행 중인 설계가 없습니다.

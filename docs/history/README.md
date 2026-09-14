@@ -10,13 +10,7 @@ paths. They are point-in-time records, not the current contract.
 [`docs/README.md`](../README.md), [`docs/users/`](../users/),
 [`docs/maintainers/`](../maintainers/), 각 제품 README를 보세요.
 
-## 진행 중 / In progress
+지금은 진행 중인 설계가 없습니다. 끝난 SDDx 실행 정리와 image-workbench Grok
+지원은 각 제품 README와 관리자 문서에 있습니다.
 
-- SDDx 실행 정리: [설계 스펙](2026-09-13-sddx-execution-design.md),
-  [구현 계획](2026-09-13-sddx-implementation-plan.md),
-  [세션·오픈소스 조사](2026-09-13-sddx-orchestration-research.md).
-  계획의 여섯 태스크를 이 브랜치에서 모두 구현했고 병합을 기다립니다.
-
-SDDx execution simplification is implemented on this branch and awaiting merge.
-All six planned tasks have landed. The links above include the supporting
-open-source research.
+There are no in-progress specs or plans right now.
