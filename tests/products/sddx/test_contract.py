@@ -208,7 +208,10 @@ class SddxContractTests(unittest.TestCase):
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         self.assertIn("spawn_agent", text)
         self.assertIn("the same product Python scripts", text)
-        self.assertIn("Windows", text)
+        self.assertIn(
+            "The supported OS is macOS. Do not add Windows transport. Refuse Windows at the product CLIs.",
+            text,
+        )
 
     def test_replaced_instructions_are_gone(self) -> None:
         skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -218,6 +221,7 @@ class SddxContractTests(unittest.TestCase):
             "One plan per invocation",
             "Keep that backend for every later task",
             "report that the requested effort cannot be set",
+            "Do not replace\nWindows support with POSIX-only code",
         ):
             self.assertNotIn(removed, skill, removed)
         for removed in (

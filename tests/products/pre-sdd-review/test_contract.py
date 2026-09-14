@@ -386,9 +386,9 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### SDD handoff", "2e0fcc729cb4455863165138c0f96256b27ddf9d4460c2f7a5ce51660806d9da"),
 )
 MAINTAINER_CANONICAL_DIGEST = "2c0b7dccfd082dabaf4c9460bb73439e47a8bee7af54425361f64b0a325e3680"
-TESTING_CANONICAL_DIGEST = "c42190022f53d3caca5d77592a650e98fc48df94e4934e03afbc7978537eb2bd"
-COMPATIBILITY_CANONICAL_DIGEST = "1d39eec7d5cfe9c7d046d35077762ab96fad5ad856a924891fa4459581a31521"
-RELEASE_CANONICAL_DIGEST = "db0a0a4ca42a8922181a45249212e983e3c6a0bf232330b4e99b092f9484b387"
+TESTING_CANONICAL_DIGEST = "c86d24f241848d4f985e670368ebbc60f6ed54bcbf4d288ae07cda8009ff5dde"
+COMPATIBILITY_CANONICAL_DIGEST = "db8d19d45ca4f6748b73ace65da5e5e965f0e7002a6b0395bf563f524a424480"
+RELEASE_CANONICAL_DIGEST = "a9cd12baf31dbe408975c23bbbec9f860b0e3b58e787aefee5a9cb27c18a3e67"
 
 
 def section(text: str, start: str, end: str) -> str:
@@ -1511,8 +1511,9 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         self.assertIn("지금은 Codex만 지원합니다", compatibility)
         self.assertIn("다른 호스트는 모두 `not_measured`", compatibility)
         self.assertIn("## 기록기 호환성", compatibility)
-        self.assertIn("| Linux / Python 3.11+ | `not_measured` |", compatibility)
-        self.assertIn("| Windows / Python 3.11+ | `not_measured` |", compatibility)
+        self.assertIn("| Linux / Python 3.11+ | `unsupported` |", compatibility)
+        self.assertIn("| Windows / Python 3.11+ | `unsupported` |", compatibility)
+        self.assertIn("CI POSIX 검사 ≠ Linux 제품 지원", compatibility)
         normalized_release = re.sub(r"\s+", " ", release).lower()
         for fact in (
             "버전 원본은 `skills/pre-sdd-review/release.toml`",

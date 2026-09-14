@@ -8,6 +8,12 @@ Grok CLI는 구현 worker이지 호스트가 아닙니다. 지원 범위와 현�
 별개입니다. Claude.ai, Cowork,
 Skills API 업로드, marketplace 게시, 클라우드 동기화는 지원하지 않습니다.
 
+## 지원 OS
+
+지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다. CI는 Ubuntu에서
+`full` 프로필을 돌릴 수 있습니다. 그 통과는 Linux 지원이 아니고 macOS 지원
+증거도 아닙니다.
+
 ## 발견 경로
 
 ```text
@@ -100,32 +106,11 @@ Codex 호스트에서 Grok 두 번과 Cursor 재개 한 번입니다. 각 줄은
 | Grok 도구 필터 옵션 요구 | `measured` | resolver는 값을 받는 `--disallowed-tools`와 `--deny` 선언을 요구하고, 없으면 `missing_flags`로 실행을 거절함. 설치된 `grok 1.0.30`의 help는 `--deny <RULE>`과 `--disallowed-tools <TOOLS>`로 선언하며 실제 해석 결과 `available: true`. 이 판정은 그 help 표기에만 맞춰져 있어, 같은 옵션을 다른 표기로 적는 빌드는 실행 가능한데도 거절됨 |
 | `read_session_id`의 대체 키 철자 | `not_measured` | 두 공급자 모두에서 `session_id`로 세션 ID를 회수했고 Grok 스트림에는 다른 철자가 없었음. 이 키를 먼저 보므로 `sessionId`·`chatId`·`chat_id` 분기는 실행된 적이 없음 |
 | Claude Code agent 정의 로딩 | `not_measured` | `2.0.0` 파일로 `claude -p --agent sddx-reviewer-xhigh` 확인을 수행하지 않음 |
-| Windows 실행과 argv 전송 | `not_measured` | `.cmd` 왕복 테스트는 `skipUnless(os.name == "nt")`이고 개발 macOS 체크아웃에서 skip됨. skip은 통과가 아님 |
 | 새 세션 전환과 일반 역할 준수 | `not_measured` | 위에 센 시도 밖의 역할 준수와 세션 전환은 관측하지 않음. 관측한 시도에서는 worker가 브리프의 잘못된 검사 명령을 실행해 실패를 확인하고 그 사실을 보고서에 적은 뒤 유효한 방법으로 RED·GREEN을 다시 냈음 |
-
-Windows 행은 저장소의 `windows-latest`/`windows-portable` CI에서 실제로
-실행됩니다. `sddx-contract`는 `WINDOWS_EXCLUDED_STAGES`
-(`scripts/lib/verification.py:14`)에 없습니다. macOS 로컬 검사를 Windows 증거로
-쓰지 않습니다. native Windows에서 그 단계를 돌리기 전까지 Windows 실행과 argv
-전송은 `not_measured`입니다.
 
 ## 알려진 플랫폼·증거 한계
 
-Windows의 npm 방식 `.cmd` 셰임 실행은 launch failure로 기록됩니다. worker 규칙과
-Cursor dispatch 텍스트는 여러 줄인데 `cmd.exe` 명령줄은 줄바꿈을 담을 수 없습니다.
-의도한 선택이며, 대안은 이전 전송 방식의 조용한 인자 훼손이었습니다. native
-Win32 이미지는 줄바꿈을 따옴표로 감싼 명령줄로 실행하므로 그 제한을 받지
-않습니다. CI worker 픽스처는 그 이미지를 쓰고, 실제 npm `.cmd` 경로를 우회하지
-않습니다.
-
-`_expandable_percent_name`은 `cmd.exe` 의사 변수(`%CD%`, `%DATE%`, `%TIME%`,
-`%RANDOM%`, `%ERRORLEVEL%`, `%CMDCMDLINE%`)를 거르지 않습니다. 이 이름들은
-실제 자식 환경의 매핑에 나타나지 않는데 판정이 그 매핑만 보기 때문입니다. 지금은
-도달할 수 없습니다. Grok은 항상 여러 줄 `--rules`를, Cursor는 항상 여러 줄 인라인
-dispatch를 싣기 때문에 모든 `.cmd` 실행은 위의 `_UNTRANSPORTABLE` 검사에서 먼저
-실패하고, 인자가 짧은 나머지 `_quote_for_cmd` 호출자는 `_probe`의 고정 리터럴뿐
-입니다. 위의 여러 줄 `.cmd` 제한을 푸는 날 이 경로는 도달 가능해지므로 같은
-변경에서 함께 고쳐야 합니다.
+Windows는 미지원이며 제품 CLI가 거절합니다.
 
 Grok의 `--rules`는 시도 디렉터리에 보존되지 않습니다. 규칙 본문이 명령줄로만
 전달되고 스펙이 시도 디렉터리를 정확히 여섯 파일로 고정하므로,

@@ -13,13 +13,10 @@
 
 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다.
 `tests/products/sddx/test_resolve_backend.py`는 PATH에 가짜 바이너리를
-넣어 신원 규칙을 잠급니다. Windows에서는 PATHEXT가 찾는 `.cmd` 런처를 쓰고,
-resolver는 그 런처를 `cmd.exe`로 실행합니다. 실제 Cursor/Grok 계정을 쓰지
-않습니다.
-`tests/products/sddx/test_run_worker.py`의 Windows worker 픽스처는 여러 줄
-`--rules`를 실을 수 있는 Win32 이미지를 만들고, `.cmd` 왕복은 그 경로와
-분리된 전용 픽스처로 남깁니다. 합성 CLI는 stdout/stderr를 LF로 고정해
-raw-byte 단언이 Windows 텍스트 변환과 섞이지 않게 합니다.
+넣어 신원 규칙을 잠급니다. 실제 Cursor/Grok 계정을 쓰지 않습니다.
+Windows `.cmd` 왕복과 Win32 전송 픽스처는 삭제 대상이며 Windows 지원
+증거가 아닙니다. 합성 CLI는 stdout/stderr를 LF로 고정해 raw-byte 단언이
+텍스트 변환과 섞이지 않게 합니다.
 `tests/products/sddx/test_prepare_grok_sandbox.py`는 임시 저장소와 실제 linked
 worktree를 만들고 Git 경로 계산, 기존 TOML 원문 복원, 재진입, 심볼릭 링크 거절,
 `fchmod` 없는 다시 쓰기, CLI 성공·실패 출력을 검사합니다. Git 경로는 pathlib로
@@ -57,10 +54,9 @@ backend별 `--model`/`--sandbox-profile` 배타, `run.json` 필드(`skill_versio
 본문이 없다는 점, `--stream` 기본 2048·최대 8192바이트, 64 KiB 응답 상한, offset
 처리를 검사합니다. 어느 검사도 공급자를 호출하지 않습니다.
 
-Windows `.cmd` 왕복 검사는 `skipUnless(os.name == "nt")`이므로 macOS·Linux
-체크아웃에서는 skip됩니다. skip을 native Windows 통과로 쓰지 않습니다. 이 검사는
-저장소의 `windows-latest`/`windows-portable` CI 행에서 실행되며 `sddx-contract`는
-`WINDOWS_EXCLUDED_STAGES`에 없습니다.
+Windows `.cmd` 왕복 검사(`skipUnless(os.name == "nt")`)는 삭제 대상입니다.
+CI에서 돈다고 적지 않으며, skip을 통과나 Windows 지원으로 쓰지 않습니다.
+Windows는 지원하지 않습니다.
 
 페이로드 계약 통과는 파일 정체성, 이식 가능한 frontmatter, 금지 문자열만
 증명합니다. 이 공급자 없는 증거만으로 라이브 CLI, 과금, 모델 품질을
@@ -379,8 +375,6 @@ Step 3의 네 명령은 최종 상태에서 모두 exit 0입니다.
   부모 및 관계없는 환경 변수는 보존됩니다. Cursor 환경과 argv 정책도 보존됩니다.
 - Grok argv가 `search_tool,use_tool` 제외와 `MCPTool(*)` 거절을 전달합니다.
   필요한 옵션이 없거나 값을 받지 않으면 resolver가 `missing_flags`를 반환합니다.
-- Windows 명령 전송은 자식 환경에서 새로 정의된 퍼센트 변수와 소문자 표기를
-  거절합니다. 이는 문자열 전송 검사이며 native Windows 실행 증거가 아닙니다.
 
 원인 분리 라이브 probe에서 MCP compatibility 환경 변수만 끈 호출은 handshake
 경고 0건, 도구 제외 옵션만 쓴 호출은 `handshake failed` 4건이었습니다. 둘을 합친
