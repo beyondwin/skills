@@ -295,16 +295,28 @@ NotebookEdit를 이름으로 포함하는지 확인합니다. 이 검사는 필�
 | 오프라인 helper·argv 계약 검사 | 실행함 |
 | 지침 문구 검사 | 실행함 |
 | native 행동 probe | 이 버전에서 새로 실행하지 않음 |
-| 실제 공급자 실행 | Claude Code × Cursor 한 조합만 실행함 (`measured`). 나머지 세 조합은 `not_measured` |
+| 실제 공급자 실행 | Claude Code × Cursor와 Claude Code × Grok 두 조합을 실행함 (`measured`). Codex 호스트의 두 조합은 `not_measured` |
 
-이 버전에서는 제품 소유자 승인 아래 Claude Code × Cursor 조합으로 실제 공급자를
-호출했습니다. macOS 26.6.2 arm64, `cursor-agent 2026.09.10-fd3934a`, 모델
-`cursor-grok-4.6-high`로 worker 시도 세 번을 실행했고, 승인 동작·모델 ID 수락과
-`configured_effort` 기록·session ID 회수와 `--resume`·실제 worker 타임아웃·시도
-생성 전 거절을 관측했습니다. 모델이 실제 적용한 effort는 이번에도 관측하지
-못했으므로 `not_measured`로 남습니다. 요청·설정 effort는 적용값의 증거가 아니며,
-공급자가 모델 ID를 수락했다는 사실도 마찬가지입니다. Grok worker, Codex 호스트의
-worker 실행, Windows 실행은 실행하지 않았으므로 `not_measured`로 남습니다. 관측한 한 조합의 결과를 나머지로 넓히지 않습니다.
+이 버전에서는 제품 소유자 승인 아래 Claude Code를 호스트로 한 두 조합으로 실제
+공급자를 호출했습니다. 둘 다 macOS 26.6.2 arm64입니다.
+
+Cursor는 `cursor-agent 2026.09.10-fd3934a`, 모델 `cursor-grok-4.6-high`로 worker
+시도 세 번을 실행했고, 승인 동작·모델 ID 수락과 `configured_effort` 기록·session
+ID 회수와 `--resume`·실제 worker 타임아웃·시도 생성 전 거절을 관측했습니다.
+
+Grok은 `grok 1.0.30 (04b7ffed98c6)`, 모델 `grok-4.6`으로 worker 시도 두 번을
+실행했고, sandbox 프로파일 준비와 정리까지 한 바퀴를 돌렸습니다.
+`streaming-messages-json` 스트림의 실제 형태, `--reasoning-effort`가 명령줄에
+실린 사실, session ID 회수와 `--resume`을 관측했습니다.
+
+모델이 실제 적용한 effort는 어느 조합에서도 관측하지 못했으므로 `not_measured`로
+남습니다. 요청·설정 effort는 적용값의 증거가 아니며, 공급자가 모델 ID를
+수락했다는 사실도, 요청 effort가 명령줄에 실렸다는 사실도 마찬가지입니다.
+worker 경계가 CLI에 의해 강제되는지도 `not_measured`입니다. Grok init 이벤트는
+`--no-subagents`를 넘긴 뒤에도 `spawn_subagent`를 도구 목록에 실었고, 두 시도가
+규칙을 지킨 것은 모델이 지시를 따랐기 때문입니다. Codex 호스트의 worker 실행과
+Windows 실행은 실행하지 않았으므로 `not_measured`로 남습니다. 관측한 두 조합의
+결과를 나머지로 넓히지 않습니다.
 조합별 표와 항목별 측정 상태는 [호환성](compatibility.md)이 소유합니다.
 
 ### 실제 관측

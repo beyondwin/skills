@@ -57,15 +57,16 @@ worker가 저장소의 공유 Git 메타데이터를 쓸 수 있음을 뜻합니
 ## 2.0.0 측정 상태
 
 이 표는 `2.0.0` 설치 파일만 다룹니다. 네 조합 가운데 제품 소유자 승인 아래 실제
-공급자를 호출한 것은 Claude Code × Cursor 한 조합뿐입니다. 측정 환경은 macOS
-26.6.2 arm64, `cursor-agent 2026.09.10-fd3934a`, 모델 `cursor-grok-4.6-high`이며
-worker 시도 세 번입니다. 나머지 세 조합은 여전히 `not_measured`이고, 측정한 한
-조합의 결과를 나머지로 넓히지 않습니다.
+공급자를 호출한 것은 Claude Code를 호스트로 한 두 조합입니다. 측정 환경은 모두
+macOS 26.6.2 arm64입니다. Cursor는 `cursor-agent 2026.09.10-fd3934a`, 모델
+`cursor-grok-4.6-high`로 worker 시도 세 번, Grok은 `grok 1.0.30 (04b7ffed98c6)`,
+모델 `grok-4.6`으로 worker 시도 두 번입니다. Codex 호스트의 두 조합은 여전히
+`not_measured`이고, 측정한 조합의 결과를 나머지로 넓히지 않습니다.
 
 | 오케스트레이터 호스트 | 구현 worker | `2.0.0` 실제 실행 | 근거 |
 | --- | --- | --- | --- |
 | Claude Code | Cursor CLI | `measured` | worker 시도 세 번이 각각 브리핑된 작업을 구현하고 브리프의 테스트를 실행하고 커밋한 뒤 `report.md`를 직접 씀. 그중 한 개를 읽어 계약이 요구하는 항목(상태, 변경 파일, RED·GREEN exit 코드를 포함한 worker 검사, 커밋 SHA, 범위 이탈)을 담고 있음을 확인했고 나머지 두 개는 존재만 확인함 |
-| Claude Code | Grok CLI | `not_measured` | resolver는 실제 `grok 1.0.30`에 `available: true`를 돌려주지만 Grok worker는 한 번도 띄우지 않음 |
+| Claude Code | Grok CLI | `measured` | `prepare_grok_sandbox.py prepare` → `run_worker.py run` → `--resume` → `cleanup` 한 바퀴. worker 시도 두 번이 각각 브리핑된 작업을 구현하고 브리프의 테스트를 실행하고 커밋한 뒤 `report.md`를 직접 씀. 두 report를 모두 읽어 계약이 요구하는 항목(상태, 변경 파일, RED·GREEN exit 코드를 포함한 worker 검사, 커밋 SHA, 범위 이탈)을 담고 있음을 확인함 |
 | Codex | Cursor CLI | `not_measured` | Codex 호스트는 오프라인 검사와 탐지 probe만 실행했고 모델 실행 전에 멈춤 |
 | Codex | Grok CLI | `not_measured` | 위와 같음 |
 
@@ -81,8 +82,12 @@ worker 시도 세 번입니다. 나머지 세 조합은 여전히 `not_measured`
 | 시도 생성 전 거절 | `measured` | effort와 모델 ID의 모순, 그리고 `--timeout inf`가 각각 시도 디렉터리가 만들어지기 전에 exit 2와 `BLOCKED:` 줄로 거절됨 |
 | 실제 Cursor OS 격리 | `not_measured` | `--sandbox enabled`는 선언 확인이며 실제 격리 범위를 측정하지 않음 |
 | 모델이 실제 적용한 effort | `not_measured` | 요청·설정 effort만 기록하며 적용값을 확인할 경로가 없음. 이번 라이브 실행도 그 경로를 만들지 않았고, 모델 ID 수락 확인은 적용값의 증거가 아님 |
-| Grok 스트림 형태 | `not_measured` | Grok worker를 실행하지 않았으므로 `streaming-messages-json` 스트림을 관측하지 못했고, `read_session_id`의 `session_id` 이외 키 철자는 확인되지 않음 |
+| Grok 스트림 형태 | `measured` | `streaming-messages-json` 스트림 19줄·17줄을 관측함. 모든 줄이 JSON object로 파싱되고 모든 줄이 `session_id` 키를 가짐. 첫 줄은 Cursor와 같은 `system`/`init` |
+| Grok sandbox 프로파일 왕복 | `measured` | `prepare`가 `.grok/sandbox.toml`에 `sddx-worktree` 프로파일(`extends = "workspace"`, `read_write = []`)을 만들고 `cleanup`이 자기가 만든 `.grok`을 지움. 두 시도의 커밋에는 `roman.py`와 `test_roman.py`만 들어갔고 증거·sandbox 파일은 커밋되지 않음 |
+| Grok의 실제 effort 인자 | `measured` | resolver가 고른 `--reasoning-effort high`가 실제로 명령줄에 실려 실행됐고 `run.json`의 `configured_effort`는 `high`. 명령줄에 실린 요청값의 관측이며 모델이 적용한 effort의 관측이 아님 |
+| worker 경계의 강제 여부 | `not_measured` | 두 Grok 시도의 도구 호출 열 건·일곱 건은 모두 범위 안이었고 `spawn_subagent`·skill·MCP 호출은 없었음. 다만 init 이벤트는 `--no-subagents`를 넘긴 뒤에도 `spawn_subagent`를 도구 목록에 싣고, 호스트 skill 전부와 MCP 서버 세 개(`context7`, `x-docs`, `playwright-sandboxed`)를 connected로 보고함. 이번 실행에서 규칙이 지켜진 것은 모델이 지시를 따랐기 때문이며 CLI가 막았다는 증거는 아님 |
 | Codex 호스트의 worker 실행 | `not_measured` | Codex 호스트는 오프라인 검사와 탐지 probe까지만 수행함 |
+| `read_session_id`의 대체 키 철자 | `not_measured` | 관측한 두 공급자가 모두 `session_id`만 쓰므로 `sessionId`·`chatId`·`chat_id` 분기는 실행된 적이 없음 |
 | Claude Code agent 정의 로딩 | `not_measured` | `2.0.0` 파일로 `claude -p --agent sddx-reviewer-xhigh` 확인을 수행하지 않음 |
 | Windows 실행과 argv 전송 | `not_measured` | `.cmd` 왕복 테스트는 `skipUnless(os.name == "nt")`이고 개발 macOS 체크아웃에서 skip됨. skip은 통과가 아님 |
 | 새 세션 전환과 일반 역할 준수 | `not_measured` | 위 세 시도 밖의 역할 준수와 세션 전환은 관측하지 않음 |
