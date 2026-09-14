@@ -18,7 +18,8 @@ resolver는 그 런처를 `cmd.exe`로 실행합니다. 실제 Cursor/Grok 계�
 않습니다.
 `tests/products/sddx/test_run_worker.py`의 Windows worker 픽스처는 여러 줄
 `--rules`를 실을 수 있는 Win32 이미지를 만들고, `.cmd` 왕복은 그 경로와
-분리된 전용 픽스처로 남깁니다.
+분리된 전용 픽스처로 남깁니다. 합성 CLI는 stdout/stderr를 LF로 고정해
+raw-byte 단언이 Windows 텍스트 변환과 섞이지 않게 합니다.
 `tests/products/sddx/test_prepare_grok_sandbox.py`는 임시 저장소와 실제 linked
 worktree를 만들고 Git 경로 계산, 기존 TOML 원문 복원, 재진입, 심볼릭 링크 거절,
 `fchmod` 없는 다시 쓰기, CLI 성공·실패 출력을 검사합니다. Git 경로는 pathlib로

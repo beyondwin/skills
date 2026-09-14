@@ -363,10 +363,11 @@ class ResolveBackendTests(unittest.TestCase):
 
     def test_subprocess_args_keep_direct_commands_as_a_list(self) -> None:
         module = self._load()
-        self.assertEqual(
-            module._subprocess_args("/usr/bin/grok", ["--version"]),
-            ["/usr/bin/grok", "--version"],
-        )
+        with mock.patch.object(module.os, "name", "posix"):
+            self.assertEqual(
+                module._subprocess_args("/usr/bin/grok", ["--version"]),
+                ["/usr/bin/grok", "--version"],
+            )
 
     def test_windows_exe_command_line_quotes_newlines(self) -> None:
         # Break: handing a list to subprocess uses list2cmdline, which does not

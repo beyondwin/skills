@@ -205,6 +205,8 @@ def _cli_body(version: str, help_text: str, models: str, argv_log: Path,
         "import signal\n"
         "import sys\n"
         "import time\n"
+        "sys.stdout.reconfigure(newline='\\n')\n"
+        "sys.stderr.reconfigure(newline='\\n')\n"
         f"VERSION = {version!r}\n"
         f"HELP = {help_text!r}\n"
         f"MODELS = {models!r}\n"
