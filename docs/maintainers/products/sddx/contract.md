@@ -197,7 +197,7 @@ Grok resolver는 값을 받는 `--disallowed-tools`와 `--deny` 선언을 요구
 runner는 Grok 자식 프로세스에서만 `GROK_CURSOR_MCPS_ENABLED=0`,
 `GROK_CLAUDE_MCPS_ENABLED=0`을 설정합니다. 신규·재개 호출 모두 적용하며
 부모 환경, 전역 설정, 인증·세션 위치는 변경하지 않습니다. Windows 명령 전송의
-퍼센트 변수 검사는 실제 자식 환경을 기준으로 합니다. Cursor에는 이 변경을 적용하지
+퍼센트 변수 검사는 실제 자식 환경과 `cmd.exe` 의사 변수를 기준으로 합니다. Cursor에는 이 변경을 적용하지
 않습니다.
 
 이 변경은 Cursor/Claude에서 가져오는 MCP 초기화와 특정 도구 사용 경계를 다룹니다.

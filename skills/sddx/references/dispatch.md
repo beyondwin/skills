@@ -203,10 +203,11 @@ applied effort is genuinely unknown; record it as unknown rather than as the
 requested value.
 
 Known limitation: the worker rules and the Cursor dispatch text are
-multi-line, and a `cmd.exe` command line cannot carry a newline, so launching
-through an npm-style `.cmd` shim is recorded as a launch failure instead of
-being silently mangled. Do not route around it. A native Win32 image is
-launched with a quoted command line so those newlines survive.
+multi-line, and a `cmd.exe` command line cannot carry a newline. A forwarding
+`.cmd` shim (`exe script %*`, including npm cmd-shim) is unwrapped to that
+Win32 image and launched with a quoted command line so those newlines survive.
+A batch file that is not a forwarding shim is recorded as a launch failure
+instead of being silently mangled. Do not send newlines through `cmd.exe`.
 
 ## Watch
 

@@ -276,8 +276,8 @@ class RunnerFixture(unittest.TestCase):
             path.write_text(f"#!{sys.executable}\n{body}", encoding="utf-8")
             path.chmod(path.stat().st_mode | stat.S_IXUSR)
             return path
-        # A `.cmd` shim cannot carry multiline `--rules`. Build a Win32 image
-        # that execs this interpreter, the same shape pip uses for console_scripts.
+        # Cover the native Win32 shape pip uses for console_scripts. Forwarding
+        # `.cmd` shims are unwrapped separately; write_cmd owns that path.
         script = self.bindir / f"{name}.py"
         script.write_bytes(b"#!python\n" + body.encode("utf-8"))
         from pip._vendor.distlib.scripts import ScriptMaker
@@ -1274,6 +1274,17 @@ class TransportTests(RunnerFixture):
         completed = subprocess.run(command, check=False, capture_output=True)
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertEqual(self.worker_argv(), list(HOSTILE_ARGUMENTS))
+
+    @unittest.skipUnless(os.name == "nt", "PATH .cmd shims are a Windows lookup")
+    def test_cmd_shim_worker_carries_multiline_rules(self) -> None:  # pragma: no cover
+        module = self.load()
+        self.write_cmd("grok", GROK_VERSION, GROK_HELP, "", BEHAVIOUR_OK)
+        code = self.invoke(module, self.options(module))
+        self.assertEqual(code, 0)
+        self.assertEqual(self.metadata()["state"], "exited")
+        received = self.worker_argv()
+        rules = received[received.index("--rules") + 1]
+        self.assertIn("\n", rules)
 
     def test_untransportable_argument_is_a_launch_failure(self) -> None:
         module = self.load()

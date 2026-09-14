@@ -425,6 +425,147 @@ class ResolveBackendTests(unittest.TestCase):
                 command = module._command(r"C:\tools\grok.cmd", ["%SDDX_UNDEFINED_VALUE%"])
         self.assertEqual(command[4], '""C:\\tools\\grok.cmd" "%SDDX_UNDEFINED_VALUE%""')
 
+    def test_windows_cmd_wrapper_rejects_dynamic_percent_names(self) -> None:
+        # cmd.exe expands these even when they are absent from the environment block.
+        module = self._load()
+        names = (
+            "CD",
+            "DATE",
+            "TIME",
+            "RANDOM",
+            "ERRORLEVEL",
+            "CMDEXTVERSION",
+            "CMDCMDLINE",
+            "HIGHESTNUMANODENUMBER",
+        )
+        with mock.patch.object(module.os, "name", "nt"):
+            with self._windows_env(module):
+                for name in names:
+                    with self.subTest(name=name):
+                        with self.assertRaises(ValueError):
+                            module._command(r"C:\tools\grok.cmd", [f"%{name}%"])
+                        with self.assertRaises(ValueError):
+                            module._command(r"C:\tools\grok.cmd", [f"%{name.lower()}%"])
+
+    def _write_python_cmd_shim(self) -> tuple[Path, Path, Path]:
+        received = self.bindir / "received-argv.json"
+        script = self.bindir / "echo_argv.py"
+        script.write_text(
+            "import json, sys\n"
+            f"with open({str(received)!r}, 'w', encoding='utf-8') as handle:\n"
+            "    json.dump(sys.argv[1:], handle)\n",
+            encoding="utf-8",
+        )
+        wrapper = self.bindir / "echo_argv.cmd"
+        wrapper.write_text(
+            f'@echo off\r\n"{sys.executable}" "{script}" %*\r\n',
+            encoding="utf-8",
+        )
+        return wrapper, script, received
+
+    def test_windows_forwarding_cmd_shim_is_unwrapped_to_win32(self) -> None:
+        module = self._load()
+        wrapper, script, _received = self._write_python_cmd_shim()
+        with mock.patch.object(module.os, "name", "nt"):
+            command = module._command(str(wrapper), ["--rules", "first\nsecond"])
+        self.assertEqual(os.path.abspath(command[0]), os.path.abspath(sys.executable))
+        self.assertEqual(os.path.abspath(command[1]), os.path.abspath(script))
+        self.assertEqual(command[2:], ["--rules", "first\nsecond"])
+
+    def test_windows_npm_cmd_shim_unwraps_bundled_node(self) -> None:
+        module = self._load()
+        node = self.bindir / "node.exe"
+        script = self.bindir / "cli.js"
+        node.write_bytes(b"")
+        script.write_text("console.log(0)\n", encoding="utf-8")
+        wrapper = self.bindir / "grok.cmd"
+        wrapper.write_text(
+            "@ECHO off\r\n"
+            "GOTO start\r\n"
+            ":find_dp0\r\n"
+            "SET dp0=%~dp0\r\n"
+            "EXIT /b\r\n"
+            ":start\r\n"
+            "SETLOCAL\r\n"
+            "CALL :find_dp0\r\n"
+            "\r\n"
+            'IF EXIST "%dp0%\\node.exe" (\r\n'
+            ' SET "_prog=%dp0%\\node.exe"\r\n'
+            ") ELSE (\r\n"
+            ' SET "_prog=node"\r\n'
+            ")\r\n"
+            "\r\n"
+            "endLocal & goto #_undefined_# 2>NUL || title %COMSPEC% & "
+            'set PATHEXT=%PATHEXT:;.JS;=;% & "%_prog%"  "%dp0%\\cli.js" %*\r\n',
+            encoding="utf-8",
+        )
+        with mock.patch.object(module.os, "name", "nt"):
+            command = module._command(str(wrapper), ["--rules", "a\nb"])
+        self.assertEqual(os.path.abspath(command[0]), os.path.abspath(node))
+        self.assertEqual(os.path.abspath(command[1]), os.path.abspath(script))
+        self.assertEqual(command[2:], ["--rules", "a\nb"])
+
+    def test_windows_pnpm_style_cmd_shim_unwraps_relative_node(self) -> None:
+        module = self._load()
+        node = self.bindir / "node.exe"
+        script = self.bindir / "cli.js"
+        node.write_bytes(b"")
+        script.write_text("console.log(0)\n", encoding="utf-8")
+        wrapper = self.bindir / "grok.cmd"
+        wrapper.write_text(
+            '@echo off\r\n"%~dp0\\node.exe" "%~dp0\\cli.js" %*\r\n',
+            encoding="utf-8",
+        )
+        with mock.patch.object(module.os, "name", "nt"):
+            command = module._command(str(wrapper), ["--help"])
+        self.assertEqual(os.path.abspath(command[0]), os.path.abspath(node))
+        self.assertEqual(os.path.abspath(command[1]), os.path.abspath(script))
+        self.assertEqual(command[2:], ["--help"])
+
+    def test_expand_shim_token_does_not_interpret_windows_path_escapes(self) -> None:
+        module = self._load()
+        expanded = module._expand_shim_token("%dp0%cli.js", r"C:\Users\kws\bin")
+        self.assertIn("Users", expanded)
+        self.assertIn("cli.js", expanded)
+        self.assertNotIn("\x08", expanded)
+
+    def test_unwrapped_cmd_shim_round_trips_newlines(self) -> None:
+        module = self._load()
+        wrapper, _script, received = self._write_python_cmd_shim()
+        arguments = ["--rules", "first\nsecond"]
+        with mock.patch.object(module.os, "name", "nt"):
+            command = module._command(str(wrapper), arguments)
+            line = module._subprocess_args(str(wrapper), arguments)
+        self.assertIsInstance(line, str)
+        self.assertNotIn("cmd.exe", line.lower())
+        self.assertIn("first\nsecond", line)
+        completed = subprocess.run(command, check=False, capture_output=True, text=True)
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertEqual(json.loads(received.read_text(encoding="utf-8")), arguments)
+
+    def test_unwrapped_cmd_shim_passes_percent_names_as_literal_text(self) -> None:
+        module = self._load()
+        wrapper, _script, received = self._write_python_cmd_shim()
+        arguments = ["%CD%", "%SDDX_DEFINED_VALUE%"]
+        with mock.patch.object(module.os, "name", "nt"):
+            command = module._command(str(wrapper), arguments)
+        self.assertEqual(command[2:], arguments)
+        completed = subprocess.run(command, check=False, capture_output=True, text=True)
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertEqual(json.loads(received.read_text(encoding="utf-8")), arguments)
+
+    def test_windows_non_forwarding_cmd_stays_on_comspec(self) -> None:
+        module = self._load()
+        wrapper = self.bindir / "plain.cmd"
+        wrapper.write_text("@echo off\r\necho hello\r\n", encoding="utf-8")
+        with mock.patch.object(module.os, "name", "nt"):
+            with self._windows_env(module):
+                command = module._command(str(wrapper), ["--version"])
+                with self.assertRaises(ValueError):
+                    module._command(str(wrapper), ["first\nsecond"])
+        self.assertEqual(command[:4], [r"C:\Windows\system32\cmd.exe", "/d", "/s", "/c"])
+        self.assertIn("plain.cmd", command[4])
+
     def test_direct_invocation_never_rejects_percent_names(self) -> None:
         # A .exe has no cmd.exe layer, so %NAME% is just text and must pass untouched.
         module = self._load()

@@ -129,7 +129,8 @@ cursor, `g`는 grok입니다. 요청에 없으면 이 계획에서 한 번만 �
 
 Grok linked worktree는 Python 3.11+가 필요합니다. Grok는 MCP 호출 도구를
 끄고, `--disallowed-tools`와 `--deny`가 없으면 실행하지 않습니다. Windows에서
-npm `.cmd`로 실행하면 실패로 남습니다.
+npm `.cmd` 전달 셰임은 Win32 대상으로 풀어 실행합니다. 전달 형태가 아닌 배치
+파일은 줄바꿈을 거절합니다.
 
 ## 더 보기
 

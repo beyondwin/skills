@@ -30,7 +30,8 @@ Target version `2.0.0`. No public tag or GitHub Release is created here.
 
 - Grok workers disable imported Cursor/Claude MCP discovery in their own
   environment on both new and resumed attempts. Global settings and Cursor
-  execution are preserved. Windows quoting checks the actual child environment.
+  execution are preserved. Windows quoting checks the actual child environment
+  and `cmd.exe` dynamic names.
 
 - `scripts/extract_task.py <plan-file> --heading "<heading text without #>"
   --output <file>` copies one task section out of a plan. Exit 0 is success,
@@ -84,18 +85,25 @@ Target version `2.0.0`. No public tag or GitHub Release is created here.
 - A change to the shared product source applies to new runs only. No run in
   progress is converted or restarted automatically; resume an existing run
   explicitly after checking its ledger record and its processes.
-- Launching through an npm-style Windows `.cmd` shim is recorded as a launch
-  failure, because the worker rules and the Cursor dispatch text are
-  multi-line and a `cmd.exe` command line cannot carry a newline. This
-  replaces the previous transport's silent argument corruption.
+- Launching through a Windows `.cmd`/`.bat` file that is not a forwarding shim
+  is recorded as a launch failure when the worker rules or Cursor dispatch
+  text contain a newline, because a `cmd.exe` command line cannot carry one.
+  This replaces the previous transport's silent argument corruption. npm-style
+  forwarding shims are unwrapped instead; see Fixed.
 - Product README now matches the measured macOS host/worker table instead of
   saying all four combinations are `not_measured`.
 
 ### Fixed
 
 - Windows Win32 worker launches quote newlines on the process command line, so
-  multiline `--rules` and dispatch text survive. npm-style `.cmd` shims still
-  refuse them.
+  multiline `--rules` and dispatch text survive. A forwarding `.cmd` shim
+  (`exe script %*`, including npm cmd-shim `%_prog%`) is unwrapped to that
+  image and uses the same quoting. Batch files that are not forwarding shims
+  still refuse newlines.
+- `_quote_for_cmd` rejects `cmd.exe` dynamic names (`%CD%`, `%DATE%`, `%TIME%`,
+  `%RANDOM%`, `%ERRORLEVEL%`, `%CMDEXTVERSION%`, `%CMDCMDLINE%`,
+  `%HIGHESTNUMANODENUMBER%`) even when they are absent from the child
+  environment mapping.
 
 ## 1.1.1 - 2026-09-12
 

@@ -47,9 +47,25 @@ _UNTRANSPORTABLE = ("\n", "\r", "\x00")
 # `cmd.exe` pairs `%` signs left to right and substitutes any name that resolves.
 _PERCENT_NAME = re.compile(r"%([^%\r\n]+)%")
 
+# These names expand even when they are absent from the process environment block.
+_CMD_DYNAMIC_NAMES = frozenset({
+    "CD",
+    "DATE",
+    "TIME",
+    "RANDOM",
+    "ERRORLEVEL",
+    "CMDEXTVERSION",
+    "CMDCMDLINE",
+    "HIGHESTNUMANODENUMBER",
+})
+
+_CMD_PROG_TOKEN = re.compile(r"^%_prog%$", re.IGNORECASE)
+_CMD_DP0_TOKEN = re.compile(r"%~?dp0%?", re.IGNORECASE)
+
 
 def _expandable_percent_name(argument: str, env: Mapping[str, str] | None = None) -> str | None:
     names = {name.upper() for name in (os.environ if env is None else env)}
+    names |= _CMD_DYNAMIC_NAMES
     for name in _PERCENT_NAME.findall(argument):
         # Windows upper-cases environment names; `os.environ` mirrors that.
         if name.upper() in names:
@@ -71,7 +87,10 @@ def _quote_for_cmd(argument: str, env: Mapping[str, str] | None = None) -> str:
     only the CRT layer, which is why it is not enough here.
 
     `%NAME%` cannot be escaped inside quotes, so an argument naming a variable that
-    actually resolves is rejected rather than silently rewritten. Undefined names are
+    actually resolves is rejected rather than silently rewritten. `cmd.exe` dynamic
+    names (`%CD%`, `%DATE%`, `%TIME%`, `%RANDOM%`, `%ERRORLEVEL%`, `%CMDEXTVERSION%`,
+    `%CMDCMDLINE%`, `%HIGHESTNUMANODENUMBER%`) resolve even when they are absent from
+    the environment mapping, so they are rejected too. Other undefined names are
     inert to `cmd.exe` and pass through as literal text.
 
     This rests on two documented conventions rather than OS guarantees. Batch `%*`
@@ -113,6 +132,148 @@ def _is_cmd_wrapper(executable: str) -> bool:
     return os.name == "nt" and os.path.splitext(executable)[1].lower() in {".cmd", ".bat"}
 
 
+def _cmd_tokens(command: str) -> list[str]:
+    tokens: list[str] = []
+    current: list[str] = []
+    in_quote = False
+    for char in command:
+        if char == '"':
+            in_quote = not in_quote
+            continue
+        if char in " \t" and not in_quote:
+            if current:
+                tokens.append("".join(current))
+                current = []
+            continue
+        current.append(char)
+    if in_quote:
+        return []
+    if current:
+        tokens.append("".join(current))
+    return tokens
+
+
+def _last_unquoted_segment(line: str) -> str:
+    last = 0
+    in_quote = False
+    index = 0
+    length = len(line)
+    while index < length:
+        char = line[index]
+        if char == '"':
+            in_quote = not in_quote
+            index += 1
+            continue
+        if not in_quote:
+            if line.startswith("&&", index) or line.startswith("||", index):
+                last = index + 2
+                index += 2
+                continue
+            if char in "&|":
+                last = index + 1
+                index += 1
+                continue
+        index += 1
+    return line[last:].strip()
+
+
+def _cmd_forwarding_invocation(text: str) -> str | None:
+    found: str | None = None
+    for raw in text.splitlines():
+        line = raw.strip()
+        if line.startswith("@"):
+            line = line[1:].lstrip()
+        if not line or line.upper().startswith("REM ") or line.startswith("::"):
+            continue
+        segment = _last_unquoted_segment(line)
+        if segment.startswith("@"):
+            segment = segment[1:].lstrip()
+        tokens = _cmd_tokens(segment)
+        if len(tokens) >= 2 and tokens[-1] == "%*":
+            found = segment
+    return found
+
+
+def _expand_shim_token(token: str, shim_dir: str) -> str:
+    prefix = shim_dir + os.sep
+    expanded = _CMD_DP0_TOKEN.sub(lambda _match: prefix, token)
+    if os.sep != "\\":
+        expanded = expanded.replace("\\", os.sep)
+    return os.path.normpath(expanded)
+
+
+def _win32_executable(candidate: str) -> str | None:
+    if not candidate:
+        return None
+    path = candidate
+    if os.path.basename(path) == path:
+        names = [path]
+        extension = os.path.splitext(path)[1].lower()
+        if extension not in {".exe", ".com"}:
+            names = [f"{path}.exe", path]
+        found = None
+        for name in names:
+            found = shutil.which(name)
+            if found:
+                break
+        path = found or ""
+    if not path or not os.path.isfile(path):
+        return None
+    if os.path.splitext(path)[1].lower() in {".cmd", ".bat"}:
+        return None
+    return os.path.abspath(path)
+
+
+def _resolve_shim_interpreter(token: str, shim_dir: str) -> str | None:
+    if _CMD_PROG_TOKEN.fullmatch(token):
+        bundled = os.path.join(shim_dir, "node.exe")
+        if os.path.isfile(bundled):
+            return os.path.abspath(bundled)
+        return _win32_executable("node.exe") or _win32_executable("node")
+    return _win32_executable(_expand_shim_token(token, shim_dir))
+
+
+def _unwrap_cmd_wrapper(executable: str) -> list[str] | None:
+    """Resolve a forwarding `.cmd`/`.bat` shim to the Win32 image it launches.
+
+    `cmd.exe` cannot carry a newline, so a PATH hit that is only a `exe script %*`
+    wrapper (npm cmd-shim, pnpm, or a quoted interpreter plus script) is launched
+    as that image instead. Anything that is not this shape stays on `cmd.exe`.
+    """
+    if not _is_cmd_wrapper(executable):
+        return None
+    try:
+        with open(executable, encoding="utf-8", errors="surrogateescape") as handle:
+            text = handle.read()
+    except OSError:
+        return None
+    invocation = _cmd_forwarding_invocation(text)
+    if invocation is None:
+        return None
+    tokens = _cmd_tokens(invocation)
+    if len(tokens) < 2 or tokens[-1] != "%*":
+        return None
+    head = tokens[:-1]
+    shim_dir = os.path.abspath(os.path.dirname(executable))
+    interpreter = _resolve_shim_interpreter(head[0], shim_dir)
+    if interpreter is None:
+        return None
+    if os.path.abspath(interpreter) == os.path.abspath(executable):
+        return None
+    prefix = [_expand_shim_token(token, shim_dir) for token in head[1:]]
+    if prefix and not os.path.isfile(prefix[-1]):
+        return None
+    return [interpreter, *prefix]
+
+
+def _uses_cmd_exe(executable: str, command: list[str]) -> bool:
+    return (
+        _is_cmd_wrapper(executable)
+        and len(command) == 5
+        and command[1:4] == ["/d", "/s", "/c"]
+    )
+
+
 def _windows_command_line(command: list[str]) -> str:
     """Join argv the way the MSVC CRT reads it, including quoting newlines.
 
@@ -150,6 +311,9 @@ def _windows_command_line(command: list[str]) -> str:
 
 
 def _command(executable: str, arguments: list[str], *, env: Mapping[str, str] | None = None) -> list[str]:
+    unwrapped = _unwrap_cmd_wrapper(executable)
+    if unwrapped is not None:
+        return [*unwrapped, *arguments]
     command = [executable, *arguments]
     if _is_cmd_wrapper(executable):
         comspec = os.environ.get("ComSpec") or "cmd.exe"
@@ -168,10 +332,11 @@ def _subprocess_args(
     `"` as `\\"` and does not quote newlines. `cmd.exe` does not unescape
     backslashes, so a line already escaped for `cmd.exe` must reach `subprocess`
     as a string or the wrapper is mangled. A Win32 image uses the same string
-    form, with newlines quoted, so multiline `--rules` survive.
+    form, with newlines quoted, so multiline `--rules` survive. A forwarding
+    `.cmd` shim is unwrapped to that Win32 image before quoting.
     """
     command = _command(executable, arguments, env=env)
-    if _is_cmd_wrapper(executable):
+    if _uses_cmd_exe(executable, command):
         return f"{subprocess.list2cmdline(command[:4])} {command[4]}"
     if os.name == "nt":
         return _windows_command_line(command)
