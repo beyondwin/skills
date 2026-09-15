@@ -4,11 +4,12 @@
 관리자 문서에 있습니다. 트리가 어떻게 나뉘는지는
 [저장소 구조](maintainers/repository/architecture.md)를 보세요.
 
-지원 OS는 macOS입니다. Windows와 Linux는 지원하지 않습니다. 호스트별 지원은
+지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다. 호스트별 지원은
 [호환성](users/ko/compatibility.md)을 보세요.
 
 This page only routes readers. How to use a skill is in that product README.
 How to change it is in the maintainer docs. The supported OS is macOS only.
+Windows and Linux are unsupported.
 
 ## 설치하거나 고를 때 / Install or choose
 
@@ -38,4 +39,4 @@ How to change it is in the maintainer docs. The supported OS is macOS only.
 ## 기록 / History
 
 아직 끝나지 않은 설계만 [`docs/history/`](history/)에 둡니다. 현재 계약을
-정의하지 않습니다. 지금은 비어 있습니다.
+정의하지 않습니다.

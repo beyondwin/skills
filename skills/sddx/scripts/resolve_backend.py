@@ -9,7 +9,7 @@ import re
 import shutil
 import subprocess
 import sys
-from typing import Any, Mapping
+from typing import Any
 
 ALIASES = {"c": "cursor", "g": "grok", "cursor": "cursor", "grok": "grok"}
 
@@ -52,10 +52,7 @@ def refuse_windows() -> int | None:
     return None
 
 
-def _subprocess_args(
-    executable: str, arguments: list[str], *, env: Mapping[str, str] | None = None
-) -> list[str]:
-    del env
+def _subprocess_args(executable: str, arguments: list[str]) -> list[str]:
     return [executable, *arguments]
 
 

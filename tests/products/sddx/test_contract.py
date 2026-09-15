@@ -340,6 +340,35 @@ class SddxContractTests(unittest.TestCase):
         release = load_product_release(SKILL)
         self.assertEqual(manifest["version"], release.version)
 
+    def test_testing_doc_records_win32_fixtures_as_deleted(self) -> None:
+        testing = (
+            ROOT / "docs" / "maintainers" / "products" / "sddx" / "testing.md"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("삭제 대상", testing)
+        self.assertIn("Win32 전송 픽스처는 삭제했습니다", testing)
+        self.assertIn(
+            'Windows `.cmd` 왕복 검사(`skipUnless(os.name == "nt")`)는 삭제했습니다.',
+            testing,
+        )
+        self.assertIn("Windows는 지원하지 않습니다", testing)
+
+    def test_unreleased_records_windows_refusal_as_breaking(self) -> None:
+        changelog = (SKILL / "CHANGELOG.md").read_text(encoding="utf-8")
+        match = re.search(r"^## Unreleased\n(.*?)(?=^## )", changelog, re.S | re.M)
+        self.assertIsNotNone(match)
+        unreleased = match.group(1)
+        breaking = re.search(
+            r"^### Breaking\n(.*?)(?=^### |\Z)", unreleased, re.S | re.M
+        )
+        self.assertIsNotNone(breaking)
+        self.assertIn(
+            "Windows is unsupported; product CLIs refuse it.",
+            breaking.group(1),
+        )
+        fixed = re.search(r"^### Fixed\n(.*?)(?=^### |\Z)", unreleased, re.S | re.M)
+        if fixed is not None:
+            self.assertNotIn("Windows is unsupported", fixed.group(1))
+
 
 def _python_fence_after(relative: str, marker: str) -> str:
     text = (ROOT / relative).read_text(encoding="utf-8")

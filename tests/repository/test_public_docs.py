@@ -658,6 +658,26 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
 
 
 class RootCatalogTests(unittest.TestCase):
+    def test_root_readmes_pin_macos_only_os_policy(self) -> None:
+        korean = re.sub(r"\s+", " ", _read(ROOT / "README.md"))
+        english = re.sub(r"\s+", " ", _read(ROOT / "README.en.md"))
+        self.assertIn(
+            "지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다.",
+            korean,
+        )
+        self.assertIn(
+            "CI Ubuntu `full` 통과는 Linux 지원이 아니고 macOS 지원 증거도 아닙니다.",
+            korean,
+        )
+        self.assertIn(
+            "The supported OS is macOS only. Windows and Linux are unsupported.",
+            english,
+        )
+        self.assertIn(
+            "An Ubuntu CI `full` pass is not Linux support and is not macOS support evidence.",
+            english,
+        )
+
     def test_root_readmes_do_not_treat_every_product_as_codex_only(self) -> None:
         korean = _read(ROOT / "README.md")
         english = _read(ROOT / "README.en.md")
@@ -1247,6 +1267,9 @@ class DocumentationArchitectureTests(unittest.TestCase):
         lowered = text.lower()
         self.assertTrue("point-in-time" in lowered or "point in time" in lowered)
         self.assertTrue("old" in lowered and ("name" in lowered or "path" in lowered))
+        self.assertNotIn("지금은 진행 중인 설계·계획이 없습니다", text)
+        self.assertNotIn("Nothing in progress", text)
+        self.assertNotIn("지금은 비어 있습니다", _read(DOCS_INDEX))
 
     def test_docs_index_routes_install_use_maintain_and_history(self) -> None:
         _assert_exists(self, DOCS_INDEX)
@@ -1258,6 +1281,10 @@ class DocumentationArchitectureTests(unittest.TestCase):
             self.assertIn(f"{product.skill_path.as_posix()}/README.en.md", text)
         self.assertIn("docs/maintainers/", text)
         self.assertIn("docs/history/", text)
+        self.assertIn(
+            "The supported OS is macOS only. Windows and Linux are unsupported.",
+            re.sub(r"\s+", " ", text),
+        )
 
     def test_docs_index_links_split_install_guides(self) -> None:
         text = _read(ROOT / "docs" / "README.md")

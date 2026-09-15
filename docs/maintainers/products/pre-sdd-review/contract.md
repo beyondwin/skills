@@ -208,8 +208,7 @@ evidence home은 `.identity-salt`를 로컬 비공개 32-byte 상태로 두고,
 들어가고, record에는 유도한 `repo_key`와 `repo` 표시 이름만 남습니다. 옮긴
 checkout, clone, 다른 worktree, 잃어버린 salt, 다른 evidence home은 원래
 결속이 아닙니다. lock은 지원되는 OS locking이 필요합니다. 읽기 전용 `show`,
-`summary`, `--version`은 그것이 필요 없고, native Windows 변경 지원을
-주장하지 않습니다.
+`summary`, `--version`은 locking이 필요 없습니다. Windows는 지원하지 않습니다.
 
 `show`는 record를 검증하고 원본 바이트를 돌려줍니다. `summary`는 필터 전에
 전체 scan의 `invalid_records`를 보고합니다. `--repo`는 `repo` 표시 이름만

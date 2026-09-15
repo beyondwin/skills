@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import inspect
 import io
 import json
 import os
@@ -299,18 +300,28 @@ class ResolveBackendTests(unittest.TestCase):
     def test_resolve_does_not_refuse_when_os_name_is_nt(self) -> None:
         self._write_cli("grok", GROK_VERSION, GROK_HELP)
         module = self._load()
+        stderr = io.StringIO()
         with mock.patch.object(module.os, "name", "nt"):
             with mock.patch.dict(os.environ, self._path(), clear=False):
-                resolved = module.resolve("grok")
-        self.assertIn(resolved["available"], (True, False))
+                with contextlib.redirect_stderr(stderr):
+                    resolved = module.resolve("grok")
+        self.assertTrue(resolved["available"])
+        self.assertEqual(resolved["backend"], "grok")
+        self.assertIsNotNone(resolved["launch"])
+        self.assertEqual(stderr.getvalue(), "")
 
     def test_subprocess_args_keep_direct_commands_as_a_list(self) -> None:
         module = self._load()
-        with mock.patch.object(module.os, "name", "posix"):
-            self.assertEqual(
-                module._subprocess_args("/usr/bin/grok", ["--version"]),
-                ["/usr/bin/grok", "--version"],
-            )
+        self.assertEqual(
+            module._subprocess_args("/usr/bin/grok", ["--version"]),
+            ["/usr/bin/grok", "--version"],
+        )
+
+    def test_subprocess_args_do_not_take_an_env_keyword(self) -> None:
+        module = self._load()
+        self.assertNotIn("env", inspect.signature(module._subprocess_args).parameters)
+        with self.assertRaises(TypeError):
+            module._subprocess_args("/usr/bin/grok", ["--version"], env=None)
 
     # ------------------------------------------------------------------
     # probe primitives

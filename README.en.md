@@ -2,8 +2,9 @@
 
 [한국어](README.md)
 
-Five skills live here. The supported OS is macOS. Windows and Linux are
-unsupported. Korean Writing Editor and Pre-SDD Review install in Codex.
+Five skills live here. The supported OS is macOS only. Windows and Linux are
+unsupported. An Ubuntu CI `full` pass is not Linux support and is not macOS
+support evidence. Korean Writing Editor and Pre-SDD Review install in Codex.
 Image Workbench installs in Codex and Grok. How It Works and SDDx link this
 repo for Codex and Claude Code.
 

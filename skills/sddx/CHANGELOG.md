@@ -25,6 +25,7 @@ Target version `2.0.0`. No public tag or GitHub Release is created here.
   part of the contract.
 - The run's current state lives in exactly one delimited block at the top of
   the Superpowers SDD ledger. Separate controller state files are prohibited.
+- Windows is unsupported; product CLIs refuse it.
 
 ### Added
 
@@ -86,10 +87,6 @@ Target version `2.0.0`. No public tag or GitHub Release is created here.
   explicitly after checking its ledger record and its processes.
 - Product README now matches the measured macOS host/worker table instead of
   saying all four combinations are `not_measured`.
-
-### Fixed
-
-- Windows is unsupported; product CLIs refuse it.
 
 ## 1.1.1 - 2026-09-12
 

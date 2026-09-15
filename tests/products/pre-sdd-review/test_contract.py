@@ -385,7 +385,7 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Freshness", "32d85b8376241efc725547a3d670aeccf0e161d5b4240fbb3fddc053bcce6b34"),
     ("### SDD handoff", "2e0fcc729cb4455863165138c0f96256b27ddf9d4460c2f7a5ce51660806d9da"),
 )
-MAINTAINER_CANONICAL_DIGEST = "2c0b7dccfd082dabaf4c9460bb73439e47a8bee7af54425361f64b0a325e3680"
+MAINTAINER_CANONICAL_DIGEST = "25601f7cc2beccfacbdedb07264c1991071ea7b8dbd441e38d407a77742b0af4"
 TESTING_CANONICAL_DIGEST = "c86d24f241848d4f985e670368ebbc60f6ed54bcbf4d288ae07cda8009ff5dde"
 COMPATIBILITY_CANONICAL_DIGEST = "db8d19d45ca4f6748b73ace65da5e5e965f0e7002a6b0395bf563f524a424480"
 RELEASE_CANONICAL_DIGEST = "a9cd12baf31dbe408975c23bbbec9f860b0e3b58e787aefee5a9cb27c18a3e67"
@@ -1611,6 +1611,11 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
     def test_maintainer_contract_uses_bounded_exact_protocols(self) -> None:
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
         self.assertEqual(maintainer_contract_errors(contract), ())
+
+    def test_maintainer_contract_states_windows_is_unsupported(self) -> None:
+        contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
+        self.assertIn("Windows는 지원하지 않습니다", contract)
+        self.assertNotIn("native Windows 변경 지원을 주장하지 않습니다", contract)
 
     def test_maintainer_validator_rejects_routine_second_review_stale_ready_and_third_path(self) -> None:
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")

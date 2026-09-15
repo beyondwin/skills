@@ -9,7 +9,3 @@ paths. They are point-in-time records, not the current contract.
 끝난 문서는 지웁니다. Git 이력에서 볼 수 있습니다. 지금 쓰는 안내는
 [`docs/README.md`](../README.md), [`docs/users/`](../users/),
 [`docs/maintainers/`](../maintainers/), 각 제품 README를 보세요.
-
-지금은 진행 중인 설계·계획이 없습니다.
-
-Nothing in progress.

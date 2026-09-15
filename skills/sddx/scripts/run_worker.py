@@ -449,7 +449,7 @@ def run_worker(options: RunOptions) -> int:
     if backend == "grok":
         worker_env = dict(os.environ)
         worker_env.update(GROK_CURSOR_MCPS_ENABLED="0", GROK_CLAUDE_MCPS_ENABLED="0")
-    command = _subprocess_args(argv[0], argv[1:], env=worker_env)
+    command = _subprocess_args(argv[0], argv[1:])
 
     stdout_path = attempt_dir / STDOUT_NAME
     stderr_path = attempt_dir / STDERR_NAME

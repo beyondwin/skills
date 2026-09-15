@@ -14,9 +14,9 @@
 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다.
 `tests/products/sddx/test_resolve_backend.py`는 PATH에 가짜 바이너리를
 넣어 신원 규칙을 잠급니다. 실제 Cursor/Grok 계정을 쓰지 않습니다.
-Windows `.cmd` 왕복과 Win32 전송 픽스처는 삭제 대상이며 Windows 지원
-증거가 아닙니다. 합성 CLI는 stdout/stderr를 LF로 고정해 raw-byte 단언이
-텍스트 변환과 섞이지 않게 합니다.
+Windows `.cmd` 왕복과 Win32 전송 픽스처는 삭제했습니다. 그 픽스처는
+Windows 지원 증거가 아니었습니다. 합성 CLI는 stdout/stderr를 LF로 고정해
+raw-byte 단언이 텍스트 변환과 섞이지 않게 합니다.
 `tests/products/sddx/test_prepare_grok_sandbox.py`는 임시 저장소와 실제 linked
 worktree를 만들고 Git 경로 계산, 기존 TOML 원문 복원, 재진입, 심볼릭 링크 거절,
 `fchmod` 없는 다시 쓰기, CLI 성공·실패 출력을 검사합니다. Git 경로는 pathlib로
@@ -54,7 +54,7 @@ backend별 `--model`/`--sandbox-profile` 배타, `run.json` 필드(`skill_versio
 본문이 없다는 점, `--stream` 기본 2048·최대 8192바이트, 64 KiB 응답 상한, offset
 처리를 검사합니다. 어느 검사도 공급자를 호출하지 않습니다.
 
-Windows `.cmd` 왕복 검사(`skipUnless(os.name == "nt")`)는 삭제 대상입니다.
+Windows `.cmd` 왕복 검사(`skipUnless(os.name == "nt")`)는 삭제했습니다.
 CI에서 돈다고 적지 않으며, skip을 통과나 Windows 지원으로 쓰지 않습니다.
 Windows는 지원하지 않습니다.
 
@@ -324,10 +324,10 @@ worker 경계가 CLI에 의해 강제되는지도 `not_measured`입니다. Grok 
 
 ### 실제 관측
 
-`tests/products/sddx/`의 discovery 검사(`sddx-contract`)는 266개 테스트로
+`tests/products/sddx/`의 discovery 검사(`sddx-contract`)는 269개 테스트로
 통과했습니다. `skipUnless(os.name == "nt")` 검사는 없습니다.
-파일별로는 `test_contract` 24, `test_extract_task` 29,
-`test_prepare_grok_sandbox` 23, `test_resolve_backend` 57,
+파일별로는 `test_contract` 26, `test_extract_task` 29,
+`test_prepare_grok_sandbox` 23, `test_resolve_backend` 58,
 `test_run_worker` 98, `test_worker_status` 35입니다. 이전 기록의 45개
 SDDx 테스트는 Task 1–4의 새 파일이 discovery에 들어오기 전 숫자이고, 212개는 이
 버전의 session ID 회수와 시도 타임아웃 작업이 들어오기 전 숫자입니다.
