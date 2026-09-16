@@ -32,6 +32,7 @@ DEFAULT_KEYS = {
     "attempt_dir",
     "metadata",
     "session_id",
+    "pid_alive",
     "stdout_bytes",
     "stderr_bytes",
     "report_exists",
@@ -194,6 +195,37 @@ class DefaultStatusTests(StatusFixture):
         self.assertEqual(set(payload), DEFAULT_KEYS)
         self.assertIs(payload["report_exists"], True)
         self.assertIsNone(payload["metadata"]["exit_code"])
+        self.assertEqual(payload["metadata"]["state"], "running")
+
+    def test_pid_alive_is_true_for_this_process(self) -> None:
+        # Break: status omits pid_alive or reports the current pid as dead.
+        module = self.load()
+        self.write_metadata(pid=os.getpid())
+        payload = module.read_status(self.attempt)
+        self.assertIs(payload["pid_alive"], True)
+
+    def test_pid_alive_is_false_when_the_process_is_gone(self) -> None:
+        # Break: a missing pid is reported as alive or omitted.
+        module = self.load()
+        self.write_metadata(pid=2**22)
+        payload = module.read_status(self.attempt)
+        self.assertIs(payload["pid_alive"], False)
+
+    def test_pid_alive_is_null_when_the_record_has_no_pid(self) -> None:
+        # Break: a launch-style record is reported as a boolean.
+        module = self.load()
+        self.write_metadata(pid=None)
+        payload = module.read_status(self.attempt)
+        self.assertIsNone(payload["pid_alive"])
+
+    def test_status_does_not_rewrite_a_stale_running_record(self) -> None:
+        # Break: status "heals" run.json into interrupted.
+        module = self.load()
+        before = self.write_metadata(state="running", pid=2**22, session_id=None)
+        snapshot = (self.attempt / "run.json").read_bytes()
+        payload = module.read_status(self.attempt)
+        self.assertIs(payload["pid_alive"], False)
+        self.assertEqual((self.attempt / "run.json").read_bytes(), snapshot)
         self.assertEqual(payload["metadata"]["state"], "running")
 
 

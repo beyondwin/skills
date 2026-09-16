@@ -674,6 +674,24 @@ def read_window(path: Path, stream: str, offset: int, max_bytes: int) -> dict[st
     }
 
 
+def pid_alive(pid: int | None) -> bool | None:
+    """Whether `os.kill(pid, 0)` can still see that process.
+
+    This is a live probe of the recorded pid, not a field in `run.json`. A
+    missing or non-integer pid is unknown. A dead pid is reported as false
+    without rewriting the record.
+    """
+    if not isinstance(pid, int) or isinstance(pid, bool):
+        return None
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
 def read_status(
     attempt_dir: Path,
     *,
@@ -711,6 +729,7 @@ def read_status(
         # attempt reported without opening the raw log. It is still the record's
         # value: nothing here interprets a log body to produce it.
         "session_id": metadata.get("session_id") if metadata is not None else None,
+        "pid_alive": pid_alive(metadata.get("pid") if metadata else None),
         "stdout_bytes": _log_size(attempt / STDOUT_NAME),
         "stderr_bytes": _log_size(attempt / STDERR_NAME),
         "report_exists": (attempt / REPORT_NAME).is_file(),
