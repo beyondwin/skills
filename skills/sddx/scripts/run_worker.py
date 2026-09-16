@@ -736,7 +736,7 @@ def read_tools_index(path: Path) -> dict[str, Any]:
         for raw in handle:
             try:
                 event = json.loads(raw)
-            except (json.JSONDecodeError, UnicodeDecodeError):
+            except (json.JSONDecodeError, UnicodeDecodeError, RecursionError):
                 continue
             if not isinstance(event, dict) or event.get("type") != "tool_call":
                 continue

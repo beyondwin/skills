@@ -162,11 +162,12 @@ attempt's `report.md` named in the brief. Never guess an ID.
 `--timeout <seconds>` bounds one attempt's wall-clock. It defaults to 3600, and
 `--timeout 0` waits without a bound. When it fires the runner sends the worker
 SIGTERM, waits ten seconds, kills it if it is still alive, records `state`
-`timed_out` with the real `exit_code` and the session ID the stream reported,
-and exits 124. Only the worker process itself is signalled. It shares the
-controller's process group so that a terminal interrupt reaches it, so
-descendants the worker started are not pursued and no process tree is cleaned
-up here. Confirm those have exited yourself before cleanup.
+`timed_out` with the real `exit_code`, keeps the first session ID already
+copied (or scans once more if that field is still null), and exits 124. Only
+the worker process itself is signalled. It shares the controller's process
+group so that a terminal interrupt reaches it, so descendants the worker
+started are not pursued and no process tree is cleaned up here. Confirm those
+have exited yourself before cleanup.
 
 Do not pass `--worktree` to the provider CLI. Do not pass `--continue`. Do not
 copy host credentials or environment values into the brief or the dispatch.

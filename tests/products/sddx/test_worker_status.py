@@ -319,6 +319,36 @@ class DefaultStatusTests(StatusFixture):
             "truncated": False,
         })
 
+    def test_a_recursive_json_line_is_skipped_not_a_query_failure(self) -> None:
+        # Break: RecursionError from json.loads fails the whole status query.
+        # A nested JSON blob is not a portable fixture: CPython 3.14's decoder
+        # is iterative, while 3.11 still RecursionErrors. Inject the same
+        # exception json.loads raises on a pathological line.
+        module = self.load()
+        self.write_metadata()
+        good = json.dumps({
+            "type": "tool_call",
+            "subtype": "started",
+            "tool_call": {"readToolCall": {"args": {"path": "/work/ok.py"}}},
+        })
+        self.write_stdout(b'{"pathological":true}\n' + (good + "\n").encode("utf-8"))
+        real_loads = module.json.loads
+
+        def loads(raw, *args, **kwargs):
+            text = raw.decode("utf-8") if isinstance(raw, (bytes, bytearray)) else raw
+            if "pathological" in text:
+                raise RecursionError
+            return real_loads(raw, *args, **kwargs)
+
+        try:
+            with mock.patch.object(module.json, "loads", loads):
+                payload = module.read_status(self.attempt)
+        except RecursionError:
+            self.fail("status must skip a RecursionError line, not fail the query")
+
+        self.assertEqual(payload["tools"]["reads"], ["/work/ok.py"])
+        self.assertIs(payload["tools"]["truncated"], False)
+
     def test_tools_index_truncates_instead_of_growing_without_bound(self) -> None:
         # Break: every path is returned, or truncated stays false.
         module = self.load()
