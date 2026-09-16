@@ -4,6 +4,18 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 3.0.3 - 2026-09-16
+
+### Fixed
+
+- Controllers print this run's observation anomalies on `READY`. Anomalies do not change the verdict.
+- Incomplete finding records are re-asked without naming suspected findings, paths, symbols, or fixes.
+- Red flags name the observed reuse, extra-reviewer, seeded-retry, and document-only `repo-reality` failures.
+
+### Notes
+
+- No GitHub tag or GitHub Release is created.
+
 ## 3.0.2 - 2026-09-12
 
 ### Fixed

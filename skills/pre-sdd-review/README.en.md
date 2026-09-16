@@ -90,6 +90,9 @@ There are at most two repair passes. The final verdict is one of:
 - `REVISE`: a material, repairable document defect remains.
 - `BLOCKED`: required input, authority, or repository evidence is unavailable.
 
+A `READY` report lists this run's observation anomalies. Anomalies do not
+change the verdict.
+
 One invocation ends after one discovery stage and its bounded re-reviews.
 If the first review finds nothing, skip repair and re-review and return
 `READY`. Split plans on one host run one after another.

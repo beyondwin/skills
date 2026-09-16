@@ -23,7 +23,7 @@ from scripts.lib.product_registry import load_registry  # noqa: E402
 SKILL = ROOT / "skills" / "pre-sdd-review"
 CASES = ROOT / "tests" / "products" / "pre-sdd-review" / "cases.json"
 FIXTURES = ROOT / "tests" / "products" / "pre-sdd-review" / "fixtures"
-TARGET_VERSION = "3.0.2"
+TARGET_VERSION = "3.0.3"
 PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     {
         "CHANGELOG.md",
@@ -39,9 +39,9 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "4b81061bc3587c1c3296f2ebf03f8be425c07ee335893ee9bce5607e0bb2139a",
+    "SKILL.md": "74a63c9fe92361fc5f61abbc0fba198b5de7575fa9248fdc19ebbe5eb8191e31",
     "references/reviewer-protocol.md": (
-        "8b28feb6c897341917cdde06411cadf8aea1f815f10608fa7ce709d12b77821f"
+        "e9df34684a95105c8efcc460943de427482b66c59913bc5dc2f9391a072bd0af"
     ),
 }
 CASE_IDS = (
@@ -69,6 +69,8 @@ CASE_IDS = (
     "serialize-split-plans",
     "zero-findings-skip-closure",
     "repair-pass-accounting",
+    "red-flag-seeded-retry",
+    "red-flag-anomalous-ready",
     "near-miss-write-spec",
     "near-miss-write-plan",
     "near-miss-code-review",
@@ -253,6 +255,7 @@ REQUIRED_SECTIONS = (
     "## Repair rules",
     "## Verdict and handoff",
     "## Do not use this skill for",
+    "## Red flags",
 )
 AUTHORITY_ORDER = (
     "User-approved direction and referenced visual authority.",
@@ -382,11 +385,11 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Finding classes", "2a0892a5aad034ceaf1218606d657f4b22bac89c0d2b67065b7018e811a44352"),
     ("### Conditional risk triggers", "346cdfb0c5a7df8461c7de1f7f217b499c29add6a0a2a7e88fea58449e6d223d"),
     ("### Verdicts", "e10d17f98e43decb9c74d80c786cee849be897de0082d3c60417da619482a3e4"),
-    ("### Freshness", "32d85b8376241efc725547a3d670aeccf0e161d5b4240fbb3fddc053bcce6b34"),
+    ("### Freshness", "a0d0c760e3f102d2bbb66795d9be077adc7da4801a106a7152a02fcd2cd88bde"),
     ("### SDD handoff", "2e0fcc729cb4455863165138c0f96256b27ddf9d4460c2f7a5ce51660806d9da"),
 )
-MAINTAINER_CANONICAL_DIGEST = "25601f7cc2beccfacbdedb07264c1991071ea7b8dbd441e38d407a77742b0af4"
-TESTING_CANONICAL_DIGEST = "c86d24f241848d4f985e670368ebbc60f6ed54bcbf4d288ae07cda8009ff5dde"
+MAINTAINER_CANONICAL_DIGEST = "4152718efa4c8c73744254ffdcdffafe5d5976971d962fb2da54f8f5acf52290"
+TESTING_CANONICAL_DIGEST = "d3d4c3f248188c6ff80255774ef4d34bb8d0cbb7c8bc74fd92802a0fef186b0e"
 COMPATIBILITY_CANONICAL_DIGEST = "db8d19d45ca4f6748b73ace65da5e5e965f0e7002a6b0395bf563f524a424480"
 RELEASE_CANONICAL_DIGEST = "a9cd12baf31dbe408975c23bbbec9f860b0e3b58e787aefee5a9cb27c18a3e67"
 
@@ -952,7 +955,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         changelog = (SKILL / "CHANGELOG.md").read_text(encoding="utf-8")
         self.assertEqual(release["version"], TARGET_VERSION)
         self.assertEqual(frontmatter["metadata"]["version"], TARGET_VERSION)
-        self.assertIn(f"## {TARGET_VERSION} - 2026-09-12", changelog)
+        self.assertIn(f"## {TARGET_VERSION} - 2026-09-16", changelog)
         self.assertIn("## 3.0.0 - 2026-09-08", changelog)
 
     def test_required_implementation_base_blocks_before_reviewer_dispatch(self) -> None:
@@ -1192,6 +1195,14 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertEqual(cases["serialize-split-plans"], ("serialize_split_plans", "no_controller_as_independent_primary", "reviewers_are_distinct_agents"))
         self.assertEqual(cases["zero-findings-skip-closure"], ("READY", "zero_findings", "skip_repair", "skip_closure"))
         self.assertEqual(cases["repair-pass-accounting"], ("repair_pass_requires_repaired_finding", "no_copied_repair_pass", "unresolved_repair_pass_null"))
+        self.assertEqual(
+            cases["red-flag-seeded-retry"],
+            ("reask_complete_records", "no_named_findings_in_retry"),
+        )
+        self.assertEqual(
+            cases["red-flag-anomalous-ready"],
+            ("READY", "print_anomalies", "verdict_unchanged"),
+        )
 
     def test_authority_and_risk_selection_are_ordered_and_conditional(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -1303,6 +1314,9 @@ class PreSddReviewContractTests(unittest.TestCase):
             "Do not start SDD unless the outer request explicitly asks for implementation",
             normalized_handoff,
         )
+        self.assertIn("After `finish`, read `summary --last 20`", normalized_handoff)
+        self.assertIn("observation anomalies", normalized_handoff)
+        self.assertIn("Anomalies do not change the verdict", normalized_handoff)
 
     def test_evidence_guidance_stays_out_of_reviewer_protocol_and_mutation_authority(self) -> None:
         skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -1315,6 +1329,55 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertNotIn("recovery", evidence.lower())
         repair_rules = section(skill, "## Repair rules", "## Verdict and handoff")
         self.assertNotIn("evidence.py", repair_rules)
+
+    def test_red_flags_close_observed_controller_and_reviewer_failures(self) -> None:
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        protocol = (SKILL / "references/reviewer-protocol.md").read_text(
+            encoding="utf-8"
+        )
+        contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
+        korean = (SKILL / "README.md").read_text(encoding="utf-8")
+        english = (SKILL / "README.en.md").read_text(encoding="utf-8")
+
+        self.assertIn("## Red flags", skill)
+        flags = skill[skill.index("## Red flags") :]
+        normalized_flags = re.sub(r"\s+", " ", flags)
+        for phrase in (
+            "Resume a reviewer by naming findings, paths, symbols, or fixes",
+            "Start a new review when current hashes still match a REVISE or BLOCKED `sha_end`",
+            "Dispatch a second reviewer, or record `reviewers: 2`, with no risk trigger",
+            "Return or accept a finding summary instead of complete PSDR records",
+            "Print `READY` without this run's observation anomalies",
+            "Commit before `finish`",
+            "Cite `repo-reality` with only the reviewed design or plan paths",
+            "Put source text in an evidence paraphrase",
+        ):
+            self.assertIn(phrase, normalized_flags)
+
+        normalized_protocol = re.sub(r"\s+", " ", protocol)
+        self.assertIn(
+            "A finding that omits any of these fields is incomplete",
+            normalized_protocol,
+        )
+        self.assertIn(
+            "Do not return a summary in place of the records",
+            normalized_protocol,
+        )
+        self.assertIn(
+            "Never put source text, prompts, or command output in Evidence paraphrases",
+            normalized_protocol,
+        )
+        self.assertNotIn("evidence.py", protocol)
+
+        normalized_contract = re.sub(r"\s+", " ", contract)
+        self.assertIn("관찰 이상", normalized_contract)
+        self.assertIn("이상이 판정을 바꾸지는 않습니다", normalized_contract)
+        self.assertIn("답을 넣어 재질의", normalized_contract)
+
+        self.assertIn("관찰 이상", korean)
+        self.assertIn("이상이 판정을 바꾸지는 않습니다", re.sub(r"\s+", " ", korean))
+        self.assertIn("observation anomalies", english)
+        self.assertIn("Anomalies do not change the verdict", re.sub(r"\s+", " ", english))
 
 
 class PreSddReviewDocumentationTests(unittest.TestCase):
@@ -1506,8 +1569,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "not_measured",
         ):
             self.assertIn(fact, normalized_testing)
-        self.assertEqual(len(CASE_IDS), 28)
-        self.assertIn("정확히 스물여덟 개", normalized_testing)
+        self.assertEqual(len(CASE_IDS), 30)
+        self.assertIn("정확히 서른 개", normalized_testing)
         self.assertIn("지금은 Codex만 지원합니다", compatibility)
         self.assertIn("다른 호스트는 모두 `not_measured`", compatibility)
         self.assertIn("## 기록기 호환성", compatibility)

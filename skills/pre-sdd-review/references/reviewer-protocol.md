@@ -38,6 +38,10 @@ Minimal document fix: smallest authority-preserving correction
 
 Exclude style, taste, optional refactoring, generic best practice, and
 speculative future work. Zero findings is valid; do not manufacture findings.
+A finding that omits any of these fields is incomplete. Do not return a
+summary in place of the records.
+
+Never put source text, prompts, or command output in Evidence paraphrases.
 
 ## Review passes
 

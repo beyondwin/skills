@@ -121,6 +121,16 @@
       "expect": ["repair_pass_requires_repaired_finding", "no_copied_repair_pass", "unresolved_repair_pass_null"]
     },
     {
+      "id": "red-flag-seeded-retry",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a reviewer returns a summary without complete PSDR records",
+      "expect": ["reask_complete_records", "no_named_findings_in_retry"]
+    },
+    {
+      "id": "red-flag-anomalous-ready",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md when summary lists observation anomalies for this run",
+      "expect": ["READY", "print_anomalies", "verdict_unchanged"]
+    },
+    {
       "id": "near-miss-write-spec",
       "request": "Write a design specification for sample-app.",
       "expect": ["not_activated"]

@@ -4,8 +4,8 @@ description: Use when an approved design spec and implementation plan already ex
 license: Apache-2.0
 compatibility: Requires a local Git repository, readable design and plan files, and Codex subagent support for independent review.
 metadata:
-  version: "3.0.2"
-  updated_at: "2026-09-12"
+  version: "3.0.3"
+  updated_at: "2026-09-16"
 ---
 
 # Pre-SDD Review
@@ -100,9 +100,7 @@ display name and plan path are `pending`, close that run with `other` or
 
 A schema 2 pending run is `historical-unbound` and read-only. Preserve it and
 start a new run if recording is still wanted; never infer a checkout identity
-for a historical record. If the recorder cannot read its private identity
-state, cannot acquire a required mutation lock, or otherwise fails, report
-`Evidence: not_recorded; reason=<code>` and continue the semantic review.
+for a historical record.
 
 Recording an `outcome` is not a controller duty. After SDD or implementation
 ends, the user or the SDD worker may record one label (`good`, `false-ready`,
@@ -230,7 +228,9 @@ changed document hashes, and verdict. Do not persist user documents or full
 model responses merely to create the receipt.
 
 For `READY`, print the exact resolved design and plan paths and their final
-fingerprints, together with the freshness record. Do not start SDD unless the outer request explicitly asks for implementation. In that combined request,
+fingerprints, together with the freshness record. After `finish`, read
+`summary --last 20` and print this run's observation anomalies. Anomalies
+do not change the verdict. Do not start SDD unless the outer request explicitly asks for implementation. In that combined request,
 hand the SDD worker the final repaired documents, not the pre-review copies.
 
 ## Do not use this skill for
@@ -238,3 +238,14 @@ hand the SDD worker the final repaired documents, not the pre-review copies.
 Do not use this skill to create designs or plans, implement or edit application
 code, review a source diff, perform release readiness or security review,
 proofread, publish a release, or make an accepted product decision.
+
+## Red flags
+
+- Resume a reviewer by naming findings, paths, symbols, or fixes
+- Start a new review when current hashes still match a REVISE or BLOCKED `sha_end`
+- Dispatch a second reviewer, or record `reviewers: 2`, with no risk trigger
+- Return or accept a finding summary instead of complete PSDR records
+- Print `READY` without this run's observation anomalies
+- Commit before `finish`
+- Cite `repo-reality` with only the reviewed design or plan paths
+- Put source text in an evidence paraphrase
