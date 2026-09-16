@@ -30,6 +30,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 import tomllib
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -75,6 +76,9 @@ MAX_RESPONSE_BYTES = 64 * 1024
 # the session scan to that prefix instead of the whole provider log.
 SESSION_SCAN_BYTES = 64 * 1024
 SESSION_SCAN_LINES = 200
+# Wait is sliced so the first stream id can be copied while the child is still
+# running. `--timeout 0` still means no bound; never `wait(timeout=0)`.
+WAIT_SLICE_SECONDS = 1.0
 # Both measured providers use session_id. The others are accepted because a
 # rule written to one provider's shape is exactly what this runner keeps getting
 # wrong, not because any of them has been seen.
@@ -358,6 +362,17 @@ def read_session_id(path: Path) -> str | None:
     return None
 
 
+def remember_session_id(metadata: dict[str, Any], path: Path) -> bool:
+    """Copy the first stream session id into the record. Never replace one."""
+    if isinstance(metadata.get("session_id"), str) and metadata["session_id"]:
+        return False
+    found = read_session_id(path)
+    if not found:
+        return False
+    metadata["session_id"] = found
+    return True
+
+
 def run_worker(options: RunOptions) -> int:
     """Run one attempt and return the wrapper exit for it.
 
@@ -473,37 +488,35 @@ def run_worker(options: RunOptions) -> int:
 
         metadata.update(state="running", pid=process.pid)
         write_metadata(metadata_path, metadata)
+        if remember_session_id(metadata, stdout_path):
+            write_metadata(metadata_path, metadata)
+
         def interrupted() -> int:
             # Record only the exit actually recovered. The process tree is left
-            # alone and Grok cleanup stays the controller's call.
+            # alone and Grok cleanup stays the controller's call. An interrupted
+            # attempt may still be resumable, so keep the first ID already found.
+            remember_session_id(metadata, stdout_path)
             metadata.update(
                 state="interrupted",
                 exit_code=process.poll(),
                 ended_at=utc_now(),
                 error="the controller interrupted the attempt",
-                # An interrupted attempt may still be resumable, so the ID the
-                # worker already reported is worth keeping.
-                session_id=read_session_id(stdout_path),
             )
             write_metadata(metadata_path, metadata)
             return 130
 
-        try:
-            # `wait(timeout=0)` expires immediately, so a zero timeout must not
-            # reach it: zero is the documented way to ask for no bound at all.
-            code = process.wait(timeout=options.timeout) if options.timeout else process.wait()
-        except subprocess.TimeoutExpired:
+        def timed_out() -> int:
             try:
                 # Only this child is pursued. It shares the controller's process
                 # group on purpose, so there is no group signal to send and
                 # anything the worker started is left exactly where it is.
                 _end_process(process)
+                remember_session_id(metadata, stdout_path)
                 metadata.update(
                     state="timed_out",
                     exit_code=process.poll(),
                     ended_at=utc_now(),
                     error="the attempt exceeded its timeout",
-                    session_id=read_session_id(stdout_path),
                 )
                 write_metadata(metadata_path, metadata)
             except KeyboardInterrupt:
@@ -513,13 +526,34 @@ def run_worker(options: RunOptions) -> int:
                 # arrived while the timeout was still being carried out.
                 return interrupted()
             return TIMEOUT_EXIT
+
+        # `wait(timeout=0)` expires immediately, so a zero timeout must not
+        # reach it: zero is the documented way to ask for no bound at all.
+        deadline = time.monotonic() + options.timeout if options.timeout else None
+        try:
+            while True:
+                if deadline is None:
+                    slice_timeout = WAIT_SLICE_SECONDS
+                else:
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        return timed_out()
+                    slice_timeout = min(WAIT_SLICE_SECONDS, remaining)
+                try:
+                    code = process.wait(timeout=slice_timeout)
+                    break
+                except subprocess.TimeoutExpired:
+                    if remember_session_id(metadata, stdout_path):
+                        write_metadata(metadata_path, metadata)
+                    if deadline is not None and time.monotonic() >= deadline:
+                        return timed_out()
         except KeyboardInterrupt:
             return interrupted()
+        remember_session_id(metadata, stdout_path)
         metadata.update(
             state="exited",
             exit_code=code,
             ended_at=utc_now(),
-            session_id=read_session_id(stdout_path),
         )
         write_metadata(metadata_path, metadata)
     return code if code >= 0 else 128 - code

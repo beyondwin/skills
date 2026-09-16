@@ -1587,6 +1587,51 @@ class SessionIdRecordingTests(RunnerFixture):
         self.assertEqual(metadata["state"], "launch_failed")
         self.assertIsNone(metadata["session_id"])
 
+    def test_session_id_is_recorded_while_state_is_still_running(self) -> None:
+        # Break: session_id stays null until the process exits or times out.
+        module = self.load()
+        ready = self.base / "session-reported"
+        self.write_grok(behaviour_session_then_sleep(ready))
+        observed: list[dict] = []
+        real = module.write_metadata
+
+        def spy(path, value):
+            observed.append(dict(value))
+            real(path, value)
+
+        with self.pinned_resolver(module):
+            with self.ready_popen(module, ready):
+                with mock.patch.object(module, "write_metadata", spy):
+                    self.invoke(module, self.options(module, timeout=0.5))
+        running_with_id = [
+            entry for entry in observed
+            if entry.get("state") == "running"
+            and entry.get("session_id") == TIMED_OUT_SESSION_ID
+        ]
+        self.assertTrue(running_with_id)
+        self.assertEqual(self.metadata()["session_id"], TIMED_OUT_SESSION_ID)
+
+    def test_a_later_stream_id_does_not_replace_the_recorded_session(self) -> None:
+        # Break: exit/timeout overwrites the id that was already recorded.
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SESSION_INIT)
+        observed: list[dict] = []
+        real = module.write_metadata
+
+        def spy(path, value):
+            observed.append(dict(value))
+            real(path, value)
+
+        with mock.patch.object(module, "write_metadata", spy):
+            with mock.patch.object(
+                module, "read_session_id",
+                side_effect=["synthetic-session-first", "synthetic-session-later"],
+            ):
+                self.invoke(module, self.options(module))
+        ids = [entry.get("session_id") for entry in observed if entry.get("session_id")]
+        self.assertEqual(ids[0], "synthetic-session-first")
+        self.assertTrue(all(item == "synthetic-session-first" for item in ids))
+
 
 class AttemptTimeoutTests(RunnerFixture):
     """An attempt is bounded in wall-clock time, and says so when the bound fires."""

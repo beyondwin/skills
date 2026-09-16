@@ -150,13 +150,14 @@ and rejects `--model`, because it selects its own model. Cursor requires
 `--sandbox-profile`, because it uses its own sandbox mode.
 
 Pass `--resume` only with a session ID the previous run actually reported. The
-runner reads that ID out of the worker's own stream and records it as
-`run.json.session_id`, which the `status` output carries too; take it from
-there rather than from the raw log. It is null when the provider's stream
-reported none. If a fix round has no reported session ID — `session_id` null,
-`Worker session: none` in the current-state block — use the SDD fallback: a
-fresh worker plus the previous attempt's `report.md` named in the brief. Never
-guess an ID.
+runner copies the first reported id from the worker's own stream into
+`run.json.session_id` as soon as the stream has it, including while `state` is
+`running`, and never replaces it. The `status` output still mirrors that
+record; it does not invent an id from the log when the record is missing. It
+is null when the provider's stream reported none. If a fix round has no
+reported session ID — `session_id` null, `Worker session: none` in the
+current-state block — use the SDD fallback: a fresh worker plus the previous
+attempt's `report.md` named in the brief. Never guess an ID.
 
 `--timeout <seconds>` bounds one attempt's wall-clock. It defaults to 3600, and
 `--timeout 0` waits without a bound. When it fires the runner sends the worker

@@ -242,8 +242,11 @@ resolver `model_ids`에서 고른 `--model`을 요구하고 `--sandbox-profile`�
 없거나 읽을 수 없으면 시도 디렉터리를 만들기 전에 실행을 거부합니다. 필드가 없는
 예전 schema 2 기록은 그대로 읽습니다. `state`는 `starting`,
 `running`, `exited`, `launch_failed`, `timed_out`, `interrupted` 중 하나이며 task
-상태가 아닙니다. 프로세스 exit 0은 깨끗한 DONE이 아닙니다. `session_id`는 worker가
-제 스트림에 보고한 세션 ID이고, 스트림이 아무것도 보고하지 않으면 `null`입니다.
+상태가 아닙니다. 프로세스 exit 0은 깨끗한 DONE이 아닙니다. `session_id`는
+worker 스트림이 처음 보고한 세션 ID를 `state`가 `running`인 동안을 포함해
+스트림에 생기는 즉시 `run.json`에 복사한 값이며, 한 번 기록하면 바꾸지
+않습니다. `status`는 그 레코드만 거울로 보여 주며, 레코드가 없는데 로그에 ID가
+있다고 해서 만들지 않습니다. 스트림이 아무것도 보고하지 않으면 `null`입니다.
 
 래퍼 exit는 worker의 exit를 따릅니다. POSIX 시그널은 `128 + signal`을 반환하고
 `run.json.exit_code`에는 실제 음수 returncode가 남습니다. 실행 실패는 2, 처리된
