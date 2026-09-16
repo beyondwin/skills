@@ -135,7 +135,7 @@ class IdentityTests(RecorderFixture):
         self.assertEqual(code, 0, err)
         self.assertEqual(
             json.loads(out),
-            {"run_id": run_id, "status": "completed", "verdict": "READY"},
+            {"anomalies": [], "run_id": run_id, "status": "completed", "verdict": "READY"},
         )
 
     def test_concurrent_starts_share_one_private_identity_salt(self) -> None:

@@ -532,6 +532,33 @@ def observation_anomalies(record: dict[str, object]) -> list[str]:
     return sorted(name for name, observed in checks.items() if observed)
 
 
+def finding_anomalies(record: dict[str, object]) -> list[dict[str, object]]:
+    """Per-finding observations for a completed record; never rejudges the verdict."""
+    if record["status"] != "completed":
+        return []
+    plan = record["plan"]
+    design = record["design"]
+    assert isinstance(plan, dict)
+    documents = {str(plan["path"])}
+    if isinstance(design, dict):
+        documents.add(str(design["path"]))
+    entries: list[dict[str, object]] = []
+    for item in record["findings"]:
+        assert isinstance(item, dict)
+        if item["class"] == "repo-reality" and set(item["evidence"]) <= documents:
+            entries.append(
+                {"name": "repo_reality_citing_documents_only", "finding_id": str(item["id"])}
+            )
+    return entries
+
+
+def run_anomalies(record: dict[str, object]) -> list[str]:
+    """All observation anomaly names for one record, sorted and unique."""
+    names = set(observation_anomalies(record))
+    names.update(str(entry["name"]) for entry in finding_anomalies(record))
+    return sorted(names)
+
+
 def _object(value: object, name: str, keys: set[str]) -> dict[str, object]:
     if not isinstance(value, dict) or set(value) != keys:
         fail("schema-invalid", f"{name} must contain exactly its declared fields")
@@ -727,7 +754,12 @@ def cmd_finish(args: argparse.Namespace, home: Path, cwd: Path, stdin: TextIO) -
         record["completed_at"] = completed_at
         record["elapsed_s"] = elapsed_seconds(str(record["started_at"]), completed_at)
         write_record(run_path(home, args.run_id), record)
-        return {"run_id": args.run_id, "status": "completed", "verdict": record["verdict"]}
+        return {
+            "run_id": args.run_id,
+            "status": "completed",
+            "verdict": record["verdict"],
+            "anomalies": run_anomalies(record),
+        }
 
 
 def cmd_abandon(args: argparse.Namespace, home: Path) -> dict[str, object]:
@@ -826,9 +858,11 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
         for anomaly in observation_anomalies(record):
             anomalies[anomaly].append(run_id)
             anomalous_run_ids.add(run_id)
-        documents = {str(plan["path"])}
-        if isinstance(design, dict):
-            documents.add(str(design["path"]))
+        for entry in finding_anomalies(record):
+            anomalies[str(entry["name"])].append(
+                {"run_id": run_id, "finding_id": entry["finding_id"]}
+            )
+            anomalous_run_ids.add(run_id)
         for item in findings:
             assert isinstance(item, dict)
             severities.append(str(item["severity"]))
@@ -838,11 +872,6 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
             runs_for_pattern = pattern_runs.setdefault(key, [])
             if run_id not in runs_for_pattern:
                 runs_for_pattern.append(run_id)
-            if item["class"] == "repo-reality" and set(item["evidence"]) <= documents:
-                anomalies["repo_reality_citing_documents_only"].append(
-                    {"run_id": run_id, "finding_id": item["id"]}
-                )
-                anomalous_run_ids.add(run_id)
     elapsed = [int(record["elapsed_s"]) for record in completed if isinstance(record["elapsed_s"], int)]
     outcomes = [record["outcome"] for record in completed if isinstance(record["outcome"], dict)]
     outcome_counts = {"recorded": len(outcomes)}
