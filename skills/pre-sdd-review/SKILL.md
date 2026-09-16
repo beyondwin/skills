@@ -231,8 +231,10 @@ complete.
 
 Do not automatically start another invocation after `REVISE` or `BLOCKED`.
 A later invocation requires an explicit outer request or changed document,
-authority, or repository evidence. If none changed, reuse the prior handoff
-instead of repeating the same review.
+authority, or repository evidence. When none changed, reuse the prior handoff
+instead of repeating the same review, subject to the reuse rule above: never
+for an `execution=blocked` run, and for a `full` or `degraded` run only when
+the documents, `HEAD`, and the request are all unchanged.
 
 Include a compact pass receipt in the final report: input and final document
 hashes, pass number, finding IDs/classes, triggered repair-impact categories,
