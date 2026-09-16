@@ -189,12 +189,15 @@ recovered, which may be none, and `run.json` does not say which of two routes
 reached that record: an interrupt while the runner was only waiting signals
 nothing at all and leaves the worker running, while an interrupt during a
 timeout's own SIGTERM and SIGKILL arrives after the worker has been signalled
-and is probably dead. Confirm the worker and anything it started have exited
-yourself either way, before Grok cleanup. Exit 2 is ambiguous between a
-launch failure and a worker that legitimately exited 2, so read
-`run.json.state` to tell them apart; if the attempt directory is absent, or
-present without `run.json`, the launch was refused before the attempt was
-created and the `BLOCKED:` line on stderr is the reason.
+and is probably dead. SIGTERM to the runner uses the same `interrupted` / 130
+record as Ctrl-C and does not kill the tree. SIGTERM to the worker remains
+`exited` (or `timed_out` when the runner sent it) with the negative returncode.
+SIGKILL still cannot write a terminal state. Confirm the worker and anything
+it started have exited yourself either way, before Grok cleanup. Exit 2 is
+ambiguous between a launch failure and a worker that legitimately exited 2,
+so read `run.json.state` to tell them apart; if the attempt directory is
+absent, or present without `run.json`, the launch was refused before the
+attempt was created and the `BLOCKED:` line on stderr is the reason.
 
 There is no automatic retry. Cursor carries its effort in the model ID rather
 than on a flag, so the runner refuses a `--model` whose declared effort

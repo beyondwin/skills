@@ -1053,6 +1053,48 @@ class WorkerExecutionTests(RunnerFixture):
         self.assertIsNone(metadata["exit_code"])
         self.assertIsNone(process.poll(), "runner must not kill the worker process tree")
 
+    @unittest.skipUnless(os.name != "nt", "wrapper SIGTERM handling is a POSIX signal convention")
+    def test_wrapper_sigterm_is_recorded_as_interrupted(self) -> None:
+        # Break: SIGTERM to the runner leaves state=running or treats it as
+        # the child's signal death.
+        import signal
+
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        handlers: list = []
+        started: list[subprocess.Popen] = []
+
+        def capture(sig, handler):
+            if sig == signal.SIGTERM:
+                handlers.append(handler)
+                return signal.SIG_DFL
+            return signal.signal(sig, handler)
+
+        class SignallingPopen(subprocess.Popen):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                started.append(self)
+
+            def wait(self, timeout=None):  # noqa: D102 - controller sent SIGTERM
+                if not handlers:
+                    raise AssertionError("SIGTERM handler was not installed before wait")
+                handlers[-1](signal.SIGTERM, None)
+                raise AssertionError("SIGTERM handler returned")
+
+        with self.pinned_resolver(module):
+            with mock.patch.object(module.signal, "signal", capture):
+                with mock.patch.object(module.subprocess, "Popen", SignallingPopen):
+                    code = self.invoke(module, self.options(module, timeout=5))
+        self.assertEqual(len(started), 1)
+        process = started[0]
+        self.addCleanup(lambda: subprocess.Popen.wait(process))
+        self.addCleanup(process.kill)
+        self.assertEqual(code, 130)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "interrupted")
+        self.assertEqual(metadata["error"], "the controller interrupted the attempt")
+        self.assertIsNone(process.poll(), "runner must not kill the worker process tree")
+
     def test_worker_standard_input_is_closed_rather_than_inherited(self) -> None:
         module = self.load()
         self.write_grok(BEHAVIOUR_REPORT_STDIN)

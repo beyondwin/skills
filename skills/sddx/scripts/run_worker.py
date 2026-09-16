@@ -27,6 +27,7 @@ import hashlib
 import json
 import math
 import os
+import signal
 import subprocess
 import sys
 import tempfile
@@ -527,9 +528,16 @@ def run_worker(options: RunOptions) -> int:
                 return interrupted()
             return TIMEOUT_EXIT
 
+        def _raise_keyboard_interrupt(signum, frame):
+            raise KeyboardInterrupt
+
         # `wait(timeout=0)` expires immediately, so a zero timeout must not
         # reach it: zero is the documented way to ask for no bound at all.
         deadline = time.monotonic() + options.timeout if options.timeout else None
+        # SIGTERM to this runner is the same request as Ctrl-C: record
+        # interrupted and leave the child. Installed only for the wait, so a
+        # launch failure does not change signal disposition.
+        previous = signal.signal(signal.SIGTERM, _raise_keyboard_interrupt)
         try:
             while True:
                 if deadline is None:
@@ -547,15 +555,17 @@ def run_worker(options: RunOptions) -> int:
                         write_metadata(metadata_path, metadata)
                     if deadline is not None and time.monotonic() >= deadline:
                         return timed_out()
+            remember_session_id(metadata, stdout_path)
+            metadata.update(
+                state="exited",
+                exit_code=code,
+                ended_at=utc_now(),
+            )
+            write_metadata(metadata_path, metadata)
         except KeyboardInterrupt:
             return interrupted()
-        remember_session_id(metadata, stdout_path)
-        metadata.update(
-            state="exited",
-            exit_code=code,
-            ended_at=utc_now(),
-        )
-        write_metadata(metadata_path, metadata)
+        finally:
+            signal.signal(signal.SIGTERM, previous)
     return code if code >= 0 else 128 - code
 
 
