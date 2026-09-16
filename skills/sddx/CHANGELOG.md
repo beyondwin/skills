@@ -33,7 +33,7 @@ Target version `2.0.0`. No public tag or GitHub Release is created here.
   including while `state` is `running`. A later stream id does not replace it.
 - SIGTERM to the runner uses the existing `interrupted` record (exit 130) and
   does not kill the worker tree.
-- `run_worker.py status` adds `pid_alive` and a bounded `tools` index (read
+- `run_worker.py status` adds `pid_alive` and a bounded tools index (read
   paths, search patterns, shell exit codes and commands). It still does not
   include log bodies or judge role compliance.
 
@@ -56,9 +56,10 @@ Target version `2.0.0`. No public tag or GitHub Release is created here.
 - `resolve_backend.py --json` adds `launch` (`cwd_flag`, `prompt_flag`,
   `effort_flag`, `output_format`, or null when unavailable) and `model_ids`.
 - `references/current-state.md` holds the ledger current-state block template.
-- `run.json` and `status` carry `session_id`, read from the worker's own
-  output stream, so `--resume` can be given an id the previous run actually
-  reported instead of always falling back to a fresh worker.
+- `run.json` and `status` carry `session_id` from the worker's own stream,
+  including while `state` is `running`, so `--resume` can use an id the
+  previous run actually reported instead of always falling back to a fresh
+  worker.
 - `run.json` records `skill_version` from the installed skill's `release.toml`.
   A missing or unreadable version refuses the launch before the attempt
   directory is created. Older schema 2 records without the field stay readable.
@@ -94,6 +95,13 @@ Target version `2.0.0`. No public tag or GitHub Release is created here.
   explicitly after checking its ledger record and its processes.
 - Product README now matches the measured macOS host/worker table instead of
   saying all four combinations are `not_measured`.
+- Default `status` and the contract now describe `pid_alive` and the bounded
+  tools index in the same terms the runner actually returns.
+
+### Fixed
+
+- A recursive JSON line in `worker.jsonl` is skipped by the tools index instead
+  of failing the whole `status` query.
 
 ## 1.1.1 - 2026-09-12
 

@@ -123,7 +123,9 @@ cursor, `g`는 grok입니다. 요청에 없으면 이 계획에서 한 번만 �
 작업자는 완결된 과제와 지정 자료만 받고 전체 계획은 다시 읽지 않습니다.
 완료는 프로세스 종료 코드가 아니라 보고서, 실제 테스트, 커밋, 도구 기록,
 네이티브 리뷰로 판단합니다. 실행 기록은 작업 폴더 `.superpowers/` 아래에
-남습니다. 명령과 판정 규칙은
+남습니다. 실행 중에도 `run_worker.py status`로 세션 ID, 프로세스 생존
+여부, 읽은 파일·검색·셸 목록을 봅니다. 로그 전체를 붙여 넣지 않습니다.
+명령과 판정 규칙은
 [계약](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/sddx/contract.md)을
 보세요.
 

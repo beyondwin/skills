@@ -48,11 +48,12 @@ worktree를 만들고 Git 경로 계산, 기존 TOML 원문 복원, 재진입, �
 본문의 exit 3, 인자·파일 오류의 exit 2, 기존 출력 파일 비덮어쓰기를 잠급니다.
 `tests/products/sddx/test_run_worker.py`는 시도 디렉터리 여섯 파일, argv 구성,
 backend별 `--model`/`--sandbox-profile` 배타, `run.json` 필드(`skill_version`
-포함)와 상태, 래퍼 exit
-규칙, 닫힌 stdin, 시도 경로 거절을 검사합니다.
-`tests/products/sddx/test_worker_status.py`는 읽기 전용 응답, `pid_alive`, 도구
-인덱스, 기본 응답에 로그 본문이 없다는 점, `--stream` 기본 2048·최대 8192바이트,
-64 KiB 응답 상한, offset 처리를 검사합니다. 어느 검사도 공급자를 호출하지 않습니다.
+포함)와 상태, 실행 중 `session_id` 기록, 래퍼 SIGTERM → `interrupted`,
+래퍼 exit 규칙, 닫힌 stdin, 시도 경로 거절을 검사합니다.
+`tests/products/sddx/test_worker_status.py`는 읽기 전용 응답, `pid_alive`,
+bounded tools index, 기본 응답에 로그 본문이 없다는 점, 너무 깊은 JSON 줄
+건너뛰기, `--stream` 기본 2048·최대 8192바이트, 64 KiB 응답 상한, offset
+처리를 검사합니다. 어느 검사도 공급자를 호출하지 않습니다.
 
 Windows `.cmd` 왕복 검사(`skipUnless(os.name == "nt")`)는 삭제했습니다.
 CI에서 돈다고 적지 않으며, skip을 통과나 Windows 지원으로 쓰지 않습니다.
@@ -324,13 +325,14 @@ worker 경계가 CLI에 의해 강제되는지도 `not_measured`입니다. Grok 
 
 ### 실제 관측
 
-`tests/products/sddx/`의 discovery 검사(`sddx-contract`)는 269개 테스트로
+`tests/products/sddx/`의 discovery 검사(`sddx-contract`)는 281개 테스트로
 통과했습니다. `skipUnless(os.name == "nt")` 검사는 없습니다.
 파일별로는 `test_contract` 26, `test_extract_task` 29,
 `test_prepare_grok_sandbox` 23, `test_resolve_backend` 58,
-`test_run_worker` 98, `test_worker_status` 35입니다. 이전 기록의 45개
+`test_run_worker` 101, `test_worker_status` 44입니다. 이전 기록의 45개
 SDDx 테스트는 Task 1–4의 새 파일이 discovery에 들어오기 전 숫자이고, 212개는 이
-버전의 session ID 회수와 시도 타임아웃 작업이 들어오기 전 숫자입니다.
+버전의 session ID 회수와 시도 타임아웃 작업이 들어오기 전 숫자이며, 269개는
+실행 중 `session_id`·`pid_alive`·tools 인덱스가 들어오기 전 숫자입니다.
 
 `verify.py`가 출력한 `python-compile` 단계 인자에 `skills/sddx/scripts`가
 들어 있으므로 `extract_task.py`, `run_worker.py`, `resolve_backend.py`,
@@ -361,7 +363,7 @@ Step 3의 네 명령은 최종 상태에서 모두 exit 0입니다.
 `repository-contract` 361, `korean-package` 9, `korean-offline`,
 `korean-live-unit` 244, `korean-live-dry-run`, `image-contract`,
 `image-inspector` 48, `how-it-works-contract` 56, `pre-sdd-review-contract` 54,
-`pre-sdd-review-evidence` 61, `sddx-contract` 266, `python-compile`.
+`pre-sdd-review-evidence` 61, `sddx-contract` 281, `python-compile`.
 새 버전에서 다른 제품 단계가 모두 통과하므로 이 버전 변경이 다른 제품을 건드리지
 않았음을 확인합니다. 오프라인 단계가 모두 통과해도 실제 공급자 실행 증거는 아닙니다.
 

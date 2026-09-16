@@ -49,7 +49,8 @@ worktree, HEAD, attempt path, and session ID for this run.
 - `Worktree` and `HEAD` — the worktree path and the commit the state describes.
 - `Task`, `fix round`, `attempt` — the task ID, the current fix-round count,
   and the attempt directory of the latest run.
-- `Worker session` — the confirmed provider session ID, or `none`. Never
+- `Worker session` — the confirmed provider session ID from `status` /
+  `run.json`, including while `state` is `running`, or `none`. Never
   record an unconfirmed ID, and never carry one across a backend change.
 - `Review host`, `model`, `effort` — how reviews are actually dispatched, with
   any host limit. Written once and updated only when it changes.

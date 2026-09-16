@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Requires a local Git repository, an implementation plan file, and Claude Code or Codex as the orchestrator host. Implementer CLIs are optional and resolved at runtime.
 metadata:
   version: "2.0.0"
-  updated_at: "2026-09-13"
+  updated_at: "2026-09-16"
 ---
 
 # SDDx
@@ -213,7 +213,9 @@ as `references/dispatch.md` describes. Do not hand-compose a provider command,
 and do not write a new execution script for a run. Read a running or finished
 attempt only through `run_worker.py status`, which answers with metadata,
 `pid_alive`, a bounded tools index, and optional log windows; never dump a
-whole worker log into this session.
+whole worker log into this session. Copy `session_id` from that status — it
+is filled while `state` is still `running`. If `state` is `running` and
+`pid_alive` is false, the record is stale; do not treat it as a live worker.
 
 There is no automatic retry anywhere in these helpers. `run.json.state` is
 process state, not task state, and process exit 0 is not a clean DONE.
@@ -258,7 +260,7 @@ environment are unchanged. Do not build a separate receipt system for it.
 | --- | --- | --- |
 | Invocation | `/sddx` | `$sddx` |
 | Asking for a backend | AskUserQuestion where available | the available question tool, else a short text question |
-| Extraction, worker launch, log query | the same product Python scripts | the same product Python scripts |
+| Extraction, worker launch, status query | the same product Python scripts | the same product Python scripts |
 | Review | native Task, no `model` argument, inherited | native `spawn_agent`, inherited model |
 | XHigh | inherited if already satisfied, else the installed definition | inherited if already satisfied, else only what the host really provides |
 | No escalation mechanism | record the constraint once, then the existing fallback | record the constraint once, then the existing fallback |

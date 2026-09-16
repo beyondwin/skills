@@ -152,12 +152,13 @@ and rejects `--model`, because it selects its own model. Cursor requires
 Pass `--resume` only with a session ID the previous run actually reported. The
 runner copies the first reported id from the worker's own stream into
 `run.json.session_id` as soon as the stream has it, including while `state` is
-`running`, and never replaces it. The `status` output still mirrors that
-record; it does not invent an id from the log when the record is missing. It
-is null when the provider's stream reported none. If a fix round has no
-reported session ID — `session_id` null, `Worker session: none` in the
-current-state block — use the SDD fallback: a fresh worker plus the previous
-attempt's `report.md` named in the brief. Never guess an ID.
+`running`, and never replaces it. Read that id from `status` — not by dumping
+the log. `status` still mirrors the record; it does not invent an id from the
+log when the record is missing. It is null when the provider's stream reported
+none. If a fix round has no reported session ID — `session_id` null, `Worker
+session: none` in the current-state block — use the SDD fallback: a fresh
+worker plus the previous attempt's `report.md` named in the brief. Never guess
+an ID.
 
 `--timeout <seconds>` bounds one attempt's wall-clock. It defaults to 3600, and
 `--timeout 0` waits without a bound. When it fires the runner sends the worker
@@ -219,14 +220,25 @@ for native reviewers.
     python3 "<skill-root>/scripts/run_worker.py" status --attempt-dir <attempt-dir>
     python3 "<skill-root>/scripts/run_worker.py" status --attempt-dir <attempt-dir> --stream stdout|stderr --offset N --max-bytes N
 
-`status` is read-only. The default answer is metadata, log sizes, whether
-`report.md` exists, `pid_alive`, and `tools` — never a log body. Role
-compliance is still the controller's. `state: running` and `pid_alive: false`
-means the record is stale; status does not rewrite it. A window needs
-`--stream`; it defaults to 2048 bytes with a maximum of 8192, and the whole
-JSON answer is capped at 64 KiB. Read the bounded windows you need. Do not
-print a raw log wholesale into this session, and do not write a new execution
-script for a run.
+`status` is read-only. Ask it instead of dumping the log.
+
+The default answer is metadata, log sizes, whether `report.md` exists,
+`pid_alive`, and a bounded tools index — never a log body. Role compliance is
+still the controller's.
+
+- `session_id` is the first id already copied into `run.json`, including while
+  `state` is `running`. Status does not invent one from the log.
+- `pid_alive` is whether the recorded pid is still alive. `state: running` and
+  `pid_alive: false` means the record is stale; status does not rewrite it.
+- `tools` holds `reads` (paths), `searches` (`pattern` / `path`), `shells`
+  (`exit_code` / `command`), and `truncated`. Caps are 64 / 32 / 32 / 200
+  command characters. Unknown tool shapes are empty lists, not an error.
+  File contents, stdout, stderr, and thinking stay out.
+
+A window needs `--stream`; it defaults to 2048 bytes with a maximum of 8192,
+and the whole JSON answer is capped at 64 KiB. Read the bounded windows you
+need. Do not print a raw log wholesale into this session, and do not write a
+new execution script for a run.
 
 `pending_bytes > 0` means a UTF-8 character is only half written. Wait on the
 host's job for new bytes; do not re-query the same offset in a short loop.
@@ -251,7 +263,9 @@ their actual exits. If the trace is unavailable or incomplete, record role
 compliance as UNVERIFIED. A final message alone is not a tool trace.
 
 Record the attempt path and the confirmed session ID in the current-state
-block described by `references/current-state.md`. `run.json` stays the
-attempt's process record; the ledger stays the run's record.
+block described by `references/current-state.md`. Take the id from `status`
+while the attempt is still running; do not wait for exit and do not parse
+the log for it. `run.json` stays the attempt's process record; the ledger
+stays the run's record.
 
 Do not pass `--plugin-dir`. Do not approve extra MCP servers.

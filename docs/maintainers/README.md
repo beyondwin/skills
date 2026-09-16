@@ -79,7 +79,7 @@
 
 ### sddx
 
-- [계약](products/sddx/contract.md) — 호스트≠backend, `resolve_backend.py`, 함께 고칠 파일
+- [계약](products/sddx/contract.md) — 호스트≠backend, 시도 조회(`status`), 함께 고칠 파일
 - [테스트](products/sddx/testing.md) — 공급자 없는 신원 픽스처와 증거 한계
 - [호환성](products/sddx/compatibility.md) — Claude Code와 Codex 오케스트레이터, worker CLI는 호스트가 아님
 - [릴리스](products/sddx/release.md) — 독립 제품 check/build/verify-download와 비게시 경계

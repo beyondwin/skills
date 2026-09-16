@@ -181,7 +181,7 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("output_format", text)
         self.assertIn("report.md", text)
         self.assertIn("pid_alive", text)
-        self.assertIn("tools", text)
+        self.assertIn("bounded tools index", text)
 
     def test_input_and_backend_order_ask_once(self) -> None:
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")

@@ -228,11 +228,26 @@ worktree `.superpowers/` 아래의 새 디렉터리여야 하며, 러너는 그�
 resolver `model_ids`에서 고른 `--model`을 요구하고 `--sandbox-profile`을
 거부합니다.
 
-시도 조회는 `scripts/run_worker.py status`뿐입니다. 읽기 전용입니다. 기본 응답은
-메타데이터, 로그 크기, `report.md` 존재 여부, `pid_alive`, `tools`이고 로그
-본문은 포함하지 않습니다. 역할 준수는 컨트롤러가 판정합니다. 본문 창은 `--stream`이
-있어야 하며 기본 2048바이트, 최대 8192바이트, JSON 응답 전체는 64 KiB로
-제한됩니다. 로그 전체를 세션에 출력하지 않습니다.
+시도 조회는 `scripts/run_worker.py status`뿐입니다. 읽기 전용입니다. 살아 있는지,
+세션 ID, 어떤 파일을 읽었는지는 이 명령으로만 봅니다. 로그 전체를 세션에 붙이지
+않습니다.
+
+기본 응답은 메타데이터, 로그 크기, `report.md` 존재 여부, `pid_alive`, `tools`입니다.
+로그 본문은 없습니다. 역할 준수(플랜을 읽었는지, DONE인지)는 컨트롤러가 판정합니다.
+본문 창은 `--stream`이 있어야 하며 기본 2048바이트, 최대 8192바이트, JSON 응답
+전체는 64 KiB입니다.
+
+- `session_id`는 워커 스트림이 처음 적어 준 ID입니다. `state`가 `running`이어도
+  스트림에 나오는 즉시 `run.json`에 복사하고, 한 번 적으면 바꾸지 않습니다.
+  `status`는 그 기록만 보여 줍니다. 기록이 없는데 로그에 ID가 있다고 해서 만들지
+  않습니다. 스트림이 아무 ID도 안 주면 `null`입니다.
+- `pid_alive`는 기록된 pid가 지금 살아 있는지입니다. `run.json`에는 넣지 않습니다.
+  `state`가 `running`인데 `pid_alive`가 false면 기록만 남은 겁니다. status는 그
+  기록을 `interrupted`로 고치지 않습니다.
+- `tools`는 로그에서 복사한 짧은 목록입니다. `reads`(경로), `searches`(검색어·경로),
+  `shells`(종료 코드·명령), `truncated`. 파일 내용, stdout, stderr, thinking은
+  없습니다. 한도: 읽기 64, 검색 32, 셸 32, 명령 200자. 알 수 없는 도구 모양은
+  빈 목록이며 오류가 아닙니다. JSON이 아니거나 너무 깊은 줄은 건너뜁니다.
 
 `run.json`은 프로세스 사실만 담습니다. `schema_version` 2와 함께 `backend`,
 `identity`, `model`, `worktree`, `attempt_dir`, `brief_sha256`, `resume_id`,
@@ -242,18 +257,19 @@ resolver `model_ids`에서 고른 `--model`을 요구하고 `--sandbox-profile`�
 없거나 읽을 수 없으면 시도 디렉터리를 만들기 전에 실행을 거부합니다. 필드가 없는
 예전 schema 2 기록은 그대로 읽습니다. `state`는 `starting`,
 `running`, `exited`, `launch_failed`, `timed_out`, `interrupted` 중 하나이며 task
-상태가 아닙니다. 프로세스 exit 0은 깨끗한 DONE이 아닙니다. `session_id`는
-worker 스트림이 처음 보고한 세션 ID를 `state`가 `running`인 동안을 포함해
-스트림에 생기는 즉시 `run.json`에 복사한 값이며, 한 번 기록하면 바꾸지
-않습니다. `status`는 그 레코드만 거울로 보여 주며, 레코드가 없는데 로그에 ID가
-있다고 해서 만들지 않습니다. 스트림이 아무것도 보고하지 않으면 `null`입니다.
+상태가 아닙니다. 프로세스 exit 0은 깨끗한 DONE이 아닙니다.
 
 래퍼 exit는 worker의 exit를 따릅니다. POSIX 시그널은 `128 + signal`을 반환하고
 `run.json.exit_code`에는 실제 음수 returncode가 남습니다. 실행 실패는 2, 처리된
-중단은 130, 시도가 제 시간 제한에 걸려 끝난 경우는 124입니다. exit 2는 실행
-실패와 worker가 정말 2로 끝난 경우가 겹치므로 `run.json.state`로 구분하며, 시도
-디렉터리가 없거나 `run.json` 없이 있으면 시도가 만들어지기 전에 실행이 거부된
-것이고 stderr의 `BLOCKED:` 줄이 그 이유입니다.
+중단은 130, 시간 제한으로 끝난 경우는 124입니다. exit 2는 실행 실패와 worker가
+정말 2로 끝난 경우가 겹치므로 `run.json.state`로 구분합니다. 시도 디렉터리가
+없거나 `run.json` 없이 있으면 시도가 만들어지기 전에 거절된 것이고 stderr의
+`BLOCKED:` 줄이 그 이유입니다.
+
+시그널은 두 갈래입니다. 러너(래퍼)에 SIGTERM 또는 Ctrl-C가 오면 `interrupted`,
+exit 130이고 프로세스 트리는 죽이지 않습니다. 워커에 SIGTERM이 가면
+`exited`(타임아웃이 보낸 것이면 `timed_out`)와 음수 `exit_code`입니다. SIGKILL은
+기록을 남기지 못하므로 `pid_alive`로 봅니다.
 
 `--timeout <초>`는 한 시도의 실제 경과 시간을 제한합니다. 기본값은 3600이고
 `--timeout 0`은 제한 없이 기다립니다. 제한에 걸리면 러너는 worker에 SIGTERM을

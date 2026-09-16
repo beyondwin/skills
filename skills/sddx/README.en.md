@@ -126,8 +126,10 @@ requested side is missing, it stops instead of switching.
 The worker receives a complete task and listed references, without reopening
 the full plan. Completion is judged from the report, real test exits, commits,
 the tool record, and native review — not from a process exit. Every attempt
-leaves a directory under the worktree's `.superpowers/`. Commands and judgment
-rules are in the
+leaves a directory under the worktree's `.superpowers/`. While it runs,
+`run_worker.py status` is how you read the session ID, whether the pid is still
+alive, and a short list of reads, searches, and shells. Do not paste the
+whole log. Commands and judgment rules are in the
 [contract](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/sddx/contract.md).
 
 Grok linked worktrees need Python 3.11+. Grok removes MCP invocation tools
