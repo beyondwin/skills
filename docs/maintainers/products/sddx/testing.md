@@ -50,9 +50,9 @@ worktree를 만들고 Git 경로 계산, 기존 TOML 원문 복원, 재진입, �
 backend별 `--model`/`--sandbox-profile` 배타, `run.json` 필드(`skill_version`
 포함)와 상태, 래퍼 exit
 규칙, 닫힌 stdin, 시도 경로 거절을 검사합니다.
-`tests/products/sddx/test_worker_status.py`는 읽기 전용 응답, 기본 응답에 로그
-본문이 없다는 점, `--stream` 기본 2048·최대 8192바이트, 64 KiB 응답 상한, offset
-처리를 검사합니다. 어느 검사도 공급자를 호출하지 않습니다.
+`tests/products/sddx/test_worker_status.py`는 읽기 전용 응답, `pid_alive`, 도구
+인덱스, 기본 응답에 로그 본문이 없다는 점, `--stream` 기본 2048·최대 8192바이트,
+64 KiB 응답 상한, offset 처리를 검사합니다. 어느 검사도 공급자를 호출하지 않습니다.
 
 Windows `.cmd` 왕복 검사(`skipUnless(os.name == "nt")`)는 삭제했습니다.
 CI에서 돈다고 적지 않으며, skip을 통과나 Windows 지원으로 쓰지 않습니다.

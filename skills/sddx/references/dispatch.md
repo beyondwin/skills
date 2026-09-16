@@ -218,13 +218,14 @@ for native reviewers.
     python3 "<skill-root>/scripts/run_worker.py" status --attempt-dir <attempt-dir>
     python3 "<skill-root>/scripts/run_worker.py" status --attempt-dir <attempt-dir> --stream stdout|stderr --offset N --max-bytes N
 
-`status` is read-only and interprets nothing. The default answer is metadata,
-log sizes, whether `report.md` exists, and `pid_alive` — never a log body.
-`state: running` and `pid_alive: false` means the record is stale; status does
-not rewrite it. A window needs `--stream`; it defaults to 2048 bytes with a
-maximum of 8192, and the whole JSON answer is capped at 64 KiB. Read the
-bounded windows you need. Do not print a raw log wholesale into this session,
-and do not write a new execution script for a run.
+`status` is read-only. The default answer is metadata, log sizes, whether
+`report.md` exists, `pid_alive`, and `tools` — never a log body. Role
+compliance is still the controller's. `state: running` and `pid_alive: false`
+means the record is stale; status does not rewrite it. A window needs
+`--stream`; it defaults to 2048 bytes with a maximum of 8192, and the whole
+JSON answer is capped at 64 KiB. Read the bounded windows you need. Do not
+print a raw log wholesale into this session, and do not write a new execution
+script for a run.
 
 `pending_bytes > 0` means a UTF-8 character is only half written. Wait on the
 host's job for new bytes; do not re-query the same offset in a short loop.

@@ -2,10 +2,11 @@
 
 Every attempt directory here is written by the test itself. No worker is ever
 launched, no provider CLI is invoked, and no account or network is touched. The
-logs are synthetic bytes chosen to exercise UTF-8 boundaries; nothing in them is
-a real provider transcript. These tests assert raw byte positions only: they
-never ask the helper what a log line means, because the helper is not allowed to
-have an opinion about that.
+logs are synthetic bytes chosen to exercise UTF-8 boundaries and Cursor-shaped
+`tool_call` objects; nothing in them is a real provider transcript. Window tests
+assert raw byte positions only. The default payload may copy a bounded tools
+index of paths, search patterns, and shell commands, but never log bodies,
+result `content`/`stdout`/`stderr`, or thinking text.
 """
 
 from __future__ import annotations
@@ -33,6 +34,7 @@ DEFAULT_KEYS = {
     "metadata",
     "session_id",
     "pid_alive",
+    "tools",
     "stdout_bytes",
     "stderr_bytes",
     "report_exists",
@@ -227,6 +229,136 @@ class DefaultStatusTests(StatusFixture):
         self.assertIs(payload["pid_alive"], False)
         self.assertEqual((self.attempt / "run.json").read_bytes(), snapshot)
         self.assertEqual(payload["metadata"]["state"], "running")
+
+    def test_tools_index_copies_cursor_read_grep_and_shell_fields(self) -> None:
+        # Break: status has no tools index, or looks inside result bodies.
+        module = self.load()
+        self.write_metadata()
+        secret = "SYNTHETIC_PLAN_BODY_SHOULD_NOT_LEAK"
+        events = [
+            {"type": "thinking", "subtype": "delta", "text": secret},
+            {
+                "type": "tool_call",
+                "subtype": "started",
+                "tool_call": {
+                    "readToolCall": {"args": {"path": "/work/brief.md"}},
+                },
+            },
+            {
+                "type": "tool_call",
+                "subtype": "completed",
+                "tool_call": {
+                    "readToolCall": {
+                        "args": {"path": "/work/brief.md"},
+                        "result": {"success": {"content": secret}},
+                    },
+                },
+            },
+            {
+                "type": "tool_call",
+                "subtype": "started",
+                "tool_call": {
+                    "grepToolCall": {
+                        "args": {"pattern": "def gate\\(", "path": "/work/src.py"},
+                    },
+                },
+            },
+            {
+                "type": "tool_call",
+                "subtype": "completed",
+                "tool_call": {
+                    "shellToolCall": {
+                        "args": {"command": "python3 -m unittest"},
+                        "result": {"failure": {"exitCode": 1, "stderr": secret}},
+                    },
+                },
+            },
+            {
+                "type": "tool_call",
+                "subtype": "completed",
+                "tool_call": {
+                    "shellToolCall": {
+                        "args": {"command": "python3 -m unittest discover -s tests"},
+                        "result": {"success": {"exitCode": 0, "stdout": secret}},
+                    },
+                },
+            },
+        ]
+        self.write_stdout(("\n".join(json.dumps(item) for item in events) + "\n").encode("utf-8"))
+        payload = module.read_status(self.attempt)
+        self.assertEqual(payload["tools"]["reads"], ["/work/brief.md"])
+        self.assertEqual(
+            payload["tools"]["searches"],
+            [{"pattern": "def gate\\(", "path": "/work/src.py"}],
+        )
+        self.assertEqual(
+            payload["tools"]["shells"],
+            [
+                {"exit_code": 1, "command": "python3 -m unittest"},
+                {"exit_code": 0, "command": "python3 -m unittest discover -s tests"},
+            ],
+        )
+        self.assertIs(payload["tools"]["truncated"], False)
+        rendered = json.dumps(payload, ensure_ascii=False)
+        self.assertNotIn(secret, rendered)
+
+    def test_unknown_tool_shapes_are_an_empty_index_not_an_error(self) -> None:
+        # Break: a non-Cursor event or a broken line fails the query.
+        module = self.load()
+        self.write_metadata()
+        self.write_stdout(
+            b"not json\n"
+            + json.dumps({"type": "tool_call", "subtype": "started", "tool_call": {"fn": {"args": {"path": "/x"}}}}).encode()
+            + b"\n"
+        )
+        payload = module.read_status(self.attempt)
+        self.assertEqual(payload["tools"], {
+            "reads": [],
+            "searches": [],
+            "shells": [],
+            "truncated": False,
+        })
+
+    def test_tools_index_truncates_instead_of_growing_without_bound(self) -> None:
+        # Break: every path is returned, or truncated stays false.
+        module = self.load()
+        self.write_metadata()
+        lines = []
+        for index in range(70):
+            lines.append(json.dumps({
+                "type": "tool_call",
+                "subtype": "started",
+                "tool_call": {
+                    "readToolCall": {"args": {"path": f"/work/file-{index}.py"}},
+                },
+            }))
+        self.write_stdout(("\n".join(lines) + "\n").encode("utf-8"))
+        payload = module.read_status(self.attempt)
+        self.assertEqual(len(payload["tools"]["reads"]), 64)
+        self.assertEqual(payload["tools"]["reads"][0], "/work/file-0.py")
+        self.assertEqual(payload["tools"]["reads"][-1], "/work/file-63.py")
+        self.assertIs(payload["tools"]["truncated"], True)
+
+    def test_glob_search_uses_globPattern_and_targetDirectory(self) -> None:
+        module = self.load()
+        self.write_metadata()
+        self.write_stdout((json.dumps({
+            "type": "tool_call",
+            "subtype": "started",
+            "tool_call": {
+                "globToolCall": {
+                    "args": {
+                        "globPattern": "tests/*.py",
+                        "targetDirectory": "/work",
+                    },
+                },
+            },
+        }) + "\n").encode("utf-8"))
+        payload = module.read_status(self.attempt)
+        self.assertEqual(
+            payload["tools"]["searches"],
+            [{"pattern": "tests/*.py", "path": "/work"}],
+        )
 
 
 class MetadataTests(StatusFixture):

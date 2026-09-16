@@ -29,6 +29,14 @@ Target version `2.0.0`. No public tag or GitHub Release is created here.
 
 ### Added
 
+- `run.json.session_id` is copied from the worker stream as soon as it appears,
+  including while `state` is `running`. A later stream id does not replace it.
+- SIGTERM to the runner uses the existing `interrupted` record (exit 130) and
+  does not kill the worker tree.
+- `run_worker.py status` adds `pid_alive` and a bounded `tools` index (read
+  paths, search patterns, shell exit codes and commands). It still does not
+  include log bodies or judge role compliance.
+
 - Grok workers disable imported Cursor/Claude MCP discovery in their own
   environment on both new and resumed attempts. Global settings and Cursor
   execution are preserved.
@@ -42,10 +50,9 @@ Target version `2.0.0`. No public tag or GitHub Release is created here.
   `worker.jsonl`, `stderr.log`, `run.json`, and `report.md`. The worker writes
   `report.md`; the runner never does. The runner never prepares or cleans up
   the Grok sandbox profile.
-- `scripts/run_worker.py status` reads one attempt without interpreting it.
-  The default answer is metadata, log sizes, and whether `report.md` exists.
-  A log window needs `--stream` and is bounded: 2048 bytes by default, 8192
-  maximum, with the whole JSON answer capped at 64 KiB.
+- `scripts/run_worker.py status` reads one attempt. A log window needs
+  `--stream` and is bounded: 2048 bytes by default, 8192 maximum, with the
+  whole JSON answer capped at 64 KiB.
 - `resolve_backend.py --json` adds `launch` (`cwd_flag`, `prompt_flag`,
   `effort_flag`, `output_format`, or null when unavailable) and `model_ids`.
 - `references/current-state.md` holds the ledger current-state block template.

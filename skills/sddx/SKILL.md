@@ -211,8 +211,9 @@ in the current-state block.
 Launch every attempt with `python3 "<skill-root>/scripts/run_worker.py" run`
 as `references/dispatch.md` describes. Do not hand-compose a provider command,
 and do not write a new execution script for a run. Read a running or finished
-attempt only through `run_worker.py status`, which answers within a bounded
-window; never dump a whole worker log into this session.
+attempt only through `run_worker.py status`, which answers with metadata,
+`pid_alive`, a bounded tools index, and optional log windows; never dump a
+whole worker log into this session.
 
 There is no automatic retry anywhere in these helpers. `run.json.state` is
 process state, not task state, and process exit 0 is not a clean DONE.

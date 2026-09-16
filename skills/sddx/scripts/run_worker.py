@@ -1,16 +1,18 @@
 """Launch one sddx worker attempt and preserve the evidence it will be judged on.
 
 This is not an orchestrator. It has no scheduler, no retry, no backend failover,
-and no process-tree management. The one provider event it reads is the session
-ID the worker reports in its own stream; no other event is parsed and no log
-body is interpreted anywhere here. It never decides
-whether a task succeeded: a process exit of 0 is not task completion, and the
-files written here prove only what was handed to the CLI, never that OS
-isolation held or that the model obeyed its instructions.
+and no process-tree management. The provider events it reads are the session ID
+the worker reports in its own stream, and on `status` a bounded tools index
+copied from `tool_call` JSON objects. It still does not judge DONE, 402, or role
+compliance, and it still does not put log bodies in the default status payload.
+It never decides whether a task succeeded: a process exit of 0 is not task
+completion, and the files written here prove only what was handed to the CLI,
+never that OS isolation held or that the model obeyed its instructions.
 
 The `status` subcommand is the read-only half of the same file: it reports what
-an attempt directory holds and, on request, one explicitly bounded byte window of
-a raw log. It launches nothing, writes nothing, and interprets nothing.
+an attempt directory holds, a bounded tools index, and, on request, one
+explicitly bounded byte window of a raw log. It launches nothing and writes
+nothing.
 
 The controller prepares the Grok sandbox profile before calling this runner and
 cleans it up afterwards, once it has confirmed the worker and anything it
@@ -71,6 +73,10 @@ STREAM_FILES = {"stdout": STDOUT_NAME, "stderr": STDERR_NAME}
 DEFAULT_WINDOW_BYTES = 2048
 MAX_WINDOW_BYTES = 8192
 MAX_RESPONSE_BYTES = 64 * 1024
+TOOLS_READ_CAP = 64
+TOOLS_SEARCH_CAP = 32
+TOOLS_SHELL_CAP = 32
+TOOLS_COMMAND_CHARS = 200
 
 # A worker log can reach many megabytes, and the init event that names the
 # session is the first line of every stream measured so far. These bounds keep
@@ -674,6 +680,118 @@ def read_window(path: Path, stream: str, offset: int, max_bytes: int) -> dict[st
     }
 
 
+def _first_str(values: dict[str, Any], *keys: str) -> str | None:
+    for key in keys:
+        value = values.get(key)
+        if isinstance(value, str):
+            return value
+    return None
+
+
+def _shell_exit_code(result: object) -> int | None:
+    if not isinstance(result, dict):
+        return None
+    candidates: list[object] = [result.get("exitCode")]
+    for nested_key in ("success", "failure"):
+        nested = result.get(nested_key)
+        if isinstance(nested, dict):
+            candidates.append(nested.get("exitCode"))
+    for value in candidates:
+        if isinstance(value, int) and not isinstance(value, bool):
+            return value
+    return None
+
+
+def _append_capped(items: list[Any], item: Any, cap: int, index: dict[str, Any]) -> bool:
+    if len(items) >= cap:
+        index["truncated"] = True
+        return False
+    items.append(item)
+    return True
+
+
+def read_tools_index(path: Path) -> dict[str, Any]:
+    """Copy a bounded index of read, search, and shell tool calls from a log.
+
+    Only `type == tool_call` objects are considered. Result bodies, thinking
+    text, and unknown tool shapes are skipped. A missing file is an empty index,
+    not an error. Caps are hard: extra entries set `truncated` and are not
+    appended. This projection is not a judgement of DONE, 402, or role
+    compliance.
+    """
+    index: dict[str, Any] = {
+        "reads": [],
+        "searches": [],
+        "shells": [],
+        "truncated": False,
+    }
+    if not path.is_file():
+        return index
+    seen_reads: set[str] = set()
+    try:
+        handle = path.open("rb")
+    except FileNotFoundError:
+        return index
+    with handle:
+        for raw in handle:
+            try:
+                event = json.loads(raw)
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                continue
+            if not isinstance(event, dict) or event.get("type") != "tool_call":
+                continue
+            tool_call = event.get("tool_call")
+            if not isinstance(tool_call, dict):
+                continue
+            subtype = event.get("subtype")
+            for name, payload in tool_call.items():
+                if not isinstance(name, str) or not name.endswith("ToolCall"):
+                    continue
+                if not isinstance(payload, dict):
+                    continue
+                args = payload.get("args")
+                if not isinstance(args, dict):
+                    continue
+                lowered = name.lower()
+                if subtype == "started" and "read" in lowered:
+                    path_value = args.get("path")
+                    if not isinstance(path_value, str) or path_value in seen_reads:
+                        continue
+                    if _append_capped(index["reads"], path_value, TOOLS_READ_CAP, index):
+                        seen_reads.add(path_value)
+                elif subtype == "started" and any(
+                    token in lowered for token in ("grep", "glob", "search")
+                ):
+                    _append_capped(
+                        index["searches"],
+                        {
+                            "pattern": _first_str(args, "pattern", "globPattern"),
+                            "path": _first_str(
+                                args, "path", "targetDirectory", "target_directory"
+                            ),
+                        },
+                        TOOLS_SEARCH_CAP,
+                        index,
+                    )
+                elif subtype == "completed" and "shell" in lowered:
+                    exit_code = _shell_exit_code(payload.get("result"))
+                    if exit_code is None:
+                        continue
+                    command = args.get("command")
+                    if not isinstance(command, str):
+                        command = ""
+                    _append_capped(
+                        index["shells"],
+                        {
+                            "exit_code": exit_code,
+                            "command": command[:TOOLS_COMMAND_CHARS],
+                        },
+                        TOOLS_SHELL_CAP,
+                        index,
+                    )
+    return index
+
+
 def pid_alive(pid: int | None) -> bool | None:
     """Whether `os.kill(pid, 0)` can still see that process.
 
@@ -701,11 +819,11 @@ def read_status(
 ) -> dict[str, Any]:
     """Read-only facts about one attempt, plus one bounded log window on request.
 
-    Nothing here launches, writes, retries, or checks a billing state, and
-    nothing here interprets a log: a provider event's `type`, a `DONE` in the
-    text, and a `402` in the text are bytes at an offset and nothing more. The
-    default payload never carries a log body, because a controller asking how an
-    attempt is doing must not pay for the transcript to find out.
+    Nothing here launches, writes, retries, or checks a billing state. The
+    default payload copies a bounded tools index from `tool_call` objects; it
+    does not judge DONE, 402, or role compliance, and it never carries a log
+    body, because a controller asking how an attempt is doing must not pay for
+    the transcript to find out.
     """
     if stream is not None and stream not in STREAM_FILES:
         raise ValueError(f"stream must be one of {sorted(STREAM_FILES)}")
@@ -730,6 +848,7 @@ def read_status(
         # value: nothing here interprets a log body to produce it.
         "session_id": metadata.get("session_id") if metadata is not None else None,
         "pid_alive": pid_alive(metadata.get("pid") if metadata else None),
+        "tools": read_tools_index(attempt / STDOUT_NAME),
         "stdout_bytes": _log_size(attempt / STDOUT_NAME),
         "stderr_bytes": _log_size(attempt / STDERR_NAME),
         "report_exists": (attempt / REPORT_NAME).is_file(),

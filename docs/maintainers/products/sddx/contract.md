@@ -228,11 +228,11 @@ worktree `.superpowers/` 아래의 새 디렉터리여야 하며, 러너는 그�
 resolver `model_ids`에서 고른 `--model`을 요구하고 `--sandbox-profile`을
 거부합니다.
 
-시도 조회는 `scripts/run_worker.py status`뿐입니다. 읽기 전용이며 아무것도
-해석하지 않습니다. 기본 응답은 메타데이터, 로그 크기, `report.md` 존재 여부이고
-로그 본문은 포함하지 않습니다. 본문 창은 `--stream`이 있어야 하며 기본
-2048바이트, 최대 8192바이트, JSON 응답 전체는 64 KiB로 제한됩니다. 로그 전체를
-세션에 출력하지 않습니다.
+시도 조회는 `scripts/run_worker.py status`뿐입니다. 읽기 전용입니다. 기본 응답은
+메타데이터, 로그 크기, `report.md` 존재 여부, `pid_alive`, `tools`이고 로그
+본문은 포함하지 않습니다. 역할 준수는 컨트롤러가 판정합니다. 본문 창은 `--stream`이
+있어야 하며 기본 2048바이트, 최대 8192바이트, JSON 응답 전체는 64 KiB로
+제한됩니다. 로그 전체를 세션에 출력하지 않습니다.
 
 `run.json`은 프로세스 사실만 담습니다. `schema_version` 2와 함께 `backend`,
 `identity`, `model`, `worktree`, `attempt_dir`, `brief_sha256`, `resume_id`,
