@@ -385,10 +385,10 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Finding classes", "2a0892a5aad034ceaf1218606d657f4b22bac89c0d2b67065b7018e811a44352"),
     ("### Conditional risk triggers", "346cdfb0c5a7df8461c7de1f7f217b499c29add6a0a2a7e88fea58449e6d223d"),
     ("### Verdicts", "e10d17f98e43decb9c74d80c786cee849be897de0082d3c60417da619482a3e4"),
-    ("### Freshness", "a0d0c760e3f102d2bbb66795d9be077adc7da4801a106a7152a02fcd2cd88bde"),
+    ("### Freshness", "3e3515d3cfc6dac6dbfec29baa538bcc7d01f13b405a0c337a086fea3f6c74ff"),
     ("### SDD handoff", "2e0fcc729cb4455863165138c0f96256b27ddf9d4460c2f7a5ce51660806d9da"),
 )
-MAINTAINER_CANONICAL_DIGEST = "4152718efa4c8c73744254ffdcdffafe5d5976971d962fb2da54f8f5acf52290"
+MAINTAINER_CANONICAL_DIGEST = "e1e626a621684a2190ee386b76bc79a61d532a3cce1b8b90582c0f4a349e4efa"
 TESTING_CANONICAL_DIGEST = "d3d4c3f248188c6ff80255774ef4d34bb8d0cbb7c8bc74fd92802a0fef186b0e"
 COMPATIBILITY_CANONICAL_DIGEST = "db8d19d45ca4f6748b73ace65da5e5e965f0e7002a6b0395bf563f524a424480"
 RELEASE_CANONICAL_DIGEST = "a9cd12baf31dbe408975c23bbbec9f860b0e3b58e787aefee5a9cb27c18a3e67"
@@ -1070,7 +1070,9 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("If the first review has zero findings, skip repair and closure", skill)
         self.assertIn("`repair_passes` counts only passes that produced at least one `repaired` finding", skill)
         self.assertIn("does not copy a previous finding's `repair_pass`", skill)
-        self.assertIn("summary --last 20", contract)
+        self.assertIn("summary --repo", contract)
+        self.assertIn("`execution`이 `blocked`", re.sub(r"\s+", " ", contract))
+        self.assertNotIn("summary --last 20", contract)
         self.assertIn("겹치지 않고", contract)
         self.assertIn("첫 검토에서 발견이 없으면", contract)
         self.assertIn("`repair_passes`는 실제로 `repaired` 발견이 나온 패스만", contract)
@@ -1388,6 +1390,10 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("관찰 이상", normalized_contract)
         self.assertIn("이상이 판정을 바꾸지는 않습니다", normalized_contract)
         self.assertIn("답을 넣어 재질의", normalized_contract)
+        self.assertIn("`finish`가 돌려준 관찰 이상(`anomalies`)", normalized_contract)
+        self.assertIn("빠진 필드 이름만", normalized_contract)
+        self.assertIn("`Anomalies:`", korean)
+        self.assertIn("`Anomalies:` line", re.sub(r"\s+", " ", english))
 
         self.assertIn("관찰 이상", korean)
         self.assertIn("이상이 판정을 바꾸지는 않습니다", re.sub(r"\s+", " ", korean))

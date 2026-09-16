@@ -83,8 +83,8 @@ $pre-sdd-review review-only docs/history/specs/<design>.md docs/history/plans/<p
 - `REVISE`: 고칠 수 있는 중요한 문서 결함이 남았습니다.
 - `BLOCKED`: 필요한 입력·권위·저장소 증거가 없습니다.
 
-`READY` 보고에는 이 검토의 관찰 이상 이름을 적습니다. 이상이 판정을
-바꾸지는 않습니다.
+`READY` 보고에는 `finish`가 돌려준 관찰 이상을 `Anomalies:` 줄로 적습니다.
+이상이 판정을 바꾸지는 않습니다.
 
 한 호출은 발견 1회와 제한된 재검토로 끝납니다. 첫 검토에서 발견이 없으면
 수리와 재검토를 건너뛰고 `READY`입니다. 여러 계획을 나눈 호출은 한 호스트에서
