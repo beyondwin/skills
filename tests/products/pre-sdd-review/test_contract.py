@@ -39,7 +39,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "74a63c9fe92361fc5f61abbc0fba198b5de7575fa9248fdc19ebbe5eb8191e31",
+    "SKILL.md": "91d18942e312fd32260ff35c70e1290a6c15dc43ae3a79a55e434a79b547834b",
     "references/reviewer-protocol.md": (
         "e9df34684a95105c8efcc460943de427482b66c59913bc5dc2f9391a072bd0af"
     ),
@@ -1060,7 +1060,9 @@ class PreSddReviewContractTests(unittest.TestCase):
 
         self.assertIn("one discovery stage", skill)
         self.assertIn("발견 단계 한 번", contract)
-        self.assertIn("summary --last 20", skill)
+        self.assertIn("summary --repo <repo display name>", skill)
+        self.assertIn("Never reuse a handoff whose `execution` is `blocked`", skill)
+        self.assertNotIn("summary --last 20", skill)
         self.assertIn("same `repo` display name and plan path are `pending`", skill)
         self.assertIn("do not overlap them", skill)
         self.assertIn("do not use the controlling agent as a substitute independent primary", skill)
@@ -1314,8 +1316,9 @@ class PreSddReviewContractTests(unittest.TestCase):
             "Do not start SDD unless the outer request explicitly asks for implementation",
             normalized_handoff,
         )
-        self.assertIn("After `finish`, read `summary --last 20`", normalized_handoff)
-        self.assertIn("observation anomalies", normalized_handoff)
+        self.assertIn("Print the `anomalies` list that `finish` returned", normalized_handoff)
+        self.assertIn("`Anomalies: not_recorded`", normalized_handoff)
+        self.assertNotIn("summary --last", normalized_handoff)
         self.assertIn("Anomalies do not change the verdict", normalized_handoff)
 
     def test_evidence_guidance_stays_out_of_reviewer_protocol_and_mutation_authority(self) -> None:
@@ -1344,15 +1347,27 @@ class PreSddReviewContractTests(unittest.TestCase):
         normalized_flags = re.sub(r"\s+", " ", flags)
         for phrase in (
             "Resume a reviewer by naming findings, paths, symbols, or fixes",
-            "Start a new review when current hashes still match a REVISE or BLOCKED `sha_end`",
+            "Start a new review when documents, `HEAD`, and the request are all unchanged since a `full` or `degraded` REVISE or BLOCKED run",
+            "Reuse a handoff from an `execution=blocked` run, or reuse any handoff on document hashes alone",
             "Dispatch a second reviewer, or record `reviewers: 2`, with no risk trigger",
             "Return or accept a finding summary instead of complete PSDR records",
-            "Print `READY` without this run's observation anomalies",
+            "Print `READY` without the `Anomalies:` line from `finish`",
             "Commit before `finish`",
             "Cite `repo-reality` with only the reviewed design or plan paths",
             "Put source text in an evidence paraphrase",
         ):
             self.assertIn(phrase, normalized_flags)
+
+        select = section(skill, "## Select reviewers", "## Default mode")
+        normalized_select = re.sub(r"\s+", " ", select)
+        self.assertIn(
+            "ask that reviewer once for the complete records, naming only the missing fields",
+            normalized_select,
+        )
+        self.assertIn(
+            "Do not name suspected findings, paths, symbols, or fixes in that request",
+            normalized_select,
+        )
 
         normalized_protocol = re.sub(r"\s+", " ", protocol)
         self.assertIn(
