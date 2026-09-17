@@ -54,7 +54,9 @@ worktree를 만들고 Git 경로 계산, 기존 TOML 원문 복원, 재진입, �
 backend별 `--model`/`--sandbox-profile` 배타, `run.json` 필드(`skill_version`
 포함)와 상태, 실행 중 `session_id` 기록, 래퍼 SIGTERM → `interrupted`,
 래퍼 exit 규칙, 닫힌 stdin, 시도 경로 거절을 검사합니다.
-`tests/products/sddx/test_worker_status.py`는 읽기 전용 응답, `pid_alive`,
+`tests/products/sddx/test_worker_status.py`는 `stale`(running인데 pid가 없을
+때만 true), `session_id_in_log`(기록에 ID가 없을 때만 채움), 읽기 전용 응답,
+`pid_alive`,
 bounded tools index, 기본 응답에 로그 본문이 없다는 점, 너무 깊은 JSON 줄
 건너뛰기, `--stream` 기본 2048·최대 8192바이트, 64 KiB 응답 상한, offset
 처리를 검사합니다. 어느 검사도 공급자를 호출하지 않습니다.

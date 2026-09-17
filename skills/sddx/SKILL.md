@@ -11,8 +11,9 @@ metadata:
 # SDDx
 
 Use installed Superpowers `subagent-driven-development` for the workflow.
-SDDx overrides implementer dispatch, reviewer model/effort selection, and
-worker evidence checks below. Keep the remaining SDD workflow unchanged.
+SDDx overrides implementer dispatch, reviewer model/effort selection, worker
+evidence checks, and plan-scope authorization below. Keep the remaining SDD
+workflow unchanged.
 
 <HARD-GATE>
 Do not copy Superpowers SDD into this skill.

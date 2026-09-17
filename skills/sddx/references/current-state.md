@@ -50,12 +50,16 @@ worktree, HEAD, attempt path, and session ID for this run.
 - `Task`, `fix round`, `attempt` — the task ID, the current fix-round count,
   and the attempt directory of the latest run.
 - `Worker session` — the confirmed provider session ID from `status` /
-  `run.json`, including while `state` is `running`, or `none`. Never
-  record an unconfirmed ID, and never carry one across a backend change.
+  `run.json`, including while `state` is `running`, or `none`. `status`
+  offers `session_id_in_log` when the record holds none; an ID confirmed that
+  way is recordable. Never record an unconfirmed ID, and never carry one
+  across a backend change.
 - `Review host`, `model`, `effort` — how reviews are actually dispatched, with
   any host limit. Written once and updated only when it changes.
 - `Open findings` — a link to unresolved review findings, or `none`.
-- `Authorized scope` — what the user has approved for this run.
+- `Authorized scope` — what the user has approved for this run, including the
+  answer to the plan-scope question for any task the plan does not name. A
+  standing "run to the end" covers the plan's tasks only.
 - `Host checks pending` — host-only verification the worker cannot run, or
   `none`.
 - `Next action` — the single next step.

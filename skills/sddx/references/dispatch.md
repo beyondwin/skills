@@ -230,13 +230,18 @@ for native reviewers.
 `status` is read-only. Ask it instead of dumping the log.
 
 The default answer is metadata, log sizes, whether `report.md` exists,
-`pid_alive`, and a bounded tools index — never a log body. Role compliance is
-still the controller's.
+`pid_alive`, `stale`, `session_id_in_log`, and a bounded tools index — never a
+log body. Role compliance is still the controller's.
 
 - `session_id` is the first id already copied into `run.json`, including while
-  `state` is `running`. Status does not invent one from the log.
+  `state` is `running`. Status does not put one there from the log.
+- `session_id_in_log` is the id the log reports, offered only when the record
+  holds none, and `null` otherwise. Resume from it instead of re-running a task
+  whose runner was killed before it could record the session.
 - `pid_alive` is whether the recorded pid is still alive. `state: running` and
   `pid_alive: false` means the record is stale; status does not rewrite it.
+- `stale` is that judgement, already made: true only for `running` with no live
+  process. It is not written to `run.json` either.
 - `tools` holds `reads` (paths), `searches` (`pattern` / `path`), `shells`
   (`exit_code` / `command`), and `truncated`. Caps are 64 / 32 / 32 / 200
   command characters. Unknown tool shapes are empty lists, not an error.

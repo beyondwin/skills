@@ -236,7 +236,8 @@ resolver `model_ids`에서 고른 `--model`을 요구하고 `--sandbox-profile`�
 세션 ID, 어떤 파일을 읽었는지는 이 명령으로만 봅니다. 로그 전체를 세션에 붙이지
 않습니다.
 
-기본 응답은 메타데이터, 로그 크기, `report.md` 존재 여부, `pid_alive`, `tools`입니다.
+기본 응답은 메타데이터, 로그 크기, `report.md` 존재 여부, `pid_alive`, `stale`,
+`session_id_in_log`, `tools`입니다.
 로그 본문은 없습니다. 역할 준수(플랜을 읽었는지, DONE인지)는 컨트롤러가 판정합니다.
 본문 창은 `--stream`이 있어야 하며 기본 2048바이트, 최대 8192바이트, JSON 응답
 전체는 64 KiB입니다.
@@ -248,6 +249,12 @@ resolver `model_ids`에서 고른 `--model`을 요구하고 `--sandbox-profile`�
 - `pid_alive`는 기록된 pid가 지금 살아 있는지입니다. `run.json`에는 넣지 않습니다.
   `state`가 `running`인데 `pid_alive`가 false면 기록만 남은 겁니다. status는 그
   기록을 `interrupted`로 고치지 않습니다.
+- `stale`은 그 판정 자체입니다. `state`가 `running`이고 `pid_alive`가 false일 때만
+  true입니다. 종료 상태이거나 기록이 없으면 false이며, `run.json`에는 넣지 않습니다.
+- `session_id_in_log`는 기록에 ID가 없을 때만 로그가 보고한 ID를 함께 보여 줍니다.
+  기록에 ID가 있으면 `null`입니다 — `session_id`가 재개의 단일 값이라는 규칙은
+  그대로이고, 두 값이 엇갈릴 일이 없습니다. 러너가 기록하기 전에 죽어도 워커 세션을
+  재개할 수 있게 하려는 것이며, `run.json`에 쓰지 않습니다.
 - `tools`는 로그에서 복사한 짧은 목록입니다. `reads`(경로), `searches`(검색어·경로),
   `shells`(종료 코드·명령), `truncated`. 파일 내용, stdout, stderr, thinking은
   없습니다. 한도: 읽기 64, 검색 32, 셸 32, 명령 200자. 알 수 없는 도구 모양은
