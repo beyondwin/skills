@@ -38,6 +38,8 @@ DEFAULT_KEYS = {
     "stdout_bytes",
     "stderr_bytes",
     "report_exists",
+    "stale",
+    "session_id_in_log",
 }
 WINDOW_KEYS = {
     "stream",
@@ -808,6 +810,80 @@ class StatusCommandTests(StatusFixture):
         with self.no_subprocess(module):
             code, _, _ = self.cli(module, ["status", "--attempt-dir", str(self.attempt)])
         self.assertEqual(code, 0)
+
+
+class StaleAttemptTests(StatusFixture):
+    """A record left at `running` by a runner that was killed before it could finish."""
+
+    def test_running_without_a_live_pid_is_reported_stale(self) -> None:
+        # The live failure: a hard-killed runner leaves `state: running` forever.
+        # SKILL.md already tells a controller to treat that as stale; a controller
+        # that has to remember the rule is one that can forget it.
+        self.write_metadata(state="running", pid=1, exit_code=None, ended_at=None)
+        module = self.load()
+        with mock.patch.object(module, "pid_alive", return_value=False):
+            payload = module.read_status(self.attempt)
+        self.assertIs(payload["stale"], True)
+        # The record itself is untouched: `status` reports, it never rewrites.
+        self.assertEqual(payload["metadata"]["state"], "running")
+
+    def test_running_with_a_live_pid_is_not_stale(self) -> None:
+        self.write_metadata(state="running")
+        module = self.load()
+        with mock.patch.object(module, "pid_alive", return_value=True):
+            payload = module.read_status(self.attempt)
+        self.assertIs(payload["stale"], False)
+
+    def test_a_terminal_state_is_never_stale(self) -> None:
+        for state in ("exited", "interrupted", "timed_out", "launch_failed"):
+            with self.subTest(state=state):
+                self.write_metadata(state=state, exit_code=0)
+                module = self.load()
+                with mock.patch.object(module, "pid_alive", return_value=False):
+                    payload = module.read_status(self.attempt)
+                self.assertIs(payload["stale"], False)
+
+    def test_a_missing_record_is_not_called_stale(self) -> None:
+        module = self.load()
+        payload = module.read_status(self.attempt)
+        self.assertIsNone(payload["metadata"])
+        self.assertIs(payload["stale"], False)
+
+
+class SessionIdRecoveryTests(StatusFixture):
+    """The session the worker reported, when the runner was killed before recording it."""
+
+    LINE = (
+        b'{"type":"system","subtype":"init","session_id":"6e310188-4ea0-4b5d-8e0e-63adf62f428a"}\n'
+    )
+
+    def test_session_id_is_recovered_from_the_log_when_the_record_has_none(self) -> None:
+        # Measured on a real abandoned attempt: the ID sat at byte 111 of line 1
+        # while `run.json` said null, so a resumable session was thrown away and
+        # the task was re-run from scratch.
+        self.write_metadata(session_id=None)
+        self.write_stdout(self.LINE)
+        module = self.load()
+        payload = module.read_status(self.attempt)
+        self.assertIsNone(payload["session_id"])
+        self.assertEqual(
+            payload["session_id_in_log"], "6e310188-4ea0-4b5d-8e0e-63adf62f428a"
+        )
+
+    def test_the_record_is_not_second_guessed_when_it_holds_a_session(self) -> None:
+        self.write_metadata(session_id="recorded-id")
+        self.write_stdout(self.LINE)
+        module = self.load()
+        payload = module.read_status(self.attempt)
+        self.assertEqual(payload["session_id"], "recorded-id")
+        self.assertIsNone(payload["session_id_in_log"])
+
+    def test_no_log_and_no_record_recovers_nothing(self) -> None:
+        self.write_metadata(session_id=None)
+        module = self.load()
+        payload = module.read_status(self.attempt)
+        self.assertIsNone(payload["session_id"])
+        self.assertIsNone(payload["session_id_in_log"])
 
 
 if __name__ == "__main__":

@@ -4,7 +4,9 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
-Target version `2.0.0`. No public tag or GitHub Release is created here.
+No entries yet.
+
+## 3.0.0 - 2026-09-18
 
 ### Breaking
 
@@ -27,6 +29,14 @@ Target version `2.0.0`. No public tag or GitHub Release is created here.
   the Superpowers SDD ledger. Separate controller state files are prohibited.
 - Windows is unsupported; product CLIs refuse it.
 
+- Cursor's unavailable `reason` splits the single `no_grok_model` into three.
+  `no_model_list` means no declared listing command returned a listing;
+  `model_list_unreadable` means one was returned that no model id could be read
+  from; `no_grok_model` keeps its name for the one case it was ever true of —
+  ids were read and none is Grok. Only the last says anything about which
+  models exist. A controller that matched on `no_grok_model` for any of the
+  three now has to match the reason it means.
+
 ### Added
 
 - `run.json.session_id` is copied from the worker stream as soon as it appears,
@@ -36,6 +46,21 @@ Target version `2.0.0`. No public tag or GitHub Release is created here.
 - `run_worker.py status` adds `pid_alive` and a bounded tools index (read
   paths, search patterns, shell exit codes and commands). It still does not
   include log bodies or judge role compliance.
+
+- `run_worker.py status` adds `stale` and `session_id_in_log`. `stale` is true
+  when the record says `running` and the process is gone — the judgement SKILL.md
+  asked a controller to make, made once here instead. `session_id_in_log` carries
+  the session the worker reported when the record holds none, so an attempt whose
+  runner was killed before it could write one is resumable rather than re-run from
+  scratch. Neither field is written to `run.json`; `status` still writes nothing,
+  and `session_id` keeps reporting the record's own value.
+
+- Model listings are read without their colour. Escape sequences are stripped
+  before a line is parsed, and every probe runs with `FORCE_COLOR=0`,
+  `NO_COLOR=1` and `CLICOLOR=0` while inheriting the rest of the environment.
+  A Cursor CLI that colours its id column resolved as `no_grok_model` while the
+  model was plainly listed; it now resolves normally.
+  `parse_listed_ids(text)` is the listing-wide reader `parse_model_ids` filters.
 
 - Grok workers disable imported Cursor/Claude MCP discovery in their own
   environment on both new and resumed attempts. Global settings and Cursor
@@ -97,6 +122,25 @@ Target version `2.0.0`. No public tag or GitHub Release is created here.
   saying all four combinations are `not_measured`.
 - Default `status` and the contract now describe `pid_alive` and the bounded
   tools index in the same terms the runner actually returns.
+
+- Every brief carries the plan's run-wide constraints in full under a
+  `Global constraints` heading, fix rounds included, instead of "relevant
+  constraints" chosen per task. A worker cannot read the plan, so a constraint
+  left out of the brief does not exist for it and the review reports it later as
+  a defect the worker had no way to avoid.
+
+- The native reviewer has a stated fallback order when its host cannot be
+  reached: wait for the limit to clear, then another native path on the same
+  orchestrator model, then stop and ask. Only the user's answer moves a review
+  off the native host, and the implementer's own model family is the last
+  choice even then. The host, model, and reason are recorded in the
+  current-state block and on every review line they produced.
+
+- The current-state block names when it is rewritten — before each dispatch, on
+  task completion, on a fix round opening or closing, on a ruling that changes
+  the run, and on a scope change. A field the evidence on disk contradicts is a
+  defect to fix before the next dispatch, and a superseded value is replaced
+  rather than appended.
 
 ### Fixed
 

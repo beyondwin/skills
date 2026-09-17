@@ -7,6 +7,7 @@ import json
 import os
 import shutil
 import stat
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -126,6 +127,16 @@ CURSOR_HELP_PLURAL_MODEL_ONLY = CURSOR_HELP.replace(
 
 CURSOR_MODELS = "gpt-5\ncomposer\ngrok-4\n"
 NO_GROK_MODELS = "gpt-5\ncomposer\n"
+# What the shipped CLI prints when it decides to colour its output: the same
+# listing with SGR sequences wrapped around the ID column.
+CURSOR_MODELS_ANSI = (
+    "\x1b[1mAvailable models\x1b[0m\n"
+    "\n"
+    "\x1b[36mgpt-5\x1b[39m - GPT 5\n"
+    "\x1b[36mgrok-4\x1b[39m - Grok 4\n"
+)
+# A listing whose every line is escape sequences and prose: nothing ID-shaped.
+CURSOR_MODELS_UNREADABLE = "\x1b[1mAvailable models\x1b[0m\n\nloading, please wait\n"
 PROSE_ONLY_MODELS = "Available models include grok and others\ngpt-5\n"
 
 # The shape the shipped CLI actually prints: a header, one `<id> - <Description>` line
@@ -451,6 +462,35 @@ class ResolveBackendTests(unittest.TestCase):
         ):
             with self.subTest(rejects=label):
                 self.assertEqual(module.parse_model_ids(text), [])
+
+    def test_parse_model_ids_reads_ids_wrapped_in_ansi_colour(self) -> None:
+        # Regression: `cursor-agent --list-models` colours the ID column even when
+        # its output is a pipe. The escape sequences are terminal instructions, not
+        # part of the printed ID, so a coloured listing must read exactly like the
+        # plain one. Before this, every line was dropped and the backend reported
+        # `no_grok_model` — a model that does exist, named as missing.
+        module = self._load()
+        coloured = (
+            "\x1b[1mAvailable models\x1b[0m\n"
+            "\n"
+            "\x1b[36mcursor-grok-4.6-high\x1b[39m - Cursor Grok 4.6\n"
+            "\x1b[36mcursor-grok-4.6-xhigh\x1b[39m\n"
+        )
+        self.assertEqual(
+            module.parse_model_ids(coloured),
+            ["cursor-grok-4.6-high", "cursor-grok-4.6-xhigh"],
+        )
+
+    def test_parse_listed_ids_reads_every_id_not_only_grok(self) -> None:
+        # The reason vocabulary needs to tell "no ID was readable" apart from
+        # "IDs were readable and none is Grok". Only a listing-wide read can.
+        module = self._load()
+        self.assertEqual(
+            module.parse_listed_ids(CURSOR_MODELS), ["gpt-5", "composer", "grok-4"]
+        )
+        self.assertEqual(module.parse_listed_ids(NO_GROK_MODELS), ["gpt-5", "composer"])
+        self.assertEqual(module.parse_listed_ids("\x1b[36mgpt-5\x1b[39m\n"), ["gpt-5"])
+        self.assertEqual(module.parse_listed_ids(""), [])
 
     def test_parse_model_ids_rejects_option_shaped_candidates(self) -> None:
         # `_MODEL_ID` must start alphanumeric: an ID beginning with `-` would be read
@@ -841,8 +881,50 @@ class ResolveBackendTests(unittest.TestCase):
         )
         result = self._resolve("cursor")
         self.assertFalse(result["available"])
-        self.assertEqual(result["reason"], "no_grok_model")
+        # Not `no_grok_model`: no listing was obtained, so nothing was learned
+        # about which models exist.
+        self.assertEqual(result["reason"], "no_model_list")
         self.assertEqual(self._calls(), ["models"])
+
+    def test_cursor_accepts_a_colour_coded_listing(self) -> None:
+        # The live failure this fixes: a coloured listing resolved
+        # `no_grok_model` while `cursor-grok-*` was plainly in the output.
+        self._write_cli(
+            "cursor-agent",
+            CURSOR_VERSION,
+            CURSOR_HELP_MODELS_SUBCOMMAND_ONLY,
+            {"models": (0, CURSOR_MODELS_ANSI, "")},
+        )
+        result = self._resolve("cursor")
+        self.assertIs(result["available"], True)
+        self.assertIsNone(result["reason"])
+        self.assertEqual(result["model_ids"], ["grok-4"])
+
+    def test_unreadable_listing_is_named_apart_from_a_missing_grok_model(self) -> None:
+        self._write_cli(
+            "cursor-agent",
+            CURSOR_VERSION,
+            CURSOR_HELP_MODELS_SUBCOMMAND_ONLY,
+            {"models": (0, CURSOR_MODELS_UNREADABLE, "")},
+        )
+        result = self._resolve("cursor")
+        self.assertFalse(result["available"])
+        self.assertEqual(result["reason"], "model_list_unreadable")
+        self.assertEqual(result["model_ids"], [])
+
+    def test_probe_asks_the_cli_not_to_colour_its_output(self) -> None:
+        # Belt to the parser's braces: a CLI that honours these never emits the
+        # escape sequences in the first place. The probe inherits the rest of the
+        # environment, so PATH and credentials still resolve.
+        module = self._load()
+        with mock.patch.object(module.subprocess, "run") as run:
+            run.return_value = subprocess.CompletedProcess([], 0, "", "")
+            module._probe("/usr/bin/cursor-agent", ["models"])
+        env = run.call_args.kwargs["env"]
+        self.assertEqual(env["FORCE_COLOR"], "0")
+        self.assertEqual(env["NO_COLOR"], "1")
+        self.assertEqual(env["CLICOLOR"], "0")
+        self.assertEqual(env["PATH"], os.environ["PATH"])
 
     def test_model_list_stderr_is_not_adopted(self) -> None:
         self._write_cli(
@@ -853,7 +935,9 @@ class ResolveBackendTests(unittest.TestCase):
         )
         result = self._resolve("cursor")
         self.assertFalse(result["available"])
-        self.assertEqual(result["reason"], "no_grok_model")
+        # A listing came back on the stream that is never adopted, so no ID was
+        # readable — that is unreadable, not "Grok is absent".
+        self.assertEqual(result["reason"], "model_list_unreadable")
 
     def test_model_list_falls_back_to_second_declared_alias(self) -> None:
         self._write_cli(
@@ -912,7 +996,10 @@ class ResolveBackendTests(unittest.TestCase):
         )
         result = self._resolve("cursor")
         self.assertFalse(result["available"])
-        self.assertEqual(result["reason"], "no_grok_model")
+        # The CLI declares no way to list models, so no listing was obtained and
+        # nothing was learned about Grok. Naming it `no_grok_model` would blame the
+        # model for a CLI that was never asked.
+        self.assertEqual(result["reason"], "no_model_list")
         self.assertEqual(self._calls(), [])
 
     # ------------------------------------------------------------------

@@ -354,22 +354,23 @@ class SddxContractTests(unittest.TestCase):
         )
         self.assertIn("Windows는 지원하지 않습니다", testing)
 
-    def test_unreleased_records_windows_refusal_as_breaking(self) -> None:
+    def test_changelog_records_windows_refusal_as_breaking(self) -> None:
+        # Pinned to the entry, not to `Unreleased`: cutting a release moves the
+        # section without changing what the entry has to say. What must hold is
+        # that dropping Windows is recorded as Breaking and never as a fix.
         changelog = (SKILL / "CHANGELOG.md").read_text(encoding="utf-8")
-        match = re.search(r"^## Unreleased\n(.*?)(?=^## )", changelog, re.S | re.M)
-        self.assertIsNotNone(match)
-        unreleased = match.group(1)
-        breaking = re.search(
-            r"^### Breaking\n(.*?)(?=^### |\Z)", unreleased, re.S | re.M
+        entry = "Windows is unsupported; product CLIs refuse it."
+        self.assertIn(entry, changelog)
+        # `[^\n]*` on the heading: with re.S a `.+` there swallows the whole
+        # file into one section and every assertion below passes vacuously.
+        sections = re.findall(
+            r"^(### [^\n]*)\n(.*?)(?=^#{2,3} |\Z)", changelog, re.S | re.M
         )
-        self.assertIsNotNone(breaking)
-        self.assertIn(
-            "Windows is unsupported; product CLIs refuse it.",
-            breaking.group(1),
-        )
-        fixed = re.search(r"^### Fixed\n(.*?)(?=^### |\Z)", unreleased, re.S | re.M)
-        if fixed is not None:
-            self.assertNotIn("Windows is unsupported", fixed.group(1))
+        owners = [heading for heading, body in sections if entry in body]
+        self.assertEqual(owners, ["### Breaking"])
+        for heading, body in sections:
+            if heading == "### Fixed":
+                self.assertNotIn("Windows is unsupported", body)
 
 
 def _python_fence_after(relative: str, marker: str) -> str:

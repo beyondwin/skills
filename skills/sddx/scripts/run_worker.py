@@ -810,6 +810,22 @@ def pid_alive(pid: int | None) -> bool | None:
     return True
 
 
+def _recoverable_session_id(metadata: dict[str, Any] | None, path: Path) -> str | None:
+    """The log's session ID, only when the record does not already hold one.
+
+    Read from the same bounded prefix the runner scans, so this costs no more
+    than the record already paid for. Answering `None` when the record has an ID
+    keeps `session_id` the single value to resume from: two fields that could
+    disagree would be a question, not an answer.
+    """
+    if metadata is None:
+        return None
+    recorded = metadata.get("session_id")
+    if isinstance(recorded, str) and recorded:
+        return None
+    return read_session_id(path)
+
+
 def read_status(
     attempt_dir: Path,
     *,
@@ -840,6 +856,7 @@ def read_status(
         raise ValueError("attempt directory does not exist")
 
     metadata = read_metadata(attempt / METADATA_NAME)
+    alive = pid_alive(metadata.get("pid") if metadata else None)
     payload: dict[str, Any] = {
         "attempt_dir": str(attempt),
         "metadata": metadata,
@@ -847,7 +864,17 @@ def read_status(
         # attempt reported without opening the raw log. It is still the record's
         # value: nothing here interprets a log body to produce it.
         "session_id": metadata.get("session_id") if metadata is not None else None,
-        "pid_alive": pid_alive(metadata.get("pid") if metadata else None),
+        # The session the log reports, offered only when the record has none. A
+        # runner killed before its first re-read leaves `run.json` at null while
+        # the ID is already on line one, and a controller that cannot see it
+        # re-runs a task whose worker session is still resumable. The record's own
+        # value is never overwritten or second-guessed, and nothing is written.
+        "session_id_in_log": _recoverable_session_id(metadata, attempt / STDOUT_NAME),
+        "pid_alive": alive,
+        # The rule SKILL.md states for a controller, answered here instead of
+        # remembered there: a record left at `running` by a runner that could not
+        # write a terminal state is stale, not a live worker.
+        "stale": bool(metadata) and metadata.get("state") == "running" and not alive,
         "tools": read_tools_index(attempt / STDOUT_NAME),
         "stdout_bytes": _log_size(attempt / STDOUT_NAME),
         "stderr_bytes": _log_size(attempt / STDERR_NAME),

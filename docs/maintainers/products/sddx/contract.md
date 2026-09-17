@@ -59,6 +59,14 @@ Claude Code는 Task, Codex는 `spawn_agent`입니다. 구현 worker만 외부
 사용합니다. 특정 모델 계열로 고정하거나 리뷰만 다른 모델로 내리지 않습니다.
 모델 ID를 확인할 수 없으면 상속 사실과 ID 미확인을 기록하며 추측하지 않습니다.
 
+네이티브 리뷰어 호스트에 닿지 못하면(한도 소진, spawn 불가) 리뷰는 조용히
+옮겨 가지 않습니다. 순서는 ① 막힌 조건이 풀릴 때까지 기다렸다 네이티브로 재파견,
+② 오케스트레이터 호스트가 제공하는 다른 네이티브 경로, ③ 멈추고 사용자에게
+묻기입니다. 리뷰를 네이티브 밖으로 옮기는 근거는 사용자의 답뿐이며, 그때도
+구현자와 같은 모델 계열은 마지막 선택입니다. 자기 작업을 자기가 검토하게 되면
+이 절이 지키려는 독립성이 사라집니다. 바뀐 호스트·모델·사유는 current-state
+블록과 해당 리뷰 줄마다 남깁니다.
+
 리뷰 effort는 세션 effort와 별도로 지정합니다. Claude Code에서 High는 SDD가 쓰던
 방식 그대로 `model` 인자 없이 dispatch하는 것이고, XHigh는 `model` 인자 없이
 `subagent_type`을 `sddx-reviewer-xhigh`로 지정하는 것입니다. 리뷰어에 `model`
@@ -113,7 +121,11 @@ worker와 worker가 실행한 작업이 종료된 뒤에는 성공과 실패 모
 산출물이나 커밋 대상이 아닙니다.
 
 dispatch 전 컨트롤러는 task-brief에 필요한 조건과 task 참고자료를 완결합니다.
-전체 계획을 참고자료로 전달하지 않으며 새 호출과 resume 모두에 문서 경계를
+계획이 전체 실행에 대해 한 번만 적어 두는 제약(입력 검증, 재시도·수리 한도,
+봉인·금지 입력, 고정 seed와 모델 역할)은 `Global constraints` 제목 아래 **모든**
+brief에 수정 회차까지 그대로 싣습니다. worker는 계획을 읽을 수 없으므로 brief에
+없는 제약은 worker에게 존재하지 않으며, 리뷰가 뒤늦게 worker가 피할 방법이 없던
+결함으로 보고하게 됩니다. 전체 계획을 참고자료로 전달하지 않으며 새 호출과 resume 모두에 문서 경계를
 직접 명시합니다. brief의 `Search paths:`에 구체적인 source/test 파일·디렉터리를
 적고 worker는 명시된 파일부터 직접 읽습니다. 내용 검색이 필요하면 이 경로를 도구 인자로
 지정하며, 파일 glob만으로 경로가 제한된다고 가정하지 않습니다. 검색 경로가 없으면
@@ -167,7 +179,11 @@ JSON 객체의 키는 `backend`, `available`, `executable`, `identity`,
 `model_ids`가 비어 있고, Cursor는 확인된 Grok 모델 id 목록을 돌려줍니다.
 `output_format`은 해당 호스트의 resolver가 돌려준 값을 그대로 쓰며 backend별로
 하드코딩하지 않습니다. 없는 backend의 `reason`은 `not_found`,
-`identity_mismatch`, `missing_flags`, `no_grok_model` 중 하나입니다.
+`identity_mismatch`, `missing_flags`, `no_model_list`, `model_list_unreadable`,
+`no_grok_model` 중 하나입니다. 모델 목록 관련 셋은 서로 다른 사실을 말합니다.
+`no_model_list`는 목록을 아예 얻지 못한 것, `model_list_unreadable`은 목록은
+왔으나 id를 하나도 읽지 못한 것, `no_grok_model`은 id를 읽었고 그중 Grok이
+없는 것입니다. 앞의 둘은 모델의 부재를 주장하지 않습니다.
 
 알려진 미검증 가정: Cursor의 `prompt_flag`는 `null`로 고정돼 있어
 `build_argv`(`run_worker.py:297-298`)가 prompt를 이름 없는 위치 인자로 덧붙이지만,
@@ -232,7 +248,8 @@ resolver `model_ids`에서 고른 `--model`을 요구하고 `--sandbox-profile`�
 세션 ID, 어떤 파일을 읽었는지는 이 명령으로만 봅니다. 로그 전체를 세션에 붙이지
 않습니다.
 
-기본 응답은 메타데이터, 로그 크기, `report.md` 존재 여부, `pid_alive`, `tools`입니다.
+기본 응답은 메타데이터, 로그 크기, `report.md` 존재 여부, `pid_alive`, `stale`,
+`session_id_in_log`, `tools`입니다.
 로그 본문은 없습니다. 역할 준수(플랜을 읽었는지, DONE인지)는 컨트롤러가 판정합니다.
 본문 창은 `--stream`이 있어야 하며 기본 2048바이트, 최대 8192바이트, JSON 응답
 전체는 64 KiB입니다.
@@ -244,6 +261,12 @@ resolver `model_ids`에서 고른 `--model`을 요구하고 `--sandbox-profile`�
 - `pid_alive`는 기록된 pid가 지금 살아 있는지입니다. `run.json`에는 넣지 않습니다.
   `state`가 `running`인데 `pid_alive`가 false면 기록만 남은 겁니다. status는 그
   기록을 `interrupted`로 고치지 않습니다.
+- `stale`은 그 판정 자체입니다. `state`가 `running`이고 `pid_alive`가 false일 때만
+  true입니다. 종료 상태이거나 기록이 없으면 false이며, `run.json`에는 넣지 않습니다.
+- `session_id_in_log`는 기록에 ID가 없을 때만 로그가 보고한 ID를 함께 보여 줍니다.
+  기록에 ID가 있으면 `null`입니다 — `session_id`가 재개의 단일 값이라는 규칙은
+  그대로이고, 두 값이 엇갈릴 일이 없습니다. 러너가 기록하기 전에 죽어도 워커 세션을
+  재개할 수 있게 하려는 것이며, `run.json`에 쓰지 않습니다.
 - `tools`는 로그에서 복사한 짧은 목록입니다. `reads`(경로), `searches`(검색어·경로),
   `shells`(종료 코드·명령), `truncated`. 파일 내용, stdout, stderr, thinking은
   없습니다. 한도: 읽기 64, 검색 32, 셸 32, 명령 200자. 알 수 없는 도구 모양은
@@ -293,6 +316,11 @@ ledger 첫 줄 바로 아래에 `<!-- sddx:current:start -->`와
 `<!-- sddx:current:end -->`로 감싼 블록 하나를 두고 갱신할 때마다 그 내용만
 교체합니다. 블록 아래의 완료 줄과 fix 라운드 이력은 그대로 둡니다. 블록의 필드는
 `skills/sddx/references/current-state.md`가 소유합니다.
+블록은 dispatch 직전, task 완료, fix 라운드의 개시·종료, 실행을 바꾸는 ruling,
+사용자의 범위 변경 때마다 다시 씁니다. 모든 필드는 지금의 실행을 서술하며,
+디스크의 증거(시도 디렉터리, 블록 아래 리뷰 줄, Git HEAD)와 어긋난 필드는 결함이고
+다음 dispatch보다 먼저 고칩니다. 이력은 블록 아래에 두고 블록 안에 쌓지 않습니다 —
+낡은 값은 덧붙이는 것이 아니라 교체합니다.
 `controller-current-state.md`, `controller-recovery.md` 같은 별도 상태 파일을
 만들지 않습니다. `run.json`은 한 시도의 프로세스 기록이고 ledger는 실행의
 기록이며, 둘을 양방향으로 동기화하지 않습니다.

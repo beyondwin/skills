@@ -4,15 +4,16 @@ description: Use when executing a Superpowers implementation plan with an extern
 license: Apache-2.0
 compatibility: Requires a local Git repository, an implementation plan file, and Claude Code or Codex as the orchestrator host. Implementer CLIs are optional and resolved at runtime.
 metadata:
-  version: "2.0.0"
-  updated_at: "2026-09-16"
+  version: "3.0.0"
+  updated_at: "2026-09-18"
 ---
 
 # SDDx
 
 Use installed Superpowers `subagent-driven-development` for the workflow.
-SDDx overrides implementer dispatch, reviewer model/effort selection, and
-worker evidence checks below. Keep the remaining SDD workflow unchanged.
+SDDx overrides implementer dispatch, reviewer model/effort selection, worker
+evidence checks, and plan-scope authorization below. Keep the remaining SDD
+workflow unchanged.
 
 <HARD-GATE>
 Do not copy Superpowers SDD into this skill.
@@ -49,6 +50,23 @@ Ask once, and only when one of these holds:
 
 Nothing else about the input needs a question. Do not stop on a path you can
 still resolve by asking for it once.
+
+## Plan scope
+
+The plan's task list is the authorized scope. Work the run discovers is
+outside it: a fix the plan never named, a sub-task split out of one it did,
+harness repair, instrumentation, a measurement rerun.
+
+Ask once before dispatching the first task the plan does not name. Name what
+it is, why the plan does not cover it, and what it displaces. One answer
+authorizes that line of work, not every task after it; ask again when a new
+line of work starts. Record the answer in the current-state block as
+`Authorized scope:`, and mark each such task `UNPLANNED` in its ledger
+History line so the run's own share of unplanned work stays readable.
+
+A standing instruction to run to the end without stopping covers the plan's
+tasks. It does not answer this question, because the question is about work
+that did not exist when the instruction was given.
 
 `c` means `cursor`. `g` means `grok`. Decide the backend in this order:
 
@@ -104,6 +122,14 @@ writer, no database.
 the block at about thirty lines. Link a long open item to its detail, but
 never drop it from the block.
 
+Rewrite the block before each dispatch, and again when a task completes, a fix
+round opens or closes, a ruling changes the run, or the user changes the scope.
+Every field describes the run as it is now; a field that no longer matches the
+evidence on disk — the attempt directory, the review lines below the block, the
+Git HEAD — is a defect, and fixing it comes before the next dispatch. History
+belongs below the block, never inside it: a superseded value is replaced, not
+appended.
+
 Do not create `controller-current-state.md`, `controller-recovery.md`, or any
 other parallel state file. `run.json` owns one attempt's process facts; the
 ledger owns user approval, task completion, review, and the next plan. Do not
@@ -129,6 +155,12 @@ nor UNVERIFIED permits a clean DONE. Check shell commands/results as well as
 file-read and search tools; plan excerpts in search results are prohibited
 content too. An attempted read alone does not prove content was returned.
 Give the reviewer the evidence and any discrepancy with the worker report.
+Every brief carries the plan's run-wide constraints in full under a
+`Global constraints` heading, fix rounds included, as `references/dispatch.md`
+describes. The worker cannot read the plan: a constraint that is not in the
+brief does not exist for it, and the review then reports it as a defect the
+worker was never given a way to avoid.
+
 `Search paths` limits content searches. Filename-only listings inside the
 current worktree (including its root) and direct reads of repository
 ignore/build/test configuration needed for the task are allowed inspection,
@@ -187,6 +219,24 @@ Record the review host, model, and effort confirmation once in the
 current-state block, together with its limits, and update it only when it
 changes. That includes a host that cannot confirm the model ID.
 
+When the native reviewer host cannot be reached — a rate limit, an exhausted
+quota, a host that will not spawn — reviews do not silently move. Work the
+order:
+
+1. Wait for the blocking condition to clear and re-dispatch natively. A limit
+   that resets is a wait, not a reason to change reviewers.
+2. Use another native path the orchestrator host offers, still at the
+   orchestrator's model.
+3. Stop and ask. Name the limit, what is waiting on it, and what an external
+   reviewer would cost.
+
+Only the user's answer moves a review off the native host. The implementer's
+own model family is the last choice even then: a reviewer drawn from it reviews
+its own work, which is the independence this section exists to keep. Record the
+new host, its model, and the reason in the current-state block, and name it on
+every review line it produced, so a later reader can tell which verdicts came
+from which reviewer without reconstructing the run.
+
 This section's effort escalation needs the definition to be present. It is
 absent on Codex, and on Claude Code it can be absent if the definition did not
 load. Record that constraint once for the run in the current-state block, then
@@ -214,8 +264,14 @@ and do not write a new execution script for a run. Read a running or finished
 attempt only through `run_worker.py status`, which answers with metadata,
 `pid_alive`, a bounded tools index, and optional log windows; never dump a
 whole worker log into this session. Copy `session_id` from that status — it
-is filled while `state` is still `running`. If `state` is `running` and
-`pid_alive` is false, the record is stale; do not treat it as a live worker.
+is filled while `state` is still `running`. `stale` is true when the record
+says `running` and the process is gone; that record is not a live worker.
+
+A stale attempt can still be resumable. When `session_id` is null because the
+runner was killed before it could record one, `session_id_in_log` carries the
+session the worker itself reported. Resume from it rather than re-running the
+task from scratch; a null there means nothing was reported and the fallback to
+a fresh attempt applies.
 
 There is no automatic retry anywhere in these helpers. `run.json.state` is
 process state, not task state, and process exit 0 is not a clean DONE.
@@ -277,6 +333,13 @@ explicitly after checking its ledger record and its processes. The supported OS 
 - Copying SDD into this file
 - Asking for a backend on every task
 - Stopping on a missing plan path instead of asking once
+- Dispatching a task the plan does not name without asking once
+- Reading a standing "do not stop" as authority for unplanned work
+- Re-running a task whose `session_id_in_log` was still resumable
+- A brief without the plan's run-wide constraints
+- Moving a review off the native host without asking
+- A reviewer from the implementer's own model family
+- A current-state field the evidence on disk contradicts
 - Two active plans, or a second ledger
 - Guessing a plan order from file names or dates
 - Raising effort because the design is unclear

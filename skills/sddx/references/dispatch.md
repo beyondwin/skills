@@ -11,8 +11,15 @@ Do not launch a worker from the resolver. Parse one JSON object with
 `launch`, and `model_ids`.
 
 If `available` is false, stop and report `reason`, which is one of
-`not_found`, `identity_mismatch`, `missing_flags`, or `no_grok_model`.
-`launch` is then null and `model_ids` is empty. Do not fail over.
+`not_found`, `identity_mismatch`, `missing_flags`, `no_model_list`,
+`model_list_unreadable`, or `no_grok_model`. `launch` is then null and
+`model_ids` is empty. Do not fail over.
+
+Only `no_grok_model` is about the model: IDs were read and none is Grok.
+`no_model_list` means no listing was obtained and `model_list_unreadable`
+means one was obtained that no ID could be read from — both are faults in
+the reading, so do not report a model as missing and do not rule around a
+model that is still there.
 
 When `available` is true:
 
@@ -77,8 +84,15 @@ is success, 2 is a file or argument error, and 3 is a section-selection error:
 the heading is absent, duplicated, or has an empty body. The command never
 overwrites an existing output file, so write each extraction to a new path.
 
-Include relevant constraints from the plan in the brief; do not send the plan
-itself as a reference. Source and test inspection remains available. When the
+Give every brief a `Global constraints` heading holding the plan's run-wide
+constraints in full — the ones the plan states once for the whole run rather
+than per task: input validation, retry and repair caps, sealed or forbidden
+inputs, the fixed seeds and model roles. Copy them to every brief, including
+fix rounds, and do not pare them down to the ones that look relevant to this
+task. A worker cannot read the plan, so a constraint left out of the brief
+does not exist for it, and the review finds it afterwards as a defect the
+worker had no way to avoid. Task-specific constraints go with the task; do
+not send the plan itself as a reference. Source and test inspection remains available. When the
 brief lacks a required decision, complete it in the controller rather than ask
 the worker to recover it from the plan. Add `Search paths:` with concrete
 source/test file or directory paths to the brief. Keep planning documents out
@@ -223,13 +237,18 @@ for native reviewers.
 `status` is read-only. Ask it instead of dumping the log.
 
 The default answer is metadata, log sizes, whether `report.md` exists,
-`pid_alive`, and a bounded tools index — never a log body. Role compliance is
-still the controller's.
+`pid_alive`, `stale`, `session_id_in_log`, and a bounded tools index — never a
+log body. Role compliance is still the controller's.
 
 - `session_id` is the first id already copied into `run.json`, including while
-  `state` is `running`. Status does not invent one from the log.
+  `state` is `running`. Status does not put one there from the log.
+- `session_id_in_log` is the id the log reports, offered only when the record
+  holds none, and `null` otherwise. Resume from it instead of re-running a task
+  whose runner was killed before it could record the session.
 - `pid_alive` is whether the recorded pid is still alive. `state: running` and
   `pid_alive: false` means the record is stale; status does not rewrite it.
+- `stale` is that judgement, already made: true only for `running` with no live
+  process. It is not written to `run.json` either.
 - `tools` holds `reads` (paths), `searches` (`pattern` / `path`), `shells`
   (`exit_code` / `command`), and `truncated`. Caps are 64 / 32 / 32 / 200
   command characters. Unknown tool shapes are empty lists, not an error.
