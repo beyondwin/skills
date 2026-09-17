@@ -58,9 +58,14 @@ No entries yet.
 - Model listings are read without their colour. Escape sequences are stripped
   before a line is parsed, and every probe runs with `FORCE_COLOR=0`,
   `NO_COLOR=1` and `CLICOLOR=0` while inheriting the rest of the environment.
-  A Cursor CLI that colours its id column resolved as `no_grok_model` while the
-  model was plainly listed; it now resolves normally.
-  `parse_listed_ids(text)` is the listing-wide reader `parse_model_ids` filters.
+  The trigger is an inherited `FORCE_COLOR`: `cursor-agent` reads it before it
+  looks for a terminal, so an orchestrator that exports it makes the CLI colour
+  a pipe, and `NO_COLOR`, `CLICOLOR` and `TERM=dumb` do not override it. Every
+  id then failed to parse and the resolver answered `no_grok_model` for models
+  it had just been shown. Both layers are independent: the environment request
+  stops the colour, and the parser reads the ids even when something else forces
+  colour anyway. `parse_listed_ids(text)` is the listing-wide reader
+  `parse_model_ids` filters.
 
 - Grok workers disable imported Cursor/Claude MCP discovery in their own
   environment on both new and resumed attempts. Global settings and Cursor
