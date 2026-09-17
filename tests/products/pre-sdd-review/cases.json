@@ -103,7 +103,7 @@
     {
       "id": "summary-before-start",
       "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md with a compatible local evidence recorder after an earlier pending run for the same plan",
-      "expect": ["summary_before_start", "abandon_same_plan_pending", "reuse_unchanged_handoff"]
+      "expect": ["summary_before_start", "abandon_same_plan_pending", "reuse_only_full_or_degraded", "reuse_requires_head_and_request_unchanged"]
     },
     {
       "id": "serialize-split-plans",
@@ -127,7 +127,7 @@
     },
     {
       "id": "red-flag-anomalous-ready",
-      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md when summary lists observation anomalies for this run",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md when finish returns observation anomalies for this run",
       "expect": ["READY", "print_anomalies", "verdict_unchanged"]
     },
     {

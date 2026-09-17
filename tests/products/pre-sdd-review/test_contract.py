@@ -1196,7 +1196,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertEqual(cases["evidence-review-only"], ("review_only_receipt", "no_document_mutation"))
         self.assertEqual(cases["evidence-resolution-blocked"], ("BLOCKED", "design_omitted_from_start", "design_recorded_null"))
         self.assertEqual(cases["evidence-outcome-optional"], ("verdict_unchanged", "outcome_not_controller_duty", "one_label_after_sdd"))
-        self.assertEqual(cases["summary-before-start"], ("summary_before_start", "abandon_same_plan_pending", "reuse_unchanged_handoff"))
+        self.assertEqual(cases["summary-before-start"], ("summary_before_start", "abandon_same_plan_pending", "reuse_only_full_or_degraded", "reuse_requires_head_and_request_unchanged"))
         self.assertEqual(cases["serialize-split-plans"], ("serialize_split_plans", "no_controller_as_independent_primary", "reviewers_are_distinct_agents"))
         self.assertEqual(cases["zero-findings-skip-closure"], ("READY", "zero_findings", "skip_repair", "skip_closure"))
         self.assertEqual(cases["repair-pass-accounting"], ("repair_pass_requires_repaired_finding", "no_copied_repair_pass", "unresolved_repair_pass_null"))
