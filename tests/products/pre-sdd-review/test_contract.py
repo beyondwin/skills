@@ -71,6 +71,7 @@ CASE_IDS = (
     "repair-pass-accounting",
     "red-flag-seeded-retry",
     "red-flag-anomalous-ready",
+    "blocked-execution-restarts",
     "near-miss-write-spec",
     "near-miss-write-plan",
     "near-miss-code-review",
@@ -389,7 +390,7 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### SDD handoff", "2e0fcc729cb4455863165138c0f96256b27ddf9d4460c2f7a5ce51660806d9da"),
 )
 MAINTAINER_CANONICAL_DIGEST = "e1e626a621684a2190ee386b76bc79a61d532a3cce1b8b90582c0f4a349e4efa"
-TESTING_CANONICAL_DIGEST = "d3d4c3f248188c6ff80255774ef4d34bb8d0cbb7c8bc74fd92802a0fef186b0e"
+TESTING_CANONICAL_DIGEST = "c29160eab63c2bb1175f60e346e37bc2ff82532bd068dcda76edd32ea23dd0f0"
 COMPATIBILITY_CANONICAL_DIGEST = "db8d19d45ca4f6748b73ace65da5e5e965f0e7002a6b0395bf563f524a424480"
 RELEASE_CANONICAL_DIGEST = "a9cd12baf31dbe408975c23bbbec9f860b0e3b58e787aefee5a9cb27c18a3e67"
 
@@ -1207,6 +1208,10 @@ class PreSddReviewContractTests(unittest.TestCase):
             cases["red-flag-anomalous-ready"],
             ("READY", "print_anomalies", "verdict_unchanged"),
         )
+        self.assertEqual(
+            cases["blocked-execution-restarts"],
+            ("no_reuse_blocked_execution", "rerun_input_gates", "start"),
+        )
 
     def test_authority_and_risk_selection_are_ordered_and_conditional(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -1587,11 +1592,12 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "사용자 문서",
             "모델 응답 전체",
             "evidence.py",
+            "PRE_SDD_REVIEW_HOME",
             "not_measured",
         ):
             self.assertIn(fact, normalized_testing)
-        self.assertEqual(len(CASE_IDS), 30)
-        self.assertIn("정확히 서른 개", normalized_testing)
+        self.assertEqual(len(CASE_IDS), 31)
+        self.assertIn("정확히 서른한 개", normalized_testing)
         self.assertIn("지금은 Codex만 지원합니다", compatibility)
         self.assertIn("다른 호스트는 모두 `not_measured`", compatibility)
         self.assertIn("## 기록기 호환성", compatibility)
