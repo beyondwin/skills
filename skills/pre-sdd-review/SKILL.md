@@ -4,8 +4,8 @@ description: Use when an approved design spec and implementation plan already ex
 license: Apache-2.0
 compatibility: Requires a local Git repository, readable design and plan files, and Codex subagent support for independent review.
 metadata:
-  version: "3.0.3"
-  updated_at: "2026-09-16"
+  version: "3.0.4"
+  updated_at: "2026-09-17"
 ---
 
 # Pre-SDD Review
@@ -76,10 +76,17 @@ a path, command, interface, or blast-radius claim used as review evidence.
 Run `python3 "<skill-root>/evidence/evidence.py" --version` from the actual
 loaded skill root without installing anything. Parse its canonical JSON and
 record only when `skill_name=pre-sdd-review` and `schema=3`. When compatible,
-run `summary --last 20` before `start`. If the latest completed verdict for
-that plan is `REVISE` or `BLOCKED`, `show` that run and compare `plan.sha_end`
-and `design.sha_end` with the current documents; if they match, reuse the
-prior handoff and do not start a new review. Otherwise call `start` before semantic review with the skill root, the repository, the
+run `summary --repo <repo display name>` before `start` and locate this plan
+in `runs` and `chains`. Close any `pending` run for this plan first. If the
+latest completed verdict for that plan is `REVISE` or `BLOCKED`, `show` that
+run. Never reuse a handoff whose `execution` is `blocked`: that run dispatched
+no reviewer, so re-run the input gates (`**Spec:**` resolution and the required
+implementation base) and call `start` if they pass. For a `full` or `degraded`
+run, reuse the prior handoff without a new review only when `plan.sha_end` and
+`design.sha_end` match the current documents, `git.head_end` matches the
+current `HEAD`, and the outer request does not ask for a re-review or name
+changed authority or repository evidence. Otherwise call `start` before
+semantic review with the skill root, the repository, the
 primary plan, the design path resolved from the plan's `**Spec:**` field, the
 host client id, the host-reported model string (or `unknown`), and the mode.
 If `**Spec:**` cannot be resolved, omit `--design` and return `BLOCKED`; the
@@ -119,6 +126,11 @@ mutations. It examines only the triggered risk class.
 
 The controller deduplicates all findings by evidence and consequence before
 repair. Reviewers never edit files.
+
+If a reviewer returns a summary, or a record missing any PSDR field, ask that
+reviewer once for the complete records, naming only the missing fields. Do not
+name suspected findings, paths, symbols, or fixes in that request. Never
+accept a summary as findings.
 
 Across the entire invocation, use at most two review roles: one primary role
 and, when triggered, one focused risk role. A fresh re-review may replace the
@@ -219,8 +231,10 @@ complete.
 
 Do not automatically start another invocation after `REVISE` or `BLOCKED`.
 A later invocation requires an explicit outer request or changed document,
-authority, or repository evidence. If none changed, reuse the prior handoff
-instead of repeating the same review.
+authority, or repository evidence. When none changed, reuse the prior handoff
+instead of repeating the same review, subject to the reuse rule above: never
+for an `execution=blocked` run, and for a `full` or `degraded` run only when
+the documents, `HEAD`, and the request are all unchanged.
 
 Include a compact pass receipt in the final report: input and final document
 hashes, pass number, finding IDs/classes, triggered repair-impact categories,
@@ -228,9 +242,11 @@ changed document hashes, and verdict. Do not persist user documents or full
 model responses merely to create the receipt.
 
 For `READY`, print the exact resolved design and plan paths and their final
-fingerprints, together with the freshness record. After `finish`, read
-`summary --last 20` and print this run's observation anomalies. Anomalies
-do not change the verdict. Do not start SDD unless the outer request explicitly asks for implementation. In that combined request,
+fingerprints, together with the freshness record. Print the `anomalies` list
+that `finish` returned for this run as `Anomalies: <names>`, or
+`Anomalies: none` when it is empty. When the recorder was not used or
+`finish` failed, print `Anomalies: not_recorded`. Do not look this run up in
+a windowed `summary`. Anomalies do not change the verdict. Do not start SDD unless the outer request explicitly asks for implementation. In that combined request,
 hand the SDD worker the final repaired documents, not the pre-review copies.
 
 ## Do not use this skill for
@@ -242,10 +258,11 @@ proofread, publish a release, or make an accepted product decision.
 ## Red flags
 
 - Resume a reviewer by naming findings, paths, symbols, or fixes
-- Start a new review when current hashes still match a REVISE or BLOCKED `sha_end`
+- Start a new review when documents, `HEAD`, and the request are all unchanged since a `full` or `degraded` REVISE or BLOCKED run
+- Reuse a handoff from an `execution=blocked` run, or reuse any handoff on document hashes alone
 - Dispatch a second reviewer, or record `reviewers: 2`, with no risk trigger
 - Return or accept a finding summary instead of complete PSDR records
-- Print `READY` without this run's observation anomalies
+- Print `READY` without the `Anomalies:` line from `finish`
 - Commit before `finish`
 - Cite `repo-reality` with only the reviewed design or plan paths
 - Put source text in an evidence paraphrase

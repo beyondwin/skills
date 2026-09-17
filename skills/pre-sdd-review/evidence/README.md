@@ -56,7 +56,7 @@ is not a supported OS; this uses POSIX `fcntl.flock`.
 | --- | --- | --- |
 | `--version` | none | Print the canonical schema 3 handshake |
 | `start` | `--skill-root --repo --plan [--design] --client --model --mode` | Create the identity if needed, hash documents, read Git state, write a checkout-bound `pending` record, print `run_id` |
-| `finish` | `--run-id --repo` and one JSON object on stdin | Require the original checkout binding, recompute end hashes and Git state, validate, write `completed` |
+| `finish` | `--run-id --repo` and one JSON object on stdin | Require the original checkout binding, recompute end hashes and Git state, validate, write `completed`, print `run_id`, `verdict`, and this run's `anomalies` |
 | `abandon` | `--run-id --reason` | Close a schema 3 pending run; reason is `user-cancelled`, `input-changed`, `scope-changed`, `input-format-fixed`, or `other` |
 | `outcome` | `--run-id --label [--note]` | Record `good`, `false-ready`, `noisy`, or `abandoned` on a completed schema 3 run; may be re-recorded |
 | `show` | `--run-id` | Validate the record, then return its original bytes unchanged |
@@ -80,9 +80,13 @@ rewrite or override the semantic verdict.
 
 ## Reading the log
 
-The log is for agents. Before `start`, run `summary --last 20`. Close a
-same-plan `pending` run; if the latest `REVISE` or `BLOCKED` hashes still
-match, reuse that handoff. `summary` returns `runs`, `counts`, `cost`, `chains`
+The log is for agents. Before `start`, run `summary --repo <display name>`
+and find the plan in `runs` and `chains`. Close a same-plan `pending` run.
+Never reuse the handoff of a run whose `execution` is `blocked`; for a `full`
+or `degraded` `REVISE` or `BLOCKED` run, reuse it only when its document
+hashes, `git.head_end`, and the request are all unchanged. After `finish`,
+print the `anomalies` it returned; do not look the run up in a windowed
+`summary`. `summary` returns `runs`, `counts`, `cost`, `chains`
 (checkout-bound plans reviewed more than once), `findings` (with
 `repeated_patterns`), and `anomalies`; every drill-down entry carries `run_id`
 values for `show`. Start from `anomalies` and `chains`.

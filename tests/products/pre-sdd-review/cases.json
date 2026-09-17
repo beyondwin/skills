@@ -18,7 +18,7 @@
     {
       "id": "missing-spec-coverage",
       "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md with an uncovered requirement",
-      "expect": ["PSDR-001", "BLOCKER", "coverage"]
+      "expect": ["PSDR-001", "IMPORTANT", "coverage"]
     },
     {
       "id": "nonexistent-command",
@@ -103,7 +103,7 @@
     {
       "id": "summary-before-start",
       "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md with a compatible local evidence recorder after an earlier pending run for the same plan",
-      "expect": ["summary_before_start", "abandon_same_plan_pending", "reuse_unchanged_handoff"]
+      "expect": ["summary_before_start", "abandon_same_plan_pending", "reuse_only_full_or_degraded", "reuse_requires_head_and_request_unchanged"]
     },
     {
       "id": "serialize-split-plans",
@@ -127,8 +127,13 @@
     },
     {
       "id": "red-flag-anomalous-ready",
-      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md when summary lists observation anomalies for this run",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md when finish returns observation anomalies for this run",
       "expect": ["READY", "print_anomalies", "verdict_unchanged"]
+    },
+    {
+      "id": "blocked-execution-restarts",
+      "request": "$pre-sdd-review review-only sample-app/design.md sample-app/plan.md after a BLOCKED run with execution=blocked whose required base now resolves and whose document hashes are unchanged",
+      "expect": ["no_reuse_blocked_execution", "rerun_input_gates", "start"]
     },
     {
       "id": "near-miss-write-spec",

@@ -23,7 +23,7 @@ from scripts.lib.product_registry import load_registry  # noqa: E402
 SKILL = ROOT / "skills" / "pre-sdd-review"
 CASES = ROOT / "tests" / "products" / "pre-sdd-review" / "cases.json"
 FIXTURES = ROOT / "tests" / "products" / "pre-sdd-review" / "fixtures"
-TARGET_VERSION = "3.0.3"
+TARGET_VERSION = "3.0.4"
 PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     {
         "CHANGELOG.md",
@@ -39,9 +39,9 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "74a63c9fe92361fc5f61abbc0fba198b5de7575fa9248fdc19ebbe5eb8191e31",
+    "SKILL.md": "28d76d280eb4fec8f0763d01a66e8a6ba6f8ffece1794cb86517a2e11396d200",
     "references/reviewer-protocol.md": (
-        "e9df34684a95105c8efcc460943de427482b66c59913bc5dc2f9391a072bd0af"
+        "340c29754305b6499efaf9cd062f59dafb390fc29e5b4c29ca0d4b56412b10d3"
     ),
 }
 CASE_IDS = (
@@ -71,6 +71,7 @@ CASE_IDS = (
     "repair-pass-accounting",
     "red-flag-seeded-retry",
     "red-flag-anomalous-ready",
+    "blocked-execution-restarts",
     "near-miss-write-spec",
     "near-miss-write-plan",
     "near-miss-code-review",
@@ -104,7 +105,7 @@ FIXTURE_CONTENTS = {
 ## Requirements
 
 - Implement `renderMessage(input: string): string` in `src/app.ts`.
-- The function returns the rendered string for the supplied input.
+- The function returns the supplied input unchanged.
 """,
         "plan.md": """# sample-app message rendering plan
 
@@ -164,7 +165,7 @@ FIXTURE_CONTENTS = {
   \"findings\": [
     {
       \"id\": \"PSDR-001\",
-      \"severity\": \"BLOCKER\",
+      \"severity\": \"IMPORTANT\",
       \"class\": \"coverage\"
     }
   ]
@@ -385,11 +386,11 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Finding classes", "2a0892a5aad034ceaf1218606d657f4b22bac89c0d2b67065b7018e811a44352"),
     ("### Conditional risk triggers", "346cdfb0c5a7df8461c7de1f7f217b499c29add6a0a2a7e88fea58449e6d223d"),
     ("### Verdicts", "e10d17f98e43decb9c74d80c786cee849be897de0082d3c60417da619482a3e4"),
-    ("### Freshness", "a0d0c760e3f102d2bbb66795d9be077adc7da4801a106a7152a02fcd2cd88bde"),
+    ("### Freshness", "3e3515d3cfc6dac6dbfec29baa538bcc7d01f13b405a0c337a086fea3f6c74ff"),
     ("### SDD handoff", "2e0fcc729cb4455863165138c0f96256b27ddf9d4460c2f7a5ce51660806d9da"),
 )
-MAINTAINER_CANONICAL_DIGEST = "4152718efa4c8c73744254ffdcdffafe5d5976971d962fb2da54f8f5acf52290"
-TESTING_CANONICAL_DIGEST = "d3d4c3f248188c6ff80255774ef4d34bb8d0cbb7c8bc74fd92802a0fef186b0e"
+MAINTAINER_CANONICAL_DIGEST = "e1e626a621684a2190ee386b76bc79a61d532a3cce1b8b90582c0f4a349e4efa"
+TESTING_CANONICAL_DIGEST = "c29160eab63c2bb1175f60e346e37bc2ff82532bd068dcda76edd32ea23dd0f0"
 COMPATIBILITY_CANONICAL_DIGEST = "db8d19d45ca4f6748b73ace65da5e5e965f0e7002a6b0395bf563f524a424480"
 RELEASE_CANONICAL_DIGEST = "a9cd12baf31dbe408975c23bbbec9f860b0e3b58e787aefee5a9cb27c18a3e67"
 
@@ -955,7 +956,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         changelog = (SKILL / "CHANGELOG.md").read_text(encoding="utf-8")
         self.assertEqual(release["version"], TARGET_VERSION)
         self.assertEqual(frontmatter["metadata"]["version"], TARGET_VERSION)
-        self.assertIn(f"## {TARGET_VERSION} - 2026-09-16", changelog)
+        self.assertIn(f"## {TARGET_VERSION} - 2026-09-17", changelog)
         self.assertIn("## 3.0.0 - 2026-09-08", changelog)
 
     def test_required_implementation_base_blocks_before_reviewer_dispatch(self) -> None:
@@ -1060,7 +1061,9 @@ class PreSddReviewContractTests(unittest.TestCase):
 
         self.assertIn("one discovery stage", skill)
         self.assertIn("발견 단계 한 번", contract)
-        self.assertIn("summary --last 20", skill)
+        self.assertIn("summary --repo <repo display name>", skill)
+        self.assertIn("Never reuse a handoff whose `execution` is `blocked`", skill)
+        self.assertNotIn("summary --last 20", skill)
         self.assertIn("same `repo` display name and plan path are `pending`", skill)
         self.assertIn("do not overlap them", skill)
         self.assertIn("do not use the controlling agent as a substitute independent primary", skill)
@@ -1068,7 +1071,9 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("If the first review has zero findings, skip repair and closure", skill)
         self.assertIn("`repair_passes` counts only passes that produced at least one `repaired` finding", skill)
         self.assertIn("does not copy a previous finding's `repair_pass`", skill)
-        self.assertIn("summary --last 20", contract)
+        self.assertIn("summary --repo", contract)
+        self.assertIn("`execution`이 `blocked`", re.sub(r"\s+", " ", contract))
+        self.assertNotIn("summary --last 20", contract)
         self.assertIn("겹치지 않고", contract)
         self.assertIn("첫 검토에서 발견이 없으면", contract)
         self.assertIn("`repair_passes`는 실제로 `repaired` 발견이 나온 패스만", contract)
@@ -1191,7 +1196,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertEqual(cases["evidence-review-only"], ("review_only_receipt", "no_document_mutation"))
         self.assertEqual(cases["evidence-resolution-blocked"], ("BLOCKED", "design_omitted_from_start", "design_recorded_null"))
         self.assertEqual(cases["evidence-outcome-optional"], ("verdict_unchanged", "outcome_not_controller_duty", "one_label_after_sdd"))
-        self.assertEqual(cases["summary-before-start"], ("summary_before_start", "abandon_same_plan_pending", "reuse_unchanged_handoff"))
+        self.assertEqual(cases["summary-before-start"], ("summary_before_start", "abandon_same_plan_pending", "reuse_only_full_or_degraded", "reuse_requires_head_and_request_unchanged"))
         self.assertEqual(cases["serialize-split-plans"], ("serialize_split_plans", "no_controller_as_independent_primary", "reviewers_are_distinct_agents"))
         self.assertEqual(cases["zero-findings-skip-closure"], ("READY", "zero_findings", "skip_repair", "skip_closure"))
         self.assertEqual(cases["repair-pass-accounting"], ("repair_pass_requires_repaired_finding", "no_copied_repair_pass", "unresolved_repair_pass_null"))
@@ -1202,6 +1207,10 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertEqual(
             cases["red-flag-anomalous-ready"],
             ("READY", "print_anomalies", "verdict_unchanged"),
+        )
+        self.assertEqual(
+            cases["blocked-execution-restarts"],
+            ("no_reuse_blocked_execution", "rerun_input_gates", "start"),
         )
 
     def test_authority_and_risk_selection_are_ordered_and_conditional(self) -> None:
@@ -1314,8 +1323,9 @@ class PreSddReviewContractTests(unittest.TestCase):
             "Do not start SDD unless the outer request explicitly asks for implementation",
             normalized_handoff,
         )
-        self.assertIn("After `finish`, read `summary --last 20`", normalized_handoff)
-        self.assertIn("observation anomalies", normalized_handoff)
+        self.assertIn("Print the `anomalies` list that `finish` returned", normalized_handoff)
+        self.assertIn("`Anomalies: not_recorded`", normalized_handoff)
+        self.assertNotIn("summary --last", normalized_handoff)
         self.assertIn("Anomalies do not change the verdict", normalized_handoff)
 
     def test_evidence_guidance_stays_out_of_reviewer_protocol_and_mutation_authority(self) -> None:
@@ -1344,15 +1354,27 @@ class PreSddReviewContractTests(unittest.TestCase):
         normalized_flags = re.sub(r"\s+", " ", flags)
         for phrase in (
             "Resume a reviewer by naming findings, paths, symbols, or fixes",
-            "Start a new review when current hashes still match a REVISE or BLOCKED `sha_end`",
+            "Start a new review when documents, `HEAD`, and the request are all unchanged since a `full` or `degraded` REVISE or BLOCKED run",
+            "Reuse a handoff from an `execution=blocked` run, or reuse any handoff on document hashes alone",
             "Dispatch a second reviewer, or record `reviewers: 2`, with no risk trigger",
             "Return or accept a finding summary instead of complete PSDR records",
-            "Print `READY` without this run's observation anomalies",
+            "Print `READY` without the `Anomalies:` line from `finish`",
             "Commit before `finish`",
             "Cite `repo-reality` with only the reviewed design or plan paths",
             "Put source text in an evidence paraphrase",
         ):
             self.assertIn(phrase, normalized_flags)
+
+        select = section(skill, "## Select reviewers", "## Default mode")
+        normalized_select = re.sub(r"\s+", " ", select)
+        self.assertIn(
+            "ask that reviewer once for the complete records, naming only the missing fields",
+            normalized_select,
+        )
+        self.assertIn(
+            "Do not name suspected findings, paths, symbols, or fixes in that request",
+            normalized_select,
+        )
 
         normalized_protocol = re.sub(r"\s+", " ", protocol)
         self.assertIn(
@@ -1367,12 +1389,25 @@ class PreSddReviewContractTests(unittest.TestCase):
             "Never put source text, prompts, or command output in Evidence paraphrases",
             normalized_protocol,
         )
+        self.assertIn(
+            "`BLOCKER`: the minimal document fix needs authority, input, or repository evidence outside the two reviewed documents, or a new product decision. Left unresolved, it forces `BLOCKED`.",
+            normalized_protocol,
+        )
+        self.assertIn(
+            "`IMPORTANT`: the minimal document fix is an authority-preserving edit within the two reviewed documents. Left unresolved, it forces `REVISE`.",
+            normalized_protocol,
+        )
+        self.assertNotIn("materially invalid or missing", normalized_protocol)
         self.assertNotIn("evidence.py", protocol)
 
         normalized_contract = re.sub(r"\s+", " ", contract)
         self.assertIn("관찰 이상", normalized_contract)
         self.assertIn("이상이 판정을 바꾸지는 않습니다", normalized_contract)
         self.assertIn("답을 넣어 재질의", normalized_contract)
+        self.assertIn("`finish`가 돌려준 관찰 이상(`anomalies`)", normalized_contract)
+        self.assertIn("빠진 필드 이름만", normalized_contract)
+        self.assertIn("`Anomalies:`", korean)
+        self.assertIn("`Anomalies:` line", re.sub(r"\s+", " ", english))
 
         self.assertIn("관찰 이상", korean)
         self.assertIn("이상이 판정을 바꾸지는 않습니다", re.sub(r"\s+", " ", korean))
@@ -1566,11 +1601,12 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "사용자 문서",
             "모델 응답 전체",
             "evidence.py",
+            "PRE_SDD_REVIEW_HOME",
             "not_measured",
         ):
             self.assertIn(fact, normalized_testing)
-        self.assertEqual(len(CASE_IDS), 30)
-        self.assertIn("정확히 서른 개", normalized_testing)
+        self.assertEqual(len(CASE_IDS), 31)
+        self.assertIn("정확히 서른한 개", normalized_testing)
         self.assertIn("지금은 Codex만 지원합니다", compatibility)
         self.assertIn("다른 호스트는 모두 `not_measured`", compatibility)
         self.assertIn("## 기록기 호환성", compatibility)

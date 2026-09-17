@@ -16,10 +16,13 @@ path plus a heading or line.
 
 Use only these severities:
 
-- `BLOCKER`: SDD cannot safely start because authority, feasibility, ordering,
-  or acceptance evidence is materially invalid or missing.
-- `IMPORTANT`: SDD could start, but the documents permit a credible wrong
-  implementation, avoidable rework, or an unverifiable acceptance claim.
+- `BLOCKER`: the minimal document fix needs authority, input, or repository
+  evidence outside the two reviewed documents, or a new product decision.
+  Left unresolved, it forces `BLOCKED`.
+- `IMPORTANT`: the minimal document fix is an authority-preserving edit within
+  the two reviewed documents. Left unresolved, it forces `REVISE`.
+
+Severity follows the minimal document fix, not the size of the defect.
 
 Use only these classes: `authority-drift`, `repo-reality`, `coverage`,
 `ordering`, and `verification-gap`.

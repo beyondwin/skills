@@ -157,19 +157,22 @@
 - Any content change to either resolved document invalidates `READY`.
 
 최종 보고는 입력·최종 문서 해시, 패스 번호, 발견 ID/분류, 영향 범위 트리거,
-바뀐 문서 해시, 판정을 담은 짧은 패스 영수증을 포함합니다. `finish` 뒤에는
-`summary --last 20`에서 이 run의 관찰 이상 이름을 그대로 적습니다. 이상이
-판정을 바꾸지는 않습니다. `REVISE`와
+바뀐 문서 해시, 판정을 담은 짧은 패스 영수증을 포함합니다. `finish`가 돌려준
+관찰 이상(`anomalies`)을 `Anomalies:` 줄로 그대로 적습니다. 비어 있으면 `none`, 기록기를
+쓰지 않았거나 `finish`가 실패했으면 `not_recorded`입니다. 이 run을 윈도우가
+있는 `summary`에서 찾지 않습니다. 이상이 판정을 바꾸지는 않습니다. `REVISE`와
 `BLOCKED`는 미해결 발견과 다음 범위를 담은 인계 묶음을 반환합니다. 새 권위가
 필요하면 판정은 `BLOCKED`입니다.
 
-검토자가 완전한 PSDR 기록 없이 요약만 내면 빠진 필드만 다시 받습니다.
-의심되는 발견·경로·심볼·수정을 답을 넣어 재질의하지 않습니다.
+검토자가 완전한 PSDR 기록 없이 요약만 내면 그 검토자에게 한 번, 빠진 필드
+이름만 들어 완전한 기록을 다시 받습니다. 의심되는 발견·경로·심볼·수정을
+답을 넣어 재질의하지 않습니다. 요약을 발견으로 받지 않습니다.
 
 권위를 보존하는 수정에는 승인 질문을 하지 않습니다. 사용자 권위가
 필요하면 필요한 결정을 승인 요청 하나로 묶습니다. `REVISE`나
-`BLOCKED` 뒤에 자동으로 다시 호출하지 않습니다. 문서, 권위,
-저장소 증거가 바뀌지 않았다면 이전 인계를 재사용합니다.
+`BLOCKED` 뒤에 자동으로 다시 호출하지 않습니다. 문서, `HEAD`, 요청이 모두
+바뀌지 않은 `full`·`degraded` run의 인계만 재사용합니다. `execution`이
+`blocked`인 run의 인계는 재사용하지 않습니다.
 
 ## 선택 기록기 계약
 
@@ -179,10 +182,13 @@
 handshake가 정확히 `skill_name=pre-sdd-review`와 `schema=3`일 때만
 기록합니다. 정규 한 줄은
 `{"cli_version":"3.0.0","schema":3,"skill_name":"pre-sdd-review"}` 뒤에
-LF 하나입니다. 호환되면 `start` 전에 `summary --last 20`을 실행합니다. 같은
-`repo` 표시 이름과 계획 경로가 `pending`이면 그 run을 `abandon`합니다. 그
-계획의 마지막 완료 판정이 `REVISE` 또는 `BLOCKED`이고 문서 해시가 같으면
-이전 인계를 재사용합니다. 아니면 의미 검토 전에 `start`하고, 판정과
+LF 하나입니다. 호환되면 `start` 전에 `summary --repo <표시 이름>`을 실행해
+`runs`와 `chains`에서 그 계획을 찾습니다. 같은 `repo` 표시 이름과 계획 경로가
+`pending`이면 그 run을 `abandon`합니다. 그 계획의 마지막 완료 판정이 `REVISE`
+또는 `BLOCKED`이면 `show`합니다. `execution`이 `blocked`이면 인계를 재사용하지
+않고 입력 게이트를 다시 확인한 뒤 `start`합니다. `full`·`degraded`이면 문서
+해시, `git.head_end`, 요청이 모두 같을 때만 이전 인계를 재사용합니다. 아니면
+의미 검토 전에 `start`하고, 판정과
 수정이 끝난 뒤 `finish`를 한 번 호출합니다. `Evidence:` 줄은 정확히
 하나입니다. 기록기가 없거나 실패하면
 `Evidence: not_recorded; reason=<code>`를 보고하며, 이 실패가

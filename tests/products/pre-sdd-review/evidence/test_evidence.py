@@ -210,7 +210,15 @@ class FinishTests(unittest.TestCase):
         payload = finish_payload(verdict="READY", review_passes=2, repair_passes=1, findings=[finding(), second])
         code, out, err = finish(self.home, self.repo, self.run_id, payload)
         self.assertEqual(code, 0, err)
-        self.assertEqual(json.loads(out), {"run_id": self.run_id, "status": "completed", "verdict": "READY"})
+        self.assertEqual(
+            json.loads(out),
+            {
+                "anomalies": ["head_changed_during_review"],
+                "run_id": self.run_id,
+                "status": "completed",
+                "verdict": "READY",
+            },
+        )
         record = load(self.home, self.run_id)
         self.assertEqual(record["status"], "completed")
         self.assertEqual((record["execution"], record["reviewers"], record["verdict"]), ("full", 1, "READY"))
@@ -317,6 +325,48 @@ class FinishTests(unittest.TestCase):
         code, _, err = finish(self.home, self.repo, self.run_id, finish_payload(repair_passes=1, findings=findings))
         self.assertEqual((code, error_code(err)), (2, "schema-invalid"))
         self.assertEqual(load(self.home, self.run_id)["status"], "pending")
+
+    def test_finish_returns_this_runs_anomalies(self) -> None:
+        code, out, err = finish(self.home, self.repo, self.run_id, finish_payload())
+        self.assertEqual((code, err), (0, ""))
+        self.assertEqual(json.loads(out)["anomalies"], [])
+
+        unusual = start(self.home, self.repo, self.skill)
+        payload = finish_payload(
+            reviewers=2,
+            findings=[finding(**{"class": "repo-reality"}, evidence=["docs/plan.md"])],
+        )
+        code, out, err = finish(self.home, self.repo, unusual, payload)
+        self.assertEqual((code, err), (0, ""))
+        self.assertEqual(
+            json.loads(out),
+            {
+                "anomalies": [
+                    "finding_repair_pass_exceeds_total",
+                    "full_reviewer_count_mismatch",
+                    "repo_reality_citing_documents_only",
+                ],
+                "run_id": unusual,
+                "status": "completed",
+                "verdict": "READY",
+            },
+        )
+        record = load(self.home, unusual)
+        self.assertEqual(
+            evidence.finding_anomalies(record),
+            [{"name": "repo_reality_citing_documents_only", "finding_id": "PSDR-001"}],
+        )
+        self.assertEqual(evidence.run_anomalies(load(self.home, self.run_id)), [])
+
+        code, out, err = run(["summary"], home=self.home, cwd=self.repo)
+        self.assertEqual((code, err), (0, ""))
+        summary = json.loads(out)
+        self.assertEqual(summary["anomalies"]["full_reviewer_count_mismatch"], [unusual])
+        self.assertEqual(
+            summary["anomalies"]["repo_reality_citing_documents_only"],
+            [{"run_id": unusual, "finding_id": "PSDR-001"}],
+        )
+        self.assertEqual(summary["counts"]["observation"], {"normal": 1, "anomalous": 1})
 
 
 class AbandonOutcomeShowTests(unittest.TestCase):
