@@ -4,6 +4,23 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 3.0.4 - 2026-09-17
+
+### Fixed
+
+- `finish` returns this run's observation anomalies; controllers print that list as an `Anomalies:` line instead of searching a windowed `summary`.
+- A handoff from an `execution=blocked` run is never reused; `full` and `degraded` handoffs are reused only when documents, `HEAD`, and the request are unchanged.
+- Controllers re-ask an incomplete reviewer once for the missing fields only.
+- Finding severity follows the minimal document fix: `BLOCKER` needs outside authority or evidence, `IMPORTANT` is repairable within the two documents.
+
+### Changed
+
+- The `missing-coverage` fixture expects `IMPORTANT`; the `ready` fixture design states the function returns its input unchanged.
+
+### Notes
+
+- Record schema and the `--version` handshake are unchanged. No GitHub tag or GitHub Release is created.
+
 ## 3.0.3 - 2026-09-16
 
 ### Fixed
