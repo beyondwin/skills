@@ -361,15 +361,16 @@ class SddxContractTests(unittest.TestCase):
         changelog = (SKILL / "CHANGELOG.md").read_text(encoding="utf-8")
         entry = "Windows is unsupported; product CLIs refuse it."
         self.assertIn(entry, changelog)
-        for heading, body in re.findall(
-            r"^(### .+)\n(.*?)(?=^### |^## |\Z)", changelog, re.S | re.M
-        ):
-            if entry in body:
-                self.assertEqual(heading, "### Breaking")
-        for _, body in re.findall(
-            r"^(### Fixed)\n(.*?)(?=^### |^## |\Z)", changelog, re.S | re.M
-        ):
-            self.assertNotIn("Windows is unsupported", body)
+        # `[^\n]*` on the heading: with re.S a `.+` there swallows the whole
+        # file into one section and every assertion below passes vacuously.
+        sections = re.findall(
+            r"^(### [^\n]*)\n(.*?)(?=^#{2,3} |\Z)", changelog, re.S | re.M
+        )
+        owners = [heading for heading, body in sections if entry in body]
+        self.assertEqual(owners, ["### Breaking"])
+        for heading, body in sections:
+            if heading == "### Fixed":
+                self.assertNotIn("Windows is unsupported", body)
 
 
 def _python_fence_after(relative: str, marker: str) -> str:
