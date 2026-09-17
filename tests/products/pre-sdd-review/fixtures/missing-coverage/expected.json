@@ -3,7 +3,7 @@
   "findings": [
     {
       "id": "PSDR-001",
-      "severity": "BLOCKER",
+      "severity": "IMPORTANT",
       "class": "coverage"
     }
   ]

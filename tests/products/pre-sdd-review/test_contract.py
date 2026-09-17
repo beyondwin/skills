@@ -41,7 +41,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
 INSTRUCTION_DOCUMENT_SHA256 = {
     "SKILL.md": "1a999be579a82b90e050f70de9e4ecfc0a0ec520863b86651b3dfc067a86ce08",
     "references/reviewer-protocol.md": (
-        "e9df34684a95105c8efcc460943de427482b66c59913bc5dc2f9391a072bd0af"
+        "340c29754305b6499efaf9cd062f59dafb390fc29e5b4c29ca0d4b56412b10d3"
     ),
 }
 CASE_IDS = (
@@ -105,7 +105,7 @@ FIXTURE_CONTENTS = {
 ## Requirements
 
 - Implement `renderMessage(input: string): string` in `src/app.ts`.
-- The function returns the rendered string for the supplied input.
+- The function returns the supplied input unchanged.
 """,
         "plan.md": """# sample-app message rendering plan
 
@@ -165,7 +165,7 @@ FIXTURE_CONTENTS = {
   \"findings\": [
     {
       \"id\": \"PSDR-001\",
-      \"severity\": \"BLOCKER\",
+      \"severity\": \"IMPORTANT\",
       \"class\": \"coverage\"
     }
   ]
@@ -1389,6 +1389,15 @@ class PreSddReviewContractTests(unittest.TestCase):
             "Never put source text, prompts, or command output in Evidence paraphrases",
             normalized_protocol,
         )
+        self.assertIn(
+            "`BLOCKER`: the minimal document fix needs authority, input, or repository evidence outside the two reviewed documents, or a new product decision. Left unresolved, it forces `BLOCKED`.",
+            normalized_protocol,
+        )
+        self.assertIn(
+            "`IMPORTANT`: the minimal document fix is an authority-preserving edit within the two reviewed documents. Left unresolved, it forces `REVISE`.",
+            normalized_protocol,
+        )
+        self.assertNotIn("materially invalid or missing", normalized_protocol)
         self.assertNotIn("evidence.py", protocol)
 
         normalized_contract = re.sub(r"\s+", " ", contract)
