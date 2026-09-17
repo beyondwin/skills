@@ -11,8 +11,15 @@ Do not launch a worker from the resolver. Parse one JSON object with
 `launch`, and `model_ids`.
 
 If `available` is false, stop and report `reason`, which is one of
-`not_found`, `identity_mismatch`, `missing_flags`, or `no_grok_model`.
-`launch` is then null and `model_ids` is empty. Do not fail over.
+`not_found`, `identity_mismatch`, `missing_flags`, `no_model_list`,
+`model_list_unreadable`, or `no_grok_model`. `launch` is then null and
+`model_ids` is empty. Do not fail over.
+
+Only `no_grok_model` is about the model: IDs were read and none is Grok.
+`no_model_list` means no listing was obtained and `model_list_unreadable`
+means one was obtained that no ID could be read from — both are faults in
+the reading, so do not report a model as missing and do not rule around a
+model that is still there.
 
 When `available` is true:
 

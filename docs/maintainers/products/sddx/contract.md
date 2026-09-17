@@ -167,7 +167,11 @@ JSON 객체의 키는 `backend`, `available`, `executable`, `identity`,
 `model_ids`가 비어 있고, Cursor는 확인된 Grok 모델 id 목록을 돌려줍니다.
 `output_format`은 해당 호스트의 resolver가 돌려준 값을 그대로 쓰며 backend별로
 하드코딩하지 않습니다. 없는 backend의 `reason`은 `not_found`,
-`identity_mismatch`, `missing_flags`, `no_grok_model` 중 하나입니다.
+`identity_mismatch`, `missing_flags`, `no_model_list`, `model_list_unreadable`,
+`no_grok_model` 중 하나입니다. 모델 목록 관련 셋은 서로 다른 사실을 말합니다.
+`no_model_list`는 목록을 아예 얻지 못한 것, `model_list_unreadable`은 목록은
+왔으나 id를 하나도 읽지 못한 것, `no_grok_model`은 id를 읽었고 그중 Grok이
+없는 것입니다. 앞의 둘은 모델의 부재를 주장하지 않습니다.
 
 알려진 미검증 가정: Cursor의 `prompt_flag`는 `null`로 고정돼 있어
 `build_argv`(`run_worker.py:297-298`)가 prompt를 이름 없는 위치 인자로 덧붙이지만,

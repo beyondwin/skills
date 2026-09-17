@@ -50,6 +50,23 @@ Ask once, and only when one of these holds:
 Nothing else about the input needs a question. Do not stop on a path you can
 still resolve by asking for it once.
 
+## Plan scope
+
+The plan's task list is the authorized scope. Work the run discovers is
+outside it: a fix the plan never named, a sub-task split out of one it did,
+harness repair, instrumentation, a measurement rerun.
+
+Ask once before dispatching the first task the plan does not name. Name what
+it is, why the plan does not cover it, and what it displaces. One answer
+authorizes that line of work, not every task after it; ask again when a new
+line of work starts. Record the answer in the current-state block as
+`Authorized scope:`, and mark each such task `UNPLANNED` in its ledger
+History line so the run's own share of unplanned work stays readable.
+
+A standing instruction to run to the end without stopping covers the plan's
+tasks. It does not answer this question, because the question is about work
+that did not exist when the instruction was given.
+
 `c` means `cursor`. `g` means `grok`. Decide the backend in this order:
 
 1. An explicit choice in this request.
@@ -214,8 +231,14 @@ and do not write a new execution script for a run. Read a running or finished
 attempt only through `run_worker.py status`, which answers with metadata,
 `pid_alive`, a bounded tools index, and optional log windows; never dump a
 whole worker log into this session. Copy `session_id` from that status — it
-is filled while `state` is still `running`. If `state` is `running` and
-`pid_alive` is false, the record is stale; do not treat it as a live worker.
+is filled while `state` is still `running`. `stale` is true when the record
+says `running` and the process is gone; that record is not a live worker.
+
+A stale attempt can still be resumable. When `session_id` is null because the
+runner was killed before it could record one, `session_id_in_log` carries the
+session the worker itself reported. Resume from it rather than re-running the
+task from scratch; a null there means nothing was reported and the fallback to
+a fresh attempt applies.
 
 There is no automatic retry anywhere in these helpers. `run.json.state` is
 process state, not task state, and process exit 0 is not a clean DONE.
@@ -277,6 +300,9 @@ explicitly after checking its ledger record and its processes. The supported OS 
 - Copying SDD into this file
 - Asking for a backend on every task
 - Stopping on a missing plan path instead of asking once
+- Dispatching a task the plan does not name without asking once
+- Reading a standing "do not stop" as authority for unplanned work
+- Re-running a task whose `session_id_in_log` was still resumable
 - Two active plans, or a second ledger
 - Guessing a plan order from file names or dates
 - Raising effort because the design is unclear

@@ -41,6 +41,15 @@ _MODEL_ID = re.compile(r"[0-9A-Za-z][0-9A-Za-z._-]*")
 # rules agree. A tab is a column gap on its own; spaces need a run of two, because a
 # single space is how prose joins words.
 _COLUMN_SEPARATOR = re.compile(r" - |\t|\s{2,}")
+# A CLI may colour the ID column even when its output is a pipe, and an escape
+# sequence is a terminal instruction, not part of the ID it wraps. The full CSI
+# form is matched, not just SGR, so a cursor-positioning sequence cannot survive
+# as an ID character either.
+_ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;?]*[ -/]*[@-~]")
+# Asked of every probe so a CLI that honours any of these never emits the
+# sequences at all. Measured on `cursor-agent --list-models`: `FORCE_COLOR=0` is
+# the one it reads. The rest cost nothing and cover the CLIs that read them.
+_COLOUR_FREE_ENV = {"FORCE_COLOR": "0", "NO_COLOR": "1", "CLICOLOR": "0"}
 
 WINDOWS_UNSUPPORTED = "Windows is not a supported OS"
 
@@ -66,6 +75,7 @@ def _probe(
             capture_output=True,
             text=True,
             timeout=timeout,
+            env={**os.environ, **_COLOUR_FREE_ENV},
         )
     except (OSError, subprocess.TimeoutExpired):
         return None
@@ -112,6 +122,29 @@ def model_list_commands(help_text: str) -> list[list[str]]:
     return commands
 
 
+def parse_listed_ids(text: str) -> list[str]:
+    """Every model ID a listing printed, in source order, without duplicates.
+
+    This owns the column rule that `parse_model_ids` documents; the only thing it
+    does not do is ask whether an ID is Grok. Reading the whole ID column is what
+    lets `resolve` tell "no ID could be read at all" apart from "IDs were read and
+    none is Grok" — two failures that look identical from a Grok-only list and need
+    opposite responses from a controller.
+
+    Escape sequences are removed before the line is read, because a CLI that
+    colours its ID column is still printing the same IDs.
+    """
+    model_ids: list[str] = []
+    for line in text.splitlines():
+        stripped = _ANSI_ESCAPE.sub("", line).strip()
+        separator = _COLUMN_SEPARATOR.search(stripped)
+        candidate = stripped[: separator.start()] if separator is not None else stripped
+        if not _MODEL_ID.fullmatch(candidate) or candidate in model_ids:
+            continue
+        model_ids.append(candidate)
+    return model_ids
+
+
 def parse_model_ids(text: str) -> list[str]:
     """Grok model IDs a listing actually printed, in source order, without duplicates.
 
@@ -124,7 +157,9 @@ def parse_model_ids(text: str) -> list[str]:
     single bare token of model-id shape (`_MODEL_ID`) that contains `grok`. The ID is
     returned exactly as printed — never synthesised, mutated or given an effort suffix;
     only the containment test is case-insensitive, so an ID printed as
-    `cursor-Grok-4.6-high` is adopted and returned with its capitals intact.
+    `cursor-Grok-4.6-high` is adopted and returned with its capitals intact. Colour
+    escape sequences are not part of what was printed: `parse_listed_ids` removes
+    them first, so a coloured listing reads exactly like its plain twin.
 
     Deciding on the ID column is what rejects a description: `composer-2.5 - Grok-like
     reasoning` and its column-gap twin mention grok only after the separator, which is
@@ -133,17 +168,7 @@ def parse_model_ids(text: str) -> list[str]:
     paragraph) carry no separator at all — single spaces join their words — so the whole
     line becomes the candidate and fails the single-token test on those spaces.
     """
-    model_ids: list[str] = []
-    for line in text.splitlines():
-        stripped = line.strip()
-        separator = _COLUMN_SEPARATOR.search(stripped)
-        candidate = stripped[: separator.start()] if separator is not None else stripped
-        if not _MODEL_ID.fullmatch(candidate):
-            continue
-        if "grok" not in candidate.lower() or candidate in model_ids:
-            continue
-        model_ids.append(candidate)
-    return model_ids
+    return [name for name in parse_listed_ids(text) if "grok" in name.lower()]
 
 
 def _is_grok_identity(text: str) -> bool:
@@ -213,14 +238,41 @@ def _cursor_flags_ok(help_text: str) -> bool:
     )
 
 
-def _cursor_model_ids(executable: str, help_text: str) -> list[str]:
+# Why no Grok ID was adopted, weakest evidence first. A later listing may only
+# replace an earlier reason with a better-evidenced one, so the answer does not
+# depend on which alias the CLI happens to declare first.
+_MODEL_LIST_REASONS = ("no_model_list", "model_list_unreadable", "no_grok_model")
+
+
+def _cursor_model_ids(executable: str, help_text: str) -> tuple[list[str], str | None]:
+    """Grok model IDs from the first usable listing, and why none was adopted.
+
+    The reason separates three failures that one empty list used to hide: no
+    listing was obtained at all, a listing came back that no ID could be read
+    from, and IDs were read and none is Grok. Only the third is about Grok. The
+    other two say nothing about which models exist, and reporting them as
+    `no_grok_model` is what sent a controller hunting for a model that was never
+    missing while the real fault was the reading.
+    """
+    reason = _MODEL_LIST_REASONS[0]
+
+    def note(candidate: str) -> None:
+        nonlocal reason
+        if _MODEL_LIST_REASONS.index(candidate) > _MODEL_LIST_REASONS.index(reason):
+            reason = candidate
+
     for arguments in model_list_commands(help_text):
         probe = _probe(executable, arguments)
-        if probe is not None and probe.returncode == 0:
-            model_ids = parse_model_ids(probe.stdout)
-            if model_ids:
-                return model_ids
-    return []
+        if probe is None or probe.returncode != 0:
+            continue
+        if not parse_listed_ids(probe.stdout):
+            note("model_list_unreadable")
+            continue
+        model_ids = parse_model_ids(probe.stdout)
+        if model_ids:
+            return model_ids, None
+        note("no_grok_model")
+    return [], reason
 
 
 def _unavailable(backend: str, reason: str) -> dict[str, Any]:
@@ -309,9 +361,9 @@ def resolve(backend_arg: str) -> dict[str, Any]:
         return _unavailable(backend, "identity_mismatch")
     if not _cursor_flags_ok(help_text):
         return _unavailable(backend, "missing_flags")
-    model_ids = _cursor_model_ids(executable, help_text)
+    model_ids, reason = _cursor_model_ids(executable, help_text)
     if not model_ids:
-        return _unavailable(backend, "no_grok_model")
+        return _unavailable(backend, reason)
     print_flag = "--print" if _declares(help_text, "--print") else "-p"
     cwd_flag = "--workspace" if _declares(help_text, "--workspace") else "--cwd"
     argv = [executable, print_flag, "--trust", "--auto-review", "--sandbox", CURSOR_SANDBOX_MODE]

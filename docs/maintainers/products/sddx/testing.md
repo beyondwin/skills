@@ -37,8 +37,12 @@ worktree를 만들고 Git 경로 계산, 기존 TOML 원문 복원, 재진입, �
 - Cursor는 headless print(`--print` 또는 `-p`), `--trust`, `--auto-review`,
   `--sandbox`, 확인된 `stream-json` 출력 형식을 모두 선언해야 한다. 하나라도
   없으면 `missing_flags`이며 force/yolo 일괄 승인으로 물러나지 않는다.
-- Cursor 모델 목록 명령이 성공해 돌려준 Grok 모델 id가 없으면
-  `no_grok_model`이다.
+- Cursor 모델 목록 명령이 성공해 id를 읽었고 그중 Grok이 없으면 `no_grok_model`
+  이다. 선언된 목록 명령이 없거나 모두 실패하면 `no_model_list`, 목록은 왔으나
+  id를 하나도 읽지 못하면 `model_list_unreadable`이다.
+- 모델 목록의 ANSI 색상 escape는 id의 일부가 아니다. 색을 입힌 목록은 평문
+  목록과 동일하게 읽힌다. 탐사는 `FORCE_COLOR=0`·`NO_COLOR=1`·`CLICOLOR=0`을
+  붙여 실행하며 나머지 환경은 그대로 상속한다.
 - Grok help에 `--cwd`가 없으면 `missing_flags`다.
 - argv에 `--worktree`와 `--plugin-dir`가 없다. Grok 고정 플래그에
   `--disable-web-search`가 있다.
