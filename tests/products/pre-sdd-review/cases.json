@@ -18,7 +18,7 @@
     {
       "id": "missing-spec-coverage",
       "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md with an uncovered requirement",
-      "expect": ["PSDR-001", "BLOCKER", "coverage"]
+      "expect": ["PSDR-001", "IMPORTANT", "coverage"]
     },
     {
       "id": "nonexistent-command",
