@@ -43,6 +43,12 @@ worktree를 만들고 Git 경로 계산, 기존 TOML 원문 복원, 재진입, �
 - 모델 목록의 ANSI 색상 escape는 id의 일부가 아니다. 색을 입힌 목록은 평문
   목록과 동일하게 읽힌다. 탐사는 `FORCE_COLOR=0`·`NO_COLOR=1`·`CLICOLOR=0`을
   붙여 실행하며 나머지 환경은 그대로 상속한다.
+  실측(cursor-agent 2026.09.15-d2fe57e): 색을 칠지는 부모 환경의 `FORCE_COLOR`가
+  먼저 정하고 그다음이 TTY 여부다. `FORCE_COLOR=1`이면 파이프에도 904개의 escape가
+  섞이며 `NO_COLOR=1`·`CLICOLOR=0`·`TERM=dumb`로는 못 막는다. 재현은 둘 중 하나다 —
+  `FORCE_COLOR=1 cursor-agent --list-models | cat -v`, 또는 `pty.spawn`으로 stdout을
+  실제 TTY로 만들기. 고치기 전 파서는 그 실제 출력에서 grok 0개, 고친 파서는 14개다.
+  두 방어층은 서로 독립이며 `test_resolve_backend.py`가 각각 고정한다.
 - Grok help에 `--cwd`가 없으면 `missing_flags`다.
 - argv에 `--worktree`와 `--plugin-dir`가 없다. Grok 고정 플래그에
   `--disable-web-search`가 있다.

@@ -912,6 +912,82 @@ class ResolveBackendTests(unittest.TestCase):
         self.assertEqual(result["reason"], "model_list_unreadable")
         self.assertEqual(result["model_ids"], [])
 
+    def _write_colour_aware_cli(self, name: str) -> Path:
+        """A CLI that colours its listing exactly the way the shipped one does.
+
+        The real `cursor-agent` decides on `FORCE_COLOR` before it decides on a
+        TTY, and `NO_COLOR`, `CLICOLOR` and `TERM=dumb` do not override it. That
+        is the shape this fixture copies, so an inherited `FORCE_COLOR=1` from
+        the orchestrator's own environment reaches a pipe as colour.
+        """
+        body = (
+            "import os, sys\n"
+            f"VERSION = {CURSOR_VERSION!r}\n"
+            f"HELP = {CURSOR_HELP_MODELS_SUBCOMMAND_ONLY!r}\n"
+            f"PLAIN = {CURSOR_MODELS!r}\n"
+            "args = sys.argv[1:]\n"
+            "if args[:1] in (['--version'], ['-v']):\n"
+            "    sys.stdout.write(VERSION)\n"
+            "    raise SystemExit(0)\n"
+            "if args[:1] in (['--help'], ['-h']) or not args:\n"
+            "    sys.stdout.write(HELP)\n"
+            "    raise SystemExit(0)\n"
+            "if args != ['models']:\n"
+            "    sys.stderr.write('unsupported invocation\\n')\n"
+            "    raise SystemExit(2)\n"
+            "forced = os.environ.get('FORCE_COLOR', '')\n"
+            "colour = forced not in ('', '0', 'false')\n"
+            "for line in PLAIN.splitlines():\n"
+            "    sys.stdout.write('\\x1b[36m' + line + '\\x1b[39m\\n' if colour else line + '\\n')\n"
+            "raise SystemExit(0)\n"
+        )
+        path = self.bindir / name
+        path.write_text(f"#!{sys.executable}\n{body}", encoding="utf-8")
+        path.chmod(path.stat().st_mode | stat.S_IXUSR)
+        return path
+
+    def test_an_inherited_force_colour_does_not_hide_the_models(self) -> None:
+        # The measured live failure. The orchestrator's environment carried
+        # `FORCE_COLOR=1`, the CLI coloured a pipe because of it, no id parsed,
+        # and the backend reported `no_grok_model` for a model that was listed.
+        # Dispatch stopped three times and the run implemented around it.
+        self._write_colour_aware_cli("cursor-agent")
+        module = self._load()
+        env = self._path()
+        env["FORCE_COLOR"] = "1"
+        with mock.patch.dict(os.environ, env, clear=False):
+            result = module.resolve("cursor")
+        self.assertIs(result["available"], True)
+        self.assertIsNone(result["reason"])
+        self.assertEqual(result["model_ids"], ["grok-4"])
+
+    def test_colour_survives_being_forced_past_the_probe_environment(self) -> None:
+        # Second layer, proven independently: even if the environment request is
+        # ignored — another CLI, another colour switch — the parser still reads
+        # the ids, so the resolver never again calls a listed model missing.
+        self._write_colour_aware_cli("cursor-agent")
+        module = self._load()
+        env = self._path()
+        env["FORCE_COLOR"] = "1"
+        original = module._probe
+
+        def probe_without_the_colour_request(executable, arguments, timeout=5.0):
+            with mock.patch.dict(os.environ, {"FORCE_COLOR": "1"}, clear=False):
+                return subprocess.run(
+                    [executable, *arguments],
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout,
+                )
+
+        with mock.patch.dict(os.environ, env, clear=False):
+            with mock.patch.object(module, "_probe", probe_without_the_colour_request):
+                result = module.resolve("cursor")
+        self.assertIs(original("/nonexistent-cli", ["models"]), None)
+        self.assertIs(result["available"], True)
+        self.assertEqual(result["model_ids"], ["grok-4"])
+
     def test_probe_asks_the_cli_not_to_colour_its_output(self) -> None:
         # Belt to the parser's braces: a CLI that honours these never emits the
         # escape sequences in the first place. The probe inherits the rest of the
