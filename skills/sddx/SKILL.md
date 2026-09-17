@@ -4,8 +4,8 @@ description: Use when executing a Superpowers implementation plan with an extern
 license: Apache-2.0
 compatibility: Requires a local Git repository, an implementation plan file, and Claude Code or Codex as the orchestrator host. Implementer CLIs are optional and resolved at runtime.
 metadata:
-  version: "2.0.0"
-  updated_at: "2026-09-16"
+  version: "3.0.0"
+  updated_at: "2026-09-18"
 ---
 
 # SDDx

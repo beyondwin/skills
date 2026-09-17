@@ -4,7 +4,9 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
-Target version `2.0.0`. No public tag or GitHub Release is created here.
+No entries yet.
+
+## 3.0.0 - 2026-09-18
 
 ### Breaking
 
