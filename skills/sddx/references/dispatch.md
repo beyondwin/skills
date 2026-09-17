@@ -84,8 +84,15 @@ is success, 2 is a file or argument error, and 3 is a section-selection error:
 the heading is absent, duplicated, or has an empty body. The command never
 overwrites an existing output file, so write each extraction to a new path.
 
-Include relevant constraints from the plan in the brief; do not send the plan
-itself as a reference. Source and test inspection remains available. When the
+Give every brief a `Global constraints` heading holding the plan's run-wide
+constraints in full — the ones the plan states once for the whole run rather
+than per task: input validation, retry and repair caps, sealed or forbidden
+inputs, the fixed seeds and model roles. Copy them to every brief, including
+fix rounds, and do not pare them down to the ones that look relevant to this
+task. A worker cannot read the plan, so a constraint left out of the brief
+does not exist for it, and the review finds it afterwards as a defect the
+worker had no way to avoid. Task-specific constraints go with the task; do
+not send the plan itself as a reference. Source and test inspection remains available. When the
 brief lacks a required decision, complete it in the controller rather than ask
 the worker to recover it from the plan. Add `Search paths:` with concrete
 source/test file or directory paths to the brief. Keep planning documents out

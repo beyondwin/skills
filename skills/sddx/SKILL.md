@@ -122,6 +122,14 @@ writer, no database.
 the block at about thirty lines. Link a long open item to its detail, but
 never drop it from the block.
 
+Rewrite the block before each dispatch, and again when a task completes, a fix
+round opens or closes, a ruling changes the run, or the user changes the scope.
+Every field describes the run as it is now; a field that no longer matches the
+evidence on disk — the attempt directory, the review lines below the block, the
+Git HEAD — is a defect, and fixing it comes before the next dispatch. History
+belongs below the block, never inside it: a superseded value is replaced, not
+appended.
+
 Do not create `controller-current-state.md`, `controller-recovery.md`, or any
 other parallel state file. `run.json` owns one attempt's process facts; the
 ledger owns user approval, task completion, review, and the next plan. Do not
@@ -147,6 +155,12 @@ nor UNVERIFIED permits a clean DONE. Check shell commands/results as well as
 file-read and search tools; plan excerpts in search results are prohibited
 content too. An attempted read alone does not prove content was returned.
 Give the reviewer the evidence and any discrepancy with the worker report.
+Every brief carries the plan's run-wide constraints in full under a
+`Global constraints` heading, fix rounds included, as `references/dispatch.md`
+describes. The worker cannot read the plan: a constraint that is not in the
+brief does not exist for it, and the review then reports it as a defect the
+worker was never given a way to avoid.
+
 `Search paths` limits content searches. Filename-only listings inside the
 current worktree (including its root) and direct reads of repository
 ignore/build/test configuration needed for the task are allowed inspection,
@@ -204,6 +218,24 @@ record an agent name or an applied effort that you did not confirm was used.
 Record the review host, model, and effort confirmation once in the
 current-state block, together with its limits, and update it only when it
 changes. That includes a host that cannot confirm the model ID.
+
+When the native reviewer host cannot be reached — a rate limit, an exhausted
+quota, a host that will not spawn — reviews do not silently move. Work the
+order:
+
+1. Wait for the blocking condition to clear and re-dispatch natively. A limit
+   that resets is a wait, not a reason to change reviewers.
+2. Use another native path the orchestrator host offers, still at the
+   orchestrator's model.
+3. Stop and ask. Name the limit, what is waiting on it, and what an external
+   reviewer would cost.
+
+Only the user's answer moves a review off the native host. The implementer's
+own model family is the last choice even then: a reviewer drawn from it reviews
+its own work, which is the independence this section exists to keep. Record the
+new host, its model, and the reason in the current-state block, and name it on
+every review line it produced, so a later reader can tell which verdicts came
+from which reviewer without reconstructing the run.
 
 This section's effort escalation needs the definition to be present. It is
 absent on Codex, and on Claude Code it can be absent if the definition did not
@@ -304,6 +336,10 @@ explicitly after checking its ledger record and its processes. The supported OS 
 - Dispatching a task the plan does not name without asking once
 - Reading a standing "do not stop" as authority for unplanned work
 - Re-running a task whose `session_id_in_log` was still resumable
+- A brief without the plan's run-wide constraints
+- Moving a review off the native host without asking
+- A reviewer from the implementer's own model family
+- A current-state field the evidence on disk contradicts
 - Two active plans, or a second ledger
 - Guessing a plan order from file names or dates
 - Raising effort because the design is unclear

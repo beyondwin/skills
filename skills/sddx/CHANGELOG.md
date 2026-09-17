@@ -121,6 +121,25 @@ Target version `2.0.0`. No public tag or GitHub Release is created here.
 - Default `status` and the contract now describe `pid_alive` and the bounded
   tools index in the same terms the runner actually returns.
 
+- Every brief carries the plan's run-wide constraints in full under a
+  `Global constraints` heading, fix rounds included, instead of "relevant
+  constraints" chosen per task. A worker cannot read the plan, so a constraint
+  left out of the brief does not exist for it and the review reports it later as
+  a defect the worker had no way to avoid.
+
+- The native reviewer has a stated fallback order when its host cannot be
+  reached: wait for the limit to clear, then another native path on the same
+  orchestrator model, then stop and ask. Only the user's answer moves a review
+  off the native host, and the implementer's own model family is the last
+  choice even then. The host, model, and reason are recorded in the
+  current-state block and on every review line they produced.
+
+- The current-state block names when it is rewritten — before each dispatch, on
+  task completion, on a fix round opening or closing, on a ruling that changes
+  the run, and on a scope change. A field the evidence on disk contradicts is a
+  defect to fix before the next dispatch, and a superseded value is replaced
+  rather than appended.
+
 ### Fixed
 
 - A recursive JSON line in `worker.jsonl` is skipped by the tools index instead
