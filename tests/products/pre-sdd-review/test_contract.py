@@ -39,9 +39,9 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "5859f86247871d225a7ee015663ae4f4182c45a6fe50cf379a28545c8d0834e4",
+    "SKILL.md": "73c1bc6b78f3b4ba6e276bea1db3b73978875ffa47766c0fec2b500b540c2b02",
     "references/reviewer-protocol.md": (
-        "3443c1157297c67022b586d7110a122c17b9256e8f3d1499d404262d8b291ea7"
+        "9e89461ada0559be3346b742cdeab547779cc6bf17f1c0ca99ce47f333c2efcd"
     ),
 }
 CASE_IDS = (
@@ -253,6 +253,7 @@ REQUIRED_SECTIONS = (
     "# Pre-SDD Review",
     "## Hard gate",
     "## Resolve authoritative inputs",
+    "## Pre-pass: shared-file ledger",
     "## Capture freshness",
     "## Optional local evidence",
     "## Select reviewers",
@@ -406,7 +407,7 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Ledger shape", "f1091388fd58d8db9f223fbd6e1457303c600107c4c89c37d1aded6caf2ae84e"),
     ("### Degraded reasons", "a71ff3ec6aaf37ac3a862f8637b0fcd66e561d3958b4b0da0aaa532ced0b28f7"),
 )
-MAINTAINER_CANONICAL_DIGEST = "90a08a153eedda50ae675776a08247ef9248bbad24f77305385b3ad50b1d4dea"
+MAINTAINER_CANONICAL_DIGEST = "95724fb6360ed39de0b1581c76cfb1a03042dc4ea9489c6f90e45c7cba151183"
 TESTING_CANONICAL_DIGEST = "eb6c73be9e8ebf9c10310fd0edb7440928d2a8554d36b756ce1390f89c6f07fa"
 COMPATIBILITY_CANONICAL_DIGEST = "db8d19d45ca4f6748b73ace65da5e5e965f0e7002a6b0395bf563f524a424480"
 RELEASE_CANONICAL_DIGEST = "a9cd12baf31dbe408975c23bbbec9f860b0e3b58e787aefee5a9cb27c18a3e67"
@@ -1379,6 +1380,10 @@ class PreSddReviewContractTests(unittest.TestCase):
             "Commit before `finish`",
             "Cite `repo-reality` with only the reviewed design or plan paths",
             "Put source text in an evidence paraphrase",
+            "Claim that a test covers something without locating that test",
+            "Apply a textual repair without asserting the match is unique",
+            "Reuse one reviewer across invocations that review different plans",
+            "Reuse a handoff from a `degraded` run",
         ):
             self.assertIn(phrase, normalized_flags)
 

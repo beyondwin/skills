@@ -232,7 +232,8 @@ Because the second condition is the closure reviewer's, pass accounting settles
 after that round's closure review, never at the moment of repair. Record such a
 repair with `repair_pass: 0`. Group them into one pass.
 
-Closure disposition is `closed`, `partially-closed`, or `open`. Record the
+Closure disposition is `closed`, `partially-closed`, or `open`, recorded as
+`repaired`, `partially-closed`, and `unresolved` respectively. Record the
 remainder of a partial closure as the original record's remaining sites, never
 as a new ID, so repair passes track defects rather than the sites a defect is
 scattered across. A finding still `partially-closed` at the end counts as
@@ -299,8 +300,9 @@ approval requests.
 
 ### Machine checks
 
-Run these over the repaired documents before dispatching the closure reviewer
-and attach the results to the `repair-impact map`.
+Run these in the pre-pass over every plan at once, and again over the
+repaired documents before dispatching the closure reviewer, attaching the
+second run's results to the `repair-impact map`.
 
 1. A declared count against the counted one: a task's stated passing count
    against its actual tests, a closed list's stated membership against its

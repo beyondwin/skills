@@ -15,13 +15,16 @@ All notable changes to this product are documented in this file.
 - 리뷰어 지시 계약. 발견 지시와 종결 지시를 나누고, 종결 지시는 앞 회차 기록
   원문과 아직 아무 기록도 가리키지 않은 Task 목록을 싣는다.
 - 되풀이된 결함 갈래 넷과 복합 제약의 증명 표.
+- `start`에 `--ledger`와 반복 가능한 `--prior-plan` 인자가 늘었다.
+- 관찰 이상에 `head_start_not_ancestor_of_head_end`와
+  `document_changed_without_repair_pass`가 늘었다.
 
 ### Changed
 
 - 수정 허용 목록이 설계·계획·원장 셋이다. 원장은 유도된 증거이지 권위가 아니다.
 - 부분 닫힘이 일급이다. 잔여는 새 ID 가 아니라 같은 기록의 남은 자리다.
 - 영향 표가 비어 있고 종결 리뷰어가 소비자 없음을 확인한 수리는 패스를 먹지
-  않는다.
+  않는다. `summary.counts.costless_repairs`가 이 수를 센다.
 - 원 기록과 `class` 및 갈래가 같은 발견은 위치가 달라도 unmapped 가 아니다.
 - 인계 재사용은 `full` run 만이다. 독립 1차 검토자를 구할 수 없으면 `BLOCKED`
   이고, 한 에이전트를 계획이 다른 호출에 돌려 쓰지 않는다.

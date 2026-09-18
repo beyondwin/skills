@@ -23,7 +23,8 @@ the two instructions differ: a discovery reviewer must arrive told nothing.
   with the ordered preceding plans and their paths, plus a required
   reconstruction statement on the response's first line, when preceding
   plans exist.
-- The shared-file ledger's path and SHA-256, when one exists.
+- The shared-file ledger's path and SHA-256, when one exists, as derived
+  evidence, not authority.
 - An instruction to read a large plan task by task rather than whole.
 - The four recurring defect shapes named in Pass 3.
 - The output format.
@@ -96,7 +97,9 @@ extension points, collisions, consumers, and claimed blast radius. Run only
 safe read-only baseline checks needed to test a document claim. Preserve and
 report pre-existing dirty state when it makes a claim unresolvable. A
 `repo-reality` finding must cite at least one repository path that is neither
-the reviewed design nor the reviewed plan.
+the reviewed design nor the reviewed plan. The shared-file ledger is derived
+evidence, not authority; citing only the ledger does not satisfy this
+requirement.
 
 ### Pass 3: cross-artifact consistency
 
