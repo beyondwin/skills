@@ -460,9 +460,31 @@ git commit -m "feat(pre-sdd-review): record the plan-turn baseline, the ledger, 
         )
         code, out, err = finish(self.home, self.repo, self.run_id, payload)
         self.assertEqual((code, err), (0, ""))
-        self.assertEqual(json.loads(out)["verdict"], "REVISE")
+        body = json.loads(out)
+        self.assertEqual(body["verdict"], "REVISE")
+        self.assertNotIn("revise_without_unresolved_finding", body["anomalies"])
         statuses = [item["status"] for item in load(self.home, self.run_id)["findings"]]
         self.assertEqual(statuses, ["repaired", "partially-closed"])
+
+    def test_a_partial_closure_is_unresolved_for_a_ready_verdict(self) -> None:
+        payload = finish_payload(
+            repair_passes=1,
+            findings=[finding(status="partially-closed", repair_pass=1)],
+        )
+        code, out, err = finish(self.home, self.repo, self.run_id, payload)
+        self.assertEqual((code, err), (0, ""))
+        self.assertIn("ready_with_unresolved_findings", json.loads(out)["anomalies"])
+
+    def test_an_intake_repair_records_cleanly_with_no_repair_pass(self) -> None:
+        payload = finish_payload(
+            repair_passes=0,
+            findings=[finding(status="repaired", repair_pass=0, source="machine-check")],
+        )
+        code, out, err = finish(self.home, self.repo, self.run_id, payload)
+        self.assertEqual((code, err), (0, ""))
+        body = json.loads(out)
+        self.assertEqual(body["verdict"], "READY")
+        self.assertEqual(body["anomalies"], [])
 
     def test_finish_rejects_an_unknown_finding_source(self) -> None:
         payload = finish_payload(findings=[finding(source="controller")])
@@ -513,6 +535,15 @@ FINDING_SOURCES = ("reviewer", "ledger-pass", "machine-check")
 ```python
         _integer(repair_pass, "finding.repair_pass", 0, 2)
 ```
+
+`partially-closed` 는 판정에 미해결로 작용해야 한다. `observation_anomalies` 의 `revise_without_unresolved_finding` 을 고친다:
+
+```python
+        "revise_without_unresolved_finding": record["verdict"] == "REVISE"
+        and not any(status in ("unresolved", "partially-closed") for status in statuses),
+```
+
+`ready_with_unresolved_findings` 는 `status != "repaired"` 를 보므로 이미 `partially-closed` 를 잡는다. 고치지 않는다.
 
 `repair_pass > repair_passes` 검사는 그대로 둔다. `validate_finish_shape` 이 `validate_finding(item, 2)` 로 상수 2 를 넘기므로 실제 초과는 `finding_repair_pass_exceeds_total` 관찰이 잡는다. 0 은 어떤 `repair_passes` 값에서도 초과가 아니다.
 
@@ -600,6 +631,7 @@ git commit -m "feat(pre-sdd-review): let a finding carry its source, a partial c
         record["schema"] = 3
         del record["baseline"], record["ledger"]
         del record["git"]["head_start_is_ancestor_of_head_end"]
+        self.assertEqual(set(record), evidence.RECORD_KEYS_V3)
         path.write_text(json.dumps(record, sort_keys=True), encoding="utf-8")
 
         code, _, err = finish(self.home, self.repo, run_id, finish_payload())
@@ -822,15 +854,17 @@ One verdict-bearing invocation reviews exactly one implementation plan.
 
 ```text
 A request naming several plans may be split into separate
-invocations, but each verdict remains plan-local.
+invocations, but each verdict remains plan-local. On one host, run those
+invocations one after another; do not overlap them.
 ```
 
-바꾼다:
+바꾼다. 한 호스트에서 겹치지 말라는 규칙은 그대로 살린다.
 
 ```text
 A request naming several plans is split into separate verdict-bearing
 invocations, but each verdict remains plan-local. Before the first of those
-invocations, run the pre-pass below once. Do not emit an aggregate `READY`.
+invocations, run the pre-pass below once. On one host, run those
+invocations one after another; do not overlap them.
 ```
 
 - [ ] **Step 2: 선행 패스 절을 더한다**
@@ -1051,13 +1085,15 @@ a null `block_reason` is an anomaly.
 재사용 규칙 문장에서 `degraded` 를 뺀다. 현재:
 
 ```text
-for a `full` or `degraded` run only when the documents, `HEAD`, and the request are all unchanged.
+for an `execution=blocked` run, and for a `full` or `degraded` run only when
+the documents, `HEAD`, and the request are all unchanged.
 ```
 
 바꾼다:
 
 ```text
-for a `full` run only when the documents, `HEAD`, and the request are all unchanged.
+for an `execution=blocked` or `degraded` run, and for a `full` run only when
+the documents, `HEAD`, and the request are all unchanged.
 ```
 
 `Optional local evidence` 절과 `Red flags` 에 있는 같은 표현 두 곳도 함께 고친다.
