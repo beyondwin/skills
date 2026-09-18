@@ -15,25 +15,26 @@ python3 skills/pre-sdd-review/evidence/evidence.py --version
 ```
 
 The compatibility handshake is exactly `skill_name=pre-sdd-review` and
-`schema=3`. The canonical version output is one JSON line followed by one LF:
+`schema=4`. The canonical version output is one JSON line followed by one LF:
 
 ```json
-{"cli_version":"3.0.0","schema":3,"skill_name":"pre-sdd-review"}
+{"cli_version":"4.0.0","schema":4,"skill_name":"pre-sdd-review"}
 ```
 
 ## Data and checkout identity
 
 Each run is one file, `~/.pre-sdd-review/runs/<run-id>.json`. The only
 override for the evidence home is a non-empty absolute
-`PRE_SDD_REVIEW_HOME`. Schema 3 records are at most 64 KiB. Readers validate
-both schema 2 and schema 3 files in `runs/*.json`; mutation commands accept
-only schema 3.
+`PRE_SDD_REVIEW_HOME`. Schema 4 records are at most 64 KiB. Readers validate
+schema 2, 3, and 4 files in `runs/*.json`; `finish` and
+`outcome` accept only schema 4. A schema 3 pending run may be `abandon`ed so an
+in-flight run survives the upgrade; a schema 2 record stays fully read-only.
 
 The recorder creates `.identity-salt` as private local state containing
 exactly 32 random bytes. It never prints or records the salt. The normalized
 Git directory and normalized checkout root feed HMAC-SHA-256 only; a schema 3
-record stores the repository display name in `repo` and the derived digest in
-`repo_key`. It never stores either identity input path.
+or 4 record stores the repository display name in `repo` and the derived
+digest in `repo_key`. It never stores either identity input path.
 
 The binding belongs to the current checkout, evidence home, and salt. A moved
 checkout, clone, other worktree, lost salt, or different evidence home cannot
@@ -54,22 +55,31 @@ is not a supported OS; this uses POSIX `fcntl.flock`.
 
 | Command | Arguments | Effect |
 | --- | --- | --- |
-| `--version` | none | Print the canonical schema 3 handshake |
-| `start` | `--skill-root --repo --plan [--design] --client --model --mode` | Create the identity if needed, hash documents, read Git state, write a checkout-bound `pending` record, print `run_id` |
+| `--version` | none | Print the canonical schema 4 handshake |
+| `start` | `--skill-root --repo --plan [--design] [--ledger] [--prior-plan ...] --client --model --mode` | Create the identity if needed, hash documents, read Git state, write a checkout-bound `pending` record, print `run_id` |
 | `finish` | `--run-id --repo` and one JSON object on stdin | Require the original checkout binding, recompute end hashes and Git state, validate, write `completed`, print `run_id`, `verdict`, and this run's `anomalies` |
-| `abandon` | `--run-id --reason` | Close a schema 3 pending run; reason is `user-cancelled`, `input-changed`, `scope-changed`, `input-format-fixed`, or `other` |
-| `outcome` | `--run-id --label [--note]` | Record `good`, `false-ready`, `noisy`, or `abandoned` on a completed schema 3 run; may be re-recorded |
+| `abandon` | `--run-id --reason` | Close a schema 4 pending run, or a schema 3 pending run left over from before the upgrade; reason is `user-cancelled`, `input-changed`, `scope-changed`, `input-format-fixed`, or `other` |
+| `outcome` | `--run-id --label [--note]` | Record `good`, `false-ready`, `noisy`, or `abandoned` on a completed schema 4 run; may be re-recorded |
 | `show` | `--run-id` | Validate the record, then return its original bytes unchanged |
 | `summary` | `[--repo NAME] [--last N]` | Scan and validate records, then print the aggregate JSON below |
 
 `finish` reads exactly these keys: `execution` (`full`, `degraded`,
 `blocked`), `reviewers` (0–2), `trigger` (`runtime-removal`,
 `schema-migration`, `auth-boundary`, `data-boundary`, `external-side-effect`,
-or null), `degraded_reasons` (list), `verdict`, `block_reason`,
-`review_passes` (1–3), `repair_passes` (0–2), and `findings`. Each finding has
-`id` (`PSDR-001`), `severity`, `class`, `pattern`, `status`, `repair_pass`,
-`location` (`path`, `locator`), `evidence` (relative paths), `consequence`, and
-`fix`.
+or null), `degraded_reasons` (list of `primary-role-not-obtained`,
+`focused-role-not-obtained`, `agent-reused-within-invocation`,
+`agent-reused-across-plans`, or `other`), `verdict`, `block_reason`,
+`review_passes` (1–3), `repair_passes` (0–2), and `findings`.
+
+Each finding has `id` (`PSDR-001`), `severity`, `class`, `pattern`, `status`,
+`source` (`reviewer`, `ledger-pass`, `machine-check`), `repair_pass` (0-2, where
+`0` means the repair consumed no pass), `location` (`path`, `locator`),
+`evidence` (relative paths), `consequence`, and `fix`.
+
+A schema 4 record adds `baseline` (`head` plus the ordered `prior_plans` this
+plan's turn assumes) and `ledger` (the shared-file ledger's `path` and `sha`, or
+null). `git` adds `head_start_is_ancestor_of_head_end`: true when the checkout
+moved forward, false when it did not, null when the question is moot.
 
 Shape, enum and count ranges, record-size limits, safe repository-relative
 paths, and required fields are rejected input when invalid. Semantic review
@@ -101,7 +111,10 @@ their canonical start-time and `run_id` order.
 completed verdicts by whether `anomalies` observed a contradiction. The
 `counts.observation` map gives the normal and anomalous run totals, and
 `counts.binding` reports `checkout-bound` and `historical-unbound` records.
-Historical records do not form `chains` because they have no `repo_key`.
+`counts.costless_repairs` counts findings marked `repaired` whose
+`repair_pass` is `0`, a repair that closed a finding without consuming one of
+the run's `repair_passes`. Historical records do not form `chains` because
+they have no `repo_key`.
 
 These summaries are descriptive local observations. They are not model-quality
 measurements, proof that a verdict was correct, or a signed audit claim.
