@@ -19,9 +19,10 @@ the two instructions differ: a discovery reviewer must arrive told nothing.
 
 ### Discovery dispatch
 
-- The baseline: `HEAD` alone when no plan precedes this one, or the
-  ordered preceding plans and their paths with a required reconstruction
-  statement on the response's first line, when preceding plans exist.
+- The baseline: `HEAD` alone when no plan precedes this one, or `HEAD`
+  with the ordered preceding plans and their paths, plus a required
+  reconstruction statement on the response's first line, when preceding
+  plans exist.
 - The shared-file ledger's path and SHA-256, when one exists.
 - An instruction to read a large plan task by task rather than whole.
 - The four recurring defect shapes named in Pass 3.
