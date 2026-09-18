@@ -251,7 +251,7 @@ review and controller deduplication, and return the first review's verdict.
 
 The controlling agent may edit only the resolved design specification, the
 resolved implementation plan, and the resolved shared-file ledger. Ordinary
-evidence-backed corrections within that closed two-document boundary do not
+evidence-backed corrections within that closed document boundary do not
 require an approval checkpoint.
 
 Any correction that changes approved product intent is forbidden and returns
