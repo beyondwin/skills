@@ -224,6 +224,31 @@ class StartTests(unittest.TestCase):
         self.assertIsNone(record["ledger"])
         self.assertEqual(record["baseline"]["prior_plans"], [])
 
+    def test_start_deduplicates_prior_plans_preserving_first_occurrence_order(self) -> None:
+        record = load(self.home, start(
+            self.home, self.repo, self.skill,
+            prior_plans=["docs/plan-b.md", "docs/plan-a.md", "docs/plan-b.md"],
+        ))
+        self.assertEqual(record["baseline"]["prior_plans"], ["docs/plan-b.md", "docs/plan-a.md"])
+
+    def test_start_rejects_more_than_max_prior_plans(self) -> None:
+        argv = [
+            "start", "--skill-root", str(self.skill), "--repo", str(self.repo), "--plan", "docs/plan.md",
+            "--client", "codex", "--model", "m", "--mode", "default",
+        ]
+        for index in range(evidence.MAX_PRIOR_PLANS + 1):
+            argv += ["--prior-plan", f"docs/plan-{index}.md"]
+        code, _, err = run(argv, home=self.home, cwd=self.repo)
+        self.assertEqual((code, error_code(err)), (2, "invalid-arguments"))
+
+    def test_start_rejects_an_unsafe_prior_plan_as_invalid_arguments_not_schema_invalid(self) -> None:
+        code, _, err = run(
+            ["start", "--skill-root", str(self.skill), "--repo", str(self.repo), "--plan", "docs/plan.md",
+             "--client", "codex", "--model", "m", "--mode", "default", "--prior-plan", "../escape.md"],
+            home=self.home, cwd=self.repo,
+        )
+        self.assertEqual((code, error_code(err)), (2, "invalid-arguments"))
+
 
 class FinishTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -419,6 +444,14 @@ class FinishTests(unittest.TestCase):
         code, _, err = finish(self.home, self.repo, run_id, finish_payload())
         self.assertEqual((code, err), (0, ""))
         self.assertIs(load(self.home, run_id)["git"]["head_start_is_ancestor_of_head_end"], False)
+
+    def test_finish_records_none_ancestry_when_head_is_unchanged(self) -> None:
+        run_id = start(self.home, self.repo, self.skill)
+        code, _, err = finish(self.home, self.repo, run_id, finish_payload())
+        self.assertEqual((code, err), (0, ""))
+        record = load(self.home, run_id)
+        self.assertEqual(record["git"]["head_start"], record["git"]["head_end"])
+        self.assertIsNone(record["git"]["head_start_is_ancestor_of_head_end"])
 
 
 class AbandonOutcomeShowTests(unittest.TestCase):

@@ -464,7 +464,7 @@ class ReaderTests(RecorderFixture):
 
     def test_missing_nested_fields_rejected_in_current_and_legacy_records(self) -> None:
         good_id = start(self.home, self.repo, self.skill)
-        bad_id = start(self.home, self.repo, self.skill)
+        bad_id = start(self.home, self.repo, self.skill, ledger="docs/design.md")
         pending = load(self.home, bad_id)
         self.assertEqual(finish(self.home, self.repo, bad_id, finish_payload(repair_passes=1, findings=[finding()]))[0], 0)
         self.assertEqual(run(["outcome", "--run-id", bad_id, "--label", "good"], home=self.home, cwd=self.repo)[0], 0)
@@ -480,6 +480,8 @@ class ReaderTests(RecorderFixture):
                     if schema == 2:
                         del sample["repo_key"]
                 objects = [(name,) for name in ("skill", "client", "plan", "design", "git")]
+                if schema == 4:
+                    objects += [("baseline",), ("ledger",)]
                 if sample["status"] == "completed":
                     objects += [("outcome",), ("findings", 0), ("findings", 0, "location")]
                 for location in objects:
@@ -528,6 +530,32 @@ class ReaderTests(RecorderFixture):
         for unsafe in ("/tmp/doc", "../doc", "docs/../doc", "C:/doc", "docs\\doc", "docs//doc", "./doc"):
             for location in (("plan", "path"), ("design", "path"), ("findings", 0, "location", "path"), ("findings", 0, "evidence", 0)):
                 changes.append((location, unsafe))
+        for location, replacement in changes:
+            with self.subTest(location=location, replacement=replacement):
+                damaged = copy.deepcopy(original)
+                target = damaged
+                for key in location[:-1]:
+                    target = target[key]
+                target[location[-1]] = replacement
+                self.put(bad_id, damaged)
+                self.assert_damage_isolated(good_id, bad_id)
+
+    def test_typed_field_baseline_and_ledger_damage(self) -> None:
+        good_id = start(self.home, self.repo, self.skill)
+        bad_id = start(
+            self.home, self.repo, self.skill,
+            ledger="docs/design.md", prior_plans=["docs/plan.md"],
+        )
+        original = load(self.home, bad_id)
+        changes = [
+            (("baseline", "head"), "0" * 40),
+            (("baseline", "prior_plans"), "docs/plan.md"),
+            (("baseline", "prior_plans"), ["docs/plan.md"] * (evidence.MAX_PRIOR_PLANS + 1)),
+            (("baseline", "prior_plans"), ["../escape.md"]),
+            (("ledger",), {"path": original["ledger"]["path"]}),
+            (("ledger", "path"), "../escape.md"),
+            (("ledger", "sha"), "not-a-digest"),
+        ]
         for location, replacement in changes:
             with self.subTest(location=location, replacement=replacement):
                 damaged = copy.deepcopy(original)

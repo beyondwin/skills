@@ -448,6 +448,17 @@ def _relative(value: object, name: str) -> str:
     return str(value)
 
 
+def _relative_argument(value: str, name: str) -> str:
+    """Validate a CLI argument as a safe repository-relative path.
+
+    Mirrors _relative's validation logic but fails as invalid-arguments (a CLI-boundary
+    error) rather than schema-invalid, which is reserved for validating a stored record.
+    """
+    if not safe_relative(value) or len(str(value)) > 500:
+        fail("invalid-arguments", f"{name} must be a safe repository-relative path")
+    return str(value)
+
+
 def validate_finding(item: object, repair_passes: int) -> dict[str, object]:
     if not isinstance(item, dict) or set(item) != FINDING_KEYS:
         fail("schema-invalid", "finding must contain exactly the finding keys")
@@ -713,7 +724,7 @@ def cmd_start(args: argparse.Namespace, home: Path, cwd: Path) -> dict[str, obje
     ledger_path = None if args.ledger is None else repository_relative(root, args.ledger, cwd)
     prior_plans: list[str] = []
     for prior in args.prior_plan or []:
-        value = _relative(prior, "prior-plan")
+        value = _relative_argument(prior, "--prior-plan")
         if value not in prior_plans:
             prior_plans.append(value)
     if len(prior_plans) > MAX_PRIOR_PLANS:
