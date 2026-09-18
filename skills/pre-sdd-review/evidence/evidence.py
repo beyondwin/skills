@@ -42,7 +42,8 @@ ABANDON_REASONS = ("user-cancelled", "input-changed", "scope-changed", "input-fo
 OUTCOME_LABELS = ("good", "false-ready", "noisy", "abandoned")
 SEVERITIES = ("BLOCKER", "IMPORTANT")
 CLASSES = ("authority-drift", "repo-reality", "coverage", "ordering", "verification-gap")
-FINDING_STATUSES = ("repaired", "unresolved", "blocked-by-authority", "accepted-as-is")
+FINDING_STATUSES = ("repaired", "partially-closed", "unresolved", "blocked-by-authority", "accepted-as-is")
+FINDING_SOURCES = ("reviewer", "ledger-pass", "machine-check")
 FINISH_KEYS = frozenset(
     {
         "execution",
@@ -75,6 +76,7 @@ FINDING_KEYS = frozenset(
         "pattern",
         "status",
         "repair_pass",
+        "source",
         "location",
         "evidence",
         "consequence",
@@ -471,9 +473,10 @@ def validate_finding(item: object, repair_passes: int) -> dict[str, object]:
     if pattern is None or not _PATTERN.fullmatch(pattern):
         fail("schema-invalid", "finding.pattern must be lowercase kebab, dot, or underscore tokens")
     _enum(item["status"], "finding.status", FINDING_STATUSES)
+    _enum(item["source"], "finding.source", FINDING_SOURCES)
     repair_pass = item["repair_pass"]
     if repair_pass is not None:
-        _integer(repair_pass, "finding.repair_pass", 1, 2)
+        _integer(repair_pass, "finding.repair_pass", 0, 2)
         if repair_pass > repair_passes:
             fail("schema-invalid", "finding.repair_pass exceeds repair_passes")
     location = item["location"]
@@ -541,7 +544,8 @@ def observation_anomalies(record: dict[str, object]) -> list[str]:
     checks = {
         "blocked_execution_with_nonblocked_verdict": record["execution"] == "blocked" and record["verdict"] != "BLOCKED",
         "ready_with_unresolved_findings": record["verdict"] == "READY" and any(status != "repaired" for status in statuses),
-        "revise_without_unresolved_finding": record["verdict"] == "REVISE" and "unresolved" not in statuses,
+        "revise_without_unresolved_finding": record["verdict"] == "REVISE"
+        and not any(status in ("unresolved", "partially-closed") for status in statuses),
         "blocked_without_reason": record["verdict"] == "BLOCKED" and record["block_reason"] is None,
         "repair_without_repaired_finding": bool(record["repair_passes"]) and "repaired" not in statuses,
         "review_only_with_repair": record["mode"] == "review-only" and record["repair_passes"] != 0,

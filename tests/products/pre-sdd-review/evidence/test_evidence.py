@@ -453,6 +453,63 @@ class FinishTests(unittest.TestCase):
         self.assertEqual(record["git"]["head_start"], record["git"]["head_end"])
         self.assertIsNone(record["git"]["head_start_is_ancestor_of_head_end"])
 
+    def test_finish_accepts_a_costless_repair_and_a_partial_closure(self) -> None:
+        payload = finish_payload(
+            verdict="REVISE",
+            repair_passes=1,
+            findings=[
+                finding(
+                    id="PSDR-001",
+                    status="repaired",
+                    repair_pass=0,
+                    source="ledger-pass",
+                ),
+                finding(
+                    id="PSDR-002",
+                    status="partially-closed",
+                    repair_pass=1,
+                    source="reviewer",
+                ),
+            ],
+        )
+        code, out, err = finish(self.home, self.repo, self.run_id, payload)
+        self.assertEqual((code, err), (0, ""))
+        body = json.loads(out)
+        self.assertEqual(body["verdict"], "REVISE")
+        self.assertNotIn("revise_without_unresolved_finding", body["anomalies"])
+        statuses = [item["status"] for item in load(self.home, self.run_id)["findings"]]
+        self.assertEqual(statuses, ["repaired", "partially-closed"])
+
+    def test_a_partial_closure_is_unresolved_for_a_ready_verdict(self) -> None:
+        payload = finish_payload(
+            repair_passes=1,
+            findings=[finding(status="partially-closed", repair_pass=1)],
+        )
+        code, out, err = finish(self.home, self.repo, self.run_id, payload)
+        self.assertEqual((code, err), (0, ""))
+        self.assertIn("ready_with_unresolved_findings", json.loads(out)["anomalies"])
+
+    def test_an_intake_repair_records_cleanly_with_no_repair_pass(self) -> None:
+        payload = finish_payload(
+            repair_passes=0,
+            findings=[finding(status="repaired", repair_pass=0, source="machine-check")],
+        )
+        code, out, err = finish(self.home, self.repo, self.run_id, payload)
+        self.assertEqual((code, err), (0, ""))
+        body = json.loads(out)
+        self.assertEqual(body["verdict"], "READY")
+        self.assertEqual(body["anomalies"], [])
+
+    def test_finish_rejects_an_unknown_finding_source(self) -> None:
+        payload = finish_payload(findings=[finding(source="controller")])
+        code, _, err = finish(self.home, self.repo, self.run_id, payload)
+        self.assertEqual((code, error_code(err)), (2, "schema-invalid"))
+
+    def test_finish_rejects_a_negative_repair_pass(self) -> None:
+        payload = finish_payload(findings=[finding(repair_pass=-1)])
+        code, _, err = finish(self.home, self.repo, self.run_id, payload)
+        self.assertEqual((code, error_code(err)), (2, "schema-invalid"))
+
 
 class AbandonOutcomeShowTests(unittest.TestCase):
     def setUp(self) -> None:

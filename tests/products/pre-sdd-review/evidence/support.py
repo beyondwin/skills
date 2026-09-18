@@ -128,6 +128,7 @@ def finding(**overrides: object) -> dict[str, object]:
         "pattern": "build-only-acceptance",
         "status": "repaired",
         "repair_pass": 1,
+        "source": "reviewer",
         "location": {"path": "docs/plan.md", "locator": "Task 2"},
         "evidence": ["src/app.ts"],
         "consequence": "A build-only check passes a wrong implementation.",
