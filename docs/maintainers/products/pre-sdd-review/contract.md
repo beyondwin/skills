@@ -14,12 +14,12 @@
 현재 Git 상태를 확인합니다. `**Spec:**` 경로가 없거나 해석할 수 없으면
 `BLOCKED`입니다. 주변 파일을 추측해 고르지 않습니다.
 
-한 호출은 구현 계획 하나만 검토합니다. 여러 계획 중 어느 것인지 분명하지
-않으면 정확한 계획 경로를 다시 받습니다. 받을 수 없으면 `BLOCKED`입니다.
-계획을 나눠 여러 번 호출해도 전체를 묶은 `READY`는 만들지 않습니다. 같은
-호스트에서는 나눈 호출을 겹치지 않고 하나씩 실행합니다. 공유
-설계가 나중 호출에서 바뀌면, 이전 설계 지문에 의존한 계획 판정을 다시
-검토합니다.
+판정을 내는 호출 하나는 구현 계획 하나만 검토합니다. 여러 계획 중 어느
+것인지 분명하지 않으면 정확한 계획 경로를 다시 받습니다. 받을 수 없으면
+`BLOCKED`입니다. 계획을 나눠 여러 번 판정을 내는 호출로 쪼개도 전체를 묶은
+`READY`는 만들지 않습니다. 같은 호스트에서는 나눈 호출을 겹치지 않고
+하나씩 실행합니다. 공유 설계가 나중 호출에서 바뀌면, 이전 설계 지문에
+의존한 계획 판정을 다시 검토합니다.
 
 계획이 필수 구현 베이스(`branch`, `ref`, 또는 `commit`)를 적으면,
 검토자를 부르기 전에, 필수 베이스가 `HEAD`의 조상인지
@@ -192,8 +192,8 @@
 - worktree was clean or dirty
 - review timestamp
 - final verdict
-- baseline: `HEAD`, or `HEAD` and the list of preceding plans
-- ledger: repository-relative path and SHA-256 (omit if none)
+- baseline: `HEAD`, 또는 `HEAD`와 선행 계획 목록
+- ledger: 저장소 상대 경로와 SHA-256 (없으면 생략)
 - Any content change to either resolved document invalidates `READY`.
 
 최종 보고는 입력·최종 문서 해시, 패스 번호, 발견 ID/분류, 영향 범위 트리거,
