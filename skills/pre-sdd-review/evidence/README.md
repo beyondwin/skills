@@ -79,7 +79,14 @@ Each finding has `id` (`PSDR-001`), `severity`, `class`, `pattern`, `status`,
 A schema 4 record adds `baseline` (`head` plus the ordered `prior_plans` this
 plan's turn assumes) and `ledger` (the shared-file ledger's `path` and `sha`, or
 null). `git` adds `head_start_is_ancestor_of_head_end`: true when the checkout
-moved forward, false when it did not, null when the question is moot.
+moved forward, false when it did not, null when the question is moot. Each
+finding adds `source`.
+
+`source` is the only finding key schema 4 added, so a schema 2 or 3 finding does
+not carry it and stays readable without it; a legacy finding that does carry it
+is `schema-invalid`. Every other finding key is the same across schema 2, 3, and
+4. A schema 2 or 3 `degraded_reasons` entry is likewise read back as free text
+rather than against the schema 4 vocabulary.
 
 Shape, enum and count ranges, record-size limits, safe repository-relative
 paths, and required fields are rejected input when invalid. Semantic review
