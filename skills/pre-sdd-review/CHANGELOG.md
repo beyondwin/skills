@@ -4,6 +4,16 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 4.0.0 - 2026-09-18
+
+### Added
+
+- 판정을 내지 않는 선행 원장 패스.
+
+### Notes
+
+- Record schema 와 `--version` handshake 가 `4` 로 바뀐다. GitHub 태그와 Release 는 만들지 않는다.
+
 ## 3.0.4 - 2026-09-17
 
 ### Fixed
