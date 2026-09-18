@@ -8,10 +8,12 @@
 확인합니다. 기본 흐름은 **검토 → 문서 개선 → 재검토**입니다. 핵심은 구현자가
 빠진 제품 결정을 추측하지 않고도 계획을 실행할 수 있는지입니다.
 
-계획 경로가 주 입력입니다. 스킬은 계획의 `**Spec:**` 필드가 가리키는 해결된 설계
-명세를 검토합니다. 경로를 해석할 수 없으면 가까운 파일을 추측하지 않고
-`BLOCKED`를 반환합니다. 한 번의 호출은 계획 하나만 다룹니다. 여러 계획을 따로
-검토한 결과를 합쳐 `READY`로 보지 않습니다.
+계획 경로가 주 입력입니다. 스킬은 계획의 `**Spec:**` 필드가 가리키는 해결된
+설계 명세를 검토합니다. 경로를 해석할 수 없으면 가까운 파일을 추측하지 않고
+`BLOCKED`를 반환합니다. 판정을 내는 한 호출은 계획 하나만 다룹니다. 여러 계획을
+따로 검토한 결과를 합쳐 `READY`로 보지 않습니다. 요청이 계획을 둘 이상 이름
+붙이거나 명시적으로 요청하면, 판정을 내는 첫 호출 전에 공유 파일 원장을 만드는 판정
+없는 선행 패스를 한 번 돌립니다.
 
 계획이 필수 구현 베이스 branch, ref, commit을 명시하면 검토자를 부르기 전에
 그 베이스가 현재 `HEAD`의 조상인지 확인합니다. 해석할 수 없거나 조상이 아니면
@@ -66,8 +68,9 @@ $pre-sdd-review docs/history/specs/<design>.md docs/history/plans/<plan>.md
 ## 예상 결과
 
 기본 모드에서는 새 읽기 전용 검토자가 증거 기반 발견을 남깁니다. 제어 에이전트가
-해결된 설계 명세와 구현 계획만 고친 뒤, 바뀐 범위만 다시 검토합니다.
-`review-only`는 같은 검토를 하지만 아무 파일도 변경하지 않습니다.
+해결된 설계 명세, 구현 계획, 공유 파일 원장만 고친 뒤, 바뀐 범위만 다시 검토합니다.
+원장은 유도된 증거일 뿐 권위가 아니며, 계획의 `Files:`와 어긋나면 계획이 이기고
+원장을 다시 만듭니다. `review-only`는 같은 검토를 하지만 아무 파일도 변경하지 않습니다.
 
 ```text
 $pre-sdd-review review-only docs/history/specs/<design>.md docs/history/plans/<plan>.md
@@ -98,13 +101,17 @@ public/private 데이터 경계, 게시·과금·메시징·프로덕션 변경 
 하며, 문서 밖 Git 변경도 경로·명령·인터페이스·영향 범위 근거를 바꾸면 같은
 규칙을 적용합니다. 새 제품 결정이 필요하면 `BLOCKED`입니다.
 
-호환되는 로컬 기록기가 있으면 먼저 `summary`를 보고, 의미 검토 전 `start`,
-최종 판정 뒤 `finish`를 호출하고 `Evidence: recorded; run_id=<run-id>`를
-출력합니다. 같은 계획의 pending run과 도중에 끝난 호출은 `abandon`으로
-닫습니다. 기록기가 없거나 호환되지 않거나 권한 오류가 나면 검토는 계속되고
-`Evidence: not_recorded; reason=<code>`를 출력합니다. 설계 경로는 컨트롤러가
-계획의 `**Spec:**`에서 해석한 값을 넘기며, 해석할 수 없으면 생략하고 `BLOCKED`로
-끝냅니다.
+handshake가 정확히 `skill_name=pre-sdd-review`와 `schema=4`일 때만 호환입니다.
+정규 한 줄은 `{"cli_version":"4.0.0","schema":4,"skill_name":"pre-sdd-review"}`
+뒤에 LF 하나입니다. 호환되는 로컬 기록기가 있으면 먼저 `summary`를 보고, 의미
+검토 전 `start`, 최종 판정 뒤 `finish`를 호출하고 `Evidence:
+recorded; run_id=<run-id>`를 출력합니다. 같은 계획의 pending
+run과 도중에 끝난 호출은 `abandon`으로 닫습니다. `execution`이
+`full`인 run의 인계만 재사용하며, `degraded`나 `blocked`인
+run의 인계는 재사용하지 않습니다. 기록기가 없거나 호환되지 않거나 권한 오류가 나면
+검토는 계속되고 `Evidence: not_recorded; reason=<code>`를
+출력합니다. 설계 경로는 컨트롤러가 계획의 `**Spec:**`에서 해석한 값을 넘기며,
+해석할 수 없으면 생략하고 `BLOCKED`로 끝냅니다.
 
 영수증은 `~/.pre-sdd-review/`에 로컬로만 남습니다. 로컬 파일 저장은 서명된
 audit log가 아닙니다. `outcome`과 `summary`는

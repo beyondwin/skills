@@ -1502,8 +1502,58 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         self.assertNotIn("계획을 먼저 주고", korean)
         self.assertIn("계획 경로가 주 입력", korean)
         normalized_korean = re.sub(r"\s+", " ", korean)
+        normalized_english = re.sub(r"\s+", " ", english)
         self.assertIn("`review-only`는 같은 검토를 하지만 아무 파일도 변경하지 않습니다.", normalized_korean)
-        self.assertIn("`review-only` changes nothing", re.sub(r"\s+", " ", english))
+        self.assertIn("`review-only` changes nothing", normalized_english)
+
+        # Plan cardinality is verdict-bearing, not just "one invocation", and a
+        # multi-plan request runs a verdict-less ledger pre-pass first.
+        self.assertNotIn("한 번의 호출은 계획 하나만", normalized_korean)
+        self.assertIn("판정을 내는 한 호출은 계획 하나만 다룹니다.", normalized_korean)
+        self.assertIn("선행 패스를 한 번 돌립니다.", normalized_korean)
+        self.assertNotIn("One invocation reviews one plan;", normalized_english)
+        self.assertIn("A verdict-bearing invocation reviews one plan;", normalized_english)
+        self.assertIn("verdict-less shared-file ledger pre-pass runs once", normalized_english)
+
+        # Editable surfaces are three, and the ledger is derived, not authority.
+        self.assertIn(
+            "해결된 설계 명세, 구현 계획, 공유 파일 원장만 고친 뒤",
+            normalized_korean,
+        )
+        self.assertIn(
+            "원장은 유도된 증거일 뿐 권위가 아니며, 계획의 `Files:`와 어긋나면 계획이 이기고 원장을 다시 만듭니다.",
+            normalized_korean,
+        )
+        self.assertIn(
+            "the resolved design specification, the implementation plan, and the shared-file ledger",
+            normalized_english,
+        )
+        self.assertIn(
+            "The ledger is derived evidence, not authority: when it disagrees with a plan's "
+            "`Files:`, the plan wins and the ledger is rebuilt.",
+            normalized_english,
+        )
+
+        # Only a full run's handoff is reused; degraded and blocked never are.
+        self.assertIn(
+            "`full`인 run의 인계만 재사용하며, `degraded`나 `blocked`인 run의 인계는 재사용하지 않습니다.",
+            normalized_korean,
+        )
+        self.assertIn(
+            "Only a `full` run's handoff is reused; a `degraded` or `blocked` run's handoff is never reused.",
+            normalized_english,
+        )
+
+        # The handshake is schema 4 / cli_version 4.0.0, exactly, not the old schema 3.
+        canonical_handshake = '`{"cli_version":"4.0.0","schema":4,"skill_name":"pre-sdd-review"}`'
+        self.assertIn(canonical_handshake, normalized_korean)
+        self.assertIn(canonical_handshake, normalized_english)
+        self.assertIn("`schema=4`", normalized_korean)
+        self.assertIn("`schema=4`", normalized_english)
+        for text in (normalized_korean, normalized_english):
+            self.assertNotIn("schema=3", text)
+            self.assertNotIn('"cli_version":"3.0.0"', text)
+
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
         allowlist = (
             "`editable-surfaces`: `resolved-design-specification`, "

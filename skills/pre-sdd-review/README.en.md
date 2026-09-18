@@ -11,8 +11,11 @@ an implementer can proceed without inventing a missing product decision.
 
 The plan path is primary. The skill resolves the design specification from the
 plan's `**Spec:**` field. If that path cannot be resolved, it returns `BLOCKED`
-instead of guessing among nearby files. One invocation reviews one plan;
-separate plan-local reviews never imply an aggregate `READY`.
+instead of guessing among nearby files. A verdict-bearing invocation reviews
+one plan; separate plan-local reviews never imply an aggregate `READY`. When
+the outer request names two or more plans or asks for it explicitly, a
+verdict-less shared-file ledger pre-pass runs once before the first
+verdict-bearing invocation.
 
 When a plan names a required implementation base branch, ref, or commit, the
 controller checks that it is an ancestor of the current `HEAD` before reviewer
@@ -71,8 +74,10 @@ it changes nothing.
 ## Expected result
 
 In default mode, a fresh read-only reviewer returns evidence-backed findings.
-The controller repairs only the resolved design specification and implementation
-plan, then a scoped re-review checks the changed surface.
+The controller repairs only the resolved design specification, the
+implementation plan, and the shared-file ledger, then a scoped re-review checks
+the changed surface. The ledger is derived evidence, not authority: when it
+disagrees with a plan's `Files:`, the plan wins and the ledger is rebuilt.
 `review-only` changes nothing and returns the first verdict.
 
 ```text
@@ -108,14 +113,18 @@ document invalidates its fingerprints and requires re-review. Repository
 changes do the same when they alter evidence for a path, command, interface, or
 blast-radius claim. A new product decision is always `BLOCKED`.
 
-When a compatible local recorder is present, the controller reads `summary`
-first, calls `start` before semantic review, calls `finish` after the final
-verdict, and prints `Evidence: recorded; run_id=<run-id>`. Same-plan pending
-runs and invocations that end early close with `abandon`. If the recorder is
-unavailable, incompatible, or denied by permissions, review continues and it
-prints `Evidence: not_recorded; reason=<code>`. The controller passes the
-design path it resolved from the plan's `**Spec:**` field; when it cannot, it
-omits the design and ends with `BLOCKED`.
+Compatibility is a handshake match: `skill_name=pre-sdd-review` and `schema=4`,
+exactly. The canonical line is
+`{"cli_version":"4.0.0","schema":4,"skill_name":"pre-sdd-review"}` followed by
+one LF. When a compatible local recorder is present, the controller reads
+`summary` first, calls `start` before semantic review, calls `finish` after the
+final verdict, and prints `Evidence: recorded; run_id=<run-id>`. Same-plan
+pending runs and invocations that end early close with `abandon`. Only a `full`
+run's handoff is reused; a `degraded` or `blocked` run's handoff is never
+reused. If the recorder is unavailable, incompatible, or denied by permissions,
+review continues and it prints `Evidence: not_recorded; reason=<code>`. The
+controller passes the design path it resolved from the plan's `**Spec:**`
+field; when it cannot, it omits the design and ends with `BLOCKED`.
 
 Receipts stay local under `~/.pre-sdd-review/`. Local file storage is not a
 signed audit log. `outcome` and `summary` are in the
