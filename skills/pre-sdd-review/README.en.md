@@ -114,9 +114,8 @@ changes do the same when they alter evidence for a path, command, interface, or
 blast-radius claim. A new product decision is always `BLOCKED`.
 
 Compatibility is a handshake match: `skill_name=pre-sdd-review` and `schema=4`,
-exactly. The canonical line is
-`{"cli_version":"4.0.0","schema":4,"skill_name":"pre-sdd-review"}` followed by
-one LF. When a compatible local recorder is present, the controller reads
+exactly. See the [evidence README](evidence/README.md) for the canonical
+line's exact bytes. When a compatible local recorder is present, the controller reads
 `summary` first, calls `start` before semantic review, calls `finish` after the
 final verdict, and prints `Evidence: recorded; run_id=<run-id>`. Same-plan
 pending runs and invocations that end early close with `abandon`. Only a `full`

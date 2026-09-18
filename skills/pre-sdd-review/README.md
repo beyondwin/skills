@@ -102,8 +102,8 @@ public/private 데이터 경계, 게시·과금·메시징·프로덕션 변경 
 규칙을 적용합니다. 새 제품 결정이 필요하면 `BLOCKED`입니다.
 
 handshake가 정확히 `skill_name=pre-sdd-review`와 `schema=4`일 때만 호환입니다.
-정규 한 줄은 `{"cli_version":"4.0.0","schema":4,"skill_name":"pre-sdd-review"}`
-뒤에 LF 하나입니다. 호환되는 로컬 기록기가 있으면 먼저 `summary`를 보고, 의미
+정규 handshake 줄의 정확한 바이트는 [evidence README](evidence/README.md)를
+보세요. 호환되는 로컬 기록기가 있으면 먼저 `summary`를 보고, 의미
 검토 전 `start`, 최종 판정 뒤 `finish`를 호출하고 `Evidence:
 recorded; run_id=<run-id>`를 출력합니다. 같은 계획의 pending
 run과 도중에 끝난 호출은 `abandon`으로 닫습니다. `execution`이

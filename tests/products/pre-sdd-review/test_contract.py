@@ -1549,15 +1549,26 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             normalized_english,
         )
 
-        # The handshake is schema 4 / cli_version 4.0.0, exactly, not the old schema 3.
-        canonical_handshake = '`{"cli_version":"4.0.0","schema":4,"skill_name":"pre-sdd-review"}`'
-        self.assertIn(canonical_handshake, normalized_korean)
-        self.assertIn(canonical_handshake, normalized_english)
+        # The handshake keeps a bare `schema=4` (no dots, so it does not trip
+        # the product-README version-literal ban) and points readers at
+        # evidence/README.md for the canonical line's exact bytes; product
+        # READMEs never own a version literal (see
+        # tests/repository/test_public_docs.py's VERSION_LITERAL_RE).
+        self.assertIn(
+            "정규 handshake 줄의 정확한 바이트는 [evidence README](evidence/README.md)를 보세요.",
+            normalized_korean,
+        )
+        self.assertIn(
+            "See the [evidence README](evidence/README.md) for the canonical line's exact bytes.",
+            normalized_english,
+        )
         self.assertIn("`schema=4`", normalized_korean)
         self.assertIn("`schema=4`", normalized_english)
+        version_literal = re.compile(r"\b[0-9]+\.[0-9]+\.[0-9]+\b")
         for text in (normalized_korean, normalized_english):
             self.assertNotIn("schema=3", text)
-            self.assertNotIn('"cli_version":"3.0.0"', text)
+            self.assertNotIn('"cli_version"', text)
+            self.assertNotRegex(text, version_literal)
 
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
         allowlist = (
