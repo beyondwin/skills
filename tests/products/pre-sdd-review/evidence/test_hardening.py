@@ -63,7 +63,7 @@ class IdentityTests(RecorderFixture):
         first = start(self.home, self.repo, self.skill)
         second = start(self.home, self.repo, self.skill)
         record = load(self.home, first)
-        self.assertEqual(record["schema"], 3)
+        self.assertEqual(record["schema"], 4)
         self.assertRegex(record["repo_key"], r"^[0-9a-f]{64}$")
         self.assertEqual(record["repo_key"], load(self.home, second)["repo_key"])
         encoded = evidence.canonical(record)
@@ -325,6 +325,9 @@ class LegacyTests(RecorderFixture):
         old = load(self.home, run_id)
         old["schema"] = 2
         old.pop("repo_key", None)
+        old.pop("baseline", None)
+        old.pop("ledger", None)
+        old["git"].pop("head_start_is_ancestor_of_head_end", None)
         path = self.put(run_id, old)
         before = path.read_bytes()
         code, out, err = run(
@@ -351,6 +354,9 @@ class LegacyTests(RecorderFixture):
         old = load(self.home, run_id)
         old["schema"] = 2
         old.pop("repo_key", None)
+        old.pop("baseline", None)
+        old.pop("ledger", None)
+        old["git"].pop("head_start_is_ancestor_of_head_end", None)
         path = self.put(run_id, old)
         before = path.read_bytes()
         code, out, err = run(
@@ -426,7 +432,7 @@ class ReaderTests(RecorderFixture):
 
     def test_all_statuses_and_legacy_records_preserve_source_bytes(self) -> None:
         expected = []
-        for schema in (2, 3):
+        for schema in (2, 3, 4):
             for status in ("pending", "completed", "abandoned"):
                 with self.subTest(schema=schema, status=status):
                     run_id = start(self.home, self.repo, self.skill, design=False)
@@ -436,9 +442,13 @@ class ReaderTests(RecorderFixture):
                     elif status == "abandoned":
                         self.assertEqual(run(["abandon", "--run-id", run_id, "--reason", "other"], home=self.home, cwd=self.repo)[0], 0)
                     record = load(self.home, run_id)
-                    if schema == 2:
-                        record["schema"] = 2
-                        del record["repo_key"]
+                    if schema < 4:
+                        record["schema"] = schema
+                        del record["baseline"]
+                        del record["ledger"]
+                        del record["git"]["head_start_is_ancestor_of_head_end"]
+                        if schema == 2:
+                            del record["repo_key"]
                     raw = (json.dumps(record, indent=2) + "\n\n").encode()
                     path = self.home / "runs" / f"{run_id}.json"
                     path.write_bytes(raw)
@@ -459,12 +469,16 @@ class ReaderTests(RecorderFixture):
         self.assertEqual(finish(self.home, self.repo, bad_id, finish_payload(repair_passes=1, findings=[finding()]))[0], 0)
         self.assertEqual(run(["outcome", "--run-id", bad_id, "--label", "good"], home=self.home, cwd=self.repo)[0], 0)
         completed = load(self.home, bad_id)
-        for schema in (2, 3):
+        for schema in (2, 3, 4):
             for original in (pending, completed):
                 sample = copy.deepcopy(original)
                 sample["schema"] = schema
-                if schema == 2:
-                    del sample["repo_key"]
+                if schema < 4:
+                    del sample["baseline"]
+                    del sample["ledger"]
+                    del sample["git"]["head_start_is_ancestor_of_head_end"]
+                    if schema == 2:
+                        del sample["repo_key"]
                 objects = [(name,) for name in ("skill", "client", "plan", "design", "git")]
                 if sample["status"] == "completed":
                     objects += [("outcome",), ("findings", 0), ("findings", 0, "location")]
@@ -488,7 +502,7 @@ class ReaderTests(RecorderFixture):
         self.assertEqual(finish(self.home, self.repo, bad_id, finish_payload(repair_passes=1, findings=[finding()]))[0], 0)
         original = load(self.home, bad_id)
         changes = [
-            (("schema",), 2), (("schema",), 4), (("schema",), 3.0),
+            (("schema",), 2), (("schema",), 5), (("schema",), 3.0),
             (("run_id",), bad_id.upper()), (("run_id",), "bad-uuid"), (("run_id",), 12),
             (("started_at",), "2026-02-30T00:00:00.000000Z"),
             (("started_at",), "2026-01-01T00:00:00Z"),
@@ -568,8 +582,19 @@ class ReaderTests(RecorderFixture):
         for payload in payloads:
             with self.subTest(payload=payload):
                 self.assertEqual(evidence.validate_finish(payload, "default"), payload)
-                record = {**original, **payload, "schema": 2}
+                record = {
+                    **original,
+                    **payload,
+                    "schema": 2,
+                    "git": {
+                        key: value
+                        for key, value in original["git"].items()
+                        if key != "head_start_is_ancestor_of_head_end"
+                    },
+                }
                 del record["repo_key"]
+                del record["baseline"]
+                del record["ledger"]
                 path = self.put(run_id, record)
                 before = path.read_bytes()
                 code, out, err = run(["show", "--run-id", run_id], home=self.home, cwd=self.repo)
@@ -682,6 +707,9 @@ class ObservationTests(RecorderFixture):
         record = load(self.home, legacy)
         record["schema"] = 2
         record.pop("repo_key")
+        record.pop("baseline")
+        record.pop("ledger")
+        record["git"].pop("head_start_is_ancestor_of_head_end")
         path = self.put(legacy, record)
         before = path.read_bytes()
         code, out, err = run(["summary", "--repo", "same"], home=self.home, cwd=self.repo)

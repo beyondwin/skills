@@ -1,4 +1,4 @@
-"""Local evidence recorder for pre-sdd-review (schema 3). Standard library only."""
+"""Local evidence recorder for pre-sdd-review (schema 4). Standard library only."""
 
 from __future__ import annotations
 
@@ -20,8 +20,8 @@ from contextlib import contextmanager, suppress
 from pathlib import Path
 from typing import TextIO
 
-CLI_VERSION = "3.0.0"
-SCHEMA = 3
+CLI_VERSION = "4.0.0"
+SCHEMA = 4
 SKILL_NAME = "pre-sdd-review"
 RECORD_LIMIT = 64 * 1024
 DOCUMENT_LIMIT = 8 * 1024 * 1024
@@ -62,6 +62,11 @@ RECORD_KEYS_V2 = {
     "reviewers", "trigger", "degraded_reasons", "review_passes", "repair_passes",
     "verdict", "block_reason", "abandon_reason", "findings", "outcome",
 }
+RECORD_KEYS_V3 = RECORD_KEYS_V2 | {"repo_key"}
+RECORD_KEYS_V4 = RECORD_KEYS_V3 | {"baseline", "ledger"}
+GIT_KEYS_V3 = {"head_start", "head_end", "dirty_start", "dirty_end"}
+GIT_KEYS_V4 = GIT_KEYS_V3 | {"head_start_is_ancestor_of_head_end"}
+MAX_PRIOR_PLANS = 40
 FINDING_KEYS = frozenset(
     {
         "id",
@@ -335,7 +340,7 @@ def checkout_key(root: Path, home: Path, *, create: bool) -> str:
 
 
 def require_current_schema(record: dict[str, object]) -> None:
-    if record["schema"] != 3:
+    if record["schema"] != SCHEMA:
         fail(
             "legacy-record-read-only",
             "schema 2 is historical-unbound; preserve it and start a new run",
@@ -365,6 +370,13 @@ def git_state(root: Path) -> tuple[str, bool]:
     if status.returncode != 0:
         fail("not-git-repository", "git status is unavailable")
     return head_value, bool(status.stdout.strip())
+
+
+def head_ancestry(root: Path, head_start: str, head_end: str) -> bool | None:
+    """True when head_start is an ancestor of head_end; None when the question is moot."""
+    if head_start == head_end or "unborn" in (head_start, head_end):
+        return None
+    return git(root, "merge-base", "--is-ancestor", head_start, head_end).returncode == 0
 
 
 def safe_relative(value: object) -> bool:
@@ -593,9 +605,10 @@ def validate_record(record: object, expected_run_id: str) -> dict[str, object]:
     if not isinstance(record, dict) or type(record.get("schema")) is not int:
         fail("schema-invalid", "record schema must be an integer")
     schema = record["schema"]
-    if schema not in (2, 3):
-        fail("schema-invalid", "record must use schema 2 or 3")
-    value = _object(record, "record", RECORD_KEYS_V2 | ({"repo_key"} if schema == 3 else set()))
+    if schema not in (2, 3, 4):
+        fail("schema-invalid", "record must use schema 2, 3, or 4")
+    keys = {2: RECORD_KEYS_V2, 3: RECORD_KEYS_V3, 4: RECORD_KEYS_V4}[schema]
+    value = _object(record, "record", keys)
     if not isinstance(value["run_id"], str):
         fail("schema-invalid", "record run_id must be a string")
     try:
@@ -608,7 +621,7 @@ def validate_record(record: object, expected_run_id: str) -> dict[str, object]:
     repo = _string(value["repo"], "repo", 255)
     if repo in (".", "..") or "/" in repo or "\\" in repo:
         fail("schema-invalid", "repo must be a display basename")
-    if schema == 3:
+    if schema >= 3:
         _digest(value["repo_key"], "repo_key")
     _enum(value["mode"], "mode", MODES)
     status = _enum(value["status"], "status", ("pending", "completed", "abandoned"))
@@ -637,7 +650,7 @@ def validate_record(record: object, expected_run_id: str) -> dict[str, object]:
             _digest(document["sha_end"], name + ".sha_end")
         elif document["sha_end"] is not None:
             fail("schema-invalid", "unfinished documents cannot have end hashes")
-    git_facts = _object(value["git"], "git", {"head_start", "head_end", "dirty_start", "dirty_end"})
+    git_facts = _object(value["git"], "git", GIT_KEYS_V4 if schema == 4 else GIT_KEYS_V3)
     for suffix in ("start", "end"):
         head, dirty = git_facts["head_" + suffix], git_facts["dirty_" + suffix]
         if suffix == "end" and status != "completed":
@@ -647,6 +660,13 @@ def validate_record(record: object, expected_run_id: str) -> dict[str, object]:
             if not isinstance(head, str) or not re.fullmatch(r"unborn|[0-9a-f]{40}|[0-9a-f]{64}", head):
                 fail("schema-invalid", "Git head must be unborn or a commit hash")
             _boolean(dirty, "git.dirty_" + suffix)
+    if schema == 4:
+        ancestry = git_facts["head_start_is_ancestor_of_head_end"]
+        if status != "completed":
+            if ancestry is not None:
+                fail("schema-invalid", "unfinished review cannot have ancestry facts")
+        elif ancestry is not None:
+            _boolean(ancestry, "git.head_start_is_ancestor_of_head_end")
     if status == "completed":
         validate_finish_shape({key: value[key] for key in FINISH_KEYS})
         if value["abandon_reason"] is not None:
@@ -661,6 +681,20 @@ def validate_record(record: object, expected_run_id: str) -> dict[str, object]:
             _enum(value["abandon_reason"], "abandon_reason", ABANDON_REASONS)
         elif value["abandon_reason"] is not None:
             fail("schema-invalid", "pending records cannot have abandon_reason")
+    if schema == 4:
+        baseline = _object(value["baseline"], "baseline", {"head", "prior_plans"})
+        if baseline["head"] != git_facts["head_start"]:
+            fail("schema-invalid", "baseline.head must equal git.head_start")
+        if not isinstance(baseline["prior_plans"], list):
+            fail("schema-invalid", "baseline.prior_plans must be a list")
+        if len(baseline["prior_plans"]) > MAX_PRIOR_PLANS:
+            fail("schema-invalid", f"baseline.prior_plans exceeds {MAX_PRIOR_PLANS} entries")
+        for prior in baseline["prior_plans"]:
+            _relative(prior, "baseline.prior_plans[]")
+        if value["ledger"] is not None:
+            ledger = _object(value["ledger"], "ledger", {"path", "sha"})
+            _relative(ledger["path"], "ledger.path")
+            _digest(ledger["sha"], "ledger.sha")
     if value["outcome"] is not None:
         if status != "completed":
             fail("schema-invalid", "outcome requires a completed record")
@@ -676,6 +710,14 @@ def cmd_start(args: argparse.Namespace, home: Path, cwd: Path) -> dict[str, obje
     plan = repository_relative(root, args.plan, cwd)
     design = None if args.design is None else repository_relative(root, args.design, cwd)
     head, dirty = git_state(root)
+    ledger_path = None if args.ledger is None else repository_relative(root, args.ledger, cwd)
+    prior_plans: list[str] = []
+    for prior in args.prior_plan or []:
+        value = _relative(prior, "prior-plan")
+        if value not in prior_plans:
+            prior_plans.append(value)
+    if len(prior_plans) > MAX_PRIOR_PLANS:
+        fail("invalid-arguments", f"--prior-plan exceeds {MAX_PRIOR_PLANS} entries")
     skill = skill_snapshot(locator(cwd, args.skill_root))
     model = _string(args.model, "model", 100)
     run_id = str(uuid.uuid4())
@@ -697,11 +739,17 @@ def cmd_start(args: argparse.Namespace, home: Path, cwd: Path) -> dict[str, obje
             "sha_start": document_hash(root, design),
             "sha_end": None,
         },
+        "baseline": {"head": head, "prior_plans": prior_plans},
+        "ledger": None if ledger_path is None else {
+            "path": ledger_path,
+            "sha": document_hash(root, ledger_path),
+        },
         "git": {
             "head_start": head,
             "head_end": None,
             "dirty_start": dirty,
             "dirty_end": None,
+            "head_start_is_ancestor_of_head_end": None,
         },
         "execution": None,
         "reviewers": None,
@@ -748,6 +796,9 @@ def cmd_finish(args: argparse.Namespace, home: Path, cwd: Path, stdin: TextIO) -
         assert isinstance(git_facts, dict)
         git_facts["head_end"] = head
         git_facts["dirty_end"] = dirty
+        git_facts["head_start_is_ancestor_of_head_end"] = head_ancestry(
+            root, str(git_facts["head_start"]), head
+        )
         completed_at = utc_now()
         record.update(semantic)
         record["status"] = "completed"
@@ -838,8 +889,8 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
                 "run_id": run_id,
                 "started_at": record["started_at"],
                 "repo": record["repo"],
-                "repo_key": record["repo_key"] if record["schema"] == 3 else None,
-                "binding": "checkout-bound" if record["schema"] == 3 else "historical-unbound",
+                "repo_key": record["repo_key"] if record["schema"] >= 3 else None,
+                "binding": "checkout-bound" if record["schema"] >= 3 else "historical-unbound",
                 "plan": plan["path"],
                 "status": record["status"],
                 "verdict": record["verdict"],
@@ -847,7 +898,7 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
                 "elapsed_s": record["elapsed_s"],
             }
         )
-        if record["schema"] == 3:
+        if record["schema"] >= 3:
             chain_key = (str(record["repo_key"]), str(plan["path"]))
             chain_repos.setdefault(chain_key, str(record["repo"]))
             chains.setdefault(chain_key, []).append(
@@ -893,7 +944,7 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
         "normal_verdict": _count([str(record["verdict"]) for record in normal], VERDICTS),
         "anomalous_verdict": _count([str(record["verdict"]) for record in anomalous], VERDICTS),
         "binding": _count(
-            ["checkout-bound" if record["schema"] == 3 else "historical-unbound" for record in records],
+            ["checkout-bound" if record["schema"] >= 3 else "historical-unbound" for record in records],
             ("checkout-bound", "historical-unbound"),
         ),
     }
@@ -972,6 +1023,8 @@ def build_parser() -> _Parser:
     start.add_argument("--client", required=True, choices=CLIENTS)
     start.add_argument("--model", default="unknown")
     start.add_argument("--mode", required=True, choices=MODES)
+    start.add_argument("--ledger")
+    start.add_argument("--prior-plan", action="append", default=[])
     finish = commands.add_parser("finish", add_help=False)
     finish.add_argument("--run-id", required=True)
     finish.add_argument("--repo", required=True)

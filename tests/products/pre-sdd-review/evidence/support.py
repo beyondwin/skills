@@ -96,6 +96,8 @@ def start(
     client: str = "codex",
     model: str = "gpt-test",
     mode: str = "default",
+    ledger: str | None = None,
+    prior_plans: list[str] | None = None,
 ) -> str:
     argv = [
         "start",
@@ -108,6 +110,10 @@ def start(
     ]
     if design:
         argv += ["--design", str(repo / "docs/design.md")]
+    if ledger is not None:
+        argv += ["--ledger", str(repo / ledger)]
+    for prior in prior_plans or []:
+        argv += ["--prior-plan", prior]
     code, out, err = run(argv, home=home, cwd=repo)
     if code != 0:
         raise AssertionError(err)

@@ -20,6 +20,7 @@ from support import (
     make_git_repo,
     make_skill_root,
     run,
+    run_git,
     start,
     write,
 )
@@ -27,7 +28,7 @@ from support import (
 import evidence
 
 
-VERSION_LINE = b'{"cli_version":"3.0.0","schema":3,"skill_name":"pre-sdd-review"}\n'
+VERSION_LINE = b'{"cli_version":"4.0.0","schema":4,"skill_name":"pre-sdd-review"}\n'
 
 
 class VersionTests(unittest.TestCase):
@@ -98,7 +99,7 @@ class StartTests(unittest.TestCase):
         run_id = start(self.home, self.repo, self.skill)
         record = load(self.home, run_id)
         head = subprocess.run(["git", "-C", str(self.repo), "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
-        self.assertEqual(record["schema"], 3)
+        self.assertEqual(record["schema"], 4)
         self.assertEqual(record["status"], "pending")
         self.assertEqual(record["repo"], "repo")
         self.assertEqual(record["client"], {"id": "codex", "model": "gpt-test"})
@@ -109,7 +110,16 @@ class StartTests(unittest.TestCase):
         self.assertRegex(record["plan"]["sha_start"], r"^[0-9a-f]{64}$")
         self.assertIsNone(record["plan"]["sha_end"])
         self.assertEqual(record["design"]["path"], "docs/design.md")
-        self.assertEqual(record["git"], {"head_start": head, "head_end": None, "dirty_start": False, "dirty_end": None})
+        self.assertEqual(
+            record["git"],
+            {
+                "head_start": head,
+                "head_end": None,
+                "dirty_start": False,
+                "dirty_end": None,
+                "head_start_is_ancestor_of_head_end": None,
+            },
+        )
         for key in ("completed_at", "elapsed_s", "execution", "reviewers", "trigger", "review_passes", "repair_passes", "verdict", "block_reason", "abandon_reason", "outcome"):
             self.assertIsNone(record[key], key)
         self.assertEqual(record["degraded_reasons"], [])
@@ -189,6 +199,30 @@ class StartTests(unittest.TestCase):
         import tomllib
         release = tomllib.loads((real_skill / "release.toml").read_text(encoding="utf-8"))
         self.assertEqual(load(self.home, json.loads(out)["run_id"])["skill"]["version"], release["version"])
+
+    def test_start_records_baseline_and_ledger(self) -> None:
+        write(self.repo / "docs/ledger.md", "| path | plans |\n")
+        run_id = start(
+            self.home,
+            self.repo,
+            self.skill,
+            ledger="docs/ledger.md",
+            prior_plans=["docs/plan-a.md", "docs/plan-b.md"],
+        )
+        record = load(self.home, run_id)
+        self.assertEqual(record["schema"], 4)
+        self.assertEqual(
+            record["baseline"],
+            {"head": record["git"]["head_start"], "prior_plans": ["docs/plan-a.md", "docs/plan-b.md"]},
+        )
+        self.assertEqual(record["ledger"]["path"], "docs/ledger.md")
+        self.assertEqual(len(record["ledger"]["sha"]), 64)
+        self.assertIsNone(record["git"]["head_start_is_ancestor_of_head_end"])
+
+    def test_start_without_ledger_or_prior_plans_uses_empty_defaults(self) -> None:
+        record = load(self.home, start(self.home, self.repo, self.skill))
+        self.assertIsNone(record["ledger"])
+        self.assertEqual(record["baseline"]["prior_plans"], [])
 
 
 class FinishTests(unittest.TestCase):
@@ -367,6 +401,24 @@ class FinishTests(unittest.TestCase):
             [{"run_id": unusual, "finding_id": "PSDR-001"}],
         )
         self.assertEqual(summary["counts"]["observation"], {"normal": 1, "anomalous": 1})
+
+    def test_finish_records_whether_head_start_is_an_ancestor(self) -> None:
+        run_id = start(self.home, self.repo, self.skill)
+        write(self.repo / "src/app.ts", "export const app = 2;\n")
+        commit_all(self.repo, "forward")
+        code, _, err = finish(self.home, self.repo, run_id, finish_payload())
+        self.assertEqual((code, err), (0, ""))
+        self.assertIs(load(self.home, run_id)["git"]["head_start_is_ancestor_of_head_end"], True)
+
+    def test_finish_flags_a_head_that_is_not_a_descendant(self) -> None:
+        run_git(self.repo, "checkout", "--quiet", "-b", "side")
+        write(self.repo / "src/app.ts", "export const app = 3;\n")
+        commit_all(self.repo, "side")
+        run_id = start(self.home, self.repo, self.skill)
+        run_git(self.repo, "checkout", "--quiet", "-")
+        code, _, err = finish(self.home, self.repo, run_id, finish_payload())
+        self.assertEqual((code, err), (0, ""))
+        self.assertIs(load(self.home, run_id)["git"]["head_start_is_ancestor_of_head_end"], False)
 
 
 class AbandonOutcomeShowTests(unittest.TestCase):
