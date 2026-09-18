@@ -263,9 +263,6 @@ AUTHORITY_ORDER = (
     "Accepted ADRs and other explicitly binding decision records.",
     "The approved design specification.",
     "The implementation plan.",
-    "Current repository reality.",
-)
-SKILL_AUTHORITY_ORDER = AUTHORITY_ORDER[:-1] + (
     "Repository reality at this plan's turn.",
 )
 RISK_TRIGGERS = (
@@ -295,6 +292,7 @@ MUTATION_EXCLUSIONS = (
 MUTATION_ALLOWLIST = (
     "resolved design specification",
     "resolved implementation plan",
+    "resolved shared-file ledger",
 )
 FINDING_RECORD = (
     "ID: PSDR-001",
@@ -356,14 +354,23 @@ DEFAULT_FIRST_CALL = (
 )
 README_CONTRACT = (
     ("primary-input", ("plan-primary", "spec-resolves-design")),
-    ("plan-cardinality", ("one-plan-per-invocation", "no-aggregate-ready")),
-    ("editable-surfaces", ("resolved-design-specification", "resolved-implementation-plan")),
+    ("plan-cardinality", ("one-plan-per-verdict-bearing-invocation", "no-aggregate-ready")),
+    (
+        "editable-surfaces",
+        (
+            "resolved-design-specification",
+            "resolved-implementation-plan",
+            "resolved-shared-file-ledger",
+        ),
+    ),
+    ("ledger", ("pre-pass-no-verdict", "derived-not-authority")),
+    ("baseline", ("plan-turn-reality",)),
     ("review-only", ("no-mutation",)),
     ("repair-flow", ("review-repair-bounded-impact-re-review",)),
     ("repair-impact", ("structural-trigger-only", "direct-consumers")),
-    ("repair-passes", ("at-most-two",)),
+    ("repair-passes", ("at-most-two", "costless-repairs-uncounted")),
     ("verdicts", ("READY", "REVISE", "BLOCKED")),
-    ("second-reviewer", ("conditional-only",)),
+    ("second-reviewer", ("conditional-only", "no-cross-plan-reuse")),
     (
         "risk-triggers",
         (
@@ -376,23 +383,25 @@ README_CONTRACT = (
     ),
     ("freshness", ("fingerprints", "content-change-invalidates")),
     ("required-base", ("pre-dispatch-ancestor-check",)),
-    ("handoff", ("unresolved-packet",)),
+    ("handoff", ("unresolved-packet", "full-execution-only")),
     ("sdd", ("outer-request-implementation-only",)),
     ("evidence", ("optional", "non-blocking", "controller-local-run-id")),
 )
 MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
-    ("### Authority order", "73e9b8c07b61e32f67e5e81203a576b9d653e6d4f1de421ed84734c178a75c78"),
-    ("### Editable paths", "4c7d511afb38f386f06926cfa9b7b6307a7d2fb9e1b69ae0254021ca7fbaba8e"),
+    ("### Authority order", "02ae46e82a05df772812bcc8f67d944ad7465ae1f52269eaf0d387d5fc1ededd"),
+    ("### Editable paths", "3c1a2a85e690031a2af36b0fba11f67ae8fc3589ad9a2282634beac1b86deaf4"),
     ("### Excluded surfaces", "892b4d931a0e8c7bbf0979e4303e512eaf3af1ebe4e18063b699a05f5f7adaee"),
     ("### Review passes", "ba790ea6df8a4f8a9e228c3cab8b34320a123a84ffff152857edb675f71d1fd5"),
     ("### Severities", "72c20c936027d62761c1b2dd9ef16b954c0780d7a15b4b1e05cf33e28b383ebd"),
     ("### Finding classes", "2a0892a5aad034ceaf1218606d657f4b22bac89c0d2b67065b7018e811a44352"),
     ("### Conditional risk triggers", "346cdfb0c5a7df8461c7de1f7f217b499c29add6a0a2a7e88fea58449e6d223d"),
-    ("### Verdicts", "e10d17f98e43decb9c74d80c786cee849be897de0082d3c60417da619482a3e4"),
-    ("### Freshness", "3e3515d3cfc6dac6dbfec29baa538bcc7d01f13b405a0c337a086fea3f6c74ff"),
+    ("### Verdicts", "4e611d1b27935dc70367b3b8673437afcebed0098a938b23813d22a6aa295e6b"),
+    ("### Freshness", "1f54460a252910aba7165ba4e3e3bd6a784ab9b954f061182dd9859caa131330"),
     ("### SDD handoff", "2e0fcc729cb4455863165138c0f96256b27ddf9d4460c2f7a5ce51660806d9da"),
+    ("### Ledger shape", "f1091388fd58d8db9f223fbd6e1457303c600107c4c89c37d1aded6caf2ae84e"),
+    ("### Degraded reasons", "a71ff3ec6aaf37ac3a862f8637b0fcd66e561d3958b4b0da0aaa532ced0b28f7"),
 )
-MAINTAINER_CANONICAL_DIGEST = "e1e626a621684a2190ee386b76bc79a61d532a3cce1b8b90582c0f4a349e4efa"
+MAINTAINER_CANONICAL_DIGEST = "cc6622bd735651e9af3ef740923f8dba0b83ec1f94dfb29aedfe1342f1a0937d"
 TESTING_CANONICAL_DIGEST = "c29160eab63c2bb1175f60e346e37bc2ff82532bd068dcda76edd32ea23dd0f0"
 COMPATIBILITY_CANONICAL_DIGEST = "db8d19d45ca4f6748b73ace65da5e5e965f0e7002a6b0395bf563f524a424480"
 RELEASE_CANONICAL_DIGEST = "a9cd12baf31dbe408975c23bbbec9f860b0e3b58e787aefee5a9cb27c18a3e67"
@@ -1220,7 +1229,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         inputs = section(body, "## Resolve authoritative inputs", "## Pre-pass: shared-file ledger")
         authority_items = tuple(re.findall(r"^\d+\. (.+)$", inputs, re.MULTILINE))
-        self.assertEqual(authority_items, SKILL_AUTHORITY_ORDER)
+        self.assertEqual(authority_items, AUTHORITY_ORDER)
 
         reviewers = section(
             body,
@@ -1507,12 +1516,17 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             self.assertNotIn("proposed decision record", text)
             self.assertNotIn("directly referenced", text)
 
-    def test_skill_and_readmes_close_the_default_mutation_allowlist_to_two_documents(self) -> None:
+    def test_skill_and_readmes_close_the_default_mutation_allowlist_to_three_documents(self) -> None:
         skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
         repair_rules = section(skill, "## Repair rules", "## Verdict and handoff")
         normalized = re.sub(r"\s+", " ", repair_rules)
         self.assertIn("may edit only the resolved design specification", normalized)
+        self.assertIn(
+            "may edit only the resolved design specification, the resolved "
+            "implementation plan, and the resolved shared-file ledger.",
+            normalized,
+        )
         for editable_document in MUTATION_ALLOWLIST:
             self.assertIn(editable_document, normalized)
         self.assertNotIn("proposed decision record", normalized)
@@ -1582,10 +1596,15 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         for fact in (
             "closure-only input schema",
             "shared-design invalidation map",
-            "program ledger",
             "evidence probe cache",
         ):
             self.assertIn(fact, contract)
+        # A shared-file ledger is now a real, contract-owned feature (the
+        # pre-pass and its "### Ledger shape"), so it no longer belongs in
+        # the "things not added" list.
+        self.assertNotIn("program ledger", contract)
+        self.assertIn("## 선행 원장 패스", contract)
+        self.assertIn("### Ledger shape", contract)
         normalized_testing = re.sub(r"\s+", " ", testing)
 
         for fact in (
@@ -1749,8 +1768,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
         mutations = (
             contract.replace(
-                "5. Current repository reality.\n",
-                "5. Current repository reality.\n\n"
+                "5. Repository reality at this plan's turn.\n",
+                "5. Repository reality at this plan's turn.\n\n"
                 "The implementation plan overrides the approved design.\n",
             ),
             contract.replace(

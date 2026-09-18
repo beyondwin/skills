@@ -37,11 +37,12 @@
 2. Accepted ADRs and other explicitly binding decision records.
 3. The approved design specification.
 4. The implementation plan.
-5. Current repository reality.
+5. Repository reality at this plan's turn.
 
 저장소 현실은 실행 가능 여부와 영향 범위의 증거일 뿐, 승인된 제품 결정을
-대체할 권위가 아닙니다. 수리에 새 제품 결정이 필요하면 충돌을 보존하고
-`BLOCKED`를 반환합니다.
+대체할 권위가 아닙니다. 계획의 turn은 저장소에 이 계획보다 앞선 모든 계획을
+고정된 실행 순서로 더한 것이며, 그때그때의 `HEAD`가 아닙니다. 수리에 새
+제품 결정이 필요하면 충돌을 보존하고 `BLOCKED`를 반환합니다.
 
 ## 검토자 격리와 수정 허용 목록
 
@@ -56,6 +57,10 @@
 
 1. resolved design specification.
 2. resolved implementation plan.
+3. resolved shared-file ledger.
+
+원장은 유도된 증거이지 권위가 아닙니다. 권위 순서 다섯은 그대로입니다. 원장이
+계획의 `Files:`와 어긋나면 계획이 이기고 원장을 다시 만듭니다.
 
 ### Excluded surfaces
 
@@ -66,6 +71,26 @@
 - `configuration`
 - `generated artifacts`
 - `unrelated documentation`
+
+## 선행 원장 패스
+
+외부 요청이 계획을 둘 이상 이름 대면, 판정을 내는 첫 호출 앞에 한 번 돕니다.
+이 패스는 판정을 내지 않습니다. 출력은 원장, 확정된 실행 순서, 저장소로 확인된
+결함 후보입니다. 컨트롤러가 전부 하고 검토자를 부르지 않습니다. 확인된 후보는
+검토자 파견 전에 고칩니다. 그 수리는 검토 이전이므로 수리 패스를 먹지 않고
+`repair_pass: 0`으로 기록합니다. `review-only`에서는 원장을 파일로 쓰지 않고
+반입 수리도 하지 않습니다. 이 패스는 run으로 기록하지 않습니다.
+
+계획에 `Files:` 절이 없으면 멈추고 묻습니다. Task의 edit surface에서 유도하지
+않습니다.
+
+### Ledger shape
+
+- 머리: 생성 시각, 대상 계획 목록과 각 계획의 SHA-256, 확정된 실행 순서
+- 본문: 한 행이 한 경로. `| path | 이 경로를 만지는 계획 (실행 순서대로) |`
+- 만지는 계획이 하나인 경로도 전부 적습니다. 스윕 대상은 둘 이상인 행입니다.
+- 기본 위치는 `docs/superpowers/ledgers/YYYY-MM-DD-<campaign>.md`이고 사용자
+  선호가 우선합니다.
 
 ## 검토 패스와 발견
 
@@ -115,6 +140,18 @@
 역할을 추가하거나 위험 분류를 넓히지 않습니다. Evidence
 `reviewer_count`는 누적 호출이 아니라 논리 역할을 셉니다.
 
+### Degraded reasons
+
+- `primary-role-not-obtained`
+- `focused-role-not-obtained`
+- `agent-reused-within-invocation`
+- `agent-reused-across-plans`
+- `other`
+
+독립 1차 검토자를 구할 수 없으면 `BLOCKED`입니다. 짧은 degraded 회차로 대신하지
+않습니다. 집중 위험 역할만 못 구하면 `degraded`이고 그 인계는 재사용하지
+않습니다. 한 에이전트를 계획이 다른 호출에 돌려 쓰지 않습니다.
+
 ## 기본 흐름, 판정, freshness
 
 한 호출은 발견 단계 한 번과 수정 최대 두 번, 범위 제한 재검토로
@@ -142,7 +179,8 @@
 
 - `READY`: 남은 문제를 추측하지 않고, 계획된 증거가 잘못된 구현을 통과시키지 않습니다.
 - `REVISE`: 고칠 수 있는 중요한 문서 결함이 남았습니다.
-- `BLOCKED`: 필요한 입력·권위·저장소 증거가 없거나 새 제품 결정이 필요합니다.
+- `BLOCKED`: 필요한 입력·권위·저장소 증거가 없거나, 새 제품 결정이 필요하거나,
+  독립 1차 검토자를 구할 수 없습니다.
 
 아래 freshness 목록과 invalidation 규칙을 최종 보고에 그대로 기록합니다.
 
@@ -154,6 +192,8 @@
 - worktree was clean or dirty
 - review timestamp
 - final verdict
+- baseline: `HEAD`, or `HEAD` and the list of preceding plans
+- ledger: repository-relative path and SHA-256 (omit if none)
 - Any content change to either resolved document invalidates `READY`.
 
 최종 보고는 입력·최종 문서 해시, 패스 번호, 발견 ID/분류, 영향 범위 트리거,
@@ -171,7 +211,7 @@
 권위를 보존하는 수정에는 승인 질문을 하지 않습니다. 사용자 권위가
 필요하면 필요한 결정을 승인 요청 하나로 묶습니다. `REVISE`나
 `BLOCKED` 뒤에 자동으로 다시 호출하지 않습니다. 문서, `HEAD`, 요청이 모두
-바뀌지 않은 `full`·`degraded` run의 인계만 재사용합니다. `execution`이
+바뀌지 않은 `full` run의 인계만 재사용합니다. `execution`이 `degraded` 또는
 `blocked`인 run의 인계는 재사용하지 않습니다.
 
 ## 선택 기록기 계약
@@ -179,31 +219,36 @@
 기록기는 선택 계약입니다. 권위 순서, 리뷰어 프로토콜, 수정 허용 목록, 판정
 규칙을 바꾸지 않습니다. 컨트롤러는 로드된 스킬 루트에서
 `python3 "<skill-root>/evidence/evidence.py" --version`을 실행하고,
-handshake가 정확히 `skill_name=pre-sdd-review`와 `schema=3`일 때만
+handshake가 정확히 `skill_name=pre-sdd-review`와 `schema=4`일 때만
 기록합니다. 정규 한 줄은
-`{"cli_version":"3.0.0","schema":3,"skill_name":"pre-sdd-review"}` 뒤에
+`{"cli_version":"4.0.0","schema":4,"skill_name":"pre-sdd-review"}` 뒤에
 LF 하나입니다. 호환되면 `start` 전에 `summary --repo <표시 이름>`을 실행해
 `runs`와 `chains`에서 그 계획을 찾습니다. 같은 `repo` 표시 이름과 계획 경로가
 `pending`이면 그 run을 `abandon`합니다. 그 계획의 마지막 완료 판정이 `REVISE`
 또는 `BLOCKED`이면 `show`합니다. `execution`이 `blocked`이면 인계를 재사용하지
-않고 입력 게이트를 다시 확인한 뒤 `start`합니다. `full`·`degraded`이면 문서
-해시, `git.head_end`, 요청이 모두 같을 때만 이전 인계를 재사용합니다. 아니면
+않고 입력 게이트를 다시 확인한 뒤 `start`합니다. `execution`이 `degraded`이면
+인계를 재사용하지 않고 새 전체 검토로 `start`합니다. `full`이면 문서 해시,
+`git.head_end`, 요청이 모두 같을 때만 이전 인계를 재사용합니다. 아니면
 의미 검토 전에 `start`하고, 판정과
 수정이 끝난 뒤 `finish`를 한 번 호출합니다. `Evidence:` 줄은 정확히
 하나입니다. 기록기가 없거나 실패하면
 `Evidence: not_recorded; reason=<code>`를 보고하며, 이 실패가
 `READY`, `REVISE`, `BLOCKED`를 바꾸지는 않습니다.
 
-schema 2 pending run은 `historical-unbound`이며 읽기 전용입니다. 보존하고,
-기록을 이어가려면 새 run을 시작합니다. 과거 기록의 checkout 결속을 추정하지
-않습니다. `start`는 schema 3 checkout 결속 run을 만듭니다. `finish`,
-`abandon`, `outcome`은 schema 3만 바꿀 수 있습니다.
+schema 2와 schema 3 record는 계속 읽습니다. 변경은 schema 4만 받습니다.
+예외로 schema 3 pending은 `abandon`만 허용해 업그레이드 시점의 진행 중 run을
+닫을 수 있게 합니다. schema 2는 `historical-unbound`이며 읽기 전용입니다.
+`start`는 schema 4 checkout 결속 run을 만듭니다.
 
 컨트롤러는 계획의 `**Spec:**`에서 설계 경로를 해석해 `--design`으로 넘깁니다.
 해석할 수 없으면 `--design`을 생략하고 `BLOCKED`를 반환합니다. 기록기는
 `**Spec:**`를 파싱하지 않습니다. `finish` 전에 끝나면 `abandon` 이유는
 `user-cancelled`, `input-changed`, `scope-changed`, `input-format-fixed`,
 `other` 중 하나입니다. `run_id`는 컨트롤러 로컬이며 검토 문서 밖에 둡니다.
+
+finding에는 `source`(`reviewer`, `ledger-pass`, `machine-check`)와
+`repair_pass`(0..2, `0`은 패스를 먹지 않은 수리)가 들어갑니다.
+`finding.evidence`는 산문이 아니라 저장소 상대 경로의 목록입니다.
 
 기록기는 `~/.pre-sdd-review/runs/` 아래의 경로, 해시, Git 사실, 검증, 원자적
 파일 교체, 집계를 소유합니다. 의미 발견, 수정, 프로토콜 관찰, 판정은 리뷰어와
@@ -247,7 +292,7 @@ checkout, clone, 다른 worktree, 잃어버린 salt, 다른 evidence home은 원
 - 권위 순서, 판정, repair 한도, reviewer role: `skills/pre-sdd-review/SKILL.md`,
   `references/reviewer-protocol.md`, 이 계약, `tests/products/pre-sdd-review/cases.json`,
   제품 README
-- 기록기 명령·schema 3: `skills/pre-sdd-review/evidence/evidence.py`,
+- 기록기 명령·schema 4: `skills/pre-sdd-review/evidence/evidence.py`,
   `evidence/README.md`, `tests/products/pre-sdd-review/evidence/`
 - 호스트 지원: `products.toml`, `compatibility.md`, 공개 안내, 해당 테스트.
   이 작업에서 호스트 지원을 넓히지 않습니다.
@@ -258,7 +303,6 @@ checkout, clone, 다른 worktree, 잃어버린 salt, 다른 evidence home은 원
 
 - closure-only input schema
 - shared-design invalidation map
-- program ledger
 - evidence probe cache
 
 ## 인계
@@ -274,17 +318,19 @@ checkout, clone, 다른 worktree, 잃어버린 salt, 다른 evidence home은 원
 ### Contract
 
 - `primary-input`: `plan-primary`, `spec-resolves-design`
-- `plan-cardinality`: `one-plan-per-invocation`, `no-aggregate-ready`
-- `editable-surfaces`: `resolved-design-specification`, `resolved-implementation-plan`
+- `plan-cardinality`: `one-plan-per-verdict-bearing-invocation`, `no-aggregate-ready`
+- `editable-surfaces`: `resolved-design-specification`, `resolved-implementation-plan`, `resolved-shared-file-ledger`
+- `ledger`: `pre-pass-no-verdict`, `derived-not-authority`
+- `baseline`: `plan-turn-reality`
 - `review-only`: `no-mutation`
 - `repair-flow`: `review-repair-bounded-impact-re-review`
 - `repair-impact`: `structural-trigger-only`, `direct-consumers`
-- `repair-passes`: `at-most-two`
+- `repair-passes`: `at-most-two`, `costless-repairs-uncounted`
 - `verdicts`: `READY`, `REVISE`, `BLOCKED`
-- `second-reviewer`: `conditional-only`
+- `second-reviewer`: `conditional-only`, `no-cross-plan-reuse`
 - `risk-triggers`: `framework-runtime-removal`, `schema-data-deletion`, `auth-security-boundary`, `data-boundary-change`, `external-side-effects`
 - `freshness`: `fingerprints`, `content-change-invalidates`
 - `required-base`: `pre-dispatch-ancestor-check`
-- `handoff`: `unresolved-packet`
+- `handoff`: `unresolved-packet`, `full-execution-only`
 - `sdd`: `outer-request-implementation-only`
 - `evidence`: `optional`, `non-blocking`, `controller-local-run-id`
