@@ -373,6 +373,65 @@ class LegacyTests(RecorderFixture):
         self.assertEqual(path.read_bytes(), before)
         self.assertNotIn("repo_key", load(self.home, run_id))
 
+    def test_a_schema_three_pending_run_can_only_be_abandoned(self) -> None:
+        run_id = start(self.home, self.repo, self.skill)
+        path = self.home / "runs" / f"{run_id}.json"
+        record = json.loads(path.read_text(encoding="utf-8"))
+        record["schema"] = 3
+        del record["baseline"], record["ledger"]
+        del record["git"]["head_start_is_ancestor_of_head_end"]
+        self.assertEqual(set(record), evidence.RECORD_KEYS_V3)
+        path.write_text(json.dumps(record, sort_keys=True), encoding="utf-8")
+
+        code, _, err = finish(self.home, self.repo, run_id, finish_payload())
+        self.assertEqual(code, 2)
+        self.assertEqual(error_code(err), "legacy-record-read-only")
+
+        code, out, err = run(
+            ["abandon", "--run-id", run_id, "--reason", "input-format-fixed"],
+            home=self.home,
+            cwd=self.repo,
+        )
+        self.assertEqual((code, err), (0, ""))
+        self.assertEqual(json.loads(out)["status"], "abandoned")
+        code, out, err = run(["show", "--run-id", run_id], home=self.home, cwd=self.repo)
+        self.assertEqual((code, err), (0, ""))
+        self.assertEqual(json.loads(out)["status"], "abandoned")
+        code, out, err = run(["summary"], home=self.home, cwd=self.repo)
+        self.assertEqual((code, err), (0, ""))
+        self.assertEqual(json.loads(out)["invalid_records"], 0)
+
+    def test_a_legacy_completed_record_with_a_free_text_degraded_reason_stays_readable(self) -> None:
+        run_id = start(self.home, self.repo, self.skill)
+        self.assertEqual(
+            finish(
+                self.home,
+                self.repo,
+                run_id,
+                finish_payload(execution="degraded", degraded_reasons=["other"]),
+            )[0],
+            0,
+        )
+        old = load(self.home, run_id)
+        old["schema"] = 3
+        old.pop("baseline", None)
+        old.pop("ledger", None)
+        old["git"].pop("head_start_is_ancestor_of_head_end", None)
+        # Schema 3 predates the closed DEGRADED_REASONS vocabulary; a stored
+        # free-text reason from that era must not become unreadable now.
+        old["degraded_reasons"] = ["fresh-reviewer-unavailable"]
+        self.put(run_id, old)
+
+        code, out, err = run(["show", "--run-id", run_id], home=self.home, cwd=self.repo)
+        self.assertEqual((code, err), (0, ""))
+        self.assertEqual(json.loads(out)["degraded_reasons"], ["fresh-reviewer-unavailable"])
+
+        code, out, err = run(["summary"], home=self.home, cwd=self.repo)
+        self.assertEqual((code, err), (0, ""))
+        summary = json.loads(out)
+        self.assertEqual(summary["invalid_records"], 0)
+        self.assertEqual([item["run_id"] for item in summary["runs"]], [run_id])
+
 
 class ReaderTests(RecorderFixture):
     def assert_damage_isolated(self, good_id: str, bad_id: str) -> None:

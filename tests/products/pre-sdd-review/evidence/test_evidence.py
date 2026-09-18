@@ -298,7 +298,7 @@ class FinishTests(unittest.TestCase):
             "repair-without-repaired": finish_payload(repair_passes=1),
             "full-two-reviewers-no-trigger": finish_payload(reviewers=2),
             "full-one-reviewer-with-trigger": finish_payload(trigger="schema-migration"),
-            "full-with-degraded-reason": finish_payload(degraded_reasons=["fresh-reviewer-unavailable"]),
+            "full-with-degraded-reason": finish_payload(degraded_reasons=["other"]),
             "degraded-without-reason": finish_payload(execution="degraded"),
             "repair-pass-exceeds": finish_payload(repair_passes=1, findings=[finding(repair_pass=2)]),
         }
@@ -346,7 +346,7 @@ class FinishTests(unittest.TestCase):
     def test_finish_accepts_blocked_degraded_and_triggered_full_runs(self) -> None:
         for payload in (
             finish_payload(verdict="BLOCKED", block_reason="spec-unresolved", execution="blocked", reviewers=0),
-            finish_payload(verdict="REVISE", execution="degraded", degraded_reasons=["fresh-reviewer-unavailable"], findings=[finding(status="unresolved", repair_pass=None)]),
+            finish_payload(verdict="REVISE", execution="degraded", degraded_reasons=["other"], findings=[finding(status="unresolved", repair_pass=None)]),
             finish_payload(reviewers=2, trigger="data-boundary"),
         ):
             with self.subTest(payload=payload["verdict"] + payload["execution"]):
@@ -431,9 +431,10 @@ class FinishTests(unittest.TestCase):
         run_id = start(self.home, self.repo, self.skill)
         write(self.repo / "src/app.ts", "export const app = 2;\n")
         commit_all(self.repo, "forward")
-        code, _, err = finish(self.home, self.repo, run_id, finish_payload())
+        code, out, err = finish(self.home, self.repo, run_id, finish_payload())
         self.assertEqual((code, err), (0, ""))
         self.assertIs(load(self.home, run_id)["git"]["head_start_is_ancestor_of_head_end"], True)
+        self.assertNotIn("head_start_not_ancestor_of_head_end", json.loads(out)["anomalies"])
 
     def test_finish_flags_a_head_that_is_not_a_descendant(self) -> None:
         run_git(self.repo, "checkout", "--quiet", "-b", "side")
@@ -441,9 +442,10 @@ class FinishTests(unittest.TestCase):
         commit_all(self.repo, "side")
         run_id = start(self.home, self.repo, self.skill)
         run_git(self.repo, "checkout", "--quiet", "-")
-        code, _, err = finish(self.home, self.repo, run_id, finish_payload())
+        code, out, err = finish(self.home, self.repo, run_id, finish_payload())
         self.assertEqual((code, err), (0, ""))
         self.assertIs(load(self.home, run_id)["git"]["head_start_is_ancestor_of_head_end"], False)
+        self.assertIn("head_start_not_ancestor_of_head_end", json.loads(out)["anomalies"])
 
     def test_finish_records_none_ancestry_when_head_is_unchanged(self) -> None:
         run_id = start(self.home, self.repo, self.skill)
@@ -509,6 +511,32 @@ class FinishTests(unittest.TestCase):
         payload = finish_payload(findings=[finding(repair_pass=-1)])
         code, _, err = finish(self.home, self.repo, self.run_id, payload)
         self.assertEqual((code, error_code(err)), (2, "schema-invalid"))
+
+    def test_finish_rejects_a_free_text_degraded_reason(self) -> None:
+        payload = finish_payload(execution="degraded", degraded_reasons=["thread limit"])
+        code, _, err = finish(self.home, self.repo, self.run_id, payload)
+        self.assertEqual(code, 2)
+        self.assertEqual(error_code(err), "schema-invalid")
+
+    def test_finish_accepts_an_enumerated_degraded_reason(self) -> None:
+        payload = finish_payload(execution="degraded", degraded_reasons=["focused-role-not-obtained"])
+        code, _, err = finish(self.home, self.repo, self.run_id, payload)
+        self.assertEqual((code, err), (0, ""))
+
+    def test_finish_flags_a_document_change_with_no_repair(self) -> None:
+        write(self.repo / "docs/plan.md", "# Plan\n\n**Spec:** docs/design.md\n\nchanged\n")
+        code, out, err = finish(self.home, self.repo, self.run_id, finish_payload())
+        self.assertEqual((code, err), (0, ""))
+        self.assertIn("document_changed_without_repair_pass", json.loads(out)["anomalies"])
+
+    def test_a_costless_repair_clears_the_document_change_anomaly(self) -> None:
+        write(self.repo / "docs/plan.md", "# Plan\n\n**Spec:** docs/design.md\n\nchanged\n")
+        payload = finish_payload(
+            findings=[finding(status="repaired", repair_pass=0, source="machine-check")]
+        )
+        code, out, err = finish(self.home, self.repo, self.run_id, payload)
+        self.assertEqual((code, err), (0, ""))
+        self.assertNotIn("document_changed_without_repair_pass", json.loads(out)["anomalies"])
 
 
 class AbandonOutcomeShowTests(unittest.TestCase):
@@ -634,6 +662,7 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(summary["counts"]["status"], {"completed": 0, "abandoned": 0, "pending": 0})
         self.assertEqual(summary["counts"]["verdict"], {"READY": 0, "REVISE": 0, "BLOCKED": 0})
         self.assertEqual(summary["counts"]["outcome"], {"recorded": 0, "good": 0, "false-ready": 0, "noisy": 0, "abandoned": 0})
+        self.assertEqual(summary["counts"]["costless_repairs"], 0)
         self.assertEqual(summary["cost"], {"elapsed_s": {"median": None, "max": None}, "review_passes_avg": None, "repair_passes_avg": None})
         self.assertEqual(summary["anomalies"], {
             "blocked_execution_with_nonblocked_verdict": [],
@@ -648,6 +677,8 @@ class SummaryTests(unittest.TestCase):
             "repair_without_repaired_finding": [],
             "head_changed_during_review": [],
             "design_unresolved_but_full_execution": [],
+            "head_start_not_ancestor_of_head_end": [],
+            "document_changed_without_repair_pass": [],
             "repo_reality_citing_documents_only": [],
         })
         self.assertFalse(self.home.exists())
@@ -712,6 +743,20 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(summary["anomalies"]["head_changed_during_review"], [second])
         self.assertEqual(summary["anomalies"]["design_unresolved_but_full_execution"], [unresolved_design])
         self.assertEqual(summary["anomalies"]["repo_reality_citing_documents_only"], [{"run_id": first, "finding_id": "PSDR-001"}])
+
+    def test_summary_counts_costless_repairs(self) -> None:
+        run_id = start(self.home, self.repo, self.skill)
+        payload = finish_payload(
+            findings=[
+                finding(id="PSDR-001", status="repaired", repair_pass=0, source="ledger-pass"),
+                finding(id="PSDR-002", status="repaired", repair_pass=1, source="reviewer"),
+            ],
+            repair_passes=1,
+        )
+        self.assertEqual(finish(self.home, self.repo, run_id, payload)[0], 0)
+        code, out, err = run(["summary"], home=self.home, cwd=self.repo)
+        self.assertEqual((code, err), (0, ""))
+        self.assertEqual(json.loads(out)["counts"]["costless_repairs"], 1)
 
     def test_summary_filters_by_repo_and_last(self) -> None:
         first = start(self.home, self.repo, self.skill)

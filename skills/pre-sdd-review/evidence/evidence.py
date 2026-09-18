@@ -39,6 +39,13 @@ TRIGGERS = (
 )
 VERDICTS = ("READY", "REVISE", "BLOCKED")
 ABANDON_REASONS = ("user-cancelled", "input-changed", "scope-changed", "input-format-fixed", "other")
+DEGRADED_REASONS = (
+    "primary-role-not-obtained",
+    "focused-role-not-obtained",
+    "agent-reused-within-invocation",
+    "agent-reused-across-plans",
+    "other",
+)
 OUTCOME_LABELS = ("good", "false-ready", "noisy", "abandoned")
 SEVERITIES = ("BLOCKER", "IMPORTANT")
 CLASSES = ("authority-drift", "repo-reality", "coverage", "ordering", "verification-gap")
@@ -341,12 +348,16 @@ def checkout_key(root: Path, home: Path, *, create: bool) -> str:
     ).hexdigest()
 
 
-def require_current_schema(record: dict[str, object]) -> None:
-    if record["schema"] != SCHEMA:
-        fail(
-            "legacy-record-read-only",
-            "schema 2 is historical-unbound; preserve it and start a new run",
-        )
+def require_mutable_schema(record: dict[str, object], *, abandon: bool = False) -> None:
+    schema = record["schema"]
+    if schema == SCHEMA:
+        return
+    if abandon and schema == 3:
+        return
+    fail(
+        "legacy-record-read-only",
+        "only a schema 4 run is mutable; a schema 3 pending run may be abandoned",
+    )
 
 
 def locator(cwd: Path, value: str) -> Path:
@@ -498,7 +509,7 @@ def validate_finding(item: object, repair_passes: int) -> dict[str, object]:
     return normalized
 
 
-def validate_finish_shape(payload: object) -> dict[str, object]:
+def validate_finish_shape(payload: object, *, legacy: bool = False) -> dict[str, object]:
     if not isinstance(payload, dict) or set(payload) != FINISH_KEYS:
         fail("schema-invalid", "finish input must contain exactly the finish keys")
     execution = _enum(payload["execution"], "execution", EXECUTIONS)
@@ -506,7 +517,12 @@ def validate_finish_shape(payload: object) -> dict[str, object]:
     trigger = _enum(payload["trigger"], "trigger", TRIGGERS, nullable=True)
     if not isinstance(payload["degraded_reasons"], list):
         fail("schema-invalid", "degraded_reasons must be a list")
-    reasons = [str(_string(item, "degraded_reasons[]", 100)) for item in payload["degraded_reasons"]]
+    if legacy:
+        # A schema 2/3 record predates the closed DEGRADED_REASONS vocabulary;
+        # re-validating it must not make an already-stored reason unreadable.
+        reasons = [str(_string(item, "degraded_reasons[]", 100)) for item in payload["degraded_reasons"]]
+    else:
+        reasons = [str(_enum(item, "degraded_reasons[]", DEGRADED_REASONS)) for item in payload["degraded_reasons"]]
     verdict = _enum(payload["verdict"], "verdict", VERDICTS)
     block_reason = _string(payload["block_reason"], "block_reason", 100, nullable=True)
     review_passes = _integer(payload["review_passes"], "review_passes", 1, 3)
@@ -534,6 +550,14 @@ def validate_finish(payload: object, mode: str) -> dict[str, object]:
     return validate_finish_shape(payload)
 
 
+def _documents_changed(record: dict[str, object]) -> bool:
+    for name in ("plan", "design"):
+        document = record[name]
+        if isinstance(document, dict) and document["sha_start"] != document["sha_end"]:
+            return True
+    return False
+
+
 def observation_anomalies(record: dict[str, object]) -> list[str]:
     """Annotate completed observations without rejudging their recorded verdict."""
     if record["status"] != "completed":
@@ -555,6 +579,10 @@ def observation_anomalies(record: dict[str, object]) -> list[str]:
         "finding_repair_pass_exceeds_total": any(item["repair_pass"] is not None and item["repair_pass"] > record["repair_passes"] for item in findings),
         "head_changed_during_review": record["git"]["head_start"] != record["git"]["head_end"],
         "design_unresolved_but_full_execution": record["design"] is None and record["execution"] == "full",
+        "head_start_not_ancestor_of_head_end": record["git"].get("head_start_is_ancestor_of_head_end") is False,
+        "document_changed_without_repair_pass": _documents_changed(record)
+        and record["repair_passes"] == 0
+        and not any(item["repair_pass"] == 0 for item in findings),
     }
     return sorted(name for name, observed in checks.items() if observed)
 
@@ -683,7 +711,7 @@ def validate_record(record: object, expected_run_id: str) -> dict[str, object]:
         elif ancestry is not None:
             _boolean(ancestry, "git.head_start_is_ancestor_of_head_end")
     if status == "completed":
-        validate_finish_shape({key: value[key] for key in FINISH_KEYS})
+        validate_finish_shape({key: value[key] for key in FINISH_KEYS}, legacy=schema < 4)
         if value["abandon_reason"] is not None:
             fail("schema-invalid", "completed records cannot have abandon_reason")
     else:
@@ -782,9 +810,9 @@ def cmd_start(args: argparse.Namespace, home: Path, cwd: Path) -> dict[str, obje
     return {"run_id": run_id, "status": "pending"}
 
 
-def _require_pending(home: Path, run_id: str) -> dict[str, object]:
+def _require_pending(home: Path, run_id: str, *, abandon: bool = False) -> dict[str, object]:
     record = load_record(home, run_id)
-    require_current_schema(record)
+    require_mutable_schema(record, abandon=abandon)
     if record["status"] != "pending":
         fail("already-finished", "run is already finished")
     return record
@@ -831,7 +859,7 @@ def cmd_finish(args: argparse.Namespace, home: Path, cwd: Path, stdin: TextIO) -
 def cmd_abandon(args: argparse.Namespace, home: Path) -> dict[str, object]:
     lock = home / "locks" / f"{validate_run_id(args.run_id)}.lock"
     with _file_lock(lock):
-        record = _require_pending(home, args.run_id)
+        record = _require_pending(home, args.run_id, abandon=True)
         completed_at = utc_now()
         record["status"] = "abandoned"
         record["abandon_reason"] = args.reason
@@ -845,7 +873,7 @@ def cmd_outcome(args: argparse.Namespace, home: Path) -> dict[str, object]:
     lock = home / "locks" / f"{validate_run_id(args.run_id)}.lock"
     with _file_lock(lock):
         record = load_record(home, args.run_id)
-        require_current_schema(record)
+        require_mutable_schema(record)
         if record["status"] != "completed":
             fail("schema-invalid", "outcome requires a completed run")
         if args.label == "false-ready" and record["verdict"] != "READY":
@@ -876,6 +904,7 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
     severities: list[str] = []
     statuses: list[str] = []
     classes: list[str] = []
+    costless_repairs = 0
     anomalous_run_ids: set[str] = set()
     anomalies: dict[str, list[object]] = {
         "blocked_execution_with_nonblocked_verdict": [],
@@ -890,6 +919,8 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
         "repair_without_repaired_finding": [],
         "head_changed_during_review": [],
         "design_unresolved_but_full_execution": [],
+        "head_start_not_ancestor_of_head_end": [],
+        "document_changed_without_repair_pass": [],
         "repo_reality_citing_documents_only": [],
     }
     for record in records:
@@ -934,6 +965,8 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
             severities.append(str(item["severity"]))
             statuses.append(str(item["status"]))
             classes.append(str(item["class"]))
+            if item["repair_pass"] == 0 and item["status"] == "repaired":
+                costless_repairs += 1
             key = (str(item["class"]), str(item["pattern"]))
             runs_for_pattern = pattern_runs.setdefault(key, [])
             if run_id not in runs_for_pattern:
@@ -962,6 +995,7 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
             ["checkout-bound" if record["schema"] >= 3 else "historical-unbound" for record in records],
             ("checkout-bound", "historical-unbound"),
         ),
+        "costless_repairs": costless_repairs,
     }
     return {
         "schema": SCHEMA,
