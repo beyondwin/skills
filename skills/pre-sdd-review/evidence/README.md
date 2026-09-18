@@ -72,9 +72,9 @@ or null), `degraded_reasons` (list of `primary-role-not-obtained`,
 `review_passes` (1–3), `repair_passes` (0–2), and `findings`.
 
 Each finding has `id` (`PSDR-001`), `severity`, `class`, `pattern`, `status`,
-`source` (`reviewer`, `ledger-pass`, `machine-check`), `repair_pass` (0-2, where
-`0` means the repair consumed no pass), `location` (`path`, `locator`),
-`evidence` (relative paths), `consequence`, and `fix`.
+`source` (`reviewer`, `ledger-pass`, `machine-check`), `repair_pass` (null or
+0–2, where `0` means the repair consumed no pass), `location` (`path`,
+`locator`), `evidence` (relative paths), `consequence`, and `fix`.
 
 A schema 4 record adds `baseline` (`head` plus the ordered `prior_plans` this
 plan's turn assumes) and `ledger` (the shared-file ledger's `path` and `sha`, or
