@@ -39,7 +39,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "736aa26c3c3b6ab3b838da1d6266c0ac372de90e637d2247be7b7f6273cb24db",
+    "SKILL.md": "5859f86247871d225a7ee015663ae4f4182c45a6fe50cf379a28545c8d0834e4",
     "references/reviewer-protocol.md": (
         "340c29754305b6499efaf9cd062f59dafb390fc29e5b4c29ca0d4b56412b10d3"
     ),

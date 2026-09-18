@@ -134,15 +134,15 @@ for a new round. If the latest completed verdict for that plan is `REVISE` or
 `BLOCKED`, `show` that run. Never reuse a handoff whose `execution` is
 `blocked` or `degraded`: a `blocked` run dispatched no reviewer, so re-run the
 input gates (`**Spec:**` resolution and the required implementation base) and
-call `start` if they pass; a `degraded` run's independence guarantee is already
-spent, so call `start` for a fresh full review. For a `full` run, reuse the
-prior handoff without a new review only when `plan.sha_end` and
-`design.sha_end` match the current documents, `git.head_end` matches the
-current `HEAD`, and the outer request does not ask for a re-review or name
-changed authority or repository evidence. Otherwise call `start` before
-semantic review with the skill root, the repository, the primary plan, the
-design path resolved from the plan's `**Spec:**` field, the host client id, the
-host-reported model string (or `unknown`), and the mode.
+call `start` if they pass; a `degraded` run's handoff is never reusable, so
+call `start` for a fresh full review. For a `full` run, reuse the prior handoff
+without a new review only when `plan.sha_end` and `design.sha_end` match the
+current documents, `git.head_end` matches the current `HEAD`, and the outer
+request does not ask for a re-review or name changed authority or repository
+evidence. Otherwise call `start` before semantic review with the skill root,
+the repository, the primary plan, the design path resolved from the plan's
+`**Spec:**` field, the host client id, the host-reported model string (or
+`unknown`), and the mode.
 If `**Spec:**` cannot be resolved, omit `--design` and return `BLOCKED`; the
 recorder does not parse `**Spec:**`. Keep the returned `run_id`
 controller-local and out of user documents. The same lifecycle applies to
