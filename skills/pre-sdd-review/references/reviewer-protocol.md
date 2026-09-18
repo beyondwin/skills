@@ -12,6 +12,37 @@ feasibility, integration, or blast-radius conflicts but cannot authorize a
 new product decision. Every finding must cite an exact repository-relative
 path plus a heading or line.
 
+## Dispatch contract
+
+The controlling agent writes the instruction. These items are not optional, and
+the two instructions differ: a discovery reviewer must arrive told nothing.
+
+### Discovery dispatch
+
+- The baseline: the ordered preceding plans and their paths, with a required
+  reconstruction statement on the response's first line.
+- The shared-file ledger's path and SHA-256, when one exists.
+- An instruction to read a large plan task by task rather than whole.
+- The four recurring defect shapes named in Pass 3.
+- The output format.
+
+Never carry an earlier round's findings into a discovery instruction.
+
+### Closure dispatch
+
+Everything above, plus:
+
+- The earlier round's PSDR records verbatim. A controller summary is not
+  accepted: closure is checked by matching the original Location and Evidence,
+  which a summary cannot carry.
+- The `repair-impact map`.
+- The machine-check results.
+- An explicit slot listing the tasks that no record yet points at.
+
+The rule against naming findings, paths, symbols, or fixes when resuming a
+reviewer applies only to re-asking an incomplete record for its missing fields.
+It does not restrict the closure dispatch above.
+
 ## Finding vocabulary
 
 Use only these severities:
@@ -73,6 +104,22 @@ paths, state transitions, migration order, destructive targets and safe
 prerequisites. Reject placeholders, implied work, and steps that leave an
 implementer to choose among materially different designs.
 
+Check these four by name. They recur across plans and languages.
+
+- **An addendum folded into the tasks only halfway.** A revisions or
+  final-checks section states a requirement while the task's code block keeps
+  the old shape. Two tasks then build the same record with different arity and
+  neither reconciliation compiles.
+- **Verification that exists in prose but not in code.** "That test covers
+  this" where the test is absent or does not look at it. A concurrency
+  requirement with no stated method passes with sequential calls.
+- **A line number used as a location.** A preceding plan inserting above shifts
+  every number below. When the symbol name is already given, the number carries
+  only misinformation.
+- **A closed list updated on one side only.** Schema enums, exact-match key
+  arrays, zod enums, tests that count members. Each plan adds its own entry and
+  one omission leaves the published document rejecting its own schema.
+
 Apply these checks only when their observable trigger is present:
 
 - When a plan or repair introduces or changes a state machine, trace each
@@ -99,6 +146,11 @@ plausible counterexample. Distinguish static contract evidence, unit behavior
 evidence, integration behavior evidence, browser/device behavior evidence,
 and external-side-effect evidence; never claim that one evidence class proves
 another.
+
+When a plan asserts a constraint built from several conjuncts, require a table,
+not prose: one variant per conjunct removed, each rejection case checked
+against each variant. A prose judgement caught three of six conjuncts where the
+table caught all six.
 
 ### Pass 5: readiness verdict
 
