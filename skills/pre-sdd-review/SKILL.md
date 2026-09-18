@@ -29,19 +29,21 @@ improvement.
 
 ## Resolve authoritative inputs
 
-One invocation reviews exactly one implementation plan. Resolve the design
-path from that plan's `**Spec:**` field, then read its binding references:
-accepted ADRs, other explicit decision records, and any user-approved visual
-or product authority. Also resolve the repository root. If the plan has no
-resolvable `**Spec:**` path, do not guess among nearby files: return `BLOCKED`.
+One verdict-bearing invocation reviews exactly one implementation plan.
+Resolve the design path from that plan's `**Spec:**` field, then read its
+binding references: accepted ADRs, other explicit decision records, and any
+user-approved visual or product authority. Also resolve the repository root.
+If the plan has no resolvable `**Spec:**` path, do not guess among nearby
+files: return `BLOCKED`.
 
 If the input is ambiguous between multiple plans, ask for one exact plan when
 the user is available; otherwise return `BLOCKED` instead of inventing an
-aggregate verdict. A request naming several plans may be split into separate
-invocations, but each verdict remains plan-local. On one host, run those
-invocations one after another; do not overlap them. Do not emit an aggregate
-`READY`. If a later invocation changes a shared design, rerun every earlier
-plan whose evidence depended on the previous design fingerprint.
+aggregate verdict. A request naming several plans is split into separate
+verdict-bearing invocations, but each verdict remains plan-local. Before the
+first of those invocations, run the pre-pass below once. On one host, run
+those invocations one after another; do not overlap them. Do not emit an
+aggregate `READY`. If a later invocation changes a shared design, rerun every
+earlier plan whose evidence depended on the previous design fingerprint.
 
 Interpret conflicts in this order:
 
@@ -49,7 +51,11 @@ Interpret conflicts in this order:
 2. Accepted ADRs and other explicitly binding decision records.
 3. The approved design specification.
 4. The implementation plan.
-5. Current repository reality.
+5. Repository reality at this plan's turn.
+
+A plan's turn is the repository plus every preceding plan in the fixed order,
+not whatever `HEAD` happens to be. When preceding plans exist, that baseline
+exists nowhere on disk and must be reconstructed from them.
 
 When repository evidence conflicts with an approved product decision, preserve
 the conflict. Never silently narrow, replace, or invent product intent.
@@ -60,16 +66,61 @@ checkout with `git merge-base --is-ancestor <required-base> HEAD`. If the base
 does not resolve or is not an ancestor of `HEAD`, preserve the mismatch and
 return `BLOCKED`; do not review or repair against a different checkout.
 
+## Pre-pass: shared-file ledger
+
+Run this once, before the first verdict-bearing invocation, when the outer
+request names two or more plans or asks for it explicitly. It emits no verdict.
+
+1. Fix the execution order. Take it from the user or derive it from the plans'
+   stated prerequisites. If it cannot be fixed, stop and ask: without an order
+   there is no baseline.
+2. Build the ledger. Scrape each plan's `Files:` backticked paths and invert
+   them into one row per path. If a plan has no `Files:` section, stop and ask;
+   never derive the paths from task edit surfaces.
+3. Sweep the rows that two or more plans touch.
+4. Run the machine checks over every plan at once.
+5. Steps 3 and 4 emit candidates, not findings. A candidate becomes a defect
+   only when the repository confirms it.
+
+The controlling agent does all of this. Dispatch no reviewer: a reviewer here
+would be a third review role outside any plan's invocation. The next
+invocation's fresh discovery review is the independent check on these repairs.
+
+Hand the confirmed candidates to the controller, never to a reviewer. Repair
+them before dispatching any reviewer, so the reviewer still arrives told
+nothing. Those repairs precede review, so they consume no repair pass; record
+them with `repair_pass: 0` and `source` `ledger-pass` or `machine-check`.
+
+The ledger is derived evidence, never authority. When it disagrees with a
+plan's `Files:`, the plan wins and the ledger is rebuilt. Its default path is
+`docs/superpowers/ledgers/YYYY-MM-DD-<campaign>.md`; a user preference wins.
+
+Under `review-only`, keep the ledger controller-local, write no file, and make
+no intake repair. Report confirmed candidates as findings only.
+
+This pre-pass is not a recorded run. The recorder binds one run to one plan and
+to a verdict, and this pass has neither. The ledger reaches evidence through
+each plan's own `start`.
+
 ## Capture freshness
 
 Before review, compute and record the repository-relative design and plan
 paths and their SHA-256 hashes; Git `HEAD` (or `unborn`); and whether the
 worktree is clean or dirty. Record the review timestamp and final verdict in
-the final report.
+the final report. Also record the baseline: `HEAD` alone when no plan
+precedes this one, or `HEAD` with the ordered list of preceding plans when
+they do. Record the ledger's repository-relative path and SHA-256 when a
+ledger exists.
 
 Any content change to the resolved design or plan invalidates an earlier
 `READY` verdict. A Git change elsewhere requires a new review when it changes
 a path, command, interface, or blast-radius claim used as review evidence.
+
+When preceding plans exist, carry that list and their paths in the reviewer
+instruction and require a baseline-reconstruction statement on the response's
+first line. That statement is the reviewer's own report and is not machine
+checked. Its value is making the baseline explicit so the reviewer does not
+quietly fall back to `HEAD`; it does not prove the reconstruction happened.
 
 ## Optional local evidence
 
@@ -198,9 +249,10 @@ review and controller deduplication, and return the first review's verdict.
 
 ## Repair rules
 
-The controlling agent may edit only the resolved design specification and the
-resolved implementation plan. Ordinary evidence-backed corrections within that
-closed two-document boundary do not require an approval checkpoint.
+The controlling agent may edit only the resolved design specification, the
+resolved implementation plan, and the resolved shared-file ledger. Ordinary
+evidence-backed corrections within that closed two-document boundary do not
+require an approval checkpoint.
 
 Any correction that changes approved product intent is forbidden and returns
 `BLOCKED`. The mutation allowlist excludes accepted ADRs, approved visual authority,

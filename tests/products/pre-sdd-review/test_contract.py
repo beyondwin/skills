@@ -39,7 +39,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "793b859303ed07ba43f64d82dc9d59374787308275351a9aecbc8f0f1a71420d",
+    "SKILL.md": "6bddcc61a45ab23b22d0c7bb2efd0a05e31b5e9e7f63bff9a34bbcd839f420d7",
     "references/reviewer-protocol.md": (
         "340c29754305b6499efaf9cd062f59dafb390fc29e5b4c29ca0d4b56412b10d3"
     ),
@@ -264,6 +264,9 @@ AUTHORITY_ORDER = (
     "The approved design specification.",
     "The implementation plan.",
     "Current repository reality.",
+)
+SKILL_AUTHORITY_ORDER = AUTHORITY_ORDER[:-1] + (
+    "Repository reality at this plan's turn.",
 )
 RISK_TRIGGERS = (
     "framework or runtime removal",
@@ -1003,7 +1006,7 @@ class PreSddReviewContractTests(unittest.TestCase):
             (SKILL / "SKILL.md").read_text(encoding="utf-8"),
         )
         for phrase in (
-            "One invocation reviews exactly one implementation plan",
+            "One verdict-bearing invocation reviews exactly one implementation plan",
             "return `BLOCKED` instead of inventing an aggregate verdict",
             "repair-impact map",
             "modified claim",
@@ -1215,9 +1218,9 @@ class PreSddReviewContractTests(unittest.TestCase):
 
     def test_authority_and_risk_selection_are_ordered_and_conditional(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
-        inputs = section(body, "## Resolve authoritative inputs", "## Capture freshness")
+        inputs = section(body, "## Resolve authoritative inputs", "## Pre-pass: shared-file ledger")
         authority_items = tuple(re.findall(r"^\d+\. (.+)$", inputs, re.MULTILINE))
-        self.assertEqual(authority_items, AUTHORITY_ORDER)
+        self.assertEqual(authority_items, SKILL_AUTHORITY_ORDER)
 
         reviewers = section(
             body,
