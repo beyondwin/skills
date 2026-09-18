@@ -8,11 +8,38 @@ All notable changes to this product are documented in this file.
 
 ### Added
 
-- 판정을 내지 않는 선행 원장 패스.
+- 판정을 내지 않는 선행 원장 패스. 계획을 둘 이상 이름 댄 요청은 판정을 내는 첫
+  호출 앞에 공유 파일 원장과 실행 순서를 만들고 기계 점검을 한 번에 돌린다.
+- `Repository reality at this plan's turn`. freshness 에 baseline 과 ledger 가
+  들어가고, 선행 계획이 있으면 리뷰어가 기준선 재구성을 진술한다.
+- 리뷰어 지시 계약. 발견 지시와 종결 지시를 나누고, 종결 지시는 앞 회차 기록
+  원문과 아직 아무 기록도 가리키지 않은 Task 목록을 싣는다.
+- 되풀이된 결함 갈래 넷과 복합 제약의 증명 표.
+
+### Changed
+
+- 수정 허용 목록이 설계·계획·원장 셋이다. 원장은 유도된 증거이지 권위가 아니다.
+- 부분 닫힘이 일급이다. 잔여는 새 ID 가 아니라 같은 기록의 남은 자리다.
+- 영향 표가 비어 있고 종결 리뷰어가 소비자 없음을 확인한 수리는 패스를 먹지
+  않는다.
+- 원 기록과 `class` 및 갈래가 같은 발견은 위치가 달라도 unmapped 가 아니다.
+- 인계 재사용은 `full` run 만이다. 독립 1차 검토자를 구할 수 없으면 `BLOCKED`
+  이고, 한 에이전트를 계획이 다른 호출에 돌려 쓰지 않는다.
+
+### Breaking
+
+- Record schema 와 handshake 가 `4` 다. 정규 줄은
+  `{"cli_version":"4.0.0","schema":4,"skill_name":"pre-sdd-review"}` 다.
+- record 에 `baseline` 과 `ledger` 가, `git` 에
+  `head_start_is_ancestor_of_head_end` 가, finding 에 `source` 가 들어간다.
+- `finding.repair_pass` 범위가 0..2 이고, `finding.status` 에 `partially-closed`
+  가 들어가며, `degraded_reasons` 는 열거다.
+- schema 2·3 은 계속 읽는다. 변경은 schema 4 만 받고, schema 3 pending 은
+  `abandon` 만 허용한다.
 
 ### Notes
 
-- Record schema 와 `--version` handshake 가 `4` 로 바뀐다. GitHub 태그와 Release 는 만들지 않는다.
+- GitHub 태그와 Release 는 만들지 않는다.
 
 ## 3.0.4 - 2026-09-17
 

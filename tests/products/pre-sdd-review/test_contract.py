@@ -76,6 +76,11 @@ CASE_IDS = (
     "near-miss-write-plan",
     "near-miss-code-review",
     "near-miss-release-review",
+    "ledger-required-for-multiple-plans",
+    "baseline-reconstruction-required",
+    "partial-closure-not-a-new-finding",
+    "costless-repair-consumes-no-pass",
+    "degraded-handoff-not-reused",
 )
 FIXTURE_NAMES = (
     "conditional-edit-surface",
@@ -402,7 +407,7 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Degraded reasons", "a71ff3ec6aaf37ac3a862f8637b0fcd66e561d3958b4b0da0aaa532ced0b28f7"),
 )
 MAINTAINER_CANONICAL_DIGEST = "90a08a153eedda50ae675776a08247ef9248bbad24f77305385b3ad50b1d4dea"
-TESTING_CANONICAL_DIGEST = "c29160eab63c2bb1175f60e346e37bc2ff82532bd068dcda76edd32ea23dd0f0"
+TESTING_CANONICAL_DIGEST = "eb6c73be9e8ebf9c10310fd0edb7440928d2a8554d36b756ce1390f89c6f07fa"
 COMPATIBILITY_CANONICAL_DIGEST = "db8d19d45ca4f6748b73ace65da5e5e965f0e7002a6b0395bf563f524a424480"
 RELEASE_CANONICAL_DIGEST = "a9cd12baf31dbe408975c23bbbec9f860b0e3b58e787aefee5a9cb27c18a3e67"
 
@@ -1208,7 +1213,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertEqual(cases["evidence-review-only"], ("review_only_receipt", "no_document_mutation"))
         self.assertEqual(cases["evidence-resolution-blocked"], ("BLOCKED", "design_omitted_from_start", "design_recorded_null"))
         self.assertEqual(cases["evidence-outcome-optional"], ("verdict_unchanged", "outcome_not_controller_duty", "one_label_after_sdd"))
-        self.assertEqual(cases["summary-before-start"], ("summary_before_start", "abandon_same_plan_pending", "reuse_only_full_or_degraded", "reuse_requires_head_and_request_unchanged"))
+        self.assertEqual(cases["summary-before-start"], ("summary_before_start", "abandon_same_plan_pending", "reuse_only_full", "reuse_requires_head_and_request_unchanged"))
         self.assertEqual(cases["serialize-split-plans"], ("serialize_split_plans", "no_controller_as_independent_primary", "reviewers_are_distinct_agents"))
         self.assertEqual(cases["zero-findings-skip-closure"], ("READY", "zero_findings", "skip_repair", "skip_closure"))
         self.assertEqual(cases["repair-pass-accounting"], ("repair_pass_requires_repaired_finding", "no_copied_repair_pass", "unresolved_repair_pass_null"))
@@ -1677,8 +1682,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "not_measured",
         ):
             self.assertIn(fact, normalized_testing)
-        self.assertEqual(len(CASE_IDS), 31)
-        self.assertIn("정확히 서른한 개", normalized_testing)
+        self.assertEqual(len(CASE_IDS), 36)
+        self.assertIn("정확히 서른여섯 개", normalized_testing)
         self.assertIn("지금은 Codex만 지원합니다", compatibility)
         self.assertIn("다른 호스트는 모두 `not_measured`", compatibility)
         self.assertIn("## 기록기 호환성", compatibility)
