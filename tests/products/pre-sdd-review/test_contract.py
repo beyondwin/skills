@@ -401,7 +401,7 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Ledger shape", "f1091388fd58d8db9f223fbd6e1457303c600107c4c89c37d1aded6caf2ae84e"),
     ("### Degraded reasons", "a71ff3ec6aaf37ac3a862f8637b0fcd66e561d3958b4b0da0aaa532ced0b28f7"),
 )
-MAINTAINER_CANONICAL_DIGEST = "ebe6be8aac56d2e7340b05978f4506a2d99468947f36ae0d74a98d612f64b2a9"
+MAINTAINER_CANONICAL_DIGEST = "90a08a153eedda50ae675776a08247ef9248bbad24f77305385b3ad50b1d4dea"
 TESTING_CANONICAL_DIGEST = "c29160eab63c2bb1175f60e346e37bc2ff82532bd068dcda76edd32ea23dd0f0"
 COMPATIBILITY_CANONICAL_DIGEST = "db8d19d45ca4f6748b73ace65da5e5e965f0e7002a6b0395bf563f524a424480"
 RELEASE_CANONICAL_DIGEST = "a9cd12baf31dbe408975c23bbbec9f860b0e3b58e787aefee5a9cb27c18a3e67"
@@ -1507,7 +1507,7 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
         allowlist = (
             "`editable-surfaces`: `resolved-design-specification`, "
-            "`resolved-implementation-plan`"
+            "`resolved-implementation-plan`, `resolved-shared-file-ledger`"
         )
         self.assertIn(allowlist, contract)
         self.assertNotIn("proposed decision record", contract)
