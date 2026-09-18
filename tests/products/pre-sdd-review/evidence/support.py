@@ -96,6 +96,8 @@ def start(
     client: str = "codex",
     model: str = "gpt-test",
     mode: str = "default",
+    ledger: str | None = None,
+    prior_plans: list[str] | None = None,
 ) -> str:
     argv = [
         "start",
@@ -108,10 +110,43 @@ def start(
     ]
     if design:
         argv += ["--design", str(repo / "docs/design.md")]
+    if ledger is not None:
+        argv += ["--ledger", str(repo / ledger)]
+    for prior in prior_plans or []:
+        argv += ["--prior-plan", prior]
     code, out, err = run(argv, home=home, cwd=repo)
     if code != 0:
         raise AssertionError(err)
     return json.loads(out)["run_id"]
+
+
+def downgrade(record: dict[str, object], schema: int) -> dict[str, object]:
+    """Reshape a schema 4 record to look like one written by schema 2 or 3.
+
+    Schema 3 predates baseline/ledger/git ancestry; schema 2 additionally predates
+    repo_key. Both predate the "source" key on findings -- strip it from every
+    finding too, or a "downgraded" record would silently keep the schema 4 shape.
+    Callers must only pass schema in (2, 3); schema 4 needs no reshaping.
+    """
+    record = dict(record)
+    record["schema"] = schema
+    record.pop("baseline", None)
+    record.pop("ledger", None)
+    git_facts = record.get("git")
+    if isinstance(git_facts, dict):
+        git_facts = dict(git_facts)
+        git_facts.pop("head_start_is_ancestor_of_head_end", None)
+        record["git"] = git_facts
+    if schema == 2:
+        record.pop("repo_key", None)
+    findings = record.get("findings")
+    if isinstance(findings, list):
+        record["findings"] = [
+            {key: value for key, value in item.items() if key != "source"}
+            if isinstance(item, dict) else item
+            for item in findings
+        ]
+    return record
 
 
 def finding(**overrides: object) -> dict[str, object]:
@@ -122,6 +157,7 @@ def finding(**overrides: object) -> dict[str, object]:
         "pattern": "build-only-acceptance",
         "status": "repaired",
         "repair_pass": 1,
+        "source": "reviewer",
         "location": {"path": "docs/plan.md", "locator": "Task 2"},
         "evidence": ["src/app.ts"],
         "consequence": "A build-only check passes a wrong implementation.",

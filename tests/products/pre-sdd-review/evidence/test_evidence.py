@@ -20,6 +20,7 @@ from support import (
     make_git_repo,
     make_skill_root,
     run,
+    run_git,
     start,
     write,
 )
@@ -27,7 +28,7 @@ from support import (
 import evidence
 
 
-VERSION_LINE = b'{"cli_version":"3.0.0","schema":3,"skill_name":"pre-sdd-review"}\n'
+VERSION_LINE = b'{"cli_version":"4.0.0","schema":4,"skill_name":"pre-sdd-review"}\n'
 
 
 class VersionTests(unittest.TestCase):
@@ -98,7 +99,7 @@ class StartTests(unittest.TestCase):
         run_id = start(self.home, self.repo, self.skill)
         record = load(self.home, run_id)
         head = subprocess.run(["git", "-C", str(self.repo), "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
-        self.assertEqual(record["schema"], 3)
+        self.assertEqual(record["schema"], 4)
         self.assertEqual(record["status"], "pending")
         self.assertEqual(record["repo"], "repo")
         self.assertEqual(record["client"], {"id": "codex", "model": "gpt-test"})
@@ -109,7 +110,16 @@ class StartTests(unittest.TestCase):
         self.assertRegex(record["plan"]["sha_start"], r"^[0-9a-f]{64}$")
         self.assertIsNone(record["plan"]["sha_end"])
         self.assertEqual(record["design"]["path"], "docs/design.md")
-        self.assertEqual(record["git"], {"head_start": head, "head_end": None, "dirty_start": False, "dirty_end": None})
+        self.assertEqual(
+            record["git"],
+            {
+                "head_start": head,
+                "head_end": None,
+                "dirty_start": False,
+                "dirty_end": None,
+                "head_start_is_ancestor_of_head_end": None,
+            },
+        )
         for key in ("completed_at", "elapsed_s", "execution", "reviewers", "trigger", "review_passes", "repair_passes", "verdict", "block_reason", "abandon_reason", "outcome"):
             self.assertIsNone(record[key], key)
         self.assertEqual(record["degraded_reasons"], [])
@@ -190,6 +200,55 @@ class StartTests(unittest.TestCase):
         release = tomllib.loads((real_skill / "release.toml").read_text(encoding="utf-8"))
         self.assertEqual(load(self.home, json.loads(out)["run_id"])["skill"]["version"], release["version"])
 
+    def test_start_records_baseline_and_ledger(self) -> None:
+        write(self.repo / "docs/ledger.md", "| path | plans |\n")
+        run_id = start(
+            self.home,
+            self.repo,
+            self.skill,
+            ledger="docs/ledger.md",
+            prior_plans=["docs/plan-a.md", "docs/plan-b.md"],
+        )
+        record = load(self.home, run_id)
+        self.assertEqual(record["schema"], 4)
+        self.assertEqual(
+            record["baseline"],
+            {"head": record["git"]["head_start"], "prior_plans": ["docs/plan-a.md", "docs/plan-b.md"]},
+        )
+        self.assertEqual(record["ledger"]["path"], "docs/ledger.md")
+        self.assertEqual(len(record["ledger"]["sha"]), 64)
+        self.assertIsNone(record["git"]["head_start_is_ancestor_of_head_end"])
+
+    def test_start_without_ledger_or_prior_plans_uses_empty_defaults(self) -> None:
+        record = load(self.home, start(self.home, self.repo, self.skill))
+        self.assertIsNone(record["ledger"])
+        self.assertEqual(record["baseline"]["prior_plans"], [])
+
+    def test_start_deduplicates_prior_plans_preserving_first_occurrence_order(self) -> None:
+        record = load(self.home, start(
+            self.home, self.repo, self.skill,
+            prior_plans=["docs/plan-b.md", "docs/plan-a.md", "docs/plan-b.md"],
+        ))
+        self.assertEqual(record["baseline"]["prior_plans"], ["docs/plan-b.md", "docs/plan-a.md"])
+
+    def test_start_rejects_more_than_max_prior_plans(self) -> None:
+        argv = [
+            "start", "--skill-root", str(self.skill), "--repo", str(self.repo), "--plan", "docs/plan.md",
+            "--client", "codex", "--model", "m", "--mode", "default",
+        ]
+        for index in range(evidence.MAX_PRIOR_PLANS + 1):
+            argv += ["--prior-plan", f"docs/plan-{index}.md"]
+        code, _, err = run(argv, home=self.home, cwd=self.repo)
+        self.assertEqual((code, error_code(err)), (2, "invalid-arguments"))
+
+    def test_start_rejects_an_unsafe_prior_plan_as_invalid_arguments_not_schema_invalid(self) -> None:
+        code, _, err = run(
+            ["start", "--skill-root", str(self.skill), "--repo", str(self.repo), "--plan", "docs/plan.md",
+             "--client", "codex", "--model", "m", "--mode", "default", "--prior-plan", "../escape.md"],
+            home=self.home, cwd=self.repo,
+        )
+        self.assertEqual((code, error_code(err)), (2, "invalid-arguments"))
+
 
 class FinishTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -239,7 +298,7 @@ class FinishTests(unittest.TestCase):
             "repair-without-repaired": finish_payload(repair_passes=1),
             "full-two-reviewers-no-trigger": finish_payload(reviewers=2),
             "full-one-reviewer-with-trigger": finish_payload(trigger="schema-migration"),
-            "full-with-degraded-reason": finish_payload(degraded_reasons=["fresh-reviewer-unavailable"]),
+            "full-with-degraded-reason": finish_payload(degraded_reasons=["other"]),
             "degraded-without-reason": finish_payload(execution="degraded"),
             "repair-pass-exceeds": finish_payload(repair_passes=1, findings=[finding(repair_pass=2)]),
         }
@@ -287,7 +346,7 @@ class FinishTests(unittest.TestCase):
     def test_finish_accepts_blocked_degraded_and_triggered_full_runs(self) -> None:
         for payload in (
             finish_payload(verdict="BLOCKED", block_reason="spec-unresolved", execution="blocked", reviewers=0),
-            finish_payload(verdict="REVISE", execution="degraded", degraded_reasons=["fresh-reviewer-unavailable"], findings=[finding(status="unresolved", repair_pass=None)]),
+            finish_payload(verdict="REVISE", execution="degraded", degraded_reasons=["other"], findings=[finding(status="unresolved", repair_pass=None)]),
             finish_payload(reviewers=2, trigger="data-boundary"),
         ):
             with self.subTest(payload=payload["verdict"] + payload["execution"]):
@@ -367,6 +426,117 @@ class FinishTests(unittest.TestCase):
             [{"run_id": unusual, "finding_id": "PSDR-001"}],
         )
         self.assertEqual(summary["counts"]["observation"], {"normal": 1, "anomalous": 1})
+
+    def test_finish_records_whether_head_start_is_an_ancestor(self) -> None:
+        run_id = start(self.home, self.repo, self.skill)
+        write(self.repo / "src/app.ts", "export const app = 2;\n")
+        commit_all(self.repo, "forward")
+        code, out, err = finish(self.home, self.repo, run_id, finish_payload())
+        self.assertEqual((code, err), (0, ""))
+        self.assertIs(load(self.home, run_id)["git"]["head_start_is_ancestor_of_head_end"], True)
+        self.assertNotIn("head_start_not_ancestor_of_head_end", json.loads(out)["anomalies"])
+
+    def test_finish_flags_a_head_that_is_not_a_descendant(self) -> None:
+        run_git(self.repo, "checkout", "--quiet", "-b", "side")
+        write(self.repo / "src/app.ts", "export const app = 3;\n")
+        commit_all(self.repo, "side")
+        run_id = start(self.home, self.repo, self.skill)
+        run_git(self.repo, "checkout", "--quiet", "-")
+        code, out, err = finish(self.home, self.repo, run_id, finish_payload())
+        self.assertEqual((code, err), (0, ""))
+        self.assertIs(load(self.home, run_id)["git"]["head_start_is_ancestor_of_head_end"], False)
+        self.assertIn("head_start_not_ancestor_of_head_end", json.loads(out)["anomalies"])
+
+    def test_finish_records_none_ancestry_when_head_is_unchanged(self) -> None:
+        run_id = start(self.home, self.repo, self.skill)
+        code, _, err = finish(self.home, self.repo, run_id, finish_payload())
+        self.assertEqual((code, err), (0, ""))
+        record = load(self.home, run_id)
+        self.assertEqual(record["git"]["head_start"], record["git"]["head_end"])
+        self.assertIsNone(record["git"]["head_start_is_ancestor_of_head_end"])
+
+    def test_finish_accepts_a_costless_repair_and_a_partial_closure(self) -> None:
+        payload = finish_payload(
+            verdict="REVISE",
+            repair_passes=1,
+            findings=[
+                finding(
+                    id="PSDR-001",
+                    status="repaired",
+                    repair_pass=0,
+                    source="ledger-pass",
+                ),
+                finding(
+                    id="PSDR-002",
+                    status="partially-closed",
+                    repair_pass=1,
+                    source="reviewer",
+                ),
+            ],
+        )
+        code, out, err = finish(self.home, self.repo, self.run_id, payload)
+        self.assertEqual((code, err), (0, ""))
+        body = json.loads(out)
+        self.assertEqual(body["verdict"], "REVISE")
+        self.assertNotIn("revise_without_unresolved_finding", body["anomalies"])
+        statuses = [item["status"] for item in load(self.home, self.run_id)["findings"]]
+        self.assertEqual(statuses, ["repaired", "partially-closed"])
+
+    def test_a_partial_closure_is_unresolved_for_a_ready_verdict(self) -> None:
+        payload = finish_payload(
+            repair_passes=1,
+            findings=[finding(status="partially-closed", repair_pass=1)],
+        )
+        code, out, err = finish(self.home, self.repo, self.run_id, payload)
+        self.assertEqual((code, err), (0, ""))
+        self.assertIn("ready_with_unresolved_findings", json.loads(out)["anomalies"])
+
+    def test_an_intake_repair_records_cleanly_with_no_repair_pass(self) -> None:
+        payload = finish_payload(
+            repair_passes=0,
+            findings=[finding(status="repaired", repair_pass=0, source="machine-check")],
+        )
+        code, out, err = finish(self.home, self.repo, self.run_id, payload)
+        self.assertEqual((code, err), (0, ""))
+        body = json.loads(out)
+        self.assertEqual(body["verdict"], "READY")
+        self.assertEqual(body["anomalies"], [])
+
+    def test_finish_rejects_an_unknown_finding_source(self) -> None:
+        payload = finish_payload(findings=[finding(source="controller")])
+        code, _, err = finish(self.home, self.repo, self.run_id, payload)
+        self.assertEqual((code, error_code(err)), (2, "schema-invalid"))
+
+    def test_finish_rejects_a_negative_repair_pass(self) -> None:
+        payload = finish_payload(findings=[finding(repair_pass=-1)])
+        code, _, err = finish(self.home, self.repo, self.run_id, payload)
+        self.assertEqual((code, error_code(err)), (2, "schema-invalid"))
+
+    def test_finish_rejects_a_free_text_degraded_reason(self) -> None:
+        payload = finish_payload(execution="degraded", degraded_reasons=["thread limit"])
+        code, _, err = finish(self.home, self.repo, self.run_id, payload)
+        self.assertEqual(code, 2)
+        self.assertEqual(error_code(err), "schema-invalid")
+
+    def test_finish_accepts_an_enumerated_degraded_reason(self) -> None:
+        payload = finish_payload(execution="degraded", degraded_reasons=["focused-role-not-obtained"])
+        code, _, err = finish(self.home, self.repo, self.run_id, payload)
+        self.assertEqual((code, err), (0, ""))
+
+    def test_finish_flags_a_document_change_with_no_repair(self) -> None:
+        write(self.repo / "docs/plan.md", "# Plan\n\n**Spec:** docs/design.md\n\nchanged\n")
+        code, out, err = finish(self.home, self.repo, self.run_id, finish_payload())
+        self.assertEqual((code, err), (0, ""))
+        self.assertIn("document_changed_without_repair_pass", json.loads(out)["anomalies"])
+
+    def test_a_costless_repair_clears_the_document_change_anomaly(self) -> None:
+        write(self.repo / "docs/plan.md", "# Plan\n\n**Spec:** docs/design.md\n\nchanged\n")
+        payload = finish_payload(
+            findings=[finding(status="repaired", repair_pass=0, source="machine-check")]
+        )
+        code, out, err = finish(self.home, self.repo, self.run_id, payload)
+        self.assertEqual((code, err), (0, ""))
+        self.assertNotIn("document_changed_without_repair_pass", json.loads(out)["anomalies"])
 
 
 class AbandonOutcomeShowTests(unittest.TestCase):
@@ -492,6 +662,7 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(summary["counts"]["status"], {"completed": 0, "abandoned": 0, "pending": 0})
         self.assertEqual(summary["counts"]["verdict"], {"READY": 0, "REVISE": 0, "BLOCKED": 0})
         self.assertEqual(summary["counts"]["outcome"], {"recorded": 0, "good": 0, "false-ready": 0, "noisy": 0, "abandoned": 0})
+        self.assertEqual(summary["counts"]["costless_repairs"], 0)
         self.assertEqual(summary["cost"], {"elapsed_s": {"median": None, "max": None}, "review_passes_avg": None, "repair_passes_avg": None})
         self.assertEqual(summary["anomalies"], {
             "blocked_execution_with_nonblocked_verdict": [],
@@ -506,6 +677,8 @@ class SummaryTests(unittest.TestCase):
             "repair_without_repaired_finding": [],
             "head_changed_during_review": [],
             "design_unresolved_but_full_execution": [],
+            "head_start_not_ancestor_of_head_end": [],
+            "document_changed_without_repair_pass": [],
             "repo_reality_citing_documents_only": [],
         })
         self.assertFalse(self.home.exists())
@@ -570,6 +743,20 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(summary["anomalies"]["head_changed_during_review"], [second])
         self.assertEqual(summary["anomalies"]["design_unresolved_but_full_execution"], [unresolved_design])
         self.assertEqual(summary["anomalies"]["repo_reality_citing_documents_only"], [{"run_id": first, "finding_id": "PSDR-001"}])
+
+    def test_summary_counts_costless_repairs(self) -> None:
+        run_id = start(self.home, self.repo, self.skill)
+        payload = finish_payload(
+            findings=[
+                finding(id="PSDR-001", status="repaired", repair_pass=0, source="ledger-pass"),
+                finding(id="PSDR-002", status="repaired", repair_pass=1, source="reviewer"),
+            ],
+            repair_passes=1,
+        )
+        self.assertEqual(finish(self.home, self.repo, run_id, payload)[0], 0)
+        code, out, err = run(["summary"], home=self.home, cwd=self.repo)
+        self.assertEqual((code, err), (0, ""))
+        self.assertEqual(json.loads(out)["counts"]["costless_repairs"], 1)
 
     def test_summary_filters_by_repo_and_last(self) -> None:
         first = start(self.home, self.repo, self.skill)

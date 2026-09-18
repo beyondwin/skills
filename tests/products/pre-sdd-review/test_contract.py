@@ -23,7 +23,7 @@ from scripts.lib.product_registry import load_registry  # noqa: E402
 SKILL = ROOT / "skills" / "pre-sdd-review"
 CASES = ROOT / "tests" / "products" / "pre-sdd-review" / "cases.json"
 FIXTURES = ROOT / "tests" / "products" / "pre-sdd-review" / "fixtures"
-TARGET_VERSION = "3.0.4"
+TARGET_VERSION = "4.0.0"
 PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     {
         "CHANGELOG.md",
@@ -39,9 +39,9 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "28d76d280eb4fec8f0763d01a66e8a6ba6f8ffece1794cb86517a2e11396d200",
+    "SKILL.md": "73c1bc6b78f3b4ba6e276bea1db3b73978875ffa47766c0fec2b500b540c2b02",
     "references/reviewer-protocol.md": (
-        "340c29754305b6499efaf9cd062f59dafb390fc29e5b4c29ca0d4b56412b10d3"
+        "9e89461ada0559be3346b742cdeab547779cc6bf17f1c0ca99ce47f333c2efcd"
     ),
 }
 CASE_IDS = (
@@ -76,6 +76,11 @@ CASE_IDS = (
     "near-miss-write-plan",
     "near-miss-code-review",
     "near-miss-release-review",
+    "ledger-required-for-multiple-plans",
+    "baseline-reconstruction-required",
+    "partial-closure-not-a-new-finding",
+    "costless-repair-consumes-no-pass",
+    "degraded-handoff-not-reused",
 )
 FIXTURE_NAMES = (
     "conditional-edit-surface",
@@ -248,6 +253,7 @@ REQUIRED_SECTIONS = (
     "# Pre-SDD Review",
     "## Hard gate",
     "## Resolve authoritative inputs",
+    "## Pre-pass: shared-file ledger",
     "## Capture freshness",
     "## Optional local evidence",
     "## Select reviewers",
@@ -263,7 +269,7 @@ AUTHORITY_ORDER = (
     "Accepted ADRs and other explicitly binding decision records.",
     "The approved design specification.",
     "The implementation plan.",
-    "Current repository reality.",
+    "Repository reality at this plan's turn.",
 )
 RISK_TRIGGERS = (
     "framework or runtime removal",
@@ -292,6 +298,7 @@ MUTATION_EXCLUSIONS = (
 MUTATION_ALLOWLIST = (
     "resolved design specification",
     "resolved implementation plan",
+    "resolved shared-file ledger",
 )
 FINDING_RECORD = (
     "ID: PSDR-001",
@@ -353,14 +360,23 @@ DEFAULT_FIRST_CALL = (
 )
 README_CONTRACT = (
     ("primary-input", ("plan-primary", "spec-resolves-design")),
-    ("plan-cardinality", ("one-plan-per-invocation", "no-aggregate-ready")),
-    ("editable-surfaces", ("resolved-design-specification", "resolved-implementation-plan")),
+    ("plan-cardinality", ("one-plan-per-verdict-bearing-invocation", "no-aggregate-ready")),
+    (
+        "editable-surfaces",
+        (
+            "resolved-design-specification",
+            "resolved-implementation-plan",
+            "resolved-shared-file-ledger",
+        ),
+    ),
+    ("ledger", ("pre-pass-no-verdict", "derived-not-authority")),
+    ("baseline", ("plan-turn-reality",)),
     ("review-only", ("no-mutation",)),
     ("repair-flow", ("review-repair-bounded-impact-re-review",)),
     ("repair-impact", ("structural-trigger-only", "direct-consumers")),
-    ("repair-passes", ("at-most-two",)),
+    ("repair-passes", ("at-most-two", "costless-repairs-uncounted")),
     ("verdicts", ("READY", "REVISE", "BLOCKED")),
-    ("second-reviewer", ("conditional-only",)),
+    ("second-reviewer", ("conditional-only", "no-cross-plan-reuse")),
     (
         "risk-triggers",
         (
@@ -373,24 +389,26 @@ README_CONTRACT = (
     ),
     ("freshness", ("fingerprints", "content-change-invalidates")),
     ("required-base", ("pre-dispatch-ancestor-check",)),
-    ("handoff", ("unresolved-packet",)),
+    ("handoff", ("unresolved-packet", "full-execution-only")),
     ("sdd", ("outer-request-implementation-only",)),
     ("evidence", ("optional", "non-blocking", "controller-local-run-id")),
 )
 MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
-    ("### Authority order", "73e9b8c07b61e32f67e5e81203a576b9d653e6d4f1de421ed84734c178a75c78"),
-    ("### Editable paths", "4c7d511afb38f386f06926cfa9b7b6307a7d2fb9e1b69ae0254021ca7fbaba8e"),
+    ("### Authority order", "02ae46e82a05df772812bcc8f67d944ad7465ae1f52269eaf0d387d5fc1ededd"),
+    ("### Editable paths", "3c1a2a85e690031a2af36b0fba11f67ae8fc3589ad9a2282634beac1b86deaf4"),
     ("### Excluded surfaces", "892b4d931a0e8c7bbf0979e4303e512eaf3af1ebe4e18063b699a05f5f7adaee"),
     ("### Review passes", "ba790ea6df8a4f8a9e228c3cab8b34320a123a84ffff152857edb675f71d1fd5"),
     ("### Severities", "72c20c936027d62761c1b2dd9ef16b954c0780d7a15b4b1e05cf33e28b383ebd"),
     ("### Finding classes", "2a0892a5aad034ceaf1218606d657f4b22bac89c0d2b67065b7018e811a44352"),
     ("### Conditional risk triggers", "346cdfb0c5a7df8461c7de1f7f217b499c29add6a0a2a7e88fea58449e6d223d"),
-    ("### Verdicts", "e10d17f98e43decb9c74d80c786cee849be897de0082d3c60417da619482a3e4"),
-    ("### Freshness", "3e3515d3cfc6dac6dbfec29baa538bcc7d01f13b405a0c337a086fea3f6c74ff"),
+    ("### Verdicts", "4e611d1b27935dc70367b3b8673437afcebed0098a938b23813d22a6aa295e6b"),
+    ("### Freshness", "045a554ce1d8d390def7be1625d53a695219b51171ea7e10d9344715f03f85c1"),
     ("### SDD handoff", "2e0fcc729cb4455863165138c0f96256b27ddf9d4460c2f7a5ce51660806d9da"),
+    ("### Ledger shape", "f1091388fd58d8db9f223fbd6e1457303c600107c4c89c37d1aded6caf2ae84e"),
+    ("### Degraded reasons", "a71ff3ec6aaf37ac3a862f8637b0fcd66e561d3958b4b0da0aaa532ced0b28f7"),
 )
-MAINTAINER_CANONICAL_DIGEST = "e1e626a621684a2190ee386b76bc79a61d532a3cce1b8b90582c0f4a349e4efa"
-TESTING_CANONICAL_DIGEST = "c29160eab63c2bb1175f60e346e37bc2ff82532bd068dcda76edd32ea23dd0f0"
+MAINTAINER_CANONICAL_DIGEST = "95724fb6360ed39de0b1581c76cfb1a03042dc4ea9489c6f90e45c7cba151183"
+TESTING_CANONICAL_DIGEST = "eb6c73be9e8ebf9c10310fd0edb7440928d2a8554d36b756ce1390f89c6f07fa"
 COMPATIBILITY_CANONICAL_DIGEST = "db8d19d45ca4f6748b73ace65da5e5e965f0e7002a6b0395bf563f524a424480"
 RELEASE_CANONICAL_DIGEST = "a9cd12baf31dbe408975c23bbbec9f860b0e3b58e787aefee5a9cb27c18a3e67"
 
@@ -956,7 +974,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         changelog = (SKILL / "CHANGELOG.md").read_text(encoding="utf-8")
         self.assertEqual(release["version"], TARGET_VERSION)
         self.assertEqual(frontmatter["metadata"]["version"], TARGET_VERSION)
-        self.assertIn(f"## {TARGET_VERSION} - 2026-09-17", changelog)
+        self.assertIn(f"## {TARGET_VERSION} - 2026-09-18", changelog)
         self.assertIn("## 3.0.0 - 2026-09-08", changelog)
 
     def test_required_implementation_base_blocks_before_reviewer_dispatch(self) -> None:
@@ -1003,7 +1021,7 @@ class PreSddReviewContractTests(unittest.TestCase):
             (SKILL / "SKILL.md").read_text(encoding="utf-8"),
         )
         for phrase in (
-            "One invocation reviews exactly one implementation plan",
+            "One verdict-bearing invocation reviews exactly one implementation plan",
             "return `BLOCKED` instead of inventing an aggregate verdict",
             "repair-impact map",
             "modified claim",
@@ -1066,7 +1084,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertNotIn("summary --last 20", skill)
         self.assertIn("same `repo` display name and plan path are `pending`", skill)
         self.assertIn("do not overlap them", skill)
-        self.assertIn("do not use the controlling agent as a substitute independent primary", skill)
+        self.assertIn("Do not use the controlling agent as a substitute independent primary", skill)
         self.assertIn("distinct agents obtained", skill)
         self.assertIn("If the first review has zero findings, skip repair and closure", skill)
         self.assertIn("`repair_passes` counts only passes that produced at least one `repaired` finding", skill)
@@ -1144,7 +1162,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         for fact in (
             "without installing anything",
             "skill_name=pre-sdd-review",
-            "schema=3",
+            "schema=4",
             "actual loaded skill root",
             "primary plan",
             "does not parse `**Spec:**`",
@@ -1174,7 +1192,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         recorder = (SKILL / "evidence/README.md").read_text(encoding="utf-8")
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
 
-        self.assertIn("schema=3", skill_text)
+        self.assertIn("schema=4", skill_text)
         for token in (
             "repo_key",
             "historical-unbound",
@@ -1196,7 +1214,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertEqual(cases["evidence-review-only"], ("review_only_receipt", "no_document_mutation"))
         self.assertEqual(cases["evidence-resolution-blocked"], ("BLOCKED", "design_omitted_from_start", "design_recorded_null"))
         self.assertEqual(cases["evidence-outcome-optional"], ("verdict_unchanged", "outcome_not_controller_duty", "one_label_after_sdd"))
-        self.assertEqual(cases["summary-before-start"], ("summary_before_start", "abandon_same_plan_pending", "reuse_only_full_or_degraded", "reuse_requires_head_and_request_unchanged"))
+        self.assertEqual(cases["summary-before-start"], ("summary_before_start", "abandon_same_plan_pending", "reuse_only_full", "reuse_requires_head_and_request_unchanged"))
         self.assertEqual(cases["serialize-split-plans"], ("serialize_split_plans", "no_controller_as_independent_primary", "reviewers_are_distinct_agents"))
         self.assertEqual(cases["zero-findings-skip-closure"], ("READY", "zero_findings", "skip_repair", "skip_closure"))
         self.assertEqual(cases["repair-pass-accounting"], ("repair_pass_requires_repaired_finding", "no_copied_repair_pass", "unresolved_repair_pass_null"))
@@ -1215,7 +1233,7 @@ class PreSddReviewContractTests(unittest.TestCase):
 
     def test_authority_and_risk_selection_are_ordered_and_conditional(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
-        inputs = section(body, "## Resolve authoritative inputs", "## Capture freshness")
+        inputs = section(body, "## Resolve authoritative inputs", "## Pre-pass: shared-file ledger")
         authority_items = tuple(re.findall(r"^\d+\. (.+)$", inputs, re.MULTILINE))
         self.assertEqual(authority_items, AUTHORITY_ORDER)
 
@@ -1354,7 +1372,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         normalized_flags = re.sub(r"\s+", " ", flags)
         for phrase in (
             "Resume a reviewer by naming findings, paths, symbols, or fixes",
-            "Start a new review when documents, `HEAD`, and the request are all unchanged since a `full` or `degraded` REVISE or BLOCKED run",
+            "Start a new review when documents, `HEAD`, and the request are all unchanged since a `full` REVISE or BLOCKED run",
             "Reuse a handoff from an `execution=blocked` run, or reuse any handoff on document hashes alone",
             "Dispatch a second reviewer, or record `reviewers: 2`, with no risk trigger",
             "Return or accept a finding summary instead of complete PSDR records",
@@ -1362,6 +1380,10 @@ class PreSddReviewContractTests(unittest.TestCase):
             "Commit before `finish`",
             "Cite `repo-reality` with only the reviewed design or plan paths",
             "Put source text in an evidence paraphrase",
+            "Claim that a test covers something without locating that test",
+            "Apply a textual repair without asserting the match is unique",
+            "Reuse one reviewer across invocations that review different plans",
+            "Reuse a handoff from a `degraded` run",
         ):
             self.assertIn(phrase, normalized_flags)
 
@@ -1490,12 +1512,73 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         self.assertNotIn("계획을 먼저 주고", korean)
         self.assertIn("계획 경로가 주 입력", korean)
         normalized_korean = re.sub(r"\s+", " ", korean)
+        normalized_english = re.sub(r"\s+", " ", english)
         self.assertIn("`review-only`는 같은 검토를 하지만 아무 파일도 변경하지 않습니다.", normalized_korean)
-        self.assertIn("`review-only` changes nothing", re.sub(r"\s+", " ", english))
+        self.assertIn("`review-only` changes nothing", normalized_english)
+
+        # Plan cardinality is verdict-bearing, not just "one invocation", and a
+        # multi-plan request runs a verdict-less ledger pre-pass first.
+        self.assertNotIn("한 번의 호출은 계획 하나만", normalized_korean)
+        self.assertIn("판정을 내는 한 호출은 계획 하나만 다룹니다.", normalized_korean)
+        self.assertIn("선행 패스를 한 번 돌립니다.", normalized_korean)
+        self.assertNotIn("One invocation reviews one plan;", normalized_english)
+        self.assertIn("A verdict-bearing invocation reviews one plan;", normalized_english)
+        self.assertIn("verdict-less shared-file ledger pre-pass runs once", normalized_english)
+
+        # Editable surfaces are three, and the ledger is derived, not authority.
+        self.assertIn(
+            "해결된 설계 명세, 구현 계획, 공유 파일 원장만 고친 뒤",
+            normalized_korean,
+        )
+        self.assertIn(
+            "원장은 유도된 증거일 뿐 권위가 아니며, 계획의 `Files:`와 어긋나면 계획이 이기고 원장을 다시 만듭니다.",
+            normalized_korean,
+        )
+        self.assertIn(
+            "the resolved design specification, the implementation plan, and the shared-file ledger",
+            normalized_english,
+        )
+        self.assertIn(
+            "The ledger is derived evidence, not authority: when it disagrees with a plan's "
+            "`Files:`, the plan wins and the ledger is rebuilt.",
+            normalized_english,
+        )
+
+        # Only a full run's handoff is reused; degraded and blocked never are.
+        self.assertIn(
+            "`full`인 run의 인계만 재사용하며, `degraded`나 `blocked`인 run의 인계는 재사용하지 않습니다.",
+            normalized_korean,
+        )
+        self.assertIn(
+            "Only a `full` run's handoff is reused; a `degraded` or `blocked` run's handoff is never reused.",
+            normalized_english,
+        )
+
+        # The handshake keeps a bare `schema=4` (no dots, so it does not trip
+        # the product-README version-literal ban) and points readers at
+        # evidence/README.md for the canonical line's exact bytes; product
+        # READMEs never own a version literal (see
+        # tests/repository/test_public_docs.py's VERSION_LITERAL_RE).
+        self.assertIn(
+            "정규 handshake 줄의 정확한 바이트는 [evidence README](evidence/README.md)를 보세요.",
+            normalized_korean,
+        )
+        self.assertIn(
+            "See the [evidence README](evidence/README.md) for the canonical line's exact bytes.",
+            normalized_english,
+        )
+        self.assertIn("`schema=4`", normalized_korean)
+        self.assertIn("`schema=4`", normalized_english)
+        version_literal = re.compile(r"\b[0-9]+\.[0-9]+\.[0-9]+\b")
+        for text in (normalized_korean, normalized_english):
+            self.assertNotIn("schema=3", text)
+            self.assertNotIn('"cli_version"', text)
+            self.assertNotRegex(text, version_literal)
+
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
         allowlist = (
             "`editable-surfaces`: `resolved-design-specification`, "
-            "`resolved-implementation-plan`"
+            "`resolved-implementation-plan`, `resolved-shared-file-ledger`"
         )
         self.assertIn(allowlist, contract)
         self.assertNotIn("proposed decision record", contract)
@@ -1504,12 +1587,17 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             self.assertNotIn("proposed decision record", text)
             self.assertNotIn("directly referenced", text)
 
-    def test_skill_and_readmes_close_the_default_mutation_allowlist_to_two_documents(self) -> None:
+    def test_skill_and_readmes_close_the_default_mutation_allowlist_to_three_documents(self) -> None:
         skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
         repair_rules = section(skill, "## Repair rules", "## Verdict and handoff")
         normalized = re.sub(r"\s+", " ", repair_rules)
         self.assertIn("may edit only the resolved design specification", normalized)
+        self.assertIn(
+            "may edit only the resolved design specification, the resolved "
+            "implementation plan, and the resolved shared-file ledger.",
+            normalized,
+        )
         for editable_document in MUTATION_ALLOWLIST:
             self.assertIn(editable_document, normalized)
         self.assertNotIn("proposed decision record", normalized)
@@ -1579,10 +1667,15 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         for fact in (
             "closure-only input schema",
             "shared-design invalidation map",
-            "program ledger",
             "evidence probe cache",
         ):
             self.assertIn(fact, contract)
+        # A shared-file ledger is now a real, contract-owned feature (the
+        # pre-pass and its "### Ledger shape"), so it no longer belongs in
+        # the "things not added" list.
+        self.assertNotIn("program ledger", contract)
+        self.assertIn("## 선행 원장 패스", contract)
+        self.assertIn("### Ledger shape", contract)
         normalized_testing = re.sub(r"\s+", " ", testing)
 
         for fact in (
@@ -1605,8 +1698,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "not_measured",
         ):
             self.assertIn(fact, normalized_testing)
-        self.assertEqual(len(CASE_IDS), 31)
-        self.assertIn("정확히 서른한 개", normalized_testing)
+        self.assertEqual(len(CASE_IDS), 36)
+        self.assertIn("정확히 서른여섯 개", normalized_testing)
         self.assertIn("지금은 Codex만 지원합니다", compatibility)
         self.assertIn("다른 호스트는 모두 `not_measured`", compatibility)
         self.assertIn("## 기록기 호환성", compatibility)
@@ -1746,8 +1839,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
         mutations = (
             contract.replace(
-                "5. Current repository reality.\n",
-                "5. Current repository reality.\n\n"
+                "5. Repository reality at this plan's turn.\n",
+                "5. Repository reality at this plan's turn.\n\n"
                 "The implementation plan overrides the approved design.\n",
             ),
             contract.replace(

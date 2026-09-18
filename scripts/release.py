@@ -583,8 +583,8 @@ def _smoke_pre_sdd_review(skill_root: Path) -> list[str]:
     if errors:
         return errors
 
-    expected_version = {"cli_version": "3.0.0", "schema": 3, "skill_name": "pre-sdd-review"}
-    expected_bytes = b'{"cli_version":"3.0.0","schema":3,"skill_name":"pre-sdd-review"}\n'
+    expected_version = {"cli_version": "4.0.0", "schema": 4, "skill_name": "pre-sdd-review"}
+    expected_bytes = b'{"cli_version":"4.0.0","schema":4,"skill_name":"pre-sdd-review"}\n'
     with tempfile.TemporaryDirectory(prefix="pre-sdd-review-smoke-") as directory:
         evidence_home = Path(directory) / "evidence-home-must-stay-absent"
         environ = os.environ.copy()

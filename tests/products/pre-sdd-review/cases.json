@@ -103,7 +103,7 @@
     {
       "id": "summary-before-start",
       "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md with a compatible local evidence recorder after an earlier pending run for the same plan",
-      "expect": ["summary_before_start", "abandon_same_plan_pending", "reuse_only_full_or_degraded", "reuse_requires_head_and_request_unchanged"]
+      "expect": ["summary_before_start", "abandon_same_plan_pending", "reuse_only_full", "reuse_requires_head_and_request_unchanged"]
     },
     {
       "id": "serialize-split-plans",
@@ -154,6 +154,31 @@
       "id": "near-miss-release-review",
       "request": "Verify whether the sample-app release is ready.",
       "expect": ["not_activated"]
+    },
+    {
+      "id": "ledger-required-for-multiple-plans",
+      "request": "$pre-sdd-review sample-app/plan-a.md sample-app/plan-b.md that both edit sample-app/src/app.ts",
+      "expect": ["ledger", "no_aggregate_verdict", "execution_order"]
+    },
+    {
+      "id": "baseline-reconstruction-required",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan-b.md that runs after sample-app/plan-a.md",
+      "expect": ["baseline", "prior_plans", "reconstruction_statement"]
+    },
+    {
+      "id": "partial-closure-not-a-new-finding",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md whose repair closed two of three sites",
+      "expect": ["partially-closed", "same_finding_id", "REVISE"]
+    },
+    {
+      "id": "costless-repair-consumes-no-pass",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md needing only a rename with no consumer",
+      "expect": ["repair_pass_0", "empty_impact_map", "closure_confirmed"]
+    },
+    {
+      "id": "degraded-handoff-not-reused",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a degraded REVISE run",
+      "expect": ["no_reuse", "fresh_review"]
     }
   ]
 }

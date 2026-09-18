@@ -19,7 +19,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
 사실을 확인합니다. 라이브 검토, 의미 품질, 다른 호스트의 동등 지원은
 증명하지 않습니다.
 
-`evidence/evidence.py` 기록기의 schema 3 checkout 결속, schema 2 read-only
+`evidence/evidence.py` 기록기의 schema 4 checkout 결속, schema 2 read-only
 legacy 처리, mutation lock, 손상 record 격리, 여섯 명령, summary 관찰 집계
 계약은 별도 공급자 없는 단계로 실행합니다. 기록기는
 `python3 skills/pre-sdd-review/evidence/evidence.py`로 돌리며 설치하지
@@ -33,7 +33,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
 이 단계는 네트워크나 공급자를 호출하지 않습니다. DB나 index도 추가하지
 않습니다.
 
-`test_contract.py`의 schema 3 문서 assertion은 설치 지시문, 기록기 안내,
+`test_contract.py`의 schema 4 문서 assertion은 설치 지시문, 기록기 안내,
 maintainer contract가 같은 lifecycle을 설명하는지 확인하는 일관성 증거입니다.
 실제 recorder 동작 증거는 evidence suite가 소유합니다. 이 승인 범위에서는
 provider나 실제 모델을 호출하지 않으므로 실제 모델 리뷰 품질은
@@ -42,7 +42,7 @@ provider나 실제 모델을 호출하지 않으므로 실제 모델 리뷰 품�
 ## 픽스처 경계
 
 `cases.json`은 활성화, 기본 흐름, review-only, 판정, 위험, freshness,
-evidence, near-miss 사례를 정확히 서른한 개 소유합니다. `fixtures/`는 정확히
+evidence, near-miss 사례를 정확히 서른여섯 개 소유합니다. `fixtures/`는 정확히
 `ready`, `missing-coverage`, `false-verification`, `runtime-removal`,
 `repair-induced-schema-consumer`, `state-machine-vacuous-pass`,
 `conditional-edit-surface` 일곱 합성 저장소를 소유합니다. 각 저장소에는
@@ -85,6 +85,11 @@ evidence, near-miss 사례를 정확히 서른한 개 소유합니다. `fixtures
 - `near-miss-write-plan`
 - `near-miss-code-review`
 - `near-miss-release-review`
+- `ledger-required-for-multiple-plans`
+- `baseline-reconstruction-required`
+- `partial-closure-not-a-new-finding`
+- `costless-repair-consumes-no-pass`
+- `degraded-handoff-not-reused`
 
 ### Fixture inventory
 
