@@ -39,7 +39,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "fae4e9600a000683097de6b235d628073881256ac1124ccf31deda7acf362d5a",
+    "SKILL.md": "736aa26c3c3b6ab3b838da1d6266c0ac372de90e637d2247be7b7f6273cb24db",
     "references/reviewer-protocol.md": (
         "340c29754305b6499efaf9cd062f59dafb390fc29e5b4c29ca0d4b56412b10d3"
     ),
@@ -1069,7 +1069,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertNotIn("summary --last 20", skill)
         self.assertIn("same `repo` display name and plan path are `pending`", skill)
         self.assertIn("do not overlap them", skill)
-        self.assertIn("do not use the controlling agent as a substitute independent primary", skill)
+        self.assertIn("Do not use the controlling agent as a substitute independent primary", skill)
         self.assertIn("distinct agents obtained", skill)
         self.assertIn("If the first review has zero findings, skip repair and closure", skill)
         self.assertIn("`repair_passes` counts only passes that produced at least one `repaired` finding", skill)
@@ -1147,7 +1147,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         for fact in (
             "without installing anything",
             "skill_name=pre-sdd-review",
-            "schema=3",
+            "schema=4",
             "actual loaded skill root",
             "primary plan",
             "does not parse `**Spec:**`",
@@ -1177,7 +1177,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         recorder = (SKILL / "evidence/README.md").read_text(encoding="utf-8")
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
 
-        self.assertIn("schema=3", skill_text)
+        self.assertIn("schema=4", skill_text)
         for token in (
             "repo_key",
             "historical-unbound",
@@ -1357,7 +1357,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         normalized_flags = re.sub(r"\s+", " ", flags)
         for phrase in (
             "Resume a reviewer by naming findings, paths, symbols, or fixes",
-            "Start a new review when documents, `HEAD`, and the request are all unchanged since a `full` or `degraded` REVISE or BLOCKED run",
+            "Start a new review when documents, `HEAD`, and the request are all unchanged since a `full` REVISE or BLOCKED run",
             "Reuse a handoff from an `execution=blocked` run, or reuse any handoff on document hashes alone",
             "Dispatch a second reviewer, or record `reviewers: 2`, with no risk trigger",
             "Return or accept a finding summary instead of complete PSDR records",
