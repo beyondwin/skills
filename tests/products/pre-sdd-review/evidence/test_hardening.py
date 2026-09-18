@@ -14,6 +14,7 @@ from unittest import mock
 
 from support import (
     EVIDENCE_DIR,
+    downgrade,
     error_code,
     finding,
     finish,
@@ -322,12 +323,7 @@ class UnsupportedLockingTests(RecorderFixture):
 class LegacyTests(RecorderFixture):
     def test_legacy_pending_is_readable_but_not_mutated(self) -> None:
         run_id = start(self.home, self.repo, self.skill)
-        old = load(self.home, run_id)
-        old["schema"] = 2
-        old.pop("repo_key", None)
-        old.pop("baseline", None)
-        old.pop("ledger", None)
-        old["git"].pop("head_start_is_ancestor_of_head_end", None)
+        old = downgrade(load(self.home, run_id), 2)
         path = self.put(run_id, old)
         before = path.read_bytes()
         code, out, err = run(
@@ -351,12 +347,7 @@ class LegacyTests(RecorderFixture):
         self.assertEqual(
             finish(self.home, self.repo, run_id, finish_payload())[0], 0
         )
-        old = load(self.home, run_id)
-        old["schema"] = 2
-        old.pop("repo_key", None)
-        old.pop("baseline", None)
-        old.pop("ledger", None)
-        old["git"].pop("head_start_is_ancestor_of_head_end", None)
+        old = downgrade(load(self.home, run_id), 2)
         path = self.put(run_id, old)
         before = path.read_bytes()
         code, out, err = run(
@@ -376,10 +367,7 @@ class LegacyTests(RecorderFixture):
     def test_a_schema_three_pending_run_can_only_be_abandoned(self) -> None:
         run_id = start(self.home, self.repo, self.skill)
         path = self.home / "runs" / f"{run_id}.json"
-        record = json.loads(path.read_text(encoding="utf-8"))
-        record["schema"] = 3
-        del record["baseline"], record["ledger"]
-        del record["git"]["head_start_is_ancestor_of_head_end"]
+        record = downgrade(json.loads(path.read_text(encoding="utf-8")), 3)
         self.assertEqual(set(record), evidence.RECORD_KEYS_V3)
         path.write_text(json.dumps(record, sort_keys=True), encoding="utf-8")
 
@@ -412,11 +400,7 @@ class LegacyTests(RecorderFixture):
             )[0],
             0,
         )
-        old = load(self.home, run_id)
-        old["schema"] = 3
-        old.pop("baseline", None)
-        old.pop("ledger", None)
-        old["git"].pop("head_start_is_ancestor_of_head_end", None)
+        old = downgrade(load(self.home, run_id), 3)
         # Schema 3 predates the closed DEGRADED_REASONS vocabulary; a stored
         # free-text reason from that era must not become unreadable now.
         old["degraded_reasons"] = ["fresh-reviewer-unavailable"]
@@ -431,6 +415,38 @@ class LegacyTests(RecorderFixture):
         summary = json.loads(out)
         self.assertEqual(summary["invalid_records"], 0)
         self.assertEqual([item["run_id"] for item in summary["runs"]], [run_id])
+
+    def test_a_legacy_finding_without_source_stays_readable_at_schema_two_and_three(self) -> None:
+        expected: list[str] = []
+        for schema in (2, 3):
+            with self.subTest(schema=schema):
+                run_id = start(self.home, self.repo, self.skill)
+                self.assertEqual(
+                    finish(
+                        self.home,
+                        self.repo,
+                        run_id,
+                        finish_payload(repair_passes=1, findings=[finding()]),
+                    )[0],
+                    0,
+                )
+                # Schema 2/3 findings predate the "source" key; a stored finding
+                # from that era must not become unreadable now that schema 4 adds it.
+                old = downgrade(load(self.home, run_id), schema)
+                self.assertNotIn("source", old["findings"][0])
+                path = self.put(run_id, old)
+                before = path.read_bytes()
+
+                code, out, err = run(["show", "--run-id", run_id], home=self.home, cwd=self.repo)
+                self.assertEqual((code, err), (0, ""))
+                self.assertEqual(out.encode(), before)
+
+                expected.append(run_id)
+                code, out, err = run(["summary"], home=self.home, cwd=self.repo)
+                self.assertEqual((code, err), (0, ""))
+                summary = json.loads(out)
+                self.assertEqual(summary["invalid_records"], 0)
+                self.assertEqual([item["run_id"] for item in summary["runs"]], expected)
 
 
 class ReaderTests(RecorderFixture):
@@ -502,12 +518,7 @@ class ReaderTests(RecorderFixture):
                         self.assertEqual(run(["abandon", "--run-id", run_id, "--reason", "other"], home=self.home, cwd=self.repo)[0], 0)
                     record = load(self.home, run_id)
                     if schema < 4:
-                        record["schema"] = schema
-                        del record["baseline"]
-                        del record["ledger"]
-                        del record["git"]["head_start_is_ancestor_of_head_end"]
-                        if schema == 2:
-                            del record["repo_key"]
+                        record = downgrade(record, schema)
                     raw = (json.dumps(record, indent=2) + "\n\n").encode()
                     path = self.home / "runs" / f"{run_id}.json"
                     path.write_bytes(raw)
@@ -533,11 +544,7 @@ class ReaderTests(RecorderFixture):
                 sample = copy.deepcopy(original)
                 sample["schema"] = schema
                 if schema < 4:
-                    del sample["baseline"]
-                    del sample["ledger"]
-                    del sample["git"]["head_start_is_ancestor_of_head_end"]
-                    if schema == 2:
-                        del sample["repo_key"]
+                    sample = downgrade(sample, schema)
                 objects = [(name,) for name in ("skill", "client", "plan", "design", "git")]
                 if schema == 4:
                     objects += [("baseline",), ("ledger",)]
@@ -669,19 +676,7 @@ class ReaderTests(RecorderFixture):
         for payload in payloads:
             with self.subTest(payload=payload):
                 self.assertEqual(evidence.validate_finish(payload, "default"), payload)
-                record = {
-                    **original,
-                    **payload,
-                    "schema": 2,
-                    "git": {
-                        key: value
-                        for key, value in original["git"].items()
-                        if key != "head_start_is_ancestor_of_head_end"
-                    },
-                }
-                del record["repo_key"]
-                del record["baseline"]
-                del record["ledger"]
+                record = downgrade({**original, **payload}, 2)
                 path = self.put(run_id, record)
                 before = path.read_bytes()
                 code, out, err = run(["show", "--run-id", run_id], home=self.home, cwd=self.repo)
@@ -791,12 +786,7 @@ class ObservationTests(RecorderFixture):
         other = make_git_repo(self.workspace / "second", "same")
         third = start(self.home, other, self.skill)
         legacy = start(self.home, self.repo, self.skill)
-        record = load(self.home, legacy)
-        record["schema"] = 2
-        record.pop("repo_key")
-        record.pop("baseline")
-        record.pop("ledger")
-        record["git"].pop("head_start_is_ancestor_of_head_end")
+        record = downgrade(load(self.home, legacy), 2)
         path = self.put(legacy, record)
         before = path.read_bytes()
         code, out, err = run(["summary", "--repo", "same"], home=self.home, cwd=self.repo)

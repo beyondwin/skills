@@ -472,8 +472,15 @@ def _relative_argument(value: str, name: str) -> str:
     return str(value)
 
 
-def validate_finding(item: object, repair_passes: int) -> dict[str, object]:
-    if not isinstance(item, dict) or set(item) != FINDING_KEYS:
+def validate_finding(item: object, repair_passes: int, *, legacy: bool = False) -> dict[str, object]:
+    if legacy:
+        # A schema 2/3 finding predates the "source" key; re-validating it must not
+        # make an already-stored finding unreadable, but it must not accept "source"
+        # either -- that would silently promote a legacy record to the schema 4 shape.
+        expected_keys = FINDING_KEYS - {"source"}
+    else:
+        expected_keys = FINDING_KEYS
+    if not isinstance(item, dict) or set(item) != expected_keys:
         fail("schema-invalid", "finding must contain exactly the finding keys")
     identifier = _string(item["id"], "finding.id", 20)
     if identifier is None or not _FINDING_ID.fullmatch(identifier):
@@ -484,7 +491,8 @@ def validate_finding(item: object, repair_passes: int) -> dict[str, object]:
     if pattern is None or not _PATTERN.fullmatch(pattern):
         fail("schema-invalid", "finding.pattern must be lowercase kebab, dot, or underscore tokens")
     _enum(item["status"], "finding.status", FINDING_STATUSES)
-    _enum(item["source"], "finding.source", FINDING_SOURCES)
+    if not legacy:
+        _enum(item["source"], "finding.source", FINDING_SOURCES)
     repair_pass = item["repair_pass"]
     if repair_pass is not None:
         _integer(repair_pass, "finding.repair_pass", 0, 2)
@@ -529,7 +537,7 @@ def validate_finish_shape(payload: object, *, legacy: bool = False) -> dict[str,
     repair_passes = _integer(payload["repair_passes"], "repair_passes", 0, 2)
     if not isinstance(payload["findings"], list):
         fail("schema-invalid", "findings must be a list")
-    findings = [validate_finding(item, 2) for item in payload["findings"]]
+    findings = [validate_finding(item, 2, legacy=legacy) for item in payload["findings"]]
     identifiers = [str(item["id"]) for item in findings]
     if len(set(identifiers)) != len(identifiers):
         fail("schema-invalid", "finding ids must be unique")
