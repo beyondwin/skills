@@ -7,6 +7,7 @@ import stat
 import sys
 import tempfile
 import unittest
+import warnings
 import zipfile
 from pathlib import Path
 
@@ -140,12 +141,14 @@ def _write_zip(
     modes: dict[str, int] | None = None,
 ) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
-    with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        for name, data in members:
-            info = zipfile.ZipInfo(name)
-            mode = (modes or {}).get(name, stat.S_IFREG | 0o644)
-            info.external_attr = mode << 16
-            archive.writestr(info, data)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            for name, data in members:
+                info = zipfile.ZipInfo(name)
+                mode = (modes or {}).get(name, stat.S_IFREG | 0o644)
+                info.external_attr = mode << 16
+                archive.writestr(info, data)
     return path
 
 
