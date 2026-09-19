@@ -12,8 +12,8 @@
        python3 "<skill-root>/scripts/extract_task.py" <plan-file> --heading "<heading>" --global-constraints --output <new-path>
 
    Then add `Search paths`, `Worker checks`, `Host checks`, and task
-   decisions. If extract exits 3 because Global Constraints are missing or
-   duplicated, record that in the ledger and do not dispatch.
+   decisions. If extract exits 3 because Global Constraints are missing,
+   duplicated, or empty, record that in the ledger and do not dispatch.
 4. Grok: `prepare` → `run_worker.py run` → wait on the host job → the
    `status` windows you need → confirm the worker and its descendants have
    exited → `cleanup`. Cursor: the same run/status path without
@@ -173,7 +173,8 @@ prefix's sandbox value itself. `run_worker.py` never prepares or cleans up.
         [--timeout <seconds>]
 
 `--attempt-dir` must be a new directory under the plan directory from Superpowers
-`sdd-workspace`, never a shared flat `.superpowers/` name.
+`sdd-workspace` (already inside the worktree `.superpowers/sdd/<plan>/` tree),
+never a shared flat `.superpowers/` name.
 The runner writes six files there: `brief.md`, `dispatch.md`, `worker.jsonl`
 (raw stdout), `stderr.log`, `run.json`, and `report.md`, which the worker
 writes itself — the runner never writes the report. Grok receives the worker

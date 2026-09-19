@@ -5,7 +5,7 @@
 ## Purpose
 
 It runs Superpowers SDD with the current Claude Code or Codex session as
-orchestrator, and sends implementation only to Cursor CLI or Grok Build CLI.
+orchestrator, and sends implementation only to Cursor Agent (Grok) or Grok CLI.
 
 ## When to use and not use
 
@@ -128,7 +128,8 @@ requested side is missing, it stops instead of switching.
 The worker receives a complete task and listed references, without reopening
 the full plan. Completion is judged from the report, real test exits, commits,
 the tool record, and native review — not from a process exit. Every attempt
-leaves a directory under the worktree's `.superpowers/`. While it runs,
+leaves a directory under the plan's `sdd-workspace` folder (inside the
+worktree `.superpowers/sdd/<plan>/` tree). While it runs,
 `run_worker.py status` is how you read the session ID, whether the pid is still
 alive, and a short list of reads, searches, and shells. Do not paste the
 whole log. Commands and judgment rules are in the

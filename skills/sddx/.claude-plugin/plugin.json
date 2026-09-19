@@ -1,5 +1,5 @@
 {
   "name": "sddx",
-  "description": "Superpowers SDD with an external implementer and native reviewer effort escalation.",
+  "description": "Run Superpowers SDD when the user runs /sddx or $sddx. Implementation goes to Cursor or Grok.",
   "version": "4.0.0"
 }

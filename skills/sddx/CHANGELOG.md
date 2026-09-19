@@ -25,9 +25,12 @@ No entries yet.
 - `dispatch.md` leads with the controller procedure. Runner schema stays in
   an appendix.
 - Plans without exactly one `Global Constraints` / `Global constraints`
-  section fail extract (exit 3) instead of dispatching an incomplete brief.
+  section, or with an empty constraints body, fail extract (exit 3)
+  instead of dispatching an incomplete brief.
 - The calling session's model and effort orchestrate. The start-of-run
   picker labels are Grok CLI (no `--model`) and Cursor Agent (Grok).
+- Attempt directories go under the plan's Superpowers `sdd-workspace`
+  folder, not a shared flat `.superpowers/` name.
 
 ### Notes
 

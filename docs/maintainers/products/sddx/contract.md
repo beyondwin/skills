@@ -1,8 +1,10 @@
 # sddx 계약
 
-이 문서는 SDDx의 제품 정체, 오케스트레이터 호스트, implementer backend
-해석을 소유합니다. 호스트는 스킬을 실행하는 프로그램이고, worker는 구현만
-맡는 외부 CLI입니다.
+이 문서는 SDDx가 무엇을 소유하고 어떻게 켜지는지를 적습니다.
+
+- 호스트: 스킬을 실행하는 프로그램. 지금은 Claude Code와 Codex뿐입니다.
+- 워커: 구현만 맡는 외부 CLI. Cursor 또는 Grok입니다.
+- 오케스트레이터: `/sddx` 또는 `$sddx`를 받은 그 세션입니다.
 
 ## 제품 정체
 
@@ -33,8 +35,8 @@ writing-plans, pre-sdd-review로는 켜지 않습니다.
 
 ## 호출과 picker
 
-인자는 `sddx <plan-file> [cursor|grok|c|g]`입니다. plan 경로가 없거나 파일이
-아니면 추측하지 않고 멈춥니다. 한 호출은 계획 하나입니다.
+인자는 `sddx <plan-file> [cursor|grok|c|g]`입니다. 계획 경로가 없거나
+파일이 아니면 추측하지 말고 한 번 묻습니다. 한 호출은 계획 하나입니다.
 
 backend 인자가 있으면 picker를 생략합니다. `c`는 `cursor`, `g`는 `grok`입니다.
 인자가 없으면 이 계획에서 한 번만 고릅니다. Claude Code는 AskUserQuestion,
@@ -80,8 +82,7 @@ brief, 변경 파일 경로, ledger이며 diff 본문을 읽어 정하지 않습
 구현 난이도, 짧은 diff, 최종 리뷰라는 사실은 trigger가 아닙니다. 재리뷰는 원래
 결함의 위험도를 유지합니다.
 
-승급은 바닥이지 천장이 아닙니다. 세션 effort가 이미 XHigh 이상이면 승급 정의를
-쓰지 않고 세션을 낮추지도 않습니다.
+세션 effort가 이미 XHigh 이상이면 더 올리지 않고, 세션을 낮추지도 않습니다.
 
 ledger에는 모든 리뷰 dispatch를 적습니다. High는 한 줄이고, XHigh는 trigger와
 구체 경로를 함께 적습니다. 대지 못하면 High입니다.
@@ -138,10 +139,10 @@ worker와 worker가 실행한 작업이 종료된 뒤에는 성공과 실패 모
 남은 차이와 상태 기록 위치를 ledger에 남깁니다. 생성 설정과 복원 상태는 제품
 산출물이나 커밋 대상이 아닙니다.
 
-dispatch 전 컨트롤러는 `extract_task.py`에 필요한 조건과 task 참고자료를 완결합니다.
-계획이 전체 실행에 대해 한 번만 적어 두는 제약(입력 검증, 재시도·수리 한도,
-봉인·금지 입력, 고정 seed와 모델 역할)은 `Global constraints` 제목 아래 **모든**
-brief에 수정 회차까지 그대로 싣습니다. worker는 계획을 읽을 수 없으므로 brief에
+dispatch 전 컨트롤러는 `extract_task.py --global-constraints`로 과제를 뽑고,
+필요한 조건과 task 참고자료를 완결합니다. 계획이 전체 실행에 대해 한 번만
+적어 두는 제약은 그 플래그가 `Global Constraints` 절을 brief 앞에 붙입니다.
+손으로 다시 복사하지 않습니다. worker는 계획을 읽을 수 없으므로 brief에
 없는 제약은 worker에게 존재하지 않으며, 리뷰가 뒤늦게 worker가 피할 방법이 없던
 결함으로 보고하게 됩니다. 전체 계획을 참고자료로 전달하지 않으며 새 호출과 resume 모두에 문서 경계를
 직접 명시합니다. brief의 `Search paths:`에 구체적인 source/test 파일·디렉터리를
@@ -247,13 +248,15 @@ Windows 명령 전송은 제품 계약이 아닙니다. Cursor에는 이 변경�
 `scripts/extract_task.py <plan-file> --heading "<# 없는 제목 전체>" --global-constraints --output <file>`을
 씁니다. `--heading`은 `#` 표시를 뺀 제목 전체입니다. `--global-constraints`는
 필수입니다. exit 0은 성공, 2는 파일·인자 오류, 3은 제목 부재·중복 또는 빈
-본문입니다. `Global Constraints`/`Global constraints` 절이 없거나 둘이면
-exit 3이며 그 경우 워커를 보내지 않습니다. 이미 있는 출력 파일은 덮어쓰지
-않으므로 추출마다 새 경로를 씁니다.
+본문입니다. `Global Constraints`/`Global constraints` 절이 없거나, 둘
+이상이거나, 본문이 비어 있으면 exit 3이며 그 경우 워커를 보내지 않습니다.
+이미 있는 출력 파일은 덮어쓰지 않으므로 추출마다 새 경로를 씁니다.
 
 worker 실행은 `scripts/run_worker.py run` 하나입니다. 공급자 명령을 직접
 조합하거나 실행마다 새 실행 스크립트를 만들지 않습니다. `--attempt-dir`는
-worktree `.superpowers/` 아래의 새 디렉터리여야 하며, 러너는 그곳에 `brief.md`,
+Superpowers `sdd-workspace`가 만든 계획 디렉터리 아래의 새 폴더입니다. 그
+계획 디렉터리는 worktree `.superpowers/sdd/<계획이름>/` 안에 있습니다.
+공용으로 쓰는 평평한 `.superpowers/` 이름은 쓰지 않습니다. 러너는 그곳에 `brief.md`,
 `dispatch.md`, `worker.jsonl`, `stderr.log`, `run.json`, `report.md` 여섯 파일을
 남깁니다. `report.md`는 worker가 직접 쓰고 러너는 쓰지 않습니다. 러너는
 `prepare`·`cleanup`을 호출하지 않으며, prepare → run → 종료 확인 → cleanup 순서는

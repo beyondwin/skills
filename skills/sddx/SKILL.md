@@ -78,10 +78,11 @@ that did not exist when the instruction was given.
 An explicit choice needs no re-approval on later tasks. If one message gives
 two different explicit choices, confirm which one to use.
 
-- Claude Code: AskUserQuestion. Options are Grok CLI — Grok selects the
-  model. Do not pass `--model`. Requested effort goes on
-  `--reasoning-effort` or `--effort` — and Cursor Agent (Grok) — the
-  confirmed Grok model id whose final segment matches this task's effort.
+- Claude Code: AskUserQuestion. Options:
+  - Grok CLI — Grok selects the model. Do not pass `--model`. Requested
+    effort goes on `--reasoning-effort` or `--effort`.
+  - Cursor Agent (Grok) — the confirmed Grok model id whose final
+    segment matches this task's effort.
 - Codex: the available question tool, otherwise a short text question with
   numbered options; wait for one answer.
 
@@ -172,9 +173,10 @@ content too. An attempted read alone does not prove content was returned.
 Give the reviewer the evidence and any discrepancy with the worker report.
 Every brief carries the plan's run-wide constraints in full under a
 `Global constraints` heading, fix rounds included, as `references/dispatch.md`
-describes. The worker cannot read the plan: a constraint that is not in the
-brief does not exist for it, and the review then reports it as a defect the
-worker was never given a way to avoid.
+describes. `extract_task.py --global-constraints` prepends that section;
+do not hand-copy it. The worker cannot read the plan: a constraint that is
+not in the brief does not exist for it, and the review then reports it as a
+defect the worker was never given a way to avoid.
 
 `Search paths` limits content searches. Filename-only listings inside the
 current worktree (including its root) and direct reads of repository
@@ -289,7 +291,8 @@ Record `Task N worker-session: <id>` in the ledger and keep the confirmed
 session ID in the current-state block.
 
 Write `--attempt-dir` under the plan directory from Superpowers
-`sdd-workspace`, never a shared flat `.superpowers/` name.
+`sdd-workspace` (already inside the worktree `.superpowers/sdd/<plan>/`
+tree), never a shared flat `.superpowers/` name.
 
 Launch every attempt with `python3 "<skill-root>/scripts/run_worker.py" run`
 as `references/dispatch.md` describes. Do not hand-compose a provider command,
