@@ -37,6 +37,21 @@ CASE_IDS = (
     "reviewer-stays-native",
     "near-miss-native-sdd",
     "near-miss-pre-sdd-review",
+    "near-miss-executing-plans",
+    "near-miss-writing-plans",
+    "near-miss-stay-orchestrator",
+    "near-miss-grok-implementer-without-slash",
+    "near-miss-named-sddx-without-slash",
+    "no-task-brief",
+    "no-batch-same-shape",
+    "no-nested-native-sdd",
+    "unplanned-work-ask-once",
+    "orchestrator-is-this-session",
+    "picker-grok-cli-vs-cursor-agent",
+    "implementer-effort-per-task-high",
+    "implementer-effort-per-task-xhigh",
+    "implementer-effort-not-session",
+    "effort-increase-fresh-worker",
     "catalog-excludes-sddx",
     "one-available-backend-still-confirms",
     "worker-no-host-outside-side-effects",
@@ -63,7 +78,129 @@ CASE_IDS = (
     "reviewer-round-four-re-review-xhigh",
     "reviewer-session-already-xhigh-no-escalation",
 )
-DESCRIPTION_FORBIDDEN = ("fresh implementer", "fix loop", "whole-branch")
+DESCRIPTION_FORBIDDEN = (
+    "fresh implementer",
+    "fix loop",
+    "whole-branch",
+    "stay orchestrator",
+    "grok as implementer",
+    "external cursor or grok cli implementer",
+)
+
+EXPECT_LOCK = {
+    "activate": {
+        "description_must": ("/sddx", "$sddx"),
+        "skill_must": ("Activate only when the user message contains /sddx or $sddx",),
+    },
+    "do_not_activate": {
+        "description_must": ("writing-plans", "executing-plans", "pre-sdd-review"),
+        "description_must_not": ("stay orchestrator", "grok as implementer"),
+        "skill_must": ("Activate only when the user message contains /sddx or $sddx",),
+        "skill_must_not": ("explicit external implementer request",),
+    },
+    "no_task_brief": {
+        "skill_must": ("Do not run Superpowers `task-brief` or `task-start`.",),
+        "dispatch_must": ("Do not run Superpowers `task-brief` or `task-start`.",),
+        "dispatch_must_not": ("use SDD's task-brief output",),
+    },
+    "no_batch_same_shape": {
+        "skill_must": ("Do not batch same-shape plan tasks into one worker.",),
+    },
+    "no_nested_native_sdd": {
+        "skill_must": (
+            "Do not dispatch a nested controller that runs subagent-driven-development",
+        ),
+    },
+    "unplanned_work_ask_once": {
+        "skill_must": (
+            "Ask once before dispatching the first task the plan does not name.",
+        ),
+    },
+    "orchestrator_is_this_session": {
+        "skill_must": ("The session that received `/sddx` or `$sddx` is the orchestrator.",),
+    },
+    "picker_grok_cli_vs_cursor_agent": {
+        "skill_must": (
+            "Grok CLI — Grok selects the model. Do not pass `--model`.",
+            "Cursor Agent (Grok)",
+        ),
+    },
+    "implementer_effort_per_task_high": {
+        "skill_must": ("Clear local or mechanical change, straightforward integration | High",),
+    },
+    "implementer_effort_per_task_xhigh": {
+        "skill_must": ("concurrency, races, locking, ordering, or shared state",),
+    },
+    "implementer_effort_not_session": {
+        "skill_must": ("Do not copy the session effort onto the implementer.",),
+    },
+    "effort_increase_fresh_worker": {
+        "skill_must": ("When implementer effort increases, dispatch a fresh worker.",),
+    },
+    "backend_cursor": {"skill_must": ("`c` means `cursor`.",)},
+    "skip_picker": {"skill_must": ("An explicit choice needs no re-approval on later tasks.",)},
+    "backend_grok": {"skill_must": ("`g` means `grok`.",)},
+    "picker_once": {"skill_must": ("Ask once",)},
+    "ledger_backend": {"skill_must": ("`Backend: cursor|grok",)},
+    "no_failover": {"skill_must": ("Do not automatically switch backends.",)},
+    "agent_not_cursor": {"skill_must": ("PATH `agent` as Cursor",)},
+    "no_worktree_flag": {"skill_must": ("Do not pass `--worktree` to the worker.",)},
+    "ruling_not_xhigh": {"skill_must": ("Architecture ambiguity is a ruling, not XHigh.",)},
+    "native_reviewer": {
+        "skill_must": ("Task reviewers, scoped re-reviewers, and the final reviewer stay native",)
+    },
+    "not_in_catalog": {"catalog_must_not": ("sddx",)},
+    "confirm_even_if_one": {"skill_must": ("Do not auto-select the only CLI.",)},
+    "stop_no_push_publish": {"skill_must": ("stop and return BLOCKED",)},
+    "no_host_secrets": {"skill_must": ("Do not copy host credentials",)},
+    "prepare_profile": {"dispatch_must": ("prepare_grok_sandbox.py",)},
+    "replace_sandbox_value": {"dispatch_must": ("--sandbox-profile",)},
+    "cleanup_after_worker_exit": {"dispatch_must": ("cleanup",)},
+    "not_done": {"skill_must": ("Process exit 0 is not task completion.",)},
+    "inspect_blocker": {
+        "skill_must": ("BLOCKED, NEEDS_CONTEXT, a missing report, or an unclear result must not become",)
+    },
+    "no_external_skills": {
+        "worker_must": ("Do not read or invoke external skills, including Superpowers.",)
+    },
+    "no_full_plan": {"skill_must": ("The worker cannot read the plan",)},
+    "no_mcp_tools": {"dispatch_must": ("search_tool,use_tool",)},
+    "same_orchestrator_model": {"skill_must": ("use the active orchestrator's",)},
+    "review_effort_high": {"skill_must": ("Task N review: sddx default — high",)},
+    "review_effort_xhigh": {"skill_must": ("sddx-reviewer-xhigh",)},
+    "role_fail": {"skill_must": ("prohibited read is FAIL",)},
+    "report_discrepancy": {"skill_must": ("any discrepancy with the worker report",)},
+    "not_clean_done": {"skill_must": ("permits a clean DONE.",)},
+    "role_unverified": {
+        "skill_must": ("Missing or incomplete tool evidence is UNVERIFIED, never PASS.",)
+    },
+    "use_brief": {"skill_must": ("Every brief carries the plan's run-wide constraints",)},
+    "no_plan_link_following": {"worker_must": ("Do not open the full implementation plan",)},
+    "no_shell_search_bypass": {
+        "worker_must": ("Do not retrieve its contents through shell",)
+    },
+    "scope_deviations_reported": {
+        "dispatch_must": ("Report actual scope deviations even if tests pass",)
+    },
+    "full_command": {"worker_must": ("include the full wrapper command",)},
+    "actual_test_exit": {"worker_must": ("actual test exit codes",)},
+    "wrapper_exit_separate": {
+        "worker_must": ("distinguish its exit\nfrom the test exit",)
+    },
+    "allowed_inspection": {"skill_must": ("Filename-only listings inside the",)},
+    "scope_deviations_none": {"skill_must": ("Scope deviations: none",)},
+    "no_size_based_escalation": {"skill_must": ("File count, line count",)},
+    "ledger_trigger_and_path": {"skill_must": ("XHigh must name a trigger and a",)},
+    "worker_effort_not_cited": {
+        "skill_must": ("Reviewer XHigh because the worker ran XHigh",)
+    },
+    "no_security_boundary_claim": {
+        "skill_must": ("an auth, permission, secret, or sandbox boundary",)
+    },
+    "fresh_xhigh_worker": {"skill_must": ("Rounds 4-5 use a fresh worker at XHigh.",)},
+    "no_escalation_agent": {"skill_must": ("do not use the escalation",)},
+    "session_effort_not_lowered": {"skill_must": ("do not lower the session",)},
+}
 
 
 class SddxContractTests(unittest.TestCase):
@@ -78,6 +215,43 @@ class SddxContractTests(unittest.TestCase):
         lowered = description.lower()
         for fragment in DESCRIPTION_FORBIDDEN:
             self.assertNotIn(fragment, lowered)
+        self.assertIn("/sddx", description)
+        self.assertIn("$sddx", description)
+        self.assertIn("writing-plans", description.lower())
+        self.assertIn("executing-plans", description.lower())
+
+    def test_every_expect_tag_is_locked_to_source(self) -> None:
+        data = json.loads(CASES.read_text(encoding="utf-8"))
+        used = {tag for item in data["cases"] for tag in item["expect"]}
+        self.assertEqual(used, set(EXPECT_LOCK))
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
+        worker = (SKILL / "references" / "worker-prompt.md").read_text(encoding="utf-8")
+        description = str(
+            parse_skill_frontmatter(skill).get("description", "")
+        )
+        catalog = (ROOT / "catalog" / "catalog.lock.json").read_text(encoding="utf-8")
+        sources = {
+            "skill": skill,
+            "dispatch": dispatch,
+            "worker": worker,
+            "description": description,
+            "catalog": catalog,
+        }
+        fold = lambda value: re.sub(r"\s+", " ", value)
+        for tag, lock in EXPECT_LOCK.items():
+            for key, phrases in lock.items():
+                if key.endswith("_must_not"):
+                    doc = key[: -len("_must_not")]
+                    haystack = sources[doc].lower() if doc == "description" else sources[doc]
+                    for phrase in phrases:
+                        self.assertNotIn(fold(phrase).lower() if doc == "description" else fold(phrase), fold(haystack), f"{tag} {key}: {phrase}")
+                elif key.endswith("_must"):
+                    doc = key[: -len("_must")]
+                    for phrase in phrases:
+                        self.assertIn(fold(phrase), fold(sources[doc]), f"{tag} {key}: {phrase}")
+                else:
+                    self.fail(key)
 
     def test_skill_does_not_copy_sdd_and_overrides_dispatch(self) -> None:
         text = "\n".join(path.read_text(encoding="utf-8") for path in SKILL.rglob("*.md"))
@@ -245,6 +419,7 @@ class SddxContractTests(unittest.TestCase):
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         self.assertIn("pre-sdd-review", text)
         self.assertIn("Do not activate", text)
+        self.assertNotIn("explicit external implementer request", text)
 
     def test_one_available_backend_still_confirms(self) -> None:
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8").lower()

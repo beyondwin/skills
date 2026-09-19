@@ -1,6 +1,6 @@
 ---
 name: sddx
-description: Use when executing a Superpowers implementation plan with an external Cursor or Grok CLI implementer instead of a native implementer subagent. Use when the user runs /sddx or $sddx, asks to run SDD with Grok as implementer, or wants the current Claude Code or Codex session to stay orchestrator and reviewer. Do not use for writing a spec or plan, pre-sdd-review, or native subagent-driven-development without an external implementer.
+description: Use when the user runs /sddx or $sddx. Do not use for writing a spec or plan, writing-plans, executing-plans including Native inline execution, pre-sdd-review, native subagent-driven-development, or any request that does not contain /sddx or $sddx.
 license: Apache-2.0
 compatibility: Requires a local Git repository, an implementation plan file, and Claude Code or Codex as the orchestrator host. Implementer CLIs are optional and resolved at runtime.
 metadata:
@@ -19,13 +19,14 @@ workflow unchanged.
 Do not copy Superpowers SDD into this skill.
 Do not edit Superpowers files.
 Do not implement in the orchestrator session.
-Do not activate on native SDD, executing-plans, writing-plans, or
-pre-sdd-review without an explicit /sddx or $sddx or an explicit external
-implementer request.
+Activate only when the user message contains /sddx or $sddx.
+Do not activate on native SDD, executing-plans (including Native inline),
+writing-plans, pre-sdd-review, or any request that does not contain
+/sddx or $sddx.
 Violating the letter of this gate is violating the spirit.
 </HARD-GATE>
 
-Prefer explicit invocation: `$sddx` on Codex and `/sddx` on Claude Code.
+The only invocation is `$sddx` on Codex and `/sddx` on Claude Code.
 
 ## Arguments
 
@@ -77,8 +78,10 @@ that did not exist when the instruction was given.
 An explicit choice needs no re-approval on later tasks. If one message gives
 two different explicit choices, confirm which one to use.
 
-- Claude Code: AskUserQuestion. Options are Cursor Agent CLI (Grok model)
-  and Grok Build CLI.
+- Claude Code: AskUserQuestion. Options are Grok CLI — Grok selects the
+  model. Do not pass `--model`. Requested effort goes on
+  `--reasoning-effort` or `--effort` — and Cursor Agent (Grok) — the
+  confirmed Grok model id whose final segment matches this task's effort.
 - Codex: the available question tool, otherwise a short text question with
   numbered options; wait for one answer.
 
@@ -135,10 +138,22 @@ other parallel state file. `run.json` owns one attempt's process facts; the
 ledger owns user approval, task completion, review, and the next plan. Do not
 sync the two in both directions.
 
+The session that received `/sddx` or `$sddx` is the orchestrator. Use that
+session's model and effort. Do not switch to a cheaper model, a strongest
+final model, or the implementer's model family. Record `Orchestrator:` in
+the current-state block at the start of the run.
+
 ## Controller
 
-The current session is the orchestrator. Follow
-subagent-driven-development for worktree, ledger, task-brief,
+The current session is the orchestrator.
+Do not run Superpowers `task-brief` or `task-start`. Extract the task with
+`extract_task.py` as `references/dispatch.md` describes.
+Do not batch same-shape plan tasks into one worker. One heading, one worker,
+one review-package range.
+Do not dispatch a nested controller that runs subagent-driven-development
+end to end.
+Follow
+subagent-driven-development for worktree, ledger,
 review-package, the fix loop, whole-branch review, and
 finishing-a-development-branch.
 
@@ -248,15 +263,30 @@ create the definition. A missing definition never blocks the run.
 
 ## Implementer
 
-Effort for the implementer is High unless the task is hard implementation
-(concurrency, races, tangled side effects, or High already failed review
-on this task), then XHigh. Architecture ambiguity is a ruling, not XHigh.
-If the worker returns NEEDS_CONTEXT or BLOCKED, rule and re-dispatch.
+Choose implementer effort per task from the brief and the owned files,
+before dispatch. Do not ask the user per task. Do not copy the session
+effort onto the implementer. Reviewer XHigh does not force implementer
+XHigh, and the reverse is not a trigger either.
 
-Fresh worker per task. Resume the same worker session for fix rounds 1-3.
-Rounds 4-5 use a fresh worker at XHigh. Record
-`Task N worker-session: <id>` in the ledger and keep the confirmed session ID
-in the current-state block.
+| Implementation | Effort |
+| --- | --- |
+| Clear local or mechanical change, straightforward integration | High |
+| Changes to concurrency, races, locking, ordering, or shared state; auth, permission, secret, or sandbox boundaries; tangled side effects across subsystems; High already failed review on this task | XHigh |
+
+Architecture ambiguity is a ruling, not XHigh. File count, line count,
+"this is important", and "to be safe" are not triggers. Record
+`Task N worker-effort: high|xhigh — <reason>` in the ledger and
+`Worker effort:` in the current-state block. A reason you cannot name
+is High.
+
+Fresh worker per task. Resume the same worker session for fix rounds 1-3
+only when the requested effort is unchanged. When implementer effort
+increases, dispatch a fresh worker. Rounds 4-5 use a fresh worker at
+XHigh.
+
+If the worker returns NEEDS_CONTEXT or BLOCKED, rule and re-dispatch.
+Record `Task N worker-session: <id>` in the ledger and keep the confirmed
+session ID in the current-state block.
 
 Launch every attempt with `python3 "<skill-root>/scripts/run_worker.py" run`
 as `references/dispatch.md` describes. Do not hand-compose a provider command,
@@ -329,6 +359,16 @@ explicitly after checking its ledger record and its processes. The supported OS 
 
 ## Red flags
 
+- Activating without `/sddx` or `$sddx` in the user message
+- Running Superpowers `task-brief` or `task-start` during sddx
+- Batching same-shape plan tasks into one worker
+- Dispatching a nested controller that runs subagent-driven-development end to end
+- Switching the orchestrator model or effort away from this session
+- Copying the session effort onto the implementer
+- Implementer XHigh to be safe, or because the reviewer ran XHigh
+- Asking implementer effort on every task
+- Resuming a High worker after effort increased to XHigh
+- Passing `--model` to Grok to pin grok-4.6
 - Native implementer subagent
 - Copying SDD into this file
 - Asking for a backend on every task

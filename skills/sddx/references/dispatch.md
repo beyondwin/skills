@@ -73,11 +73,10 @@ Cursor keeps its environment and existing approval/sandbox policy.
 
 ## Build the brief
 
-Before dispatch, use SDD's task-brief output and supply all decisions and
-task reference paths needed for this task. Extract the task section from the
-plan in the controller:
+Do not run Superpowers `task-brief` or `task-start`. Extract the task
+section from the plan in the controller:
 
-    python3 "<skill-root>/scripts/extract_task.py" <plan-file> --heading "Task P1: 상태 저장" --output <section-file>
+    python3 "<skill-root>/scripts/extract_task.py" <plan-file> --heading "Task P1: 상태 저장" --global-constraints --output <section-file>
 
 `--heading` is the complete heading text without the leading `#` marks. Exit 0
 is success, 2 is a file or argument error, and 3 is a section-selection error:
