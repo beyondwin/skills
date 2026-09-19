@@ -257,6 +257,35 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         errors = "\n".join(validate_product(root, REGISTRY))
         self.assertIn("default_prompt must mention the skill", errors)
 
+    def test_sddx_openai_yaml_must_be_explicit_only(self) -> None:
+        root = self._copy("sddx")
+        path = root / "agents" / "openai.yaml"
+        path.write_text(
+            'interface:\n'
+            '  display_name: "SDDx"\n'
+            '  short_description: "Run Superpowers SDD with an external implementer"\n'
+            '  default_prompt: "Use $sddx to execute this implementation plan with an external implementer."\n'
+            "policy:\n"
+            "  allow_implicit_invocation: true\n",
+            encoding="utf-8",
+        )
+        errors = "\n".join(validate_product(root, REGISTRY))
+        self.assertIn("sddx invocation policy must be explicit-only", errors)
+
+    def test_non_sddx_openai_yaml_must_stay_implicit(self) -> None:
+        root = self._copy("how-it-works")
+        path = root / "agents" / "openai.yaml"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                "allow_implicit_invocation: true",
+                "allow_implicit_invocation: false",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = "\n".join(validate_product(root, REGISTRY))
+        self.assertIn("invocation policy bypasses excluded near misses", errors)
+
     def test_dated_release_validation_is_opt_in(self) -> None:
         from scripts.lib.product_contract import require_dated_changelog
 

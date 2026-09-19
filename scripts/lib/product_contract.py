@@ -321,10 +321,15 @@ def _validate_openai_yaml(path: Path, skill_name: str) -> list[str]:
     default_prompt = _yaml_scalar(text, "default_prompt")
     if default_prompt is None or f"${skill_name}" not in default_prompt:
         errors.append("default_prompt must mention the skill")
-    if "allow_implicit_invocation: true" not in text:
-        errors.append("invocation policy must match the skill activation gate")
-    if "allow_implicit_invocation: false" in text:
-        errors.append("invocation policy bypasses excluded near misses")
+    implicit = _yaml_scalar(text, "allow_implicit_invocation")
+    if skill_name == "sddx":
+        if implicit != "false" or "allow_implicit_invocation: true" in text:
+            errors.append("sddx invocation policy must be explicit-only")
+    else:
+        if "allow_implicit_invocation: true" not in text:
+            errors.append("invocation policy must match the skill activation gate")
+        if "allow_implicit_invocation: false" in text:
+            errors.append("invocation policy bypasses excluded near misses")
     return errors
 
 

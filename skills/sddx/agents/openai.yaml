@@ -3,4 +3,4 @@ interface:
   short_description: "Run Superpowers SDD with an external Cursor or Grok implementer"
   default_prompt: "Use $sddx to execute this implementation plan with an external implementer."
 policy:
-  allow_implicit_invocation: true
+  allow_implicit_invocation: false
