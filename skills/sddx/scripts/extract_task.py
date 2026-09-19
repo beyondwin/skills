@@ -4,6 +4,8 @@ Given the exact heading text of a task (excluding the leading ``#`` marks),
 this scans the plan for ATX headings outside of fenced code blocks, selects
 the one section whose title matches exactly, and returns (or writes) that
 section's original source bytes untouched.
+
+Pass ``--global-constraints`` to prepend the plan's Global Constraints section.
 """
 
 from __future__ import annotations
@@ -15,6 +17,7 @@ from pathlib import Path
 
 _HEADING_RE = re.compile(r"^ {0,3}(#{1,6})(?:[ \t]+(.*))?$")
 _FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
+GLOBAL_CONSTRAINT_TITLES = frozenset({"Global Constraints", "Global constraints"})
 
 
 def _strip_closing_hashes(text: str) -> str:
@@ -85,28 +88,59 @@ def _select_section(
     return start, end
 
 
-def extract_task(plan: bytes, heading: str) -> bytes:
+def _section_bytes(
+    lines: list[bytes],
+    decoded_lines: list[str],
+    start: int,
+    end: int,
+    heading: str,
+) -> bytes:
+    body = decoded_lines[start + 1 : end]
+    if all(text.strip() == "" for text in body):
+        raise ValueError(f"section {heading!r} has an empty body")
+    return b"".join(lines[start:end])
+
+
+def extract_task(
+    plan: bytes,
+    heading: str,
+    *,
+    global_constraints: bool = False,
+) -> bytes:
     """Extract the section for ``heading`` from ``plan``, byte-for-byte.
 
-    Raises ValueError when the heading has no match, more than one match, or
-    an empty (blank-only) body.
+    When ``global_constraints`` is true, prepend the plan's Global Constraints
+    section (no extra separator newline). Raises ValueError when the heading
+    has no match, more than one match, or an empty (blank-only) body — and,
+    with the flag, when constraints are missing, duplicated, or empty.
     """
     lines = plan.splitlines(keepends=True)
     decoded_lines = [line.decode("utf-8") for line in lines]
     headings = _scan_headings(decoded_lines)
     start, end = _select_section(headings, heading, len(lines))
-
-    body = decoded_lines[start + 1 : end]
-    if all(text.strip() == "" for text in body):
-        raise ValueError(f"section {heading!r} has an empty body")
-
-    return b"".join(lines[start:end])
+    section = _section_bytes(lines, decoded_lines, start, end, heading)
+    if not global_constraints:
+        return section
+    matches = [item for item in headings if item[2] in GLOBAL_CONSTRAINT_TITLES]
+    if not matches:
+        raise ValueError("no heading matches 'Global Constraints'")
+    if len(matches) > 1:
+        raise ValueError("heading 'Global Constraints' matches more than one section")
+    c_start, c_level, c_title = matches[0]
+    c_end = len(lines)
+    for other_start, other_level, _ in headings:
+        if other_start > c_start and other_level <= c_level:
+            c_end = other_start
+            break
+    constraints = _section_bytes(lines, decoded_lines, c_start, c_end, c_title)
+    return constraints + section
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="extract_task.py")
     parser.add_argument("plan", type=Path)
     parser.add_argument("--heading", required=True)
+    parser.add_argument("--global-constraints", action="store_true")
     parser.add_argument("--output", required=True, type=Path)
     try:
         args = parser.parse_args(argv)
@@ -121,7 +155,11 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     try:
-        section = extract_task(plan_bytes, args.heading)
+        section = extract_task(
+            plan_bytes,
+            args.heading,
+            global_constraints=args.global_constraints,
+        )
     except UnicodeDecodeError as error:
         print(f"error: plan file is not valid UTF-8: {error}", file=sys.stderr)
         return 2

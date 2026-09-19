@@ -221,6 +221,63 @@ class ExtractTaskBoundaryTests(_ExtractTaskCase):
         self.assertEqual(extract_task(plan, "Task 1: 저장"), plan)
 
 
+class ExtractTaskGlobalConstraintsTests(_ExtractTaskCase):
+    def test_flag_off_returns_only_the_task_bytes(self) -> None:
+        constraints = "## Global Constraints\n- cap: 5\n\n".encode("utf-8")
+        section = "## Task P1: 저장\n본문\n".encode("utf-8")
+        plan = b"# Plan\n" + constraints + section
+        self.assertEqual(extract_task(plan, "Task P1: 저장"), section)
+        self.assertEqual(
+            extract_task(plan, "Task P1: 저장", global_constraints=False),
+            section,
+        )
+
+    def test_flag_prepends_constraints_bytes_without_extra_separator(self) -> None:
+        constraints = "## Global Constraints\n- cap: 5\n\n".encode("utf-8")
+        section = "## Task P1: 저장\n본문\n".encode("utf-8")
+        plan = b"# Plan\n" + constraints + section + "## Task P2: 다음\n다음\n".encode("utf-8")
+        self.assertEqual(
+            extract_task(plan, "Task P1: 저장", global_constraints=True),
+            constraints + section,
+        )
+
+    def test_lowercase_constraints_heading_is_accepted(self) -> None:
+        constraints = "## Global constraints\n- cap: 5\n".encode("utf-8")
+        section = "## Task 1: 저장\n본문\n".encode("utf-8")
+        plan = constraints + section
+        self.assertEqual(
+            extract_task(plan, "Task 1: 저장", global_constraints=True),
+            constraints + section,
+        )
+
+    def test_both_spellings_are_duplicate(self) -> None:
+        plan = (
+            "## Global Constraints\n- a\n"
+            "## Global constraints\n- b\n"
+            "## Task 1: 저장\n본문\n"
+        ).encode("utf-8")
+        with self.assertRaises(ValueError):
+            extract_task(plan, "Task 1: 저장", global_constraints=True)
+
+    def test_missing_constraints_raises(self) -> None:
+        plan = "## Task 1: 저장\n본문\n".encode("utf-8")
+        with self.assertRaises(ValueError):
+            extract_task(plan, "Task 1: 저장", global_constraints=True)
+
+    def test_empty_constraints_body_raises(self) -> None:
+        plan = "## Global Constraints\n\n## Task 1: 저장\n본문\n".encode("utf-8")
+        with self.assertRaises(ValueError):
+            extract_task(plan, "Task 1: 저장", global_constraints=True)
+
+    def test_fenced_constraints_heading_is_ignored(self) -> None:
+        plan = (
+            "```\n## Global Constraints\n- fake\n```\n"
+            "## Task 1: 저장\n본문\n"
+        ).encode("utf-8")
+        with self.assertRaises(ValueError):
+            extract_task(plan, "Task 1: 저장", global_constraints=True)
+
+
 class ExtractTaskCliTests(_ExtractTaskCase):
     def setUp(self) -> None:
         super().setUp()
@@ -353,6 +410,41 @@ class ExtractTaskCliTests(_ExtractTaskCase):
                 ]
             )
         self.assertEqual(code, 2)
+        self.assertFalse(output_path.exists())
+
+    def test_cli_global_constraints_prepends_and_exits_zero(self) -> None:
+        constraints = "## Global Constraints\n- cap: 5\n".encode("utf-8")
+        section = "## Task 1: 저장\n본문\n".encode("utf-8")
+        plan_path = self._write_plan(constraints + section)
+        output_path = self.base / "section.md"
+        code = main(
+            [
+                str(plan_path),
+                "--heading",
+                "Task 1: 저장",
+                "--global-constraints",
+                "--output",
+                str(output_path),
+            ]
+        )
+        self.assertEqual(code, 0)
+        self.assertEqual(output_path.read_bytes(), constraints + section)
+
+    def test_cli_missing_constraints_exits_3_and_writes_no_output(self) -> None:
+        plan_path = self._write_plan("## Task 1: 저장\n본문\n".encode("utf-8"))
+        output_path = self.base / "section.md"
+        with mock.patch("sys.stderr"):
+            code = main(
+                [
+                    str(plan_path),
+                    "--heading",
+                    "Task 1: 저장",
+                    "--global-constraints",
+                    "--output",
+                    str(output_path),
+                ]
+            )
+        self.assertEqual(code, 3)
         self.assertFalse(output_path.exists())
 
 
