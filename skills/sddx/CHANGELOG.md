@@ -6,6 +6,34 @@ All notable changes to this product are documented in this file.
 
 No entries yet.
 
+## 4.0.0 - 2026-09-19
+
+### Breaking
+
+- Activate only when the user message contains `/sddx` or `$sddx`. Natural
+  language such as "run SDD with Grok as implementer" or "stay orchestrator"
+  no longer starts the skill. Codex `allow_implicit_invocation` is `false`.
+- Controllers must extract tasks with `extract_task.py --global-constraints`
+  and must not run Superpowers `task-brief` or `task-start`.
+- Same-shape plan tasks are not batched into one worker. A nested controller
+  must not run native subagent-driven-development.
+- Implementer High/XHigh is chosen per task from the brief. Raising effort
+  starts a fresh worker; a High session is not resumed at XHigh.
+
+### Changed
+
+- `dispatch.md` leads with the controller procedure. Runner schema stays in
+  an appendix.
+- Plans without exactly one `Global Constraints` / `Global constraints`
+  section fail extract (exit 3) instead of dispatching an incomplete brief.
+- The calling session's model and effort orchestrate. The start-of-run
+  picker labels are Grok CLI (no `--model`) and Cursor Agent (Grok).
+
+### Notes
+
+- Worker argv, `run.json`, and host×worker live measurements are unchanged.
+  No GitHub tag or GitHub Release is created.
+
 ## 3.0.0 - 2026-09-18
 
 ### Breaking
