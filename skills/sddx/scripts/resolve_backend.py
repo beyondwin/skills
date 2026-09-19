@@ -104,6 +104,18 @@ def _declares_value_option(help_text: str, flag: str) -> bool:
     return re.search(pattern, help_text, re.MULTILINE) is not None
 
 
+def _declares_positional_prompt(help_text: str) -> bool:
+    """Require a Usage-line positional prompt, not a named `--prompt` option."""
+    return (
+        re.search(
+            r"^Usage:.*\[prompt(?:\.\.\.)?\]",
+            help_text,
+            flags=re.IGNORECASE | re.MULTILINE,
+        )
+        is not None
+    )
+
+
 def _declares_subcommand(help_text: str, name: str) -> bool:
     for line in help_text.splitlines():
         match = _SUBCOMMAND_LINE.match(line)
@@ -208,12 +220,12 @@ def _grok_flags_ok(help_text: str) -> bool:
         "--no-plan",
         "--no-subagents",
         "--always-approve",
-        "--resume",
     )
     return (
         all(_declares(help_text, flag) for flag in required)
         and _declares_value_option(help_text, "--disallowed-tools")
         and _declares_value_option(help_text, "--deny")
+        and _declares_value_option(help_text, "--resume")
         and _grok_effort_flag(help_text) is not None
         and _grok_prompt_flag(help_text) is not None
         # Both halves: `build_argv` always emits `--output-format <value>`, so a CLI
@@ -231,7 +243,8 @@ def _cursor_flags_ok(help_text: str) -> bool:
         and _declares(help_text, "--sandbox")
         and (_declares(help_text, "--workspace") or _declares(help_text, "--cwd"))
         and _declares(help_text, "--model")
-        and _declares(help_text, "--resume")
+        and _declares_value_option(help_text, "--resume")
+        and _declares_positional_prompt(help_text)
         # Both halves, for the same reason as the Grok gate above.
         and _declares(help_text, "--output-format")
         and _declares(help_text, CURSOR_OUTPUT_FORMAT)

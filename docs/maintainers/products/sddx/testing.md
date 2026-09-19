@@ -37,6 +37,10 @@ worktree를 만들고 Git 경로 계산, 기존 TOML 원문 복원, 재진입, �
 - Cursor는 headless print(`--print` 또는 `-p`), `--trust`, `--auto-review`,
   `--sandbox`, 확인된 `stream-json` 출력 형식을 모두 선언해야 한다. 하나라도
   없으면 `missing_flags`이며 force/yolo 일괄 승인으로 물러나지 않는다.
+- Cursor와 Grok의 `--resume`은 값을 받는 선언(`<id>` 또는 `[id]`)이어야
+  한다. 이름만 있고 값이 없으면 `missing_flags`다.
+- Cursor Usage 줄에 `[prompt]` 또는 `[prompt...]`가 있어야 한다. 없으면
+  `missing_flags`다. `build_argv`가 위치 인자로 prompt를 붙이기 때문이다.
 - Cursor 모델 목록 명령이 성공해 id를 읽었고 그중 Grok이 없으면 `no_grok_model`
   이다. 선언된 목록 명령이 없거나 모두 실패하면 `no_model_list`, 목록은 왔으나
   id를 하나도 읽지 못하면 `model_list_unreadable`이다.
@@ -147,6 +151,14 @@ git diff --check
 
 라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있습니다. CI가 요구하지
 않습니다. 오프라인 통과를 호스트 품질로 설명하지 마세요.
+
+## 4.0.1 오프라인 검사
+
+4.0.1의 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다.
+`test_resolve_backend.py`가 값을 받지 않는 `--resume`과 Cursor Usage에
+위치 인자 prompt가 없는 경우를 `missing_flags`로 잠급니다. 라이브 워커
+재실행은 요구하지 않습니다. XHigh 정의 로딩의 라이브 결과는 위
+「리뷰어 effort 증거」에 있습니다.
 
 ## 4.0.0 오프라인 검사
 
@@ -303,6 +315,13 @@ NotebookEdit를 이름으로 포함하는지 확인합니다. 이 검사는 필�
 `claude -p --agent sddx-reviewer-xhigh`를 실행해 정의가 로드되는지 봅니다. 이
 확인은 로딩만 증명하며 적용된 effort를 증명하지 않습니다. 같은 확인에서 스킬 호출
 이름이 `sddx` 그대로인지도 함께 봅니다.
+
+`4.0.1`에서 이 확인을 했습니다. Claude Code `2.1.258`, 링크
+`~/.claude/skills/sddx`. 없는 에이전트 이름은 즉시 거절되고 사용 가능 목록에
+`sddx:claude-code:sddx-reviewer-xhigh`가 있었습니다. 접두사 없는
+`--agent sddx-reviewer-xhigh`는 로드되어 한 단어 응답을 반환했습니다.
+`claude plugin details sddx@skills-dir`는 같은 상태에서 Agents (0)을 보여
+주므로, 그 숫자는 로딩 실패로 쓰지 않습니다. 스킬 이름은 `sddx`입니다.
 
 계약 검사는 파일이 존재한다는 것까지만 증명합니다. Claude Code가 skills-dir
 플러그인에서 agents를 계속 싣는지는 증명하지 못하므로, 릴리스마다 위 라이브 확인을

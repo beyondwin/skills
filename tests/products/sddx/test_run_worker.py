@@ -58,7 +58,7 @@ GROK_HELP_WITH_PROMPT_FILE = GROK_HELP.replace(
 
 CURSOR_VERSION = "cursor-agent 2026.08.07\n"
 CURSOR_HELP = """
-Usage: cursor-agent [options]
+Usage: cursor-agent [options] [command] [prompt...]
 
 Commands:
   models                    Print the model identifiers this account may use

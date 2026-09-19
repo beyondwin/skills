@@ -75,10 +75,13 @@ GROK_HELP_PROMPT_FILE_ONLY = GROK_HELP.replace(
 )
 # No prompt flag at all. `--no-plan` survives, so a substring test still "finds" `-p`.
 GROK_HELP_WITHOUT_PROMPT_FLAG = GROK_HELP.replace("  -p, --single <PROMPT>\n", "")
+GROK_HELP_RESUME_FLAG_ONLY = GROK_HELP.replace(
+    "  -r, --resume [<SESSION_ID>]", "  -r, --resume"
+)
 
 CURSOR_VERSION = "cursor-agent 2026.08.07\n"
 CURSOR_HELP = """
-Usage: cursor-agent [options]
+Usage: cursor-agent [options] [command] [prompt...]
 
 Commands:
   models                    Print the models this account may use
@@ -123,6 +126,13 @@ CURSOR_HELP_SHORT_PRINT_ONLY = CURSOR_HELP.replace("  -p, --print", "  -p")
 # Declares the plural `--models` and no `--model`, so a substring test still "finds" it.
 CURSOR_HELP_PLURAL_MODEL_ONLY = CURSOR_HELP.replace(
     "      --model <model>\n", "      --models\n"
+)
+CURSOR_HELP_RESUME_FLAG_ONLY = CURSOR_HELP.replace(
+    "      --resume [chatId]\n", "      --resume\n"
+)
+CURSOR_HELP_WITHOUT_POSITIONAL_PROMPT = CURSOR_HELP.replace(
+    "Usage: cursor-agent [options] [command] [prompt...]",
+    "Usage: cursor-agent [options]",
 )
 
 CURSOR_MODELS = "gpt-5\ncomposer\ngrok-4\n"
@@ -589,6 +599,13 @@ class ResolveBackendTests(unittest.TestCase):
                     self.assertFalse(result["available"])
                     self.assertEqual(result["reason"], "missing_flags")
 
+    def test_grok_without_value_taking_resume_is_missing_flags(self) -> None:
+        self._write_cli("grok", GROK_VERSION, GROK_HELP_RESUME_FLAG_ONLY)
+        result = self._resolve("grok")
+        self.assertFalse(result["available"])
+        self.assertEqual(result["reason"], "missing_flags")
+        self.assertIsNone(result["launch"])
+
     def test_grok_launch_contract(self) -> None:
         self._write_cli("grok", GROK_VERSION, GROK_HELP)
         result = self._resolve("grok")
@@ -846,6 +863,34 @@ class ResolveBackendTests(unittest.TestCase):
         result = self._resolve("cursor")
         self.assertFalse(result["available"])
         self.assertIn(result["reason"], ("not_found", "identity_mismatch"))
+
+    def test_cursor_without_value_taking_resume_is_missing_flags(self) -> None:
+        self._write_cli(
+            "cursor-agent",
+            CURSOR_VERSION,
+            CURSOR_HELP_RESUME_FLAG_ONLY,
+            {"models": (0, CURSOR_MODELS, "")},
+        )
+        result = self._resolve("cursor")
+        self.assertFalse(result["available"])
+        self.assertEqual(result["reason"], "missing_flags")
+        self.assertIsNone(result["launch"])
+        self.assertEqual(result["model_ids"], [])
+        self.assertEqual(self._calls(), [], "probed models despite missing flags")
+
+    def test_cursor_without_positional_prompt_is_missing_flags(self) -> None:
+        self._write_cli(
+            "cursor-agent",
+            CURSOR_VERSION,
+            CURSOR_HELP_WITHOUT_POSITIONAL_PROMPT,
+            {"models": (0, CURSOR_MODELS, "")},
+        )
+        result = self._resolve("cursor")
+        self.assertFalse(result["available"])
+        self.assertEqual(result["reason"], "missing_flags")
+        self.assertIsNone(result["launch"])
+        self.assertEqual(result["model_ids"], [])
+        self.assertEqual(self._calls(), [], "probed models despite missing flags")
 
     def test_cursor_missing_narrow_flags_is_missing_flags(self) -> None:
         cases = {

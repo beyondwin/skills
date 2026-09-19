@@ -6,6 +6,22 @@ All notable changes to this product are documented in this file.
 
 No entries yet.
 
+## 4.0.1 - 2026-09-19
+
+### Fixed
+
+- Cursor and Grok resolution now require `--resume` to be declared as a
+  value-taking option. A boolean `--resume` is `missing_flags`.
+- Cursor resolution now requires the Usage line to declare a positional
+  prompt (`[prompt]` or `[prompt...]`). `build_argv` appends the dispatch
+  as a positional argument.
+
+### Notes
+
+- Claude Code loaded `sddx-reviewer-xhigh` from the linked skills-dir
+  plugin. Applied reviewer effort is still not measured.
+- Worker argv and `run.json` are unchanged. No GitHub tag or GitHub Release.
+
 ## 4.0.0 - 2026-09-19
 
 ### Breaking
