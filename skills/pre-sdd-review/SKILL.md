@@ -4,8 +4,8 @@ description: Use when an approved design spec and implementation plan already ex
 license: Apache-2.0
 compatibility: Requires a local Git repository, readable design and plan files, and Codex subagent support for independent review.
 metadata:
-  version: "4.0.0"
-  updated_at: "2026-09-18"
+  version: "5.0.0"
+  updated_at: "2026-09-19"
 ---
 
 # Pre-SDD Review

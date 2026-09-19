@@ -4,6 +4,19 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 5.0.0 - 2026-09-19
+
+### Changed
+
+- Multi-plan discovery may overlap. Repairs stay serial. Closure requires a repair diff.
+- A dirty plan with zero discovery findings still takes scoped closure.
+- Host agent limits wave discoveries; they do not reuse a reviewer across plans.
+- HEAD moving off the freeze blocks READY on that freeze.
+
+### Notes
+
+- Record schema stays 4. Handshake `cli_version` is 5.0.0. No GitHub tag or GitHub Release is created.
+
 ## 4.0.0 - 2026-09-18
 
 ### Added

@@ -23,7 +23,7 @@ from scripts.lib.product_registry import load_registry  # noqa: E402
 SKILL = ROOT / "skills" / "pre-sdd-review"
 CASES = ROOT / "tests" / "products" / "pre-sdd-review" / "cases.json"
 FIXTURES = ROOT / "tests" / "products" / "pre-sdd-review" / "fixtures"
-TARGET_VERSION = "4.0.0"
+TARGET_VERSION = "5.0.0"
 PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     {
         "CHANGELOG.md",
@@ -39,7 +39,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "e89e854ce54f7f4d72d687a387a40191f250921c12838337af1a9941b7475656",
+    "SKILL.md": "e49debf13b0cd050b19fabf5bd18a0e36581817a7d0a5123f489036efb20aad6",
     "references/reviewer-protocol.md": (
         "fd4636e9b4e6f61add1f7b05db59238320be47f207ce9e562939d718e8e3551b"
     ),
@@ -413,7 +413,7 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Ledger shape", "f1091388fd58d8db9f223fbd6e1457303c600107c4c89c37d1aded6caf2ae84e"),
     ("### Degraded reasons", "a71ff3ec6aaf37ac3a862f8637b0fcd66e561d3958b4b0da0aaa532ced0b28f7"),
 )
-MAINTAINER_CANONICAL_DIGEST = "868f3d921a69f9758aff5ab33cd1bef926fae5ae570a643e337ac25131524697"
+MAINTAINER_CANONICAL_DIGEST = "9e54942504bfbb021737dc724eb7173eb32cf8b304e3e3813460986549cf70dd"
 TESTING_CANONICAL_DIGEST = "ac57b76ebf7278674d91eb4bb25fc86c2a292b941bbac4d11efe86409dac1462"
 COMPATIBILITY_CANONICAL_DIGEST = "db8d19d45ca4f6748b73ace65da5e5e965f0e7002a6b0395bf563f524a424480"
 RELEASE_CANONICAL_DIGEST = "a9cd12baf31dbe408975c23bbbec9f860b0e3b58e787aefee5a9cb27c18a3e67"
@@ -980,7 +980,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         changelog = (SKILL / "CHANGELOG.md").read_text(encoding="utf-8")
         self.assertEqual(release["version"], TARGET_VERSION)
         self.assertEqual(frontmatter["metadata"]["version"], TARGET_VERSION)
-        self.assertIn(f"## {TARGET_VERSION} - 2026-09-18", changelog)
+        self.assertIn(f"## {TARGET_VERSION} - 2026-09-19", changelog)
         self.assertIn("## 3.0.0 - 2026-09-08", changelog)
 
     def test_required_implementation_base_blocks_before_reviewer_dispatch(self) -> None:
