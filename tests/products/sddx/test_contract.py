@@ -527,28 +527,20 @@ class SddxContractTests(unittest.TestCase):
 
     def test_plugin_manifest_registers_the_xhigh_agent_file(self) -> None:
         manifest = json.loads((SKILL / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
-        self.assertEqual(
-            manifest.get("agents"),
-            "./agents/claude-code/sddx-reviewer-xhigh.md",
-        )
+        self.assertNotIn("agents", manifest)
         skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         self.assertIn("subagent_type: sddx:sddx-reviewer-xhigh", skill)
         self.assertNotIn("subagent_type: sddx-reviewer-xhigh`", skill)
         self.assertNotIn("subagent_type: sddx:claude-code:sddx-reviewer-xhigh", skill)
 
     def test_claude_code_agents_are_closed_and_escalation_only(self) -> None:
-        directory = SKILL / "agents" / "claude-code"
+        directory = SKILL / "agents"
+        self.assertFalse((directory / "claude-code").exists())
         definitions = sorted(
-            path.relative_to(directory).as_posix() for path in directory.rglob("*.md")
+            path.relative_to(directory).as_posix()
+            for path in directory.rglob("*.md")
         )
         self.assertEqual(definitions, ["sddx-reviewer-xhigh.md"])
-        self.assertEqual(
-            sorted(path.name for path in directory.iterdir() if path.is_file()),
-            ["sddx-reviewer-xhigh.md"],
-        )
-        self.assertEqual(
-            sorted(path.name for path in directory.iterdir() if path.is_dir()), []
-        )
         frontmatter = parse_skill_frontmatter(
             (directory / "sddx-reviewer-xhigh.md").read_text(encoding="utf-8")
         )

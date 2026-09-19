@@ -6,6 +6,23 @@ All notable changes to this product are documented in this file.
 
 No entries yet.
 
+## 4.0.3 - 2026-09-19
+
+### Changed
+
+- The XHigh reviewer file lives at `agents/sddx-reviewer-xhigh.md`. Leaving
+  `plugin.json` without an `agents` key lets Claude Code's default scan
+  inventory it. A nested path or an `agents` field made `plugin details`
+  report Agents (0) even when Task could spawn the reviewer.
+
+### Notes
+
+- A Task child transcript records `effort: xhigh` on the assistant event
+  while the parent session effort is high.
+- Current Cursor `2026.09.15-d2fe57e` and Grok `1.0.34` workers both
+  completed a `run_worker.py` smoke (`state: exited`, report `DONE`).
+  Host×worker four-way quality is not re-claimed.
+
 ## 4.0.2 - 2026-09-19
 
 ### Fixed

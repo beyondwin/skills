@@ -34,12 +34,13 @@ skills/sddx/              저장소 원본
 
 `agents/openai.yaml`은 Codex 표시 메타데이터이며 선택적입니다. 런타임 필수
 파일이 아닙니다.
-`agents/claude-code/sddx-reviewer-xhigh.md`는 성격이 다릅니다. Claude Code 런타임
-정의이고, `plugin.json` `agents`가 그 파일을 가리켜 skills-dir 플러그인으로
-전달됩니다. Task 이름은 `sddx:sddx-reviewer-xhigh`입니다. `--agent
-sddx-reviewer-xhigh`는 CLI 별칭으로 로드됩니다. 맨 이름만으로 Task를 부르면
-찾지 못합니다. `disallowedTools`(Edit, Write, NotebookEdit)는 로드된 세션
-도구 목록에서 빠집니다. 서브에이전트에 실제 적용된 effort는 `not_measured`입니다.
+`agents/sddx-reviewer-xhigh.md`는 성격이 다릅니다. Claude Code 런타임 정의이고
+`agents/*.md` 기본 스캔으로 전달됩니다. `plugin.json`에 `agents` 키를 두면
+`plugin details`가 Agents (0)을 보고하므로 두지 않습니다. Task 이름은
+`sddx:sddx-reviewer-xhigh`입니다. `--agent sddx-reviewer-xhigh`는 CLI 별칭으로
+로드됩니다. 맨 이름만으로 Task를 부르면 찾지 못합니다.
+`disallowedTools`(Edit, Write, NotebookEdit)는 로드된 세션 도구 목록에서
+빠집니다. Task 자식 트랜스크립트는 `effort: xhigh`를 기록합니다.
 
 사용자 프로젝트의 `.claude/agents/`에 같은 이름의 정의가 있으면 그쪽이 우선합니다.
 제품 접두사를 붙인 이름 외에 방어 수단이 없습니다.
@@ -65,10 +66,10 @@ CLI에서 MCP 호출 도구를 제외하고 MCP 권한 거절 규칙을 전달�
 
 ## 2.0.0 측정 상태
 
-현재 제품 버전은 `4.0.2`입니다. 아래 표는 `2.0.0`대 CLI로 측정한 런타임
-기록입니다. 4.0.2는 워커 실행 인자를 바꾸지 않아 이 칸을 다시 돌리지
-않았습니다. resolver의 `--resume` 값·Cursor 위치 인자 검사와 XHigh Task
-이름은 이 표의 워커 실행 칸이 아닙니다.
+현재 제품 버전은 `4.0.3`입니다. 아래 표의 워커 칸은 `2.0.0`대 CLI 측정입니다.
+4.0.3에서 현재 Cursor `2026.09.15-d2fe57e`와 Grok `1.0.34`로
+`run_worker.py` 스모크를 다시 돌렸습니다. 호스트×워커 네 조합 품질 표는
+그 스모크로 갈아 끼우지 않습니다.
 
 네 조합 모두 제품 소유자 승인 아래 실제 공급자를 호출했습니다. 측정 환경은
 모두 macOS 26.6.2 arm64입니다. Cursor는 `cursor-agent 2026.09.10-fd3934a`,
@@ -111,8 +112,10 @@ Codex 호스트에서 Grok 두 번과 Cursor 재개 한 번입니다. 각 줄은
 | MCP discovery 환경 변수의 효과 | `not_measured` | runner는 Grok 자식에만 `GROK_CURSOR_MCPS_ENABLED=0`과 `GROK_CLAUDE_MCPS_ENABLED=0`을 설정함. 이 변수가 전달된다는 사실은 오프라인 검사로 확인했으나, 이 저장소에서 관측한 Grok 시도는 보완 전후 모두 stderr가 0바이트여서 효과를 가를 수 없었음. handshake 실패 4건에서 0건으로 줄었다는 관측은 Codex가 남긴 원인 분리 probe 기록이며 여기서 재현하지 않음. 변수 이름은 공급자 내부 규약이라 Grok이 이름을 바꾸면 오류 없이 조용히 무력해짐 |
 | Grok 도구 필터 옵션 요구 | `measured` | resolver는 값을 받는 `--disallowed-tools`와 `--deny` 선언을 요구하고, 없으면 `missing_flags`로 실행을 거절함. 설치된 `grok 1.0.30`의 help는 `--deny <RULE>`과 `--disallowed-tools <TOOLS>`로 선언하며 실제 해석 결과 `available: true`. 이 판정은 그 help 표기에만 맞춰져 있어, 같은 옵션을 다른 표기로 적는 빌드는 실행 가능한데도 거절됨 |
 | `read_session_id`의 대체 키 철자 | `not_measured` | 두 공급자 모두에서 `session_id`로 세션 ID를 회수했고 Grok 스트림에는 다른 철자가 없었음. 이 키를 먼저 보므로 `sessionId`·`chatId`·`chat_id` 분기는 실행된 적이 없음 |
-| Claude Code agent 정의 로딩 | `measured` | Claude Code `2.1.258`, 링크된 `~/.claude/skills/sddx`. `plugin.json`이 정의 파일을 가리키면 목록 이름은 `sddx:sddx-reviewer-xhigh`. Task `subagent_type: sddx-reviewer-xhigh`는 찾지 못하고 spawned 0. `sddx:claude-code:sddx-reviewer-xhigh`(경로 기본값)와 `sddx:sddx-reviewer-xhigh`(명시 경로)는 Task가 띄운다. `--agent sddx-reviewer-xhigh`는 CLI 별칭으로 로드된다. `claude plugin details` Agents (0)은 로딩 증거가 아니다 |
-| Claude Code `disallowedTools` | `measured` | `--agent sddx-reviewer-xhigh` 세션 init 도구 목록에 Write, Edit, NotebookEdit가 없고 Read는 있다. 같은 세션에서 Write로 probe.txt를 만들라는 요청에 파일이 생기지 않았고 응답은 `BLOCKED Write`. permission_denials는 빈 목록이다(도구가 권한 거절이 아니라 목록에서 빠짐) |
+| Claude Code agent 정의 로딩 | `measured` | Claude Code `2.1.258`. 파일이 `agents/sddx-reviewer-xhigh.md`이고 `plugin.json`에 `agents` 키가 없으면 `claude plugin details sddx@skills-dir`가 Agents (1) `sddx-reviewer-xhigh`를 보고, 목록 이름은 `sddx:sddx-reviewer-xhigh`. Task 맨 이름은 spawned 0, 등록 이름은 spawned 1. `--agent sddx-reviewer-xhigh`는 CLI 별칭 |
+| Claude Code `disallowedTools` | `measured` | `--agent sddx-reviewer-xhigh` 세션 init 도구 목록에 Write, Edit, NotebookEdit가 없고 Read는 있다. Write로 probe.txt를 만들라는 요청에 파일이 생기지 않았고 응답은 `BLOCKED Write`. permission_denials는 빈 목록(목록에서 빠짐) |
+| Claude Code reviewer 적용 effort | `measured` | 부모 세션 effort는 high. Task `sddx:sddx-reviewer-xhigh` 자식 트랜스크립트 어시스턴트 이벤트가 `effort: xhigh`를 기록함 |
+| 현재 Cursor/Grok `run_worker.py` 스모크 | `measured` | Cursor `2026.09.15-d2fe57e` 모델 `cursor-grok-4.6-high`, Grok `1.0.34` prepare→run→cleanup. 둘 다 `state: exited`, `exit_code: 0`, `report.md` `DONE`, session_id 회수. 호스트×워커 네 조합 품질을 이 스모크로 바꾸지 않음 |
 | 새 세션 전환과 일반 역할 준수 | `not_measured` | 위에 센 시도 밖의 역할 준수와 세션 전환은 관측하지 않음. 관측한 시도에서는 worker가 브리프의 잘못된 검사 명령을 실행해 실패를 확인하고 그 사실을 보고서에 적은 뒤 유효한 방법으로 RED·GREEN을 다시 냈음 |
 
 ## 알려진 플랫폼·증거 한계

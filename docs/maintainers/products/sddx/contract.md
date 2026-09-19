@@ -87,11 +87,12 @@ brief, 변경 파일 경로, ledger이며 diff 본문을 읽어 정하지 않습
 ledger에는 모든 리뷰 dispatch를 적습니다. High는 한 줄이고, XHigh는 trigger와
 구체 경로를 함께 적습니다. 대지 못하면 High입니다.
 
-정의는 `.claude-plugin/plugin.json`의 `agents`가
-`./agents/claude-code/sddx-reviewer-xhigh.md`를 가리켜 skills-dir 플러그인으로
-전달됩니다. Claude Code Task 이름은 `sddx:sddx-reviewer-xhigh`입니다. 파일
-frontmatter 이름만으로는 Task가 찾지 못합니다. 설치 링크는 두 개 그대로이며
-새 설치 단계를 추가하지 않습니다. 정의가 없으면 — Codex에는 항상 없고, Claude Code에서도 로딩에
+정의는 `agents/sddx-reviewer-xhigh.md`입니다. `plugin.json`에 `agents` 키를
+두지 않습니다. 기본 `agents/*.md` 스캔이 Claude Code 인벤토리와 Task 등록을
+모두 채웁니다. Task 이름은 `sddx:sddx-reviewer-xhigh`입니다. 파일
+frontmatter 이름만으로는 Task가 찾지 못합니다. 중첩 경로나 `plugin.json`
+`agents` 필드는 `plugin details`가 Agents (0)을 보고하게 합니다. 설치 링크는
+두 개 그대로이며 새 설치 단계를 추가하지 않습니다. 정의가 없으면 — Codex에는 항상 없고, Claude Code에서도 로딩에
 실패하면 없습니다 — 요청 effort를 지정할 수 없다고 보고한 뒤 기본 dispatch로
 진행합니다. 다른 모델이나 effort로 대체하지 않고, 정의를 새로 만들지도 않습니다.
 정의 부재로 실행을 BLOCKED로 세우지 않습니다.

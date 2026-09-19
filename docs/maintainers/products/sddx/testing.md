@@ -152,11 +152,16 @@ git diff --check
 라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있습니다. CI가 요구하지
 않습니다. 오프라인 통과를 호스트 품질로 설명하지 마세요.
 
+## 4.0.3 오프라인 검사
+
+4.0.3의 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다.
+정의 파일은 `agents/sddx-reviewer-xhigh.md`이고 `plugin.json`에 `agents` 키가
+없습니다.
+
 ## 4.0.2 오프라인 검사
 
 4.0.2의 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다.
-`plugin.json` `agents`가 정의 파일을 가리키고 SKILL.md가
-`subagent_type: sddx:sddx-reviewer-xhigh`를 적는지를 잠급니다.
+SKILL.md가 `subagent_type: sddx:sddx-reviewer-xhigh`를 적는지를 잠급니다.
 
 ## 4.0.1 오프라인 검사
 
@@ -312,21 +317,21 @@ exit 0이었습니다. 마지막 관측 결과 문서는 내용·링크·diff를
 공급자 없는 증거는 `tests/products/sddx/test_contract.py`의 계약 검사입니다.
 `.claude-plugin` 페이로드가 sddx에만 허용되고 다른 제품에는 거부되는지,
 `plugin.json`이 제품명을 가리키는지, `plugin.json`의 version이 `release.toml`의
-버전과 같은지, `agents/claude-code/`에 정의가 정확히 하나이고 `name`이 파일명과
-같고 `effort`가 `xhigh`이며 `model` 키가 없고 `disallowedTools`가 Edit·Write·
-NotebookEdit를 이름으로 포함하는지 확인합니다. 이 검사는 필드 선언까지만
-확인하며, 호스트가 실제로 그 도구를 차단하는지는 확인하지 않습니다.
+버전과 같은지, `plugin.json`에 `agents` 키가 없는지, `agents/`에 마크다운 정의가
+정확히 `sddx-reviewer-xhigh.md` 하나이고 `name`이 파일명과 같고 `effort`가
+`xhigh`이며 `model` 키가 없고 `disallowedTools`가 Edit·Write·NotebookEdit를
+이름으로 포함하는지 확인합니다. 이 검사는 필드 선언까지만 확인하며, 호스트가
+실제로 그 도구를 차단하는지는 확인하지 않습니다.
 
-라이브 확인은 두 가지입니다. 배포되는 제품 파일을 링크한 상태에서
-`claude -p --agent sddx-reviewer-xhigh`로 정의가 로드되는지 보고, Task
-`subagent_type: sddx:sddx-reviewer-xhigh`가 실제로 뜨는지도 봅니다. 맨 이름
-`sddx-reviewer-xhigh`는 Task가 찾지 못합니다. 로딩은 적용된 effort를 증명하지
-않습니다. 스킬 호출 이름이 `sddx`인지도 함께 봅니다.
+라이브 확인은 배포되는 제품 파일을 링크한 상태에서 합니다.
+`claude plugin details sddx@skills-dir`는 Agents (1) `sddx-reviewer-xhigh`여야
+합니다. Task는 `subagent_type: sddx:sddx-reviewer-xhigh`로 뜨고, 맨 이름은
+찾지 못합니다. 자식 트랜스크립트 어시스턴트 이벤트의 `effort`가 `xhigh`인지도
+봅니다. 스킬 호출 이름은 `sddx`입니다.
 
-`4.0.2`에서 확인했습니다. Claude Code `2.1.258`. 없는 이름은 즉시 거절됩니다.
-`--agent sddx-reviewer-xhigh` 세션의 도구 목록에 Write·Edit·NotebookEdit가 없고
-Write 요청은 파일을 만들지 못했습니다. Task 맨 이름은 spawned 0, 등록 이름은
-spawned 1입니다. `claude plugin details` Agents (0)은 로딩 실패로 쓰지 않습니다.
+`4.0.3`에서 확인했습니다. `plugin details` Agents (1). Task 자식 기록
+`effort: xhigh`(부모 세션은 high). Cursor `2026.09.15-d2fe57e`와 Grok
+`1.0.34` 워커 스모크는 둘 다 `state: exited`, 보고서 `DONE`입니다.
 
 계약 검사는 파일이 존재한다는 것까지만 증명합니다. Claude Code가 skills-dir
 플러그인에서 agents를 계속 싣는지는 증명하지 못하므로, 릴리스마다 위 라이브 확인을

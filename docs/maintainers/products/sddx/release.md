@@ -6,9 +6,9 @@
 
 공개 sddx 릴리스는 아직 없습니다. 이 제품은 통합 `v2.0.0` GitHub Release와
 불변 카탈로그 lock에 포함되지 않았습니다. 지금 개발 중인 독립 버전은
-`4.0.2`이며 `release.toml`이 원본입니다. 태그와 아티팩트는 없습니다.
+`4.0.3`이며 `release.toml`이 원본입니다. 태그와 아티팩트는 없습니다.
 
-`4.0.2` 변경은 CHANGELOG의 `## 4.0.2 - 2026-09-19`에 있습니다. 공개 태그를
+`4.0.3` 변경은 CHANGELOG의 `## 4.0.3 - 2026-09-19`에 있습니다. 공개 태그를
 만들 때 이 절을 확정하고 새 빈 `Unreleased` 절을 엽니다.
 `release.toml`, `SKILL.md` `metadata.version`,
 `.claude-plugin/plugin.json`의 `version`은 항상 같은 값이어야 합니다.
@@ -32,13 +32,13 @@
 보세요. 제품 검사는 `python3 scripts/release.py check --product sddx`입니다.
 
 `python3 scripts/release.py check --product sddx`는 오프라인 검사이므로 Claude
-Code가 `agents/claude-code/` 정의를 계속 싣는지는 확인하지 못합니다. 릴리스마다
+Code가 `agents/sddx-reviewer-xhigh.md`를 계속 싣는지는 확인하지 못합니다. 릴리스마다
 [`testing.md`](testing.md)의 `리뷰어 effort 증거` 절에 있는 라이브 확인을 수동으로
 실행하고, 실패하면 릴리스를 멈춥니다.
 
 XHigh 리뷰어 정의가 Claude Code에 실제로 실리는지는 공개 태그 전에 확인할
-절차입니다. `4.0.2`에서 로딩과 Task 등록 이름 `sddx:sddx-reviewer-xhigh`를
-확인했고 상태는 `measured`입니다. 적용된 effort는 이 절차의 대상이 아닙니다.
+절차입니다. `4.0.3`에서 `plugin details` Agents (1), Task 이름
+`sddx:sddx-reviewer-xhigh`, 자식 트랜스크립트 `effort: xhigh`를 확인했습니다.
 확인 없이 공개 릴리스 완료를 선언하지 않습니다. 이 명령은 제품 소유 경로와 공용 릴리스 코드의 작업 트리가 깨끗할
 때만 통과하므로 변경을 커밋한 뒤 실행합니다.
 
