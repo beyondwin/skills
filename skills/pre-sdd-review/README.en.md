@@ -99,8 +99,12 @@ A `READY` report prints the observation anomalies that `finish` returned as
 an `Anomalies:` line. Anomalies do not change the verdict.
 
 One invocation ends after one discovery stage and its bounded re-reviews.
-If the first review finds nothing, skip repair and re-review and return
-`READY`. Split plans on one host run one after another.
+If the first review finds nothing and no earlier repair touched files this
+plan reads, skip repair and re-review and return `READY`. If an earlier
+repair changed files this plan reads, take scoped closure even with zero
+findings. Discoveries of split plans may overlap; repairs do not. Closure requires the repair diff. A preceding `BLOCKED` plan does not stop later
+discovery.
+
 Authority-preserving repairs need no approval; only a real product decision
 creates one consolidated checkpoint. The controller never automatically
 repeats an invocation after `REVISE` or `BLOCKED`.

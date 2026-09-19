@@ -14,7 +14,7 @@
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
-  -s tests/products/pre-sdd-review -p 'test_contract.py' -v
+  -s tests/products/pre-sdd-review -p 'test_c*.py' -v
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
   -s tests/products/pre-sdd-review/evidence -p 'test_*.py' -v
 ```

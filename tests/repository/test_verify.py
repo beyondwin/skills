@@ -384,7 +384,7 @@ class VerifyStageTests(unittest.TestCase):
             )
             self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
             self.assertIn("tests/products/pre-sdd-review", stage.argv)
-            self.assertIn("test_contract.py", stage.argv)
+            self.assertIn("test_c*.py", stage.argv)
 
     def test_pre_sdd_review_evidence_full_gate_uses_unittest_discovery(self) -> None:
         stage = self._stage("full", "pre-sdd-review-evidence", skill="pre-sdd-review")

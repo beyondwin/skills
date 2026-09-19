@@ -23,7 +23,7 @@ from scripts.lib.product_registry import load_registry  # noqa: E402
 SKILL = ROOT / "skills" / "pre-sdd-review"
 CASES = ROOT / "tests" / "products" / "pre-sdd-review" / "cases.json"
 FIXTURES = ROOT / "tests" / "products" / "pre-sdd-review" / "fixtures"
-TARGET_VERSION = "4.0.0"
+TARGET_VERSION = "5.0.0"
 PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     {
         "CHANGELOG.md",
@@ -39,9 +39,9 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "73c1bc6b78f3b4ba6e276bea1db3b73978875ffa47766c0fec2b500b540c2b02",
+    "SKILL.md": "17a992a35106487bf72aac3409134def020bd186a505f1fcf8d9acbe199d57b6",
     "references/reviewer-protocol.md": (
-        "9e89461ada0559be3346b742cdeab547779cc6bf17f1c0ca99ce47f333c2efcd"
+        "fd4636e9b4e6f61add1f7b05db59238320be47f207ce9e562939d718e8e3551b"
     ),
 }
 CASE_IDS = (
@@ -81,6 +81,11 @@ CASE_IDS = (
     "partial-closure-not-a-new-finding",
     "costless-repair-consumes-no-pass",
     "degraded-handoff-not-reused",
+    "zero-findings-but-dirty",
+    "closure-requires-repair-diff",
+    "host-limit-waves-not-reuse",
+    "head-break-no-ready",
+    "no-automatic-second-campaign",
 )
 FIXTURE_NAMES = (
     "conditional-edit-surface",
@@ -321,6 +326,8 @@ KOREAN_FACTS = (
     "not_measured",
     "evidence.py",
     "~/.pre-sdd-review/",
+    "발견은 겹칠 수 있고",
+    "종결에는 수리 diff가 필요합니다",
 )
 ENGLISH_FACTS = (
     "$pre-sdd-review",
@@ -334,6 +341,8 @@ ENGLISH_FACTS = (
     "not_measured",
     "evidence.py",
     "~/.pre-sdd-review/",
+    "Discoveries of split plans may overlap",
+    "Closure requires the repair diff",
 )
 KOREAN_README_HEADINGS = (
     "## 목적",
@@ -392,6 +401,7 @@ README_CONTRACT = (
     ("handoff", ("unresolved-packet", "full-execution-only")),
     ("sdd", ("outer-request-implementation-only",)),
     ("evidence", ("optional", "non-blocking", "controller-local-run-id")),
+    ("campaign-scheduler", ("discoveries-may-overlap", "repairs-do-not-overlap")),
 )
 MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Authority order", "02ae46e82a05df772812bcc8f67d944ad7465ae1f52269eaf0d387d5fc1ededd"),
@@ -407,10 +417,10 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Ledger shape", "f1091388fd58d8db9f223fbd6e1457303c600107c4c89c37d1aded6caf2ae84e"),
     ("### Degraded reasons", "a71ff3ec6aaf37ac3a862f8637b0fcd66e561d3958b4b0da0aaa532ced0b28f7"),
 )
-MAINTAINER_CANONICAL_DIGEST = "ee69d03113045204a5004a054e86672c96584438385f7b5cb3f9fc3062f42d24"
-TESTING_CANONICAL_DIGEST = "eb6c73be9e8ebf9c10310fd0edb7440928d2a8554d36b756ce1390f89c6f07fa"
+MAINTAINER_CANONICAL_DIGEST = "525bdcaf89758ac2e05745f3c4d8c8d6ead4a32d823f95e334de20a70a9c7a8c"
+TESTING_CANONICAL_DIGEST = "c8e4cfdca5b1acc3e6db62cd33504602c5b4826a39c2027d83ad24f0ba19f23a"
 COMPATIBILITY_CANONICAL_DIGEST = "db8d19d45ca4f6748b73ace65da5e5e965f0e7002a6b0395bf563f524a424480"
-RELEASE_CANONICAL_DIGEST = "a9cd12baf31dbe408975c23bbbec9f860b0e3b58e787aefee5a9cb27c18a3e67"
+RELEASE_CANONICAL_DIGEST = "8d79c8164b43050ff344820fdf68417c46a9ff46c8e192f005fc91cab3a362db"
 
 
 def section(text: str, start: str, end: str) -> str:
@@ -974,7 +984,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         changelog = (SKILL / "CHANGELOG.md").read_text(encoding="utf-8")
         self.assertEqual(release["version"], TARGET_VERSION)
         self.assertEqual(frontmatter["metadata"]["version"], TARGET_VERSION)
-        self.assertIn(f"## {TARGET_VERSION} - 2026-09-18", changelog)
+        self.assertIn(f"## {TARGET_VERSION} - 2026-09-19", changelog)
         self.assertIn("## 3.0.0 - 2026-09-08", changelog)
 
     def test_required_implementation_base_blocks_before_reviewer_dispatch(self) -> None:
@@ -1083,16 +1093,30 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("Never reuse a handoff whose `execution` is `blocked`", skill)
         self.assertNotIn("summary --last 20", skill)
         self.assertIn("same `repo` display name and plan path are `pending`", skill)
-        self.assertIn("do not overlap them", skill)
+        self.assertIn("Discoveries of different plans may overlap", skill)
+        self.assertIn("Repairs do not overlap", skill)
+        self.assertNotIn("do not overlap them", skill)
+        self.assertIn("A preceding plan's repair", skill)
+        self.assertNotIn("A later repair that changes a shared design", skill)
+        self.assertIn("controller-local campaign state", skill)
+        self.assertIn("not a record field", skill)
+        self.assertIn("Paths not in `Files:` are not in this dirty set", skill)
         self.assertIn("Do not use the controlling agent as a substitute independent primary", skill)
         self.assertIn("distinct agents obtained", skill)
-        self.assertIn("If the first review has zero findings, skip repair and closure", skill)
+        self.assertIn("If the first review has zero findings", skill)
+        self.assertIn("and the plan is not dirty, skip repair and closure", skill)
+        self.assertIn("A dirty plan still takes scoped closure", skill)
         self.assertIn("`repair_passes` counts only passes that produced at least one `repaired` finding", skill)
         self.assertIn("does not copy a previous finding's `repair_pass`", skill)
         self.assertIn("summary --repo", contract)
         self.assertIn("`execution`이 `blocked`", re.sub(r"\s+", " ", contract))
         self.assertNotIn("summary --last 20", contract)
-        self.assertIn("겹치지 않고", contract)
+        self.assertIn("발견은 겹칠 수 있고 수리는 겹치지 않습니다", contract)
+        self.assertNotIn("겹치지 않고", contract)
+        self.assertIn("앞 계획의 수리", contract)
+        self.assertNotIn("나중 수리", contract)
+        self.assertIn("컨트롤러 로컬 캠페인 상태", contract)
+        self.assertIn("`Files:`에 없는 경로는 이 dirty 집합에 없습니다", contract)
         self.assertIn("첫 검토에서 발견이 없으면", contract)
         self.assertIn("`repair_passes`는 실제로 `repaired` 발견이 나온 패스만", contract)
 
@@ -1114,6 +1138,11 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("Reviewer mutation policy: read-only", protocol)
         self.assertIn("The controlling agent applies document repairs", protocol)
         self.assertIn("Never edit application code", protocol)
+
+    def test_closure_dispatch_requires_repair_diff(self) -> None:
+        protocol = (SKILL / "references/reviewer-protocol.md").read_text(encoding="utf-8")
+        self.assertIn("The repair diff of the resolved design, plan, and ledger", protocol)
+        self.assertIn("H0", protocol)
 
     def test_accepted_authority_cannot_be_auto_edited(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -1150,6 +1179,13 @@ class PreSddReviewContractTests(unittest.TestCase):
                 r"-> READY \| REVISE \| BLOCKED"
             ),
         )
+        self.assertIn("Discoveries of different plans may overlap", workflow)
+        self.assertIn("skip repair and closure", workflow)
+        self.assertIn("A dirty plan still takes scoped closure", workflow)
+        self.assertIn("repair diff", workflow)
+        self.assertIn("A preceding plan that is `BLOCKED` does not stop later discovery", workflow)
+        self.assertIn("controller-local campaign state", workflow)
+        self.assertIn("Paths not in `Files:` are not in this dirty set", workflow)
 
     def test_optional_evidence_lifecycle_is_ordered_and_non_blocking(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -1215,7 +1251,35 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertEqual(cases["evidence-resolution-blocked"], ("BLOCKED", "design_omitted_from_start", "design_recorded_null"))
         self.assertEqual(cases["evidence-outcome-optional"], ("verdict_unchanged", "outcome_not_controller_duty", "one_label_after_sdd"))
         self.assertEqual(cases["summary-before-start"], ("summary_before_start", "abandon_same_plan_pending", "reuse_only_full", "reuse_requires_head_and_request_unchanged"))
-        self.assertEqual(cases["serialize-split-plans"], ("serialize_split_plans", "no_controller_as_independent_primary", "reviewers_are_distinct_agents"))
+        self.assertEqual(
+            cases["serialize-split-plans"],
+            (
+                "discoveries_may_overlap",
+                "repairs_do_not_overlap",
+                "no_aggregate_ready",
+                "reviewers_are_distinct_agents",
+            ),
+        )
+        self.assertEqual(
+            cases["zero-findings-but-dirty"],
+            ("dirty_requires_closure", "zero_findings_skip_only_when_not_dirty"),
+        )
+        self.assertEqual(
+            cases["closure-requires-repair-diff"],
+            ("repair_diff_required",),
+        )
+        self.assertEqual(
+            cases["host-limit-waves-not-reuse"],
+            ("wave_by_host_cap", "no_reuse_to_fill"),
+        )
+        self.assertEqual(
+            cases["head-break-no-ready"],
+            ("no_ready_after_head_moves", "abandon_input_changed"),
+        )
+        self.assertEqual(
+            cases["no-automatic-second-campaign"],
+            ("no_automatic_reinvoke",),
+        )
         self.assertEqual(cases["zero-findings-skip-closure"], ("READY", "zero_findings", "skip_repair", "skip_closure"))
         self.assertEqual(cases["repair-pass-accounting"], ("repair_pass_requires_repaired_finding", "no_copied_repair_pass", "unresolved_repair_pass_null"))
         self.assertEqual(
@@ -1384,6 +1448,10 @@ class PreSddReviewContractTests(unittest.TestCase):
             "Apply a textual repair without asserting the match is unique",
             "Reuse one reviewer across invocations that review different plans",
             "Reuse a handoff from a `degraded` run",
+            "Overlap repairs of two plans on one host",
+            "Reuse a reviewer to fill a discovery wave",
+            "Print READY after HEAD moved from the freeze",
+            "Skip closure for a dirty plan with zero discovery findings",
         ):
             self.assertIn(phrase, normalized_flags)
 
@@ -1666,10 +1734,11 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         self.assertIn("## 하지 않는 것", contract)
         for fact in (
             "closure-only input schema",
-            "shared-design invalidation map",
             "evidence probe cache",
         ):
             self.assertIn(fact, contract)
+        self.assertIn("컨트롤러 로컬 dirty", contract)
+        self.assertNotIn("shared-design invalidation map", contract)
         # A shared-file ledger is now a real, contract-owned feature (the
         # pre-pass and its "### Ledger shape"), so it no longer belongs in
         # the "things not added" list.
@@ -1698,8 +1767,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "not_measured",
         ):
             self.assertIn(fact, normalized_testing)
-        self.assertEqual(len(CASE_IDS), 36)
-        self.assertIn("정확히 서른여섯 개", normalized_testing)
+        self.assertEqual(len(CASE_IDS), 41)
+        self.assertIn("정확히 마흔하나 개", normalized_testing)
         self.assertIn("지금은 Codex만 지원합니다", compatibility)
         self.assertIn("다른 호스트는 모두 `not_measured`", compatibility)
         self.assertIn("## 기록기 호환성", compatibility)

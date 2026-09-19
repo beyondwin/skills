@@ -23,6 +23,7 @@ the two instructions differ: a discovery reviewer must arrive told nothing.
   with the ordered preceding plans and their paths, plus a required
   reconstruction statement on the response's first line, when preceding
   plans exist.
+- Documents are the H0 bytes, not a live unsaved buffer.
 - The shared-file ledger's path and SHA-256, when one exists, as derived
   evidence, not authority.
 - An instruction to read a large plan task by task rather than whole.
@@ -35,6 +36,8 @@ Never carry an earlier round's findings into a discovery instruction.
 
 Everything above, plus:
 
+- The repair diff of the resolved design, plan, and ledger. Required even
+  when the repair-impact map is empty.
 - Every PSDR record still open, from every prior round, verbatim. A
   controller summary is not accepted: closure is checked by matching the
   original Location and Evidence, which a summary cannot carry.

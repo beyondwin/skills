@@ -12,12 +12,13 @@ live-check 경계를 소유합니다. 모델의 실제 리뷰 품질을 측정�
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
-  -s tests/products/pre-sdd-review -p test_contract.py -v
+  -s tests/products/pre-sdd-review -p 'test_c*.py' -v
 ```
 
-이 명령은 패키지 정체, 지시문, 픽스처 형태, 활성화 경계, 문서화된 계약
-사실을 확인합니다. 라이브 검토, 의미 품질, 다른 호스트의 동등 지원은
-증명하지 않습니다.
+이 명령은 `test_contract.py`(패키지 정체, 지시문, 픽스처, 활성화 경계)와
+`test_campaign_schedule.py`(발견 웨이브, 수리 직렬, dirty 전파)를 함께
+돌립니다. evidence 하위 스위트는 포함하지 않습니다. 라이브 검토, 의미 품질,
+다른 호스트의 동등 지원은 증명하지 않습니다.
 
 `evidence/evidence.py` 기록기의 schema 4 checkout 결속, schema 2 read-only
 legacy 처리, mutation lock, 손상 record 격리, 여섯 명령, summary 관찰 집계
@@ -42,7 +43,7 @@ provider나 실제 모델을 호출하지 않으므로 실제 모델 리뷰 품�
 ## 픽스처 경계
 
 `cases.json`은 활성화, 기본 흐름, review-only, 판정, 위험, freshness,
-evidence, near-miss 사례를 정확히 서른여섯 개 소유합니다. `fixtures/`는 정확히
+evidence, near-miss 사례를 정확히 마흔하나 개 소유합니다. `fixtures/`는 정확히
 `ready`, `missing-coverage`, `false-verification`, `runtime-removal`,
 `repair-induced-schema-consumer`, `state-machine-vacuous-pass`,
 `conditional-edit-surface` 일곱 합성 저장소를 소유합니다. 각 저장소에는
@@ -90,6 +91,11 @@ evidence, near-miss 사례를 정확히 서른여섯 개 소유합니다. `fixtu
 - `partial-closure-not-a-new-finding`
 - `costless-repair-consumes-no-pass`
 - `degraded-handoff-not-reused`
+- `zero-findings-but-dirty`
+- `closure-requires-repair-diff`
+- `host-limit-waves-not-reuse`
+- `head-break-no-ready`
+- `no-automatic-second-campaign`
 
 ### Fixture inventory
 

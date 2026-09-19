@@ -4,6 +4,20 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 5.0.0 - 2026-09-19
+
+### Changed
+
+- 여러 계획의 발견은 겹칠 수 있고, 수리는 한 번에 하나만 합니다. 종결에는 수리 diff가 필요합니다.
+- 앞 수리가 뒤 계획이 읽는 파일을 바꾸면, 발견이 0건이어도 종결 재검토를 합니다.
+- 호스트가 동시에 쓸 수 있는 검토자 수만큼 발견을 나누며, 같은 검토자를 다른 계획에 재사용하지 않습니다.
+- 캠페인 시작 때 찍은 HEAD가 바뀌면 그 기준으로 `READY`를 내지 않습니다.
+- 앞 계획이 `BLOCKED`여도 뒤 계획의 발견은 이어집니다.
+
+### Notes
+
+- Record schema는 4입니다. Handshake `cli_version`은 5.0.0입니다. GitHub 태그와 Release는 만들지 않습니다.
+
 ## 4.0.0 - 2026-09-18
 
 ### Added
