@@ -39,9 +39,9 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "73c1bc6b78f3b4ba6e276bea1db3b73978875ffa47766c0fec2b500b540c2b02",
+    "SKILL.md": "e89e854ce54f7f4d72d687a387a40191f250921c12838337af1a9941b7475656",
     "references/reviewer-protocol.md": (
-        "9e89461ada0559be3346b742cdeab547779cc6bf17f1c0ca99ce47f333c2efcd"
+        "fd4636e9b4e6f61add1f7b05db59238320be47f207ce9e562939d718e8e3551b"
     ),
 }
 CASE_IDS = (
@@ -1083,10 +1083,16 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("Never reuse a handoff whose `execution` is `blocked`", skill)
         self.assertNotIn("summary --last 20", skill)
         self.assertIn("same `repo` display name and plan path are `pending`", skill)
-        self.assertIn("do not overlap them", skill)
+        self.assertIn("Discoveries of different plans may overlap", skill)
+        self.assertIn("Repairs do not overlap", skill)
+        self.assertNotIn("do not overlap them", skill)
         self.assertIn("Do not use the controlling agent as a substitute independent primary", skill)
         self.assertIn("distinct agents obtained", skill)
-        self.assertIn("If the first review has zero findings, skip repair and closure", skill)
+        self.assertIn(
+            "If the first review has zero findings and the plan is not dirty, skip repair and closure",
+            skill,
+        )
+        self.assertIn("A dirty plan still takes scoped closure", skill)
         self.assertIn("`repair_passes` counts only passes that produced at least one `repaired` finding", skill)
         self.assertIn("does not copy a previous finding's `repair_pass`", skill)
         self.assertIn("summary --repo", contract)
@@ -1114,6 +1120,11 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("Reviewer mutation policy: read-only", protocol)
         self.assertIn("The controlling agent applies document repairs", protocol)
         self.assertIn("Never edit application code", protocol)
+
+    def test_closure_dispatch_requires_repair_diff(self) -> None:
+        protocol = (SKILL / "references/reviewer-protocol.md").read_text(encoding="utf-8")
+        self.assertIn("The repair diff of the resolved design, plan, and ledger", protocol)
+        self.assertIn("H0", protocol)
 
     def test_accepted_authority_cannot_be_auto_edited(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -1150,6 +1161,10 @@ class PreSddReviewContractTests(unittest.TestCase):
                 r"-> READY \| REVISE \| BLOCKED"
             ),
         )
+        self.assertIn("Discoveries of different plans may overlap", workflow)
+        self.assertIn("skip repair and closure", workflow)
+        self.assertIn("unless that plan is dirty", workflow)
+        self.assertIn("repair diff", workflow)
 
     def test_optional_evidence_lifecycle_is_ordered_and_non_blocking(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -1384,6 +1399,10 @@ class PreSddReviewContractTests(unittest.TestCase):
             "Apply a textual repair without asserting the match is unique",
             "Reuse one reviewer across invocations that review different plans",
             "Reuse a handoff from a `degraded` run",
+            "Overlap repairs of two plans on one host",
+            "Reuse a reviewer to fill a discovery wave",
+            "Print READY after HEAD moved from the freeze",
+            "Skip closure for a dirty plan with zero discovery findings",
         ):
             self.assertIn(phrase, normalized_flags)
 

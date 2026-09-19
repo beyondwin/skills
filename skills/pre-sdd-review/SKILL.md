@@ -40,10 +40,11 @@ If the input is ambiguous between multiple plans, ask for one exact plan when
 the user is available; otherwise return `BLOCKED` instead of inventing an
 aggregate verdict. A request naming several plans is split into separate
 verdict-bearing invocations, but each verdict remains plan-local. Before the
-first of those invocations, run the pre-pass below once. On one host, run
-those invocations one after another; do not overlap them. Do not emit an
-aggregate `READY`. If a later invocation changes a shared design, rerun every
-earlier plan whose evidence depended on the previous design fingerprint.
+first of those invocations, run the pre-pass below once. That pre-pass freezes
+document hashes as H0 and Git HEAD as H_git0. Discoveries of different plans
+may overlap. Repairs do not overlap. Do not emit an aggregate `READY`. A later
+repair that changes a shared design marks every dependent plan dirty in this
+campaign; do not open a new campaign for that invalidation.
 
 Interpret conflicts in this order:
 
@@ -122,6 +123,11 @@ first line. That statement is the reviewer's own report and is not machine
 checked. Its value is making the baseline explicit so the reviewer does not
 quietly fall back to `HEAD`; it does not prove the reconstruction happened.
 
+The pre-pass records H_git0 with H0. If HEAD moves off H_git0 before verdicts,
+do not return READY against that freeze. Abandon in-flight runs with
+`input-changed`. A new freeze needs an outer request. Do not narrow
+`head_changed_during_review` to files the plan named.
+
 ## Optional local evidence
 
 Run `python3 "<skill-root>/evidence/evidence.py" --version` from the actual
@@ -198,7 +204,9 @@ and, when triggered, one focused risk role. A fresh re-review may replace the
 agent in either role, but it does not add a review role or broaden the
 triggered risk class. Evidence `reviewer_count` records these logical roles,
 not cumulative fresh agent calls. If a fresh independent primary reviewer
-cannot be obtained, return `BLOCKED`. Do not use the controlling agent as a
+cannot be obtained, return `BLOCKED`. If the host can supply only k fresh
+agents, run discovery in waves of k. Do not reuse an agent across plans to
+fill a wave. Do not use the controlling agent as a
 substitute independent primary and do not run a short degraded round in its
 place. When only the focused risk role cannot be obtained, the run is
 `execution=degraded`; its handoff is never reusable. Never reuse one agent
@@ -222,9 +230,19 @@ resolve plan -> resolve plan **Spec:** -> read binding references
 -> READY | REVISE | BLOCKED
 ```
 
+When the outer request names two or more plans, after the pre-pass:
+
+1. Discovery in host-sized waves of fresh agents. No verdict.
+2. Serial repair in execution order. Update dirty from each delta.
+3. Closure only for repaired or dirty plans, in parallel up to the host cap.
+4. At most one more serial repair + closure per plan. Then plan-local verdicts.
+
+Discoveries of different plans may overlap.
+
 After the first review, repair only findings that have an
-authority-preserving document correction. If the first review has zero findings, skip repair and closure
-and return `READY`. `repair_passes` counts only passes that produced at least one `repaired` finding.
+authority-preserving document correction. If the first review has zero findings and the plan is not dirty, skip repair and closure
+and return `READY` unless that plan is dirty. A dirty plan still takes scoped closure.
+`repair_passes` counts only passes that produced at least one `repaired` finding.
 A repair consumes no pass when both hold: the `repair-impact map` is empty
 because no structural trigger fired, and the closure reviewer confirmed the
 repair has no consumer. The controller's own confirmation does not count.
@@ -252,6 +270,8 @@ direct consumers and adjacent task interfaces; and each disposition as
 verification counterexample. Ordinary scalar corrections that trigger none of
 these conditions do not require the map.
 
+The closure instruction must include the repair diff of the resolved design,
+plan, and ledger, even when the repair-impact map is empty.
 Give a fresh reviewer the final repaired documents, original findings, and any
 repair-impact map. It first checks original finding closure, then performs a
 bounded repair-impact regression over the mapped consumers and adjacent
@@ -279,6 +299,10 @@ return `REVISE` with its evidence; do not downgrade it to finish the loop.
 
 `review-only` is explicit. Make no file changes, use the same fresh read-only
 review and controller deduplication, and return the first review's verdict.
+
+Named multi-plan `review-only` may overlap discoveries. It still makes no
+file changes and returns each plan's first-review verdict. There is no
+repair epoch and no dirty set.
 
 ## Repair rules
 
@@ -313,6 +337,9 @@ second run's results to the `repair-impact map`.
    a migration file's number against the number in the test that checks it.
 5. Every face of a closed list, updated together: schema enums, exact-match key
    arrays, tests that count members.
+6. Every backticked repository path in the plan exists at that plan's turn.
+   Exclude paths any plan in the chain lists under `Create:`. Excluding only
+   the current plan's `Create:` yields false positives.
 
 These emit candidates. A candidate is not a defect until the repository
 confirms it. Raising an unconfirmed candidate makes the gate spend a round trip
@@ -377,3 +404,7 @@ proofread, publish a release, or make an accepted product decision.
 - Apply a textual repair without asserting the match is unique
 - Reuse one reviewer across invocations that review different plans
 - Reuse a handoff from a `degraded` run
+- Overlap repairs of two plans on one host
+- Reuse a reviewer to fill a discovery wave
+- Print READY after HEAD moved from the freeze
+- Skip closure for a dirty plan with zero discovery findings
