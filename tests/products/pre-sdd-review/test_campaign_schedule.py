@@ -38,6 +38,14 @@ def dirty_after(
     return dirty
 
 
+def host_k_waves(
+    assigned: list[tuple[str, int]], k: int
+) -> list[list[tuple[str, int]]]:
+    if k < 1:
+        raise ValueError("k")
+    return [assigned[i : i + k] for i in range(0, len(assigned), k)]
+
+
 def assign_discovery(plans: list[str], k: int) -> list[tuple[str, int]]:
     if k < 1:
         raise ValueError("k")
@@ -106,3 +114,36 @@ class CampaignScheduleTests(unittest.TestCase):
         assigned = assign_discovery(self.order, 1)
         self.assertEqual([p for p, _ in assigned], self.order)
         self.assertEqual(len({agent for _, agent in assigned}), 4)
+
+    def test_host_k_wave_width_uses_fresh_agents(self) -> None:
+        assigned_k2 = assign_discovery(self.order, 2)
+        waves_k2 = host_k_waves(assigned_k2, 2)
+        self.assertEqual([len(wave) for wave in waves_k2], [2, 2])
+        self.assertEqual(
+            [[plan for plan, _ in wave] for wave in waves_k2],
+            [["A", "B"], ["C", "D"]],
+        )
+        seen_k2: set[int] = set()
+        for wave in waves_k2:
+            wave_agents = [agent for _, agent in wave]
+            self.assertEqual(len(wave_agents), len(set(wave_agents)))
+            for agent in wave_agents:
+                self.assertNotIn(agent, seen_k2)
+                seen_k2.add(agent)
+        self.assertEqual(len(seen_k2), 4)
+
+        assigned_k1 = assign_discovery(self.order, 1)
+        waves_k1 = host_k_waves(assigned_k1, 1)
+        self.assertEqual([len(wave) for wave in waves_k1], [1, 1, 1, 1])
+        self.assertEqual(
+            [[plan for plan, _ in wave] for wave in waves_k1],
+            [["A"], ["B"], ["C"], ["D"]],
+        )
+        seen_k1: set[int] = set()
+        for wave in waves_k1:
+            wave_agents = [agent for _, agent in wave]
+            self.assertEqual(len(wave_agents), 1)
+            for agent in wave_agents:
+                self.assertNotIn(agent, seen_k1)
+                seen_k1.add(agent)
+        self.assertEqual(len(seen_k1), 4)

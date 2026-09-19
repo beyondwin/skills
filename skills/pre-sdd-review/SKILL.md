@@ -42,9 +42,10 @@ aggregate verdict. A request naming several plans is split into separate
 verdict-bearing invocations, but each verdict remains plan-local. Before the
 first of those invocations, run the pre-pass below once. That pre-pass freezes
 document hashes as H0 and Git HEAD as H_git0. Discoveries of different plans
-may overlap. Repairs do not overlap. Do not emit an aggregate `READY`. A later
-repair that changes a shared design marks every dependent plan dirty in this
-campaign; do not open a new campaign for that invalidation.
+may overlap. Repairs do not overlap. Do not emit an aggregate `READY`. A
+preceding plan's repair that changes a shared design marks every dependent
+plan dirty in this campaign; do not open a new campaign for that
+invalidation.
 
 Interpret conflicts in this order:
 
@@ -236,6 +237,16 @@ When the outer request names two or more plans, after the pre-pass:
 2. Serial repair in execution order. Update dirty from each delta.
 3. Closure only for repaired or dirty plans, in parallel up to the host cap.
 4. At most one more serial repair + closure per plan. Then plan-local verdicts.
+
+Dirty is controller-local campaign state, not a record field and not worktree
+dirty. After repairing plan i, Δ is the union of changed resolved design,
+plan, and ledger fingerprints; repair-impact map symbols, paths, commands,
+and consumers; and paths cited by repaired findings. Plan j is dirty when i
+precedes j and either Δ intersects j's read set or a shared design j depends
+on changed. j's read set is the resolved design, plan, and ledger paths and
+hashes, `Files:` paths, preceding-plan paths, and discovery-record `evidence`
+paths. Paths not in `Files:` are not in this dirty set; those holes are
+machine-checked.
 
 Discoveries of different plans may overlap.
 
