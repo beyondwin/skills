@@ -32,7 +32,7 @@ def dirty_after(
     dirty: set[str] = set()
     i = order.index(repaired)
     for later in order[i + 1 :]:
-        read = set(files[later]) | {designs[later]}
+        read = set(files[later]) | {designs[later], later} | set(order[: order.index(later)])
         if delta_paths & read or (delta_design and designs[later] == delta_design):
             dirty.add(later)
     return dirty
@@ -96,6 +96,12 @@ class CampaignScheduleTests(unittest.TestCase):
         self.assertEqual(
             dirty_after("A", self.order, self.files, self.designs, {"ui.ts"}, None),
             {"C"},
+        )
+
+    def test_preceding_plan_path_dirties_later(self) -> None:
+        self.assertEqual(
+            dirty_after("A", self.order, self.files, self.designs, {"A"}, None),
+            {"B", "C", "D"},
         )
 
     def test_zero_findings_skip_closure_unless_dirty(self) -> None:
