@@ -6,7 +6,7 @@
 
 공개 sddx 릴리스는 아직 없습니다. 이 제품은 통합 `v2.0.0` GitHub Release와
 불변 카탈로그 lock에 포함되지 않았습니다. 현재 독립 버전은 `release.toml`이
-소유하며 현재 개발 목표 버전은 `2.0.0`입니다. 아직 출시하지 않았으므로 태그도
+소유하며 현재 개발 목표 버전은 `4.0.0`입니다. 아직 출시하지 않았으므로 태그도
 아티팩트도 없습니다.
 
 `2.0.0`은 MAJOR입니다. Cursor backend의 필수 CLI 기능과 기본 실행 계약이
@@ -17,9 +17,9 @@
 [`docs/maintainers/repository/versioning.md`](../../repository/versioning.md)의
 스킬 SemVer 표입니다.
 
-`CHANGELOG.md`의 `2.0.0` 변경은 아직 `## Unreleased`에 있습니다. 릴리스를
-준비할 때 이 절을 `## <version> - <date>`로 확정하고 새 빈 `Unreleased` 절을
-엽니다. `release.toml`, `SKILL.md` `metadata.version`,
+4.0.0 변경은 CHANGELOG의 `## 4.0.0 - 2026-09-19`에 둡니다. 릴리스를
+준비할 때 이 절을 확정하고 새 빈 `Unreleased` 절을 엽니다.
+`release.toml`, `SKILL.md` `metadata.version`,
 `.claude-plugin/plugin.json`의 `version`은 항상 같은 값이어야 합니다.
 
 `1.0.2`와 `1.0.3`은 태그와 아티팩트 없이 main에만 올라간 개발 단계 버전이며
@@ -39,8 +39,9 @@ Code가 `agents/claude-code/` 정의를 계속 싣는지는 확인하지 못합�
 
 이 요구는 `2.0.0`에서도 그대로 남아 있으며 아직 충족되지 않았습니다. `2.0.0`
 파일로 정의 로딩을 확인하지 않았으므로 상태는 `not_measured`입니다. 확인 없이
-공개 릴리스 완료를 선언하지 않습니다. 이 명령은 제품 소유 경로와 공용 릴리스
-코드의 작업 트리가 깨끗할 때만 통과하므로 변경을 커밋한 뒤 실행합니다.
+공개 릴리스 완료를 선언하지 않습니다. XHigh 라이브 로딩은 공개 태그 전
+절차이며, 이번 4.0.0 변경의 범위가 아닙니다. 이 명령은 제품 소유 경로와 공용
+릴리스 코드의 작업 트리가 깨끗할 때만 통과하므로 변경을 커밋한 뒤 실행합니다.
 
 제품 태그는 `sddx-v<version>`입니다. 태그와 Draft는 명시적 출시 작업입니다.
 로컬 빌드의 부수 효과가 아닙니다.

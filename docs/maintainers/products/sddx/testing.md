@@ -148,6 +148,14 @@ git diff --check
 라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있습니다. CI가 요구하지
 않습니다. 오프라인 통과를 호스트 품질로 설명하지 마세요.
 
+## 4.0.0 오프라인 검사
+
+4.0.0의 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다.
+`tests/products/sddx/test_contract.py`의 expect lock이 description·HARD-GATE·
+cases 문구를 잠급니다. `tests/products/sddx/test_extract_task.py`가
+`--global-constraints`의 이어붙이기·부재·중복·exit 3을 잠급니다.
+라이브 워커 재실행은 요구하지 않습니다.
+
 ## 1.0.1 후속 실패 재현
 
 동일 제품 HEAD `6cc1e39`를 대상으로 두 개의 새 local linked-worktree fixture에서

@@ -307,6 +307,8 @@ class SddxContractTests(unittest.TestCase):
             "Next plan",
             "Backend",
             "Worker session",
+            "Orchestrator",
+            "Worker effort",
             "Review host",
             "Open findings",
             "Authorized scope",
@@ -368,6 +370,28 @@ class SddxContractTests(unittest.TestCase):
         self.assertLess(procedure.find("## Controller procedure"), procedure.find("python3 \"<skill-root>/scripts/extract_task.py\""))
         for key in ("session_id", "timed_out", "pending_bytes", "pid_alive", "launch_failed"):
             self.assertIn(key, rest, key)
+
+    def test_contract_owns_extraction_not_task_brief(self) -> None:
+        contract = (
+            ROOT / "docs" / "maintainers" / "products" / "sddx" / "contract.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn("사용자 메시지에 `/sddx` 또는 `$sddx`가 있을 때만", contract)
+        self.assertIn("`--global-constraints`", contract)
+        self.assertIn("한 워커가 여러 계획 과제를 묶지 않습니다", contract)
+        self.assertIn("중첩 native SDD", contract)
+        self.assertIn("워크스페이스", contract)
+        self.assertNotIn("명시적인 외부 implementer 요청이 없으면", contract)
+
+    def test_readme_when_to_use_is_slash_dollar_only(self) -> None:
+        korean = (SKILL / "README.md").read_text(encoding="utf-8")
+        english = (SKILL / "README.en.md").read_text(encoding="utf-8")
+        self.assertIn("`/sddx`", korean)
+        self.assertIn("`$sddx`", korean)
+        self.assertNotIn("외부 Grok 또는 Cursor implementer", korean.split("## 사용할 때와 사용하지 않을 때")[1].split("## ")[0])
+        self.assertIn("/sddx", english)
+        self.assertIn("$sddx", english)
+        when = english.split("## When to use and not use")[1].split("## ")[0]
+        self.assertNotIn("external Grok or Cursor implementer", when)
 
     def test_input_and_backend_order_ask_once(self) -> None:
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")

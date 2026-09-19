@@ -9,11 +9,13 @@ orchestrator, and sends implementation only to Cursor CLI or Grok Build CLI.
 
 ## When to use and not use
 
-Use it when an implementation plan exists and you want Superpowers SDD with
-an external Grok or Cursor implementer.
+Use it when an implementation plan exists and the user runs `/sddx` or
+`$sddx`.
 
-Do not use it to write a spec or plan, to run `pre-sdd-review`, or for native
-subagent-driven-development without an external implementer.
+Do not use it to write a spec or plan, to run `writing-plans`,
+`executing-plans` (including Native inline), or `pre-sdd-review`, or to
+implement in this session, or when the user asks for a Grok/Cursor
+implementer without `/sddx` or `$sddx`.
 
 ## Supported hosts
 

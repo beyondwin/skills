@@ -9,10 +9,11 @@ Cursor CLI 또는 Grok CLI에 넘깁니다.
 
 ## 사용할 때와 사용하지 않을 때
 
-구현 계획이 있고, 구현을 외부 Cursor/Grok에 맡길 때 씁니다.
+구현 계획이 있고 사용자가 `/sddx` 또는 `$sddx`를 보낸 뒤에만 씁니다.
 
-설계·계획 작성, `pre-sdd-review`, 이 세션 안에서 직접 구현하기에는 쓰지
-않습니다.
+설계·계획 작성, `writing-plans`, `executing-plans`(Native 포함),
+`pre-sdd-review`, 이 세션 안에서 직접 구현하기, 슬래시/달러 없는
+“Grok으로 구현” 요청에는 쓰지 않습니다.
 
 ## 지원 호스트
 

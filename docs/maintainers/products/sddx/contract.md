@@ -13,10 +13,12 @@
 구현 worker이지 호스트가 아닙니다. `cursor`와 `grok`을 `supported_hosts`에
 넣지 않습니다.
 
-Superpowers SDD는 worktree, ledger, task-brief, review-package, 리뷰어
-프롬프트, fix loop, whole-branch review를 소유합니다. `sddx`는 인자 해석,
-backend picker, `resolve_backend.py`, implementer argv, worker 제약·실행 증거
-확인, 리뷰 모델·effort 선택을 소유합니다. SDD 본문을 이 스킬에 복사하지 않습니다.
+Superpowers SDD는 worktree, ledger, `sdd-workspace`, review-package, 리뷰어
+프롬프트, fix loop, whole-branch review를 소유합니다. 워크스페이스와 리포트
+파일 이름을 소유합니다. `sddx`는 인자 해석, backend picker,
+`resolve_backend.py`, implementer argv, worker 제약·실행 증거 확인, 리뷰
+모델·effort 선택, 구간 추출(`extract_task.py`)을 소유합니다. SDD 본문을 이
+스킬에 복사하지 않습니다.
 
 ## 하드 게이트
 
@@ -25,9 +27,9 @@ dispatch, 리뷰 모델·effort, worker 증거 확인에 SDDx 규칙을 우선�
 Superpowers 파일을 고치지 않습니다. 오케스트레이터
 세션에서 구현하지 않습니다.
 
-명시적인 `/sddx` 또는 `$sddx`, 또는 명시적인 외부 implementer 요청이 없으면
-네이티브 SDD, executing-plans, writing-plans, `pre-sdd-review`로는
-활성화하지 않습니다.
+사용자 메시지에 `/sddx` 또는 `$sddx`가 있을 때만 활성화합니다. 슬래시/달러가
+없는 외부 implementer 요청, native SDD, executing-plans(Native 포함),
+writing-plans, pre-sdd-review로는 켜지 않습니다.
 
 ## 호출과 picker
 
@@ -91,14 +93,30 @@ ledger에는 모든 리뷰 dispatch를 적습니다. High는 한 줄이고, XHig
 진행합니다. 다른 모델이나 effort로 대체하지 않고, 정의를 새로 만들지도 않습니다.
 정의 부재로 실행을 BLOCKED로 세우지 않습니다.
 
-구현 effort는 기본 High입니다. 복잡한 동시성, race, 얽힌 부작용, 또는 이
-task에서 High 리뷰가 이미 실패한 경우에만 XHigh입니다. 설계 모호함은
-XHigh가 아니라 오케스트레이터 ruling입니다. worker가 `NEEDS_CONTEXT` 또는
-`BLOCKED`를 반환하면 ruling한 뒤 같은 backend로 다시 보냅니다.
+한 워커가 여러 계획 과제를 묶지 않습니다. 계획 제목 하나가 워커 하나, 리뷰
+패키지 구간 하나입니다. 같은 모양의 한 줄 수정이어도 묶지 않습니다.
+중첩 native SDD로 내려가지 않습니다. 한 단계 아래 서브에이전트에
+`subagent-driven-development`를 통째로 맡기지 않습니다.
+계획이 이름 붙이지 않은 일은 보내기 전에 한 번 묻습니다. “끝까지 돌려”는
+계획에 있는 과제만 덮습니다.
 
-새 task는 새 worker입니다. fix 라운드 1–3은 같은 worker session을
-resume합니다. 라운드 4–5는 fresh worker와 XHigh입니다. worker에
-`--worktree`를 넘기지 않습니다. cwd는 현재 Superpowers worktree입니다.
+오케스트레이터는 `/sddx` 또는 `$sddx`를 받은 세션의 모델·effort입니다. 더
+싼 모델, 최종 최상위 모델, 구현 워커와 같은 모델 계열로 바꾸지 않습니다.
+픽커 선택지는 Grok CLI(모델 인자 없음)와 Cursor Agent (Grok)입니다. Grok에
+`--model`을 넘기지 않습니다. 구현 CLI는 이 계획에서 한 번만 고릅니다.
+구현 effort는 과제 난이도 표로 과제마다 High 또는 XHigh입니다. 세션
+effort를 구현에 복사하지 않습니다. 리뷰어 XHigh가 구현 XHigh를 강제하지
+않습니다. 요구가 분명하고 로컬·기계적인 변경, 단순한 통합은 High입니다.
+동시성·race·잠금·순서·공유 상태, auth·권한·secret·sandbox 경계, 여러
+하위계가 얽힌 부작용, 이 과제에서 High 리뷰가 이미 실패한 경우는
+XHigh입니다. 설계 모호함은 XHigh가 아니라 오케스트레이터 ruling입니다.
+이유를 대지 못하면 High입니다. effort가 오르면 새 워커입니다. worker가
+`NEEDS_CONTEXT` 또는 `BLOCKED`를 반환하면 ruling한 뒤 같은 backend로 다시
+보냅니다.
+
+새 task는 새 worker입니다. fix 라운드 1–3은 요청 effort가 같을 때만 같은
+worker session을 resume합니다. 라운드 4–5는 fresh worker와 XHigh입니다.
+worker에 `--worktree`를 넘기지 않습니다. cwd는 현재 Superpowers worktree입니다.
 
 ## Worker 부작용과 비밀
 
@@ -120,7 +138,7 @@ worker와 worker가 실행한 작업이 종료된 뒤에는 성공과 실패 모
 남은 차이와 상태 기록 위치를 ledger에 남깁니다. 생성 설정과 복원 상태는 제품
 산출물이나 커밋 대상이 아닙니다.
 
-dispatch 전 컨트롤러는 task-brief에 필요한 조건과 task 참고자료를 완결합니다.
+dispatch 전 컨트롤러는 `extract_task.py`에 필요한 조건과 task 참고자료를 완결합니다.
 계획이 전체 실행에 대해 한 번만 적어 두는 제약(입력 검증, 재시도·수리 한도,
 봉인·금지 입력, 고정 seed와 모델 역할)은 `Global constraints` 제목 아래 **모든**
 brief에 수정 회차까지 그대로 싣습니다. worker는 계획을 읽을 수 없으므로 brief에
@@ -226,9 +244,11 @@ Windows 명령 전송은 제품 계약이 아닙니다. Cursor에는 이 변경�
 ## 실행 helper와 시도 증거
 
 컨트롤러는 계획에서 task 구간을 뽑을 때
-`scripts/extract_task.py <plan-file> --heading "<# 없는 제목 전체>" --output <file>`을
-씁니다. `--heading`은 `#` 표시를 뺀 제목 전체입니다. exit 0은 성공, 2는 파일·인자
-오류, 3은 제목 부재·중복 또는 빈 본문입니다. 이미 있는 출력 파일은 덮어쓰지
+`scripts/extract_task.py <plan-file> --heading "<# 없는 제목 전체>" --global-constraints --output <file>`을
+씁니다. `--heading`은 `#` 표시를 뺀 제목 전체입니다. `--global-constraints`는
+필수입니다. exit 0은 성공, 2는 파일·인자 오류, 3은 제목 부재·중복 또는 빈
+본문입니다. `Global Constraints`/`Global constraints` 절이 없거나 둘이면
+exit 3이며 그 경우 워커를 보내지 않습니다. 이미 있는 출력 파일은 덮어쓰지
 않으므로 추출마다 새 경로를 씁니다.
 
 worker 실행은 `scripts/run_worker.py run` 하나입니다. 공급자 명령을 직접
@@ -338,7 +358,8 @@ ledger 첫 줄 바로 아래에 `<!-- sddx:current:start -->`와
 - 활성화·picker·하드 게이트: `skills/sddx/SKILL.md`,
   `skills/sddx/references/dispatch.md`,
   `skills/sddx/references/worker-prompt.md`,
-  `tests/products/sddx/cases.json`, `tests/products/sddx/test_contract.py`
+  `tests/products/sddx/cases.json`, `tests/products/sddx/test_contract.py`,
+  `scripts/lib/product_contract.py`, `tests/repository/test_repository.py`
 - `resolve_backend.py` 신원·플래그 규칙: `skills/sddx/scripts/resolve_backend.py`,
   `tests/products/sddx/test_resolve_backend.py`
 - task 추출 규칙: `skills/sddx/scripts/extract_task.py`,

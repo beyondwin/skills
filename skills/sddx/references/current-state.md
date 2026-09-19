@@ -28,6 +28,8 @@ Backend: cursor — explicit user change
 Worktree: /workspace/project; HEAD: abc1234
 Task: P1; fix round: 2; attempt: worker-attempts/P1-fix2
 Worker session: cursor-session-example
+Orchestrator: codex; model: inherited-unknown; effort: xhigh
+Worker effort: high — local rename
 Review host: codex; model: inherited; effort: inherited xhigh
 Open findings: P1-review.md#remaining
 Authorized scope: local implementation and verification
@@ -54,6 +56,11 @@ worktree, HEAD, attempt path, and session ID for this run.
   offers `session_id_in_log` when the record holds none; an ID confirmed that
   way is recordable. Never record an unconfirmed ID, and never carry one
   across a backend change.
+- `Orchestrator` — this run's host, the session model id or
+  `inherited-unknown`, and the session effort. Written at the start of
+  the run and updated only when the session itself changes.
+- `Worker effort` — `high` or `xhigh` for the current task, with the
+  reason. Independent of `Orchestrator` effort.
 - `Review host`, `model`, `effort` — how reviews are actually dispatched, with
   any host limit. Written once and updated only when it changes.
 - `Open findings` — a link to unresolved review findings, or `none`.
