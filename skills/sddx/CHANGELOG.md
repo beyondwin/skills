@@ -6,6 +6,21 @@ All notable changes to this product are documented in this file.
 
 No entries yet.
 
+## 4.0.2 - 2026-09-19
+
+### Fixed
+
+- Claude Code XHigh review now dispatches `subagent_type: sddx:sddx-reviewer-xhigh`.
+  The bare file name does not resolve in Task. `plugin.json` points at
+  `agents/claude-code/sddx-reviewer-xhigh.md` so the registered name has no
+  extra `claude-code` segment.
+
+### Notes
+
+- `disallowedTools` (Edit, Write, NotebookEdit) are absent from the loaded
+  agent's tool list. Applied reviewer effort is still not observed in the
+  session init payload.
+
 ## 4.0.1 - 2026-09-19
 
 ### Fixed

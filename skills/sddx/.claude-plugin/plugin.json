@@ -1,5 +1,6 @@
 {
   "name": "sddx",
   "description": "Run Superpowers SDD when the user runs /sddx or $sddx. Implementation goes to Cursor or Grok.",
-  "version": "4.0.1"
+  "version": "4.0.2",
+  "agents": "./agents/claude-code/sddx-reviewer-xhigh.md"
 }

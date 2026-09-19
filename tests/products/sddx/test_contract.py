@@ -167,7 +167,7 @@ EXPECT_LOCK = {
     "no_mcp_tools": {"dispatch_must": ("search_tool,use_tool",)},
     "same_orchestrator_model": {"skill_must": ("use the active orchestrator's",)},
     "review_effort_high": {"skill_must": ("Task N review: sddx default — high",)},
-    "review_effort_xhigh": {"skill_must": ("sddx-reviewer-xhigh",)},
+    "review_effort_xhigh": {"skill_must": ("subagent_type: sddx:sddx-reviewer-xhigh",)},
     "role_fail": {"skill_must": ("prohibited read is FAIL",)},
     "report_discrepancy": {"skill_must": ("any discrepancy with the worker report",)},
     "not_clean_done": {"skill_must": ("permits a clean DONE.",)},
@@ -524,6 +524,17 @@ class SddxContractTests(unittest.TestCase):
         self.assertEqual(manifest["name"], "sddx")
         self.assertIn("description", manifest)
         self.assertIn("version", manifest)
+
+    def test_plugin_manifest_registers_the_xhigh_agent_file(self) -> None:
+        manifest = json.loads((SKILL / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
+        self.assertEqual(
+            manifest.get("agents"),
+            "./agents/claude-code/sddx-reviewer-xhigh.md",
+        )
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("subagent_type: sddx:sddx-reviewer-xhigh", skill)
+        self.assertNotIn("subagent_type: sddx-reviewer-xhigh`", skill)
+        self.assertNotIn("subagent_type: sddx:claude-code:sddx-reviewer-xhigh", skill)
 
     def test_claude_code_agents_are_closed_and_escalation_only(self) -> None:
         directory = SKILL / "agents" / "claude-code"

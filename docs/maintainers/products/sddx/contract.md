@@ -73,7 +73,7 @@ Claude Code는 Task, Codex는 `spawn_agent`입니다. 구현 worker만 외부
 
 리뷰 effort는 세션 effort와 별도로 지정합니다. Claude Code에서 High는 SDD가 쓰던
 방식 그대로 `model` 인자 없이 dispatch하는 것이고, XHigh는 `model` 인자 없이
-`subagent_type`을 `sddx-reviewer-xhigh`로 지정하는 것입니다. 리뷰어에 `model`
+`subagent_type`을 `sddx:sddx-reviewer-xhigh`로 지정하는 것입니다. 리뷰어에 `model`
 오버라이드를 넘기지 않습니다.
 
 XHigh trigger는 lock·순서·공유 상태 변경, auth·권한·secret·sandbox 경계 변경,
@@ -87,9 +87,11 @@ brief, 변경 파일 경로, ledger이며 diff 본문을 읽어 정하지 않습
 ledger에는 모든 리뷰 dispatch를 적습니다. High는 한 줄이고, XHigh는 trigger와
 구체 경로를 함께 적습니다. 대지 못하면 High입니다.
 
-정의는 `.claude-plugin/plugin.json`과 `agents/claude-code/`를 통해 skills-dir
-플러그인으로 Claude Code에 전달됩니다. 설치 링크는 두 개 그대로이며 새 설치 단계를
-추가하지 않습니다. 정의가 없으면 — Codex에는 항상 없고, Claude Code에서도 로딩에
+정의는 `.claude-plugin/plugin.json`의 `agents`가
+`./agents/claude-code/sddx-reviewer-xhigh.md`를 가리켜 skills-dir 플러그인으로
+전달됩니다. Claude Code Task 이름은 `sddx:sddx-reviewer-xhigh`입니다. 파일
+frontmatter 이름만으로는 Task가 찾지 못합니다. 설치 링크는 두 개 그대로이며
+새 설치 단계를 추가하지 않습니다. 정의가 없으면 — Codex에는 항상 없고, Claude Code에서도 로딩에
 실패하면 없습니다 — 요청 effort를 지정할 수 없다고 보고한 뒤 기본 dispatch로
 진행합니다. 다른 모델이나 effort로 대체하지 않고, 정의를 새로 만들지도 않습니다.
 정의 부재로 실행을 BLOCKED로 세우지 않습니다.

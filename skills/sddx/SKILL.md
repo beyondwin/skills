@@ -4,7 +4,7 @@ description: Use when the user runs /sddx or $sddx. Do not use for writing a spe
 license: Apache-2.0
 compatibility: Requires a local Git repository, an implementation plan file, and Claude Code or Codex as the orchestrator host. Implementer CLIs are optional and resolved at runtime.
 metadata:
-  version: "4.0.1"
+  version: "4.0.2"
   updated_at: "2026-09-19"
 ---
 
@@ -203,8 +203,9 @@ and unknown rather than guess.
 Select reviewer effort separately, including on re-review and final review.
 On Claude Code, High means dispatching the reviewer the way SDD already does,
 with no `model` argument, so model and session effort are both inherited.
-XHigh means dispatching `subagent_type: sddx-reviewer-xhigh`, still with no
-`model` argument. Never pass a `model` argument that is not the orchestrator's
+XHigh means dispatching `subagent_type: sddx:sddx-reviewer-xhigh`, still with no
+`model` argument. The file name and frontmatter name stay
+`sddx-reviewer-xhigh`. Claude Code Task does not accept the bare name. Never pass a `model` argument that is not the orchestrator's
 own model; on Claude Code that means passing none at all.
 
 | Review scope | Effort |

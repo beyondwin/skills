@@ -152,6 +152,12 @@ git diff --check
 라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있습니다. CI가 요구하지
 않습니다. 오프라인 통과를 호스트 품질로 설명하지 마세요.
 
+## 4.0.2 오프라인 검사
+
+4.0.2의 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다.
+`plugin.json` `agents`가 정의 파일을 가리키고 SKILL.md가
+`subagent_type: sddx:sddx-reviewer-xhigh`를 적는지를 잠급니다.
+
 ## 4.0.1 오프라인 검사
 
 4.0.1의 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다.
@@ -311,17 +317,16 @@ exit 0이었습니다. 마지막 관측 결과 문서는 내용·링크·diff를
 NotebookEdit를 이름으로 포함하는지 확인합니다. 이 검사는 필드 선언까지만
 확인하며, 호스트가 실제로 그 도구를 차단하는지는 확인하지 않습니다.
 
-라이브 확인은 하나입니다. 배포되는 제품 파일을 링크한 상태에서
-`claude -p --agent sddx-reviewer-xhigh`를 실행해 정의가 로드되는지 봅니다. 이
-확인은 로딩만 증명하며 적용된 effort를 증명하지 않습니다. 같은 확인에서 스킬 호출
-이름이 `sddx` 그대로인지도 함께 봅니다.
+라이브 확인은 두 가지입니다. 배포되는 제품 파일을 링크한 상태에서
+`claude -p --agent sddx-reviewer-xhigh`로 정의가 로드되는지 보고, Task
+`subagent_type: sddx:sddx-reviewer-xhigh`가 실제로 뜨는지도 봅니다. 맨 이름
+`sddx-reviewer-xhigh`는 Task가 찾지 못합니다. 로딩은 적용된 effort를 증명하지
+않습니다. 스킬 호출 이름이 `sddx`인지도 함께 봅니다.
 
-`4.0.1`에서 이 확인을 했습니다. Claude Code `2.1.258`, 링크
-`~/.claude/skills/sddx`. 없는 에이전트 이름은 즉시 거절되고 사용 가능 목록에
-`sddx:claude-code:sddx-reviewer-xhigh`가 있었습니다. 접두사 없는
-`--agent sddx-reviewer-xhigh`는 로드되어 한 단어 응답을 반환했습니다.
-`claude plugin details sddx@skills-dir`는 같은 상태에서 Agents (0)을 보여
-주므로, 그 숫자는 로딩 실패로 쓰지 않습니다. 스킬 이름은 `sddx`입니다.
+`4.0.2`에서 확인했습니다. Claude Code `2.1.258`. 없는 이름은 즉시 거절됩니다.
+`--agent sddx-reviewer-xhigh` 세션의 도구 목록에 Write·Edit·NotebookEdit가 없고
+Write 요청은 파일을 만들지 못했습니다. Task 맨 이름은 spawned 0, 등록 이름은
+spawned 1입니다. `claude plugin details` Agents (0)은 로딩 실패로 쓰지 않습니다.
 
 계약 검사는 파일이 존재한다는 것까지만 증명합니다. Claude Code가 skills-dir
 플러그인에서 agents를 계속 싣는지는 증명하지 못하므로, 릴리스마다 위 라이브 확인을
