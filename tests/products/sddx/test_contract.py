@@ -357,6 +357,18 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("pid_alive", text)
         self.assertIn("bounded tools index", text)
 
+    def test_dispatch_opens_with_controller_procedure(self) -> None:
+        text = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
+        self.assertIn("## Controller procedure", text)
+        self.assertIn("bash scripts/sdd-workspace", text)
+        self.assertIn("--global-constraints", text)
+        self.assertIn("## Runner already does this", text)
+        procedure, _, rest = text.partition("## Runner already does this")
+        self.assertTrue(rest)
+        self.assertLess(procedure.find("## Controller procedure"), procedure.find("python3 \"<skill-root>/scripts/extract_task.py\""))
+        for key in ("session_id", "timed_out", "pending_bytes", "pid_alive", "launch_failed"):
+            self.assertIn(key, rest, key)
+
     def test_input_and_backend_order_ask_once(self) -> None:
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         self.assertIn("An explicit choice in this request", text)

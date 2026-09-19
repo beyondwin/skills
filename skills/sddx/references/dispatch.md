@@ -1,5 +1,26 @@
 # Implementer dispatch
 
+## Controller procedure
+
+1. `python3 "<skill-root>/scripts/resolve_backend.py" --backend <id> --json`.
+   If `available` is false, stop and report `reason`. Do not switch backends.
+2. Run Superpowers `bash scripts/sdd-workspace PLAN_FILE` and keep that
+   directory. Write extract outputs and attempt dirs under it with new names.
+   Do not reimplement `sdd-workspace`.
+3. Do not run Superpowers `task-brief` or `task-start`. Extract with:
+
+       python3 "<skill-root>/scripts/extract_task.py" <plan-file> --heading "<heading>" --global-constraints --output <new-path>
+
+   Then add `Search paths`, `Worker checks`, `Host checks`, and task
+   decisions. If extract exits 3 because Global Constraints are missing or
+   duplicated, record that in the ledger and do not dispatch.
+4. Grok: `prepare` → `run_worker.py run` → wait on the host job → the
+   `status` windows you need → confirm the worker and its descendants have
+   exited → `cleanup`. Cursor: the same run/status path without
+   prepare/cleanup.
+5. Process exit 0 is not DONE. Judge from the report, actual test exits,
+   commits, the tools index, and native review. Do not paste the log.
+
 ## Resolve the backend
 
 From the loaded skill root:
@@ -82,18 +103,18 @@ section from the plan in the controller:
 is success, 2 is a file or argument error, and 3 is a section-selection error:
 the heading is absent, duplicated, or has an empty body. The command never
 overwrites an existing output file, so write each extraction to a new path.
+The output path is a new file under the Superpowers `sdd-workspace` plan
+directory.
 
-Give every brief a `Global constraints` heading holding the plan's run-wide
-constraints in full — the ones the plan states once for the whole run rather
-than per task: input validation, retry and repair caps, sealed or forbidden
-inputs, the fixed seeds and model roles. Copy them to every brief, including
-fix rounds, and do not pare them down to the ones that look relevant to this
-task. A worker cannot read the plan, so a constraint left out of the brief
-does not exist for it, and the review finds it afterwards as a defect the
-worker had no way to avoid. Task-specific constraints go with the task; do
-not send the plan itself as a reference. Source and test inspection remains available. When the
-brief lacks a required decision, complete it in the controller rather than ask
-the worker to recover it from the plan. Add `Search paths:` with concrete
+`extract_task.py --global-constraints` prepends the plan's `Global Constraints`
+or `Global constraints` section. The controller does not shrink it. Do not
+hand-copy those constraints. A worker cannot read the plan, so a constraint
+left out of the brief does not exist for it, and the review finds it afterwards
+as a defect the worker had no way to avoid. Task-specific constraints go with
+the task; do not send the plan itself as a reference. Source and test
+inspection remains available. When the brief lacks a required decision,
+complete it in the controller rather than ask the worker to recover it from
+the plan. Add `Search paths:` with concrete
 source/test file or directory paths to the brief. Keep planning documents out
 of that list. The worker starts with direct reads of named files and targets
 content searches at these paths; a glob without a target path can still search
@@ -149,7 +170,8 @@ prefix's sandbox value itself. `run_worker.py` never prepares or cleans up.
         [--model <confirmed-grok-id>] [--resume <known-id>] [--sandbox-profile <prepared-profile>] \
         [--timeout <seconds>]
 
-`--attempt-dir` must be a new directory under the worktree's `.superpowers/`.
+`--attempt-dir` must be a new directory under the plan directory from Superpowers
+`sdd-workspace`, never a shared flat `.superpowers/` name.
 The runner writes six files there: `brief.md`, `dispatch.md`, `worker.jsonl`
 (raw stdout), `stderr.log`, `run.json`, and `report.md`, which the worker
 writes itself — the runner never writes the report. Grok receives the worker
@@ -186,6 +208,60 @@ have exited yourself before cleanup.
 Do not pass `--worktree` to the provider CLI. Do not pass `--continue`. Do not
 copy host credentials or environment values into the brief or the dispatch.
 
+There is no automatic retry. Cursor carries its effort in the model ID rather
+than on a flag, so the runner refuses a `--model` whose declared effort
+contradicts `--effort`, and `configured_effort` holds the effort read from the
+ID. When the ID declares no effort, `configured_effort` stays null and the
+applied effort is genuinely unknown; record it as unknown rather than as the
+requested value.
+
+Known limitation: the supported OS is macOS. Windows is refused at the product
+CLIs. Do not add a Windows launch path or treat a quoted Win32 command line as
+a live transport.
+
+## Watch
+
+Wait on the host's shell job without short polls. Codex `wait_agent` is only
+for native reviewers.
+
+    python3 "<skill-root>/scripts/run_worker.py" status --attempt-dir <attempt-dir>
+    python3 "<skill-root>/scripts/run_worker.py" status --attempt-dir <attempt-dir> --stream stdout|stderr --offset N --max-bytes N
+
+`status` is read-only. Ask it instead of dumping the log.
+
+Read the bounded windows you need. Do not print a raw log wholesale into this
+session, and do not write a new execution script for a run. Do not re-query
+the same offset in a short loop.
+
+## Clean up
+
+For Grok, confirm the worker and any work it started have exited, then clean
+up after every success or failure:
+
+    python3 "<skill-root>/scripts/prepare_grok_sandbox.py" cleanup --worktree "<worktree>" --state "<evidence-dir>/grok-sandbox.json"
+
+Do not clean up while a process is still running or overlap it with a new
+worker. New tasks and resumed fix rounds use the same prepare, launch, exit,
+and cleanup order. If cleanup fails, do not overwrite other files to repair
+it; record the remaining difference and state path in the ledger.
+
+## Evidence
+
+`worker.jsonl` is the CLI's tool-call/results stream and stays local and
+uncommitted with the rest of the attempt directory. Preserve test commands and
+their actual exits. If the trace is unavailable or incomplete, record role
+compliance as UNVERIFIED. A final message alone is not a tool trace.
+
+Record the attempt path and the confirmed session ID in the current-state
+block described by `references/current-state.md`. Take the id from `status`
+while the attempt is still running; do not wait for exit and do not parse
+the log for it. `run.json` stays the attempt's process record; the ledger
+stays the run's record.
+
+Do not pass `--plugin-dir`. Do not approve extra MCP servers.
+
+## Runner already does this
+
 `run.json` holds process facts only: `schema_version` 2, `backend`,
 `identity`, `model`, `worktree`, `attempt_dir`, `brief_sha256`, `resume_id`,
 `session_id`, `requested_effort`, `configured_effort`, `skill_version`, `state`,
@@ -214,27 +290,6 @@ so read `run.json.state` to tell them apart; if the attempt directory is
 absent, or present without `run.json`, the launch was refused before the
 attempt was created and the `BLOCKED:` line on stderr is the reason.
 
-There is no automatic retry. Cursor carries its effort in the model ID rather
-than on a flag, so the runner refuses a `--model` whose declared effort
-contradicts `--effort`, and `configured_effort` holds the effort read from the
-ID. When the ID declares no effort, `configured_effort` stays null and the
-applied effort is genuinely unknown; record it as unknown rather than as the
-requested value.
-
-Known limitation: the supported OS is macOS. Windows is refused at the product
-CLIs. Do not add a Windows launch path or treat a quoted Win32 command line as
-a live transport.
-
-## Watch
-
-Wait on the host's shell job without short polls. Codex `wait_agent` is only
-for native reviewers.
-
-    python3 "<skill-root>/scripts/run_worker.py" status --attempt-dir <attempt-dir>
-    python3 "<skill-root>/scripts/run_worker.py" status --attempt-dir <attempt-dir> --stream stdout|stderr --offset N --max-bytes N
-
-`status` is read-only. Ask it instead of dumping the log.
-
 The default answer is metadata, log sizes, whether `report.md` exists,
 `pid_alive`, `stale`, `session_id_in_log`, and a bounded tools index — never a
 log body. Role compliance is still the controller's.
@@ -254,36 +309,7 @@ log body. Role compliance is still the controller's.
   File contents, stdout, stderr, and thinking stay out.
 
 A window needs `--stream`; it defaults to 2048 bytes with a maximum of 8192,
-and the whole JSON answer is capped at 64 KiB. Read the bounded windows you
-need. Do not print a raw log wholesale into this session, and do not write a
-new execution script for a run.
+and the whole JSON answer is capped at 64 KiB.
 
 `pending_bytes > 0` means a UTF-8 character is only half written. Wait on the
 host's job for new bytes; do not re-query the same offset in a short loop.
-
-## Clean up
-
-For Grok, confirm the worker and any work it started have exited, then clean
-up after every success or failure:
-
-    python3 "<skill-root>/scripts/prepare_grok_sandbox.py" cleanup --worktree "<worktree>" --state "<evidence-dir>/grok-sandbox.json"
-
-Do not clean up while a process is still running or overlap it with a new
-worker. New tasks and resumed fix rounds use the same prepare, launch, exit,
-and cleanup order. If cleanup fails, do not overwrite other files to repair
-it; record the remaining difference and state path in the ledger.
-
-## Evidence
-
-`worker.jsonl` is the CLI's tool-call/results stream and stays local and
-uncommitted with the rest of the attempt directory. Preserve test commands and
-their actual exits. If the trace is unavailable or incomplete, record role
-compliance as UNVERIFIED. A final message alone is not a tool trace.
-
-Record the attempt path and the confirmed session ID in the current-state
-block described by `references/current-state.md`. Take the id from `status`
-while the attempt is still running; do not wait for exit and do not parse
-the log for it. `run.json` stays the attempt's process record; the ledger
-stays the run's record.
-
-Do not pass `--plugin-dir`. Do not approve extra MCP servers.

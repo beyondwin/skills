@@ -288,6 +288,9 @@ If the worker returns NEEDS_CONTEXT or BLOCKED, rule and re-dispatch.
 Record `Task N worker-session: <id>` in the ledger and keep the confirmed
 session ID in the current-state block.
 
+Write `--attempt-dir` under the plan directory from Superpowers
+`sdd-workspace`, never a shared flat `.superpowers/` name.
+
 Launch every attempt with `python3 "<skill-root>/scripts/run_worker.py" run`
 as `references/dispatch.md` describes. Do not hand-compose a provider command,
 and do not write a new execution script for a run. Read a running or finished
