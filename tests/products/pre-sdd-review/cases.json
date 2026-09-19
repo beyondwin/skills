@@ -108,7 +108,7 @@
     {
       "id": "serialize-split-plans",
       "request": "$pre-sdd-review sample-app/plan-a.md then sample-app/plan-b.md on the same host",
-      "expect": ["serialize_split_plans", "no_controller_as_independent_primary", "reviewers_are_distinct_agents"]
+      "expect": ["discoveries_may_overlap", "repairs_do_not_overlap", "no_aggregate_ready", "reviewers_are_distinct_agents"]
     },
     {
       "id": "zero-findings-skip-closure",
@@ -179,6 +179,31 @@
       "id": "degraded-handoff-not-reused",
       "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a degraded REVISE run",
       "expect": ["no_reuse", "fresh_review"]
+    },
+    {
+      "id": "zero-findings-but-dirty",
+      "request": "$pre-sdd-review sample-app/plan-a.md sample-app/plan-b.md after plan-a repair dirties plan-b with zero discovery findings",
+      "expect": ["dirty_requires_closure", "zero_findings_skip_only_when_not_dirty"]
+    },
+    {
+      "id": "closure-requires-repair-diff",
+      "request": "$pre-sdd-review sample-app/plan-a.md sample-app/plan-b.md after serial repair",
+      "expect": ["repair_diff_required"]
+    },
+    {
+      "id": "host-limit-waves-not-reuse",
+      "request": "$pre-sdd-review sample-app/plan-a.md sample-app/plan-b.md when the host supplies only one fresh agent",
+      "expect": ["wave_by_host_cap", "no_reuse_to_fill"]
+    },
+    {
+      "id": "head-break-no-ready",
+      "request": "$pre-sdd-review sample-app/plan-a.md sample-app/plan-b.md after HEAD moves off the freeze",
+      "expect": ["no_ready_after_head_moves", "abandon_input_changed"]
+    },
+    {
+      "id": "no-automatic-second-campaign",
+      "request": "$pre-sdd-review sample-app/plan-a.md sample-app/plan-b.md after REVISE or BLOCKED",
+      "expect": ["no_automatic_reinvoke"]
     }
   ]
 }

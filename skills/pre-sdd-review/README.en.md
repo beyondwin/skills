@@ -100,7 +100,8 @@ an `Anomalies:` line. Anomalies do not change the verdict.
 
 One invocation ends after one discovery stage and its bounded re-reviews.
 If the first review finds nothing, skip repair and re-review and return
-`READY`. Split plans on one host run one after another.
+`READY`. Discoveries of split plans may overlap; repairs do not. Closure
+requires the repair diff.
 Authority-preserving repairs need no approval; only a real product decision
 creates one consolidated checkpoint. The controller never automatically
 repeats an invocation after `REVISE` or `BLOCKED`.

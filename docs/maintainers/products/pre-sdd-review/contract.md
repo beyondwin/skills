@@ -17,9 +17,9 @@
 판정을 내는 호출 하나는 구현 계획 하나만 검토합니다. 여러 계획 중 어느
 것인지 분명하지 않으면 정확한 계획 경로를 다시 받습니다. 받을 수 없으면
 `BLOCKED`입니다. 계획을 나눠 여러 번 판정을 내는 호출로 쪼개도 전체를 묶은
-`READY`는 만들지 않습니다. 같은 호스트에서는 나눈 호출을 겹치지 않고
-하나씩 실행합니다. 공유 설계가 나중 호출에서 바뀌면, 이전 설계 지문에
-의존한 계획 판정을 다시 검토합니다.
+`READY`는 만들지 않습니다. 발견은 겹칠 수 있고 수리는 겹치지 않습니다.
+나중 수리가 공유 설계를 바꾸면 의존하는 모든 계획을 이번 캠페인에서 dirty로
+표시합니다. 그 무효화로 새 캠페인을 열지 않습니다.
 
 계획이 필수 구현 베이스(`branch`, `ref`, 또는 `commit`)를 적으면,
 검토자를 부르기 전에, 필수 베이스가 `HEAD`의 조상인지
@@ -155,8 +155,11 @@
 ## 기본 흐름, 판정, freshness
 
 한 호출은 발견 단계 한 번과 수정 최대 두 번, 범위 제한 재검토로
-끝납니다. 첫 검토에서 발견이 없으면 수리와 종료 재검토를 건너뛰고
-`READY`입니다. `repair_passes`는 실제로 `repaired` 발견이 나온 패스만
+끝납니다. 첫 검토에서 발견이 없으면, 계획이 dirty가 아닐 때만 수리와
+종료 재검토를 건너뛰고 `READY`입니다. dirty인 계획은 발견이 0건이어도
+범위 제한 종결을 합니다. 종결에는 설계·계획·원장의 수리 diff가
+필수입니다. HEAD 동결이 깨지면 그 동결에 대해 `READY`를 내지 않습니다.
+`repair_passes`는 실제로 `repaired` 발견이 나온 패스만
 셉니다. `partially-closed`로 남은 발견은 판정에서 미해결로 계산되어
 `REVISE`를 강제합니다. 새 호출은 이전 발견의 `repair_pass`를 복사하지 않습니다. 수정이
 스키마, 타입, 인터페이스, 상태 전이, 조건부 수정 면, 작업 간 계약, 검증
@@ -307,8 +310,9 @@ checkout, clone, 다른 worktree, 잃어버린 salt, 다른 evidence home은 원
 아래는 명시적으로 추가하지 않습니다.
 
 - closure-only input schema
-- shared-design invalidation map
 - evidence probe cache
+
+컨트롤러 로컬 dirty 집합이 이번 판의 무효화입니다.
 
 ## 인계
 
@@ -339,3 +343,4 @@ checkout, clone, 다른 worktree, 잃어버린 salt, 다른 evidence home은 원
 - `handoff`: `unresolved-packet`, `full-execution-only`
 - `sdd`: `outer-request-implementation-only`
 - `evidence`: `optional`, `non-blocking`, `controller-local-run-id`
+- `campaign-scheduler`: `discoveries-may-overlap`, `repairs-do-not-overlap`

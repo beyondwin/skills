@@ -81,6 +81,11 @@ CASE_IDS = (
     "partial-closure-not-a-new-finding",
     "costless-repair-consumes-no-pass",
     "degraded-handoff-not-reused",
+    "zero-findings-but-dirty",
+    "closure-requires-repair-diff",
+    "host-limit-waves-not-reuse",
+    "head-break-no-ready",
+    "no-automatic-second-campaign",
 )
 FIXTURE_NAMES = (
     "conditional-edit-surface",
@@ -392,6 +397,7 @@ README_CONTRACT = (
     ("handoff", ("unresolved-packet", "full-execution-only")),
     ("sdd", ("outer-request-implementation-only",)),
     ("evidence", ("optional", "non-blocking", "controller-local-run-id")),
+    ("campaign-scheduler", ("discoveries-may-overlap", "repairs-do-not-overlap")),
 )
 MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Authority order", "02ae46e82a05df772812bcc8f67d944ad7465ae1f52269eaf0d387d5fc1ededd"),
@@ -407,8 +413,8 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Ledger shape", "f1091388fd58d8db9f223fbd6e1457303c600107c4c89c37d1aded6caf2ae84e"),
     ("### Degraded reasons", "a71ff3ec6aaf37ac3a862f8637b0fcd66e561d3958b4b0da0aaa532ced0b28f7"),
 )
-MAINTAINER_CANONICAL_DIGEST = "ee69d03113045204a5004a054e86672c96584438385f7b5cb3f9fc3062f42d24"
-TESTING_CANONICAL_DIGEST = "eb6c73be9e8ebf9c10310fd0edb7440928d2a8554d36b756ce1390f89c6f07fa"
+MAINTAINER_CANONICAL_DIGEST = "868f3d921a69f9758aff5ab33cd1bef926fae5ae570a643e337ac25131524697"
+TESTING_CANONICAL_DIGEST = "ac57b76ebf7278674d91eb4bb25fc86c2a292b941bbac4d11efe86409dac1462"
 COMPATIBILITY_CANONICAL_DIGEST = "db8d19d45ca4f6748b73ace65da5e5e965f0e7002a6b0395bf563f524a424480"
 RELEASE_CANONICAL_DIGEST = "a9cd12baf31dbe408975c23bbbec9f860b0e3b58e787aefee5a9cb27c18a3e67"
 
@@ -1098,7 +1104,8 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("summary --repo", contract)
         self.assertIn("`execution`이 `blocked`", re.sub(r"\s+", " ", contract))
         self.assertNotIn("summary --last 20", contract)
-        self.assertIn("겹치지 않고", contract)
+        self.assertIn("발견은 겹칠 수 있고 수리는 겹치지 않습니다", contract)
+        self.assertNotIn("겹치지 않고", contract)
         self.assertIn("첫 검토에서 발견이 없으면", contract)
         self.assertIn("`repair_passes`는 실제로 `repaired` 발견이 나온 패스만", contract)
 
@@ -1230,7 +1237,35 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertEqual(cases["evidence-resolution-blocked"], ("BLOCKED", "design_omitted_from_start", "design_recorded_null"))
         self.assertEqual(cases["evidence-outcome-optional"], ("verdict_unchanged", "outcome_not_controller_duty", "one_label_after_sdd"))
         self.assertEqual(cases["summary-before-start"], ("summary_before_start", "abandon_same_plan_pending", "reuse_only_full", "reuse_requires_head_and_request_unchanged"))
-        self.assertEqual(cases["serialize-split-plans"], ("serialize_split_plans", "no_controller_as_independent_primary", "reviewers_are_distinct_agents"))
+        self.assertEqual(
+            cases["serialize-split-plans"],
+            (
+                "discoveries_may_overlap",
+                "repairs_do_not_overlap",
+                "no_aggregate_ready",
+                "reviewers_are_distinct_agents",
+            ),
+        )
+        self.assertEqual(
+            cases["zero-findings-but-dirty"],
+            ("dirty_requires_closure", "zero_findings_skip_only_when_not_dirty"),
+        )
+        self.assertEqual(
+            cases["closure-requires-repair-diff"],
+            ("repair_diff_required",),
+        )
+        self.assertEqual(
+            cases["host-limit-waves-not-reuse"],
+            ("wave_by_host_cap", "no_reuse_to_fill"),
+        )
+        self.assertEqual(
+            cases["head-break-no-ready"],
+            ("no_ready_after_head_moves", "abandon_input_changed"),
+        )
+        self.assertEqual(
+            cases["no-automatic-second-campaign"],
+            ("no_automatic_reinvoke",),
+        )
         self.assertEqual(cases["zero-findings-skip-closure"], ("READY", "zero_findings", "skip_repair", "skip_closure"))
         self.assertEqual(cases["repair-pass-accounting"], ("repair_pass_requires_repaired_finding", "no_copied_repair_pass", "unresolved_repair_pass_null"))
         self.assertEqual(
@@ -1685,10 +1720,11 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         self.assertIn("## 하지 않는 것", contract)
         for fact in (
             "closure-only input schema",
-            "shared-design invalidation map",
             "evidence probe cache",
         ):
             self.assertIn(fact, contract)
+        self.assertIn("컨트롤러 로컬 dirty", contract)
+        self.assertNotIn("shared-design invalidation map", contract)
         # A shared-file ledger is now a real, contract-owned feature (the
         # pre-pass and its "### Ledger shape"), so it no longer belongs in
         # the "things not added" list.
@@ -1717,8 +1753,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "not_measured",
         ):
             self.assertIn(fact, normalized_testing)
-        self.assertEqual(len(CASE_IDS), 36)
-        self.assertIn("정확히 서른여섯 개", normalized_testing)
+        self.assertEqual(len(CASE_IDS), 41)
+        self.assertIn("정확히 마흔하나 개", normalized_testing)
         self.assertIn("지금은 Codex만 지원합니다", compatibility)
         self.assertIn("다른 호스트는 모두 `not_measured`", compatibility)
         self.assertIn("## 기록기 호환성", compatibility)
