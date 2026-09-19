@@ -147,7 +147,7 @@ the current-state block at the start of the run.
 
 The current session is the orchestrator.
 Do not run Superpowers `task-brief` or `task-start`. Extract the task with
-`extract_task.py` as `references/dispatch.md` describes.
+`extract_task.py --global-constraints` as `references/dispatch.md` describes.
 Do not batch same-shape plan tasks into one worker. One heading, one worker,
 one review-package range.
 Do not dispatch a nested controller that runs subagent-driven-development

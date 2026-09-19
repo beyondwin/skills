@@ -101,7 +101,9 @@ section from the plan in the controller:
 
 `--heading` is the complete heading text without the leading `#` marks. Exit 0
 is success, 2 is a file or argument error, and 3 is a section-selection error:
-the heading is absent, duplicated, or has an empty body. The command never
+the heading is absent, duplicated, or has an empty body. Missing, duplicate, or
+empty `Global Constraints` / `Global constraints` is also exit 3, and the
+controller must not dispatch. The command never
 overwrites an existing output file, so write each extraction to a new path.
 The output path is a new file under the Superpowers `sdd-workspace` plan
 directory.
