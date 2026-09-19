@@ -39,7 +39,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "edb741e0c28860e79d270e64cebde08bc46a6caafb5ceebb2d7499d20e3c15f2",
+    "SKILL.md": "17a992a35106487bf72aac3409134def020bd186a505f1fcf8d9acbe199d57b6",
     "references/reviewer-protocol.md": (
         "fd4636e9b4e6f61add1f7b05db59238320be47f207ce9e562939d718e8e3551b"
     ),
@@ -326,6 +326,8 @@ KOREAN_FACTS = (
     "not_measured",
     "evidence.py",
     "~/.pre-sdd-review/",
+    "발견은 겹칠 수 있고",
+    "종결에는 수리 diff가 필요합니다",
 )
 ENGLISH_FACTS = (
     "$pre-sdd-review",
@@ -339,6 +341,8 @@ ENGLISH_FACTS = (
     "not_measured",
     "evidence.py",
     "~/.pre-sdd-review/",
+    "Discoveries of split plans may overlap",
+    "Closure requires the repair diff",
 )
 KOREAN_README_HEADINGS = (
     "## 목적",
@@ -413,10 +417,10 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Ledger shape", "f1091388fd58d8db9f223fbd6e1457303c600107c4c89c37d1aded6caf2ae84e"),
     ("### Degraded reasons", "a71ff3ec6aaf37ac3a862f8637b0fcd66e561d3958b4b0da0aaa532ced0b28f7"),
 )
-MAINTAINER_CANONICAL_DIGEST = "fe5000e224262411e2af5a70792570a6ea4cb5093f635e79319e26b010c59e0c"
-TESTING_CANONICAL_DIGEST = "ac57b76ebf7278674d91eb4bb25fc86c2a292b941bbac4d11efe86409dac1462"
+MAINTAINER_CANONICAL_DIGEST = "525bdcaf89758ac2e05745f3c4d8c8d6ead4a32d823f95e334de20a70a9c7a8c"
+TESTING_CANONICAL_DIGEST = "c8e4cfdca5b1acc3e6db62cd33504602c5b4826a39c2027d83ad24f0ba19f23a"
 COMPATIBILITY_CANONICAL_DIGEST = "db8d19d45ca4f6748b73ace65da5e5e965f0e7002a6b0395bf563f524a424480"
-RELEASE_CANONICAL_DIGEST = "a9cd12baf31dbe408975c23bbbec9f860b0e3b58e787aefee5a9cb27c18a3e67"
+RELEASE_CANONICAL_DIGEST = "8d79c8164b43050ff344820fdf68417c46a9ff46c8e192f005fc91cab3a362db"
 
 
 def section(text: str, start: str, end: str) -> str:
@@ -1099,10 +1103,8 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("Paths not in `Files:` are not in this dirty set", skill)
         self.assertIn("Do not use the controlling agent as a substitute independent primary", skill)
         self.assertIn("distinct agents obtained", skill)
-        self.assertIn(
-            "If the first review has zero findings and the plan is not dirty, skip repair and closure",
-            skill,
-        )
+        self.assertIn("If the first review has zero findings", skill)
+        self.assertIn("and the plan is not dirty, skip repair and closure", skill)
         self.assertIn("A dirty plan still takes scoped closure", skill)
         self.assertIn("`repair_passes` counts only passes that produced at least one `repaired` finding", skill)
         self.assertIn("does not copy a previous finding's `repair_pass`", skill)
@@ -1179,8 +1181,9 @@ class PreSddReviewContractTests(unittest.TestCase):
         )
         self.assertIn("Discoveries of different plans may overlap", workflow)
         self.assertIn("skip repair and closure", workflow)
-        self.assertIn("unless that plan is dirty", workflow)
+        self.assertIn("A dirty plan still takes scoped closure", workflow)
         self.assertIn("repair diff", workflow)
+        self.assertIn("A preceding plan that is `BLOCKED` does not stop later discovery", workflow)
         self.assertIn("controller-local campaign state", workflow)
         self.assertIn("Paths not in `Files:` are not in this dirty set", workflow)
 

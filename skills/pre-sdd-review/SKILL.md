@@ -207,7 +207,8 @@ triggered risk class. Evidence `reviewer_count` records these logical roles,
 not cumulative fresh agent calls. If a fresh independent primary reviewer
 cannot be obtained, return `BLOCKED`. If the host can supply only k fresh
 agents, run discovery in waves of k. Do not reuse an agent across plans to
-fill a wave. Do not use the controlling agent as a
+fill a wave. A preceding plan that is `BLOCKED` does not stop later
+discovery. Do not bind a later `READY` to a preceding plan. Do not use the controlling agent as a
 substitute independent primary and do not run a short degraded round in its
 place. When only the focused risk role cannot be obtained, the run is
 `execution=degraded`; its handoff is never reusable. Never reuse one agent
@@ -233,10 +234,13 @@ resolve plan -> resolve plan **Spec:** -> read binding references
 
 When the outer request names two or more plans, after the pre-pass:
 
-1. Discovery in host-sized waves of fresh agents. No verdict.
+1. Discovery in host-sized waves of fresh agents. Discoveries of different plans may overlap. No verdict.
 2. Serial repair in execution order. Update dirty from each delta.
 3. Closure only for repaired or dirty plans, in parallel up to the host cap.
 4. At most one more serial repair + closure per plan. Then plan-local verdicts.
+
+A preceding plan that is `BLOCKED` does not stop later discovery. Do not bind
+a later `READY` to a preceding plan.
 
 Dirty is controller-local campaign state, not a record field and not worktree
 dirty. After repairing plan i, Δ is the union of changed resolved design,
@@ -248,11 +252,10 @@ hashes, `Files:` paths, preceding-plan paths, and discovery-record `evidence`
 paths. Paths not in `Files:` are not in this dirty set; those holes are
 machine-checked.
 
-Discoveries of different plans may overlap.
-
 After the first review, repair only findings that have an
-authority-preserving document correction. If the first review has zero findings and the plan is not dirty, skip repair and closure
-and return `READY` unless that plan is dirty. A dirty plan still takes scoped closure.
+authority-preserving document correction. If the first review has zero findings
+and the plan is not dirty, skip repair and closure and return `READY`.
+A dirty plan still takes scoped closure.
 `repair_passes` counts only passes that produced at least one `repaired` finding.
 A repair consumes no pass when both hold: the `repair-impact map` is empty
 because no structural trigger fired, and the closure reviewer confirmed the

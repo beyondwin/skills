@@ -150,7 +150,7 @@ def _stage_catalog(root: pathlib.Path) -> dict[str, Stage]:
                 "-s",
                 _posix("tests", "products", "pre-sdd-review"),
                 "-p",
-                "test_contract.py",
+                "test_c*.py",
             ),
             cwd=root,
         ),
