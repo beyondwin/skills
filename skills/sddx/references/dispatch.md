@@ -33,10 +33,11 @@ Do not launch a worker from the resolver. Parse one JSON object with
 
 If `available` is false, stop and report `reason`, which is one of
 `not_found`, `identity_mismatch`, `missing_flags`, `no_model_list`,
-`model_list_unreadable`, or `no_grok_model`. `launch` is then null and
-`model_ids` is empty. Do not fail over.
+`model_list_unreadable`, `no_grok_model`, or `no_grok_4_7`. `launch` is
+then null and `model_ids` is empty. Do not fail over.
 
-Only `no_grok_model` is about the model: IDs were read and none is Grok.
+`no_grok_model` means IDs were read and none is Grok. `no_grok_4_7` means
+Grok IDs were read and none is Grok 4.7 — do not substitute 4.6 or 4.5.
 `no_model_list` means no listing was obtained and `model_list_unreadable`
 means one was obtained that no ID could be read from — both are faults in
 the reading, so do not report a model as missing and do not rule around a
@@ -49,24 +50,25 @@ When `available` is true:
   --always-approve, --disable-web-search, --sandbox, <workspace>]`. `launch`
   gives `cwd_flag` `--cwd`, `prompt_flag` `--prompt-file`, `--single`, or
   `-p`, `effort_flag` `--reasoning-effort` or `--effort`, and `output_format`
-  `streaming-messages-json`. `model_ids` is empty: Grok takes no model
-  argument.
+  `streaming-messages-json`. `model_ids` is `grok-4.7` only. Pass that id
+  as `--model`. Effort still goes on `effort_flag`. Do not pass
+  `grok-4.7-build-fast`, `grok-4.6`, or `grok-4.5`.
 - Cursor: `argv_prefix` is `[executable, --print` or `-p`, `--trust`,
   `--auto-review`, `--sandbox`, `enabled]`. `launch` gives `cwd_flag`
   `--workspace` or `--cwd`, `prompt_flag` null, `effort_flag` null, and
-  `output_format` `stream-json`. `model_ids` holds the confirmed Grok model
-  ids; pass one of them to the runner as `--model`.
+  `output_format` `stream-json`. `model_ids` holds confirmed Grok 4.7 ids
+  with no trailing `-fast` (`grok-4.7-high`, `grok-4.7-xhigh`). Cursor Grok
+  4.6, 4.5, and every `-fast` id are already dropped. Pass one of those ids
+  to the runner as `--model`.
 
-Choose that id by effort, not by position: the order is the account's own
-listing order and can change. Strip one trailing `-fast` first — it is a
-serving variant, not an effort — and take the `model_ids` entry whose final
-segment then equals the requested effort. That is the same reading
+Choose that Cursor id by effort, not by position: the order is the account's
+own listing order and can change. Take the `model_ids` entry whose final
+segment equals the requested effort. That is the same reading
 `model_effort()` performs in `run_worker.py`, which refuses a `--model` whose
-declared effort contradicts `--effort`; there is one rule here, not two. Among
-several matches prefer the highest version, comparing the dot-separated
-components as numbers so that `4.10` outranks `4.9`, and then the entry without
-`-fast`. If no entry declares the requested effort, report that the requested
-effort is unavailable on this account rather than substituting a different one.
+declared effort contradicts `--effort`; there is one rule here, not two. Do
+not pass a `-fast` id. If no entry declares the requested effort, report that
+the requested effort is unavailable on this account rather than substituting
+4.6, 4.5, a `-fast` variant, or a different effort.
 
 Use the `output_format` value this host's resolver returned. Do not hardcode a
 format per backend, and do not add a second `--sandbox` or a second approval
@@ -181,11 +183,12 @@ writes itself — the runner never writes the report. Grok receives the worker
 rules through `--rules` and Cursor receives them inline in the dispatch text;
 the controller does not compose either.
 
-`--model` and `--sandbox-profile` are each required for one backend and
-rejected for the other. Grok requires `--sandbox-profile <prepared-profile>`
-and rejects `--model`, because it selects its own model. Cursor requires
-`--model <confirmed-grok-id>` from the resolver's `model_ids` and rejects
-`--sandbox-profile`, because it uses its own sandbox mode.
+`--sandbox-profile` is required for Grok and rejected for Cursor. `--model`
+is required for both, and it must be one of that backend's `model_ids`.
+Grok requires `--sandbox-profile <prepared-profile>` and `--model grok-4.7`.
+Cursor requires `--model <grok-4.7-effort-id>` from the resolver's
+`model_ids` and rejects `--sandbox-profile`, because it uses its own sandbox
+mode.
 
 Pass `--resume` only with a session ID the previous run actually reported. The
 runner copies the first reported id from the worker's own stream into

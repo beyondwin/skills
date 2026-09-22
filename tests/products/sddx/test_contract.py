@@ -121,7 +121,7 @@ EXPECT_LOCK = {
     },
     "picker_grok_cli_vs_cursor_agent": {
         "skill_must": (
-            "Grok CLI — Grok selects the model. Do not pass `--model`.",
+            "Grok CLI — pass `--model grok-4.7` from the resolver's `model_ids`.",
             "Cursor Agent (Grok)",
         ),
     },

@@ -16,6 +16,10 @@ ALIASES = {"c": "cursor", "g": "grok", "cursor": "cursor", "grok": "grok"}
 GROK_OUTPUT_FORMAT = "streaming-messages-json"
 CURSOR_OUTPUT_FORMAT = "stream-json"
 CURSOR_SANDBOX_MODE = "enabled"
+# Both implementers are pinned to this Grok generation. A higher listing is not
+# adopted, and an older one is not a fallback.
+PINNED_GROK_VERSION = "4.7"
+PINNED_GROK_MODEL = "grok-4.7"
 # Do not exclude Agent/task: Grok also removes background shell get/kill tools.
 GROK_DISALLOWED_TOOLS = "search_tool,use_tool"
 
@@ -41,6 +45,11 @@ _MODEL_ID = re.compile(r"[0-9A-Za-z][0-9A-Za-z._-]*")
 # rules agree. A tab is a column gap on its own; spaces need a run of two, because a
 # single space is how prose joins words.
 _COLUMN_SEPARATOR = re.compile(r" - |\t|\s{2,}")
+# Grok Build bullets its model list as `* id (default)` and `- id`. The bullet
+# is listing decoration. A dash with no following space is an id character, not
+# a bullet, so `-grok-4` stays refused by `_MODEL_ID`.
+_GROK_BULLET = re.compile(r"^(?:[*\u2022]|-)\s+")
+_VERSION_SEGMENT = re.compile(r"\d+\.\d+")
 # A CLI may colour the ID column even when its output is a pipe, and an escape
 # sequence is a terminal instruction, not part of the ID it wraps. The full CSI
 # form is matched, not just SGR, so a cursor-positioning sequence cannot survive
@@ -183,6 +192,69 @@ def parse_model_ids(text: str) -> list[str]:
     return [name for name in parse_listed_ids(text) if "grok" in name.lower()]
 
 
+def grok_version(model_id: str) -> str | None:
+    """The dotted generation in a Grok model id, or `None` when it has none.
+
+    `grok-4.7-high` and `cursor-grok-4.6-high` carry the generation as its own
+    `-` segment. `4.70` is not `4.7`, and a bare `grok-4` has no dotted
+    generation. The first dotted segment wins; model ids do not stack two.
+    """
+    for segment in model_id.split("-"):
+        if _VERSION_SEGMENT.fullmatch(segment):
+            return segment
+    return None
+
+
+def is_pinned_grok_version(model_id: str) -> bool:
+    """True when this Grok id is the pinned generation, effort suffix included."""
+    return grok_version(model_id) == PINNED_GROK_VERSION
+
+
+def is_fast_serving_variant(model_id: str) -> bool:
+    """True when the id is a `-fast` serving variant.
+
+    One trailing `-fast` is the serving variant `model_effort` also strips. It
+    is not an effort and it is not a supported worker model.
+    """
+    return model_id.lower().endswith("-fast")
+
+
+def is_supported_cursor_model(model_id: str) -> bool:
+    """Grok 4.7 without a trailing `-fast` serving variant."""
+    return is_pinned_grok_version(model_id) and not is_fast_serving_variant(model_id)
+
+
+def parse_grok_build_model_ids(text: str) -> list[str]:
+    """Grok model IDs from a Grok Build `models` listing, in source order.
+
+    `parse_model_ids` still reads a Cursor-shaped `<id> - <description>` line.
+    Grok Build also prints bullets the column rule cannot see: `* grok-4.7
+    (default)` and `- grok-4.6`. The bullet is stripped, then the same id rule
+    reads the first token, so `(default)` stays in the description.
+    """
+    model_ids = parse_model_ids(text)
+    seen = set(model_ids)
+    for line in text.splitlines():
+        stripped = _ANSI_ESCAPE.sub("", line).strip()
+        bulleted = _GROK_BULLET.sub("", stripped, count=1)
+        if bulleted == stripped:
+            continue
+        separator = _COLUMN_SEPARATOR.search(bulleted)
+        candidate = bulleted[: separator.start()].strip() if separator is not None else bulleted
+        if not _MODEL_ID.fullmatch(candidate):
+            parts = candidate.split()
+            candidate = parts[0] if parts else ""
+        if (
+            not _MODEL_ID.fullmatch(candidate)
+            or "grok" not in candidate.lower()
+            or candidate in seen
+        ):
+            continue
+        model_ids.append(candidate)
+        seen.add(candidate)
+    return model_ids
+
+
 def _is_grok_identity(text: str) -> bool:
     blob = text.lower()
     if "grok build" in blob or "xai-grok" in blob:
@@ -228,6 +300,7 @@ def _grok_flags_ok(help_text: str) -> bool:
         and _declares_value_option(help_text, "--resume")
         and _grok_effort_flag(help_text) is not None
         and _grok_prompt_flag(help_text) is not None
+        and _declares_value_option(help_text, "--model")
         # Both halves: `build_argv` always emits `--output-format <value>`, so a CLI
         # that spells the value under some other option cannot carry that argv.
         and _declares(help_text, "--output-format")
@@ -254,18 +327,30 @@ def _cursor_flags_ok(help_text: str) -> bool:
 # Why no Grok ID was adopted, weakest evidence first. A later listing may only
 # replace an earlier reason with a better-evidenced one, so the answer does not
 # depend on which alias the CLI happens to declare first.
-_MODEL_LIST_REASONS = ("no_model_list", "model_list_unreadable", "no_grok_model")
+# Why no pinned Grok 4.7 id was adopted, weakest evidence first. A later
+# listing may only replace an earlier reason with a better-evidenced one.
+# `no_grok_4_7` is the strongest: Grok ids were read, and none is 4.7.
+_MODEL_LIST_REASONS = (
+    "no_model_list",
+    "model_list_unreadable",
+    "no_grok_model",
+    "no_grok_4_7",
+)
 
 
-def _cursor_model_ids(executable: str, help_text: str) -> tuple[list[str], str | None]:
-    """Grok model IDs from the first usable listing, and why none was adopted.
+def _confirmed_model_ids(
+    executable: str,
+    help_text: str,
+    read_grok_ids,
+    accept,
+) -> tuple[list[str], str | None]:
+    """Pinned Grok 4.7 ids from the first usable listing, and why none was adopted.
 
-    The reason separates three failures that one empty list used to hide: no
-    listing was obtained at all, a listing came back that no ID could be read
-    from, and IDs were read and none is Grok. Only the third is about Grok. The
-    other two say nothing about which models exist, and reporting them as
-    `no_grok_model` is what sent a controller hunting for a model that was never
-    missing while the real fault was the reading.
+    The reason separates failures one empty list used to hide: no listing was
+    obtained, a listing came back that no ID could be read from, IDs were read
+    and none is Grok, and Grok ids were read but none is 4.7. Only the last
+    two are about the model. Reporting a reading fault as `no_grok_model` sent
+    a controller hunting for a model that was never missing.
     """
     reason = _MODEL_LIST_REASONS[0]
 
@@ -278,14 +363,35 @@ def _cursor_model_ids(executable: str, help_text: str) -> tuple[list[str], str |
         probe = _probe(executable, arguments)
         if probe is None or probe.returncode != 0:
             continue
-        if not parse_listed_ids(probe.stdout):
+        grok_ids = read_grok_ids(probe.stdout)
+        if not grok_ids and not parse_listed_ids(probe.stdout):
             note("model_list_unreadable")
             continue
-        model_ids = parse_model_ids(probe.stdout)
-        if model_ids:
-            return model_ids, None
-        note("no_grok_model")
+        if not grok_ids:
+            note("no_grok_model")
+            continue
+        pinned = [model_id for model_id in grok_ids if accept(model_id)]
+        if pinned:
+            return pinned, None
+        note("no_grok_4_7")
     return [], reason
+
+
+def _cursor_model_ids(executable: str, help_text: str) -> tuple[list[str], str | None]:
+    """Cursor Grok 4.7 ids. Older generations and `-fast` variants are dropped."""
+    return _confirmed_model_ids(
+        executable, help_text, parse_model_ids, is_supported_cursor_model
+    )
+
+
+def _grok_model_ids(executable: str, help_text: str) -> tuple[list[str], str | None]:
+    """The Grok Build id `grok-4.7` only. Effort stays on the effort flag."""
+    return _confirmed_model_ids(
+        executable,
+        help_text,
+        parse_grok_build_model_ids,
+        lambda model_id: model_id.lower() == PINNED_GROK_MODEL,
+    )
 
 
 def _unavailable(backend: str, reason: str) -> dict[str, Any]:
@@ -355,8 +461,10 @@ def resolve(backend_arg: str) -> dict[str, Any]:
             "effort_flag": _grok_effort_flag(help_text),
             "output_format": GROK_OUTPUT_FORMAT,
         }
-        # The Grok CLI selects its own model; `model_ids` exists for Cursor.
-        return _available(backend, executable, identity, argv, launch, [])
+        model_ids, reason = _grok_model_ids(executable, help_text)
+        if not model_ids:
+            return _unavailable(backend, reason)
+        return _available(backend, executable, identity, argv, launch, model_ids)
 
     executable = shutil.which("cursor-agent")
     if executable is None:

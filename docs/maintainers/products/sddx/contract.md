@@ -106,8 +106,11 @@ frontmatter 이름만으로는 Task가 찾지 못합니다. 중첩 경로나 `pl
 
 오케스트레이터는 `/sddx` 또는 `$sddx`를 받은 세션의 모델·effort입니다. 더
 싼 모델, 최종 최상위 모델, 구현 워커와 같은 모델 계열로 바꾸지 않습니다.
-픽커 선택지는 Grok CLI(모델 인자 없음)와 Cursor Agent (Grok)입니다. Grok에
-`--model`을 넘기지 않습니다. 구현 CLI는 이 계획에서 한 번만 고릅니다.
+픽커 선택지는 Grok CLI와 Cursor Agent (Grok)입니다. 둘 다 Grok 4.7만
+씁니다. Grok에는 resolver가 확인한 `grok-4.7`을 `--model`로 넘기고, effort는
+`--reasoning-effort` 또는 `--effort`로 넘깁니다. `grok-4.7-build-fast`,
+`grok-4.6`, `grok-4.5`는 넘기지 않습니다. Cursor에는 버전 세그먼트가 `4.7`이고 `-fast`로 끝나지 않는
+확인된 id만 넘깁니다. `-fast` 변형은 지원하지 않습니다. 구현 CLI는 이 계획에서 한 번만 고릅니다.
 구현 effort는 과제 난이도 표로 과제마다 High 또는 XHigh입니다. 세션
 effort를 구현에 복사하지 않습니다. 리뷰어 XHigh가 구현 XHigh를 강제하지
 않습니다. 요구가 분명하고 로컬·기계적인 변경, 단순한 통합은 High입니다.
@@ -197,15 +200,20 @@ resolver 자체는 파일을 쓰거나 worker를 시작하지 않습니다.
 JSON 객체의 키는 `backend`, `available`, `executable`, `identity`,
 `argv_prefix`, `reason`, `launch`, `model_ids`입니다. `launch`는 `cwd_flag`,
 `prompt_flag`, `effort_flag`, `output_format`을 담으며 `available`이 false면
-`null`이고 `model_ids`는 빈 목록입니다. Grok은 자기 모델을 스스로 고르므로
-`model_ids`가 비어 있고, Cursor는 확인된 Grok 모델 id 목록을 돌려줍니다.
+`null`이고 `model_ids`는 빈 목록입니다. 사용 가능한 양쪽의 `model_ids`는
+Grok 4.7만 담습니다. Grok Build는 목록에 찍힌 `grok-4.7`만 돌려주고,
+Cursor는 버전 세그먼트가 `4.7`이고 `-fast`로 끝나지 않는 Grok id만
+돌려줍니다. `4.6`, `4.5`, `-fast` 변형은 목록에 있어도 빠집니다. `-fast`만
+남으면 `no_grok_4_7`입니다.
 `output_format`은 해당 호스트의 resolver가 돌려준 값을 그대로 쓰며 backend별로
 하드코딩하지 않습니다. 없는 backend의 `reason`은 `not_found`,
 `identity_mismatch`, `missing_flags`, `no_model_list`, `model_list_unreadable`,
-`no_grok_model` 중 하나입니다. 모델 목록 관련 셋은 서로 다른 사실을 말합니다.
-`no_model_list`는 목록을 아예 얻지 못한 것, `model_list_unreadable`은 목록은
-왔으나 id를 하나도 읽지 못한 것, `no_grok_model`은 id를 읽었고 그중 Grok이
-없는 것입니다. 앞의 둘은 모델의 부재를 주장하지 않습니다.
+`no_grok_model`, `no_grok_4_7` 중 하나입니다. 모델 목록 관련 넷은 서로 다른
+사실을 말합니다. `no_model_list`는 목록을 아예 얻지 못한 것,
+`model_list_unreadable`은 목록은 왔으나 id를 하나도 읽지 못한 것,
+`no_grok_model`은 id를 읽었고 그중 Grok이 없는 것, `no_grok_4_7`은 Grok id는
+읽었으나 4.7이 없는 것입니다. 앞의 둘은 모델의 부재를 주장하지 않습니다.
+`no_grok_4_7`일 때 4.6이나 4.5로 바꾸지 않습니다.
 
 Cursor `prompt_flag`는 `null`로 고정돼 있어 `build_argv`가 prompt를 이름 없는
 위치 인자로 덧붙입니다. 게이트는 Usage 줄에 `[prompt]` 또는 `[prompt...]`가
@@ -216,7 +224,7 @@ Cursor `prompt_flag`는 `null`로 고정돼 있어 `build_argv`가 prompt를 이
 
 `2.0.0`의 비호환 변경은 Cursor 필수 기능입니다. Cursor resolver는 headless
 print(`--print` 또는 `-p`), `--trust`, `--auto-review`, `--sandbox`, 확인된
-`stream-json` 출력 형식, 그리고 모델 목록 명령이 실제로 성공해 돌려준 Grok 모델
+`stream-json` 출력 형식, 그리고 모델 목록 명령이 실제로 성공해 돌려준 Grok 4.7
 id를 모두 요구합니다. `--auto-review`, `--sandbox`, 구조화 출력 형식을 선언하지
 않는 기존 Cursor CLI는 `available: false`와 `reason: missing_flags`입니다.
 예전의 `--force`/`--yolo` 일괄 승인 대체 경로는 없어졌고 플래그로 되살릴 수
@@ -262,9 +270,10 @@ Superpowers `sdd-workspace`가 만든 계획 디렉터리 아래의 새 폴더�
 `prepare`·`cleanup`을 호출하지 않으며, prepare → run → 종료 확인 → cleanup 순서는
 컨트롤러가 지킵니다. 자동 재시도는 어느 helper에도 없습니다.
 
-`--model`과 `--sandbox-profile`은 각각 한 backend에만 필수이고 다른 쪽에서는
-거부됩니다. Grok은 `--sandbox-profile`을 요구하고 `--model`을 거부하며, Cursor는
-resolver `model_ids`에서 고른 `--model`을 요구하고 `--sandbox-profile`을
+`--sandbox-profile`은 Grok에만 필수이고 Cursor에서는 거부됩니다. `--model`은
+양쪽 모두 필수이며 그 backend의 `model_ids` 안에 있어야 합니다. Grok은
+`--sandbox-profile`과 `--model grok-4.7`을 요구합니다. Cursor는 resolver
+`model_ids`에서 고른 Grok 4.7 `--model`을 요구하고 `--sandbox-profile`을
 거부합니다.
 
 시도 조회는 `scripts/run_worker.py status`뿐입니다. 읽기 전용입니다. 살아 있는지,

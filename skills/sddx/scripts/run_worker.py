@@ -249,8 +249,8 @@ def _validated_backend(options: RunOptions) -> str:
     if backend == "grok":
         if not options.sandbox_profile:
             raise ValueError("grok requires a prepared sandbox profile")
-        if options.model is not None:
-            raise ValueError("grok selects its own model; --model is not accepted")
+        if not options.model:
+            raise ValueError("grok requires the confirmed grok-4.7 model id")
     else:
         if options.sandbox_profile is not None:
             raise ValueError("cursor uses its own sandbox mode; --sandbox-profile is not accepted")
@@ -315,8 +315,7 @@ def build_argv(
     argv += ["--output-format", launch["output_format"]]
     if backend == "grok":
         argv += ["--rules", rules]
-    else:
-        argv += ["--model", str(options.model)]
+    argv += ["--model", str(options.model)]
     if launch["effort_flag"] is not None:
         argv += [launch["effort_flag"], options.effort]
     if options.resume_id is not None:
@@ -439,14 +438,13 @@ def run_worker(options: RunOptions) -> int:
         return fail("could not resolve the backend")
     if not resolved["available"]:
         return fail(f"{backend} backend is unavailable: {resolved['reason']}")
-    if backend != "grok" and options.model not in resolved["model_ids"]:
+    if options.model not in resolved["model_ids"]:
         return fail("model is not one of the backend's confirmed model ids")
 
     metadata["identity"] = resolved["identity"]
-    if backend != "grok":
-        # Recorded because it was named on the command line, not because the
-        # model was proven to apply it.
-        metadata["model"] = options.model
+    # Recorded because it was named on the command line, not because the
+    # model was proven to apply it.
+    metadata["model"] = options.model
     if resolved["launch"]["effort_flag"] is not None:
         metadata["configured_effort"] = options.effort
     elif options.model is not None:

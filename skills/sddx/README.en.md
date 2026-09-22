@@ -5,7 +5,8 @@
 ## Purpose
 
 It runs Superpowers SDD with the current Claude Code or Codex session as
-orchestrator, and sends implementation only to Cursor Agent (Grok) or Grok CLI.
+orchestrator, and sends implementation only to Cursor Agent or Grok Build.
+Both workers use only Grok 4.7, and neither uses a `-fast` variant.
 
 ## When to use and not use
 

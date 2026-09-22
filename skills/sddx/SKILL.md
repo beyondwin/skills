@@ -79,10 +79,12 @@ An explicit choice needs no re-approval on later tasks. If one message gives
 two different explicit choices, confirm which one to use.
 
 - Claude Code: AskUserQuestion. Options:
-  - Grok CLI — Grok selects the model. Do not pass `--model`. Requested
-    effort goes on `--reasoning-effort` or `--effort`.
-  - Cursor Agent (Grok) — the confirmed Grok model id whose final
-    segment matches this task's effort.
+  - Grok CLI — pass `--model grok-4.7` from the resolver's `model_ids`.
+    Requested effort goes on `--reasoning-effort` or `--effort`. Do not
+    pass `grok-4.6`, `grok-4.5`, or `grok-4.7-build-fast`.
+  - Cursor Agent (Grok) — a confirmed `model_ids` entry whose version is
+    4.7, whose final segment matches this task's effort, and which does not
+    end in `-fast`. Do not pass Cursor Grok 4.6, 4.5, or a `-fast` id.
 - Codex: the available question tool, otherwise a short text question with
   numbered options; wait for one answer.
 
@@ -375,7 +377,7 @@ explicitly after checking its ledger record and its processes. The supported OS 
 - Implementer XHigh to be safe, or because the reviewer ran XHigh
 - Asking implementer effort on every task
 - Resuming a High worker after effort increased to XHigh
-- Passing `--model` to Grok to pin grok-4.6
+- Launching Grok CLI or Cursor Agent on any model other than Grok 4.7, or on a `-fast` variant
 - Native implementer subagent
 - Copying SDD into this file
 - Asking for a backend on every task

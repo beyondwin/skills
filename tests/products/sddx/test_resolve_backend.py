@@ -35,8 +35,12 @@ Usage: grok [OPTIONS]
       --sandbox <PROFILE>
       --rules <RULES>
       --output-format <streaming-messages-json>
+      --model <MODEL>
   -p, --single <PROMPT>
   -r, --resume [<SESSION_ID>]
+
+Commands:
+  models                    List available models
 """
 GROK_HELP_WITHOUT_CWD = """
 Usage: grok [OPTIONS]
@@ -135,7 +139,17 @@ CURSOR_HELP_WITHOUT_POSITIONAL_PROMPT = CURSOR_HELP.replace(
     "Usage: cursor-agent [options]",
 )
 
-CURSOR_MODELS = "gpt-5\ncomposer\ngrok-4\n"
+CURSOR_MODELS = "gpt-5\ncomposer\ngrok-4.6-high\ngrok-4.7-high\n"
+GROK_MODELS = """You are logged in with grok.com.
+
+Default model: grok-4.7
+
+Available models:
+  * grok-4.7 (default)
+  - grok-4.7-build-fast
+  - grok-4.6
+  - grok-4.5
+"""
 NO_GROK_MODELS = "gpt-5\ncomposer\n"
 # What the shipped CLI prints when it decides to colour its output: the same
 # listing with SGR sequences wrapped around the ID column.
@@ -143,7 +157,7 @@ CURSOR_MODELS_ANSI = (
     "\x1b[1mAvailable models\x1b[0m\n"
     "\n"
     "\x1b[36mgpt-5\x1b[39m - GPT 5\n"
-    "\x1b[36mgrok-4\x1b[39m - Grok 4\n"
+    "\x1b[36mgrok-4.7-high\x1b[39m - Grok 4.7 High\n"
 )
 # A listing whose every line is escape sequences and prose: nothing ID-shaped.
 CURSOR_MODELS_UNREADABLE = "\x1b[1mAvailable models\x1b[0m\n\nloading, please wait\n"
@@ -157,25 +171,30 @@ CURSOR_MODELS_LISTING = """Available models
 
 auto - Auto (default)
 gpt-5.3-codex-low - Codex 5.3 Low
-cursor-grok-9.1-high-fast - Cursor Grok 9.1 Fast
+grok-4.7-high-fast - Grok 4.7 High Fast
 composer-2.5 - Grok-like reasoning
-cursor-grok-9.0-high - Cursor Grok 9.0
-cursor-grok-9.1-low - Cursor Grok 9.1 Low
-cursor-grok-9.1-high - Cursor Grok 9.1
-cursor-grok-9.1-xhigh-fast - Cursor Grok 9.1 Extra High Fast
+cursor-grok-4.6-high - Cursor Grok 4.6
+grok-4.7-low - Grok 4.7 Low
+grok-4.7-high - Grok 4.7 High
+grok-4.7-xhigh-fast - Grok 4.7 Extra High Fast
 kimi-k3-low - Kimi K3 Low
 
 Tip: use --model <id> (or /model <id> in interactive mode) to switch. \
 Parameterized models also accept quoted overrides, \
 e.g. --model 'claude-opus-4-8[context=1m,effort=high,fast=false]'.
 """
-# Source order, and the `-fast` variant deliberately precedes the plain high tier.
+# Source order. The `-fast` lines precede the plain tiers and must be parsed,
+# then dropped by resolve because a fast serving variant is not a worker model.
 CURSOR_MODELS_LISTING_IDS = [
-    "cursor-grok-9.1-high-fast",
-    "cursor-grok-9.0-high",
-    "cursor-grok-9.1-low",
-    "cursor-grok-9.1-high",
-    "cursor-grok-9.1-xhigh-fast",
+    "grok-4.7-high-fast",
+    "cursor-grok-4.6-high",
+    "grok-4.7-low",
+    "grok-4.7-high",
+    "grok-4.7-xhigh-fast",
+]
+CURSOR_PINNED_LISTING_IDS = [
+    "grok-4.7-low",
+    "grok-4.7-high",
 ]
 
 MARKER_NAME = "worker-invocations.log"
@@ -259,6 +278,16 @@ class ResolveBackendTests(unittest.TestCase):
         path.chmod(path.stat().st_mode | stat.S_IXUSR)
         return path
 
+    def _write_grok(
+        self,
+        help_text: str = GROK_HELP,
+        responses: dict[str, tuple[int, str, str]] | None = None,
+    ) -> Path:
+        merged = {"models": (0, GROK_MODELS, "")}
+        if responses:
+            merged.update(responses)
+        return self._write_cli("grok", GROK_VERSION, help_text, merged)
+
     def _path(self, *names: str) -> dict[str, str]:
         env = os.environ.copy()
         env["PATH"] = str(self.bindir)
@@ -287,7 +316,7 @@ class ResolveBackendTests(unittest.TestCase):
         self.assertEqual(resolved["launch"]["output_format"], "stream-json")
         self.assertIsNone(resolved["launch"]["prompt_flag"])
         self.assertIsNone(resolved["launch"]["effort_flag"])
-        self.assertEqual(resolved["model_ids"], ["grok-4"])
+        self.assertEqual(resolved["model_ids"], ["grok-4.7-high"])
 
     # ------------------------------------------------------------------
     # fixture sanity
@@ -319,7 +348,7 @@ class ResolveBackendTests(unittest.TestCase):
         self.assertEqual(stderr.getvalue(), "BLOCKED: Windows is not a supported OS\n")
 
     def test_resolve_does_not_refuse_when_os_name_is_nt(self) -> None:
-        self._write_cli("grok", GROK_VERSION, GROK_HELP)
+        self._write_grok()
         module = self._load()
         stderr = io.StringIO()
         with mock.patch.object(module.os, "name", "nt"):
@@ -408,7 +437,9 @@ class ResolveBackendTests(unittest.TestCase):
         # None of these inputs carries a column separator, so every line is judged
         # whole. This is the plan's original listing shape and it must keep working.
         module = self._load()
-        self.assertEqual(module.parse_model_ids(CURSOR_MODELS), ["grok-4"])
+        self.assertEqual(
+            module.parse_model_ids(CURSOR_MODELS), ["grok-4.6-high", "grok-4.7-high"]
+        )
         self.assertEqual(module.parse_model_ids(NO_GROK_MODELS), [])
         self.assertEqual(module.parse_model_ids(PROSE_ONLY_MODELS), [])
         self.assertEqual(
@@ -496,7 +527,8 @@ class ResolveBackendTests(unittest.TestCase):
         # "IDs were readable and none is Grok". Only a listing-wide read can.
         module = self._load()
         self.assertEqual(
-            module.parse_listed_ids(CURSOR_MODELS), ["gpt-5", "composer", "grok-4"]
+            module.parse_listed_ids(CURSOR_MODELS),
+            ["gpt-5", "composer", "grok-4.6-high", "grok-4.7-high"],
         )
         self.assertEqual(module.parse_listed_ids(NO_GROK_MODELS), ["gpt-5", "composer"])
         self.assertEqual(module.parse_listed_ids("\x1b[36mgpt-5\x1b[39m\n"), ["gpt-5"])
@@ -568,7 +600,7 @@ class ResolveBackendTests(unittest.TestCase):
     # ------------------------------------------------------------------
 
     def test_grok_available_uses_grok_binary_only(self) -> None:
-        self._write_cli("grok", GROK_VERSION, GROK_HELP)
+        self._write_grok()
         self._write_cli("agent", GROK_VERSION, GROK_HELP)
         result = self._resolve("g")
         self.assertTrue(result["available"])
@@ -582,7 +614,7 @@ class ResolveBackendTests(unittest.TestCase):
         self.assertNotIn("--worktree", result["argv_prefix"])
 
     def test_grok_removes_mcp_tools(self) -> None:
-        self._write_cli("grok", GROK_VERSION, GROK_HELP)
+        self._write_grok()
         argv = self._resolve("grok")["argv_prefix"]
         self.assertIn("--disallowed-tools", argv)
         self.assertEqual(argv[argv.index("--disallowed-tools") + 1], "search_tool,use_tool")
@@ -607,7 +639,7 @@ class ResolveBackendTests(unittest.TestCase):
         self.assertIsNone(result["launch"])
 
     def test_grok_launch_contract(self) -> None:
-        self._write_cli("grok", GROK_VERSION, GROK_HELP)
+        self._write_grok()
         result = self._resolve("grok")
         self.assertEqual(
             result["launch"],
@@ -618,18 +650,18 @@ class ResolveBackendTests(unittest.TestCase):
                 "output_format": "streaming-messages-json",
             },
         )
-        self.assertEqual(result["model_ids"], [])
+        self.assertEqual(result["model_ids"], ["grok-4.7"])
 
     def test_grok_prefers_prompt_file(self) -> None:
-        self._write_cli("grok", GROK_VERSION, GROK_HELP_WITH_PROMPT_FILE)
+        self._write_grok(GROK_HELP_WITH_PROMPT_FILE)
         self.assertEqual(self._resolve("grok")["launch"]["prompt_flag"], "--prompt-file")
 
     def test_grok_falls_back_to_short_prompt_flag(self) -> None:
-        self._write_cli("grok", GROK_VERSION, GROK_HELP_WITH_SHORT_PROMPT_ONLY)
+        self._write_grok(GROK_HELP_WITH_SHORT_PROMPT_ONLY)
         self.assertEqual(self._resolve("grok")["launch"]["prompt_flag"], "-p")
 
     def test_grok_prompt_file_without_short_flag(self) -> None:
-        self._write_cli("grok", GROK_VERSION, GROK_HELP_PROMPT_FILE_ONLY)
+        self._write_grok(GROK_HELP_PROMPT_FILE_ONLY)
         self.assertEqual(self._resolve("grok")["launch"]["prompt_flag"], "--prompt-file")
 
     def test_grok_without_any_prompt_flag_is_missing_flags(self) -> None:
@@ -640,8 +672,39 @@ class ResolveBackendTests(unittest.TestCase):
         self.assertEqual(result["reason"], "missing_flags")
 
     def test_grok_uses_confirmed_effort_alias(self) -> None:
-        self._write_cli("grok", GROK_VERSION, GROK_HELP_WITH_EFFORT_ALIAS)
+        self._write_grok(GROK_HELP_WITH_EFFORT_ALIAS)
         self.assertEqual(self._resolve("grok")["launch"]["effort_flag"], "--effort")
+
+    def test_parse_grok_build_model_ids_reads_bullets_and_ignores_the_default_mark(self) -> None:
+        module = self._load()
+        self.assertEqual(
+            module.parse_grok_build_model_ids(GROK_MODELS),
+            ["grok-4.7", "grok-4.7-build-fast", "grok-4.6", "grok-4.5"],
+        )
+
+    def test_grok_model_ids_are_only_grok_4_7(self) -> None:
+        self._write_grok()
+        result = self._resolve("grok")
+        self.assertTrue(result["available"])
+        self.assertEqual(result["model_ids"], ["grok-4.7"])
+        self.assertNotIn("grok-4.6", result["model_ids"])
+        self.assertNotIn("grok-4.7-build-fast", result["model_ids"])
+
+    def test_grok_without_a_value_taking_model_flag_is_missing_flags(self) -> None:
+        help_text = GROK_HELP.replace("      --model <MODEL>\n", "")
+        self._write_grok(help_text)
+        result = self._resolve("grok")
+        self.assertFalse(result["available"])
+        self.assertEqual(result["reason"], "missing_flags")
+        self.assertEqual(self._calls(), [])
+
+    def test_grok_listing_without_4_7_is_not_an_older_model(self) -> None:
+        older = "Available models:\n  - grok-4.6\n  - grok-4.5\n"
+        self._write_grok(responses={"models": (0, older, "")})
+        result = self._resolve("grok")
+        self.assertFalse(result["available"])
+        self.assertEqual(result["reason"], "no_grok_4_7")
+        self.assertEqual(result["model_ids"], [])
 
     def test_grok_without_streaming_output_is_missing_flags(self) -> None:
         self._write_cli("grok", GROK_VERSION, GROK_HELP_WITHOUT_OUTPUT_FORMAT)
@@ -744,7 +807,7 @@ class ResolveBackendTests(unittest.TestCase):
         result = self._resolve("cursor")
         self.assertIs(result["available"], True)
         self.assertIsNone(result["reason"])
-        self.assertEqual(result["model_ids"], CURSOR_MODELS_LISTING_IDS)
+        self.assertEqual(result["model_ids"], CURSOR_PINNED_LISTING_IDS)
         self.assertEqual(
             result["argv_prefix"][1:],
             ["--print", "--trust", "--auto-review", "--sandbox", "enabled"],
@@ -774,6 +837,47 @@ class ResolveBackendTests(unittest.TestCase):
         self.assertIsNone(result["launch"])
         self.assertEqual(result["model_ids"], [])
         self.assertEqual(self._calls(), ["models", "--list-models"])
+
+    def test_cursor_fast_variant_is_not_a_supported_model(self) -> None:
+        listing = (
+            "grok-4.7-high-fast - Grok 4.7 High Fast\n"
+            "grok-4.7-high - Grok 4.7 High\n"
+        )
+        self._write_cli(
+            "cursor-agent",
+            CURSOR_VERSION,
+            CURSOR_HELP_MODELS_SUBCOMMAND_ONLY,
+            {"models": (0, listing, "")},
+        )
+        result = self._resolve("cursor")
+        self.assertTrue(result["available"])
+        self.assertEqual(result["model_ids"], ["grok-4.7-high"])
+
+    def test_cursor_listing_of_only_a_fast_4_7_is_unavailable(self) -> None:
+        listing = "grok-4.7-high-fast - Grok 4.7 High Fast\n"
+        self._write_cli(
+            "cursor-agent",
+            CURSOR_VERSION,
+            CURSOR_HELP_MODELS_SUBCOMMAND_ONLY,
+            {"models": (0, listing, "")},
+        )
+        result = self._resolve("cursor")
+        self.assertFalse(result["available"])
+        self.assertEqual(result["reason"], "no_grok_4_7")
+        self.assertEqual(result["model_ids"], [])
+
+    def test_cursor_listing_without_grok_4_7_does_not_keep_4_6(self) -> None:
+        older = "cursor-grok-4.6-high - Cursor Grok 4.6\ncursor-grok-4.5-high - Cursor Grok 4.5\n"
+        self._write_cli(
+            "cursor-agent",
+            CURSOR_VERSION,
+            CURSOR_HELP_MODELS_SUBCOMMAND_ONLY,
+            {"models": (0, older, "")},
+        )
+        result = self._resolve("cursor")
+        self.assertFalse(result["available"])
+        self.assertEqual(result["reason"], "no_grok_4_7")
+        self.assertEqual(result["model_ids"], [])
 
     def test_cursor_without_grok_model(self) -> None:
         self._write_cli(
@@ -943,7 +1047,7 @@ class ResolveBackendTests(unittest.TestCase):
         result = self._resolve("cursor")
         self.assertIs(result["available"], True)
         self.assertIsNone(result["reason"])
-        self.assertEqual(result["model_ids"], ["grok-4"])
+        self.assertEqual(result["model_ids"], ["grok-4.7-high"])
 
     def test_unreadable_listing_is_named_apart_from_a_missing_grok_model(self) -> None:
         self._write_cli(
@@ -1004,7 +1108,7 @@ class ResolveBackendTests(unittest.TestCase):
             result = module.resolve("cursor")
         self.assertIs(result["available"], True)
         self.assertIsNone(result["reason"])
-        self.assertEqual(result["model_ids"], ["grok-4"])
+        self.assertEqual(result["model_ids"], ["grok-4.7-high"])
 
     def test_colour_survives_being_forced_past_the_probe_environment(self) -> None:
         # Second layer, proven independently: even if the environment request is
@@ -1031,7 +1135,7 @@ class ResolveBackendTests(unittest.TestCase):
                 result = module.resolve("cursor")
         self.assertIs(original("/nonexistent-cli", ["models"]), None)
         self.assertIs(result["available"], True)
-        self.assertEqual(result["model_ids"], ["grok-4"])
+        self.assertEqual(result["model_ids"], ["grok-4.7-high"])
 
     def test_probe_asks_the_cli_not_to_colour_its_output(self) -> None:
         # Belt to the parser's braces: a CLI that honours these never emits the

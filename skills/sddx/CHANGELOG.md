@@ -4,7 +4,13 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
-No entries yet.
+### Changed
+
+- Grok Build and Cursor Agent workers use only Grok 4.7, and not a `-fast`
+  serving variant. The resolver drops every other Grok generation and every
+  id that ends in `-fast`. Grok Build is launched with `--model grok-4.7`
+  plus the effort flag. Cursor is launched with a `grok-4.7-<effort>` id
+  that does not end in `-fast`.
 
 ## 4.0.3 - 2026-09-19
 

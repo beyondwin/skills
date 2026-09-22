@@ -5,7 +5,7 @@
 ## 목적
 
 Superpowers SDD는 지금 쓰는 Claude Code 또는 Codex가 진행하고, 구현만
-Cursor CLI 또는 Grok CLI에 넘깁니다.
+Cursor Agent 또는 Grok Build에 넘깁니다. 두 워커 모두 Grok 4.7만 쓰고, `-fast` 변형은 쓰지 않습니다.
 
 ## 사용할 때와 사용하지 않을 때
 

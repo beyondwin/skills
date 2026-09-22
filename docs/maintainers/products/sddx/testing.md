@@ -42,8 +42,15 @@ worktree를 만들고 Git 경로 계산, 기존 TOML 원문 복원, 재진입, �
 - Cursor Usage 줄에 `[prompt]` 또는 `[prompt...]`가 있어야 한다. 없으면
   `missing_flags`다. `build_argv`가 위치 인자로 prompt를 붙이기 때문이다.
 - Cursor 모델 목록 명령이 성공해 id를 읽었고 그중 Grok이 없으면 `no_grok_model`
-  이다. 선언된 목록 명령이 없거나 모두 실패하면 `no_model_list`, 목록은 왔으나
-  id를 하나도 읽지 못하면 `model_list_unreadable`이다.
+  이다. Grok id는 있는데 버전 세그먼트가 `4.7`인 것이 없으면 `no_grok_4_7`이다.
+  `cursor-grok-4.6-*`, `cursor-grok-4.5-*`, `-fast`로 끝나는 id는 목록에
+  있어도 `model_ids`에 들어가지 않는다. `-fast`만 있으면 `no_grok_4_7`이다. 선언된 목록 명령이 없거나 모두 실패하면 `no_model_list`,
+  목록은 왔으나 id를 하나도 읽지 못하면 `model_list_unreadable`이다.
+- Grok Build `models` 출력의 `* id (default)`와 `- id` 불릿에서 id를 읽는다.
+  `model_ids`는 정확히 `grok-4.7`만이다. `grok-4.7-build-fast`, `grok-4.6`,
+  `grok-4.5`는 빠진다. `grok-4.7`이 없으면 `no_grok_4_7`이다.
+- `run_worker.py`는 Grok과 Cursor 모두 `--model`을 넘긴다. Grok은 그 옆에
+  effort 플래그를 그대로 둔다. `model_ids` 밖의 id는 worker를 시작하지 않는다.
 - 모델 목록의 ANSI 색상 escape는 id의 일부가 아니다. 색을 입힌 목록은 평문
   목록과 동일하게 읽힌다. 탐사는 `FORCE_COLOR=0`·`NO_COLOR=1`·`CLICOLOR=0`을
   붙여 실행하며 나머지 환경은 그대로 상속한다.

@@ -48,8 +48,12 @@ Usage: grok [OPTIONS]
       --sandbox <PROFILE>
       --rules <RULES>
       --output-format <streaming-messages-json>
+      --model <MODEL>
   -p, --single <PROMPT>
   -r, --resume [<SESSION_ID>]
+
+Commands:
+  models                    List available models
 """
 GROK_HELP_WITH_PROMPT_FILE = GROK_HELP.replace(
     "  -p, --single <PROMPT>",
@@ -75,7 +79,13 @@ Options:
       --resume <id>
       --output-format <stream-json>
 """
-CURSOR_MODELS = "grok-4\ngrok-4-fast\n"
+CURSOR_MODELS = "grok-4.6-high\ngrok-4.7\ngrok-4.7-high\ngrok-4.7-high-fast\n"
+GROK_MODELS = """Available models:
+  * grok-4.7 (default)
+  - grok-4.7-build-fast
+  - grok-4.6
+  - grok-4.5
+"""
 # A synthetic listing whose IDs carry an effort segment, shaped like the real one.
 # No account is read; the text below is written by this test file.
 CURSOR_EFFORT_MODELS = (
@@ -293,8 +303,9 @@ class RunnerFixture(unittest.TestCase):
             raise RuntimeError(f"could not build a Windows launcher for {name}")
         return exes[0].resolve()
 
-    def write_grok(self, behaviour: str = BEHAVIOUR_OK, help_text: str = GROK_HELP) -> Path:
-        return self.write_cli("grok", GROK_VERSION, help_text, "", behaviour)
+    def write_grok(self, behaviour: str = BEHAVIOUR_OK, help_text: str = GROK_HELP,
+                   models: str = GROK_MODELS) -> Path:
+        return self.write_cli("grok", GROK_VERSION, help_text, models, behaviour)
 
     def write_cursor(self, behaviour: str = BEHAVIOUR_OK,
                      models: str = CURSOR_MODELS) -> Path:
@@ -307,6 +318,7 @@ class RunnerFixture(unittest.TestCase):
             "brief": self.brief,
             "attempt_dir": self.attempt,
             "effort": "high",
+            "model": "grok-4.7",
             "sandbox_profile": "sddx-worktree",
         }
         values.update(overrides)
@@ -426,7 +438,7 @@ class BuildArgvTests(RunnerFixture):
                 "effort_flag": "--reasoning-effort",
                 "output_format": "streaming-messages-json",
             },
-            "model_ids": [],
+            "model_ids": ["grok-4.7"],
         }
 
     def cursor_resolved(self) -> dict:
@@ -450,7 +462,7 @@ class BuildArgvTests(RunnerFixture):
                 "effort_flag": None,
                 "output_format": "stream-json",
             },
-            "model_ids": ["grok-4", "grok-4-fast"],
+            "model_ids": ["grok-4.7-high"],
         }
 
     def test_grok_argv_replaces_the_sandbox_value_and_carries_rules(self) -> None:
@@ -485,22 +497,23 @@ class BuildArgvTests(RunnerFixture):
         )
         self.assertEqual(argv[argv.index("--single") + 1], "INLINE DISPATCH BODY")
 
-    def test_grok_argv_never_names_a_model(self) -> None:
+    def test_grok_argv_pins_grok_4_7_and_keeps_the_effort_flag(self) -> None:
         module = self.load()
         argv = module.build_argv(
             self.grok_resolved(), self.options(module), self.dispatch_file(), self.RULES
         )
-        self.assertNotIn("--model", argv)
+        self.assertEqual(argv[argv.index("--model") + 1], "grok-4.7")
+        self.assertEqual(argv[argv.index("--reasoning-effort") + 1], "high")
 
     def test_cursor_argv_ends_with_the_dispatch_text(self) -> None:
         module = self.load()
         dispatch = self.dispatch_file("CURSOR DISPATCH BODY")
         options = self.options(
-            module, backend="cursor", model="grok-4", sandbox_profile=None
+            module, backend="cursor", model="grok-4.7-high", sandbox_profile=None
         )
         argv = module.build_argv(self.cursor_resolved(), options, dispatch, self.RULES)
         self.assertEqual(argv[-1], "CURSOR DISPATCH BODY")
-        self.assertEqual(argv[argv.index("--model") + 1], "grok-4")
+        self.assertEqual(argv[argv.index("--model") + 1], "grok-4.7-high")
         self.assertEqual(argv[argv.index("--workspace") + 1], str(self.worktree))
         self.assertEqual(argv[argv.index("--output-format") + 1], "stream-json")
         self.assertEqual(argv.count("--sandbox"), 1)
@@ -509,7 +522,7 @@ class BuildArgvTests(RunnerFixture):
     def test_cursor_argv_has_no_rules_or_effort_flag(self) -> None:
         module = self.load()
         options = self.options(
-            module, backend="cursor", model="grok-4", sandbox_profile=None
+            module, backend="cursor", model="grok-4.7-high", sandbox_profile=None
         )
         argv = module.build_argv(
             self.cursor_resolved(), options, self.dispatch_file(), self.RULES
@@ -522,7 +535,7 @@ class BuildArgvTests(RunnerFixture):
         module = self.load()
         for resolved, extra in (
             (self.grok_resolved(), {}),
-            (self.cursor_resolved(), {"backend": "cursor", "model": "grok-4",
+            (self.cursor_resolved(), {"backend": "cursor", "model": "grok-4.7-high",
                                       "sandbox_profile": None}),
         ):
             with self.subTest(backend=resolved["backend"]):
@@ -537,7 +550,7 @@ class BuildArgvTests(RunnerFixture):
         resume = "not-a-uuid/session:42 한글"
         for resolved, extra in (
             (self.grok_resolved(), {}),
-            (self.cursor_resolved(), {"backend": "cursor", "model": "grok-4",
+            (self.cursor_resolved(), {"backend": "cursor", "model": "grok-4.7-high",
                                       "sandbox_profile": None}),
         ):
             with self.subTest(backend=resolved["backend"]):
@@ -553,7 +566,7 @@ class BuildArgvTests(RunnerFixture):
         module = self.load()
         for resolved, extra in (
             (self.grok_resolved(), {}),
-            (self.cursor_resolved(), {"backend": "cursor", "model": "grok-4",
+            (self.cursor_resolved(), {"backend": "cursor", "model": "grok-4.7-high",
                                       "sandbox_profile": None}),
         ):
             with self.subTest(backend=resolved["backend"]):
@@ -779,18 +792,31 @@ class AttemptDirectoryTests(RunnerFixture):
         self.assert_no_worker_invocation()
         self.assertFalse(self.attempt.exists())
 
-    def test_grok_with_an_explicit_model_never_starts_a_worker(self) -> None:
+    def test_grok_without_a_model_never_starts_a_worker(self) -> None:
         module = self.load()
         self.write_grok()
-        code = self.invoke(module, self.options(module, model="grok-4"))
+        code = self.invoke(module, self.options(module, model=None))
         self.assertEqual(code, 2)
         self.assert_no_worker_invocation()
+        self.assertFalse(self.attempt.exists())
+
+    def test_grok_model_other_than_4_7_never_starts_a_worker(self) -> None:
+        module = self.load()
+        self.write_grok()
+        for model in ("grok-4.6", "grok-4.7-build-fast"):
+            with self.subTest(model=model):
+                if self.attempt.exists():
+                    shutil.rmtree(self.attempt)
+                code = self.invoke(module, self.options(module, model=model))
+                self.assertEqual(code, 2)
+                self.assert_no_worker_invocation()
+                self.assertEqual(self.metadata()["state"], "launch_failed")
 
     def test_cursor_with_a_sandbox_profile_never_starts_a_worker(self) -> None:
         module = self.load()
         self.write_cursor()
         options = self.options(
-            module, backend="cursor", model="grok-4", sandbox_profile="sddx-worktree"
+            module, backend="cursor", model="grok-4.7-high", sandbox_profile="sddx-worktree"
         )
         code = self.invoke(module, options)
         self.assertEqual(code, 2)
@@ -878,7 +904,7 @@ class WorkerExecutionTests(RunnerFixture):
         self.assertEqual(metadata["state"], "exited")
         self.assertEqual(metadata["exit_code"], 7)
         self.assertEqual(metadata["backend"], "grok")
-        self.assertIsNone(metadata["model"])
+        self.assertEqual(metadata["model"], "grok-4.7")
         self.assertEqual(metadata["requested_effort"], "high")
         self.assertEqual(metadata["configured_effort"], "high")
         self.assertIsNone(metadata["resume_id"])
@@ -1137,6 +1163,8 @@ class WorkerArgvTests(RunnerFixture):
         self.assertEqual(
             received[received.index("--output-format") + 1], "streaming-messages-json"
         )
+        self.assertEqual(received[received.index("--model") + 1], "grok-4.7")
+        self.assertEqual(received[received.index("--reasoning-effort") + 1], "high")
         prompt = received[received.index("--single") + 1]
         self.assertEqual(prompt, (self.attempt / "dispatch.md").read_text(encoding="utf-8"))
         self.assertIn(str(self.attempt / "brief.md"), prompt)
@@ -1155,7 +1183,7 @@ class WorkerArgvTests(RunnerFixture):
         module = self.load()
         self.write_cursor(BEHAVIOUR_OK)
         options = self.options(
-            module, backend="cursor", model="grok-4-fast", sandbox_profile=None
+            module, backend="cursor", model="grok-4.7", sandbox_profile=None
         )
         self.invoke(module, options)
         received = self.worker_argv()
@@ -1166,7 +1194,7 @@ class WorkerArgvTests(RunnerFixture):
         self.assertNotIn("--yolo", received)
         self.assertEqual(received.count("--sandbox"), 1)
         self.assertEqual(received[received.index("--sandbox") + 1], "enabled")
-        self.assertEqual(received[received.index("--model") + 1], "grok-4-fast")
+        self.assertEqual(received[received.index("--model") + 1], "grok-4.7")
         self.assertEqual(received[received.index("--output-format") + 1], "stream-json")
         self.assertEqual(received[received.index("--workspace") + 1], str(self.worktree))
         self.assertNotIn("--rules", received)
@@ -1175,17 +1203,17 @@ class WorkerArgvTests(RunnerFixture):
         self.assertIn(WORKER_PROMPT.read_text(encoding="utf-8"), prompt)
         self.assertIn(str(self.attempt / "brief.md"), prompt)
         self.assertIn(str(self.attempt / "report.md"), prompt)
-        self.assertEqual(self.metadata()["model"], "grok-4-fast")
+        self.assertEqual(self.metadata()["model"], "grok-4.7")
         self.assertIsNone(self.metadata()["configured_effort"])
         self.assertEqual(self.metadata()["requested_effort"], "high")
 
     def test_cursor_model_declaring_no_effort_is_still_accepted(self) -> None:
         module = self.load()
-        self.write_cursor(models=CURSOR_EFFORT_MODELS)
+        self.write_cursor(models="grok-4.7\n" + CURSOR_EFFORT_MODELS)
         options = self.options(
             module,
             backend="cursor",
-            model="grok-4-fast",
+            model="grok-4.7",
             effort="xhigh",
             sandbox_profile=None,
         )
@@ -1196,11 +1224,14 @@ class WorkerArgvTests(RunnerFixture):
 
     def test_cursor_records_the_effort_its_model_id_declares(self) -> None:
         module = self.load()
-        self.write_cursor(BEHAVIOUR_OK, models=CURSOR_EFFORT_MODELS)
+        self.write_cursor(
+            BEHAVIOUR_OK,
+            models="grok-4.7-xhigh\ngrok-4.7-xhigh-fast\n" + CURSOR_EFFORT_MODELS,
+        )
         options = self.options(
             module,
             backend="cursor",
-            model="cursor-grok-4.6-xhigh-fast",
+            model="grok-4.7-xhigh",
             effort="xhigh",
             sandbox_profile=None,
         )
@@ -1320,6 +1351,8 @@ class CliTests(RunnerFixture):
                     "high",
                     "--sandbox-profile",
                     "sddx-worktree",
+                    "--model",
+                    "grok-4.7",
                 ]
             )
         self.assertEqual(code, 7)
@@ -1343,7 +1376,7 @@ class CliTests(RunnerFixture):
                     "--effort",
                     "high",
                     "--model",
-                    "grok-4",
+                    "grok-4.7-high",
                     "--resume",
                     "known-session-id",
                 ]
@@ -1834,6 +1867,8 @@ class AttemptTimeoutTests(RunnerFixture):
                     "high",
                     "--sandbox-profile",
                     "sddx-worktree",
+                    "--model",
+                    "grok-4.7",
                     "--timeout",
                     "0.5",
                 ]
@@ -1871,7 +1906,7 @@ class WorkerEnvironmentTests(RunnerFixture):
         module = self.load()
         self.write_cursor(behaviour="print(os.environ.get('GROK_CURSOR_MCPS_ENABLED'))\n")
         with mock.patch.dict(os.environ, {"GROK_CURSOR_MCPS_ENABLED": "keep"}):
-            self.assertEqual(self.invoke(module, self.options(module, backend="cursor", model="grok-4", sandbox_profile=None)), 0)
+            self.assertEqual(self.invoke(module, self.options(module, backend="cursor", model="grok-4.7-high", sandbox_profile=None)), 0)
         self.assertEqual((self.attempt / "worker.jsonl").read_text().strip(), "keep")
         self.assertNotIn("--disallowed-tools", self.worker_argv())
         self.assertNotIn("--deny", self.worker_argv())
