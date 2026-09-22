@@ -66,6 +66,26 @@ SHARED_RELEASE_PATHS = (
     "scripts/lib/product_contract.py",
     "scripts/lib/product_registry.py",
 )
+SDDX_PAYLOAD_FILES = frozenset(
+    {
+        ".claude-plugin/plugin.json",
+        "CHANGELOG.md",
+        "LICENSE.txt",
+        "README.en.md",
+        "README.md",
+        "SKILL.md",
+        "agents/openai.yaml",
+        "agents/sddx-reviewer-xhigh.md",
+        "references/current-state.md",
+        "references/dispatch.md",
+        "references/worker-prompt.md",
+        "release.toml",
+        "scripts/extract_task.py",
+        "scripts/prepare_grok_sandbox.py",
+        "scripts/resolve_backend.py",
+        "scripts/run_worker.py",
+    }
+)
 PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     {
         "CHANGELOG.md",
@@ -559,7 +579,34 @@ def _run_product_smoke(root: Path, name: str, skill_root: Path) -> list[str]:
         return _smoke_how_it_works(skill_root)
     if name == "pre-sdd-review":
         return _smoke_pre_sdd_review(skill_root)
+    if name == "sddx":
+        return _smoke_sddx(skill_root)
     return [f"unlisted skill is not accepted: {name}"]
+
+
+def _smoke_sddx(skill_root: Path) -> list[str]:
+    present = {
+        path.relative_to(skill_root).as_posix()
+        for path in skill_root.rglob("*")
+        if path.is_file()
+    }
+    errors = [
+        f"sddx: missing payload member: {relative}"
+        for relative in sorted(SDDX_PAYLOAD_FILES - present)
+    ]
+    errors.extend(
+        f"sddx: unexpected payload member: {relative}"
+        for relative in sorted(present - SDDX_PAYLOAD_FILES)
+    )
+    if errors:
+        return errors
+    skill = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+    dispatch = (skill_root / "references" / "dispatch.md").read_text(encoding="utf-8")
+    if "--model grok-4.7" not in skill or "end in `-fast`" not in skill:
+        errors.append("sddx: SKILL.md does not pin non-fast Grok 4.7")
+    if "not pass a `-fast` id." not in dispatch:
+        errors.append("sddx: dispatch.md does not refuse a -fast model")
+    return errors
 
 
 def _smoke_pre_sdd_review(skill_root: Path) -> list[str]:

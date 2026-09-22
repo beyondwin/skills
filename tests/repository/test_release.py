@@ -319,6 +319,10 @@ class ProductDownloadTests(unittest.TestCase):
                 release.build_product(ROOT, name, output, require_release_entry=False)
                 self.assertEqual(release.verify_product_download(ROOT, name, output), [])
 
+    def test_verify_product_download_runs_sddx_smoke(self) -> None:
+        release.build_product(ROOT, "sddx", self.output, require_release_entry=False)
+        self.assertEqual(release.verify_product_download(ROOT, "sddx", self.output), [])
+
     def test_verify_product_download_runs_pre_sdd_review_smoke(self) -> None:
         release.build_product(
             ROOT,
