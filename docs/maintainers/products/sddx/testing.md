@@ -159,6 +159,15 @@ git diff --check
 라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있습니다. CI가 요구하지
 않습니다. 오프라인 통과를 호스트 품질로 설명하지 마세요.
 
+## 5.0.0 오프라인 검사
+
+5.0.0의 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다.
+resolver가 Grok 4.7이 아닌 id와 `-fast` id를 `model_ids`에서 빼는지, Grok
+`run`이 `--model grok-4.7`을 넘기는지를 잠급니다. 이 변경에서
+`python3 scripts/verify.py`는 exit 0이었고 `sddx-contract`는 320개
+테스트였습니다. 라이브 워커 재실행은 요구하지 않습니다. 4.0.3의 XHigh
+로딩과 워커 스모크는 이 버전에서 다시 돌리지 않았습니다.
+
 ## 4.0.3 오프라인 검사
 
 4.0.3의 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다.

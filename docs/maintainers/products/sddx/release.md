@@ -6,10 +6,12 @@
 
 공개 sddx 릴리스는 아직 없습니다. 이 제품은 통합 `v2.0.0` GitHub Release와
 불변 카탈로그 lock에 포함되지 않았습니다. 지금 개발 중인 독립 버전은
-`4.0.3`이며 `release.toml`이 원본입니다. 태그와 아티팩트는 없습니다.
+`5.0.0`이며 `release.toml`이 원본입니다. 태그와 아티팩트는 없습니다.
 
-`4.0.3` 변경은 CHANGELOG의 `## 4.0.3 - 2026-09-19`에 있습니다. 공개 태그를
-만들 때 이 절을 확정하고 새 빈 `Unreleased` 절을 엽니다.
+`5.0.0`은 워커 모델 계약의 비호환 변경입니다. Grok Build와 Cursor Agent는
+Grok 4.7만 쓰고, `-fast` 변형은 쓰지 않습니다. Grok은 `--model grok-4.7`이
+필수입니다. 변경은 CHANGELOG의 `## 5.0.0 - 2026-09-22`에 있습니다. 공개
+태그는 아직 없습니다. `4.0.3` 변경은 `## 4.0.3 - 2026-09-19`에 남아 있습니다.
 `release.toml`, `SKILL.md` `metadata.version`,
 `.claude-plugin/plugin.json`의 `version`은 항상 같은 값이어야 합니다.
 

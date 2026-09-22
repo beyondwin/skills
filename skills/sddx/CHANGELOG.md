@@ -4,7 +4,11 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
-### Changed
+No entries yet.
+
+## 5.0.0 - 2026-09-22
+
+### Breaking
 
 - Grok Build and Cursor Agent workers use only Grok 4.7, and not a `-fast`
   serving variant. The resolver drops every other Grok generation and every
