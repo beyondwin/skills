@@ -626,6 +626,16 @@ def compatibility_document_errors(text: str) -> tuple[str, ...]:
     return tuple(errors)
 
 
+FORBIDDEN_RELEASE_COMMANDS = (
+    "git push",
+    "git tag",
+    "gh release",
+    "twine upload",
+    "npm publish",
+    "uv publish",
+)
+
+
 def release_document_errors(text: str) -> tuple[str, ...]:
     release = tomllib.loads((SKILL / "release.toml").read_text(encoding="utf-8"))
     errors: list[str] = []
@@ -636,6 +646,9 @@ def release_document_errors(text: str) -> tuple[str, ...]:
         errors.append("release check pointer differs")
     if "docs/maintainers/repository/release.md" not in text:
         errors.append("repository release owner pointer differs")
+    lowered = text.lower()
+    if any(command in lowered for command in FORBIDDEN_RELEASE_COMMANDS):
+        errors.append("release document contains a publication instruction")
     return tuple(errors)
 
 
@@ -1902,6 +1915,27 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         self.assertIn("case inventory differs", testing_document_errors(missing_case))
         changed_host = compatibility.replace("| `codex` | `supported` |", "| `codex` | `not_measured` |")
         self.assertIn("host matrix differs from products.toml", compatibility_document_errors(changed_host))
+
+    def test_release_validator_rejects_appended_publish_commands(self) -> None:
+        release = (MAINTAINERS / "release.md").read_text(encoding="utf-8")
+        self.assertEqual(release_document_errors(release), ())
+        mutations = (
+            release + "\n```sh\ngit push origin pre-sdd-review-v1.0.0\n```\n",
+            release + "\n```bash\nGIT PUSH origin pre-sdd-review-v1.0.0\n```\n",
+            release + "\n~~~sh\ngit push origin pre-sdd-review-v1.0.0\n~~~\n",
+            release + "\n    git push origin pre-sdd-review-v1.0.0\n",
+            release + "\n```text\ntrue && git tag pre-sdd-review-v1.0.0\n```\n",
+            release + "\n```sh\ngh release create pre-sdd-review-v1.0.0\n```\n",
+            release + "\n```sh\npython3 -m twine upload dist/*\n```\n",
+            release + "\n```sh\nnpm publish\n```\n",
+            release + "\n```sh\nuv publish dist/*\n```\n",
+        )
+        for mutation in mutations:
+            with self.subTest(mutation=mutation):
+                self.assertIn(
+                    "release document contains a publication instruction",
+                    release_document_errors(mutation),
+                )
 
 
 class PreSddReviewFixtureTests(unittest.TestCase):
