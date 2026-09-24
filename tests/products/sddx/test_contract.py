@@ -384,6 +384,19 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("기본값은 7200", fold(contract))
         self.assertNotIn("defaults to 3600", fold(dispatch))
 
+    def test_grok_tools_index_is_on_every_face(self) -> None:
+        dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
+        contract = (
+            ROOT / "docs" / "maintainers" / "products" / "sddx" / "contract.md"
+        ).read_text(encoding="utf-8")
+        testing = (
+            ROOT / "docs" / "maintainers" / "products" / "sddx" / "testing.md"
+        ).read_text(encoding="utf-8")
+        fold = lambda value: re.sub(r"\s+", " ", value)
+        self.assertIn("Grok `tool_use`", fold(dispatch))
+        self.assertIn("Grok `tool_use`", fold(contract))
+        self.assertIn("Cursor·Grok 두 로그 형태의 bounded tools index", fold(testing))
+
     def test_dispatch_opens_with_controller_procedure(self) -> None:
         text = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
         self.assertIn("## Controller procedure", text)

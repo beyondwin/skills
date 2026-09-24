@@ -317,7 +317,10 @@ log body. Role compliance is still the controller's.
   process. It is not written to `run.json` either.
 - `tools` holds `reads` (paths), `searches` (`pattern` / `path`), `shells`
   (`exit_code` / `command`), and `truncated`. Caps are 64 / 32 / 32 / 200
-  command characters. Unknown tool shapes are empty lists, not an error.
+  command characters. It reads Cursor `tool_call` events and Grok `tool_use`
+  items; a Grok `list_dir` is a search with `pattern` null, and a Grok shell's
+  `exit_code` is null when no integer exit came back (a background task, or a
+  worker stopped first). Unknown tool shapes are empty lists, not an error.
   File contents, stdout, stderr, and thinking stay out.
 
 A window needs `--stream`; it defaults to 2048 bytes with a maximum of 8192,

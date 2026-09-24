@@ -3,7 +3,8 @@
 Every attempt directory here is written by the test itself. No worker is ever
 launched, no provider CLI is invoked, and no account or network is touched. The
 logs are synthetic bytes chosen to exercise UTF-8 boundaries and Cursor-shaped
-`tool_call` objects; nothing in them is a real provider transcript. Window tests
+`tool_call` objects and Grok-shaped `tool_use`/`tool_result` items; nothing in
+them is a real provider transcript. Window tests
 assert raw byte positions only. The default payload may copy a bounded tools
 index of paths, search patterns, and shell commands, but never log bodies,
 result `content`/`stdout`/`stderr`, or thinking text.
@@ -391,6 +392,99 @@ class DefaultStatusTests(StatusFixture):
             payload["tools"]["searches"],
             [{"pattern": "tests/*.py", "path": "/work"}],
         )
+
+    def grok_line(self, role: str, items: list[dict]) -> str:
+        return json.dumps({"type": role, "message": {"role": role, "content": items}})
+
+    def test_grok_tools_index_copies_reads_searches_and_shells(self) -> None:
+        # Break: Grok logs index as empty, a grep result's exit_code becomes a
+        # shell, or a result body leaks into status.
+        module = self.load()
+        self.write_metadata()
+        secret = "SYNTHETIC_GROK_BODY_SHOULD_NOT_LEAK"
+        lines = [
+            json.dumps({"type": "system", "subtype": "init", "session_id": "synthetic-grok"}),
+            self.grok_line("assistant", [
+                {"type": "text", "text": secret},
+                {"type": "tool_use", "id": "t1", "name": "read_file", "input": {"target_file": "/work/brief.md"}},
+                {"type": "tool_use", "id": "t1b", "name": "read_file", "input": {"target_file": "/work/brief.md"}},
+                {"type": "tool_use", "id": "t2", "name": "grep", "input": {"pattern": "def gate\\(", "path": "/work/src"}},
+                {"type": "tool_use", "id": "t3", "name": "list_dir", "input": {"target_directory": "/work"}},
+                {"type": "tool_use", "id": "t4", "name": "run_terminal_command", "input": {"command": "python3 -m unittest", "description": "tests"}},
+                {"type": "tool_use", "id": "t5", "name": "run_terminal_command", "input": {"command": "pnpm e2e", "description": "background"}},
+                {"type": "tool_use", "id": "t6", "name": "search_replace", "input": {"file_path": "/work/a.py", "old_string": secret, "new_string": secret}},
+            ]),
+            self.grok_line("user", [
+                {"type": "tool_result", "tool_use_id": "t1", "is_error": False, "content": json.dumps({"type": "FileContent", "content": secret})},
+                {"type": "tool_result", "tool_use_id": "t2", "is_error": False, "content": json.dumps({"type": "Grep", "stdout": secret, "exit_code": 0})},
+                {"type": "tool_result", "tool_use_id": "t4", "is_error": False, "content": json.dumps({"type": "Shell", "output": secret, "exit_code": 1})},
+                {"type": "tool_result", "tool_use_id": "t5", "is_error": False, "content": json.dumps({"type": "BackgroundTaskStarted", "task_id": "b1", "status": "running"})},
+            ]),
+        ]
+        self.write_stdout(("\n".join(lines) + "\n").encode("utf-8"))
+        payload = module.read_status(self.attempt)
+        self.assertEqual(payload["tools"]["reads"], ["/work/brief.md"])
+        self.assertEqual(
+            payload["tools"]["searches"],
+            [
+                {"pattern": "def gate\\(", "path": "/work/src"},
+                {"pattern": None, "path": "/work"},
+            ],
+        )
+        self.assertEqual(
+            payload["tools"]["shells"],
+            [
+                {"exit_code": 1, "command": "python3 -m unittest"},
+                {"exit_code": None, "command": "pnpm e2e"},
+            ],
+        )
+        self.assertIs(payload["tools"]["truncated"], False)
+        self.assertNotIn(secret, json.dumps(payload, ensure_ascii=False))
+
+    def test_grok_results_in_odd_shapes_never_fail_status(self) -> None:
+        # Break: a list-shaped, non-JSON, or unhashable-id result fails the query.
+        module = self.load()
+        self.write_metadata()
+        lines = [
+            self.grok_line("assistant", [
+                {"type": "tool_use", "id": "s1", "name": "run_terminal_command", "input": {"command": "true"}},
+                {"type": "tool_use", "id": "s2", "name": "run_terminal_command", "input": {"command": "false"}},
+                {"type": "tool_use", "id": "s3", "name": "run_terminal_command", "input": {"command": 7}},
+                {"type": "tool_use", "id": "s4", "name": "read_file", "input": "not a dict"},
+            ]),
+            self.grok_line("user", [
+                {"type": "tool_result", "tool_use_id": "s1", "content": [{"type": "text", "text": json.dumps({"exit_code": 0})}]},
+                {"type": "tool_result", "tool_use_id": "s2", "content": "not json"},
+                {"type": "tool_result", "tool_use_id": {"odd": 1}, "content": "{}"},
+                {"type": "tool_result", "tool_use_id": "s3", "content": json.dumps({"exit_code": True})},
+            ]),
+            json.dumps({"type": "assistant", "message": "plain text"}),
+            json.dumps({"type": "user", "message": {"content": "plain text"}}),
+        ]
+        self.write_stdout(("\n".join(lines) + "\n").encode("utf-8"))
+        payload = module.read_status(self.attempt)
+        self.assertEqual(
+            payload["tools"]["shells"],
+            [
+                {"exit_code": 0, "command": "true"},
+                {"exit_code": None, "command": "false"},
+                {"exit_code": None, "command": ""},
+            ],
+        )
+        self.assertEqual(payload["tools"]["reads"], [])
+
+    def test_grok_shells_share_the_cap_and_truncate(self) -> None:
+        module = self.load()
+        self.write_metadata()
+        items = [
+            {"type": "tool_use", "id": f"s{n}", "name": "run_terminal_command", "input": {"command": "x" * 300}}
+            for n in range(33)
+        ]
+        self.write_stdout((self.grok_line("assistant", items) + "\n").encode("utf-8"))
+        tools = module.read_status(self.attempt)["tools"]
+        self.assertEqual(len(tools["shells"]), 32)
+        self.assertEqual(len(tools["shells"][0]["command"]), 200)
+        self.assertIs(tools["truncated"], True)
 
 
 class MetadataTests(StatusFixture):

@@ -747,14 +747,110 @@ def _append_capped(items: list[Any], item: Any, cap: int, index: dict[str, Any])
     return True
 
 
+GROK_SHELL_TOOL = "run_terminal_command"
+
+
+def _message_items(event: dict[str, Any]) -> list[Any]:
+    """The content items of a Grok `assistant`/`user` event, or none."""
+    message = event.get("message")
+    if not isinstance(message, dict):
+        return []
+    content = message.get("content")
+    return content if isinstance(content, list) else []
+
+
+def _grok_exit_code(content: object) -> int | None:
+    """The integer `exit_code` inside a Grok shell result, never its body."""
+    if isinstance(content, list):
+        texts = [
+            item.get("text")
+            for item in content
+            if isinstance(item, dict) and isinstance(item.get("text"), str)
+        ]
+        content = texts[0] if texts else None
+    if isinstance(content, str):
+        try:
+            content = json.loads(content)
+        except (json.JSONDecodeError, RecursionError):
+            return None
+    if not isinstance(content, dict):
+        return None
+    value = content.get("exit_code")
+    if isinstance(value, int) and not isinstance(value, bool):
+        return value
+    return None
+
+
+def _index_grok_items(
+    items: list[Any],
+    index: dict[str, Any],
+    seen_reads: set[str],
+    shells_by_id: dict[str, dict[str, Any]],
+) -> None:
+    """Add Grok `tool_use` calls, and the exit of a shell's `tool_result`.
+
+    A shell is known by its tool name alone: grep results carry `exit_code`
+    too. A shell whose result never arrives, or carries no integer exit (a
+    background task), keeps `exit_code: None`.
+    """
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        kind = item.get("type")
+        if kind == "tool_use":
+            name = item.get("name")
+            args = item.get("input")
+            if not isinstance(args, dict):
+                continue
+            if name == "read_file":
+                path_value = args.get("target_file")
+                if isinstance(path_value, str) and path_value not in seen_reads:
+                    if _append_capped(index["reads"], path_value, TOOLS_READ_CAP, index):
+                        seen_reads.add(path_value)
+            elif name == "grep":
+                _append_capped(
+                    index["searches"],
+                    {"pattern": _first_str(args, "pattern"), "path": _first_str(args, "path")},
+                    TOOLS_SEARCH_CAP,
+                    index,
+                )
+            elif name == "list_dir":
+                _append_capped(
+                    index["searches"],
+                    {"pattern": None, "path": _first_str(args, "target_directory")},
+                    TOOLS_SEARCH_CAP,
+                    index,
+                )
+            elif name == GROK_SHELL_TOOL:
+                command = args.get("command")
+                if not isinstance(command, str):
+                    command = ""
+                entry: dict[str, Any] = {
+                    "exit_code": None,
+                    "command": command[:TOOLS_COMMAND_CHARS],
+                }
+                if _append_capped(index["shells"], entry, TOOLS_SHELL_CAP, index):
+                    tool_id = item.get("id")
+                    if isinstance(tool_id, str):
+                        shells_by_id[tool_id] = entry
+        elif kind == "tool_result":
+            tool_id = item.get("tool_use_id")
+            if not isinstance(tool_id, str):
+                continue
+            entry = shells_by_id.pop(tool_id, None)
+            if entry is not None:
+                entry["exit_code"] = _grok_exit_code(item.get("content"))
+
+
 def read_tools_index(path: Path) -> dict[str, Any]:
     """Copy a bounded index of read, search, and shell tool calls from a log.
 
-    Only `type == tool_call` objects are considered. Result bodies, thinking
-    text, and unknown tool shapes are skipped. A missing file is an empty index,
-    not an error. Caps are hard: extra entries set `truncated` and are not
-    appended. This projection is not a judgement of DONE, 402, or role
-    compliance.
+    Two shapes are read: Cursor `type == tool_call` objects, and Grok
+    `assistant`/`user` events whose `message.content` holds `tool_use` and
+    `tool_result` items. Result bodies, thinking text, and unknown tool shapes
+    are skipped. A missing file is an empty index, not an error. Caps are hard:
+    extra entries set `truncated` and are not appended. This projection is not
+    a judgement of DONE, 402, or role compliance.
     """
     index: dict[str, Any] = {
         "reads": [],
@@ -765,6 +861,7 @@ def read_tools_index(path: Path) -> dict[str, Any]:
     if not path.is_file():
         return index
     seen_reads: set[str] = set()
+    shells_by_id: dict[str, dict[str, Any]] = {}
     try:
         handle = path.open("rb")
     except FileNotFoundError:
@@ -775,7 +872,12 @@ def read_tools_index(path: Path) -> dict[str, Any]:
                 event = json.loads(raw)
             except (json.JSONDecodeError, UnicodeDecodeError, RecursionError):
                 continue
-            if not isinstance(event, dict) or event.get("type") != "tool_call":
+            if not isinstance(event, dict):
+                continue
+            if event.get("type") in ("assistant", "user"):
+                _index_grok_items(_message_items(event), index, seen_reads, shells_by_id)
+                continue
+            if event.get("type") != "tool_call":
                 continue
             tool_call = event.get("tool_call")
             if not isinstance(tool_call, dict):

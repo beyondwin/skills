@@ -300,7 +300,10 @@ Superpowers `sdd-workspace`가 만든 계획 디렉터리 아래의 새 폴더�
   그대로이고, 두 값이 엇갈릴 일이 없습니다. 러너가 기록하기 전에 죽어도 워커 세션을
   재개할 수 있게 하려는 것이며, `run.json`에 쓰지 않습니다.
 - `tools`는 로그에서 복사한 짧은 목록입니다. `reads`(경로), `searches`(검색어·경로),
-  `shells`(종료 코드·명령), `truncated`. 파일 내용, stdout, stderr, thinking은
+  `shells`(종료 코드·명령), `truncated`. Cursor `tool_call` 이벤트와 Grok
+  `tool_use` 항목을 읽습니다. Grok `list_dir`은 `pattern`이 null인 검색이고,
+  정수 종료 코드가 돌아오지 않은 Grok 셸(백그라운드 작업, 먼저 멈춘 worker)의
+  `exit_code`는 null입니다. 파일 내용, stdout, stderr, thinking은
   없습니다. 한도: 읽기 64, 검색 32, 셸 32, 명령 200자. 알 수 없는 도구 모양은
   빈 목록이며 오류가 아닙니다. JSON이 아니거나 너무 깊은 줄은 건너뜁니다.
 
