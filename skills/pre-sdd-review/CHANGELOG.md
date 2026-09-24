@@ -22,6 +22,7 @@ All notable changes to this product are documented in this file.
 
 - 기록기에 `repair_after_last_review`와 `open_blocker_without_blocked_verdict` 관찰 이상이 늘었습니다. `repair_without_repaired_finding`은 수리한 기록이 하나도 없을 때만 뜹니다.
 - Record schema는 4 그대로이고 `repair_passes` 0..3, `review_passes` 1..4를 받습니다. 5.1.0이 쓴 3회 수리 record는 5.0.0 기록기가 읽지 못합니다. Handshake `cli_version`은 5.1.0입니다. GitHub 태그와 Release는 만들지 않습니다.
+- `### Contract`의 `handoff` 값 `full-execution-only`가 `reusable-execution-only`로 바뀌었고, `continuation` 키(`docs-only-diff`, `closure-first`, `recorded-run-required`)가 새로 생겼으며, `repair-passes`의 `costless-repairs-uncounted`가 `residual-pass-once`, `applied-passes-counted`로 바뀌었습니다.
 
 ## 5.0.0 - 2026-09-19
 
