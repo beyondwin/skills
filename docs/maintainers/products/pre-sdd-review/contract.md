@@ -249,7 +249,7 @@ dirty 집합에 없습니다. 그 구멍은 기계점검이 잡습니다.
 `python3 "<skill-root>/evidence/evidence.py" --version`을 실행하고,
 handshake가 정확히 `skill_name=pre-sdd-review`와 `schema=4`일 때만
 기록합니다. 정규 한 줄은
-`{"cli_version":"5.0.0","schema":4,"skill_name":"pre-sdd-review"}` 뒤에
+`{"cli_version":"5.1.0","schema":4,"skill_name":"pre-sdd-review"}` 뒤에
 LF 하나입니다. 호환되면 `start` 전에 `summary --repo <표시 이름>`을 실행해
 `runs`와 `chains`에서 그 계획을 찾습니다. 같은 `repo` 표시 이름과 계획 경로가
 `pending`이면 그 run을 `abandon`합니다. 그 계획의 마지막 완료 판정이 `REVISE`

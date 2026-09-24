@@ -18,7 +18,7 @@ The compatibility handshake is exactly `skill_name=pre-sdd-review` and
 `schema=4`. The canonical version output is one JSON line followed by one LF:
 
 ```json
-{"cli_version":"5.0.0","schema":4,"skill_name":"pre-sdd-review"}
+{"cli_version":"5.1.0","schema":4,"skill_name":"pre-sdd-review"}
 ```
 
 ## Data and checkout identity

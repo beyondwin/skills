@@ -4,6 +4,25 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 5.1.0 - 2026-09-24
+
+### Changed
+
+- `REVISE`나 `BLOCKED` 뒤 바뀐 것이 설계·계획·원장뿐이면 새 발견 없이 닫힘부터 이어 검토합니다. 이 계획의 기록 run이 있어야 합니다.
+- 두 번째 종결 뒤 원래 기록의 `IMPORTANT` 2건 이하가 한 자리 수정으로 남으면 같은 호출에서 한 번 더 고칩니다.
+- `repair_passes`는 적용한 수리 패스를 셉니다. `repaired`는 종결 검토자가 닫은 기록에만 쓰고, 마지막 동작이 수리이면 `READY`가 아닙니다.
+- 열린 `BLOCKER`는 `BLOCKED`입니다. 답이 없는 사용자 결정 앞에서는 검토자를 다시 부르지 않고, 새 결정이 세 판 연속 나오면 설계로 돌려보냅니다.
+- 집중 위험 역할은 발견하는 호출에서만 부릅니다. `focused-role-not-obtained`만 있는 `degraded`는 재사용과 이어 검토를 막지 않습니다.
+
+### Removed
+
+- 무비용 수리 회계와 `summary.counts.costless_repairs`.
+
+### Notes
+
+- 기록기에 `repair_after_last_review`와 `open_blocker_without_blocked_verdict` 관찰 이상이 늘었습니다. `repair_without_repaired_finding`은 수리한 기록이 하나도 없을 때만 뜹니다.
+- Record schema는 4 그대로이고 `repair_passes` 0..3, `review_passes` 1..4를 받습니다. 5.1.0이 쓴 3회 수리 record는 5.0.0 기록기가 읽지 못합니다. Handshake `cli_version`은 5.1.0입니다. GitHub 태그와 Release는 만들지 않습니다.
+
 ## 5.0.0 - 2026-09-19
 
 ### Changed
