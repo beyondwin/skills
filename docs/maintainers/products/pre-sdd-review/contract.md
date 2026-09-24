@@ -248,8 +248,11 @@ LF 하나입니다. 호환되면 `start` 전에 `summary --repo <표시 이름>`
 `runs`와 `chains`에서 그 계획을 찾습니다. 같은 `repo` 표시 이름과 계획 경로가
 `pending`이면 그 run을 `abandon`합니다. 그 계획의 마지막 완료 판정이 `REVISE`
 또는 `BLOCKED`이면 `show`합니다. `execution`이 `blocked`이면 인계를 재사용하지
-않고 입력 게이트를 다시 확인한 뒤 `start`합니다. `execution`이 `degraded`이면
-인계를 재사용하지 않고 새 전체 검토로 `start`합니다. `full`이면 문서 해시,
+않습니다. 그 run이 아직 권위 문서에 없는 사용자 결정 때문에 `BLOCKED`이면
+입력 게이트를 다시 확인하지 않고 Verdict and handoff의 직전 결정 규칙을
+따릅니다. 그 밖의 `blocked`는 입력 게이트를 다시 확인한 뒤 `start`합니다.
+`execution`이 `degraded`이면 인계를 재사용하지 않고 새 전체 검토로
+`start`합니다. `full`이면 문서 해시,
 `git.head_end`, 요청이 모두 같을 때만 이전 인계를 재사용합니다. 아니면
 의미 검토 전에 `start`하고, 판정과
 수정이 끝난 뒤 `finish`를 한 번 호출합니다. `Evidence:` 줄은 정확히

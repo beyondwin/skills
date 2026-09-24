@@ -132,7 +132,7 @@
     },
     {
       "id": "blocked-execution-restarts",
-      "request": "$pre-sdd-review review-only sample-app/design.md sample-app/plan.md after a BLOCKED run with execution=blocked whose required base now resolves and whose document hashes are unchanged",
+      "request": "$pre-sdd-review review-only sample-app/design.md sample-app/plan.md after a BLOCKED run with execution=blocked whose required base failed to resolve, with no unanswered user decision, and whose required base now resolves and whose document hashes are unchanged",
       "expect": ["no_reuse_blocked_execution", "rerun_input_gates", "start"]
     },
     {

@@ -39,7 +39,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "626396fc91c105bd64e993fb8a9fff89f1b082857075ec0aa96580beb2f59001",
+    "SKILL.md": "f25c8e8586a12674abbf498cea1a551d6bab7fb71feadaa84b27a625ddb1f39d",
     "references/reviewer-protocol.md": (
         "fd4636e9b4e6f61add1f7b05db59238320be47f207ce9e562939d718e8e3551b"
     ),
@@ -421,8 +421,8 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Ledger shape", "f1091388fd58d8db9f223fbd6e1457303c600107c4c89c37d1aded6caf2ae84e"),
     ("### Degraded reasons", "a71ff3ec6aaf37ac3a862f8637b0fcd66e561d3958b4b0da0aaa532ced0b28f7"),
 )
-MAINTAINER_CANONICAL_DIGEST = "cc98f639e0e16f97482dc4085d1bf4de0f153168cc0b17b6408331d928e49dbf"
-TESTING_CANONICAL_DIGEST = "4a8528a93ff69b10ef12f7665083c8d0e1a3e75acd07f182d4aa3a7145e3cbf4"
+MAINTAINER_CANONICAL_DIGEST = "e75cd5cce457c6bd18013a8742005ebb789205f1ee8610049c4577c18a71b75e"
+TESTING_CANONICAL_DIGEST = "76ad6f471bdeca0d715b973bf614b319156b81a488a4e4290fa70343ce42b2c5"
 COMPATIBILITY_CANONICAL_DIGEST = "db8d19d45ca4f6748b73ace65da5e5e965f0e7002a6b0395bf563f524a424480"
 RELEASE_CANONICAL_DIGEST = "8d79c8164b43050ff344820fdf68417c46a9ff46c8e192f005fc91cab3a362db"
 
@@ -1782,7 +1782,7 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         ):
             self.assertIn(fact, normalized_testing)
         self.assertEqual(len(CASE_IDS), 45)
-        self.assertIn("정확히 마흔하나 개", normalized_testing)
+        self.assertIn("정확히 마흔다섯 개", normalized_testing)
         self.assertIn("지금은 Codex만 지원합니다", compatibility)
         self.assertIn("다른 호스트는 모두 `not_measured`", compatibility)
         self.assertIn("## 기록기 호환성", compatibility)

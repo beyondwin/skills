@@ -139,15 +139,18 @@ run `summary --repo <repo display name>` before `start` and locate this plan in
 else: a pending run can outlive the invocation that opened it and be mistaken
 for a new round. If the latest completed verdict for that plan is `REVISE` or
 `BLOCKED`, `show` that run. Never reuse a handoff whose `execution` is
-`blocked` or `degraded`: a `blocked` run dispatched no reviewer, so re-run the
-input gates (`**Spec:**` resolution and the required implementation base) and
-call `start` if they pass; a `degraded` run's handoff is never reusable, so
-call `start` for a fresh full review. For a `full` run, reuse the prior handoff
-without a new review only when `plan.sha_end` and `design.sha_end` match the
-current documents, `git.head_end` matches the current `HEAD`, and the outer
-request does not ask for a re-review or name changed authority or repository
-evidence. Otherwise call `start` before semantic review with the skill root,
-the repository, the primary plan, the design path resolved from the plan's
+`blocked` or `degraded`. For a `blocked` run whose `BLOCKED` was a user
+decision that no authority document records yet, follow the previous-decision
+rule under Verdict and handoff instead of re-running the gates. Otherwise
+re-run the input gates (`**Spec:**` resolution and the required implementation
+base) and call `start` if they pass; a `degraded` run's handoff is never
+reusable, so call `start` for a fresh full review. For a `full` run, reuse
+the prior handoff without a new review only when `plan.sha_end` and
+`design.sha_end` match the current documents, `git.head_end` matches the
+current `HEAD`, and the outer request does not ask for a re-review or name
+changed authority or repository evidence. Otherwise call `start` before
+semantic review with the skill root, the repository, the primary plan, the
+design path resolved from the plan's
 `**Spec:**` field, the host client id, the host-reported model string (or
 `unknown`), and the mode.
 If `**Spec:**` cannot be resolved, omit `--design` and return `BLOCKED`; the
