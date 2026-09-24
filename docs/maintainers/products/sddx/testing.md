@@ -170,9 +170,9 @@ worker를 끝내고 두 번째 인터럽트에도 `running`이 남지 않는지,
 더 짧은 `--timeout` 우선, 곧바로 출력하는 worker는 제외), 기본 타임아웃 7200,
 Grok `tool_use` 색인과 결과 본문 비복사, 그리고 각 규칙 문구가 모든 면에 있는지를
 잠급니다. 라이브 확인은 아래 `6.0.0 라이브 확인`에 있습니다.
-이 변경 뒤 `sddx-contract`는 340개 테스트입니다. 파일별로 `test_contract` 36,
+이 변경 뒤 `sddx-contract`는 342개 테스트입니다. 파일별로 `test_contract` 36,
 `test_extract_task` 38, `test_prepare_grok_sandbox` 23, `test_resolve_backend`
-75, `test_run_worker` 114, `test_worker_status` 54개입니다.
+75, `test_run_worker` 116, `test_worker_status` 54개입니다.
 
 ## 6.0.0 라이브 확인
 

@@ -1279,11 +1279,14 @@ class WorkerExecutionTests(RunnerFixture):
             self.addCleanup(lambda p=process: subprocess.Popen.kill(p))
         self.assertEqual(code, 130)
         first = events.index(("write", "interrupted"))
+        # The old mask is read before anything is blocked, so a signal raised
+        # by the block call itself still has a mask to restore.
+        read = ("mask", signal.SIG_BLOCK, frozenset())
         block = ("mask", signal.SIG_BLOCK, frozenset({signal.SIGINT, signal.SIGTERM}))
         restore = ("mask", signal.SIG_SETMASK, frozenset(old_mask))
         self.assertEqual(events[first - 1], block)
         self.assertEqual(events[first + 1], restore)
-        self.assertEqual([e for e in events if e[0] == "mask"], [block, restore])
+        self.assertEqual([e for e in events if e[0] == "mask"], [read, block, restore])
 
     @unittest.skipUnless(os.name != "nt", "signal masks are a POSIX convention")
     def test_an_interrupt_delivered_when_the_mask_is_restored_is_still_130(self) -> None:
@@ -1320,6 +1323,87 @@ class WorkerExecutionTests(RunnerFixture):
         metadata = self.metadata()
         self.assertEqual(metadata["state"], "interrupted")
         self.assertIsNotNone(started[0].poll(), "runner must still end its own worker")
+
+    def _run_with_pending(self, module, pending):
+        """Interrupt once while `sigpending` reports `pending` under the mask."""
+        import signal
+
+        started: list[subprocess.Popen] = []
+        events: list[tuple] = []
+
+        def fake_sigmask(how, mask):
+            events.append(("mask", how))
+            return set()
+
+        def fake_sigwait(wanted):
+            (signum,) = wanted
+            events.append(("sigwait", signum))
+            return signum
+
+        kill = mock.Mock(wraps=module._kill_child)
+        stop = mock.Mock(wraps=module._stop_child)
+        with self.pinned_resolver(module):
+            with contextlib.ExitStack() as stack:
+                for name, value in (
+                    ("pthread_sigmask", fake_sigmask),
+                    ("sigpending", lambda: set(pending)),
+                    ("sigwait", fake_sigwait),
+                ):
+                    stack.enter_context(
+                        mock.patch.object(module.signal, name, value, create=True)
+                    )
+                stack.enter_context(mock.patch.object(module, "_kill_child", kill))
+                stack.enter_context(mock.patch.object(module, "_stop_child", stop))
+                stack.enter_context(
+                    mock.patch.object(
+                        module.subprocess, "Popen", self._interrupt_once_popen(started)
+                    )
+                )
+                try:
+                    code = self.invoke(module, self.options(module))
+                except KeyboardInterrupt:
+                    self.fail("a held interrupt escaped run_worker")
+                finally:
+                    for process in started:
+                        self.addCleanup(lambda p=process: subprocess.Popen.wait(p))
+                        self.addCleanup(lambda p=process: subprocess.Popen.kill(p))
+        return code, started[0], events, kill, stop
+
+    @unittest.skipUnless(os.name != "nt", "signal masks are a POSIX convention")
+    def test_two_interrupts_held_by_the_mask_are_drained_and_kill_the_worker(self) -> None:
+        # Break: SIGINT and SIGTERM both held during the first record are
+        # delivered one after the other at restore; the second escapes as a
+        # traceback and the worker is never ended.
+        import signal
+
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        code, process, events, kill, stop = self._run_with_pending(
+            module, {signal.SIGINT, signal.SIGTERM}
+        )
+        self.assertEqual(code, 130)
+        self.assertEqual(self.metadata()["state"], "interrupted")
+        waited = [e for e in events if e[0] == "sigwait"]
+        self.assertEqual(sorted(e[1] for e in waited), sorted([signal.SIGINT, signal.SIGTERM]))
+        # Drained while still blocked: every sigwait comes before the restore.
+        restore = events.index(("mask", signal.SIG_SETMASK))
+        self.assertTrue(all(events.index(e) < restore for e in waited))
+        # A held interrupt is a second request to stop: no grace, straight kill.
+        kill.assert_called_once_with(process)
+        stop.assert_not_called()
+        self.assertIsNotNone(process.poll(), "runner must still end its own worker")
+
+    @unittest.skipUnless(os.name != "nt", "signal masks are a POSIX convention")
+    def test_no_held_interrupt_keeps_the_sigterm_grace(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        code, process, events, kill, stop = self._run_with_pending(module, set())
+        self.assertEqual(code, 130)
+        self.assertEqual(self.metadata()["state"], "interrupted")
+        self.assertFalse([e for e in events if e[0] == "sigwait"])
+        stop.assert_called_once_with(process)
+        kill.assert_not_called()
+        self.assertIsNotNone(process.poll(), "runner must still end its own worker")
 
     @unittest.skipUnless(os.name != "nt", "SIGTERM handling is a POSIX signal convention")
     def test_the_sigterm_handler_is_installed_before_the_worker_starts(self) -> None:
