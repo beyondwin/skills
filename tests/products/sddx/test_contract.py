@@ -371,18 +371,36 @@ class SddxContractTests(unittest.TestCase):
         self.assertNotIn("leaves the worker running", fold(dispatch))
         self.assertNotIn("프로세스 트리는 죽이지 않습니다", fold(contract))
 
-    def test_first_output_deadline_is_on_every_face(self) -> None:
+    def test_idle_timeout_is_on_every_face(self) -> None:
         dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
         skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        readme = (SKILL / "README.md").read_text(encoding="utf-8")
+        readme_en = (SKILL / "README.en.md").read_text(encoding="utf-8")
         contract = (
             ROOT / "docs" / "maintainers" / "products" / "sddx" / "contract.md"
         ).read_text(encoding="utf-8")
         fold = lambda value: re.sub(r"\s+", " ", value)
-        for text in (dispatch, skill, contract):
-            self.assertIn("no output within 300 seconds", fold(text))
-        self.assertIn("It defaults to 7200", fold(dispatch))
-        self.assertIn("기본값은 7200", fold(contract))
-        self.assertNotIn("defaults to 3600", fold(dispatch))
+        faces = {
+            "dispatch.md": fold(dispatch),
+            "SKILL.md": fold(skill),
+            "README.md": fold(readme),
+            "README.en.md": fold(readme_en),
+            "contract.md": fold(contract),
+        }
+        for name, text in faces.items():
+            with self.subTest(face=name):
+                self.assertIn("--idle-timeout", text)
+                self.assertIn("the worker wrote no output for", text)
+                self.assertNotIn("no output within", text)
+                self.assertNotIn("7200", text)
+        self.assertIn("the worker wrote no output for <N> seconds", faces["dispatch.md"])
+        self.assertIn("the worker wrote no output for <N> seconds", faces["SKILL.md"])
+        self.assertIn("the worker wrote no output for <N> seconds", faces["contract.md"])
+        self.assertIn("It defaults to 900", faces["dispatch.md"])
+        self.assertIn("defaults to 0, which waits without a bound", faces["dispatch.md"])
+        self.assertIn("기본값은 900", faces["contract.md"])
+        self.assertIn("기본값은 0", faces["contract.md"])
+        self.assertIn("[--idle-timeout <seconds>]", dispatch)
 
     def test_grok_tools_index_is_on_every_face(self) -> None:
         dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
@@ -413,7 +431,6 @@ class SddxContractTests(unittest.TestCase):
                 # G9: a foreground Grok shell is indexed only once it returns.
                 "is not in the index yet",
                 # G10: the limits the runner deliberately keeps.
-                "bounded only by `--timeout`",
                 "build daemon",
                 "end them by pid",
             ),
@@ -421,7 +438,6 @@ class SddxContractTests(unittest.TestCase):
                 "확인하지 못하면 그 `exit_code`는 `null`",
                 "정리 전에 `pid_alive`를 확인합니다",
                 "아직 인덱스에 없습니다",
-                "`--timeout`으로만 제한됩니다",
                 "빌드 데몬",
                 "pid로 확인하고 끝냅니다",
                 # G6: one continuation-brief rule.

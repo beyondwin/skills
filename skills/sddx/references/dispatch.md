@@ -179,7 +179,7 @@ prefix's sandbox value itself. `run_worker.py` never prepares or cleans up.
     python3 "<skill-root>/scripts/run_worker.py" run --backend <c|cursor|g|grok> --worktree <worktree> \
         --brief <brief-file> --attempt-dir <new-attempt-dir> --effort <high|xhigh> \
         [--model <confirmed-grok-id>] [--resume <known-id>] [--sandbox-profile <prepared-profile>] \
-        [--timeout <seconds>]
+        [--idle-timeout <seconds>] [--timeout <seconds>]
 
 `--attempt-dir` must be a new directory under the plan directory from Superpowers
 `sdd-workspace` (already inside the worktree `.superpowers/sdd/<plan>/` tree),
@@ -211,24 +211,33 @@ session: none` in the current-state block — use the SDD fallback: a fresh
 worker plus the previous attempt's `report.md` named in the brief. Never guess
 an ID.
 
-`--timeout <seconds>` bounds one attempt's wall-clock. It defaults to 7200, and
-`--timeout 0` waits without a bound. When it fires the runner sends the worker
-SIGTERM, waits ten seconds, kills it if it is still alive, records `state`
-`timed_out` with the real `exit_code`, keeps the first session ID already
-copied (or scans once more if that field is still null), and exits 124. Only
+`--idle-timeout <seconds>` ends an attempt when neither `worker.jsonl` nor
+`stderr.log` has grown for that many seconds, at any point from launch
+onward, new or resumed. It defaults to 900, and `--idle-timeout 0` disables
+it. `--timeout <seconds>` is an optional wall-clock bound on one attempt; it
+defaults to 0, which waits without a bound. When either fires the runner
+sends the worker SIGTERM, waits ten seconds, kills it if it is still alive,
+records `state` `timed_out` with the real `exit_code`, keeps the first
+session ID already copied (or scans once more if that field is still null),
+and exits 124. Only
 the worker process itself is signalled. It shares the controller's process
 group so that a terminal interrupt reaches it, so descendants the worker
 started are not pursued and no process tree is cleaned up here. Those
 processes (for example a backgrounded shell or a build daemon) can outlive the
 worker, so confirm and end them by pid yourself before cleanup.
 
-A worker that writes no stdout at all within 300 seconds of starting, new or
-resumed, is ended the same way, even under `--timeout 0`: `timed_out`, exit
-124, `error` `the worker wrote no output within 300 seconds`. When that is the
-error, do not raise `--timeout` and do not resume that session; dispatch a
+An attempt ended by the idle timeout records `timed_out`, exit 124, and
+`error` `the worker wrote no output for <N> seconds`, where `<N>` is the
+`--idle-timeout` value (`the worker wrote no output for 900 seconds` by
+default). The wall-clock bound records `the attempt exceeded its timeout`
+instead, and wins when both have passed. After an idle timeout, check the
+worktree for partial changes, then do not resume that session; dispatch a
 fresh worker with a continuation brief that names the previous `report.md`
-and the commits already made. The deadline watches only the first byte: a
-worker that printed and then stalls is bounded only by `--timeout`.
+and the commits already made. Do not raise either bound to re-run it. Raise
+`--idle-timeout` only before launching an attempt whose brief names one
+foreground command expected to run longer than the idle window: Grok writes a
+shell call to its stream only once the call returns or is backgrounded, so
+such a command is silent the whole time.
 
 Do not pass `--worktree` to the provider CLI. Do not pass `--continue`. Do not
 copy host credentials or environment values into the brief or the dispatch.
@@ -311,7 +320,7 @@ That is process state, not task state; process exit 0 is not a clean DONE.
 The wrapper exit follows the worker's exit. A POSIX signal returns
 `128 + signal` while `run.json.exit_code` keeps the real negative returncode.
 A launch failure is 2, a handled runner interrupt is 130, and an attempt
-ended by its own timeout is 124. On SIGTERM or Ctrl-C the runner records
+ended by its wall-clock or idle timeout is 124. On SIGTERM or Ctrl-C the runner records
 `interrupted` at once, then ends the worker process itself the way a timeout
 does (SIGTERM, ten seconds, SIGKILL) and records the exit it recovered; a
 second interrupt during that wait, or an interrupt during a timeout's own wait,
