@@ -120,9 +120,7 @@ a path, command, interface, or blast-radius claim used as review evidence.
 
 When preceding plans exist, carry that list and their paths in the reviewer
 instruction and require a baseline-reconstruction statement on the response's
-first line. That statement is the reviewer's own report and is not machine
-checked. Its value is making the baseline explicit so the reviewer does not
-quietly fall back to `HEAD`; it does not prove the reconstruction happened.
+first line, so the reviewer does not quietly fall back to `HEAD`.
 
 The pre-pass records H_git0 with H0. If HEAD moves off H_git0 before verdicts,
 do not return READY against that freeze. Abandon in-flight runs with
@@ -171,10 +169,9 @@ call `abandon` with one of `user-cancelled`, `input-changed`, `scope-changed`,
 display name and plan path are `pending`, close that run with `other` or
 `input-changed` before a new `start`.
 
-A schema 2 pending run is `historical-unbound` and read-only. Preserve it and
-start a new run if recording is still wanted; never infer a checkout identity
-for a historical record. A schema 3 pending run is not writable either, but it
-accepts `abandon` so an in-flight run survives the upgrade.
+A schema 2 pending run is `historical-unbound` and read-only; a schema 3
+pending run accepts only `abandon`. Start a new run if recording is still
+wanted, and never infer a checkout identity for a historical record.
 
 Recording an `outcome` is not a controller duty. After SDD or implementation
 ends, the user or the SDD worker may record one label (`good`, `false-ready`,
