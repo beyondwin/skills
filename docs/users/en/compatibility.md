@@ -28,7 +28,7 @@ A matching folder layout does not mean that host is supported. Adding a new supp
 
 `image-workbench` can make or edit an image only when this host has its own image tool and you can open the result. The Grok shortcut is `~/.agents/skills/image-workbench`. A similar tool on another host is not support.
 
-Other hosts for `pre-sdd-review` remain `not_measured`.
+Other hosts for `pre-sdd-review` have not been checked yet (`not_measured`).
 
 The preserved `how-it-works` smoke is `historical-unbound`; it is separate from current payload and model execution evidence. Actual execution of the current install files is `not_measured`. `current-bounded` validates version/hash and metadata binding only, not actual execution or explanation quality. The supported OS is macOS only. Windows and Linux are unsupported. CI may run the `full` profile on Ubuntu. That pass is not Linux support and is not macOS support evidence.
 

@@ -43,7 +43,7 @@
 | Linux / Python 3.11+ | `unsupported` | 제품 미지원. CI POSIX 검사 ≠ Linux 제품 지원 |
 | Windows / Python 3.11+ | `unsupported` | Windows는 지원하지 않습니다 |
 
-schema 3 변경 명령은 `.identity.lock`과 `locks/<run-id>.lock`에 OS 파일
+변경 명령은 `.identity.lock`과 `locks/<run-id>.lock`에 OS 파일
 locking을 씁니다. `show`, `summary`, `--version`은 읽기 전용이며 그 lock을
 잡지 않습니다. Windows는 지원하지 않습니다.
 

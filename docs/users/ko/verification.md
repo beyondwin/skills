@@ -60,7 +60,7 @@ Korean 후보는 hard 실패가 있으면 `failed`가 우선합니다. hard 검�
 
 Evidence 단계는 `tests/products/pre-sdd-review/evidence/`에서 `evidence.py`를 검사합니다. 네트워크, 모델, provider, telemetry를 호출하지 않습니다.
 
-Pre-SDD는 schema 2 record를 `historical-unbound`로 읽기만 지원합니다. 변경 명령은 schema 3의 checkout 결속이 필요합니다. schema 2 pending record는 보존하고 새 run을 시작합니다. schema 3 `--version`은 canonical JSON `{"cli_version":"3.0.0","schema":3,"skill_name":"pre-sdd-review"}`과 마지막 LF 하나를 출력하며 evidence home을 만들지 않습니다.
+Pre-SDD는 schema 2 record를 `historical-unbound`로 읽기만 지원합니다. 변경 명령은 schema 4의 checkout 결속이 필요하고, schema 3 pending run은 `abandon`만 됩니다. schema 2 pending record는 보존하고 새 run을 시작합니다. `--version`은 `"schema":4,"skill_name":"pre-sdd-review"`가 든 canonical JSON 한 줄과 마지막 LF 하나를 출력하며 evidence home을 만들지 않습니다. 정확한 바이트는 [기록기 README](../../../skills/pre-sdd-review/evidence/README.md)를 보세요.
 
 Ubuntu CI의 `full` 통과는 native macOS 지원을 증명하지 않습니다.
 
