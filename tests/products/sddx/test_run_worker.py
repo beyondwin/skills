@@ -1934,9 +1934,10 @@ class AttemptTimeoutTests(RunnerFixture):
         module = self.load()
         self.write_grok(BEHAVIOUR_OUTPUT_THEN_SLEEP)
         with self.pinned_resolver(module):
-            # 1.5 s leaves a slow interpreter start time to flush its first
-            # line; the 3.5 s sleep then puts at least two 1 s deadline
-            # checks after that write, so the pass is not a timing accident.
+            # The deadline is checked on 1 s wait slices, so 1.5 s gives a slow
+            # interpreter start until the t=2 check, not t=1, to flush its
+            # first line; the 3.5 s sleep keeps the worker alive past that
+            # check and the next, so the pass is not a timing accident.
             with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 1.5):
                 code = self.invoke(module, self.options(module))
         self.assertEqual(code, 0)
