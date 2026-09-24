@@ -175,8 +175,8 @@ git diff --check
 둘 다 지나면 먼저인지, 그리고 규칙 문구가 모든 면에 있는지를 잠급니다. 이 변경
 뒤 `sddx-contract`는 348개 테스트입니다. 파일별로 `test_contract` 36,
 `test_extract_task` 38, `test_prepare_grok_sandbox` 23, `test_resolve_backend`
-75, `test_run_worker` 122, `test_worker_status` 54개입니다. 라이브 호출은 하지
-않았습니다.
+75, `test_run_worker` 122, `test_worker_status` 54개입니다. 라이브 확인은 아래
+`7.0.0 라이브 확인`에 있습니다.
 
 기본값 900초의 근거는 저장소 밖 실제 시도 기록입니다(내용은 커밋하지 않음).
 Cursor stdout은 이벤트마다 `timestamp_ms`를 싣습니다. 3개 시도(12~20분)에서
@@ -187,6 +187,27 @@ Cursor stdout은 이벤트마다 `timestamp_ms`를 싣습니다. 3개 시도(12~
 돌린 빌드·테스트를 기다린 간격은 200~223초였습니다. 900초는 관측 최대의 약
 3.4배입니다. 당시 기본 3600초 경과 시간 제한에 걸린 시도 하나는 같은 방식의
 최장 간격이 162초로, 일하던 중에 끊긴 것이었습니다.
+
+## 7.0.0 라이브 확인
+
+2026-09-24, macOS 26.5.2 arm64, `grok 1.0.41 (4220f3b224a6) [stable]` 모델
+`grok-4.7` High, Cursor Agent `2026.09.18-9a7762b` 모델 `grok-4.7-high`. 원격
+없는 새 로컬 저장소의 linked worktree에서 실제 호출 4회. Grok 시도마다 앞뒤로
+`prepare`/`cleanup`을 돌렸고 매번 `cleaned: true`였습니다. 경과는 `run.json`의
+`started_at`/`ended_at`, 무출력 간격은 두 로그 크기를 0.5초마다 잰 값입니다.
+receipt와 로그는 커밋하지 않았습니다. 비용은 출력에 보이지 않았습니다.
+
+| # | worker · 유휴 설정 | 기대 | 관측 | 판정 |
+| --- | --- | --- | --- | --- |
+| LT1 | Grok, `--idle-timeout 30`, 전경 `sleep 90` | `timed_out`, 124, `the worker wrote no output for 30 seconds`, 마지막 출력 뒤 30~45초 | wrapper 124, `timed_out`, `exit_code` -15, 같은 문구, 41.6초. 마지막 로그 증가 뒤 30.7초에 종료, `pid_alive: false`, ps에 Grok 없음. 전경 sleep 동안 두 로그 모두 자라지 않았고 셸 호출은 색인에 없음(6.0.0 관찰과 같음). worker가 띄운 zsh와 `sleep 90`은 pid 1로 남아 pid로 정리 | 통과 |
+| LT2 | Grok, 기본 900, 작은 커밋 | `exited`, 유휴 미발동 | `exited` 0, 78.1초, `shells` 3개 모두 exit 0, report 있음, 로그 증가 사이 최장 20.7초 | 통과 |
+| LT3 | Cursor, 기본 900, 같은 작업 | `exited`, 유휴 미발동 | `exited` 0, 82.5초, `shells` 3개 모두 exit 0, report 있음, 최장 17.2초. 시도 중 Cursor가 띄운 `worker-server` 프로세스(작업 디렉터리가 fixture worktree)가 pid 1로 남아 pid로 정리 | 통과 |
+| LT4 | Grok, `--idle-timeout 30`, 배경 `sleep 90` 후 대기 | 권고대로라면 창을 넘겨 커밋 | wrapper 124, `timed_out`, -15, 같은 문구, 54.6초. 배경 호출은 곧바로 색인됨(`shells`에 `sleep 90`, `exit_code: null`), 그 뒤 30.4초 무출력으로 종료. 커밋 없음, 남은 zsh와 `sleep 90`은 pid로 정리 | 러너 통과, 권고 미확인 |
+
+관찰: Grok은 배경으로 넘긴 셸 호출을 바로 기록하지만, 그 작업을 기다리는 동안에는
+아무것도 쓰지 않았습니다. 그래서 이 표본에서는 배경 실행이 유휴 창을 넘기게 해
+주지 않았습니다. `dispatch.md`의 배경 실행 권고는 바꾸지 않았고 유지보수자 판단으로
+남깁니다. 이 결과는 이 Mac과 이 두 CLI 버전의 관측입니다.
 
 ## 6.0.0 오프라인 검사
 
