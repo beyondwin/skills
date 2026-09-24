@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import codecs
 import contextlib
+import decimal
 import hashlib
 import json
 import math
@@ -59,13 +60,14 @@ STDERR_NAME = "stderr.log"
 METADATA_NAME = "run.json"
 REPORT_NAME = "report.md"
 
-# How long one attempt may run before the runner ends it, and how long a child
-# gets to leave on a SIGTERM before it is killed. `--timeout 0` disables the
-# bound entirely. Both measured providers write an init line first, so a worker
-# with no stdout at all after FIRST_OUTPUT_SECONDS is treated as stuck, even
-# under `--timeout 0`; that deadline has no flag.
-DEFAULT_TIMEOUT_SECONDS = 7200.0
-FIRST_OUTPUT_SECONDS = 300.0
+# The two bounds on one attempt, and how long a child gets to leave on a
+# SIGTERM before it is killed. `--idle-timeout` ends a worker when neither raw
+# log has grown for that many seconds, from launch onward, so a worker that
+# never prints and one that stalls after printing are ended the same way.
+# `--timeout` is an optional wall-clock bound and is off by default, because a
+# worker that keeps writing is working. For both, 0 disables the bound.
+DEFAULT_TIMEOUT_SECONDS = 0.0
+DEFAULT_IDLE_TIMEOUT_SECONDS = 900.0
 TERMINATE_GRACE_SECONDS = 10.0
 TIMEOUT_EXIT = 124
 TIMEOUT_ERROR = "the attempt exceeded its timeout"
@@ -121,6 +123,7 @@ class RunOptions:
     resume_id: str | None = None
     sandbox_profile: str | None = None
     timeout: float = DEFAULT_TIMEOUT_SECONDS
+    idle_timeout: float = DEFAULT_IDLE_TIMEOUT_SECONDS
 
 
 def utc_now() -> str:
@@ -244,7 +247,7 @@ def _validated_backend(options: RunOptions) -> str:
     """Reject the option combinations this runner cannot honestly launch.
 
     Those are the backend pairings the resolver contract cannot express, and
-    the attempt's own timeout. Both are refused from here, before the attempt
+    the attempt's own two bounds. Both are refused from here, before the attempt
     directory exists, so a rejected option leaves nothing behind to read.
     """
     if options.backend not in ALIASES:
@@ -277,6 +280,8 @@ def _validated_backend(options: RunOptions) -> str:
     # timeout" when `--timeout 0` already owns that meaning.
     if not math.isfinite(options.timeout) or options.timeout < 0:
         raise ValueError("timeout must be a finite, non-negative number of seconds")
+    if not math.isfinite(options.idle_timeout) or options.idle_timeout < 0:
+        raise ValueError("idle timeout must be a finite, non-negative number of seconds")
     return backend
 
 
@@ -391,7 +396,7 @@ def run_worker(options: RunOptions) -> int:
     A normally awaited worker's exit is returned as-is; a POSIX signal death
     becomes `128 + signal` while `run.json` keeps the real negative returncode.
     A launch failure is 2, a runner interrupt handled here is 130, and an
-    attempt ended by its own timeout is 124.
+    attempt ended by its wall-clock or idle timeout is 124.
     """
     try:
         worktree, attempt_dir = _validated_attempt_dir(options.worktree, options.attempt_dir)
@@ -596,8 +601,9 @@ def run_worker(options: RunOptions) -> int:
             # `wait(timeout=0)` expires immediately, so a zero timeout must not
             # reach it: zero is the documented way to ask for no bound at all.
             deadline = time.monotonic() + options.timeout if options.timeout else None
-            first_output_deadline = time.monotonic() + FIRST_OUTPUT_SECONDS
-            saw_output = False
+            # Idleness is growth of either raw log, sampled once per wait slice.
+            last_sizes = (_log_size(stdout_path), _log_size(stderr_path))
+            last_activity = time.monotonic()
             while True:
                 if deadline is None:
                     slice_timeout = WAIT_SLICE_SECONDS
@@ -612,12 +618,14 @@ def run_worker(options: RunOptions) -> int:
                 except subprocess.TimeoutExpired:
                     if remember_session_id(metadata, stdout_path):
                         write_metadata(metadata_path, metadata)
-                    if deadline is not None and time.monotonic() >= deadline:
+                    now = time.monotonic()
+                    if deadline is not None and now >= deadline:
                         return timed_out()
-                    if not saw_output:
-                        saw_output = _log_size(stdout_path) > 0
-                        if not saw_output and time.monotonic() >= first_output_deadline:
-                            return timed_out(no_output_error())
+                    sizes = (_log_size(stdout_path), _log_size(stderr_path))
+                    if sizes != last_sizes:
+                        last_sizes, last_activity = sizes, now
+                    elif options.idle_timeout and now - last_activity >= options.idle_timeout:
+                        return timed_out(idle_error(options.idle_timeout))
             remember_session_id(metadata, stdout_path)
             metadata.update(
                 state="exited",
@@ -673,9 +681,17 @@ def _kill_child(process: subprocess.Popen[bytes]) -> None:
         process.wait(timeout=TERMINATE_GRACE_SECONDS)
 
 
-def no_output_error() -> str:
-    """The `error` of an attempt ended by the first-output deadline."""
-    return f"the worker wrote no output within {FIRST_OUTPUT_SECONDS:g} seconds"
+def idle_error(seconds: float) -> str:
+    """The `error` of an attempt ended by its idle timeout.
+
+    The seconds are a plain number: an integer when integral (`900`, never
+    `900.0` or `1e+06`), else a positional decimal (`0.5`).
+    """
+    if float(seconds).is_integer():
+        text = str(int(seconds))
+    else:
+        text = format(decimal.Decimal(repr(float(seconds))), "f")
+    return f"the worker wrote no output for {text} seconds"
 
 
 def _log_size(path: Path) -> int:
@@ -1123,7 +1139,13 @@ def build_parser() -> argparse.ArgumentParser:
         "--timeout",
         type=float,
         default=DEFAULT_TIMEOUT_SECONDS,
-        help="seconds before the attempt is ended; 0 waits without a bound",
+        help="wall-clock seconds before the attempt is ended; 0 (default) waits without a bound",
+    )
+    run.add_argument(
+        "--idle-timeout",
+        type=float,
+        default=DEFAULT_IDLE_TIMEOUT_SECONDS,
+        help="seconds without stdout or stderr growth before the attempt is ended; 0 disables",
     )
     status = subcommands.add_parser(
         "status", help="report attempt facts and, on request, one bounded log window"
@@ -1152,6 +1174,7 @@ def main(argv: list[str] | None = None) -> int:
         resume_id=args.resume_id,
         sandbox_profile=args.sandbox_profile,
         timeout=args.timeout,
+        idle_timeout=args.idle_timeout,
     )
     return run_worker(options)
 

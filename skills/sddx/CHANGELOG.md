@@ -6,6 +6,31 @@ All notable changes to this product are documented in this file.
 
 No entries yet.
 
+## 7.0.0 - 2026-09-24
+
+### Breaking
+
+- `run_worker.py run --idle-timeout <seconds>` (default 900, `0` disables)
+  ends an attempt when neither `worker.jsonl` nor `stderr.log` has grown for
+  that long, at any point from launch onward, new or resumed. It records
+  `timed_out` (exit 124) with `error`
+  `the worker wrote no output for <N> seconds`, `<N>` being the configured
+  value. A worker that printed and then stalled is now bounded too.
+- The 300-second first-output deadline and its error
+  `the worker wrote no output within 300 seconds` are removed; the idle
+  timeout replaces them.
+- The default `--timeout` is `0` (no wall-clock bound) instead of 7200. A set
+  `--timeout` still ends the attempt with `the attempt exceeded its timeout`,
+  and wins when both bounds have passed.
+
+### Changed
+
+- Controllers treat an idle timeout like the old no-output error: check the
+  worktree for partial changes, do not resume that session, and dispatch a
+  fresh worker with a continuation brief. Raise `--idle-timeout` only before
+  launching an attempt whose brief names one long foreground command, since
+  Grok writes nothing while such a call runs.
+
 ## 6.0.0 - 2026-09-24
 
 ### Breaking

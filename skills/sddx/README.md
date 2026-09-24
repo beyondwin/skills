@@ -138,8 +138,8 @@ ID, 워커 생존 여부(`pid_alive`), 읽은 파일·검색·셸 목록만 짧�
 
 | 상황 | 결과 | 다음 할 일 |
 | --- | --- | --- |
-| `--timeout` 초과(기본 7200초, `0`은 무제한) | 워커 중지, `timed_out`, exit 124 | `status`와 보고서를 확인합니다. |
-| 처음 300초 동안 출력 없음(`--timeout 0`이어도) | 워커 중지, `timed_out`, `the worker wrote no output within 300 seconds` | 그 세션을 잇거나 제한을 늘리지 말고, 이전 보고서와 커밋을 적은 브리프로 새 워커를 띄웁니다. |
+| 워커가 `--idle-timeout` 동안 아무것도 출력하지 않음(기본 900초, `0`은 끔) | 워커 중지, `timed_out`, exit 124, `the worker wrote no output for 900 seconds` | 워크트리에 남은 변경을 확인하고, 그 세션을 잇지 말고, 이전 보고서와 커밋을 적은 브리프로 새 워커를 띄웁니다. |
+| `--timeout` 초과(기본 `0`, 끔) | 워커 중지, `timed_out`, exit 124 | `status`와 보고서를 확인합니다. |
 | 러너에 Ctrl-C 또는 SIGTERM | `interrupted`, 워커도 중지(SIGTERM, 10초 뒤 SIGKILL), exit 130 | 워커가 띄운 백그라운드 프로세스가 남았는지 확인합니다. |
 | 잔액 부족(402), 인증·권한 실패 | 시도 종료 | 조건을 먼저 바꿉니다. 자동 재시도는 없습니다. |
 

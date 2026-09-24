@@ -4,7 +4,7 @@ description: Use when the user runs /sddx or $sddx. Do not use for writing a spe
 license: Apache-2.0
 compatibility: Requires a local Git repository, an implementation plan file, and Claude Code or Codex as the orchestrator host. Implementer CLIs are optional and resolved at runtime.
 metadata:
-  version: "6.0.0"
+  version: "7.0.0"
   updated_at: "2026-09-24"
 ---
 
@@ -312,11 +312,13 @@ session the worker itself reported. Resume from it rather than re-running the
 task from scratch; a null there means nothing was reported and the fallback to
 a fresh attempt applies.
 
-An attempt whose `error` is `the worker wrote no output within 300 seconds`
-reported nothing on stdout; check the worktree for partial changes, then do
-not resume that session and do not raise `--timeout` for it; dispatch a fresh
-worker with a continuation brief that names the previous `report.md` and the
-commits already made.
+An attempt whose `error` is `the worker wrote no output for <N> seconds` hit
+the idle timeout (`--idle-timeout`, default 900): neither log grew for that
+long. Check the worktree for partial changes, then do not resume that session
+and do not raise either bound to re-run it; dispatch a fresh worker with a
+continuation brief that names the previous `report.md` and the commits
+already made. Raise `--idle-timeout` before launch only when the brief names
+a single long foreground command, including that continuation attempt.
 
 There is no automatic retry anywhere in these helpers. `run.json.state` is
 process state, not task state, and process exit 0 is not a clean DONE.

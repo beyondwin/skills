@@ -71,8 +71,10 @@ worktree를 만들고 Git 경로 계산, 기존 TOML 원문 복원, 재진입, �
 backend별 `--model`/`--sandbox-profile` 배타, `run.json` 필드(`skill_version`
 포함)와 상태, 실행 중 `session_id` 기록, 래퍼 SIGTERM → `interrupted`,
 러너 중단 시 worker 종료와 두 번째 인터럽트의 kill, SIGTERM 처리기의 실행 전
-설치, 첫 출력 기한(`--timeout 0`·재개 포함, 더 짧은 `--timeout` 우선), 기본
-타임아웃 7200, 래퍼 exit 규칙, 닫힌 stdin, 시도 경로 거절을 검사합니다.
+설치, 유휴 타임아웃(처음부터 조용한 worker, 출력 뒤 멈춘 worker, 재개 포함,
+stdout·stderr 증가는 활동, `--idle-timeout 0`은 끔, 잘못된 값 거절, 더 짧은
+`--timeout` 우선), 기본값(`--timeout` 0, `--idle-timeout` 900), 래퍼 exit 규칙,
+닫힌 stdin, 시도 경로 거절을 검사합니다.
 `tests/products/sddx/test_worker_status.py`는 `stale`(running인데 pid가 없을
 때만 true), `session_id_in_log`(기록에 ID가 없을 때만 채움), 읽기 전용 응답,
 `pid_alive`,
@@ -161,6 +163,30 @@ git diff --check
 
 라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있습니다. CI가 요구하지
 않습니다. 오프라인 통과를 호스트 품질로 설명하지 마세요.
+
+## 7.0.0 오프라인 검사
+
+7.0.0의 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다. 합성 CLI로
+두 로그가 `--idle-timeout` 동안 자라지 않으면 `timed_out`, exit 124,
+`the worker wrote no output for <N> seconds`로 끝나는지(처음부터 조용한 경우,
+출력한 뒤 멈춘 경우, 실행 중간에 멈춘 경우, 재개), 계속 쓰는 worker와 stderr만 쓰는 worker는 창을 넘겨도
+끝나지 않는지, `--idle-timeout 0`이 끄는지, 음수·무한·NaN을 시도 생성 전에
+거절하는지, `--timeout`을 지정해도 유휴 타임아웃이 걸리는지, 기본 `--timeout`이 0이고 지정한 `--timeout`은 여전히 시도를 끝내며
+둘 다 지나면 먼저인지, 그리고 규칙 문구가 모든 면에 있는지를 잠급니다. 이 변경
+뒤 `sddx-contract`는 348개 테스트입니다. 파일별로 `test_contract` 36,
+`test_extract_task` 38, `test_prepare_grok_sandbox` 23, `test_resolve_backend`
+75, `test_run_worker` 122, `test_worker_status` 54개입니다. 라이브 호출은 하지
+않았습니다.
+
+기본값 900초의 근거는 저장소 밖 실제 시도 기록입니다(내용은 커밋하지 않음).
+Cursor stdout은 이벤트마다 `timestamp_ms`를 싣습니다. 3개 시도(12~20분)에서
+이벤트 사이 최장 간격은 63.7초였습니다. Grok stdout에는 시각이 없어서 같은
+`session_id`의 Grok 세션 기록(1초 단위)을 대신 썼습니다. 도구 호출 완료 사이
+간격을 stdout 한 줄 사이 간격으로 보았고, 기록 시각이 쓰기 시각과 같다고 가정한
+근사입니다. 66개 시도(최장 약 68분)에서 최장 간격은 약 265초였고, 백그라운드로
+돌린 빌드·테스트를 기다린 간격은 200~223초였습니다. 900초는 관측 최대의 약
+3.4배입니다. 당시 기본 3600초 경과 시간 제한에 걸린 시도 하나는 같은 방식의
+최장 간격이 162초로, 일하던 중에 끊긴 것이었습니다.
 
 ## 6.0.0 오프라인 검사
 

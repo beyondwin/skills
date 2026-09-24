@@ -144,8 +144,8 @@ and a short list of reads, searches, and shells. Do not paste the whole log.
 
 | Situation | Result | What to do next |
 | --- | --- | --- |
-| Past `--timeout` (default 7200 seconds; `0` = no limit) | Worker stopped, `timed_out`, exit 124 | Check `status` and the report. |
-| No output in the first 300 seconds, even with `--timeout 0` | Worker stopped, `timed_out`, `the worker wrote no output within 300 seconds` | Do not resume it or raise the limit; start a fresh worker with a brief naming the last report and commits. |
+| Worker prints nothing for `--idle-timeout` (default 900 seconds; `0` = off) | Worker stopped, `timed_out`, exit 124, `the worker wrote no output for 900 seconds` | Check the worktree for leftover changes; do not resume that session; start a fresh worker with a brief naming the last report and commits. |
+| Past `--timeout` (default `0` = no limit) | Worker stopped, `timed_out`, exit 124 | Check `status` and the report. |
 | Ctrl-C or SIGTERM to the runner | `interrupted`; the worker is stopped too (SIGTERM, SIGKILL after ten seconds), exit 130 | Check for leftover background processes the worker started. |
 | Out of balance (402), auth or permission failure | Attempt ends | Change the condition first; nothing retries automatically. |
 

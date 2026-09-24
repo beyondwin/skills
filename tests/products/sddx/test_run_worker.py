@@ -130,13 +130,16 @@ BEHAVIOUR_SIGNAL = (
     "time.sleep(10)\n"
 )
 BEHAVIOUR_SLEEP = "time.sleep(10)\nraise SystemExit(0)\n"
-BEHAVIOUR_OUTPUT_THEN_SLEEP = (
+BEHAVIOUR_SILENT_THEN_EXIT = "time.sleep(2.5)\nraise SystemExit(0)\n"
+IDLE_PREFIX = "the worker wrote no output for"
+BEHAVIOUR_WRITE_TWICE_THEN_STALL = (
     "sys.stdout.write('{\"type\": \"assistant\"}\\n')\n"
     "sys.stdout.flush()\n"
-    "time.sleep(3.5)\n"
-    "raise SystemExit(0)\n"
+    "time.sleep(1.2)\n"
+    "sys.stdout.write('{\"type\": \"assistant\"}\\n')\n"
+    "sys.stdout.flush()\n"
+    "time.sleep(30)\n"
 )
-NO_OUTPUT_PREFIX = "the worker wrote no output within"
 TIMED_OUT_SESSION_ID = "synthetic-session-0005"
 
 
@@ -148,6 +151,18 @@ def behaviour_session_then_sleep(ready: Path) -> str:
         "sys.stdout.flush()\n"
         "open(" + repr(str(ready)) + ", 'w').close()\n"
         "time.sleep(30)\n"
+    )
+
+
+def behaviour_steady_writer(stream: str) -> str:
+    """Write one flushed line to `stream` every 0.2 s for 6 s, then exit 0."""
+    return (
+        "handle = getattr(sys, " + repr(stream) + ")\n"
+        "for index in range(30):\n"
+        "    handle.write('tick ' + str(index) + '\\n')\n"
+        "    handle.flush()\n"
+        "    time.sleep(0.2)\n"
+        "raise SystemExit(0)\n"
     )
 
 
@@ -2044,11 +2059,13 @@ class SessionIdRecordingTests(RunnerFixture):
 
 
 class AttemptTimeoutTests(RunnerFixture):
-    """An attempt is bounded in wall-clock time, and says so when the bound fires."""
+    """An attempt is bounded by its idle and optional wall-clock timeouts, and says which fired."""
 
-    def test_the_default_timeout_is_two_hours(self) -> None:
+    def test_the_wall_clock_bound_is_off_by_default_and_the_idle_bound_is_on(self) -> None:
         module = self.load()
-        self.assertEqual(self.options(module).timeout, 7200)
+        options = self.options(module)
+        self.assertEqual(options.timeout, 0)
+        self.assertEqual(options.idle_timeout, 900)
         parsed = module.build_parser().parse_args(
             [
                 "run",
@@ -2064,70 +2081,157 @@ class AttemptTimeoutTests(RunnerFixture):
                 "high",
             ]
         )
-        self.assertEqual(parsed.timeout, 7200)
+        self.assertEqual(parsed.timeout, 0)
+        self.assertEqual(parsed.idle_timeout, 900)
 
-    def test_a_silent_worker_is_ended_after_the_first_output_deadline(self) -> None:
-        # Break: a worker that never writes a byte is waited on until --timeout.
+    def test_the_idle_error_names_the_configured_seconds(self) -> None:
+        module = self.load()
+        self.assertEqual(module.DEFAULT_IDLE_TIMEOUT_SECONDS, 900.0)
+        self.assertFalse(hasattr(module, "FIRST_OUTPUT_SECONDS"))
+        self.assertEqual(module.idle_error(900.0), "the worker wrote no output for 900 seconds")
+        self.assertEqual(module.idle_error(0.5), "the worker wrote no output for 0.5 seconds")
+        self.assertEqual(module.idle_error(1e6), "the worker wrote no output for 1000000 seconds")
+        self.assertEqual(module.idle_error(1e-7), "the worker wrote no output for 0.0000001 seconds")
+
+    def test_a_worker_silent_from_the_start_is_ended_by_the_idle_timeout(self) -> None:
+        # Break: a worker that never writes a byte is waited on without a bound.
         module = self.load()
         self.write_grok(BEHAVIOUR_SLEEP)
         with self.pinned_resolver(module):
-            with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 0.5):
-                code = self.invoke(module, self.options(module))
+            code = self.invoke(module, self.options(module, idle_timeout=0.5))
         self.assertEqual(code, 124)
         metadata = self.metadata()
         self.assertEqual(metadata["state"], "timed_out")
-        self.assertTrue(metadata["error"].startswith(NO_OUTPUT_PREFIX), metadata["error"])
+        self.assertEqual(metadata["error"], "the worker wrote no output for 0.5 seconds")
         self.assertIsNotNone(metadata["exit_code"])
 
-    def test_the_first_output_deadline_holds_without_a_timeout(self) -> None:
+    def test_a_worker_that_stalls_after_printing_is_ended_by_the_idle_timeout(self) -> None:
+        # Break: only the first byte is watched, so a stall after it is unbounded.
+        module = self.load()
+        ready = self.base / "session-reported"
+        self.write_grok(behaviour_session_then_sleep(ready))
+        with self.pinned_resolver(module):
+            with self.ready_popen(module, ready):
+                code = self.invoke(module, self.options(module, idle_timeout=0.5))
+        self.assertEqual(code, 124)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "timed_out")
+        self.assertEqual(metadata["error"], "the worker wrote no output for 0.5 seconds")
+        self.assertEqual(metadata["session_id"], TIMED_OUT_SESSION_ID)
+        self.assertGreater((self.attempt / "worker.jsonl").stat().st_size, 0)
+
+    def test_a_worker_that_stalls_mid_run_is_ended_by_the_idle_timeout(self) -> None:
+        # Break: growth is seen but the sampled sizes are not kept, so every
+        # later sample looks like growth and a worker that hangs mid-run is
+        # never ended. The second line lands inside the loop, after a first
+        # sample, so the kill must follow growth the loop itself observed.
+        module = self.load()
+        self.write_grok(BEHAVIOUR_WRITE_TWICE_THEN_STALL)
+        with self.pinned_resolver(module):
+            code = self.invoke(module, self.options(module, idle_timeout=2.5))
+        self.assertEqual(code, 124)
+        self.assertEqual(self.metadata()["error"], "the worker wrote no output for 2.5 seconds")
+        lines = (self.attempt / "worker.jsonl").read_text(encoding="utf-8").splitlines()
+        self.assertEqual(len(lines), 2)
+
+    def test_the_idle_timeout_applies_to_a_resumed_attempt(self) -> None:
         module = self.load()
         self.write_grok(BEHAVIOUR_SLEEP)
         with self.pinned_resolver(module):
-            with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 0.5):
-                code = self.invoke(module, self.options(module, timeout=0))
+            code = self.invoke(
+                module,
+                self.options(module, idle_timeout=0.5, resume_id="synthetic-session-0001"),
+            )
         self.assertEqual(code, 124)
-        self.assertTrue(self.metadata()["error"].startswith(NO_OUTPUT_PREFIX))
+        self.assertTrue(self.metadata()["error"].startswith(IDLE_PREFIX))
 
-    def test_the_first_output_deadline_applies_to_a_resumed_attempt(self) -> None:
+    def test_a_worker_whose_stdout_keeps_growing_is_not_ended(self) -> None:
+        # Break: idleness is measured from launch instead of from the last growth.
+        # Growth is sampled on 1 s wait slices; writes every 0.2 s for 6 s keep
+        # every sample moving, while 6 s is well past the 2.5 s window.
         module = self.load()
-        self.write_grok(BEHAVIOUR_SLEEP)
+        self.write_grok(behaviour_steady_writer("stdout"))
         with self.pinned_resolver(module):
-            with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 0.5):
-                code = self.invoke(
-                    module, self.options(module, resume_id="synthetic-session-0001")
-                )
-        self.assertEqual(code, 124)
-        self.assertTrue(self.metadata()["error"].startswith(NO_OUTPUT_PREFIX))
-
-    def test_a_shorter_timeout_wins_over_the_first_output_deadline(self) -> None:
-        module = self.load()
-        self.write_grok(BEHAVIOUR_SLEEP)
-        with self.pinned_resolver(module):
-            # Both deadlines have passed when the `--timeout` check fires,
-            # so only code order decides which error is recorded.
-            with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 0.2):
-                code = self.invoke(module, self.options(module, timeout=0.3))
-        self.assertEqual(code, 124)
-        self.assertEqual(self.metadata()["error"], "the attempt exceeded its timeout")
-
-    def test_a_worker_that_writes_at_once_is_not_ended_by_the_deadline(self) -> None:
-        # Break: the deadline also ends a worker that printed and then went quiet.
-        module = self.load()
-        self.write_grok(BEHAVIOUR_OUTPUT_THEN_SLEEP)
-        with self.pinned_resolver(module):
-            # The deadline is checked on 1 s wait slices, so 1.5 s gives a slow
-            # interpreter start until the t=2 check, not t=1, to flush its
-            # first line; the 3.5 s sleep keeps the worker alive past that
-            # check and the next, so the pass is not a timing accident.
-            with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 1.5):
-                code = self.invoke(module, self.options(module))
+            code = self.invoke(module, self.options(module, idle_timeout=2.5))
         self.assertEqual(code, 0)
         self.assertEqual(self.metadata()["state"], "exited")
 
-    def test_the_no_output_error_names_the_default_deadline(self) -> None:
+    def test_stderr_growth_counts_as_activity(self) -> None:
+        # Break: only stdout is watched, so a worker logging to stderr is killed.
         module = self.load()
-        self.assertEqual(module.FIRST_OUTPUT_SECONDS, 300.0)
-        self.assertEqual(module.no_output_error(), "the worker wrote no output within 300 seconds")
+        self.write_grok(behaviour_steady_writer("stderr"))
+        with self.pinned_resolver(module):
+            code = self.invoke(module, self.options(module, idle_timeout=2.5))
+        self.assertEqual(code, 0)
+        self.assertEqual(self.metadata()["state"], "exited")
+        self.assertEqual((self.attempt / "worker.jsonl").stat().st_size, 0)
+
+    def test_the_idle_timeout_fires_while_a_wall_clock_timeout_is_set(self) -> None:
+        # Break: a set `--timeout` switches the idle bound off.
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        with self.pinned_resolver(module):
+            code = self.invoke(module, self.options(module, timeout=10, idle_timeout=0.5))
+        self.assertEqual(code, 124)
+        self.assertEqual(self.metadata()["error"], "the worker wrote no output for 0.5 seconds")
+
+    def test_a_zero_idle_timeout_waits_for_a_silent_worker(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SILENT_THEN_EXIT)
+        with self.pinned_resolver(module):
+            code = self.invoke(module, self.options(module, idle_timeout=0))
+        self.assertEqual(code, 0)
+        self.assertEqual(self.metadata()["state"], "exited")
+
+    def test_a_shorter_timeout_wins_over_the_idle_timeout(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        with self.pinned_resolver(module):
+            # Both bounds have passed when the first check fires, so only code
+            # order decides which error is recorded.
+            code = self.invoke(module, self.options(module, timeout=0.3, idle_timeout=0.2))
+        self.assertEqual(code, 124)
+        self.assertEqual(self.metadata()["error"], "the attempt exceeded its timeout")
+
+    def test_an_invalid_idle_timeout_never_starts_a_worker(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_OK)
+        for value in (-1.0, float("inf"), float("nan")):
+            with self.subTest(idle_timeout=value):
+                code = self.invoke(module, self.options(module, idle_timeout=value))
+                self.assertEqual(code, 2)
+                self.assert_no_worker_invocation()
+                self.assertFalse(self.attempt.exists())
+                self.assertTrue(self.stderr.getvalue().startswith("BLOCKED: "))
+                self.assertIn("idle timeout", self.stderr.getvalue())
+
+    def test_the_idle_timeout_option_reaches_the_runner_from_the_command_line(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        with self.on_synthetic_path():
+            code = module.main(
+                [
+                    "run",
+                    "--backend",
+                    "grok",
+                    "--worktree",
+                    str(self.worktree),
+                    "--brief",
+                    str(self.brief),
+                    "--attempt-dir",
+                    str(self.attempt),
+                    "--effort",
+                    "high",
+                    "--sandbox-profile",
+                    "sddx-worktree",
+                    "--model",
+                    "grok-4.7",
+                    "--idle-timeout",
+                    "0.5",
+                ]
+            )
+        self.assertEqual(code, 124)
+        self.assertEqual(self.metadata()["error"], "the worker wrote no output for 0.5 seconds")
 
     def test_an_expired_timeout_ends_the_attempt_with_124(self) -> None:
         module = self.load()

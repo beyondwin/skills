@@ -355,19 +355,26 @@ worker를 끝내는 대기 중 들어온 인터럽트는 곧바로 SIGKILL로 �
 `exited`(타임아웃이 보낸 것이면 `timed_out`)와 음수 `exit_code`입니다. SIGKILL은
 기록을 남기지 못하므로 `pid_alive`로 봅니다.
 
-`--timeout <초>`는 한 시도의 실제 경과 시간을 제한합니다. 기본값은 7200이고
-`--timeout 0`은 제한 없이 기다립니다. 제한에 걸리면 러너는 worker에 SIGTERM을
-보내고 10초를 기다린 뒤 그래도 살아 있으면 kill한 다음, `state`를 `timed_out`으로
-두고 실제 `exit_code`를 기록합니다. session ID는 이미 복사한 첫 값을 유지하고,
-아직 null이면 한 번만 더 스캔합니다. 그 뒤 124로 끝냅니다.
+`--idle-timeout <초>`는 `worker.jsonl`과 `stderr.log`가 둘 다 그 시간 동안
+자라지 않으면 시도를 끝냅니다. 새 시도든 재개든 실행 직후부터 끝날 때까지
+적용됩니다. 기본값은 900이고 `--idle-timeout 0`은 끕니다. `--timeout <초>`는
+한 시도의 실제 경과 시간을 제한하는 선택 항목입니다. 기본값은 0이고
+`--timeout 0`은 제한 없이 기다립니다. 둘 중 하나에 걸리면 러너는 worker에
+SIGTERM을 보내고 10초를 기다린 뒤 그래도 살아 있으면 kill한 다음, `state`를
+`timed_out`으로 두고 실제 `exit_code`를 기록합니다. session ID는 이미 복사한 첫
+값을 유지하고, 아직 null이면 한 번만 더 스캔합니다. 그 뒤 124로 끝냅니다.
 
-새 시도든 재개든 시작 후 300초 동안 stdout이 0바이트이면 러너는 같은 방식으로
-worker를 끝내고 `timed_out`, exit 124, `error` `the worker wrote no output within
-300 seconds`를 기록합니다. `--timeout 0`이어도 적용되고 플래그는 없습니다.
-`--timeout`이 더 짧으면 `--timeout`이 먼저입니다. 이 오류면 타임아웃을 올려 다시
-돌리거나 그 세션을 재개하지 않고, 이전 `report.md`와 이미 만든 커밋을 적은
-이어가기 브리프로 새 worker를 보냅니다. 이 기한은 첫 바이트만 봅니다. 출력한
-뒤 멈춘 worker는 `--timeout`으로만 제한됩니다.
+유휴 타임아웃이면 `error`는 `the worker wrote no output for <N> seconds`이고
+`<N>`은 `--idle-timeout` 값을 평범한 숫자로 쓴 것입니다(`900`, `0.5`; 기본
+`the worker wrote no output for 900 seconds`). 경과 시간 제한이면 `the attempt exceeded its timeout`이고, 둘 다
+지났으면 경과 시간 제한이 먼저입니다. 유휴 타임아웃이면 worktree의 부분 변경을
+확인하고, 그 세션을 재개하거나 제한을 올려 다시 돌리지 않고, 이전 `report.md`와
+이미 만든 커밋을 적은 이어가기 브리프로 새 worker를 보냅니다. Grok은 셸 호출을
+그 호출이 돌아오거나 백그라운드로 넘어간 뒤에 기록하므로 전경 명령 하나가 유휴
+시간보다 오래 걸리면 그동안 아무것도 쓰지 않습니다. 브리프에 그런 명령이 있으면
+그 시도를 띄우기 전에만 `--idle-timeout`을 올립니다. 그 명령을 적은 새 이어가기
+시도도 여기에 포함됩니다. 대신 브리프에서 그 명령을 백그라운드로 돌리게 할 수도
+있습니다. Grok은 백그라운드로 넘긴 셸을 바로 기록합니다.
 
 신호는 worker 프로세스 하나에만 보냅니다. worker는 터미널 인터럽트가 닿도록
 컨트롤러와 같은 프로세스 그룹에 남으므로, worker가 시작한 자식 프로세스는 쫓아가지
