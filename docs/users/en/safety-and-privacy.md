@@ -34,11 +34,12 @@ An `outcome` label (`good`, `false-ready`, `noisy`, `abandoned`) is an observati
 
 ## External SDD implementation
 
-A live `sddx` worker transmits plan and worktree contents to the Cursor or
-xAI provider. That transfer follows those CLIs' data controls. Default
-`verify.py` and CI do not invoke Cursor or Grok CLI. Do not commit worker
-transcripts, credentials, or provider receipts. The controller does not put
-host secrets into the worker prompt.
+When `sddx` runs for real, the worker (Cursor Agent or Grok Build) sends task
+and worktree contents to the Cursor or xAI provider. That transfer follows
+those CLIs' data policies. Default `verify.py` and CI never call Cursor or Grok
+CLI. Do not commit worker transcripts, credentials, or provider receipts (the
+run records a provider returns). The host never puts its own secrets into the
+worker prompt.
 
 ## High-stakes requests
 

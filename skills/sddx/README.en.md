@@ -4,39 +4,47 @@
 
 ## Purpose
 
-It runs Superpowers SDD with the current Claude Code or Codex session as
-orchestrator, and sends implementation only to Cursor Agent or Grok Build.
-Both workers use only Grok 4.7, and neither uses a `-fast` variant.
+Your current Claude Code or Codex session runs Superpowers SDD (split into
+tasks, review, fix rounds), and only the coding goes to Cursor Agent or Grok
+Build. Both use only Grok 4.7, never a `-fast` variant.
+
+| Term | Meaning |
+| --- | --- |
+| Host | The session that got `/sddx` or `$sddx` (the contract's controller). It hands out tasks, checks results, and runs reviews. |
+| Worker | The outside CLI that codes and commits one task. |
+| Brief | The one-task sheet a worker gets, with the plan's run-wide constraints. |
+| Runner | `run_worker.py`, which starts the worker and records the attempt. |
+| High / XHigh | Reasoning effort; XHigh thinks harder. |
 
 ## When to use and not use
 
-Use it when an implementation plan exists and the user runs `/sddx` or
-`$sddx`.
-
-Do not use it to write a spec or plan, to run `writing-plans`,
-`executing-plans` (including Native inline), or `pre-sdd-review`, or to
-implement in this session, or when the user asks for a Grok/Cursor
-implementer without `/sddx` or `$sddx`.
+- Use it only when an implementation plan file exists and your message
+  contains `/sddx` (Claude Code) or `$sddx` (Codex).
+- Not for writing a spec or plan, `writing-plans`, `executing-plans`
+  (including Native), `pre-sdd-review`, plain SDD, coding in this session, or
+  "implement this with Grok" without `/sddx` or `$sddx`.
 
 ## Supported hosts
 
 sddx: Claude Code and Codex supported for local or repository-based use.
 
-The supported programs are `claude-code` and `codex`. Cursor and Grok CLIs
-are implementer programs only. The contract calls them workers. They are not
-hosts.
-
-On macOS, all four Claude Code / Codex by Cursor / Grok combinations have
-been run for real. What was checked, and what was not, is the table in
-[Compatibility](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/sddx/compatibility.md).
-Claude.ai, Cowork, Skills API upload, and marketplace publication are not
-supported. Shared limits are in
-[Compatibility](https://github.com/beyondwin/skills/blob/main/docs/users/en/compatibility.md).
+- Hosts are `claude-code` and `codex`. Cursor Agent and Grok Build are
+  workers, not hosts.
+- The OS is macOS only. Windows and Linux are unsupported, and the product
+  CLIs refuse Windows.
+- A Grok worker needs Python 3.11+ in a linked worktree, turns off MCP call
+  tools, and will not run without `--disallowed-tools` and `--deny`.
+- Claude.ai, Cowork, Skills API upload, and marketplace publication are not
+  supported.
+- All four host/worker pairs have been run for real on macOS. What was
+  checked is in
+  [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/sddx/compatibility.md);
+  shared limits are in the [compatibility guide](https://github.com/beyondwin/skills/blob/main/docs/users/en/compatibility.md).
 
 ## Install
 
-Clone the repo, then make two links. The first link serves Codex. The second
-serves Claude Code.
+Clone the repo, then make two shortcuts (symlinks): one for Codex, one for
+Claude Code.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -44,10 +52,9 @@ cd skills
 mkdir -p ~/.agents/skills ~/.claude/skills
 ```
 
-The one-shot Python block below takes source and target as arguments. It first
-validates that source is a skill directory and treats the same link as success.
-It does not replace a different link, dangling link, file, or directory. It also
-stops if the target appears after inspection, so inspect it before retrying.
+The block below makes one link; the same link already there counts as
+success. It does not replace a different link, dangling link, file, or
+directory; it stops, so check the target and run it again.
 
 <!-- sddx-local-links -->
 ```python
@@ -80,16 +87,13 @@ except FileExistsError:
 print("linked")
 ```
 
-Put this block on standard input through a quoted here-document and run it once
-per target. The Codex invocation starts with
-`python3 - "$PWD/skills/sddx" "$HOME/.agents/skills/sddx" <<'PY'`;
-the Claude Code invocation starts with
-`python3 - "$PWD/skills/sddx" "$HOME/.claude/skills/sddx" <<'PY'`.
-Place the Python block above unchanged on the following lines and close each
-invocation with `PY` on its own line. Keep the source and target arguments
-quoted.
+Run it once per link. The first line is
+`python3 - "$PWD/skills/sddx" "$HOME/.agents/skills/sddx" <<'PY'` for Codex and
+`python3 - "$PWD/skills/sddx" "$HOME/.claude/skills/sddx" <<'PY'` for Claude
+Code. Paste the block unchanged below it, end with a line that says only `PY`,
+and keep the quotes.
 
-Inspect the links first. Then remove only those exact links.
+To remove, check first, then remove only those links.
 
 ```bash
 ls -ld ~/.agents/skills/sddx ~/.claude/skills/sddx
@@ -97,49 +101,57 @@ unlink ~/.agents/skills/sddx
 unlink ~/.claude/skills/sddx
 ```
 
-`$skill-installer` names the public GitHub path. Codex still discovers
-`~/.agents/skills/sddx`. Do not add this product to the three Codex-only
-commands in `install-codex.md`. Do not create a `~/.codex` or `~/.grok`
-duplicate.
+The public path in `$skill-installer` form is below, but Codex finds this
+skill through the `~/.agents/skills/sddx` link. It is not one of the three
+skills in [Codex install](https://github.com/beyondwin/skills/blob/main/docs/users/en/install-codex.md);
+do not create a `~/.codex` or `~/.grok` copy.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/sddx
 ```
 
-Shared install steps are in
-[Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/install-local.md).
+More notes are in [Local links](https://github.com/beyondwin/skills/blob/main/docs/users/en/install-local.md).
 
 ## First call
 
-Explicit calls are `$sddx` on Codex and `/sddx` on Claude Code.
+Use `/sddx` on Claude Code and `$sddx` on Codex. You can name the worker after
+the plan file (`cursor`, `grok`, or `c`, `g` for short).
 
 ```text
-$sddx docs/history/plans/example.md
 /sddx docs/history/plans/example.md
+$sddx docs/history/plans/example.md grok
 ```
 
 ## Expected result
 
-The implementer is chosen with `sddx <plan-file> [cursor|grok|c|g]`. `c` means
-cursor and `g` means grok. If the request has no choice, the skill asks once
-for this plan. If only one implementer is available, it still shows that fact
-and the missing side's reason, then confirms before continuing. If the
-requested side is missing, it stops instead of switching.
+1. Worker: if you named none, it asks once per plan, and confirms even when
+   only one is available. If the chosen one is missing, it stops; it never
+   switches on its own.
+2. Each task gets a fresh worker and a brief; the worker never reads the whole
+   plan.
+3. Exit code 0 is not "done". The host checks the report, real test results,
+   commits, and tool record (what the worker read and ran), then a reviewer on
+   the host's own model reviews: High, or XHigh for concurrency, permission,
+   secret, or sandbox changes and round 4-5 re-reviews.
+4. Fix rounds 1-3 resume (continue) the same worker session if effort is
+   unchanged; rounds 4-5 use a fresh XHigh worker. Work outside the plan is asked about first, and a needed
+   push or publish stops as BLOCKED.
 
-The worker receives a complete task and listed references, without reopening
-the full plan. Completion is judged from the report, real test exits, commits,
-the tool record, and native review — not from a process exit. Every attempt
-leaves a directory under the plan's `sdd-workspace` folder (inside the
-worktree `.superpowers/sdd/<plan>/` tree). While it runs,
-`run_worker.py status` is how you read the session ID, whether the pid is still
-alive, and a short list of reads, searches, and shells. Do not paste the
-whole log. Commands and judgment rules are in the
+Each attempt leaves `run.json`, `report.md`, and the log in a folder under
+`.superpowers/sdd/<plan>/` in the worktree. Watch progress with
+`run_worker.py status`: session ID, whether the worker is alive (`pid_alive`),
+and a short list of reads, searches, and shells. Do not paste the whole log.
+
+| Situation | Result | What to do next |
+| --- | --- | --- |
+| Past `--timeout` (default 7200 seconds; `0` = no limit) | Worker stopped, `timed_out`, exit 124 | Check `status` and the report. |
+| No output in the first 300 seconds, even with `--timeout 0` | Worker stopped, `timed_out`, `the worker wrote no output within 300 seconds` | Do not resume it or raise the limit; start a fresh worker with a brief naming the last report and commits. |
+| Ctrl-C or SIGTERM to the runner | `interrupted`; the worker is stopped too (SIGTERM, SIGKILL after ten seconds), exit 130 | Check for leftover background processes the worker started. |
+| Out of balance (402), auth or permission failure | Attempt ends | Change the condition first; nothing retries automatically. |
+
+To stop an attempt, stop the runner; do not signal the recorded worker pid or
+use `pkill -f`. Commands and judgment rules are in the
 [contract](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/sddx/contract.md).
-
-Grok linked worktrees need Python 3.11+. Grok removes MCP invocation tools
-and will not run without value-taking `--disallowed-tools` and `--deny`.
-The supported OS is macOS only. Windows and Linux are unsupported. Product
-CLIs refuse Windows.
 
 ## See also
 

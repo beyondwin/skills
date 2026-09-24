@@ -25,7 +25,7 @@ does not include How It Works, Pre-SDD Review, or SDDx.
 | [`image-workbench`](skills/image-workbench/README.en.md) | Plans, makes, or edits PNG/JPG images that belong in this project. | Codex, Grok |
 | [`how-it-works`](skills/how-it-works/README.en.md) | Explains how one machine works, at a depth you pick, in writing and diagrams. | Codex, Claude Code |
 | [`pre-sdd-review`](skills/pre-sdd-review/README.en.md) | Checks an approved design and implementation plan against repository reality immediately before SDD, repairs the documents, and re-reviews them. | Codex |
-| [`sddx`](skills/sddx/README.en.md) | Runs Superpowers SDD with an external Cursor or Grok implementer. | Claude Code, Codex |
+| [`sddx`](skills/sddx/README.en.md) | Runs Superpowers SDD in your session and hands only the coding to Cursor Agent or Grok Build (Grok 4.7). | Claude Code, Codex |
 
 Each product README has install and first-call steps.
 

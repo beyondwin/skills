@@ -25,7 +25,7 @@ Pre-SDD Review, SDDx가 들어 있지 않습니다.
 | [`image-workbench`](skills/image-workbench/README.md) | 이 프로젝트에 넣을 PNG·JPG 같은 이미지를 기획하고 만들고 고칩니다. | Codex, Grok |
 | [`how-it-works`](skills/how-it-works/README.md) | 한 기계가 어떻게 도는지, 고른 깊이로 그림과 글로 설명합니다. | Codex, Claude Code |
 | [`pre-sdd-review`](skills/pre-sdd-review/README.md) | 승인된 설계와 구현 계획을 SDD 직전에 저장소 현실과 대조하고 문서를 고쳐 다시 검토합니다. | Codex |
-| [`sddx`](skills/sddx/README.md) | Superpowers SDD의 구현만 외부 Cursor 또는 Grok CLI에 넘깁니다. | Claude Code, Codex |
+| [`sddx`](skills/sddx/README.md) | Superpowers SDD는 지금 세션이 진행하고, 코드 작성만 Cursor Agent 또는 Grok Build(Grok 4.7)에 맡깁니다. | Claude Code, Codex |
 
 쓰는 법과 첫 호출은 각 제품 README에 있습니다.
 

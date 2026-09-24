@@ -34,11 +34,11 @@ record에는 저장소 상대 경로, 디렉터리 이름, 해시, 열거값, �
 
 ## 외부 SDD 구현
 
-`sddx`의 라이브 worker는 계획과 worktree 내용을 Cursor 또는 xAI 공급자에게
-보냅니다. 그 전송은 해당 CLI의 데이터 통제를 따릅니다. 기본 `verify.py`와
-CI는 Cursor나 Grok CLI를 호출하지 않습니다. worker 대화, 자격 증명, 공급자
-receipt를 커밋하지 마세요. 컨트롤러는 호스트 비밀을 worker 프롬프트에 넣지
-않습니다.
+`sddx`로 실제 구현을 돌리면 워커(Cursor Agent 또는 Grok Build)가 과제
+내용과 worktree 내용을 Cursor 또는 xAI 공급자에게 보냅니다. 그 전송은 해당 CLI의
+데이터 정책을 따릅니다. 기본 `verify.py`와 CI는 Cursor나 Grok CLI를 부르지
+않습니다. 워커 대화, 자격 증명, 공급자 receipt(공급자가 돌려준 실행 기록)는
+커밋하지 마세요. 호스트는 자기 비밀 값을 워커 프롬프트에 넣지 않습니다.
 
 ## 이해관계가 큰 요청
 
