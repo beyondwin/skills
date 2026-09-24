@@ -6,6 +6,35 @@ All notable changes to this product are documented in this file.
 
 No entries yet.
 
+## 6.0.0 - 2026-09-24
+
+### Breaking
+
+- SIGTERM or Ctrl-C to the runner now ends the worker process it started
+  (SIGTERM, ten seconds, SIGKILL) after recording `interrupted`, instead of
+  leaving it running. A worker left alive kept committing to the worktree
+  while the next attempt shared it. Its own descendants are still not pursued.
+- A worker that writes no stdout within 300 seconds of starting, new or
+  resumed, is ended as `timed_out` (exit 124) with `error`
+  `the worker wrote no output within 300 seconds`, even under `--timeout 0`.
+- The default `--timeout` is 7200 seconds instead of 3600.
+
+### Changed
+
+- The interrupt `error` is `the runner was interrupted (SIGTERM or Ctrl-C)`;
+  it no longer says the controller sent the signal.
+- `status` indexes Grok `tool_use` reads, greps, directory listings, and
+  shells. A Grok shell's `exit_code` is null when no integer exit came back.
+- Implementer XHigh no longer triggers on "High already failed review on this
+  task", which every fix round met and which contradicted resuming rounds 1-3.
+- Fix and continuation briefs start from
+  `extract_task.py --heading "Global Constraints"`.
+- Workers write the report right after their commit and never open provider
+  session directories. Host checks run before the task's review. Controllers
+  create the attempt parent first, do not mask exits with `tail`, do not start
+  an attempt while the previous one's `pid_alive` is true, and never
+  `pkill -f`.
+
 ## 5.0.0 - 2026-09-22
 
 ### Breaking

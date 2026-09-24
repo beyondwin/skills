@@ -159,6 +159,15 @@ git diff --check
 라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있습니다. CI가 요구하지
 않습니다. 오프라인 통과를 호스트 품질로 설명하지 마세요.
 
+## 6.0.0 오프라인 검사
+
+6.0.0의 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다. 러너 중단이
+worker를 끝내고 두 번째 인터럽트에도 `running`이 남지 않는지, 출력 없는 시도가
+`FIRST_OUTPUT_SECONDS` 뒤 `timed_out`으로 끝나는지(`--timeout 0`·재개 포함,
+더 짧은 `--timeout` 우선, 곧바로 출력하는 worker는 제외), 기본 타임아웃 7200,
+Grok `tool_use` 색인과 결과 본문 비복사, 그리고 각 규칙 문구가 모든 면에 있는지를
+잠급니다. 라이브 확인은 아래 `6.0.0 라이브 확인`에 있습니다.
+
 ## 5.0.0 오프라인 검사
 
 5.0.0의 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다.
