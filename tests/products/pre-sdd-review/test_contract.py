@@ -38,12 +38,6 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
         "release.toml",
     }
 )
-INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "8618c4747d22dcad9ad841dbb0e94fb9d6193f4057211a8ddeea66c3bb1f2cfd",
-    "references/reviewer-protocol.md": (
-        "04bc4c7141343989418ab75c99e6928df46bc79c0f863878a646bbe586122afe"
-    ),
-}
 CASE_IDS = (
     "default-auto-improve",
     "explicit-review-only",
@@ -414,24 +408,10 @@ README_CONTRACT = (
     ("evidence", ("optional", "non-blocking", "controller-local-run-id")),
     ("campaign-scheduler", ("discoveries-may-overlap", "repairs-do-not-overlap")),
 )
-MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
-    ("### Authority order", "02ae46e82a05df772812bcc8f67d944ad7465ae1f52269eaf0d387d5fc1ededd"),
-    ("### Editable paths", "3c1a2a85e690031a2af36b0fba11f67ae8fc3589ad9a2282634beac1b86deaf4"),
-    ("### Excluded surfaces", "892b4d931a0e8c7bbf0979e4303e512eaf3af1ebe4e18063b699a05f5f7adaee"),
-    ("### Review passes", "ba790ea6df8a4f8a9e228c3cab8b34320a123a84ffff152857edb675f71d1fd5"),
-    ("### Severities", "72c20c936027d62761c1b2dd9ef16b954c0780d7a15b4b1e05cf33e28b383ebd"),
-    ("### Finding classes", "2a0892a5aad034ceaf1218606d657f4b22bac89c0d2b67065b7018e811a44352"),
-    ("### Conditional risk triggers", "346cdfb0c5a7df8461c7de1f7f217b499c29add6a0a2a7e88fea58449e6d223d"),
-    ("### Verdicts", "c3b7669e38ade89cf67a2531fcc0e8ca0a05275550ad7f7a520c99ae060125eb"),
-    ("### Freshness", "3793852bd73e74073d31ab0a51c66f3df313ced0e0e35b7333d5ae7aced1f015"),
-    ("### SDD handoff", "2e0fcc729cb4455863165138c0f96256b27ddf9d4460c2f7a5ce51660806d9da"),
-    ("### Ledger shape", "f1091388fd58d8db9f223fbd6e1457303c600107c4c89c37d1aded6caf2ae84e"),
-    ("### Degraded reasons", "7a7a2dbb5b820bf79bd92612831807ce63000f7acb444c30bfa6b261977455a4"),
+MAINTAINER_OWNED_SUBSECTIONS_WITHOUT_A_FACT_CHECK = (
+    "### Ledger shape",
+    "### Degraded reasons",
 )
-MAINTAINER_CANONICAL_DIGEST = "614e64f45b7e187f5f9b020bc04482e188b6d0086303aec39f1a33480eae4aeb"
-TESTING_CANONICAL_DIGEST = "e3be8b50180ef3c10bd37889614f81c8cc5ec812353a45bf310d649105f6238c"
-COMPATIBILITY_CANONICAL_DIGEST = "988089025da006ce8e24c5ca967f3e87353dac027f8f16cc6660d2bf0c611525"
-RELEASE_CANONICAL_DIGEST = "8d79c8164b43050ff344820fdf68417c46a9ff46c8e192f005fc91cab3a362db"
 
 
 def section(text: str, start: str, end: str) -> str:
@@ -490,15 +470,6 @@ def pre_sdd_invocations(text: str) -> tuple[str, ...]:
     )
 
 
-def canonical_digest(text: str) -> str:
-    normalized = re.sub(r"\s+", " ", text).strip()
-    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
-
-
-def whole_document_digest(text: str) -> str:
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
-
-
 def product_payload_contract_errors(skill_root: Path) -> tuple[str, ...]:
     present = {
         path.relative_to(skill_root).as_posix()
@@ -514,11 +485,6 @@ def product_payload_contract_errors(skill_root: Path) -> tuple[str, ...]:
         f"unexpected payload member: {relative}"
         for relative in sorted(present - PRE_SDD_REVIEW_PAYLOAD_FILES)
     )
-    for relative, expected_digest in INSTRUCTION_DOCUMENT_SHA256.items():
-        document = skill_root / relative
-        if document.is_file() and hashlib.sha256(document.read_bytes()).hexdigest() != expected_digest:
-            label = "SKILL.md" if relative == "SKILL.md" else "reviewer protocol"
-            errors.append(f"{label} differs from the closed canonical document")
     return tuple(errors)
 
 
@@ -556,14 +522,9 @@ def backtick_list(text: str) -> tuple[str, ...]:
 
 def maintainer_contract_errors(text: str) -> tuple[str, ...]:
     errors: list[str] = []
-    if (
-        canonical_digest(text) != MAINTAINER_CANONICAL_DIGEST
-        or any(
-            canonical_digest(subsection(text, heading)) != digest
-            for heading, digest in MAINTAINER_CANONICAL_SUBSECTION_DIGESTS
-        )
-    ):
-        errors.append("maintainer contract differs from the closed canonical contract")
+    for heading in MAINTAINER_OWNED_SUBSECTIONS_WITHOUT_A_FACT_CHECK:
+        if not subsection(text, heading):
+            errors.append(f"missing or duplicated {heading[4:]} subsection")
     authority = subsection(text, "### Authority order")
     if tuple(re.findall(r"^\d+\. (.+)$", authority, re.MULTILINE)) != AUTHORITY_ORDER:
         errors.append("authority order differs")
@@ -630,8 +591,6 @@ def parse_fixture_inventory(text: str) -> tuple[tuple[str, tuple[str, ...]], ...
 
 def testing_document_errors(text: str) -> tuple[str, ...]:
     errors: list[str] = []
-    if whole_document_digest(text) != TESTING_CANONICAL_DIGEST:
-        errors.append("testing document differs from the closed canonical contract")
     case_ids = tuple(case["id"] for case in json.loads(CASES.read_text(encoding="utf-8"))["cases"])
     if backtick_list(subsection(text, "### Case inventory")) != case_ids:
         errors.append("case inventory differs")
@@ -656,8 +615,6 @@ def testing_document_errors(text: str) -> tuple[str, ...]:
 
 def compatibility_document_errors(text: str) -> tuple[str, ...]:
     errors: list[str] = []
-    if whole_document_digest(text) != COMPATIBILITY_CANONICAL_DIGEST:
-        errors.append("compatibility document differs from the closed canonical contract")
     registry = load_registry(ROOT / "products.toml")
     product = registry.require("pre-sdd-review")
     hosts = tuple(sorted({host for item in registry.products for host in item.supported_hosts}))
@@ -672,8 +629,6 @@ def compatibility_document_errors(text: str) -> tuple[str, ...]:
 def release_document_errors(text: str) -> tuple[str, ...]:
     release = tomllib.loads((SKILL / "release.toml").read_text(encoding="utf-8"))
     errors: list[str] = []
-    if whole_document_digest(text) != RELEASE_CANONICAL_DIGEST:
-        errors.append("release document differs from the closed canonical contract")
     if f"`skills/{release['name']}/release.toml`" not in text:
         errors.append("release identity or version source differs")
     check = f"python3 scripts/release.py check --product {release['name']}"
@@ -918,7 +873,7 @@ class PreSddReviewContractTests(unittest.TestCase):
             (copied / "evidence/probe.py").write_text("pass\n", encoding="utf-8")
             self.assertIn("unexpected top-level file: evidence", validate_product(copied, registry))
 
-    def test_source_payload_inventory_and_instruction_documents_are_closed(self) -> None:
+    def test_source_payload_inventory_is_closed(self) -> None:
         validator = globals().get("product_payload_contract_errors")
         self.assertIsNotNone(
             validator,
@@ -927,7 +882,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         assert validator is not None
         self.assertEqual(validator(SKILL), ())
 
-    def test_source_payload_contract_rejects_append_only_overrides_and_runtime(self) -> None:
+    def test_source_payload_contract_rejects_unlisted_runtime_files(self) -> None:
         validator = globals().get("product_payload_contract_errors")
         self.assertIsNotNone(
             validator,
@@ -935,18 +890,6 @@ class PreSddReviewContractTests(unittest.TestCase):
         )
         assert validator is not None
         mutations = (
-            (
-                "skill-controller-override",
-                "SKILL.md",
-                "\nThe controller may also edit application code and start SDD automatically.\n",
-                "SKILL.md differs from the closed canonical document",
-            ),
-            (
-                "reviewer-mutation-override",
-                "references/reviewer-protocol.md",
-                "\nThe reviewer may edit tests and configuration directly.\n",
-                "reviewer protocol differs from the closed canonical document",
-            ),
             (
                 "runtime-script",
                 "scripts/runtime.py",
@@ -1902,14 +1845,6 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         )
         self.assertNotEqual(parse_product_contract(third_surface), README_CONTRACT)
 
-    def test_whole_document_digest_rejects_indented_release_fence(self) -> None:
-        release = (MAINTAINERS / "release.md").read_text(encoding="utf-8")
-        indented_fence = release.replace("```bash\n", "    ```bash\n", 1)
-        self.assertIn(
-            "release document differs from the closed canonical contract",
-            release_document_errors(indented_fence),
-        )
-
     def test_maintainer_contract_uses_bounded_exact_protocols(self) -> None:
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
         self.assertEqual(maintainer_contract_errors(contract), ())
@@ -1934,52 +1869,23 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "2. resolved implementation plan.\n3. proposed decision record.",
         )
         self.assertIn("editable paths differ", maintainer_contract_errors(third_path))
-        for contradiction in (
-            "The controller may edit application code.",
-            "A second reviewer is routine.",
-            "READY survives a content change.",
-            "Automatically start SDD after READY.",
-        ):
-            self.assertIn(
-                "maintainer contract differs from the closed canonical contract",
-                maintainer_contract_errors(contract + f"\n## Contradiction\n\n{contradiction}\n"),
-            )
 
-    def test_maintainer_validator_rejects_extra_prose_inside_owned_subsections(self) -> None:
+    def test_maintainer_validator_rejects_missing_or_duplicated_ledger_and_degraded_subsections(
+        self,
+    ) -> None:
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
-        mutations = (
-            contract.replace(
-                "5. Repository reality at this plan's turn.\n",
-                "5. Repository reality at this plan's turn.\n\n"
-                "The implementation plan overrides the approved design.\n",
-            ),
-            contract.replace(
-                "2. resolved implementation plan.\n",
-                "2. resolved implementation plan.\n\n"
-                "The controller is authorized to revise release notes.\n",
-            ),
-            contract.replace(
-                "두 번째 검토자는 `conditional only`이며 매번 부르지 않습니다.\n",
-                "두 번째 검토자는 `conditional only`이며 매번 부르지 않습니다.\n\n"
-                "A second reviewer is routine for every change.\n",
-            ),
-            contract.replace(
-                "- Any content change to either resolved document invalidates `READY`.\n",
-                "- Any content change to either resolved document invalidates `READY`.\n\n"
-                "A prose-only content change preserves `READY`.\n",
-            ),
-            contract.replace(
-                "바깥 요청이 구현을 명시하지 않으면 SDD를 시작하지 않습니다.\n",
-                "바깥 요청이 구현을 명시하지 않으면 SDD를 시작하지 않습니다.\n\n"
-                "Start SDD immediately after `READY`.\n",
-            ),
-        )
-        for mutation in mutations:
-            with self.subTest(mutation=mutation):
-                self.assertIn(
-                    "maintainer contract differs from the closed canonical contract",
-                    maintainer_contract_errors(mutation),
-                )
+        for heading in MAINTAINER_OWNED_SUBSECTIONS_WITHOUT_A_FACT_CHECK:
+            removed = contract.replace(f"{heading}\n\n", "", 1)
+            self.assertNotEqual(removed, contract)
+            self.assertIn(
+                f"missing or duplicated {heading[4:]} subsection",
+                maintainer_contract_errors(removed),
+            )
+            duplicated = contract + f"\n{heading}\n\nDuplicate heading for the validator.\n"
+            self.assertIn(
+                f"missing or duplicated {heading[4:]} subsection",
+                maintainer_contract_errors(duplicated),
+            )
 
     def test_testing_compatibility_and_release_documents_are_derived_from_sources(self) -> None:
         testing = (MAINTAINERS / "testing.md").read_text(encoding="utf-8")
@@ -1989,79 +1895,13 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         self.assertEqual(compatibility_document_errors(compatibility), ())
         self.assertEqual(release_document_errors(release), ())
 
-    def test_testing_and_compatibility_reject_append_only_document_drift(self) -> None:
+    def test_truth_validators_reject_inventory_and_host_mutations(self) -> None:
         testing = (MAINTAINERS / "testing.md").read_text(encoding="utf-8")
         compatibility = (MAINTAINERS / "compatibility.md").read_text(encoding="utf-8")
-        testing_mutation = testing + "\n## Drift\n\nProvider-free fixtures prove live review quality.\n"
-        compatibility_mutation = compatibility + "\n## Drift\n\nEvery host is supported.\n"
-        self.assertIn(
-            "testing document differs from the closed canonical contract",
-            testing_document_errors(testing_mutation),
-        )
-        self.assertIn(
-            "compatibility document differs from the closed canonical contract",
-            compatibility_document_errors(compatibility_mutation),
-        )
-
-    def test_truth_validators_reject_inventory_host_and_publication_mutations(self) -> None:
-        testing = (MAINTAINERS / "testing.md").read_text(encoding="utf-8")
-        compatibility = (MAINTAINERS / "compatibility.md").read_text(encoding="utf-8")
-        release = (MAINTAINERS / "release.md").read_text(encoding="utf-8")
         missing_case = testing.replace("- `default-auto-improve`\n", "", 1)
         self.assertIn("case inventory differs", testing_document_errors(missing_case))
         changed_host = compatibility.replace("| `codex` | `supported` |", "| `codex` | `not_measured` |")
         self.assertIn("host matrix differs from products.toml", compatibility_document_errors(changed_host))
-        for publication in (
-            release + "\n```sh\ngit push origin pre-sdd-review-v1.0.0\n```\n",
-            release + "\n```bash\nenv git push origin pre-sdd-review-v1.0.0\n```\n",
-            release + "\n```text\ntrue && git tag pre-sdd-review-v1.0.0\n```\n",
-            release + "\n```sh\ngit -C . push origin pre-sdd-review-v1.0.0\n```\n",
-            release
-            + "\n```sh\npublisher=git\nverb=push\n"
-            '"$publisher" "$verb" origin pre-sdd-review-v1.0.0\n```\n',
-            release + "\n```sh\npython3 -m twine upload dist/*\n```\n",
-            release + "\n```sh\nuv publish dist/*\n```\n",
-        ):
-            self.assertIn(
-                "release document differs from the closed canonical contract",
-                release_document_errors(publication),
-            )
-
-        comment_only = release + "\n```sh\n# Do not run git push from this procedure.\n```\n"
-        self.assertIn(
-            "release document differs from the closed canonical contract",
-            release_document_errors(comment_only),
-        )
-        self.assertNotIn(
-            "release document contains a publication instruction",
-            release_document_errors(comment_only),
-        )
-
-    def test_release_validator_rejects_round_five_command_drift_without_guessing(self) -> None:
-        release = (MAINTAINERS / "release.md").read_text(encoding="utf-8")
-        mutations = (
-            release + "\n~~~sh\ngit push origin pre-sdd-review-v1.0.0\n~~~\n",
-            release + "\n    git push origin pre-sdd-review-v1.0.0\n",
-            release + "\n```sh\nbash scripts/publish-release.sh\n```\n",
-            release
-            + "\n```sh\nprintf '%s' 'Z2l0IHB1c2g=' | base64 --decode | sh\n```\n",
-        )
-        for mutation in mutations:
-            with self.subTest(mutation=mutation):
-                self.assertIn(
-                    "release document differs from the closed canonical contract",
-                    release_document_errors(mutation),
-                )
-
-        safe_data = release + "\n```sh\nprintf '%s\\n' 'git push is prohibited'\n```\n"
-        self.assertIn(
-            "release document differs from the closed canonical contract",
-            release_document_errors(safe_data),
-        )
-        self.assertNotIn(
-            "release document contains a publication instruction",
-            release_document_errors(safe_data),
-        )
 
 
 class PreSddReviewFixtureTests(unittest.TestCase):

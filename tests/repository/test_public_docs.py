@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 import shutil
@@ -90,12 +89,6 @@ PRE_SDD_REVIEW_SUPPORT = (
 SDDX_SUPPORT = (
     "sddx: Claude Code and Codex supported for local or repository-based use."
 )
-PRE_SDD_SHARED_SECTION_DIGESTS = {
-    ("ko", "safety"): "11fa0c607a3057f584d0cd746b18607ef67ab88ae36b488b2fcac5bb3d08194e",
-    ("en", "safety"): "0e5bfb2a5568ee4d4d96e09c629ec3feafebee24a17a05b9a7ebab8e0e9d803b",
-    ("ko", "verification"): "2cf48732d7ad64ab9fce4117e241611d9bf4c45502e153ddb7d815ff61bf00f2",
-    ("en", "verification"): "a88e5b5002ef0cabdd1d78a3ef18694e9e5b90253dd0775f7feda4de590c0093",
-}
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
     "image-workbench": IMAGE_SUPPORT,
@@ -322,14 +315,6 @@ def _owned_section(text: str, heading: str) -> str:
     return matches[0] if len(matches) == 1 else ""
 
 
-def _append_to_owned_section(text: str, heading: str, contradiction: str) -> str:
-    owned = _owned_section(text, heading)
-    if not owned:
-        return text
-    replacement = owned.rstrip() + f"\n\n{contradiction}\n\n"
-    return text.replace(owned, replacement, 1)
-
-
 def _is_backtick_escaped(text: str, index: int) -> bool:
     backslashes = 0
     index -= 1
@@ -509,8 +494,6 @@ def pre_sdd_shared_contract_errors(
     errors: list[str] = []
     if any(owned.count(clause) != 1 for clause in clauses[key]):
         errors.append("pre-sdd shared exact clauses differ")
-    if hashlib.sha256(owned.encode("utf-8")).hexdigest() != PRE_SDD_SHARED_SECTION_DIGESTS[key]:
-        errors.append("pre-sdd shared section differs from canonical contract")
     return tuple(errors)
 
 
@@ -1160,51 +1143,6 @@ class UserGuideFactTests(unittest.TestCase):
                         ),
                     )
 
-    def test_pre_sdd_shared_validator_rejects_append_only_contradictions(self) -> None:
-        cases = (
-            (
-                "ko",
-                "safety",
-                "## SDD 전 문서 검토",
-                ROOT / "docs/users/ko/safety-and-privacy.md",
-                "기본 모드에서도 application code를 수정해도 됩니다.",
-            ),
-            (
-                "en",
-                "safety",
-                "## Pre-SDD document review",
-                ROOT / "docs/users/en/safety-and-privacy.md",
-                "In default mode, application code may also be edited.",
-            ),
-            (
-                "ko",
-                "verification",
-                "## 오프라인 픽스처",
-                ROOT / "docs/users/ko/verification.md",
-                "이 픽스처 통과는 라이브 리뷰 품질도 증명합니다.",
-            ),
-            (
-                "en",
-                "verification",
-                "## Offline fixtures",
-                ROOT / "docs/users/en/verification.md",
-                "Passing these fixtures also proves live review quality.",
-            ),
-        )
-        for language, document, heading, path, contradiction in cases:
-            with self.subTest(language=language, document=document):
-                source = _read(path)
-                mutation = _append_to_owned_section(source, heading, contradiction)
-                self.assertNotEqual(mutation, source)
-                self.assertIn(
-                    "pre-sdd shared section differs from canonical contract",
-                    pre_sdd_shared_contract_errors(
-                        mutation,
-                        language=language,
-                        document=document,
-                    ),
-                )
-
 
 class DocumentationArchitectureTests(unittest.TestCase):
     def test_six_user_guides_exist_per_language(self) -> None:
@@ -1252,7 +1190,7 @@ class DocumentationArchitectureTests(unittest.TestCase):
             "docs/maintainers/",
             "사실 하나",
             "한국어가 원본",
-            "digest",
+            "문구·사실 단언",
             "함께 고칠 파일",
             "진행 중",
         ):

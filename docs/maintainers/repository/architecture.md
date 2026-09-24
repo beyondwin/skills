@@ -70,7 +70,7 @@ flowchart TB
 | 지원 OS | macOS만. Windows와 Linux는 미지원. Ubuntu CI 통과는 OS 지원이 아님 |
 | worker | 구현만 맡는 외부 CLI. Cursor, Grok CLI. 호스트가 아님 |
 | selector | 어떤 검사만 돌릴지 고르는 이름. `--skill`, `--catalog` |
-| digest | 문서 지문. 문구가 바뀌면 같이 고침 |
+| digest | payload나 manifest의 SHA-256 지문. 테스트는 문서를 이 방식으로 핀하지 않고 문구·사실만 확인함 |
 | 픽스처 | 미리 만들어 둔 검사 예시 |
 | smoke | 실제로 한 번 돌려 본 기록 |
 | `not_measured` | 아직 이 환경에서 확인하지 않음 |
