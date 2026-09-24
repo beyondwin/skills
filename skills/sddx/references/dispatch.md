@@ -201,7 +201,7 @@ session: none` in the current-state block — use the SDD fallback: a fresh
 worker plus the previous attempt's `report.md` named in the brief. Never guess
 an ID.
 
-`--timeout <seconds>` bounds one attempt's wall-clock. It defaults to 3600, and
+`--timeout <seconds>` bounds one attempt's wall-clock. It defaults to 7200, and
 `--timeout 0` waits without a bound. When it fires the runner sends the worker
 SIGTERM, waits ten seconds, kills it if it is still alive, records `state`
 `timed_out` with the real `exit_code`, keeps the first session ID already
@@ -210,6 +210,13 @@ the worker process itself is signalled. It shares the controller's process
 group so that a terminal interrupt reaches it, so descendants the worker
 started are not pursued and no process tree is cleaned up here. Confirm those
 have exited yourself before cleanup.
+
+A worker that writes no stdout at all within 300 seconds of starting, new or
+resumed, is ended the same way, even under `--timeout 0`: `timed_out`, exit
+124, `error` `the worker wrote no output within 300 seconds`. When that is the
+error, do not raise `--timeout` and do not resume that session; dispatch a
+fresh worker with a continuation brief that names the previous `report.md`
+and the commits already made.
 
 Do not pass `--worktree` to the provider CLI. Do not pass `--continue`. Do not
 copy host credentials or environment values into the brief or the dispatch.

@@ -330,11 +330,18 @@ worker 프로세스 하나를 끝낸 뒤 회수한 `exit_code`를 다시 기록�
 `exited`(타임아웃이 보낸 것이면 `timed_out`)와 음수 `exit_code`입니다. SIGKILL은
 기록을 남기지 못하므로 `pid_alive`로 봅니다.
 
-`--timeout <초>`는 한 시도의 실제 경과 시간을 제한합니다. 기본값은 3600이고
+`--timeout <초>`는 한 시도의 실제 경과 시간을 제한합니다. 기본값은 7200이고
 `--timeout 0`은 제한 없이 기다립니다. 제한에 걸리면 러너는 worker에 SIGTERM을
 보내고 10초를 기다린 뒤 그래도 살아 있으면 kill한 다음, `state`를 `timed_out`으로
 두고 실제 `exit_code`를 기록합니다. session ID는 이미 복사한 첫 값을 유지하고,
 아직 null이면 한 번만 더 스캔합니다. 그 뒤 124로 끝냅니다.
+
+새 시도든 재개든 시작 후 300초 동안 stdout이 0바이트이면 러너는 같은 방식으로
+worker를 끝내고 `timed_out`, exit 124, `error` `the worker wrote no output within
+300 seconds`를 기록합니다. `--timeout 0`이어도 적용되고 플래그는 없습니다.
+`--timeout`이 더 짧으면 `--timeout`이 먼저입니다. 이 오류면 타임아웃을 올려 다시
+돌리거나 그 세션을 재개하지 않고, 이어가기 브리프로 새 worker를 보냅니다.
+
 신호는 worker 프로세스 하나에만 보냅니다. worker는 터미널 인터럽트가 닿도록
 컨트롤러와 같은 프로세스 그룹에 남으므로, worker가 시작한 자식 프로세스는 쫓아가지
 않습니다. 인터럽트 경로와 같은 한계이며 프로세스 트리를 정리했다고 적지 않습니다.

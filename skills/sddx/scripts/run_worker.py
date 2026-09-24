@@ -61,10 +61,14 @@ REPORT_NAME = "report.md"
 
 # How long one attempt may run before the runner ends it, and how long a child
 # gets to leave on a SIGTERM before it is killed. `--timeout 0` disables the
-# bound entirely.
-DEFAULT_TIMEOUT_SECONDS = 3600.0
+# bound entirely. Both measured providers write an init line first, so a worker
+# with no stdout at all after FIRST_OUTPUT_SECONDS is treated as stuck, even
+# under `--timeout 0`; that deadline has no flag.
+DEFAULT_TIMEOUT_SECONDS = 7200.0
+FIRST_OUTPUT_SECONDS = 300.0
 TERMINATE_GRACE_SECONDS = 10.0
 TIMEOUT_EXIT = 124
+TIMEOUT_ERROR = "the attempt exceeded its timeout"
 
 INTERRUPTED_ERROR = "the runner was interrupted (SIGTERM or Ctrl-C)"
 
@@ -519,7 +523,7 @@ def run_worker(options: RunOptions) -> int:
                 write_metadata(metadata_path, metadata)
             return 130
 
-        def timed_out() -> int:
+        def timed_out(error: str = TIMEOUT_ERROR) -> int:
             try:
                 # Only this child is pursued. It shares the controller's process
                 # group on purpose, so there is no group signal to send and
@@ -530,7 +534,7 @@ def run_worker(options: RunOptions) -> int:
                     state="timed_out",
                     exit_code=process.poll(),
                     ended_at=utc_now(),
-                    error="the attempt exceeded its timeout",
+                    error=error,
                 )
                 write_metadata(metadata_path, metadata)
             except KeyboardInterrupt:
@@ -547,6 +551,8 @@ def run_worker(options: RunOptions) -> int:
         # `wait(timeout=0)` expires immediately, so a zero timeout must not
         # reach it: zero is the documented way to ask for no bound at all.
         deadline = time.monotonic() + options.timeout if options.timeout else None
+        first_output_deadline = time.monotonic() + FIRST_OUTPUT_SECONDS
+        saw_output = False
         # SIGTERM to this runner is the same request as Ctrl-C: record
         # interrupted and end the child. Installed only for the wait, so a
         # launch failure does not change signal disposition.
@@ -568,6 +574,10 @@ def run_worker(options: RunOptions) -> int:
                         write_metadata(metadata_path, metadata)
                     if deadline is not None and time.monotonic() >= deadline:
                         return timed_out()
+                    if not saw_output:
+                        saw_output = _log_size(stdout_path) > 0
+                        if not saw_output and time.monotonic() >= first_output_deadline:
+                            return timed_out(no_output_error())
             remember_session_id(metadata, stdout_path)
             metadata.update(
                 state="exited",
@@ -613,6 +623,11 @@ def _stop_child(process: subprocess.Popen[bytes]) -> None:
             process.kill()
         with contextlib.suppress(subprocess.TimeoutExpired, KeyboardInterrupt):
             process.wait(timeout=TERMINATE_GRACE_SECONDS)
+
+
+def no_output_error() -> str:
+    """The `error` of an attempt ended by the first-output deadline."""
+    return f"the worker wrote no output within {FIRST_OUTPUT_SECONDS:g} seconds"
 
 
 def _log_size(path: Path) -> int:

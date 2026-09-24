@@ -130,6 +130,13 @@ BEHAVIOUR_SIGNAL = (
     "time.sleep(10)\n"
 )
 BEHAVIOUR_SLEEP = "time.sleep(10)\nraise SystemExit(0)\n"
+BEHAVIOUR_OUTPUT_THEN_SLEEP = (
+    "sys.stdout.write('{\"type\": \"assistant\"}\\n')\n"
+    "sys.stdout.flush()\n"
+    "time.sleep(2.5)\n"
+    "raise SystemExit(0)\n"
+)
+NO_OUTPUT_PREFIX = "the worker wrote no output within"
 TIMED_OUT_SESSION_ID = "synthetic-session-0005"
 
 
@@ -1761,9 +1768,9 @@ class SessionIdRecordingTests(RunnerFixture):
 class AttemptTimeoutTests(RunnerFixture):
     """An attempt is bounded in wall-clock time, and says so when the bound fires."""
 
-    def test_the_default_timeout_is_one_hour(self) -> None:
+    def test_the_default_timeout_is_two_hours(self) -> None:
         module = self.load()
-        self.assertEqual(self.options(module).timeout, 3600)
+        self.assertEqual(self.options(module).timeout, 7200)
         parsed = module.build_parser().parse_args(
             [
                 "run",
@@ -1779,7 +1786,64 @@ class AttemptTimeoutTests(RunnerFixture):
                 "high",
             ]
         )
-        self.assertEqual(parsed.timeout, 3600)
+        self.assertEqual(parsed.timeout, 7200)
+
+    def test_a_silent_worker_is_ended_after_the_first_output_deadline(self) -> None:
+        # Break: a worker that never writes a byte is waited on until --timeout.
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        with self.pinned_resolver(module):
+            with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 0.5):
+                code = self.invoke(module, self.options(module))
+        self.assertEqual(code, 124)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "timed_out")
+        self.assertTrue(metadata["error"].startswith(NO_OUTPUT_PREFIX), metadata["error"])
+        self.assertIsNotNone(metadata["exit_code"])
+
+    def test_the_first_output_deadline_holds_without_a_timeout(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        with self.pinned_resolver(module):
+            with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 0.5):
+                code = self.invoke(module, self.options(module, timeout=0))
+        self.assertEqual(code, 124)
+        self.assertTrue(self.metadata()["error"].startswith(NO_OUTPUT_PREFIX))
+
+    def test_the_first_output_deadline_applies_to_a_resumed_attempt(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        with self.pinned_resolver(module):
+            with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 0.5):
+                code = self.invoke(
+                    module, self.options(module, resume_id="synthetic-session-0001")
+                )
+        self.assertEqual(code, 124)
+        self.assertTrue(self.metadata()["error"].startswith(NO_OUTPUT_PREFIX))
+
+    def test_a_shorter_timeout_wins_over_the_first_output_deadline(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        with self.pinned_resolver(module):
+            with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 5.0):
+                code = self.invoke(module, self.options(module, timeout=0.3))
+        self.assertEqual(code, 124)
+        self.assertEqual(self.metadata()["error"], "the attempt exceeded its timeout")
+
+    def test_a_worker_that_writes_at_once_is_not_ended_by_the_deadline(self) -> None:
+        # Break: the deadline also ends a worker that printed and then went quiet.
+        module = self.load()
+        self.write_grok(BEHAVIOUR_OUTPUT_THEN_SLEEP)
+        with self.pinned_resolver(module):
+            with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 0.5):
+                code = self.invoke(module, self.options(module))
+        self.assertEqual(code, 0)
+        self.assertEqual(self.metadata()["state"], "exited")
+
+    def test_the_no_output_error_names_the_default_deadline(self) -> None:
+        module = self.load()
+        self.assertEqual(module.FIRST_OUTPUT_SECONDS, 300.0)
+        self.assertEqual(module.no_output_error(), "the worker wrote no output within 300 seconds")
 
     def test_an_expired_timeout_ends_the_attempt_with_124(self) -> None:
         module = self.load()

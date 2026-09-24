@@ -312,6 +312,10 @@ session the worker itself reported. Resume from it rather than re-running the
 task from scratch; a null there means nothing was reported and the fallback to
 a fresh attempt applies.
 
+An attempt whose `error` is `the worker wrote no output within 300 seconds`
+never started working. Do not resume that session and do not raise
+`--timeout` for it; dispatch a fresh worker with a continuation brief.
+
 There is no automatic retry anywhere in these helpers. `run.json.state` is
 process state, not task state, and process exit 0 is not a clean DONE.
 
@@ -385,6 +389,7 @@ explicitly after checking its ledger record and its processes. The supported OS 
 - Dispatching a task the plan does not name without asking once
 - Reading a standing "do not stop" as authority for unplanned work
 - Re-running a task whose `session_id_in_log` was still resumable
+- Resuming a session whose attempt wrote no output
 - A brief without the plan's run-wide constraints
 - Moving a review off the native host without asking
 - A reviewer from the implementer's own model family

@@ -371,6 +371,19 @@ class SddxContractTests(unittest.TestCase):
         self.assertNotIn("leaves the worker running", fold(dispatch))
         self.assertNotIn("프로세스 트리는 죽이지 않습니다", fold(contract))
 
+    def test_first_output_deadline_is_on_every_face(self) -> None:
+        dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        contract = (
+            ROOT / "docs" / "maintainers" / "products" / "sddx" / "contract.md"
+        ).read_text(encoding="utf-8")
+        fold = lambda value: re.sub(r"\s+", " ", value)
+        for text in (dispatch, skill, contract):
+            self.assertIn("no output within 300 seconds", fold(text))
+        self.assertIn("It defaults to 7200", fold(dispatch))
+        self.assertIn("기본값은 7200", fold(contract))
+        self.assertNotIn("defaults to 3600", fold(dispatch))
+
     def test_dispatch_opens_with_controller_procedure(self) -> None:
         text = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
         self.assertIn("## Controller procedure", text)
