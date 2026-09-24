@@ -1103,12 +1103,15 @@ class WorkerExecutionTests(RunnerFixture):
         self.write_grok(BEHAVIOUR_SLEEP)
         handlers: list = []
         started: list[subprocess.Popen] = []
+        # Forwarded to the real function, not the patched name, which would
+        # call this helper again.
+        real_signal = signal.signal
 
         def capture(sig, handler):
             if sig == signal.SIGTERM:
                 handlers.append(handler)
                 return signal.SIG_DFL
-            return signal.signal(sig, handler)
+            return real_signal(sig, handler)
 
         class SignallingPopen(subprocess.Popen):
             signalled = False
@@ -1227,6 +1230,97 @@ class WorkerExecutionTests(RunnerFixture):
         # The kill never happened, so no exit was recovered.
         self.assertIsNone(metadata["exit_code"])
 
+    def _interrupt_once_popen(self, started):
+        class InterruptOncePopen(subprocess.Popen):
+            waited = False
+
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                started.append(self)
+
+            def wait(self, timeout=None):  # noqa: D102 - one Ctrl-C
+                if not InterruptOncePopen.waited:
+                    InterruptOncePopen.waited = True
+                    raise KeyboardInterrupt
+                return super().wait(timeout)
+
+        return InterruptOncePopen
+
+    @unittest.skipUnless(os.name != "nt", "signal masks are a POSIX convention")
+    def test_interrupts_are_blocked_while_the_first_interrupted_record_is_written(self) -> None:
+        # Break: a second interrupt before or during the first `interrupted`
+        # write escapes and leaves `run.json` at `running`.
+        import signal
+
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        started: list[subprocess.Popen] = []
+        events: list[tuple] = []
+        old_mask = {signal.SIGUSR1}
+        real_write = module.write_metadata
+
+        def fake_sigmask(how, mask):
+            events.append(("mask", how, frozenset(mask)))
+            return old_mask
+
+        def recording_write(path, value):
+            events.append(("write", value.get("state")))
+            real_write(path, value)
+
+        with self.pinned_resolver(module):
+            with mock.patch.object(module.signal, "pthread_sigmask", fake_sigmask, create=True):
+                with mock.patch.object(module, "write_metadata", recording_write):
+                    with mock.patch.object(
+                        module.subprocess, "Popen", self._interrupt_once_popen(started)
+                    ):
+                        code = self.invoke(module, self.options(module))
+        for process in started:
+            self.addCleanup(lambda p=process: subprocess.Popen.wait(p))
+            self.addCleanup(lambda p=process: subprocess.Popen.kill(p))
+        self.assertEqual(code, 130)
+        first = events.index(("write", "interrupted"))
+        block = ("mask", signal.SIG_BLOCK, frozenset({signal.SIGINT, signal.SIGTERM}))
+        restore = ("mask", signal.SIG_SETMASK, frozenset(old_mask))
+        self.assertEqual(events[first - 1], block)
+        self.assertEqual(events[first + 1], restore)
+        self.assertEqual([e for e in events if e[0] == "mask"], [block, restore])
+
+    @unittest.skipUnless(os.name != "nt", "signal masks are a POSIX convention")
+    def test_an_interrupt_delivered_when_the_mask_is_restored_is_still_130(self) -> None:
+        # Break: the pending signal delivered by the restore escapes as a
+        # traceback after `run.json` already says `interrupted`.
+        import signal
+
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        started: list[subprocess.Popen] = []
+        restores: list[int] = []
+
+        def fake_sigmask(how, mask):
+            if how == signal.SIG_SETMASK:
+                restores.append(how)
+                raise KeyboardInterrupt
+            return set()
+
+        with self.pinned_resolver(module):
+            with mock.patch.object(module.signal, "pthread_sigmask", fake_sigmask, create=True):
+                with mock.patch.object(
+                    module.subprocess, "Popen", self._interrupt_once_popen(started)
+                ):
+                    try:
+                        code = self.invoke(module, self.options(module))
+                    except KeyboardInterrupt:
+                        self.fail("the interrupt delivered on restore escaped run_worker")
+                    finally:
+                        for process in started:
+                            self.addCleanup(lambda p=process: subprocess.Popen.wait(p))
+                            self.addCleanup(lambda p=process: subprocess.Popen.kill(p))
+        self.assertEqual(restores, [signal.SIG_SETMASK], "the mask was never restored")
+        self.assertEqual(code, 130)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "interrupted")
+        self.assertIsNotNone(started[0].poll(), "runner must still end its own worker")
+
     @unittest.skipUnless(os.name != "nt", "SIGTERM handling is a POSIX signal convention")
     def test_the_sigterm_handler_is_installed_before_the_worker_starts(self) -> None:
         # Break: a SIGTERM between `Popen` and the handler kills the runner
@@ -1236,12 +1330,15 @@ class WorkerExecutionTests(RunnerFixture):
         module = self.load()
         self.write_grok(BEHAVIOUR_OK)
         events: list[str] = []
+        # Forwarded to the real function, not the patched name, which would
+        # call this helper again.
+        real_signal = signal.signal
 
         def capture(sig, handler):
             if sig == signal.SIGTERM:
                 events.append("signal")
                 return signal.SIG_DFL
-            return signal.signal(sig, handler)
+            return real_signal(sig, handler)
 
         class RecordingPopen(subprocess.Popen):
             def __init__(self, *args, **kwargs):
@@ -1922,8 +2019,8 @@ class AttemptTimeoutTests(RunnerFixture):
         module = self.load()
         self.write_grok(BEHAVIOUR_SLEEP)
         with self.pinned_resolver(module):
-            # Both deadlines are below the 1 s wait slice, so both have
-            # already passed by the first check; only code order decides.
+            # Both deadlines have passed when the `--timeout` check fires,
+            # so only code order decides which error is recorded.
             with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 0.2):
                 code = self.invoke(module, self.options(module, timeout=0.3))
         self.assertEqual(code, 124)

@@ -494,23 +494,37 @@ def run_worker(options: RunOptions) -> int:
             # stopped, and the next attempt shares that tree. Its descendants
             # and Grok cleanup stay the controller's call. An interrupted
             # attempt may still be resumable, so keep the first ID already found.
-            remember_session_id(metadata, stdout_path)
-            metadata.update(
-                state="interrupted",
-                exit_code=process.poll(),
-                ended_at=utc_now(),
-                error=INTERRUPTED_ERROR,
-            )
-            write_metadata(metadata_path, metadata)
+            # Further interrupts are held off until that record is on disk; one
+            # held meanwhile arrives when the mask is restored, and is absorbed
+            # there so the child is still ended. Not around `Popen`: the child
+            # would inherit the mask.
+            blocked = None
+            if hasattr(signal, "pthread_sigmask"):
+                blocked = signal.pthread_sigmask(
+                    signal.SIG_BLOCK, {signal.SIGINT, signal.SIGTERM}
+                )
+            try:
+                remember_session_id(metadata, stdout_path)
+                metadata.update(
+                    state="interrupted",
+                    exit_code=process.poll(),
+                    ended_at=utc_now(),
+                    error=INTERRUPTED_ERROR,
+                )
+                write_metadata(metadata_path, metadata)
+            finally:
+                if blocked is not None:
+                    with contextlib.suppress(KeyboardInterrupt):
+                        signal.pthread_sigmask(signal.SIG_SETMASK, blocked)
             # The record already says `interrupted`; the re-record only refines
             # `exit_code`. A further interrupt here must not turn the 130 into
             # a traceback, so it is absorbed and `exit_code` stays what it was.
             with contextlib.suppress(KeyboardInterrupt):
                 if process.poll() is None:
                     if already_signalled:
-                        # The child already has its SIGTERM; this interrupt is
-                        # the second request to stop, not a reason to restart
-                        # the grace.
+                        # The timeout was already ending the child (SIGTERM
+                        # sent, or about to be), so this second request to stop
+                        # skips the grace and kills.
                         _kill_child(process)
                     else:
                         _stop_child(process)
