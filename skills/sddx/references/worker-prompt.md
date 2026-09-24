@@ -24,13 +24,18 @@ actions alone are not scope deviations. Report `none` when no other deviation
 occurred. Never read full-plan content, credentials, or secrets as part of
 these inspections.
 
+Read a background command's result through the provider's own output tool.
+Never open the provider's session directories with file reads or searches. If
+you do not know an exit code, say so in the report instead of reconstructing it.
+
 Do not read or invoke external skills, including Superpowers. Do not spawn subagents or
 reviewers, call MCP tools, or create another worktree.
 
 Run the brief's `Worker checks` yourself. The brief's `Host checks` are the
 controller's; do not claim them, simulate them, or report them as passing.
 
-Implement, test, and commit only this task, then write the report. Write it to
+Implement, test, and commit only this task. Write the report right after that
+commit, before any extra check, and update it once the checks finish. Write it to
 the report path in the dispatch yourself; nothing else writes it for you. Stage
 explicit task paths only. Do not stage `.grok/sandbox.toml` or SDD evidence.
 Report these fields:

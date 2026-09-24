@@ -61,10 +61,16 @@ REPORT_NAME = "report.md"
 
 # How long one attempt may run before the runner ends it, and how long a child
 # gets to leave on a SIGTERM before it is killed. `--timeout 0` disables the
-# bound entirely.
-DEFAULT_TIMEOUT_SECONDS = 3600.0
+# bound entirely. Both measured providers write an init line first, so a worker
+# with no stdout at all after FIRST_OUTPUT_SECONDS is treated as stuck, even
+# under `--timeout 0`; that deadline has no flag.
+DEFAULT_TIMEOUT_SECONDS = 7200.0
+FIRST_OUTPUT_SECONDS = 300.0
 TERMINATE_GRACE_SECONDS = 10.0
 TIMEOUT_EXIT = 124
+TIMEOUT_ERROR = "the attempt exceeded its timeout"
+
+INTERRUPTED_ERROR = "the runner was interrupted (SIGTERM or Ctrl-C)"
 
 # The reading bounds from the design spec's R4. A window is a byte range, not a
 # line, a JSON event, or a call/result pair: nothing here promises that a preview
@@ -384,7 +390,7 @@ def run_worker(options: RunOptions) -> int:
 
     A normally awaited worker's exit is returned as-is; a POSIX signal death
     becomes `128 + signal` while `run.json` keeps the real negative returncode.
-    A launch failure is 2, a controller interrupt handled here is 130, and an
+    A launch failure is 2, a runner interrupt handled here is 130, and an
     attempt ended by its own timeout is 124.
     """
     try:
@@ -479,38 +485,66 @@ def run_worker(options: RunOptions) -> int:
             err = stack.enter_context(stderr_path.open("xb"))
         except OSError:
             return fail("could not create the raw worker output files")
-        try:
-            process = subprocess.Popen(
-                command,
-                cwd=str(worktree),
-                env=worker_env,
-                stdin=subprocess.DEVNULL,
-                stdout=out,
-                stderr=err,
-            )
-        except OSError as error:
-            return fail(f"could not start the backend process: {error.strerror or 'OSError'}")
+        process: subprocess.Popen[bytes] | None = None
 
-        metadata.update(state="running", pid=process.pid)
-        write_metadata(metadata_path, metadata)
-        if remember_session_id(metadata, stdout_path):
-            write_metadata(metadata_path, metadata)
-
-        def interrupted() -> int:
-            # Record only the exit actually recovered. The process tree is left
-            # alone and Grok cleanup stays the controller's call. An interrupted
+        def interrupted(already_signalled: bool = False) -> int:
+            # Recorded first, so a second interrupt can never leave `running`.
+            # Then this one child is ended the way a timeout ends it: a worker
+            # left alive keeps editing the worktree after the record says it
+            # stopped, and the next attempt shares that tree. Its descendants
+            # and Grok cleanup stay the controller's call. An interrupted
             # attempt may still be resumable, so keep the first ID already found.
-            remember_session_id(metadata, stdout_path)
-            metadata.update(
-                state="interrupted",
-                exit_code=process.poll(),
-                ended_at=utc_now(),
-                error="the controller interrupted the attempt",
-            )
-            write_metadata(metadata_path, metadata)
+            # Further interrupts are held off until that record is on disk. Any
+            # held meanwhile are taken while still blocked, so none is left to
+            # arrive at the restore, and they count as a second request to stop.
+            # Not around `Popen`: the child would inherit the mask.
+            stop_signals = {signal.SIGINT, signal.SIGTERM}
+            held = False
+            old_mask = None
+            try:
+                if hasattr(signal, "pthread_sigmask"):
+                    # Read first, so a signal the block call raises still
+                    # leaves a mask to restore.
+                    try:
+                        old_mask = signal.pthread_sigmask(signal.SIG_BLOCK, set())
+                        signal.pthread_sigmask(signal.SIG_BLOCK, stop_signals)
+                    except KeyboardInterrupt:
+                        held = True
+                remember_session_id(metadata, stdout_path)
+                metadata.update(
+                    state="interrupted",
+                    exit_code=process.poll(),
+                    ended_at=utc_now(),
+                    error=INTERRUPTED_ERROR,
+                )
+                write_metadata(metadata_path, metadata)
+            finally:
+                if old_mask is not None:
+                    try:
+                        for signum in signal.sigpending() & stop_signals:
+                            signal.sigwait({signum})
+                            held = True
+                        signal.pthread_sigmask(signal.SIG_SETMASK, old_mask)
+                    except KeyboardInterrupt:
+                        held = True
+            # The record already says `interrupted`; the re-record only refines
+            # `exit_code`. A further interrupt here must not turn the 130 into
+            # a traceback, so it is absorbed and `exit_code` stays what it was.
+            with contextlib.suppress(KeyboardInterrupt):
+                if process.poll() is None:
+                    if already_signalled or held:
+                        # The timeout was already ending the child (SIGTERM
+                        # sent, or about to be), or another interrupt was held
+                        # during the record, so this second request to stop
+                        # skips the grace and kills.
+                        _kill_child(process)
+                    else:
+                        _stop_child(process)
+                    metadata["exit_code"] = process.poll()
+                    write_metadata(metadata_path, metadata)
             return 130
 
-        def timed_out() -> int:
+        def timed_out(error: str = TIMEOUT_ERROR) -> int:
             try:
                 # Only this child is pursued. It shares the controller's process
                 # group on purpose, so there is no group signal to send and
@@ -521,7 +555,7 @@ def run_worker(options: RunOptions) -> int:
                     state="timed_out",
                     exit_code=process.poll(),
                     ended_at=utc_now(),
-                    error="the attempt exceeded its timeout",
+                    error=error,
                 )
                 write_metadata(metadata_path, metadata)
             except KeyboardInterrupt:
@@ -529,20 +563,41 @@ def run_worker(options: RunOptions) -> int:
                 # that window must not leave `run.json` frozen at `running`.
                 # What is recorded is what actually happened: an interrupt that
                 # arrived while the timeout was still being carried out.
-                return interrupted()
+                return interrupted(already_signalled=True)
             return TIMEOUT_EXIT
 
         def _raise_keyboard_interrupt(signum, frame):
             raise KeyboardInterrupt
 
-        # `wait(timeout=0)` expires immediately, so a zero timeout must not
-        # reach it: zero is the documented way to ask for no bound at all.
-        deadline = time.monotonic() + options.timeout if options.timeout else None
         # SIGTERM to this runner is the same request as Ctrl-C: record
-        # interrupted and leave the child. Installed only for the wait, so a
-        # launch failure does not change signal disposition.
+        # interrupted and end the child. Installed just before the launch, so
+        # no SIGTERM can land between `Popen` and the handler and leave the
+        # worker running unrecorded; restored on every way out, a launch
+        # failure included.
         previous = signal.signal(signal.SIGTERM, _raise_keyboard_interrupt)
         try:
+            try:
+                process = subprocess.Popen(
+                    command,
+                    cwd=str(worktree),
+                    env=worker_env,
+                    stdin=subprocess.DEVNULL,
+                    stdout=out,
+                    stderr=err,
+                )
+            except OSError as error:
+                return fail(f"could not start the backend process: {error.strerror or 'OSError'}")
+
+            metadata.update(state="running", pid=process.pid)
+            write_metadata(metadata_path, metadata)
+            if remember_session_id(metadata, stdout_path):
+                write_metadata(metadata_path, metadata)
+
+            # `wait(timeout=0)` expires immediately, so a zero timeout must not
+            # reach it: zero is the documented way to ask for no bound at all.
+            deadline = time.monotonic() + options.timeout if options.timeout else None
+            first_output_deadline = time.monotonic() + FIRST_OUTPUT_SECONDS
+            saw_output = False
             while True:
                 if deadline is None:
                     slice_timeout = WAIT_SLICE_SECONDS
@@ -559,6 +614,10 @@ def run_worker(options: RunOptions) -> int:
                         write_metadata(metadata_path, metadata)
                     if deadline is not None and time.monotonic() >= deadline:
                         return timed_out()
+                    if not saw_output:
+                        saw_output = _log_size(stdout_path) > 0
+                        if not saw_output and time.monotonic() >= first_output_deadline:
+                            return timed_out(no_output_error())
             remember_session_id(metadata, stdout_path)
             metadata.update(
                 state="exited",
@@ -567,6 +626,9 @@ def run_worker(options: RunOptions) -> int:
             )
             write_metadata(metadata_path, metadata)
         except KeyboardInterrupt:
+            # One raised inside `Popen` itself has no child handle to end yet.
+            if process is None:
+                raise
             return interrupted()
         finally:
             signal.signal(signal.SIGTERM, previous)
@@ -589,6 +651,31 @@ def _end_process(process: subprocess.Popen[bytes]) -> None:
     process.kill()
     with contextlib.suppress(subprocess.TimeoutExpired):
         process.wait(timeout=TERMINATE_GRACE_SECONDS)
+
+
+def _stop_child(process: subprocess.Popen[bytes]) -> None:
+    """End the child even when another interrupt arrives while doing it.
+
+    A second Ctrl-C or SIGTERM during the grace period skips straight to kill;
+    what was recovered is whatever `poll()` reports afterwards.
+    """
+    try:
+        _end_process(process)
+    except KeyboardInterrupt:
+        _kill_child(process)
+
+
+def _kill_child(process: subprocess.Popen[bytes]) -> None:
+    """Kill this one child now and wait for it, but never without a bound."""
+    with contextlib.suppress(ProcessLookupError):
+        process.kill()
+    with contextlib.suppress(subprocess.TimeoutExpired, KeyboardInterrupt):
+        process.wait(timeout=TERMINATE_GRACE_SECONDS)
+
+
+def no_output_error() -> str:
+    """The `error` of an attempt ended by the first-output deadline."""
+    return f"the worker wrote no output within {FIRST_OUTPUT_SECONDS:g} seconds"
 
 
 def _log_size(path: Path) -> int:
@@ -708,14 +795,110 @@ def _append_capped(items: list[Any], item: Any, cap: int, index: dict[str, Any])
     return True
 
 
+GROK_SHELL_TOOL = "run_terminal_command"
+
+
+def _message_items(event: dict[str, Any]) -> list[Any]:
+    """The content items of a Grok `assistant`/`user` event, or none."""
+    message = event.get("message")
+    if not isinstance(message, dict):
+        return []
+    content = message.get("content")
+    return content if isinstance(content, list) else []
+
+
+def _grok_exit_code(content: object) -> int | None:
+    """The integer `exit_code` inside a Grok shell result, never its body."""
+    if isinstance(content, list):
+        texts = [
+            item.get("text")
+            for item in content
+            if isinstance(item, dict) and isinstance(item.get("text"), str)
+        ]
+        content = texts[0] if texts else None
+    if isinstance(content, str):
+        try:
+            content = json.loads(content)
+        except (json.JSONDecodeError, RecursionError):
+            return None
+    if not isinstance(content, dict):
+        return None
+    value = content.get("exit_code")
+    if isinstance(value, int) and not isinstance(value, bool):
+        return value
+    return None
+
+
+def _index_grok_items(
+    items: list[Any],
+    index: dict[str, Any],
+    seen_reads: set[str],
+    shells_by_id: dict[str, dict[str, Any]],
+) -> None:
+    """Add Grok `tool_use` calls, and the exit of a shell's `tool_result`.
+
+    A shell is known by its tool name alone: grep results carry `exit_code`
+    too. A shell whose result never arrives, or carries no integer exit (a
+    background task), keeps `exit_code: None`.
+    """
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        kind = item.get("type")
+        if kind == "tool_use":
+            name = item.get("name")
+            args = item.get("input")
+            if not isinstance(args, dict):
+                continue
+            if name == "read_file":
+                path_value = args.get("target_file")
+                if isinstance(path_value, str) and path_value not in seen_reads:
+                    if _append_capped(index["reads"], path_value, TOOLS_READ_CAP, index):
+                        seen_reads.add(path_value)
+            elif name == "grep":
+                _append_capped(
+                    index["searches"],
+                    {"pattern": _first_str(args, "pattern"), "path": _first_str(args, "path")},
+                    TOOLS_SEARCH_CAP,
+                    index,
+                )
+            elif name == "list_dir":
+                _append_capped(
+                    index["searches"],
+                    {"pattern": None, "path": _first_str(args, "target_directory")},
+                    TOOLS_SEARCH_CAP,
+                    index,
+                )
+            elif name == GROK_SHELL_TOOL:
+                command = args.get("command")
+                if not isinstance(command, str):
+                    command = ""
+                entry: dict[str, Any] = {
+                    "exit_code": None,
+                    "command": command[:TOOLS_COMMAND_CHARS],
+                }
+                if _append_capped(index["shells"], entry, TOOLS_SHELL_CAP, index):
+                    tool_id = item.get("id")
+                    if isinstance(tool_id, str):
+                        shells_by_id[tool_id] = entry
+        elif kind == "tool_result":
+            tool_id = item.get("tool_use_id")
+            if not isinstance(tool_id, str):
+                continue
+            entry = shells_by_id.pop(tool_id, None)
+            if entry is not None:
+                entry["exit_code"] = _grok_exit_code(item.get("content"))
+
+
 def read_tools_index(path: Path) -> dict[str, Any]:
     """Copy a bounded index of read, search, and shell tool calls from a log.
 
-    Only `type == tool_call` objects are considered. Result bodies, thinking
-    text, and unknown tool shapes are skipped. A missing file is an empty index,
-    not an error. Caps are hard: extra entries set `truncated` and are not
-    appended. This projection is not a judgement of DONE, 402, or role
-    compliance.
+    Two shapes are read: Cursor `type == tool_call` objects, and Grok
+    `assistant`/`user` events whose `message.content` holds `tool_use` and
+    `tool_result` items. Result bodies, thinking text, and unknown tool shapes
+    are skipped. A missing file is an empty index, not an error. Caps are hard:
+    extra entries set `truncated` and are not appended. This projection is not
+    a judgement of DONE, 402, or role compliance.
     """
     index: dict[str, Any] = {
         "reads": [],
@@ -726,6 +909,7 @@ def read_tools_index(path: Path) -> dict[str, Any]:
     if not path.is_file():
         return index
     seen_reads: set[str] = set()
+    shells_by_id: dict[str, dict[str, Any]] = {}
     try:
         handle = path.open("rb")
     except FileNotFoundError:
@@ -736,7 +920,12 @@ def read_tools_index(path: Path) -> dict[str, Any]:
                 event = json.loads(raw)
             except (json.JSONDecodeError, UnicodeDecodeError, RecursionError):
                 continue
-            if not isinstance(event, dict) or event.get("type") != "tool_call":
+            if not isinstance(event, dict):
+                continue
+            if event.get("type") in ("assistant", "user"):
+                _index_grok_items(_message_items(event), index, seen_reads, shells_by_id)
+                continue
+            if event.get("type") != "tool_call":
                 continue
             tool_call = event.get("tool_call")
             if not isinstance(tool_call, dict):

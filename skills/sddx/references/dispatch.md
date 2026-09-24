@@ -14,6 +14,11 @@
    Then add `Search paths`, `Worker checks`, `Host checks`, and task
    decisions. If extract exits 3 because Global Constraints are missing,
    duplicated, or empty, record that in the ledger and do not dispatch.
+   A brief with no plan heading of its own (a fix round, a continuation)
+   starts from the constraints section alone:
+   `extract_task.py <plan-file> --heading "Global Constraints" --output <new-path>`.
+   If the plan points at another plan's constraints, extract from that plan.
+   Do not copy constraints by hand or from a cached `/tmp` file.
 4. Grok: `prepare` → `run_worker.py run` → wait on the host job → the
    `status` windows you need → confirm the worker and its descendants have
    exited → `cleanup`. Cursor: the same run/status path without
@@ -133,6 +138,8 @@ Split verification in the brief under two headings. `Worker checks` are the
 local commands the worker runs and reports with actual exit codes.
 `Host checks` are the ones only this host can run; the worker names the
 outstanding ones in `NEEDS_CONTEXT` or `BLOCKED` instead of claiming them.
+Run a task's Host checks before that task's review, not batched at the end of
+the plan.
 
 The runner writes this reading boundary into every dispatch, new or resumed,
 alongside the brief and report paths (it also remains in the worker rules):
@@ -177,6 +184,9 @@ prefix's sandbox value itself. `run_worker.py` never prepares or cleans up.
 `--attempt-dir` must be a new directory under the plan directory from Superpowers
 `sdd-workspace` (already inside the worktree `.superpowers/sdd/<plan>/` tree),
 never a shared flat `.superpowers/` name.
+Create its parent (for example `<plan-dir>/worker-attempts/`) before the first
+run; the runner refuses a missing parent. Do not pipe `run` or `status` through
+`tail` or another filter that hides the exit code.
 The runner writes six files there: `brief.md`, `dispatch.md`, `worker.jsonl`
 (raw stdout), `stderr.log`, `run.json`, and `report.md`, which the worker
 writes itself — the runner never writes the report. Grok receives the worker
@@ -201,15 +211,24 @@ session: none` in the current-state block — use the SDD fallback: a fresh
 worker plus the previous attempt's `report.md` named in the brief. Never guess
 an ID.
 
-`--timeout <seconds>` bounds one attempt's wall-clock. It defaults to 3600, and
+`--timeout <seconds>` bounds one attempt's wall-clock. It defaults to 7200, and
 `--timeout 0` waits without a bound. When it fires the runner sends the worker
 SIGTERM, waits ten seconds, kills it if it is still alive, records `state`
 `timed_out` with the real `exit_code`, keeps the first session ID already
 copied (or scans once more if that field is still null), and exits 124. Only
 the worker process itself is signalled. It shares the controller's process
 group so that a terminal interrupt reaches it, so descendants the worker
-started are not pursued and no process tree is cleaned up here. Confirm those
-have exited yourself before cleanup.
+started are not pursued and no process tree is cleaned up here. Those
+processes (for example a backgrounded shell or a build daemon) can outlive the
+worker, so confirm and end them by pid yourself before cleanup.
+
+A worker that writes no stdout at all within 300 seconds of starting, new or
+resumed, is ended the same way, even under `--timeout 0`: `timed_out`, exit
+124, `error` `the worker wrote no output within 300 seconds`. When that is the
+error, do not raise `--timeout` and do not resume that session; dispatch a
+fresh worker with a continuation brief that names the previous `report.md`
+and the commits already made. The deadline watches only the first byte: a
+worker that printed and then stalls is bounded only by `--timeout`.
 
 Do not pass `--worktree` to the provider CLI. Do not pass `--continue`. Do not
 copy host credentials or environment values into the brief or the dispatch.
@@ -234,6 +253,17 @@ for native reviewers.
     python3 "<skill-root>/scripts/run_worker.py" status --attempt-dir <attempt-dir> --stream stdout|stderr --offset N --max-bytes N
 
 `status` is read-only. Ask it instead of dumping the log.
+
+An attempt is over when `state` is not `running` and `pid_alive` is false; a
+worker can still be writing `report.md` after its record changed. Do not start
+the next attempt while the previous attempt's `pid_alive` is true.
+`run.json.pid` and `pid_alive` are the worker's. To stop an attempt, send
+SIGTERM to the runner: the host job's own pid (for example `$!` of the
+backgrounded `run` command), or the parent of the recorded pid (`ps -o ppid=
+-p <pid>`). Do not signal `run.json.pid` itself, and never `pkill -f`, which
+can miss the worker or hit another run. If that parent is pid 1, the runner is
+already gone and the worker is an orphan; only then stop the worker by
+`run.json.pid` (SIGTERM, then SIGKILL if it stays).
 
 Read the bounded windows you need. Do not print a raw log wholesale into this
 session, and do not write a new execution script for a run. Do not re-query
@@ -280,21 +310,25 @@ That is process state, not task state; process exit 0 is not a clean DONE.
 
 The wrapper exit follows the worker's exit. A POSIX signal returns
 `128 + signal` while `run.json.exit_code` keeps the real negative returncode.
-A launch failure is 2, a handled controller interrupt is 130, and an attempt
-ended by its own timeout is 124. A handled interrupt records the exit it
-recovered, which may be none, and `run.json` does not say which of two routes
-reached that record: an interrupt while the runner was only waiting signals
-nothing at all and leaves the worker running, while an interrupt during a
-timeout's own SIGTERM and SIGKILL arrives after the worker has been signalled
-and is probably dead. SIGTERM to the runner uses the same `interrupted` / 130
-record as Ctrl-C and does not kill the tree. SIGTERM to the worker remains
+A launch failure is 2, a handled runner interrupt is 130, and an attempt
+ended by its own timeout is 124. On SIGTERM or Ctrl-C the runner records
+`interrupted` at once, then ends the worker process itself the way a timeout
+does (SIGTERM, ten seconds, SIGKILL) and records the exit it recovered; a
+second interrupt during that wait, or an interrupt during a timeout's own wait,
+goes straight to SIGKILL. That `exit_code` is `null` when the worker could not
+be confirmed ended, so check `pid_alive` before cleanup. The `error` is
+`the runner was interrupted (SIGTERM or Ctrl-C)`: the runner cannot know who
+sent the signal, so it does not say. SIGTERM to the worker remains
 `exited` (or `timed_out` when the runner sent it) with the negative returncode.
-SIGKILL still cannot write a terminal state. Confirm the worker and anything
-it started have exited yourself either way, before Grok cleanup. Exit 2 is
-ambiguous between a launch failure and a worker that legitimately exited 2,
-so read `run.json.state` to tell them apart; if the attempt directory is
-absent, or present without `run.json`, the launch was refused before the
-attempt was created and the `BLOCKED:` line on stderr is the reason.
+SIGKILL still cannot write a terminal state. An interrupt that lands while the
+worker process is being started can leave `run.json` at `starting` with no
+pid; then check the host for a stray worker before starting another attempt.
+Confirm the worker and anything it started have exited yourself either way,
+before Grok cleanup. Exit 2 is ambiguous between a launch failure and a worker
+that legitimately exited 2, so read `run.json.state` to tell them apart; if
+the attempt directory is absent, or present without `run.json`, the launch
+was refused before the attempt was created and the `BLOCKED:` line on stderr
+is the reason.
 
 The default answer is metadata, log sizes, whether `report.md` exists,
 `pid_alive`, `stale`, `session_id_in_log`, and a bounded tools index — never a
@@ -311,8 +345,14 @@ log body. Role compliance is still the controller's.
   process. It is not written to `run.json` either.
 - `tools` holds `reads` (paths), `searches` (`pattern` / `path`), `shells`
   (`exit_code` / `command`), and `truncated`. Caps are 64 / 32 / 32 / 200
-  command characters. Unknown tool shapes are empty lists, not an error.
-  File contents, stdout, stderr, and thinking stay out.
+  command characters. It reads Cursor `tool_call` events and Grok `tool_use`
+  items; a Grok `list_dir` is a search with `pattern` null, and a Grok shell's
+  `exit_code` is null when no integer exit came back (a background task, or a
+  worker stopped first). Grok writes a shell call only once it returns or
+  moves to the background, so a Grok shell still running in the foreground is
+  not in the index yet; do not read its absence as "no command ran". Unknown
+  tool shapes are empty lists, not an error. File contents, stdout, stderr,
+  and thinking stay out.
 
 A window needs `--stream`; it defaults to 2048 bytes with a maximum of 8192,
 and the whole JSON answer is capped at 64 KiB.

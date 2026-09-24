@@ -115,8 +115,8 @@ frontmatter 이름만으로는 Task가 찾지 못합니다. 중첩 경로나 `pl
 effort를 구현에 복사하지 않습니다. 리뷰어 XHigh가 구현 XHigh를 강제하지
 않습니다. 요구가 분명하고 로컬·기계적인 변경, 단순한 통합은 High입니다.
 동시성·race·잠금·순서·공유 상태, auth·권한·secret·sandbox 경계, 여러
-하위계가 얽힌 부작용, 이 과제에서 High 리뷰가 이미 실패한 경우는
-XHigh입니다. 설계 모호함은 XHigh가 아니라 오케스트레이터 ruling입니다.
+하위계가 얽힌 부작용은 XHigh입니다. 설계 모호함은 XHigh가 아니라
+오케스트레이터 ruling입니다.
 이유를 대지 못하면 High입니다. effort가 오르면 새 워커입니다. worker가
 `NEEDS_CONTEXT` 또는 `BLOCKED`를 반환하면 ruling한 뒤 같은 backend로 다시
 보냅니다.
@@ -157,6 +157,8 @@ dispatch 전 컨트롤러는 `extract_task.py --global-constraints`로 과제를
 명시된 파일을 직접 읽거나 컨트롤러에 누락 경로를 요청합니다. 전체 workspace 내용
 검색은 하지 않습니다. worker는 필요한 source/test를 읽을 수 있으나 전체 계획은
 링크·shell·검색·Git 이력으로도 읽지 않습니다. 부족한 결정은 `NEEDS_CONTEXT`입니다.
+brief의 검증은 `Worker checks`와 `Host checks`로 나누고, 과제의 Host checks는
+그 과제 리뷰 전에 돌리며 계획 끝으로 몰지 않습니다.
 
 `Search paths`는 내용 검색을 제한합니다. 현재 worktree 안의 파일명 목록 조회
 (root 포함)와 해당 task에 필요한 저장소 ignore·빌드·테스트 설정 직접 읽기는
@@ -254,11 +256,16 @@ Windows 명령 전송은 제품 계약이 아닙니다. Cursor에는 이 변경�
 
 컨트롤러는 계획에서 task 구간을 뽑을 때
 `scripts/extract_task.py <plan-file> --heading "<# 없는 제목 전체>" --global-constraints --output <file>`을
-씁니다. `--heading`은 `#` 표시를 뺀 제목 전체입니다. `--global-constraints`는
-필수입니다. exit 0은 성공, 2는 파일·인자 오류, 3은 제목 부재·중복 또는 빈
-본문입니다. `Global Constraints`/`Global constraints` 절이 없거나, 둘
-이상이거나, 본문이 비어 있으면 exit 3이며 그 경우 워커를 보내지 않습니다.
+씁니다. `--heading`은 `#` 표시를 뺀 제목 전체입니다. 과제 제목을 뽑을 때
+`--global-constraints`는 필수입니다. exit 0은 성공, 2는 파일·인자 오류, 3은
+제목 부재·중복 또는 빈 본문입니다. `Global Constraints`/`Global constraints`
+절이 없거나, 둘 이상이거나, 본문이 비어 있으면 exit 3이며 그 경우 워커를
+보내지 않습니다.
 이미 있는 출력 파일은 덮어쓰지 않으므로 추출마다 새 경로를 씁니다.
+계획 제목이 없는 brief(fix 라운드, 이어가기)는
+`extract_task.py <plan-file> --heading "Global Constraints" --output <file>`로
+제약 절만 뽑아 그 출력으로 시작합니다. 계획이 다른 계획의 제약을 가리키면 그
+계획에서 뽑습니다. 손으로 옮기거나 `/tmp` 캐시를 쓰지 않습니다.
 
 worker 실행은 `scripts/run_worker.py run` 하나입니다. 공급자 명령을 직접
 조합하거나 실행마다 새 실행 스크립트를 만들지 않습니다. `--attempt-dir`는
@@ -300,9 +307,25 @@ Superpowers `sdd-workspace`가 만든 계획 디렉터리 아래의 새 폴더�
   그대로이고, 두 값이 엇갈릴 일이 없습니다. 러너가 기록하기 전에 죽어도 워커 세션을
   재개할 수 있게 하려는 것이며, `run.json`에 쓰지 않습니다.
 - `tools`는 로그에서 복사한 짧은 목록입니다. `reads`(경로), `searches`(검색어·경로),
-  `shells`(종료 코드·명령), `truncated`. 파일 내용, stdout, stderr, thinking은
+  `shells`(종료 코드·명령), `truncated`. Cursor `tool_call` 이벤트와 Grok
+  `tool_use` 항목을 읽습니다. Grok `list_dir`은 `pattern`이 null인 검색이고,
+  정수 종료 코드가 돌아오지 않은 Grok 셸(백그라운드 작업, 먼저 멈춘 worker)의
+  `exit_code`는 null입니다. Grok은 셸 호출을 그 호출이 돌아오거나
+  백그라운드로 옮겨진 뒤에야 적으므로, 포그라운드에서 아직 실행 중인 Grok 셸은
+  아직 인덱스에 없습니다. 없다고 "명령이 실행되지 않았다"로 읽지 않습니다.
+  파일 내용, stdout, stderr, thinking은
   없습니다. 한도: 읽기 64, 검색 32, 셸 32, 명령 200자. 알 수 없는 도구 모양은
   빈 목록이며 오류가 아닙니다. JSON이 아니거나 너무 깊은 줄은 건너뜁니다.
+
+시도가 끝났다는 판단은 `state`가 `running`이 아니고 `pid_alive`가 false인
+것입니다. 이전 시도의 `pid_alive`가 true인 동안 새 시도를 띄우지 않습니다.
+`run.json.pid`와 `pid_alive`는 worker의 것이고, 멈출 때는 러너(호스트 작업의
+pid, 또는 `ps -o ppid= -p <pid>`로 얻는 기록된 pid의 부모)에 SIGTERM을
+보내며 `run.json.pid` 자체나 `pkill -f`에는 보내지 않습니다. 그 부모가 pid 1이면
+러너는 이미 없고 worker는 고아입니다. 그때만 `run.json.pid`의 worker를 직접
+멈춥니다(SIGTERM, 남아 있으면 SIGKILL).
+attempt 부모 폴더는 첫 실행 전에 만들고, `run`·`status` 출력을 exit를 가리는
+파이프로 넘기지 않습니다.
 
 `run.json`은 프로세스 사실만 담습니다. `schema_version` 2와 함께 `backend`,
 `identity`, `model`, `worktree`, `attempt_dir`, `brief_sha256`, `resume_id`,
@@ -321,19 +344,38 @@ Superpowers `sdd-workspace`가 만든 계획 디렉터리 아래의 새 폴더�
 없거나 `run.json` 없이 있으면 시도가 만들어지기 전에 거절된 것이고 stderr의
 `BLOCKED:` 줄이 그 이유입니다.
 
-시그널은 두 갈래입니다. 러너(래퍼)에 SIGTERM 또는 Ctrl-C가 오면 `interrupted`,
-exit 130이고 프로세스 트리는 죽이지 않습니다. 워커에 SIGTERM이 가면
+시그널은 두 갈래입니다. 러너(래퍼)에 SIGTERM 또는 Ctrl-C가 오면 러너는 먼저
+`interrupted`를 기록하고, 타임아웃과 같은 방식(SIGTERM, 10초, SIGKILL)으로
+worker 프로세스 하나를 끝낸 뒤 회수한 `exit_code`를 다시 기록하고 130으로
+끝납니다. worker가 끝났는지 확인하지 못하면 그 `exit_code`는 `null`이므로
+정리 전에 `pid_alive`를 확인합니다. 그 대기 중 두 번째 인터럽트와 타임아웃이
+worker를 끝내는 대기 중 들어온 인터럽트는 곧바로 SIGKILL로 넘어갑니다.
+`error`는 `the runner was interrupted (SIGTERM or Ctrl-C)`이며 신호를 보낸
+주체를 적지 않습니다. worker가 시작한 자식은 쫓지 않습니다. 워커에 SIGTERM이 가면
 `exited`(타임아웃이 보낸 것이면 `timed_out`)와 음수 `exit_code`입니다. SIGKILL은
 기록을 남기지 못하므로 `pid_alive`로 봅니다.
 
-`--timeout <초>`는 한 시도의 실제 경과 시간을 제한합니다. 기본값은 3600이고
+`--timeout <초>`는 한 시도의 실제 경과 시간을 제한합니다. 기본값은 7200이고
 `--timeout 0`은 제한 없이 기다립니다. 제한에 걸리면 러너는 worker에 SIGTERM을
 보내고 10초를 기다린 뒤 그래도 살아 있으면 kill한 다음, `state`를 `timed_out`으로
 두고 실제 `exit_code`를 기록합니다. session ID는 이미 복사한 첫 값을 유지하고,
 아직 null이면 한 번만 더 스캔합니다. 그 뒤 124로 끝냅니다.
+
+새 시도든 재개든 시작 후 300초 동안 stdout이 0바이트이면 러너는 같은 방식으로
+worker를 끝내고 `timed_out`, exit 124, `error` `the worker wrote no output within
+300 seconds`를 기록합니다. `--timeout 0`이어도 적용되고 플래그는 없습니다.
+`--timeout`이 더 짧으면 `--timeout`이 먼저입니다. 이 오류면 타임아웃을 올려 다시
+돌리거나 그 세션을 재개하지 않고, 이전 `report.md`와 이미 만든 커밋을 적은
+이어가기 브리프로 새 worker를 보냅니다. 이 기한은 첫 바이트만 봅니다. 출력한
+뒤 멈춘 worker는 `--timeout`으로만 제한됩니다.
+
 신호는 worker 프로세스 하나에만 보냅니다. worker는 터미널 인터럽트가 닿도록
 컨트롤러와 같은 프로세스 그룹에 남으므로, worker가 시작한 자식 프로세스는 쫓아가지
 않습니다. 인터럽트 경로와 같은 한계이며 프로세스 트리를 정리했다고 적지 않습니다.
+worker가 시작한 프로세스(예: 백그라운드 셸, 빌드 데몬)는 worker보다 오래 남을 수
+있으니 정리 전에 pid로 확인하고 끝냅니다. worker 프로세스를 띄우는 중에 들어온
+인터럽트는 `run.json`을 pid 없는 `starting`으로 남길 수 있으니, 그때는 다음 시도를
+띄우기 전에 호스트에 남은 worker가 있는지 확인합니다.
 
 요청 effort와 설정 effort는 따로 기록합니다. Cursor는 effort를 플래그가 아니라
 모델 ID에 담으므로, 러너는 선언된 effort가 `--effort`와 어긋나는 모델을 거부하고

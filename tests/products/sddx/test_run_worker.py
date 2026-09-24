@@ -130,6 +130,13 @@ BEHAVIOUR_SIGNAL = (
     "time.sleep(10)\n"
 )
 BEHAVIOUR_SLEEP = "time.sleep(10)\nraise SystemExit(0)\n"
+BEHAVIOUR_OUTPUT_THEN_SLEEP = (
+    "sys.stdout.write('{\"type\": \"assistant\"}\\n')\n"
+    "sys.stdout.flush()\n"
+    "time.sleep(3.5)\n"
+    "raise SystemExit(0)\n"
+)
+NO_OUTPUT_PREFIX = "the worker wrote no output within"
 TIMED_OUT_SESSION_ID = "synthetic-session-0005"
 
 
@@ -1050,7 +1057,9 @@ class WorkerExecutionTests(RunnerFixture):
         self.assertIsNotNone(metadata["error"])
         self.assertEqual((self.attempt / "worker.jsonl").read_bytes(), b"")
 
-    def test_controller_interrupt_is_recorded_without_killing_the_tree(self) -> None:
+    def test_controller_interrupt_ends_the_worker_and_records_its_exit(self) -> None:
+        # Break: an interrupted runner leaves its worker running, so a second
+        # attempt can start in the same worktree while the first still edits it.
         module = self.load()
         self.write_grok(BEHAVIOUR_SLEEP)
         with self.on_synthetic_path():
@@ -1058,26 +1067,31 @@ class WorkerExecutionTests(RunnerFixture):
         started: list[subprocess.Popen] = []
 
         class InterruptingPopen(subprocess.Popen):
+            interrupted = False
+
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
                 started.append(self)
 
-            def wait(self, timeout=None):  # noqa: D102 - controller pressed Ctrl-C
-                raise KeyboardInterrupt
+            def wait(self, timeout=None):  # noqa: D102 - controller pressed Ctrl-C once
+                if not InterruptingPopen.interrupted:
+                    InterruptingPopen.interrupted = True
+                    raise KeyboardInterrupt
+                return super().wait(timeout)
 
         with mock.patch.object(module, "resolve", return_value=resolved):
             with mock.patch.object(module.subprocess, "Popen", InterruptingPopen):
                 code = self.invoke(module, self.options(module))
         self.assertEqual(len(started), 1)
         process = started[0]
-        # The override above raises on every call, so drain with the base method.
         self.addCleanup(lambda: subprocess.Popen.wait(process))
         self.addCleanup(process.kill)
         self.assertEqual(code, 130)
         metadata = self.metadata()
         self.assertEqual(metadata["state"], "interrupted")
-        self.assertIsNone(metadata["exit_code"])
-        self.assertIsNone(process.poll(), "runner must not kill the worker process tree")
+        self.assertEqual(metadata["error"], "the runner was interrupted (SIGTERM or Ctrl-C)")
+        self.assertIsNotNone(process.poll(), "runner must end its own worker")
+        self.assertEqual(metadata["exit_code"], process.poll())
 
     @unittest.skipUnless(os.name != "nt", "wrapper SIGTERM handling is a POSIX signal convention")
     def test_wrapper_sigterm_is_recorded_as_interrupted(self) -> None:
@@ -1089,19 +1103,27 @@ class WorkerExecutionTests(RunnerFixture):
         self.write_grok(BEHAVIOUR_SLEEP)
         handlers: list = []
         started: list[subprocess.Popen] = []
+        # Forwarded to the real function, not the patched name, which would
+        # call this helper again.
+        real_signal = signal.signal
 
         def capture(sig, handler):
             if sig == signal.SIGTERM:
                 handlers.append(handler)
                 return signal.SIG_DFL
-            return signal.signal(sig, handler)
+            return real_signal(sig, handler)
 
         class SignallingPopen(subprocess.Popen):
+            signalled = False
+
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
                 started.append(self)
 
-            def wait(self, timeout=None):  # noqa: D102 - controller sent SIGTERM
+            def wait(self, timeout=None):  # noqa: D102 - controller sent SIGTERM once
+                if SignallingPopen.signalled:
+                    return super().wait(timeout)
+                SignallingPopen.signalled = True
                 if not handlers:
                     raise AssertionError("SIGTERM handler was not installed before wait")
                 handlers[-1](signal.SIGTERM, None)
@@ -1118,8 +1140,321 @@ class WorkerExecutionTests(RunnerFixture):
         self.assertEqual(code, 130)
         metadata = self.metadata()
         self.assertEqual(metadata["state"], "interrupted")
-        self.assertEqual(metadata["error"], "the controller interrupted the attempt")
-        self.assertIsNone(process.poll(), "runner must not kill the worker process tree")
+        self.assertEqual(metadata["error"], "the runner was interrupted (SIGTERM or Ctrl-C)")
+        self.assertIsNotNone(process.poll(), "runner must end its own worker")
+
+    @unittest.skipUnless(os.name != "nt", "SIGKILL is a POSIX signal convention")
+    def test_a_second_interrupt_while_ending_the_worker_kills_it(self) -> None:
+        # Break: a second Ctrl-C while the runner ends its worker leaves
+        # `run.json` at `running`, or leaves a SIGTERM-ignoring worker alive.
+        import signal
+
+        module = self.load()
+        ready = self.base / "sigterm-handler-installed"
+        self.write_grok(behaviour_ignores_sigterm(ready))
+        started: list[subprocess.Popen] = []
+
+        class TwiceInterruptingPopen(subprocess.Popen):
+            interrupts = 0
+
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                started.append(self)
+                deadline = time.monotonic() + 30
+                while not ready.exists() and time.monotonic() < deadline:
+                    time.sleep(0.01)
+
+            def wait(self, timeout=None):  # noqa: D102 - Ctrl-C, then Ctrl-C again
+                if TwiceInterruptingPopen.interrupts < 2:
+                    TwiceInterruptingPopen.interrupts += 1
+                    raise KeyboardInterrupt
+                return super().wait(timeout)
+
+        with self.pinned_resolver(module):
+            with mock.patch.object(module.subprocess, "Popen", TwiceInterruptingPopen):
+                code = self.invoke(module, self.options(module))
+        process = started[0]
+        self.addCleanup(lambda: subprocess.Popen.wait(process))
+        self.addCleanup(process.kill)
+        # Without this the worker may never have ignored SIGTERM, and the
+        # SIGKILL below would prove nothing about the second interrupt.
+        self.assertTrue(ready.exists(), "worker never installed its SIGTERM-ignore handler")
+        self.assertEqual(code, 130)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "interrupted")
+        self.assertEqual(metadata["exit_code"], -signal.SIGKILL)
+
+    def test_a_third_interrupt_while_ending_the_worker_is_still_130(self) -> None:
+        # Break: an interrupt during the fallback kill escapes as a traceback
+        # after `run.json` already says `interrupted`, instead of exiting 130.
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        started: list[subprocess.Popen] = []
+
+        class ThriceInterruptingPopen(subprocess.Popen):
+            waited = False
+            killed = False
+
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                started.append(self)
+
+            def wait(self, timeout=None):  # noqa: D102 - the first Ctrl-C
+                if not ThriceInterruptingPopen.waited:
+                    ThriceInterruptingPopen.waited = True
+                    raise KeyboardInterrupt
+                return super().wait(timeout)
+
+            def kill(self):  # noqa: D102 - the third Ctrl-C, during kill
+                if not ThriceInterruptingPopen.killed:
+                    ThriceInterruptingPopen.killed = True
+                    raise KeyboardInterrupt
+                return super().kill()
+
+        with self.pinned_resolver(module):
+            # The second Ctrl-C lands inside the SIGTERM grace.
+            with mock.patch.object(module, "_end_process", side_effect=KeyboardInterrupt):
+                with mock.patch.object(module.subprocess, "Popen", ThriceInterruptingPopen):
+                    try:
+                        code = self.invoke(module, self.options(module))
+                    except KeyboardInterrupt:
+                        self.fail("the third interrupt escaped run_worker")
+                    finally:
+                        for process in started:
+                            self.addCleanup(lambda p=process: subprocess.Popen.wait(p))
+                            self.addCleanup(lambda p=process: subprocess.Popen.kill(p))
+        self.assertEqual(len(started), 1)
+        self.assertEqual(code, 130)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "interrupted")
+        # The kill never happened, so no exit was recovered.
+        self.assertIsNone(metadata["exit_code"])
+
+    def _interrupt_once_popen(self, started):
+        class InterruptOncePopen(subprocess.Popen):
+            waited = False
+
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                started.append(self)
+
+            def wait(self, timeout=None):  # noqa: D102 - one Ctrl-C
+                if not InterruptOncePopen.waited:
+                    InterruptOncePopen.waited = True
+                    raise KeyboardInterrupt
+                return super().wait(timeout)
+
+        return InterruptOncePopen
+
+    @unittest.skipUnless(os.name != "nt", "signal masks are a POSIX convention")
+    def test_interrupts_are_blocked_while_the_first_interrupted_record_is_written(self) -> None:
+        # Break: a second interrupt before or during the first `interrupted`
+        # write escapes and leaves `run.json` at `running`.
+        import signal
+
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        started: list[subprocess.Popen] = []
+        events: list[tuple] = []
+        old_mask = {signal.SIGUSR1}
+        real_write = module.write_metadata
+
+        def fake_sigmask(how, mask):
+            events.append(("mask", how, frozenset(mask)))
+            return old_mask
+
+        def recording_write(path, value):
+            events.append(("write", value.get("state")))
+            real_write(path, value)
+
+        with self.pinned_resolver(module):
+            with mock.patch.object(module.signal, "pthread_sigmask", fake_sigmask, create=True):
+                with mock.patch.object(module, "write_metadata", recording_write):
+                    with mock.patch.object(
+                        module.subprocess, "Popen", self._interrupt_once_popen(started)
+                    ):
+                        code = self.invoke(module, self.options(module))
+        for process in started:
+            self.addCleanup(lambda p=process: subprocess.Popen.wait(p))
+            self.addCleanup(lambda p=process: subprocess.Popen.kill(p))
+        self.assertEqual(code, 130)
+        first = events.index(("write", "interrupted"))
+        # The old mask is read before anything is blocked, so a signal raised
+        # by the block call itself still has a mask to restore.
+        read = ("mask", signal.SIG_BLOCK, frozenset())
+        block = ("mask", signal.SIG_BLOCK, frozenset({signal.SIGINT, signal.SIGTERM}))
+        restore = ("mask", signal.SIG_SETMASK, frozenset(old_mask))
+        self.assertEqual(events[first - 1], block)
+        self.assertEqual(events[first + 1], restore)
+        self.assertEqual([e for e in events if e[0] == "mask"], [read, block, restore])
+
+    @unittest.skipUnless(os.name != "nt", "signal masks are a POSIX convention")
+    def test_an_interrupt_delivered_when_the_mask_is_restored_is_still_130(self) -> None:
+        # Break: the pending signal delivered by the restore escapes as a
+        # traceback after `run.json` already says `interrupted`.
+        import signal
+
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        started: list[subprocess.Popen] = []
+        restores: list[int] = []
+
+        def fake_sigmask(how, mask):
+            if how == signal.SIG_SETMASK:
+                restores.append(how)
+                raise KeyboardInterrupt
+            return set()
+
+        with self.pinned_resolver(module):
+            with mock.patch.object(module.signal, "pthread_sigmask", fake_sigmask, create=True):
+                with mock.patch.object(
+                    module.subprocess, "Popen", self._interrupt_once_popen(started)
+                ):
+                    try:
+                        code = self.invoke(module, self.options(module))
+                    except KeyboardInterrupt:
+                        self.fail("the interrupt delivered on restore escaped run_worker")
+                    finally:
+                        for process in started:
+                            self.addCleanup(lambda p=process: subprocess.Popen.wait(p))
+                            self.addCleanup(lambda p=process: subprocess.Popen.kill(p))
+        self.assertEqual(restores, [signal.SIG_SETMASK], "the mask was never restored")
+        self.assertEqual(code, 130)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "interrupted")
+        self.assertIsNotNone(started[0].poll(), "runner must still end its own worker")
+
+    def _run_with_pending(self, module, pending):
+        """Interrupt once while `sigpending` reports `pending` under the mask."""
+        import signal
+
+        started: list[subprocess.Popen] = []
+        events: list[tuple] = []
+
+        def fake_sigmask(how, mask):
+            events.append(("mask", how))
+            return set()
+
+        def fake_sigwait(wanted):
+            (signum,) = wanted
+            events.append(("sigwait", signum))
+            return signum
+
+        kill = mock.Mock(wraps=module._kill_child)
+        stop = mock.Mock(wraps=module._stop_child)
+        with self.pinned_resolver(module):
+            with contextlib.ExitStack() as stack:
+                for name, value in (
+                    ("pthread_sigmask", fake_sigmask),
+                    ("sigpending", lambda: set(pending)),
+                    ("sigwait", fake_sigwait),
+                ):
+                    stack.enter_context(
+                        mock.patch.object(module.signal, name, value, create=True)
+                    )
+                stack.enter_context(mock.patch.object(module, "_kill_child", kill))
+                stack.enter_context(mock.patch.object(module, "_stop_child", stop))
+                stack.enter_context(
+                    mock.patch.object(
+                        module.subprocess, "Popen", self._interrupt_once_popen(started)
+                    )
+                )
+                try:
+                    code = self.invoke(module, self.options(module))
+                except KeyboardInterrupt:
+                    self.fail("a held interrupt escaped run_worker")
+                finally:
+                    for process in started:
+                        self.addCleanup(lambda p=process: subprocess.Popen.wait(p))
+                        self.addCleanup(lambda p=process: subprocess.Popen.kill(p))
+        return code, started[0], events, kill, stop
+
+    @unittest.skipUnless(os.name != "nt", "signal masks are a POSIX convention")
+    def test_two_interrupts_held_by_the_mask_are_drained_and_kill_the_worker(self) -> None:
+        # Break: SIGINT and SIGTERM both held during the first record are
+        # delivered one after the other at restore; the second escapes as a
+        # traceback and the worker is never ended.
+        import signal
+
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        code, process, events, kill, stop = self._run_with_pending(
+            module, {signal.SIGINT, signal.SIGTERM}
+        )
+        self.assertEqual(code, 130)
+        self.assertEqual(self.metadata()["state"], "interrupted")
+        waited = [e for e in events if e[0] == "sigwait"]
+        self.assertEqual(sorted(e[1] for e in waited), sorted([signal.SIGINT, signal.SIGTERM]))
+        # Drained while still blocked: every sigwait comes before the restore.
+        restore = events.index(("mask", signal.SIG_SETMASK))
+        self.assertTrue(all(events.index(e) < restore for e in waited))
+        # A held interrupt is a second request to stop: no grace, straight kill.
+        kill.assert_called_once_with(process)
+        stop.assert_not_called()
+        self.assertIsNotNone(process.poll(), "runner must still end its own worker")
+
+    @unittest.skipUnless(os.name != "nt", "signal masks are a POSIX convention")
+    def test_no_held_interrupt_keeps_the_sigterm_grace(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        code, process, events, kill, stop = self._run_with_pending(module, set())
+        self.assertEqual(code, 130)
+        self.assertEqual(self.metadata()["state"], "interrupted")
+        self.assertFalse([e for e in events if e[0] == "sigwait"])
+        stop.assert_called_once_with(process)
+        kill.assert_not_called()
+        self.assertIsNotNone(process.poll(), "runner must still end its own worker")
+
+    @unittest.skipUnless(os.name != "nt", "SIGTERM handling is a POSIX signal convention")
+    def test_the_sigterm_handler_is_installed_before_the_worker_starts(self) -> None:
+        # Break: a SIGTERM between `Popen` and the handler kills the runner
+        # with the default action and leaves the worker running unrecorded.
+        import signal
+
+        module = self.load()
+        self.write_grok(BEHAVIOUR_OK)
+        events: list[str] = []
+        # Forwarded to the real function, not the patched name, which would
+        # call this helper again.
+        real_signal = signal.signal
+
+        def capture(sig, handler):
+            if sig == signal.SIGTERM:
+                events.append("signal")
+                return signal.SIG_DFL
+            return real_signal(sig, handler)
+
+        class RecordingPopen(subprocess.Popen):
+            def __init__(self, *args, **kwargs):
+                events.append("popen")
+                super().__init__(*args, **kwargs)
+
+        with self.pinned_resolver(module):
+            with mock.patch.object(module.signal, "signal", capture):
+                with mock.patch.object(module.subprocess, "Popen", RecordingPopen):
+                    code = self.invoke(module, self.options(module))
+        self.assertEqual(code, 0)
+        self.assertIn("popen", events)
+        self.assertIn("signal", events)
+        self.assertLess(events.index("signal"), events.index("popen"))
+
+    @unittest.skipUnless(os.name != "nt", "SIGTERM handling is a POSIX signal convention")
+    def test_a_launch_failure_restores_the_sigterm_disposition(self) -> None:
+        import signal
+
+        module = self.load()
+        self.write_grok(BEHAVIOUR_OK)
+        with self.on_synthetic_path():
+            resolved = module.resolve("grok")
+        resolved = dict(resolved)
+        resolved["executable"] = str(self.base / "definitely-absent-binary")
+        resolved["argv_prefix"] = [resolved["executable"], *resolved["argv_prefix"][1:]]
+        before = signal.getsignal(signal.SIGTERM)
+        with mock.patch.object(module, "resolve", return_value=resolved):
+            code = self.invoke(module, self.options(module))
+        self.assertEqual(code, 2)
+        self.assertEqual(self.metadata()["state"], "launch_failed")
+        self.assertIs(signal.getsignal(signal.SIGTERM), before)
 
     def test_worker_standard_input_is_closed_rather_than_inherited(self) -> None:
         module = self.load()
@@ -1711,9 +2046,9 @@ class SessionIdRecordingTests(RunnerFixture):
 class AttemptTimeoutTests(RunnerFixture):
     """An attempt is bounded in wall-clock time, and says so when the bound fires."""
 
-    def test_the_default_timeout_is_one_hour(self) -> None:
+    def test_the_default_timeout_is_two_hours(self) -> None:
         module = self.load()
-        self.assertEqual(self.options(module).timeout, 3600)
+        self.assertEqual(self.options(module).timeout, 7200)
         parsed = module.build_parser().parse_args(
             [
                 "run",
@@ -1729,7 +2064,70 @@ class AttemptTimeoutTests(RunnerFixture):
                 "high",
             ]
         )
-        self.assertEqual(parsed.timeout, 3600)
+        self.assertEqual(parsed.timeout, 7200)
+
+    def test_a_silent_worker_is_ended_after_the_first_output_deadline(self) -> None:
+        # Break: a worker that never writes a byte is waited on until --timeout.
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        with self.pinned_resolver(module):
+            with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 0.5):
+                code = self.invoke(module, self.options(module))
+        self.assertEqual(code, 124)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "timed_out")
+        self.assertTrue(metadata["error"].startswith(NO_OUTPUT_PREFIX), metadata["error"])
+        self.assertIsNotNone(metadata["exit_code"])
+
+    def test_the_first_output_deadline_holds_without_a_timeout(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        with self.pinned_resolver(module):
+            with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 0.5):
+                code = self.invoke(module, self.options(module, timeout=0))
+        self.assertEqual(code, 124)
+        self.assertTrue(self.metadata()["error"].startswith(NO_OUTPUT_PREFIX))
+
+    def test_the_first_output_deadline_applies_to_a_resumed_attempt(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        with self.pinned_resolver(module):
+            with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 0.5):
+                code = self.invoke(
+                    module, self.options(module, resume_id="synthetic-session-0001")
+                )
+        self.assertEqual(code, 124)
+        self.assertTrue(self.metadata()["error"].startswith(NO_OUTPUT_PREFIX))
+
+    def test_a_shorter_timeout_wins_over_the_first_output_deadline(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        with self.pinned_resolver(module):
+            # Both deadlines have passed when the `--timeout` check fires,
+            # so only code order decides which error is recorded.
+            with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 0.2):
+                code = self.invoke(module, self.options(module, timeout=0.3))
+        self.assertEqual(code, 124)
+        self.assertEqual(self.metadata()["error"], "the attempt exceeded its timeout")
+
+    def test_a_worker_that_writes_at_once_is_not_ended_by_the_deadline(self) -> None:
+        # Break: the deadline also ends a worker that printed and then went quiet.
+        module = self.load()
+        self.write_grok(BEHAVIOUR_OUTPUT_THEN_SLEEP)
+        with self.pinned_resolver(module):
+            # The deadline is checked on 1 s wait slices, so 1.5 s gives a slow
+            # interpreter start until the t=2 check, not t=1, to flush its
+            # first line; the 3.5 s sleep keeps the worker alive past that
+            # check and the next, so the pass is not a timing accident.
+            with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 1.5):
+                code = self.invoke(module, self.options(module))
+        self.assertEqual(code, 0)
+        self.assertEqual(self.metadata()["state"], "exited")
+
+    def test_the_no_output_error_names_the_default_deadline(self) -> None:
+        module = self.load()
+        self.assertEqual(module.FIRST_OUTPUT_SECONDS, 300.0)
+        self.assertEqual(module.no_output_error(), "the worker wrote no output within 300 seconds")
 
     def test_an_expired_timeout_ends_the_attempt_with_124(self) -> None:
         module = self.load()
@@ -1795,6 +2193,8 @@ class AttemptTimeoutTests(RunnerFixture):
         self.assertEqual(self.metadata()["state"], "exited")
 
     def test_an_interrupt_while_the_timeout_is_carried_out_is_still_130(self) -> None:
+        import signal
+
         module = self.load()
         self.write_grok(BEHAVIOUR_SLEEP)
         started: list[subprocess.Popen] = []
@@ -1808,7 +2208,9 @@ class AttemptTimeoutTests(RunnerFixture):
         # inside it must not escape as a traceback over a `run.json` frozen at
         # `running`; it is an interrupt, recorded as one.
         with self.pinned_resolver(module):
-            with mock.patch.object(module, "_end_process", side_effect=KeyboardInterrupt):
+            with mock.patch.object(
+                module, "_end_process", side_effect=KeyboardInterrupt
+            ) as ended:
                 with mock.patch.object(module.subprocess, "Popen", RecordingPopen):
                     code = self.invoke(module, self.options(module, timeout=0.5))
         self.assertEqual(len(started), 1)
@@ -1818,8 +2220,12 @@ class AttemptTimeoutTests(RunnerFixture):
         self.assertEqual(code, 130)
         metadata = self.metadata()
         self.assertEqual(metadata["state"], "interrupted")
-        self.assertEqual(metadata["error"], "the controller interrupted the attempt")
+        self.assertEqual(metadata["error"], "the runner was interrupted (SIGTERM or Ctrl-C)")
         self.assertIsNotNone(metadata["ended_at"])
+        # The timeout already sent SIGTERM, so the interrupt is the second
+        # request to stop: straight to kill, not a fresh SIGTERM and grace.
+        self.assertEqual(ended.call_count, 1)
+        self.assertEqual(process.poll(), -signal.SIGKILL, "runner must kill its own worker")
 
     def test_an_infinite_timeout_never_starts_a_worker(self) -> None:
         module = self.load()

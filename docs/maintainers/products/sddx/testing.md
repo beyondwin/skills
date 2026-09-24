@@ -70,12 +70,15 @@ worktree를 만들고 Git 경로 계산, 기존 TOML 원문 복원, 재진입, �
 `tests/products/sddx/test_run_worker.py`는 시도 디렉터리 여섯 파일, argv 구성,
 backend별 `--model`/`--sandbox-profile` 배타, `run.json` 필드(`skill_version`
 포함)와 상태, 실행 중 `session_id` 기록, 래퍼 SIGTERM → `interrupted`,
-래퍼 exit 규칙, 닫힌 stdin, 시도 경로 거절을 검사합니다.
+러너 중단 시 worker 종료와 두 번째 인터럽트의 kill, SIGTERM 처리기의 실행 전
+설치, 첫 출력 기한(`--timeout 0`·재개 포함, 더 짧은 `--timeout` 우선), 기본
+타임아웃 7200, 래퍼 exit 규칙, 닫힌 stdin, 시도 경로 거절을 검사합니다.
 `tests/products/sddx/test_worker_status.py`는 `stale`(running인데 pid가 없을
 때만 true), `session_id_in_log`(기록에 ID가 없을 때만 채움), 읽기 전용 응답,
 `pid_alive`,
-bounded tools index, 기본 응답에 로그 본문이 없다는 점, 너무 깊은 JSON 줄
-건너뛰기, `--stream` 기본 2048·최대 8192바이트, 64 KiB 응답 상한, offset
+Cursor·Grok 두 로그 형태의 bounded tools index, 기본 응답에 로그 본문이
+없다는 점, 너무 깊은 JSON 줄 건너뛰기, `--stream` 기본 2048·최대 8192바이트,
+64 KiB 응답 상한, offset
 처리를 검사합니다. 어느 검사도 공급자를 호출하지 않습니다.
 
 Windows `.cmd` 왕복 검사(`skipUnless(os.name == "nt")`)는 삭제했습니다.
@@ -158,6 +161,47 @@ git diff --check
 
 라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있습니다. CI가 요구하지
 않습니다. 오프라인 통과를 호스트 품질로 설명하지 마세요.
+
+## 6.0.0 오프라인 검사
+
+6.0.0의 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다. 러너 중단이
+worker를 끝내고 두 번째 인터럽트에도 `running`이 남지 않는지, 출력 없는 시도가
+`FIRST_OUTPUT_SECONDS` 뒤 `timed_out`으로 끝나는지(`--timeout 0`·재개 포함,
+더 짧은 `--timeout` 우선, 곧바로 출력하는 worker는 제외), 기본 타임아웃 7200,
+Grok `tool_use` 색인과 결과 본문 비복사, 그리고 각 규칙 문구가 모든 면에 있는지를
+잠급니다. 라이브 확인은 아래 `6.0.0 라이브 확인`에 있습니다.
+이 변경 뒤 `sddx-contract`는 342개 테스트입니다. 파일별로 `test_contract` 36,
+`test_extract_task` 38, `test_prepare_grok_sandbox` 23, `test_resolve_backend`
+75, `test_run_worker` 116, `test_worker_status` 54개입니다.
+
+## 6.0.0 라이브 확인
+
+2026-09-24, macOS 26.5.2 arm64, `grok 1.0.41 (4220f3b224a6) [stable]`, 모델
+`grok-4.7` High. 원격 없는 새 로컬 저장소의 linked worktree에서 실제 호출 8회.
+각 시도 앞뒤로 `prepare`/`cleanup`을 돌렸고 매번 `cleaned: true`였습니다. receipt와
+로그는 커밋하지 않았습니다.
+
+| # | 확인 | 결과 |
+| --- | --- | --- |
+| 과거 로그 | 5.0.0과 같은 로그의 색인 비교(호출 없음) | Grok 실전 로그 두 개가 읽기·검색·셸 0/0/0에서 26/32/15, 64/32/32(`truncated`)로 채워짐. Cursor 실전 로그 두 개는 변경 전과 동일 |
+| L1 | 도구 색인 | `exited` 0, 70초. `reads` 2(brief, README), `searches` 1(`PAPAYA`), `shells` 4개 모두 exit 0(`echo hi` 포함). status에 파일 본문 없음 |
+| L2 | L1 세션 재개 | 같은 `session_id`로 `exited` 0, 77초. 무출력 기한 미발동 |
+| L3 | 러너 pid에만 SIGTERM | wrapper 130 즉시, worker 프로세스 사라짐, `interrupted`, `exit_code` -15, `the runner was interrupted (SIGTERM or Ctrl-C)`, `pid_alive: false`. worker가 띄운 zsh와 `sleep 120`은 pid 1로 입양되어 남았고(러너는 쫓지 않음) pid로 정리 |
+| L4 | L3의 중단 세션 재개 | `exited` 0, 18초. 멈춤 없음 |
+| L5 | `--timeout 45` | wrapper 124, `timed_out`, `exit_code` -15, worker 사라짐. 백그라운드로 넘어간 `sleep 120`은 `shells`에 `exit_code: null`로 기록. 손자 프로세스는 L3처럼 남아 pid로 정리 |
+
+러너 가장자리 보강(97a5eec) 뒤 L1·L3·L5를 다시 돌렸습니다. L1b는 `exited`
+0(185초), `shells` 11개에 exit 1인 셸까지 종료 코드가 기록됐습니다. L3b는
+wrapper 130(1초), worker 사라짐, `interrupted`/-15/새 문구, 손자 프로세스는 남아
+pid로 정리했습니다. L5b는 wrapper 124, `timed_out`/-15, worker 사라짐, 손자
+프로세스는 pid로 정리했습니다. 모든 `cleanup`은 `cleaned: true`였습니다.
+
+관찰: Grok은 셸 호출이 담긴 assistant 메시지를 그 호출이 돌아오거나 백그라운드로
+넘어간 뒤에 기록합니다. 그래서 L3처럼 전경에서 실행 중인 셸은 색인에 아직 없습니다.
+
+무출력 기한 자체는 오프라인 합성 CLI로 증명합니다. 실전 E3 멈춤은 재현을 목표로
+하지 않았고 L4에서도 나타나지 않았습니다. 이 결과는 이 Mac과 이 Grok 버전의
+관측이며 Cursor 경로는 오프라인 증거만 있습니다.
 
 ## 5.0.0 오프라인 검사
 

@@ -359,6 +359,120 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("pid_alive", text)
         self.assertIn("bounded tools index", text)
 
+    def test_interrupt_ends_the_worker_on_every_face(self) -> None:
+        dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
+        contract = (
+            ROOT / "docs" / "maintainers" / "products" / "sddx" / "contract.md"
+        ).read_text(encoding="utf-8")
+        fold = lambda value: re.sub(r"\s+", " ", value)
+        for text in (dispatch, contract):
+            self.assertIn("the runner was interrupted (SIGTERM or Ctrl-C)", fold(text))
+        self.assertNotIn("does not kill the tree", fold(dispatch))
+        self.assertNotIn("leaves the worker running", fold(dispatch))
+        self.assertNotIn("프로세스 트리는 죽이지 않습니다", fold(contract))
+
+    def test_first_output_deadline_is_on_every_face(self) -> None:
+        dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        contract = (
+            ROOT / "docs" / "maintainers" / "products" / "sddx" / "contract.md"
+        ).read_text(encoding="utf-8")
+        fold = lambda value: re.sub(r"\s+", " ", value)
+        for text in (dispatch, skill, contract):
+            self.assertIn("no output within 300 seconds", fold(text))
+        self.assertIn("It defaults to 7200", fold(dispatch))
+        self.assertIn("기본값은 7200", fold(contract))
+        self.assertNotIn("defaults to 3600", fold(dispatch))
+
+    def test_grok_tools_index_is_on_every_face(self) -> None:
+        dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
+        contract = (
+            ROOT / "docs" / "maintainers" / "products" / "sddx" / "contract.md"
+        ).read_text(encoding="utf-8")
+        testing = (
+            ROOT / "docs" / "maintainers" / "products" / "sddx" / "testing.md"
+        ).read_text(encoding="utf-8")
+        fold = lambda value: re.sub(r"\s+", " ", value)
+        self.assertIn("Grok `tool_use`", fold(dispatch))
+        self.assertIn("Grok `tool_use`", fold(contract))
+        self.assertIn("Cursor·Grok 두 로그 형태의 bounded tools index", fold(testing))
+
+    def test_runner_limits_are_on_every_face(self) -> None:
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
+        contract = (
+            ROOT / "docs" / "maintainers" / "products" / "sddx" / "contract.md"
+        ).read_text(encoding="utf-8")
+        fold = lambda value: re.sub(r"\s+", " ", value)
+        faces = {"dispatch.md": fold(dispatch), "contract.md": fold(contract)}
+        expected = {
+            "dispatch.md": (
+                # G1: an interrupted record's exit can be null.
+                "could not be confirmed ended",
+                "check `pid_alive` before cleanup",
+                # G9: a foreground Grok shell is indexed only once it returns.
+                "is not in the index yet",
+                # G10: the limits the runner deliberately keeps.
+                "bounded only by `--timeout`",
+                "build daemon",
+                "end them by pid",
+            ),
+            "contract.md": (
+                "확인하지 못하면 그 `exit_code`는 `null`",
+                "정리 전에 `pid_alive`를 확인합니다",
+                "아직 인덱스에 없습니다",
+                "`--timeout`으로만 제한됩니다",
+                "빌드 데몬",
+                "pid로 확인하고 끝냅니다",
+                # G6: one continuation-brief rule.
+                "이전 `report.md`와 이미 만든 커밋",
+            ),
+        }
+        for name, phrases in expected.items():
+            for phrase in phrases:
+                with self.subTest(face=name, phrase=phrase):
+                    self.assertTrue(phrase in faces[name], f"{phrase!r} missing from {name}")
+        paragraphs = [fold(part) for part in re.split(r"\n\s*\n", skill)]
+        continuation = [part for part in paragraphs if "continuation brief" in part]
+        self.assertEqual(len(continuation), 1)
+        self.assertIn("`report.md`", continuation[0])
+        self.assertIn("the commits already made", continuation[0])
+
+    def test_improvised_rules_are_on_every_face(self) -> None:
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
+        worker = (SKILL / "references" / "worker-prompt.md").read_text(encoding="utf-8")
+        contract = (
+            ROOT / "docs" / "maintainers" / "products" / "sddx" / "contract.md"
+        ).read_text(encoding="utf-8")
+        fold = lambda value: re.sub(r"\s+", " ", value)
+        skill, dispatch, worker, contract = map(fold, (skill, dispatch, worker, contract))
+        # R6: no implementer XHigh trigger that every fix round meets.
+        self.assertNotIn("High already failed review", skill)
+        self.assertNotIn("High 리뷰가 이미 실패한 경우", contract)
+        # R5: fix briefs start from the extracted constraints section.
+        for text in (dispatch, contract):
+            self.assertIn('--heading "Global Constraints"', text)
+        # R7: report timing, provider session stores, host-check timing.
+        self.assertIn("Write the report right after that commit", worker)
+        self.assertIn("provider's session directories", worker)
+        for text in (skill, dispatch):
+            self.assertIn("before that task's review", text)
+        self.assertIn("그 과제 리뷰 전에 돌리며", contract)
+        # R7: attempt parent, no masking pipe, waiting and stopping.
+        self.assertIn("worker-attempts/", dispatch)
+        self.assertIn("`tail`", dispatch)
+        for text in (dispatch, contract):
+            self.assertIn("pkill -f", text)
+            self.assertIn("ps -o ppid= -p", text)
+        # The ppid route when the runner is already gone.
+        self.assertIn("If that parent is pid 1", dispatch)
+        self.assertIn("그 부모가 pid 1이면", contract)
+        changelog = fold((SKILL / "CHANGELOG.md").read_text(encoding="utf-8"))
+        self.assertIn("never the recorded worker pid unless its parent is pid 1", changelog)
+        self.assertIn("previous attempt's `pid_alive` is true", skill)
+        self.assertIn("signalling `run.json.pid` while its runner is alive", skill)
+
     def test_dispatch_opens_with_controller_procedure(self) -> None:
         text = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
         self.assertIn("## Controller procedure", text)

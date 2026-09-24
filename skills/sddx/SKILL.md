@@ -4,8 +4,8 @@ description: Use when the user runs /sddx or $sddx. Do not use for writing a spe
 license: Apache-2.0
 compatibility: Requires a local Git repository, an implementation plan file, and Claude Code or Codex as the orchestrator host. Implementer CLIs are optional and resolved at runtime.
 metadata:
-  version: "5.0.0"
-  updated_at: "2026-09-22"
+  version: "6.0.0"
+  updated_at: "2026-09-24"
 ---
 
 # SDDx
@@ -276,7 +276,7 @@ XHigh, and the reverse is not a trigger either.
 | Implementation | Effort |
 | --- | --- |
 | Clear local or mechanical change, straightforward integration | High |
-| Changes to concurrency, races, locking, ordering, or shared state; auth, permission, secret, or sandbox boundaries; tangled side effects across subsystems; High already failed review on this task | XHigh |
+| Changes to concurrency, races, locking, ordering, or shared state; auth, permission, secret, or sandbox boundaries; tangled side effects across subsystems | XHigh |
 
 Architecture ambiguity is a ruling, not XHigh. File count, line count,
 "this is important", and "to be safe" are not triggers. Record
@@ -312,6 +312,12 @@ session the worker itself reported. Resume from it rather than re-running the
 task from scratch; a null there means nothing was reported and the fallback to
 a fresh attempt applies.
 
+An attempt whose `error` is `the worker wrote no output within 300 seconds`
+reported nothing on stdout; check the worktree for partial changes, then do
+not resume that session and do not raise `--timeout` for it; dispatch a fresh
+worker with a continuation brief that names the previous `report.md` and the
+commits already made.
+
 There is no automatic retry anywhere in these helpers. `run.json.state` is
 process state, not task state, and process exit 0 is not a clean DONE.
 
@@ -335,12 +341,13 @@ existing SDD ruling procedure before another attempt.
 The fix-round cap is unchanged. Neither a backend change nor more supplied
 context resets it.
 
-Split verification in the brief under two headings, `Worker checks` and
-`Host checks`. The worker runs the Worker checks. An outstanding host check
+Split verification in the brief under two headings, `Worker checks` and `Host
+checks`. The worker runs the Worker checks. Run a task's Host checks before that
+task's review, not batched at the end of the plan. An outstanding host check
 comes back through the existing `NEEDS_CONTEXT` or `BLOCKED` status with the
-items named; there is no new worker status for it. When the host can fill in
-the result and no code change is needed, run the host check here and do not
-call the worker again for the same reason.
+items named; there is no new worker status for it. When the host can fill in the
+result and no code change is needed, run the host check here and do not call the
+worker again for the same reason.
 
 A report-only correction is an evidence correction. It does not require a code
 change, a new commit, or a full re-review. A recorded role violation stays
@@ -385,6 +392,7 @@ explicitly after checking its ledger record and its processes. The supported OS 
 - Dispatching a task the plan does not name without asking once
 - Reading a standing "do not stop" as authority for unplanned work
 - Re-running a task whose `session_id_in_log` was still resumable
+- Resuming a session whose attempt wrote no output
 - A brief without the plan's run-wide constraints
 - Moving a review off the native host without asking
 - A reviewer from the implementer's own model family
@@ -400,6 +408,7 @@ explicitly after checking its ledger record and its processes. The supported OS 
 - A second current-state file beside the ledger block
 - Hand-composing a provider command, or a new execution script per run
 - Dumping a whole worker log into this session
+- Starting an attempt while the previous attempt's `pid_alive` is true, or stopping one with `pkill -f` or by signalling `run.json.pid` while its runner is alive
 - Re-querying the same status offset in a short loop
 - Retrying after a confirmed 402 without a changed condition
 - Calling the worker again for a host-only check
