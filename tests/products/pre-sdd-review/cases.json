@@ -172,7 +172,7 @@
     },
     {
       "id": "degraded-handoff-not-reused",
-      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a degraded REVISE run",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a degraded REVISE run whose reason is agent-reused-within-invocation",
       "expect": ["no_reuse", "fresh_review"]
     },
     {
@@ -224,6 +224,11 @@
       "id": "three-new-decisions-return-to-design",
       "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md whose two preceding runs each ended BLOCKED on a new product decision and whose closure finds another",
       "expect": ["BLOCKED", "return_to_design"]
-    }
+    },
+    {"id": "continuation-skips-discovery", "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a recorded full REVISE run when only sample-app/plan.md changed and HEAD is unchanged", "expect": ["continuation", "closure_first", "prior_finding_ids", "no_discovery"]},
+    {"id": "continuation-after-committed-docs", "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a recorded REVISE run whose repaired plan was then committed", "expect": ["continuation", "docs_only_diff_predicate"]},
+    {"id": "continuation-needs-docs-only-diff", "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a recorded REVISE run when src/app.ts also changed since", "expect": ["fresh_discovery"]},
+    {"id": "continuation-needs-recorded-run", "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a REVISE run with no recorded evidence", "expect": ["fresh_discovery"]},
+    {"id": "focused-only-degraded-continues", "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a degraded REVISE run whose only reason is focused-role-not-obtained", "expect": ["continuation", "no_focused_role", "degraded_focused_role_not_obtained"]}
   ]
 }

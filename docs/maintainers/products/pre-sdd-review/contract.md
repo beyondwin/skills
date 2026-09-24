@@ -150,7 +150,9 @@
 - `other`
 
 독립 1차 검토자를 구할 수 없으면 `BLOCKED`입니다. 짧은 degraded 회차로 대신하지
-않습니다. 집중 위험 역할만 못 구하면 `degraded`이고 그 인계는 재사용하지
+않습니다. 집중 위험 역할은 발견하는 호출에서만 부릅니다. 부르지 않았거나 못
+구하면 `degraded`와 `focused-role-not-obtained`이며, 이 사유만으로는 인계
+재사용과 이어 검토를 막지 않습니다. 다른 사유의 `degraded` 인계는 재사용하지
 않습니다. 한 에이전트를 계획이 다른 호출에 돌려 쓰지 않습니다.
 
 ## 기본 흐름, 판정, freshness
@@ -230,11 +232,15 @@ dirty 집합에 없습니다. 그 구멍은 기계점검이 잡습니다.
 권위를 보존하는 수정에는 승인 질문을 하지 않습니다. 사용자 권위가
 필요하면 필요한 결정을 승인 요청 하나로 묶습니다. `REVISE`나
 `BLOCKED` 뒤에 자동으로 다시 호출하지 않습니다. 문서, `HEAD`, 요청이 모두
-바뀌지 않은 `full` run의 인계만 재사용합니다. `execution`이 `degraded` 또는
-`blocked`인 run의 인계는 재사용하지 않습니다. 직전 run이 아직 권위 문서에
-없는 사용자 결정 때문에 `BLOCKED`이면 검토자를 부르지 않고 수리하지 않으며 같은
-체크포인트를 다시 보여 줍니다. 같은 계획의 연속 세 run이 새 제품 결정으로
-`BLOCKED`이면 인계가 설계를 되돌려 보내 남은 결정을 한 번에 정하게 합니다.
+바뀌지 않은 재사용 가능 run(`full`, 또는 사유가 `focused-role-not-obtained`뿐인
+`degraded`)의 인계만 재사용합니다. 다른 `degraded`와 `blocked` run의 인계는
+재사용하지 않습니다. 직전 run이 `REVISE`나 `BLOCKED`이고 `git diff --name-only
+<head_end> HEAD`가 설계·계획·원장뿐이면 발견 없이 이어 검토로 닫힘부터 합니다.
+이 계획의 기록 run이 없으면 이어 검토는 없고 전체 발견입니다. 직전 run이 아직
+권위 문서에 없는 사용자 결정 때문에 `BLOCKED`이면 검토자를 부르지 않고 수리하지
+않으며 같은 체크포인트를 다시 보여 줍니다. 같은 계획의 연속 세 run이 새 제품
+결정으로 `BLOCKED`이면 인계가 설계를 되돌려 보내 남은 결정을 한 번에 정하게
+합니다.
 
 ## 선택 기록기 계약
 
@@ -251,9 +257,9 @@ LF 하나입니다. 호환되면 `start` 전에 `summary --repo <표시 이름>`
 않습니다. 그 run이 아직 권위 문서에 없는 사용자 결정 때문에 `BLOCKED`이면
 입력 게이트를 다시 확인하지 않고 Verdict and handoff의 직전 결정 규칙을
 따릅니다. 그 밖의 `blocked`는 입력 게이트를 다시 확인한 뒤 `start`합니다.
-`execution`이 `degraded`이면 인계를 재사용하지 않고 새 전체 검토로
-`start`합니다. `full`이면 문서 해시,
-`git.head_end`, 요청이 모두 같을 때만 이전 인계를 재사용합니다. 아니면
+`execution`이 `degraded`이고 사유가 `focused-role-not-obtained`뿐이 아니면
+인계를 재사용하지 않고 새 전체 검토로 `start`합니다. 재사용 가능 run이면 문서
+해시, `git.head_end`, 요청이 모두 같을 때만 이전 인계를 재사용합니다. 아니면
 의미 검토 전에 `start`하고, 판정과
 수정이 끝난 뒤 `finish`를 한 번 호출합니다. `Evidence:` 줄은 정확히
 하나입니다. 기록기가 없거나 실패하면
@@ -361,7 +367,8 @@ checkout, clone, 다른 worktree, 잃어버린 salt, 다른 evidence home은 원
 - `risk-triggers`: `framework-runtime-removal`, `schema-data-deletion`, `auth-security-boundary`, `data-boundary-change`, `external-side-effects`
 - `freshness`: `fingerprints`, `content-change-invalidates`
 - `required-base`: `pre-dispatch-ancestor-check`
-- `handoff`: `unresolved-packet`, `full-execution-only`
+- `handoff`: `unresolved-packet`, `reusable-execution-only`
+- `continuation`: `docs-only-diff`, `closure-first`, `recorded-run-required`
 - `sdd`: `outer-request-implementation-only`
 - `evidence`: `optional`, `non-blocking`, `controller-local-run-id`
 - `campaign-scheduler`: `discoveries-may-overlap`, `repairs-do-not-overlap`

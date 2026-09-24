@@ -139,18 +139,20 @@ run `summary --repo <repo display name>` before `start` and locate this plan in
 else: a pending run can outlive the invocation that opened it and be mistaken
 for a new round. If the latest completed verdict for that plan is `REVISE` or
 `BLOCKED`, `show` that run. Never reuse a handoff whose `execution` is
-`blocked` or `degraded`. For a `blocked` run whose `BLOCKED` was a user
-decision that no authority document records yet, follow the previous-decision
-rule under Verdict and handoff instead of re-running the gates. Otherwise
-re-run the input gates (`**Spec:**` resolution and the required implementation
-base) and call `start` if they pass; a `degraded` run's handoff is never
-reusable, so call `start` for a fresh full review. For a `full` run, reuse
-the prior handoff without a new review only when `plan.sha_end` and
-`design.sha_end` match the current documents, `git.head_end` matches the
-current `HEAD`, and the outer request does not ask for a re-review or name
-changed authority or repository evidence. Otherwise call `start` before
-semantic review with the skill root, the repository, the primary plan, the
-design path resolved from the plan's
+`blocked`. For a `blocked` run whose `BLOCKED` was a user decision that no
+authority document records yet, follow the previous-decision rule under
+Verdict and handoff instead of re-running the gates. Otherwise re-run the
+input gates (`**Spec:**` resolution and the required implementation base) and
+call `start` if they pass. A run is reusable when its `execution` is `full`,
+or `degraded` with `focused-role-not-obtained` as its only reason; any other
+`degraded` run's handoff is never reusable, so call `start` for a fresh full
+review. For a reusable run, reuse the prior handoff without a new review only
+when `plan.sha_end` and `design.sha_end` match the current documents,
+`git.head_end` matches the current `HEAD`, and the outer request does not ask
+for a re-review or name changed authority or repository evidence. When only
+the documents changed, take the continuation in the default mode. Otherwise
+call `start` before semantic review with the skill root, the repository, the
+primary plan, the design path resolved from the plan's
 `**Spec:**` field, the host client id, the host-reported model string (or
 `unknown`), and the mode.
 If `**Spec:**` cannot be resolved, omit `--design` and return `BLOCKED`; the
@@ -204,20 +206,23 @@ name suspected findings, paths, symbols, or fixes in that request. Never
 accept a summary as findings.
 
 Across the entire invocation, use at most two review roles: one primary role
-and, when triggered, one focused risk role. A fresh re-review may replace the
-agent in either role, but it does not add a review role or broaden the
-triggered risk class. Evidence `reviewer_count` records these logical roles,
-not cumulative fresh agent calls. If a fresh independent primary reviewer
-cannot be obtained, return `BLOCKED`. If the host can supply only k fresh
-agents, run discovery in waves of k. Do not reuse an agent across plans to
-fill a wave. A preceding plan that is `BLOCKED` does not stop later
-discovery. Do not bind a later `READY` to a preceding plan. Do not use the controlling agent as a
+and, when triggered, one focused risk role. The focused risk role is required
+only in an invocation that runs discovery; closure rounds and continuations do
+not dispatch it. A fresh re-review may replace the agent in either role, but
+it does not add a review role or broaden the triggered risk class. Evidence
+`reviewer_count` records these logical roles, not cumulative fresh agent
+calls, and evidence `reviewers` counts distinct agents obtained for the
+logical roles, not intended roles. If a fresh independent primary reviewer
+cannot be obtained, return `BLOCKED`. Do not use the controlling agent as a
 substitute independent primary and do not run a short degraded round in its
-place. When only the focused risk role cannot be obtained, the run is
-`execution=degraded`; its handoff is never reusable. Never reuse one agent
-across invocations that review different plans: that is not reuse, it is loss
-of independence. Evidence `reviewers` counts distinct agents obtained for the
-logical roles, not intended roles. A reused role is `execution=degraded`.
+place. If the host can supply only k fresh agents, run discovery in waves of
+k. Do not reuse an agent across plans to fill a wave. Do not bind a later
+`READY` to a preceding plan. Never reuse one agent across invocations that
+review different plans: that is not reuse, it is loss of independence. A
+reused role is `execution=degraded` and its handoff is never reusable. When
+the focused risk role was triggered but not dispatched or not obtained, the
+run is `execution=degraded` with `focused-role-not-obtained`; that reason
+alone does not bar reuse or continuation.
 
 ## Default mode: review -> repair documents -> scoped re-review
 
@@ -318,6 +323,32 @@ A new defect shape found there ends the invocation. If a material issue
 remains, return `REVISE` with its evidence; do not downgrade it to finish the
 loop.
 
+### Continuation after `REVISE` or `BLOCKED`
+
+A continuation replaces discovery with closure. Take it when all hold:
+
+- The recorder's latest completed run for this plan has verdict `REVISE` or
+  `BLOCKED` and a reusable `execution`.
+- `git diff --name-only <git.head_end> HEAD` lists only the resolved design,
+  plan, and ledger paths. This chooses between continuation and discovery; it
+  does not narrow `head_changed_during_review` during a review.
+- The diff of those documents since the run's `sha_end` can be produced, from
+  this conversation or from Git.
+- The outer request does not ask for a full re-review.
+
+Otherwise run discovery. Without a recorded run for this plan there is no
+continuation. The previous-decision rule in the verdict section still applies
+first.
+
+Call `start`, then dispatch one fresh read-only reviewer with the closure
+dispatch. Its open records are the prior unresolved handoff packet when this
+conversation holds it, else the prior run's recorded findings from `show`;
+their `id`, `severity`, `class`, `location`, and `evidence` are exact. Keep the
+prior finding IDs. The flow then continues as after an original closure
+review: repair, closure, the residual pass, verdict. Continuations are not
+capped: text outside the diff already passed one discovery, and closure's
+bounded regression covers the diff.
+
 ## Review-only mode
 
 `review-only` is explicit. Make no file changes, use the same fresh read-only
@@ -392,8 +423,10 @@ Do not automatically start another invocation after `REVISE` or `BLOCKED`.
 A later invocation requires an explicit outer request or changed document,
 authority, or repository evidence. When none changed, reuse the prior handoff
 instead of repeating the same review, subject to the reuse rule above: never
-for an `execution=blocked` or `degraded` run, and for a `full` run only when
-the documents, `HEAD`, and the request are all unchanged.
+for an `execution=blocked` run or a `degraded` run with any reason besides
+`focused-role-not-obtained`, and for a reusable run only when the documents,
+`HEAD`, and the request are all unchanged. When only the documents changed,
+take the continuation described under Default mode instead.
 
 When this plan's previous run is `BLOCKED` on a user decision that no
 authority document records yet, dispatch no reviewer and make no repair: print
@@ -436,10 +469,11 @@ proofread, publish a release, or make an accepted product decision.
 - Claim that a test covers something without locating that test
 - Apply a textual repair without asserting the match is unique
 - Reuse one reviewer across invocations that review different plans
-- Reuse a handoff from a `degraded` run
+- Reuse a handoff from a `degraded` run with any reason besides `focused-role-not-obtained`
 - Overlap repairs of two plans on one host
 - Reuse a reviewer to fill a discovery wave
 - Print READY after HEAD moved from the freeze
 - Skip closure for a dirty plan with zero discovery findings
 - Dispatch a reviewer while the plan waits on an unanswered user decision
 - Return `READY` when the last action was a repair
+- Run a fresh discovery when a continuation applies

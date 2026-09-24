@@ -41,6 +41,8 @@ Everything above, plus:
 - Every PSDR record still open, from every prior round, verbatim. A
   controller summary is not accepted: closure is checked by matching the
   original Location and Evidence, which a summary cannot carry.
+- In a continuation, the prior run's recorded findings stand in for the
+  verbatim records; their Location and Evidence are exact.
 - The `repair-impact map`.
 - The machine-check results.
 - An explicit slot listing the tasks that no record yet points at.

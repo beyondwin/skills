@@ -125,8 +125,12 @@ line's exact bytes. When a compatible local recorder is present, the controller 
 `summary` first, calls `start` before semantic review, calls `finish` after the
 final verdict, and prints `Evidence: recorded; run_id=<run-id>`. Same-plan
 pending runs and invocations that end early close with `abandon`. Only a `full`
-run's handoff is reused; a `degraded` or `blocked` run's handoff is never
-reused. If the recorder is unavailable, incompatible, or denied by permissions,
+run's handoff, or a `degraded` run's whose only reason is
+`focused-role-not-obtained`, is reused; any other `degraded` or `blocked`
+run's handoff is never reused. When the previous run was `REVISE` or
+`BLOCKED` and only the design, plan, or ledger changed since, the next
+invocation continues from closure instead of a fresh discovery. If the
+recorder is unavailable, incompatible, or denied by permissions,
 review continues and it prints `Evidence: not_recorded; reason=<code>`. The
 controller passes the design path it resolved from the plan's `**Spec:**`
 field; when it cannot, it omits the design and ends with `BLOCKED`.

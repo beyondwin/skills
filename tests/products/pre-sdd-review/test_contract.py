@@ -39,9 +39,9 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "f25c8e8586a12674abbf498cea1a551d6bab7fb71feadaa84b27a625ddb1f39d",
+    "SKILL.md": "442391e86219f539510f5d467bc247193f8a3e855551f886a8359f2f75212662",
     "references/reviewer-protocol.md": (
-        "fd4636e9b4e6f61add1f7b05db59238320be47f207ce9e562939d718e8e3551b"
+        "fde65ce13f25d7bed4d7bf8bfb28c494269fbb0c5400b9d2c7bc3e9b6bf7a647"
     ),
 }
 CASE_IDS = (
@@ -90,6 +90,11 @@ CASE_IDS = (
     "repair-last-no-ready",
     "unanswered-decision-no-redispatch",
     "three-new-decisions-return-to-design",
+    "continuation-skips-discovery",
+    "continuation-after-committed-docs",
+    "continuation-needs-docs-only-diff",
+    "continuation-needs-recorded-run",
+    "focused-only-degraded-continues",
 )
 FIXTURE_NAMES = (
     "conditional-edit-surface",
@@ -402,7 +407,8 @@ README_CONTRACT = (
     ),
     ("freshness", ("fingerprints", "content-change-invalidates")),
     ("required-base", ("pre-dispatch-ancestor-check",)),
-    ("handoff", ("unresolved-packet", "full-execution-only")),
+    ("handoff", ("unresolved-packet", "reusable-execution-only")),
+    ("continuation", ("docs-only-diff", "closure-first", "recorded-run-required")),
     ("sdd", ("outer-request-implementation-only",)),
     ("evidence", ("optional", "non-blocking", "controller-local-run-id")),
     ("campaign-scheduler", ("discoveries-may-overlap", "repairs-do-not-overlap")),
@@ -416,13 +422,13 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Finding classes", "2a0892a5aad034ceaf1218606d657f4b22bac89c0d2b67065b7018e811a44352"),
     ("### Conditional risk triggers", "346cdfb0c5a7df8461c7de1f7f217b499c29add6a0a2a7e88fea58449e6d223d"),
     ("### Verdicts", "c3b7669e38ade89cf67a2531fcc0e8ca0a05275550ad7f7a520c99ae060125eb"),
-    ("### Freshness", "a3c5da066802d3b3d78d3137f556addd449613ab08e130bef26959c20684f65e"),
+    ("### Freshness", "2243844aefccdd84352f63f57f9cc58e9dd75b3c3dc75de1bb581a462da7a449"),
     ("### SDD handoff", "2e0fcc729cb4455863165138c0f96256b27ddf9d4460c2f7a5ce51660806d9da"),
     ("### Ledger shape", "f1091388fd58d8db9f223fbd6e1457303c600107c4c89c37d1aded6caf2ae84e"),
-    ("### Degraded reasons", "a71ff3ec6aaf37ac3a862f8637b0fcd66e561d3958b4b0da0aaa532ced0b28f7"),
+    ("### Degraded reasons", "7a7a2dbb5b820bf79bd92612831807ce63000f7acb444c30bfa6b261977455a4"),
 )
-MAINTAINER_CANONICAL_DIGEST = "e75cd5cce457c6bd18013a8742005ebb789205f1ee8610049c4577c18a71b75e"
-TESTING_CANONICAL_DIGEST = "76ad6f471bdeca0d715b973bf614b319156b81a488a4e4290fa70343ce42b2c5"
+MAINTAINER_CANONICAL_DIGEST = "031337a38073828d28842ec0a26f782f87ac180b6b58255f2d908ac809fc05eb"
+TESTING_CANONICAL_DIGEST = "07dafa7c8529a778a6401c397c48a4fcdaac2eb88c2ea9a3f40cde594e60212e"
 COMPATIBILITY_CANONICAL_DIGEST = "db8d19d45ca4f6748b73ace65da5e5e965f0e7002a6b0395bf563f524a424480"
 RELEASE_CANONICAL_DIGEST = "8d79c8164b43050ff344820fdf68417c46a9ff46c8e192f005fc91cab3a362db"
 
@@ -1138,6 +1144,13 @@ class PreSddReviewContractTests(unittest.TestCase):
 
         self.assertIn("Detection still covers the final complete documents", protocol)
 
+        self.assertIn("A continuation replaces discovery with closure", skill)
+        self.assertIn("git diff --name-only <git.head_end> HEAD", skill)
+        self.assertIn("Without a recorded run for this plan there is no continuation", skill)
+        self.assertIn("that reason alone does not bar reuse or continuation", skill)
+        self.assertIn("stand in for the verbatim records", protocol)
+        self.assertIn("이어 검토", contract)
+
     def test_reviewer_is_read_only_and_controller_owns_repairs(self) -> None:
         protocol = (SKILL / "references/reviewer-protocol.md").read_text(
             encoding="utf-8"
@@ -1306,6 +1319,11 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertEqual(cases["repair-last-no-ready"], ("no_ready_after_repair", "closure_or_revise"))
         self.assertEqual(cases["unanswered-decision-no-redispatch"], ("reprint_checkpoint", "no_reviewer_dispatch", "no_repair"))
         self.assertEqual(cases["three-new-decisions-return-to-design"], ("BLOCKED", "return_to_design"))
+        self.assertEqual(cases["continuation-skips-discovery"], ("continuation", "closure_first", "prior_finding_ids", "no_discovery"))
+        self.assertEqual(cases["continuation-after-committed-docs"], ("continuation", "docs_only_diff_predicate"))
+        self.assertEqual(cases["continuation-needs-docs-only-diff"], ("fresh_discovery",))
+        self.assertEqual(cases["continuation-needs-recorded-run"], ("fresh_discovery",))
+        self.assertEqual(cases["focused-only-degraded-continues"], ("continuation", "no_focused_role", "degraded_focused_role_not_obtained"))
 
     def test_authority_and_risk_selection_are_ordered_and_conditional(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -1459,7 +1477,8 @@ class PreSddReviewContractTests(unittest.TestCase):
             "Claim that a test covers something without locating that test",
             "Apply a textual repair without asserting the match is unique",
             "Reuse one reviewer across invocations that review different plans",
-            "Reuse a handoff from a `degraded` run",
+            "Reuse a handoff from a `degraded` run with any reason besides `focused-role-not-obtained`",
+            "Run a fresh discovery when a continuation applies",
             "Overlap repairs of two plans on one host",
             "Reuse a reviewer to fill a discovery wave",
             "Print READY after HEAD moved from the freeze",
@@ -1626,13 +1645,18 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             normalized_english,
         )
 
-        # Only a full run's handoff is reused; degraded and blocked never are.
+        # A full run's handoff is reused, as is a degraded run's whose only
+        # reason is focused-role-not-obtained; any other degraded or blocked
+        # run's handoff is never reused.
         self.assertIn(
-            "`full`인 run의 인계만 재사용하며, `degraded`나 `blocked`인 run의 인계는 재사용하지 않습니다.",
+            "`full`인 run과 사유가 `focused-role-not-obtained`뿐인 `degraded` run의 인계만 "
+            "재사용하며, 다른 `degraded`나 `blocked`인 run의 인계는 재사용하지 않습니다.",
             normalized_korean,
         )
         self.assertIn(
-            "Only a `full` run's handoff is reused; a `degraded` or `blocked` run's handoff is never reused.",
+            "Only a `full` run's handoff, or a `degraded` run's whose only reason is "
+            "`focused-role-not-obtained`, is reused; any other `degraded` or `blocked` "
+            "run's handoff is never reused.",
             normalized_english,
         )
 
@@ -1781,8 +1805,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "not_measured",
         ):
             self.assertIn(fact, normalized_testing)
-        self.assertEqual(len(CASE_IDS), 45)
-        self.assertIn("정확히 마흔다섯 개", normalized_testing)
+        self.assertEqual(len(CASE_IDS), 50)
+        self.assertIn("정확히 쉰 개", normalized_testing)
         self.assertIn("지금은 Codex만 지원합니다", compatibility)
         self.assertIn("다른 호스트는 모두 `not_measured`", compatibility)
         self.assertIn("## 기록기 호환성", compatibility)
