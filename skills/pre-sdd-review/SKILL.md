@@ -139,9 +139,10 @@ for a new round. If the latest completed verdict for that plan is `REVISE` or
 `BLOCKED`, `show` that run. Never reuse a handoff whose `execution` is
 `blocked`. For a `blocked` run whose `BLOCKED` was a user decision, follow the
 previous-decision rule under Verdict and handoff while no authority document
-records it, and take the continuation once one does. Otherwise re-run the
-input gates (`**Spec:**` resolution and the required implementation base) and
-call `start` if they pass. A run is reusable when its `execution` is `full`,
+records it, and, once one does, take the continuation when its conditions
+hold (otherwise run discovery). Otherwise re-run the input gates
+(`**Spec:**` resolution and the required implementation base) and call
+`start` if they pass. A run is reusable when its `execution` is `full`,
 or `degraded` with `focused-role-not-obtained` as its only reason; any other
 `degraded` run's handoff is never reusable, so call `start` for a fresh full
 review. For a reusable run, reuse the prior handoff without a new review only
@@ -345,11 +346,16 @@ Call `start`, then dispatch one fresh read-only reviewer with the closure
 dispatch, whose repair diff is the document diff since the prior run's
 `sha_end`. Its open records are the prior unresolved handoff packet when this
 conversation holds it, else the prior run's recorded findings from `show`;
-their `id`, `severity`, `class`, `location`, and `evidence` are exact. Keep the
-prior finding IDs. The flow then continues as after an original closure
-review: repair, closure, the residual pass, verdict. Continuations are not
-capped: text outside the diff already passed one discovery, and closure's
-bounded regression covers the diff.
+their `id`, `severity`, `class`, `location`, and `evidence` are exact.
+Reading a prior run's recorded findings as open records is not reusing its
+handoff: the continuation reviews them again. Keep the prior finding IDs. A
+carried record keeps its `id`, `severity`, and `class`. When closure finds a
+remainder of a different severity or class, close or keep the carried record
+on its own terms and record the remainder as a new record with a new ID. The
+flow then continues as after an original closure review: repair, closure,
+the residual pass, verdict. Continuations are not capped: text outside the
+diff already passed one discovery, and closure's bounded regression covers
+the diff.
 
 ## Review-only mode
 
@@ -433,12 +439,13 @@ take the continuation described under Default mode instead.
 When this plan's previous run is `BLOCKED` on a user decision that no
 authority document records yet, dispatch no reviewer and make no repair: print
 the same checkpoint and stop. Call no `start`; print `Evidence: not_recorded;
-reason=previous-decision-checkpoint`. Once the decision is recorded, take the
-continuation. Other plans continue. When this run would end `BLOCKED` on a new
-product decision and the two preceding runs of this plan in the recorder's
-chain did too, the handoff sends the design back to be finished with all
-remaining decisions at once, and says the next invocation should wait for
-that. Without a chain, report the count you know and do not stop on it.
+reason=previous-decision-checkpoint`. Once the decision is recorded, take
+the continuation when its conditions hold. Other plans continue. When this
+run would end `BLOCKED` on a new product decision and the two preceding runs
+of this plan in the recorder's chain did too, the handoff sends the design
+back to be finished with all remaining decisions at once, and says the next
+invocation should wait for that. Without a chain, report the count you know
+and do not stop on it.
 
 Include a compact pass receipt in the final report: input and final document
 hashes, pass number, finding IDs/classes, triggered repair-impact categories,

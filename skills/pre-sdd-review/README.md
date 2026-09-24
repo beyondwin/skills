@@ -116,8 +116,9 @@ recorded; run_id=<run-id>`를 출력합니다. 같은 계획의 pending
 run과 도중에 끝난 호출은 `abandon`으로 닫습니다. `execution`이
 `full`인 run과 사유가 `focused-role-not-obtained`뿐인 `degraded` run의 인계만
 재사용하며, 다른 `degraded`나 `blocked`인 run의 인계는 재사용하지 않습니다.
-직전 판이 `REVISE`나 `BLOCKED`이고 그 뒤 바뀐 것이 설계·계획·원장뿐이면 새
-발견 없이 닫힘부터 이어 검토합니다. 기록기가 없거나 호환되지 않거나 권한 오류가 나면
+직전 판이 `REVISE`였거나, 이제 문서에 기록된 사용자 결정 때문에
+`BLOCKED`였고, 그 뒤 바뀐 것이 설계·계획·원장뿐이면 새 발견 없이 닫힘부터
+이어 검토합니다. 기록기가 없거나 호환되지 않거나 권한 오류가 나면
 검토는 계속되고 `Evidence: not_recorded; reason=<code>`를
 출력합니다. 설계 경로는 컨트롤러가 계획의 `**Spec:**`에서 해석한 값을 넘기며,
 해석할 수 없으면 생략하고 `BLOCKED`로 끝냅니다.

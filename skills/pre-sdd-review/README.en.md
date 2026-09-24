@@ -130,9 +130,10 @@ final verdict, and prints `Evidence: recorded; run_id=<run-id>`. Same-plan
 pending runs and invocations that end early close with `abandon`. Only a `full`
 run's handoff, or that of a `degraded` run whose only reason is
 `focused-role-not-obtained`, is reused; any other `degraded` or `blocked`
-run's handoff is never reused. When the previous run was `REVISE` or
-`BLOCKED` and only the design, plan, or ledger changed since, the next
-invocation continues from closure instead of a fresh discovery. If the
+run's handoff is never reused. When the previous run was `REVISE`, or
+`BLOCKED` on a user decision that the documents now record, and only the
+design, plan, or ledger changed since, the next invocation continues from
+closure instead of a fresh discovery. If the
 recorder is unavailable, incompatible, or denied by permissions,
 review continues and it prints `Evidence: not_recorded; reason=<code>`. The
 controller passes the design path it resolved from the plan's `**Spec:**`

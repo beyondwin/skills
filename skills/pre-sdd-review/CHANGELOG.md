@@ -8,7 +8,7 @@ All notable changes to this product are documented in this file.
 
 ### Changed
 
-- `REVISE`나 `BLOCKED` 뒤 바뀐 것이 설계·계획·원장뿐이면 새 발견 없이 닫힘부터 이어 검토합니다. 이 계획의 기록 run이 있어야 합니다. `BLOCKED` run은 사용자 결정이 기록되면 이어 검토하고, 얼려 있는 동안에는 `start`를 부르지 않고 `Evidence: not_recorded; reason=previous-decision-checkpoint`를 출력합니다.
+- `REVISE`였거나, 이제 문서에 기록된 사용자 결정 때문에 `BLOCKED`였고, 그 뒤 바뀐 것이 설계·계획·원장뿐이면 새 발견 없이 닫힘부터 이어 검토합니다. 이 계획의 기록 run이 있어야 합니다. `BLOCKED` run은 사용자 결정이 기록되면 이어 검토하고, 얼려 있는 동안에는 `start`를 부르지 않고 `Evidence: not_recorded; reason=previous-decision-checkpoint`를 출력합니다.
 - 두 번째 종결 뒤 원래 기록의 `IMPORTANT` 2건 이하가 한 자리 수정으로 남으면 같은 호출에서 한 번 더 고칩니다.
 - `repair_passes`는 적용한 수리 패스를 셉니다. `repaired`는 종결 검토자가 닫은 기록에만 쓰고, 마지막 동작이 수리이면 `READY`가 아닙니다.
 - 열린 `BLOCKER`는 `BLOCKED`입니다. 답이 없는 사용자 결정 앞에서는 검토자를 다시 부르지 않고, 새 결정이 세 판 연속 나오면 설계로 돌려보냅니다.
