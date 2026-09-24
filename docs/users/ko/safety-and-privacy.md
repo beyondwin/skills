@@ -20,13 +20,13 @@
 
 ## SDD 전 문서 검토
 
-`pre-sdd-review`는 로컬 설계, 구현 계획, 참조된 ADR, 저장소 파일을 읽습니다. 기본 모드에서는 확인된 설계와 계획만 수정합니다. 저장소 소유 테스트는 사용자 문서를 전송하거나 지속 저장하거나 픽스처로 수집하지 않습니다. 이 제품은 텔레메트리나 업로드 경로를 추가하지 않습니다. 라이브 처리와 보존은 Codex 호스트의 데이터 제어를 따릅니다. 명시적인 외부 요청 없이는 구현이나 SDD를 시작하지 않습니다.
+`pre-sdd-review`는 로컬 설계, 구현 계획, 참조된 ADR, 저장소 파일을 읽습니다. 기본 모드에서는 확인된 설계, 계획, 공유 파일 원장만 수정합니다. 저장소 소유 테스트는 사용자 문서를 전송하거나 지속 저장하거나 픽스처로 수집하지 않습니다. 이 제품은 텔레메트리나 업로드 경로를 추가하지 않습니다. 라이브 처리와 보존은 Codex 호스트의 데이터 제어를 따릅니다. 명시적인 외부 요청 없이는 구현이나 SDD를 시작하지 않습니다.
 
 선택 기록기 `evidence/evidence.py`는 설치하지 않습니다. Python 표준 라이브러리만 씁니다. run마다 record 하나를 `~/.pre-sdd-review/runs/`에 둡니다. 루트를 바꾸려면 절대 경로 `PRE_SDD_REVIEW_HOME`을 씁니다. 명령은 [기록기 README](../../../skills/pre-sdd-review/evidence/README.md)를 보세요.
 
 record에는 저장소 상대 경로, 디렉터리 이름, 해시, 열거값, 정수, 시각, 짧은 paraphrase만 넣습니다. source 원문, 절대 경로, prompt, provider transcript, command output, credential, 환경 변수 값은 넣지 마세요. 짧게 제한된 note·consequence·fix에도 넣지 마세요. 기록기는 자동 비밀 탐지를 약속하지 않습니다.
 
-기록은 선택이며 receipt 오류는 semantic verdict를 바꾸지 않습니다. schema 3는 정규화한 Git 디렉터리와 checkout 루트에서 로컬 비공개 32-byte `.identity-salt`를 사용한 HMAC-SHA-256으로 `repo_key`를 유도합니다. 원시 절대 identity 경로와 salt는 출력하거나 기록하지 않습니다. 결속은 checkout·evidence home·salt에 속합니다. 별도 clone/worktree, checkout 경로 이동, 다른 evidence home, salt 유실은 새 run이 필요합니다. 표시 이름만으로 identity를 판단하지 않습니다. schema 2는 읽기 전용 `historical-unbound` 증거로 남으며 checkout 결속을 추정하지 않습니다.
+기록은 선택이며 receipt 오류는 semantic verdict를 바꾸지 않습니다. schema 3와 4는 정규화한 Git 디렉터리와 checkout 루트에서 로컬 비공개 32-byte `.identity-salt`를 사용한 HMAC-SHA-256으로 `repo_key`를 유도합니다. 원시 절대 identity 경로와 salt는 출력하거나 기록하지 않습니다. 결속은 checkout·evidence home·salt에 속합니다. 별도 clone/worktree, checkout 경로 이동, 다른 evidence home, salt 유실은 새 run이 필요합니다. 표시 이름만으로 identity를 판단하지 않습니다. schema 2는 읽기 전용 `historical-unbound` 증거로 남으며 checkout 결속을 추정하지 않습니다.
 
 원자적 로컬 저장은 협력하는 client 사이의 일관성을 제공할 뿐, 악의적인 로컬 변조를 막는 서명된 audit log가 아닙니다.
 

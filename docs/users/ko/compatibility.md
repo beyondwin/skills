@@ -28,7 +28,7 @@ sddx: Claude Code and Codex supported for local or repository-based use.
 
 `image-workbench`로 그림을 만들거나 고치려면 지금 쓰는 프로그램의 그림 도구와, 결과를 열어 보는 기능이 필요합니다. Grok 바로가기는 `~/.agents/skills/image-workbench`입니다. 다른 프로그램의 비슷한 도구만으로는 지원이 아닙니다.
 
-`pre-sdd-review`의 다른 호스트는 `not_measured`입니다.
+`pre-sdd-review`의 다른 호스트는 아직 확인하지 않았습니다(`not_measured`).
 
 보존된 `how-it-works` smoke는 `historical-unbound`(예전 기록, 지금 실행 증거가 아님)이며 현재 설치 파일·모델 실행 증거와 별개입니다. 현재 설치 파일의 실제 실행은 `not_measured`입니다. `current-bounded`는 버전/hash와 메타데이터만 묶여 있는지 보며, 실제 실행이나 설명 품질을 증명하지 않습니다. 지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다. CI는 Ubuntu에서 `full` 프로필을 돌릴 수 있습니다. 그 통과는 Linux 지원이 아니고 macOS 지원 증거도 아닙니다.
 

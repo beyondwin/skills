@@ -24,7 +24,7 @@ does not include How It Works, Pre-SDD Review, or SDDx.
 | [`korean-writing-editor`](skills/korean-writing-editor/README.en.md) | Takes Korean text you already have and fixes spelling and sentences without changing the meaning. | Codex |
 | [`image-workbench`](skills/image-workbench/README.en.md) | Plans, makes, or edits PNG/JPG images that belong in this project. | Codex, Grok |
 | [`how-it-works`](skills/how-it-works/README.en.md) | Explains how one machine works, at a depth you pick, in writing and diagrams. | Codex, Claude Code |
-| [`pre-sdd-review`](skills/pre-sdd-review/README.en.md) | Checks an approved design and implementation plan against repository reality immediately before SDD, repairs the documents, and re-reviews them. | Codex |
+| [`pre-sdd-review`](skills/pre-sdd-review/README.en.md) | Right before SDD, checks an approved design and implementation plan against the repository as it is now, repairs the documents, and re-checks what changed. | Codex |
 | [`sddx`](skills/sddx/README.en.md) | Runs Superpowers SDD in your session and hands only the coding to Cursor Agent or Grok Build (Grok 4.7). | Claude Code, Codex |
 
 Each product README has install and first-call steps.

@@ -60,7 +60,7 @@ For Korean candidates, hard failures take precedence as `failed`. After hard che
 
 The evidence stage under `tests/products/pre-sdd-review/evidence/` checks `evidence.py`. It makes no network, model, provider, or telemetry call.
 
-Pre-SDD reads schema 2 records as `historical-unbound` only. Mutation commands require schema 3 and its checkout binding; preserve a schema 2 pending record and start a new run. Schema 3 `--version` emits the canonical JSON `{"cli_version":"3.0.0","schema":3,"skill_name":"pre-sdd-review"}` followed by one LF and creates no evidence home.
+Pre-SDD reads schema 2 records as `historical-unbound` only. Mutation commands require schema 4 and its checkout binding; a schema 3 pending run can only be `abandon`ed. Preserve a schema 2 pending record and start a new run. `--version` emits one canonical JSON line containing `"schema":4,"skill_name":"pre-sdd-review"`, followed by one LF, and creates no evidence home. The exact bytes are in the [recorder README](../../../skills/pre-sdd-review/evidence/README.md).
 
 An Ubuntu `full` CI pass does not prove native macOS support.
 

@@ -91,10 +91,10 @@ SDDX_SUPPORT = (
     "sddx: Claude Code and Codex supported for local or repository-based use."
 )
 PRE_SDD_SHARED_SECTION_DIGESTS = {
-    ("ko", "safety"): "2308378028288c8a57547252818cdfa6e6392b1fe53d6b113659b273dda03547",
-    ("en", "safety"): "f41ea8a8d2dd98f3d6b37eeacca8a488fc6bf046b4971c636ae56239df6876ab",
-    ("ko", "verification"): "cb34b0b208450da0f728c7cf5a6ac05bdf841f248d73aa5c9c4ce1b782eb532f",
-    ("en", "verification"): "5c54465611a8091c96ec732171100d25790090a0234860651da0653bb7fc9c8d",
+    ("ko", "safety"): "11fa0c607a3057f584d0cd746b18607ef67ab88ae36b488b2fcac5bb3d08194e",
+    ("en", "safety"): "0e5bfb2a5568ee4d4d96e09c629ec3feafebee24a17a05b9a7ebab8e0e9d803b",
+    ("ko", "verification"): "2cf48732d7ad64ab9fce4117e241611d9bf4c45502e153ddb7d815ff61bf00f2",
+    ("en", "verification"): "a88e5b5002ef0cabdd1d78a3ef18694e9e5b90253dd0775f7feda4de590c0093",
 }
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
@@ -475,7 +475,7 @@ def pre_sdd_shared_contract_errors(
     clauses = {
         ("ko", "safety"): (
             "`pre-sdd-review`는 로컬 설계, 구현 계획, 참조된 ADR, 저장소 파일을 읽습니다.",
-            "기본 모드에서는 확인된 설계와 계획만 수정합니다.",
+            "기본 모드에서는 확인된 설계, 계획, 공유 파일 원장만 수정합니다.",
             "저장소 소유 테스트는 사용자 문서를 전송하거나 지속 저장하거나 픽스처로 수집하지 않습니다.",
             "이 제품은 텔레메트리나 업로드 경로를 추가하지 않습니다.",
             "라이브 처리와 보존은 Codex 호스트의 데이터 제어를 따릅니다.",
@@ -484,7 +484,7 @@ def pre_sdd_shared_contract_errors(
         ),
         ("en", "safety"): (
             "`pre-sdd-review` reads local design, implementation plan, referenced ADR, and repository files.",
-            "In default mode it edits only the resolved design and plan.",
+            "In default mode it edits only the resolved design, plan, and shared-file ledger.",
             "Repository-owned tests do not transmit, persist, or capture user documents as fixtures.",
             "This product adds no telemetry or upload path.",
             "Live processing and retention follow the Codex host's data controls.",
@@ -958,7 +958,7 @@ class UserGuideFactTests(unittest.TestCase):
                     "hard", "failed", "partially_verified", "fence/hop",
                     "loading", "syntax", "meaning", "schema 2", "schema 3",
                     "historical-unbound", "checkout", "LF",
-                    '{"cli_version":"3.0.0","schema":3,"skill_name":"pre-sdd-review"}',
+                    '"schema":4,"skill_name":"pre-sdd-review"', "schema 4",
                 ):
                     self.assertIn(phrase, verification)
                 compatibility = _read(base / "compatibility.md")
@@ -1082,7 +1082,7 @@ class UserGuideFactTests(unittest.TestCase):
                 "safety",
                 _read(ROOT / "docs/users/ko/safety-and-privacy.md"),
                 (
-                    ("확인된 설계와 계획만 수정합니다", "확인된 설계와 계획뿐 아니라 application code도 수정합니다"),
+                    ("확인된 설계, 계획, 공유 파일 원장만 수정합니다", "확인된 설계, 계획, 공유 파일 원장뿐 아니라 application code도 수정합니다"),
                     (
                         "저장소 소유 테스트는 사용자 문서를 전송하거나 지속 저장하거나 픽스처로 수집하지 않습니다",
                         "저장소 소유 테스트는 사용자 문서를 전송하고 지속 저장하고 픽스처로 수집합니다",
@@ -1107,7 +1107,7 @@ class UserGuideFactTests(unittest.TestCase):
                 "safety",
                 _read(ROOT / "docs/users/en/safety-and-privacy.md"),
                 (
-                    ("edits only the resolved design and plan", "edits not only the resolved design and plan but also application code"),
+                    ("edits only the resolved design, plan, and shared-file ledger", "edits not only the resolved design, plan, and shared-file ledger but also application code"),
                     (
                         "Repository-owned tests do not transmit, persist, or capture user documents as fixtures",
                         "Repository-owned tests transmit, persist, and capture user documents as fixtures",

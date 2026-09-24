@@ -99,9 +99,13 @@ rewrite or override the semantic verdict.
 
 The log is for agents. Before `start`, run `summary --repo <display name>`
 and find the plan in `runs` and `chains`. Close a same-plan `pending` run.
-Never reuse the handoff of a run whose `execution` is `blocked` or
-`degraded`; for a `full` `REVISE` or `BLOCKED` run, reuse it only when its
-document hashes, `git.head_end`, and the request are all unchanged. After
+A handoff is reusable only from a run whose `execution` is `full`, or
+`degraded` with `focused-role-not-obtained` as its only reason; never from a
+`blocked` run or any other `degraded` run. Reuse it only when its document
+hashes, `git.head_end`, and the request are all unchanged. When only the
+design, plan, or ledger changed since a `REVISE` run, or since a `BLOCKED`
+run whose user decision the documents now record, the next invocation
+continues from closure; `show` supplies that run's findings. After
 `finish`, print the `anomalies` it returned; do not look the run up in a windowed
 `summary`. `summary` returns `runs`, `counts`, `cost`, `chains`
 (checkout-bound plans reviewed more than once), `findings` (with
