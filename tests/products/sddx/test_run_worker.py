@@ -1057,7 +1057,7 @@ class WorkerExecutionTests(RunnerFixture):
         self.assertIsNotNone(metadata["error"])
         self.assertEqual((self.attempt / "worker.jsonl").read_bytes(), b"")
 
-    def test_controller_interrupt_ends_the_worker_before_recording(self) -> None:
+    def test_controller_interrupt_ends_the_worker_and_records_its_exit(self) -> None:
         # Break: an interrupted runner leaves its worker running, so a second
         # attempt can start in the same worktree while the first still edits it.
         module = self.load()
@@ -1825,7 +1825,9 @@ class AttemptTimeoutTests(RunnerFixture):
         module = self.load()
         self.write_grok(BEHAVIOUR_SLEEP)
         with self.pinned_resolver(module):
-            with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 5.0):
+            # Both deadlines are below the 1 s wait slice, so both have
+            # already passed by the first check; only code order decides.
+            with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 0.2):
                 code = self.invoke(module, self.options(module, timeout=0.3))
         self.assertEqual(code, 124)
         self.assertEqual(self.metadata()["error"], "the attempt exceeded its timeout")

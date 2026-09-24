@@ -33,7 +33,8 @@ No entries yet.
   session directories. Host checks run before the task's review. Controllers
   create the attempt parent first, do not mask exits with `tail`, do not start
   an attempt while the previous one's `pid_alive` is true, and never
-  `pkill -f`.
+  `pkill -f`. Controllers stop an attempt by signalling the runner (the host
+  job, or the parent of `run.json.pid`), never the recorded worker pid.
 
 ## 5.0.0 - 2026-09-22
 

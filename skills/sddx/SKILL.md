@@ -313,8 +313,9 @@ task from scratch; a null there means nothing was reported and the fallback to
 a fresh attempt applies.
 
 An attempt whose `error` is `the worker wrote no output within 300 seconds`
-never started working. Do not resume that session and do not raise
-`--timeout` for it; dispatch a fresh worker with a continuation brief.
+reported nothing on stdout; check the worktree for partial changes, then do
+not resume that session and do not raise `--timeout` for it; dispatch a fresh
+worker with a continuation brief.
 
 There is no automatic retry anywhere in these helpers. `run.json.state` is
 process state, not task state, and process exit 0 is not a clean DONE.
@@ -406,7 +407,7 @@ explicitly after checking its ledger record and its processes. The supported OS 
 - A second current-state file beside the ledger block
 - Hand-composing a provider command, or a new execution script per run
 - Dumping a whole worker log into this session
-- Starting an attempt while the previous attempt's `pid_alive` is true, or stopping one with `pkill -f`
+- Starting an attempt while the previous attempt's `pid_alive` is true, or stopping one with `pkill -f` or by signalling `run.json.pid`
 - Re-querying the same status offset in a short loop
 - Retrying after a confirmed 402 without a changed condition
 - Calling the worker again for a host-only check

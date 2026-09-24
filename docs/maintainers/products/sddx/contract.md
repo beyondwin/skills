@@ -254,10 +254,11 @@ Windows 명령 전송은 제품 계약이 아닙니다. Cursor에는 이 변경�
 
 컨트롤러는 계획에서 task 구간을 뽑을 때
 `scripts/extract_task.py <plan-file> --heading "<# 없는 제목 전체>" --global-constraints --output <file>`을
-씁니다. `--heading`은 `#` 표시를 뺀 제목 전체입니다. `--global-constraints`는
-필수입니다. exit 0은 성공, 2는 파일·인자 오류, 3은 제목 부재·중복 또는 빈
-본문입니다. `Global Constraints`/`Global constraints` 절이 없거나, 둘
-이상이거나, 본문이 비어 있으면 exit 3이며 그 경우 워커를 보내지 않습니다.
+씁니다. `--heading`은 `#` 표시를 뺀 제목 전체입니다. 과제 제목을 뽑을 때
+`--global-constraints`는 필수입니다. exit 0은 성공, 2는 파일·인자 오류, 3은
+제목 부재·중복 또는 빈 본문입니다. `Global Constraints`/`Global constraints`
+절이 없거나, 둘 이상이거나, 본문이 비어 있으면 exit 3이며 그 경우 워커를
+보내지 않습니다.
 이미 있는 출력 파일은 덮어쓰지 않으므로 추출마다 새 경로를 씁니다.
 계획 제목이 없는 brief(fix 라운드, 이어가기)는
 `extract_task.py <plan-file> --heading "Global Constraints" --output <file>`로
@@ -313,7 +314,9 @@ Superpowers `sdd-workspace`가 만든 계획 디렉터리 아래의 새 폴더�
 
 시도가 끝났다는 판단은 `state`가 `running`이 아니고 `pid_alive`가 false인
 것입니다. 이전 시도의 `pid_alive`가 true인 동안 새 시도를 띄우지 않습니다.
-멈출 때는 그 러너의 pid에 SIGTERM을 보내고 `pkill -f`를 쓰지 않습니다.
+`run.json.pid`와 `pid_alive`는 worker의 것이고, 멈출 때는 러너(호스트 작업의
+pid, 또는 `ps -o ppid= -p <pid>`로 얻는 기록된 pid의 부모)에 SIGTERM을
+보내며 `run.json.pid` 자체나 `pkill -f`에는 보내지 않습니다.
 attempt 부모 폴더는 첫 실행 전에 만들고, `run`·`status` 출력을 exit를 가리는
 파이프로 넘기지 않습니다.
 

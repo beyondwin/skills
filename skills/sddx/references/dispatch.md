@@ -138,6 +138,8 @@ Split verification in the brief under two headings. `Worker checks` are the
 local commands the worker runs and reports with actual exit codes.
 `Host checks` are the ones only this host can run; the worker names the
 outstanding ones in `NEEDS_CONTEXT` or `BLOCKED` instead of claiming them.
+Run a task's Host checks before that task's review, not batched at the end of
+the plan.
 
 The runner writes this reading boundary into every dispatch, new or resumed,
 alongside the brief and report paths (it also remains in the worker rules):
@@ -252,9 +254,12 @@ for native reviewers.
 
 An attempt is over when `state` is not `running` and `pid_alive` is false; a
 worker can still be writing `report.md` after its record changed. Do not start
-the next attempt while the previous attempt's `pid_alive` is true. To stop an
-attempt, send SIGTERM to its runner's own pid; never `pkill -f`, which can miss
-the worker or hit another run.
+the next attempt while the previous attempt's `pid_alive` is true.
+`run.json.pid` and `pid_alive` are the worker's. To stop an attempt, send
+SIGTERM to the runner: the host job's own pid (for example `$!` of the
+backgrounded `run` command), or the parent of the recorded pid (`ps -o ppid=
+-p <pid>`). Do not signal `run.json.pid` itself, and never `pkill -f`, which
+can miss the worker or hit another run.
 
 Read the bounded windows you need. Do not print a raw log wholesale into this
 session, and do not write a new execution script for a run. Do not re-query

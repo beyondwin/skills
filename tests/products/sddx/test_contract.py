@@ -415,12 +415,14 @@ class SddxContractTests(unittest.TestCase):
         # R7: report timing, provider session stores, host-check timing.
         self.assertIn("Write the report right after that commit", worker)
         self.assertIn("provider's session directories", worker)
-        self.assertIn("before that task's review", skill)
+        for text in (skill, dispatch):
+            self.assertIn("before that task's review", text)
         # R7: attempt parent, no masking pipe, waiting and stopping.
         self.assertIn("worker-attempts/", dispatch)
         self.assertIn("`tail`", dispatch)
         for text in (dispatch, contract):
             self.assertIn("pkill -f", text)
+            self.assertIn("ps -o ppid= -p", text)
         self.assertIn("previous attempt's `pid_alive` is true", skill)
 
     def test_dispatch_opens_with_controller_procedure(self) -> None:
