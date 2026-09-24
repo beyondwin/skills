@@ -155,7 +155,7 @@
 
 ## 기본 흐름, 판정, freshness
 
-한 호출은 발견 단계 한 번과 수정 최대 두 번, 범위 제한 재검토로
+한 호출은 발견 단계 한 번과 수정 최대 두 번과 작은 잔여 패스 한 번, 범위 제한 재검토로
 끝납니다. 첫 검토에서 발견이 없으면, 계획이 dirty가 아닐 때만 수리와
 종료 재검토를 건너뛰고 `READY`입니다. dirty인 계획은 발견이 0건이어도
 범위 제한 종결을 합니다. 종결에는 설계·계획·원장의 수리 diff가
@@ -170,9 +170,12 @@ dirty입니다. j의 읽기집합은 해결된 설계·계획·원장 경로와 
 선행 계획 경로, 발견 기록 `evidence` 경로입니다. `Files:`에 없는 경로는 이
 dirty 집합에 없습니다. 그 구멍은 기계점검이 잡습니다.
 
-`repair_passes`는 실제로 `repaired` 발견이 나온 패스만
-셉니다. `partially-closed`로 남은 발견은 판정에서 미해결로 계산되어
-`REVISE`를 강제합니다. 새 호출은 이전 발견의 `repair_pass`를 복사하지 않습니다. 수정이
+`repair_passes`는 컨트롤러가 적용한 수리 패스를 모두 셉니다.
+`repaired`는 종결 검토자가 닫은 기록에만 씁니다. 마지막 동작이 수리이면
+`READY`를 내지 않습니다. `partially-closed`로 남은 발견은 판정에서
+미해결로 계산되어 `REVISE`를 강제하고, `BLOCKER`이면
+`BLOCKED`입니다. 새 호출은 이전 발견의 `repair_pass`를 복사하지
+않습니다. 수정이
 스키마, 타입, 인터페이스, 상태 전이, 조건부 수정 면, 작업 간 계약, 검증
 의미, 공개/비공개 경계를 바꾸면 제어 에이전트가 짧은 영향 범위 표를
 만듭니다. 표에는 바뀐 주장, 바뀐 심볼·상태·경로·명령, 직접 소비자, 이웃
@@ -181,9 +184,10 @@ dirty 집합에 없습니다. 그 구멍은 기계점검이 잡습니다.
 않습니다.
 
 새 검토자는 고친 최종 문서, 원래 발견, 영향 범위 표를 받습니다. 원래
-발견의 해결과 제한된 영향 회귀를 순서대로 합니다. 수정 패스는 최대 두
-번입니다. 두 번째 패스 뒤에도 중요한 문제가 남으면 심각도를 낮추지
-않습니다. `review-only`는 파일을 바꾸지 않고 첫 검토 판정만 반환합니다.
+발견의 해결과 제한된 영향 회귀를 순서대로 합니다. 수정 패스는 최대 두 번입니다. 두
+번째 종결 뒤 원래 기록의 `IMPORTANT` 2건 이하가 한 자리 수정으로 남고 영향
+표가 비어 있으면, 그 ID만 한 번 더 고치고 종결합니다. 두 번째 패스 뒤에도 중요한
+문제가 남으면 심각도를 낮추지 않습니다. `review-only`는 파일을 바꾸지 않고 첫 검토 판정만 반환합니다.
 
 범위 제한 재검토의 현재 수정 대상은 원래 발견이거나 직접 대응된 수정 영향뿐입니다.
 최종 문서에서 찾은 대응되지 않은 중요 발견은 버리지 않습니다.
@@ -195,7 +199,7 @@ dirty 집합에 없습니다. 그 구멍은 기계점검이 잡습니다.
 - `READY`: 남은 문제를 추측하지 않고, 계획된 증거가 잘못된 구현을 통과시키지 않습니다.
 - `REVISE`: 고칠 수 있는 중요한 문서 결함이 남았습니다.
 - `BLOCKED`: 필요한 입력·권위·저장소 증거가 없거나, 새 제품 결정이 필요하거나,
-  독립 1차 검토자를 구할 수 없습니다.
+  독립 1차 검토자를 구할 수 없습니다. 열린 `BLOCKER`가 있으면 `BLOCKED`입니다.
 
 아래 freshness 목록과 invalidation 규칙을 최종 보고에 그대로 기록합니다.
 
@@ -227,7 +231,10 @@ dirty 집합에 없습니다. 그 구멍은 기계점검이 잡습니다.
 필요하면 필요한 결정을 승인 요청 하나로 묶습니다. `REVISE`나
 `BLOCKED` 뒤에 자동으로 다시 호출하지 않습니다. 문서, `HEAD`, 요청이 모두
 바뀌지 않은 `full` run의 인계만 재사용합니다. `execution`이 `degraded` 또는
-`blocked`인 run의 인계는 재사용하지 않습니다.
+`blocked`인 run의 인계는 재사용하지 않습니다. 직전 run이 아직 권위 문서에
+없는 사용자 결정 때문에 `BLOCKED`이면 검토자를 부르지 않고 수리하지 않으며 같은
+체크포인트를 다시 보여 줍니다. 같은 계획의 연속 세 run이 새 제품 결정으로
+`BLOCKED`이면 인계가 설계를 되돌려 보내 남은 결정을 한 번에 정하게 합니다.
 
 ## 선택 기록기 계약
 
@@ -345,7 +352,7 @@ checkout, clone, 다른 worktree, 잃어버린 salt, 다른 evidence home은 원
 - `review-only`: `no-mutation`
 - `repair-flow`: `review-repair-bounded-impact-re-review`
 - `repair-impact`: `structural-trigger-only`, `direct-consumers`
-- `repair-passes`: `at-most-two`, `costless-repairs-uncounted`
+- `repair-passes`: `at-most-two`, `residual-pass-once`, `applied-passes-counted`
 - `verdicts`: `READY`, `REVISE`, `BLOCKED`
 - `second-reviewer`: `conditional-only`, `no-cross-plan-reuse`
 - `risk-triggers`: `framework-runtime-removal`, `schema-data-deletion`, `auth-security-boundary`, `data-boundary-change`, `external-side-effects`

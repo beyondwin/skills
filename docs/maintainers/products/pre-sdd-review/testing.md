@@ -89,13 +89,17 @@ evidence, near-miss 사례를 정확히 마흔하나 개 소유합니다. `fixtu
 - `ledger-required-for-multiple-plans`
 - `baseline-reconstruction-required`
 - `partial-closure-not-a-new-finding`
-- `costless-repair-consumes-no-pass`
 - `degraded-handoff-not-reused`
 - `zero-findings-but-dirty`
 - `closure-requires-repair-diff`
 - `host-limit-waves-not-reuse`
 - `head-break-no-ready`
 - `no-automatic-second-campaign`
+- `residual-pass-closes-small-remainder`
+- `open-blocker-forces-blocked`
+- `repair-last-no-ready`
+- `unanswered-decision-no-redispatch`
+- `three-new-decisions-return-to-design`
 
 ### Fixture inventory
 

@@ -39,7 +39,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "17a992a35106487bf72aac3409134def020bd186a505f1fcf8d9acbe199d57b6",
+    "SKILL.md": "626396fc91c105bd64e993fb8a9fff89f1b082857075ec0aa96580beb2f59001",
     "references/reviewer-protocol.md": (
         "fd4636e9b4e6f61add1f7b05db59238320be47f207ce9e562939d718e8e3551b"
     ),
@@ -79,13 +79,17 @@ CASE_IDS = (
     "ledger-required-for-multiple-plans",
     "baseline-reconstruction-required",
     "partial-closure-not-a-new-finding",
-    "costless-repair-consumes-no-pass",
     "degraded-handoff-not-reused",
     "zero-findings-but-dirty",
     "closure-requires-repair-diff",
     "host-limit-waves-not-reuse",
     "head-break-no-ready",
     "no-automatic-second-campaign",
+    "residual-pass-closes-small-remainder",
+    "open-blocker-forces-blocked",
+    "repair-last-no-ready",
+    "unanswered-decision-no-redispatch",
+    "three-new-decisions-return-to-design",
 )
 FIXTURE_NAMES = (
     "conditional-edit-surface",
@@ -383,7 +387,7 @@ README_CONTRACT = (
     ("review-only", ("no-mutation",)),
     ("repair-flow", ("review-repair-bounded-impact-re-review",)),
     ("repair-impact", ("structural-trigger-only", "direct-consumers")),
-    ("repair-passes", ("at-most-two", "costless-repairs-uncounted")),
+    ("repair-passes", ("at-most-two", "residual-pass-once", "applied-passes-counted")),
     ("verdicts", ("READY", "REVISE", "BLOCKED")),
     ("second-reviewer", ("conditional-only", "no-cross-plan-reuse")),
     (
@@ -411,14 +415,14 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Severities", "72c20c936027d62761c1b2dd9ef16b954c0780d7a15b4b1e05cf33e28b383ebd"),
     ("### Finding classes", "2a0892a5aad034ceaf1218606d657f4b22bac89c0d2b67065b7018e811a44352"),
     ("### Conditional risk triggers", "346cdfb0c5a7df8461c7de1f7f217b499c29add6a0a2a7e88fea58449e6d223d"),
-    ("### Verdicts", "4e611d1b27935dc70367b3b8673437afcebed0098a938b23813d22a6aa295e6b"),
-    ("### Freshness", "045a554ce1d8d390def7be1625d53a695219b51171ea7e10d9344715f03f85c1"),
+    ("### Verdicts", "c3b7669e38ade89cf67a2531fcc0e8ca0a05275550ad7f7a520c99ae060125eb"),
+    ("### Freshness", "a3c5da066802d3b3d78d3137f556addd449613ab08e130bef26959c20684f65e"),
     ("### SDD handoff", "2e0fcc729cb4455863165138c0f96256b27ddf9d4460c2f7a5ce51660806d9da"),
     ("### Ledger shape", "f1091388fd58d8db9f223fbd6e1457303c600107c4c89c37d1aded6caf2ae84e"),
     ("### Degraded reasons", "a71ff3ec6aaf37ac3a862f8637b0fcd66e561d3958b4b0da0aaa532ced0b28f7"),
 )
-MAINTAINER_CANONICAL_DIGEST = "df629fa390e0d2e8a25c27bbdd7d646762a6e8e47ba07d5bc599d1931a2a9dce"
-TESTING_CANONICAL_DIGEST = "c8e4cfdca5b1acc3e6db62cd33504602c5b4826a39c2027d83ad24f0ba19f23a"
+MAINTAINER_CANONICAL_DIGEST = "cc98f639e0e16f97482dc4085d1bf4de0f153168cc0b17b6408331d928e49dbf"
+TESTING_CANONICAL_DIGEST = "4a8528a93ff69b10ef12f7665083c8d0e1a3e75acd07f182d4aa3a7145e3cbf4"
 COMPATIBILITY_CANONICAL_DIGEST = "db8d19d45ca4f6748b73ace65da5e5e965f0e7002a6b0395bf563f524a424480"
 RELEASE_CANONICAL_DIGEST = "8d79c8164b43050ff344820fdf68417c46a9ff46c8e192f005fc91cab3a362db"
 
@@ -1018,7 +1022,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         for phrase in (
             "Default mode: review -> repair documents -> scoped re-review",
-            "At most two repair passes",
+            "At most two repair passes are permitted, plus one residual pass",
             "review-only",
             "Do not start SDD unless the outer request explicitly asks for implementation",
         ):
@@ -1106,8 +1110,10 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("If the first review has zero findings", skill)
         self.assertIn("and the plan is not dirty, skip repair and closure", skill)
         self.assertIn("A dirty plan still takes scoped closure", skill)
-        self.assertIn("`repair_passes` counts only passes that produced at least one `repaired` finding", skill)
+        self.assertIn("`repair_passes` counts every repair pass the controller applied", skill)
         self.assertIn("does not copy a previous finding's `repair_pass`", skill)
+        self.assertIn("An open `BLOCKER`, including one still `partially-closed`, forces `BLOCKED`", skill)
+        self.assertIn("dispatch no reviewer and make no repair", skill)
         self.assertIn("summary --repo", contract)
         self.assertIn("`execution`이 `blocked`", re.sub(r"\s+", " ", contract))
         self.assertNotIn("summary --last 20", contract)
@@ -1118,7 +1124,8 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("컨트롤러 로컬 캠페인 상태", contract)
         self.assertIn("`Files:`에 없는 경로는 이 dirty 집합에 없습니다", contract)
         self.assertIn("첫 검토에서 발견이 없으면", contract)
-        self.assertIn("`repair_passes`는 실제로 `repaired` 발견이 나온 패스만", contract)
+        self.assertIn("`repair_passes`는 컨트롤러가 적용한 수리 패스를 모두 셉니다", contract)
+        self.assertIn("열린 `BLOCKER`가 있으면", contract)
 
         for document in (skill, protocol):
             self.assertIn("unmapped material finding", document)
@@ -1281,7 +1288,7 @@ class PreSddReviewContractTests(unittest.TestCase):
             ("no_automatic_reinvoke",),
         )
         self.assertEqual(cases["zero-findings-skip-closure"], ("READY", "zero_findings", "skip_repair", "skip_closure"))
-        self.assertEqual(cases["repair-pass-accounting"], ("repair_pass_requires_repaired_finding", "no_copied_repair_pass", "unresolved_repair_pass_null"))
+        self.assertEqual(cases["repair-pass-accounting"], ("repair_passes_count_applied_passes", "no_copied_repair_pass", "unresolved_repair_pass_null"))
         self.assertEqual(
             cases["red-flag-seeded-retry"],
             ("reask_complete_records", "no_named_findings_in_retry"),
@@ -1294,6 +1301,11 @@ class PreSddReviewContractTests(unittest.TestCase):
             cases["blocked-execution-restarts"],
             ("no_reuse_blocked_execution", "rerun_input_gates", "start"),
         )
+        self.assertEqual(cases["residual-pass-closes-small-remainder"], ("residual_pass", "closure_of_those_ids_only", "new_shape_ends_invocation"))
+        self.assertEqual(cases["open-blocker-forces-blocked"], ("BLOCKED", "no_revise_with_open_blocker"))
+        self.assertEqual(cases["repair-last-no-ready"], ("no_ready_after_repair", "closure_or_revise"))
+        self.assertEqual(cases["unanswered-decision-no-redispatch"], ("reprint_checkpoint", "no_reviewer_dispatch", "no_repair"))
+        self.assertEqual(cases["three-new-decisions-return-to-design"], ("BLOCKED", "return_to_design"))
 
     def test_authority_and_risk_selection_are_ordered_and_conditional(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -1452,6 +1464,8 @@ class PreSddReviewContractTests(unittest.TestCase):
             "Reuse a reviewer to fill a discovery wave",
             "Print READY after HEAD moved from the freeze",
             "Skip closure for a dirty plan with zero discovery findings",
+            "Dispatch a reviewer while the plan waits on an unanswered user decision",
+            "Return `READY` when the last action was a repair",
         ):
             self.assertIn(phrase, normalized_flags)
 
@@ -1767,7 +1781,7 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "not_measured",
         ):
             self.assertIn(fact, normalized_testing)
-        self.assertEqual(len(CASE_IDS), 41)
+        self.assertEqual(len(CASE_IDS), 45)
         self.assertIn("정확히 마흔하나 개", normalized_testing)
         self.assertIn("지금은 Codex만 지원합니다", compatibility)
         self.assertIn("다른 호스트는 모두 `not_measured`", compatibility)

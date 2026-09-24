@@ -218,8 +218,9 @@ logical roles, not intended roles. A reused role is `execution=degraded`.
 
 ## Default mode: review -> repair documents -> scoped re-review
 
-One invocation has one discovery stage, at most two repair passes, and a
-terminal scoped closure. The default controller state machine is:
+One invocation has one discovery stage, at most two repair passes plus one
+residual pass, and a terminal scoped closure. The default controller state
+machine is:
 
 ```text
 resolve plan -> resolve plan **Spec:** -> read binding references
@@ -256,21 +257,20 @@ After the first review, repair only findings that have an
 authority-preserving document correction. If the first review has zero findings
 and the plan is not dirty, skip repair and closure and return `READY`.
 A dirty plan still takes scoped closure.
-`repair_passes` counts only passes that produced at least one `repaired` finding.
-A repair consumes no pass when both hold: the `repair-impact map` is empty
-because no structural trigger fired, and the closure reviewer confirmed the
-repair has no consumer. The controller's own confirmation does not count.
-Because the second condition is the closure reviewer's, pass accounting settles
-after that round's closure review, never at the moment of repair. Record such a
-repair with `repair_pass: 0`. Group them into one pass.
+`repair_passes` counts every repair pass the controller applied, whether or not
+its closure closed anything. Pre-pass ledger and machine-check repairs keep
+`repair_pass: 0` and are not a pass. Write `repaired` only when a closure
+reviewer closed that record; a record the controller repaired but no closure
+reviewer closed stays `unresolved`. Never return `READY` when the last action
+was a repair: close it with one more closure review, or return `REVISE`.
 
 Closure disposition is `closed`, `partially-closed`, or `open`, recorded as
 `repaired`, `partially-closed`, and `unresolved` respectively. Record the
 remainder of a partial closure as the original record's remaining sites, never
 as a new ID, so repair passes track defects rather than the sites a defect is
 scattered across. A finding still `partially-closed` at the end counts as
-unresolved for the verdict and forces `REVISE`. A record's `repair_pass` is the
-pass that last changed its status.
+unresolved for the verdict: it forces `REVISE`, or `BLOCKED` when it is a
+`BLOCKER`. A record's `repair_pass` is the last pass that repaired it.
 
 A new invocation does not copy a previous finding's `repair_pass`. Unresolved
 handoff findings use `repair_pass` null.
@@ -306,8 +306,14 @@ An optional second repair is allowed only when that re-review finds another
 eligible repairable material defect. Before it, deduplicate remaining findings,
 complete any triggered impact map, and confirm that the repair hides no
 unresolved authority choice. Then run one final fresh closure and repair-impact
-re-review. At most two repair passes are permitted. If a material issue remains,
-return `REVISE` with its evidence; do not downgrade it to finish the loop.
+re-review. At most two repair passes are permitted, plus one residual pass:
+when everything the second closure leaves open is an original record,
+`IMPORTANT`, at most two records, each with a recorded fix at one site within
+the reviewed documents, and the repair-impact map is empty, repair those
+records once more and dispatch one fresh closure reviewer for those IDs only.
+A new defect shape found there ends the invocation. If a material issue
+remains, return `REVISE` with its evidence; do not downgrade it to finish the
+loop.
 
 ## Review-only mode
 
@@ -369,6 +375,8 @@ repository evidence is unavailable, unresolvable, or would require a new
 product decision, or when an independent primary reviewer cannot be obtained.
 Record that run as `execution=blocked` and name the cause in `block_reason`; a
 `BLOCKED` run with a null `block_reason` is an anomaly.
+An open `BLOCKER`, including one still `partially-closed`, forces `BLOCKED`,
+never `REVISE`.
 
 For final `REVISE` or `BLOCKED`, include an `unresolved handoff packet`: the
 unresolved finding, why it escaped an earlier pass when known, the bounded
@@ -383,6 +391,14 @@ authority, or repository evidence. When none changed, reuse the prior handoff
 instead of repeating the same review, subject to the reuse rule above: never
 for an `execution=blocked` or `degraded` run, and for a `full` run only when
 the documents, `HEAD`, and the request are all unchanged.
+
+When this plan's previous run is `BLOCKED` on a user decision that no
+authority document records yet, dispatch no reviewer and make no repair: print
+the same checkpoint and stop. Other plans continue. When this run would end
+`BLOCKED` on a new product decision and the two preceding runs of this plan in
+the recorder's chain did too, the handoff sends the design back to be finished
+with all remaining decisions at once, and says the next invocation should wait
+for that. Without a chain, report the count you know and do not stop on it.
 
 Include a compact pass receipt in the final report: input and final document
 hashes, pass number, finding IDs/classes, triggered repair-impact categories,
@@ -422,3 +438,5 @@ proofread, publish a release, or make an accepted product decision.
 - Reuse a reviewer to fill a discovery wave
 - Print READY after HEAD moved from the freeze
 - Skip closure for a dirty plan with zero discovery findings
+- Dispatch a reviewer while the plan waits on an unanswered user decision
+- Return `READY` when the last action was a repair

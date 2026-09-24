@@ -89,14 +89,16 @@ mutation, task interface, verification meaning, or data boundary, the
 controller records the direct consumers and adjacent tasks. Wording and scalar
 corrections do not need that impact map.
 
-There are at most two repair passes. The final verdict is one of:
+There are at most two repair passes. One residual pass follows when only a
+small remainder of the original findings is left. The final verdict is one of:
 
 - `READY`: implementation can start without inventing a missing decision.
 - `REVISE`: a material, repairable document defect remains.
 - `BLOCKED`: required input, authority, or repository evidence is unavailable.
 
-A `READY` report prints the observation anomalies that `finish` returned as
-an `Anomalies:` line. Anomalies do not change the verdict.
+A `READY` report prints the observation anomalies that `finish` returned as an
+`Anomalies:` line. Anomalies do not change the verdict. A run whose last action
+was a repair is never `READY`, and an open `BLOCKER` makes it `BLOCKED`.
 
 One invocation ends after one discovery stage and its bounded re-reviews.
 If the first review finds nothing and no earlier repair touched files this
