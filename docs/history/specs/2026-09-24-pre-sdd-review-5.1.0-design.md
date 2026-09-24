@@ -92,6 +92,11 @@ Location, evidence 경로, consequence, fix)입니다. Location과 evidence 경�
 - `repaired`는 닫힘 검토자가 그 ID를 닫았을 때만 씁니다. 수리만 하고 닫힘을 못 했으면 `unresolved`.
 - `repair_passes`는 **적용한 수리 패스 수**로 다시 정의합니다 (지금은 `repaired`가 나온 패스만 셈).
   사전 패스의 원장·기계 점검 수리는 계속 `repair_pass: 0`이고 패스로 세지 않습니다.
+  기록의 `repair_pass`는 "상태를 마지막으로 바꾼 패스"가 아니라 "마지막으로 그 기록을 수리한
+  패스"입니다. 수리했지만 닫히지 않은 기록은 `unresolved`이면서 `repair_pass`가 그 패스입니다.
+  이에 맞춰 기존 이상 신호 `repair_without_repaired_finding`은 "적용한 패스가 있는데
+  `repair_pass >= 1`인 기록이 하나도 없음"으로 좁힙니다. 적용했지만 닫지 못한 `REVISE`는
+  정상 상태이기 때문입니다.
 - 마지막 동작이 수리이면 `READY`를 내지 않습니다. 닫힘을 한 번 더 하거나 `REVISE`입니다.
   이것은 컨트롤러 규칙입니다. 기록기는 관찰만 합니다.
 - 열린 `BLOCKER`가 있으면 판정은 `BLOCKED`입니다. `partially-closed`로도 `REVISE`가 되지 않습니다.
