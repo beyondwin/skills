@@ -35,6 +35,12 @@ No entries yet.
   an attempt while the previous one's `pid_alive` is true, and never
   `pkill -f`. Controllers stop an attempt by signalling the runner (the host
   job, or the parent of `run.json.pid`), never the recorded worker pid.
+- The runner's interrupt edges are hardened. An interrupt during a timeout's
+  wait goes straight to SIGKILL. Once `interrupted` is recorded the runner
+  exits 130 even if more interrupts arrive. The recorded `exit_code` is null
+  when the worker could not be confirmed ended, so check `pid_alive`. The
+  SIGTERM handler is installed before launch. A Grok shell still running in
+  the foreground is not in the `status` index yet.
 
 ## 5.0.0 - 2026-09-22
 

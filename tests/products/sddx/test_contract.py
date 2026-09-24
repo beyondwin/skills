@@ -458,13 +458,18 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("provider's session directories", worker)
         for text in (skill, dispatch):
             self.assertIn("before that task's review", text)
+        self.assertIn("그 과제 리뷰 전에 돌리며", contract)
         # R7: attempt parent, no masking pipe, waiting and stopping.
         self.assertIn("worker-attempts/", dispatch)
         self.assertIn("`tail`", dispatch)
         for text in (dispatch, contract):
             self.assertIn("pkill -f", text)
             self.assertIn("ps -o ppid= -p", text)
+        # The ppid route when the runner is already gone.
+        self.assertIn("If that parent is pid 1", dispatch)
+        self.assertIn("그 부모가 pid 1이면", contract)
         self.assertIn("previous attempt's `pid_alive` is true", skill)
+        self.assertIn("signalling `run.json.pid` while its runner is alive", skill)
 
     def test_dispatch_opens_with_controller_procedure(self) -> None:
         text = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")

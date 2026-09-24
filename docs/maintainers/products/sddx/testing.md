@@ -170,11 +170,14 @@ worker를 끝내고 두 번째 인터럽트에도 `running`이 남지 않는지,
 더 짧은 `--timeout` 우선, 곧바로 출력하는 worker는 제외), 기본 타임아웃 7200,
 Grok `tool_use` 색인과 결과 본문 비복사, 그리고 각 규칙 문구가 모든 면에 있는지를
 잠급니다. 라이브 확인은 아래 `6.0.0 라이브 확인`에 있습니다.
+이 변경 뒤 `sddx-contract`는 340개 테스트입니다. 파일별로 `test_contract` 36,
+`test_extract_task` 38, `test_prepare_grok_sandbox` 23, `test_resolve_backend`
+75, `test_run_worker` 114, `test_worker_status` 54개입니다.
 
 ## 6.0.0 라이브 확인
 
 2026-09-24, macOS 26.5.2 arm64, `grok 1.0.41 (4220f3b224a6) [stable]`, 모델
-`grok-4.7` High. 원격 없는 새 로컬 저장소의 linked worktree에서 실제 호출 5회.
+`grok-4.7` High. 원격 없는 새 로컬 저장소의 linked worktree에서 실제 호출 8회.
 각 시도 앞뒤로 `prepare`/`cleanup`을 돌렸고 매번 `cleaned: true`였습니다. receipt와
 로그는 커밋하지 않았습니다.
 
@@ -186,6 +189,12 @@ Grok `tool_use` 색인과 결과 본문 비복사, 그리고 각 규칙 문구�
 | L3 | 러너 pid에만 SIGTERM | wrapper 130 즉시, worker 프로세스 사라짐, `interrupted`, `exit_code` -15, `the runner was interrupted (SIGTERM or Ctrl-C)`, `pid_alive: false`. worker가 띄운 zsh와 `sleep 120`은 pid 1로 입양되어 남았고(러너는 쫓지 않음) pid로 정리 |
 | L4 | L3의 중단 세션 재개 | `exited` 0, 18초. 멈춤 없음 |
 | L5 | `--timeout 45` | wrapper 124, `timed_out`, `exit_code` -15, worker 사라짐. 백그라운드로 넘어간 `sleep 120`은 `shells`에 `exit_code: null`로 기록. 손자 프로세스는 L3처럼 남아 pid로 정리 |
+
+러너 가장자리 보강(97a5eec) 뒤 L1·L3·L5를 다시 돌렸습니다. L1b는 `exited`
+0(185초), `shells` 11개에 exit 1인 셸까지 종료 코드가 기록됐습니다. L3b는
+wrapper 130(1초), worker 사라짐, `interrupted`/-15/새 문구, 손자 프로세스는 남아
+pid로 정리했습니다. L5b는 wrapper 124, `timed_out`/-15, worker 사라짐, 손자
+프로세스는 pid로 정리했습니다. 모든 `cleanup`은 `cleaned: true`였습니다.
 
 관찰: Grok은 셸 호출이 담긴 assistant 메시지를 그 호출이 돌아오거나 백그라운드로
 넘어간 뒤에 기록합니다. 그래서 L3처럼 전경에서 실행 중인 셸은 색인에 아직 없습니다.

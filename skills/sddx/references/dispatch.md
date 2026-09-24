@@ -261,7 +261,9 @@ the next attempt while the previous attempt's `pid_alive` is true.
 SIGTERM to the runner: the host job's own pid (for example `$!` of the
 backgrounded `run` command), or the parent of the recorded pid (`ps -o ppid=
 -p <pid>`). Do not signal `run.json.pid` itself, and never `pkill -f`, which
-can miss the worker or hit another run.
+can miss the worker or hit another run. If that parent is pid 1, the runner is
+already gone and the worker is an orphan; only then stop the worker by
+`run.json.pid` (SIGTERM, then SIGKILL if it stays).
 
 Read the bounded windows you need. Do not print a raw log wholesale into this
 session, and do not write a new execution script for a run. Do not re-query
@@ -318,12 +320,15 @@ be confirmed ended, so check `pid_alive` before cleanup. The `error` is
 `the runner was interrupted (SIGTERM or Ctrl-C)`: the runner cannot know who
 sent the signal, so it does not say. SIGTERM to the worker remains
 `exited` (or `timed_out` when the runner sent it) with the negative returncode.
-SIGKILL still cannot write a terminal state. Confirm the worker and anything
-it started have exited yourself either way, before Grok cleanup. Exit 2 is
-ambiguous between a launch failure and a worker that legitimately exited 2,
-so read `run.json.state` to tell them apart; if the attempt directory is
-absent, or present without `run.json`, the launch was refused before the
-attempt was created and the `BLOCKED:` line on stderr is the reason.
+SIGKILL still cannot write a terminal state. An interrupt that lands while the
+worker process is being started can leave `run.json` at `starting` with no
+pid; then check the host for a stray worker before starting another attempt.
+Confirm the worker and anything it started have exited yourself either way,
+before Grok cleanup. Exit 2 is ambiguous between a launch failure and a worker
+that legitimately exited 2, so read `run.json.state` to tell them apart; if
+the attempt directory is absent, or present without `run.json`, the launch
+was refused before the attempt was created and the `BLOCKED:` line on stderr
+is the reason.
 
 The default answer is metadata, log sizes, whether `report.md` exists,
 `pid_alive`, `stale`, `session_id_in_log`, and a bounded tools index — never a

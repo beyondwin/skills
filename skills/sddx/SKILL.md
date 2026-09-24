@@ -408,7 +408,7 @@ explicitly after checking its ledger record and its processes. The supported OS 
 - A second current-state file beside the ledger block
 - Hand-composing a provider command, or a new execution script per run
 - Dumping a whole worker log into this session
-- Starting an attempt while the previous attempt's `pid_alive` is true, or stopping one with `pkill -f` or by signalling `run.json.pid`
+- Starting an attempt while the previous attempt's `pid_alive` is true, or stopping one with `pkill -f` or by signalling `run.json.pid` while its runner is alive
 - Re-querying the same status offset in a short loop
 - Retrying after a confirmed 402 without a changed condition
 - Calling the worker again for a host-only check

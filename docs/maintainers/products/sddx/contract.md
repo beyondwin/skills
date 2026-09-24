@@ -157,6 +157,8 @@ dispatch 전 컨트롤러는 `extract_task.py --global-constraints`로 과제를
 명시된 파일을 직접 읽거나 컨트롤러에 누락 경로를 요청합니다. 전체 workspace 내용
 검색은 하지 않습니다. worker는 필요한 source/test를 읽을 수 있으나 전체 계획은
 링크·shell·검색·Git 이력으로도 읽지 않습니다. 부족한 결정은 `NEEDS_CONTEXT`입니다.
+brief의 검증은 `Worker checks`와 `Host checks`로 나누고, 과제의 Host checks는
+그 과제 리뷰 전에 돌리며 계획 끝으로 몰지 않습니다.
 
 `Search paths`는 내용 검색을 제한합니다. 현재 worktree 안의 파일명 목록 조회
 (root 포함)와 해당 task에 필요한 저장소 ignore·빌드·테스트 설정 직접 읽기는
@@ -319,7 +321,9 @@ Superpowers `sdd-workspace`가 만든 계획 디렉터리 아래의 새 폴더�
 것입니다. 이전 시도의 `pid_alive`가 true인 동안 새 시도를 띄우지 않습니다.
 `run.json.pid`와 `pid_alive`는 worker의 것이고, 멈출 때는 러너(호스트 작업의
 pid, 또는 `ps -o ppid= -p <pid>`로 얻는 기록된 pid의 부모)에 SIGTERM을
-보내며 `run.json.pid` 자체나 `pkill -f`에는 보내지 않습니다.
+보내며 `run.json.pid` 자체나 `pkill -f`에는 보내지 않습니다. 그 부모가 pid 1이면
+러너는 이미 없고 worker는 고아입니다. 그때만 `run.json.pid`의 worker를 직접
+멈춥니다(SIGTERM, 남아 있으면 SIGKILL).
 attempt 부모 폴더는 첫 실행 전에 만들고, `run`·`status` 출력을 exit를 가리는
 파이프로 넘기지 않습니다.
 
@@ -369,7 +373,9 @@ worker를 끝내고 `timed_out`, exit 124, `error` `the worker wrote no output w
 컨트롤러와 같은 프로세스 그룹에 남으므로, worker가 시작한 자식 프로세스는 쫓아가지
 않습니다. 인터럽트 경로와 같은 한계이며 프로세스 트리를 정리했다고 적지 않습니다.
 worker가 시작한 프로세스(예: 백그라운드 셸, 빌드 데몬)는 worker보다 오래 남을 수
-있으니 정리 전에 pid로 확인하고 끝냅니다.
+있으니 정리 전에 pid로 확인하고 끝냅니다. worker 프로세스를 띄우는 중에 들어온
+인터럽트는 `run.json`을 pid 없는 `starting`으로 남길 수 있으니, 그때는 다음 시도를
+띄우기 전에 호스트에 남은 worker가 있는지 확인합니다.
 
 요청 effort와 설정 effort는 따로 기록합니다. Cursor는 effort를 플래그가 아니라
 모델 ID에 담으므로, 러너는 선언된 effort가 `--effort`와 어긋나는 모델을 거부하고
