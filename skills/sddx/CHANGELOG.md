@@ -6,6 +6,23 @@ All notable changes to this product are documented in this file.
 
 No entries yet.
 
+## 7.0.1 - 2026-09-24
+
+### Fixed
+
+- The advice to run a long command in the background so the idle timeout
+  does not fire is removed. A live check on macOS with Grok 1.0.41 showed
+  that Grok records the backgrounded call right away but then writes nothing
+  while it waits on it, so the attempt still ended with
+  `the worker wrote no output for 30 seconds`. The rule is now one: when a
+  brief names a command expected to run longer than the idle window, raise
+  `--idle-timeout` above that command's expected duration before launch,
+  including the fresh continuation attempt. No runner behavior changes.
+- Cursor's `worker-server`, seen reparented to pid 1 after its worker exited,
+  is listed with backgrounded shells and build daemons as a process that can
+  outlive the worker; the runner does not manage the process tree, so end it
+  by pid before cleanup.
+
 ## 7.0.0 - 2026-09-24
 
 ### Breaking

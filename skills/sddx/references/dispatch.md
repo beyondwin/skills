@@ -223,8 +223,9 @@ and exits 124. Only
 the worker process itself is signalled. It shares the controller's process
 group so that a terminal interrupt reaches it, so descendants the worker
 started are not pursued and no process tree is cleaned up here. Those
-processes (for example a backgrounded shell or a build daemon) can outlive the
-worker, so confirm and end them by pid yourself before cleanup.
+processes (for example a backgrounded shell, a build daemon, or Cursor's
+`worker-server`, which was seen reparented to pid 1 after its worker exited)
+can outlive the worker, so confirm and end them by pid yourself before cleanup.
 
 An attempt ended by the idle timeout records `timed_out`, exit 124, and
 `error` `the worker wrote no output for <N> seconds`, where `<N>` is the
@@ -233,13 +234,14 @@ wrote no output for 900 seconds` by default). The wall-clock bound records `the 
 instead, and wins when both have passed. After an idle timeout, check the
 worktree for partial changes, then do not resume that session; dispatch a
 fresh worker with a continuation brief that names the previous `report.md`
-and the commits already made. Do not raise either bound to re-run it. Raise
-`--idle-timeout` only before launching an attempt whose brief names one
-foreground command expected to run longer than the idle window, including
-the fresh continuation attempt when its brief names that command: Grok writes
-a shell call to its stream only once the call returns or is backgrounded, so
-such a command is silent the whole time. The brief may instead ask the worker
-to run that command in the background, which Grok records right away.
+and the commits already made. Do not raise either bound to re-run it. Grok
+writes nothing to its stream while it waits on a long command, whether that
+command runs in the foreground or was backgrounded, so such a wait is silent
+the whole time; running it in the background does not keep the attempt alive.
+When a brief names a command expected to run longer than the idle window,
+raise `--idle-timeout` above that command's expected duration before launching
+the attempt, including the fresh continuation attempt when its brief names
+that command.
 
 Do not pass `--worktree` to the provider CLI. Do not pass `--continue`. Do not
 copy host credentials or environment values into the brief or the dispatch.

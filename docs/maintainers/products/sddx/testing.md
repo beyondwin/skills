@@ -201,13 +201,15 @@ receipt와 로그는 커밋하지 않았습니다. 비용은 출력에 보이지
 | --- | --- | --- | --- | --- |
 | LT1 | Grok, `--idle-timeout 30`, 전경 `sleep 90` | `timed_out`, 124, `the worker wrote no output for 30 seconds`, 마지막 출력 뒤 30~45초 | wrapper 124, `timed_out`, `exit_code` -15, 같은 문구, 41.6초. 마지막 로그 증가 뒤 30.7초에 종료, `pid_alive: false`, ps에 Grok 없음. 전경 sleep 동안 두 로그 모두 자라지 않았고 셸 호출은 색인에 없음(6.0.0 관찰과 같음). worker가 띄운 zsh와 `sleep 90`은 pid 1로 남아 pid로 정리 | 통과 |
 | LT2 | Grok, 기본 900, 작은 커밋 | `exited`, 유휴 미발동 | `exited` 0, 78.1초, `shells` 3개 모두 exit 0, report 있음, 로그 증가 사이 최장 20.7초 | 통과 |
-| LT3 | Cursor, 기본 900, 같은 작업 | `exited`, 유휴 미발동 | `exited` 0, 82.5초, `shells` 3개 모두 exit 0, report 있음, 최장 17.2초. 시도 중 Cursor가 띄운 `worker-server` 프로세스(작업 디렉터리가 fixture worktree)가 pid 1로 남아 pid로 정리 | 통과 |
+| LT3 | Cursor, 기본 900, 같은 작업 | `exited`, 유휴 미발동 | `exited` 0, 82.5초, `shells` 3개 모두 exit 0, report 있음, 최장 17.2초. 시도 중 Cursor가 띄운 `worker-server` 프로세스(작업 디렉터리가 fixture worktree)가 worker 종료 뒤 pid 1로 입양된 채 남아 pid로 정리. 러너는 프로세스 트리를 관리하지 않으므로 7.0.1에서 worker보다 오래 남는 프로세스 예시에 추가 | 통과 |
 | LT4 | Grok, `--idle-timeout 30`, 배경 `sleep 90` 후 대기 | 권고대로라면 창을 넘겨 커밋 | wrapper 124, `timed_out`, -15, 같은 문구, 54.6초. 배경 호출은 곧바로 색인됨(`shells`에 `sleep 90`, `exit_code: null`), 그 뒤 30.4초 무출력으로 종료. 커밋 없음, 남은 zsh와 `sleep 90`은 pid로 정리 | 러너 통과, 권고 미확인 |
 
 관찰: Grok은 배경으로 넘긴 셸 호출을 바로 기록하지만, 그 작업을 기다리는 동안에는
 아무것도 쓰지 않았습니다. 그래서 이 표본에서는 배경 실행이 유휴 창을 넘기게 해
-주지 않았습니다. `dispatch.md`의 배경 실행 권고는 바꾸지 않았고 유지보수자 판단으로
-남깁니다. 이 결과는 이 Mac과 이 두 CLI 버전의 관측입니다.
+주지 않았습니다. 컨트롤러 판단에 따라 7.0.1에서 배경 실행 권고를 지우고, 브리프에
+유휴 창보다 오래 걸릴 명령이 있으면 띄우기 전에 `--idle-timeout`을 그 명령의 예상
+시간보다 크게 올리는 규칙 하나로 바꿨습니다. 이 결과는 이 Mac과 이 두 CLI 버전의
+관측입니다.
 
 ## 6.0.0 오프라인 검사
 

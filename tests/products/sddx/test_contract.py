@@ -401,6 +401,20 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("기본값은 900", faces["contract.md"])
         self.assertIn("기본값은 0", faces["contract.md"])
         self.assertIn("[--idle-timeout <seconds>]", dispatch)
+        # 7.0.1 live check LT4: a backgrounded wait is as silent as a
+        # foreground one, so the "run it in the background" advice is gone.
+        for name in ("dispatch.md", "SKILL.md"):
+            with self.subTest(face=name, rule="raise-above-duration"):
+                self.assertNotIn("records right away", faces[name])
+                self.assertIn("background", faces[name])
+                self.assertRegex(faces[name], r"does not keep (the|an) attempt alive")
+                self.assertIn("above that command's expected duration", faces[name])
+        self.assertNotIn("바로 기록합니다", faces["contract.md"])
+        self.assertIn("백그라운드로 돌려도 시도가 유휴 창을 넘기지 못합니다", faces["contract.md"])
+        self.assertIn("예상 시간보다 크게 올립니다", faces["contract.md"])
+        for name in ("dispatch.md", "contract.md"):
+            with self.subTest(face=name, process="worker-server"):
+                self.assertTrue("`worker-server`" in faces[name], f"worker-server missing from {name}")
 
     def test_grok_tools_index_is_on_every_face(self) -> None:
         dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
