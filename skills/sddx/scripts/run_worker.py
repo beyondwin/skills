@@ -485,24 +485,9 @@ def run_worker(options: RunOptions) -> int:
             err = stack.enter_context(stderr_path.open("xb"))
         except OSError:
             return fail("could not create the raw worker output files")
-        try:
-            process = subprocess.Popen(
-                command,
-                cwd=str(worktree),
-                env=worker_env,
-                stdin=subprocess.DEVNULL,
-                stdout=out,
-                stderr=err,
-            )
-        except OSError as error:
-            return fail(f"could not start the backend process: {error.strerror or 'OSError'}")
+        process: subprocess.Popen[bytes] | None = None
 
-        metadata.update(state="running", pid=process.pid)
-        write_metadata(metadata_path, metadata)
-        if remember_session_id(metadata, stdout_path):
-            write_metadata(metadata_path, metadata)
-
-        def interrupted() -> int:
+        def interrupted(already_signalled: bool = False) -> int:
             # Recorded first, so a second interrupt can never leave `running`.
             # Then this one child is ended the way a timeout ends it: a worker
             # left alive keeps editing the worktree after the record says it
@@ -517,10 +502,20 @@ def run_worker(options: RunOptions) -> int:
                 error=INTERRUPTED_ERROR,
             )
             write_metadata(metadata_path, metadata)
-            if process.poll() is None:
-                _stop_child(process)
-                metadata["exit_code"] = process.poll()
-                write_metadata(metadata_path, metadata)
+            # The record already says `interrupted`; the re-record only refines
+            # `exit_code`. A further interrupt here must not turn the 130 into
+            # a traceback, so it is absorbed and `exit_code` stays what it was.
+            with contextlib.suppress(KeyboardInterrupt):
+                if process.poll() is None:
+                    if already_signalled:
+                        # The child already has its SIGTERM; this interrupt is
+                        # the second request to stop, not a reason to restart
+                        # the grace.
+                        _kill_child(process)
+                    else:
+                        _stop_child(process)
+                    metadata["exit_code"] = process.poll()
+                    write_metadata(metadata_path, metadata)
             return 130
 
         def timed_out(error: str = TIMEOUT_ERROR) -> int:
@@ -542,22 +537,41 @@ def run_worker(options: RunOptions) -> int:
                 # that window must not leave `run.json` frozen at `running`.
                 # What is recorded is what actually happened: an interrupt that
                 # arrived while the timeout was still being carried out.
-                return interrupted()
+                return interrupted(already_signalled=True)
             return TIMEOUT_EXIT
 
         def _raise_keyboard_interrupt(signum, frame):
             raise KeyboardInterrupt
 
-        # `wait(timeout=0)` expires immediately, so a zero timeout must not
-        # reach it: zero is the documented way to ask for no bound at all.
-        deadline = time.monotonic() + options.timeout if options.timeout else None
-        first_output_deadline = time.monotonic() + FIRST_OUTPUT_SECONDS
-        saw_output = False
         # SIGTERM to this runner is the same request as Ctrl-C: record
-        # interrupted and end the child. Installed only for the wait, so a
-        # launch failure does not change signal disposition.
+        # interrupted and end the child. Installed just before the launch, so
+        # no SIGTERM can land between `Popen` and the handler and leave the
+        # worker running unrecorded; restored on every way out, a launch
+        # failure included.
         previous = signal.signal(signal.SIGTERM, _raise_keyboard_interrupt)
         try:
+            try:
+                process = subprocess.Popen(
+                    command,
+                    cwd=str(worktree),
+                    env=worker_env,
+                    stdin=subprocess.DEVNULL,
+                    stdout=out,
+                    stderr=err,
+                )
+            except OSError as error:
+                return fail(f"could not start the backend process: {error.strerror or 'OSError'}")
+
+            metadata.update(state="running", pid=process.pid)
+            write_metadata(metadata_path, metadata)
+            if remember_session_id(metadata, stdout_path):
+                write_metadata(metadata_path, metadata)
+
+            # `wait(timeout=0)` expires immediately, so a zero timeout must not
+            # reach it: zero is the documented way to ask for no bound at all.
+            deadline = time.monotonic() + options.timeout if options.timeout else None
+            first_output_deadline = time.monotonic() + FIRST_OUTPUT_SECONDS
+            saw_output = False
             while True:
                 if deadline is None:
                     slice_timeout = WAIT_SLICE_SECONDS
@@ -586,6 +600,9 @@ def run_worker(options: RunOptions) -> int:
             )
             write_metadata(metadata_path, metadata)
         except KeyboardInterrupt:
+            # One raised inside `Popen` itself has no child handle to end yet.
+            if process is None:
+                raise
             return interrupted()
         finally:
             signal.signal(signal.SIGTERM, previous)
@@ -619,10 +636,15 @@ def _stop_child(process: subprocess.Popen[bytes]) -> None:
     try:
         _end_process(process)
     except KeyboardInterrupt:
-        with contextlib.suppress(ProcessLookupError):
-            process.kill()
-        with contextlib.suppress(subprocess.TimeoutExpired, KeyboardInterrupt):
-            process.wait(timeout=TERMINATE_GRACE_SECONDS)
+        _kill_child(process)
+
+
+def _kill_child(process: subprocess.Popen[bytes]) -> None:
+    """Kill this one child now and wait for it, but never without a bound."""
+    with contextlib.suppress(ProcessLookupError):
+        process.kill()
+    with contextlib.suppress(subprocess.TimeoutExpired, KeyboardInterrupt):
+        process.wait(timeout=TERMINATE_GRACE_SECONDS)
 
 
 def no_output_error() -> str:

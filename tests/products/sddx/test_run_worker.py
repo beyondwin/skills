@@ -1178,6 +1178,100 @@ class WorkerExecutionTests(RunnerFixture):
         self.assertEqual(metadata["state"], "interrupted")
         self.assertEqual(metadata["exit_code"], -signal.SIGKILL)
 
+    def test_a_third_interrupt_while_ending_the_worker_is_still_130(self) -> None:
+        # Break: an interrupt during the fallback kill escapes as a traceback
+        # after `run.json` already says `interrupted`, instead of exiting 130.
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        started: list[subprocess.Popen] = []
+
+        class ThriceInterruptingPopen(subprocess.Popen):
+            waited = False
+            killed = False
+
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                started.append(self)
+
+            def wait(self, timeout=None):  # noqa: D102 - the first Ctrl-C
+                if not ThriceInterruptingPopen.waited:
+                    ThriceInterruptingPopen.waited = True
+                    raise KeyboardInterrupt
+                return super().wait(timeout)
+
+            def kill(self):  # noqa: D102 - the third Ctrl-C, during kill
+                if not ThriceInterruptingPopen.killed:
+                    ThriceInterruptingPopen.killed = True
+                    raise KeyboardInterrupt
+                return super().kill()
+
+        with self.pinned_resolver(module):
+            # The second Ctrl-C lands inside the SIGTERM grace.
+            with mock.patch.object(module, "_end_process", side_effect=KeyboardInterrupt):
+                with mock.patch.object(module.subprocess, "Popen", ThriceInterruptingPopen):
+                    try:
+                        code = self.invoke(module, self.options(module))
+                    except KeyboardInterrupt:
+                        self.fail("the third interrupt escaped run_worker")
+                    finally:
+                        for process in started:
+                            self.addCleanup(lambda p=process: subprocess.Popen.wait(p))
+                            self.addCleanup(lambda p=process: subprocess.Popen.kill(p))
+        self.assertEqual(len(started), 1)
+        self.assertEqual(code, 130)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "interrupted")
+        # The kill never happened, so no exit was recovered.
+        self.assertIsNone(metadata["exit_code"])
+
+    @unittest.skipUnless(os.name != "nt", "SIGTERM handling is a POSIX signal convention")
+    def test_the_sigterm_handler_is_installed_before_the_worker_starts(self) -> None:
+        # Break: a SIGTERM between `Popen` and the handler kills the runner
+        # with the default action and leaves the worker running unrecorded.
+        import signal
+
+        module = self.load()
+        self.write_grok(BEHAVIOUR_OK)
+        events: list[str] = []
+
+        def capture(sig, handler):
+            if sig == signal.SIGTERM:
+                events.append("signal")
+                return signal.SIG_DFL
+            return signal.signal(sig, handler)
+
+        class RecordingPopen(subprocess.Popen):
+            def __init__(self, *args, **kwargs):
+                events.append("popen")
+                super().__init__(*args, **kwargs)
+
+        with self.pinned_resolver(module):
+            with mock.patch.object(module.signal, "signal", capture):
+                with mock.patch.object(module.subprocess, "Popen", RecordingPopen):
+                    code = self.invoke(module, self.options(module))
+        self.assertEqual(code, 0)
+        self.assertIn("popen", events)
+        self.assertIn("signal", events)
+        self.assertLess(events.index("signal"), events.index("popen"))
+
+    @unittest.skipUnless(os.name != "nt", "SIGTERM handling is a POSIX signal convention")
+    def test_a_launch_failure_restores_the_sigterm_disposition(self) -> None:
+        import signal
+
+        module = self.load()
+        self.write_grok(BEHAVIOUR_OK)
+        with self.on_synthetic_path():
+            resolved = module.resolve("grok")
+        resolved = dict(resolved)
+        resolved["executable"] = str(self.base / "definitely-absent-binary")
+        resolved["argv_prefix"] = [resolved["executable"], *resolved["argv_prefix"][1:]]
+        before = signal.getsignal(signal.SIGTERM)
+        with mock.patch.object(module, "resolve", return_value=resolved):
+            code = self.invoke(module, self.options(module))
+        self.assertEqual(code, 2)
+        self.assertEqual(self.metadata()["state"], "launch_failed")
+        self.assertIs(signal.getsignal(signal.SIGTERM), before)
+
     def test_worker_standard_input_is_closed_rather_than_inherited(self) -> None:
         module = self.load()
         self.write_grok(BEHAVIOUR_REPORT_STDIN)
@@ -1911,6 +2005,8 @@ class AttemptTimeoutTests(RunnerFixture):
         self.assertEqual(self.metadata()["state"], "exited")
 
     def test_an_interrupt_while_the_timeout_is_carried_out_is_still_130(self) -> None:
+        import signal
+
         module = self.load()
         self.write_grok(BEHAVIOUR_SLEEP)
         started: list[subprocess.Popen] = []
@@ -1924,7 +2020,9 @@ class AttemptTimeoutTests(RunnerFixture):
         # inside it must not escape as a traceback over a `run.json` frozen at
         # `running`; it is an interrupt, recorded as one.
         with self.pinned_resolver(module):
-            with mock.patch.object(module, "_end_process", side_effect=KeyboardInterrupt):
+            with mock.patch.object(
+                module, "_end_process", side_effect=KeyboardInterrupt
+            ) as ended:
                 with mock.patch.object(module.subprocess, "Popen", RecordingPopen):
                     code = self.invoke(module, self.options(module, timeout=0.5))
         self.assertEqual(len(started), 1)
@@ -1936,8 +2034,10 @@ class AttemptTimeoutTests(RunnerFixture):
         self.assertEqual(metadata["state"], "interrupted")
         self.assertEqual(metadata["error"], "the runner was interrupted (SIGTERM or Ctrl-C)")
         self.assertIsNotNone(metadata["ended_at"])
-        # `_end_process` is patched to raise, so the runner must fall back to kill.
-        self.assertIsNotNone(process.poll(), "runner must still end its own worker")
+        # The timeout already sent SIGTERM, so the interrupt is the second
+        # request to stop: straight to kill, not a fresh SIGTERM and grace.
+        self.assertEqual(ended.call_count, 1)
+        self.assertEqual(process.poll(), -signal.SIGKILL, "runner must kill its own worker")
 
     def test_an_infinite_timeout_never_starts_a_worker(self) -> None:
         module = self.load()
