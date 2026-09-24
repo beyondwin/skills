@@ -1270,7 +1270,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertEqual(cases["evidence-review-only"], ("review_only_receipt", "no_document_mutation"))
         self.assertEqual(cases["evidence-resolution-blocked"], ("BLOCKED", "design_omitted_from_start", "design_recorded_null"))
         self.assertEqual(cases["evidence-outcome-optional"], ("verdict_unchanged", "outcome_not_controller_duty", "one_label_after_sdd"))
-        self.assertEqual(cases["summary-before-start"], ("summary_before_start", "abandon_same_plan_pending", "reuse_only_full", "reuse_requires_head_and_request_unchanged"))
+        self.assertEqual(cases["summary-before-start"], ("summary_before_start", "abandon_same_plan_pending", "reuse_only_reusable", "reuse_requires_head_and_request_unchanged"))
         self.assertEqual(
             cases["serialize-split-plans"],
             (
