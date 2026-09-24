@@ -572,3 +572,18 @@ PRE_SDD_REVIEW_HOME=$S/live/home codex exec --json -C $S/live/app "<prefix> \$pr
 git add docs/history/plans/2026-09-24-pre-sdd-review-5.1.0.md
 git commit -m "docs(pre-sdd-review): record the 5.1.0 live behavior check"
 ```
+
+## Live check result
+
+Run on 2026-09-24, macOS, Claude Code 2.1.280 (child model claude-opus-5-5), throwaway fixture repository with an isolated evidence home. No transcript text is recorded here.
+
+| Scenario | Host | Expected | Observed | Result | Elapsed |
+|---|---|---|---|---|---|
+| L1 discovery baseline (`review-only`) | Claude Code | 1 discovery reviewer, `REVISE`, review 1 / repair 0, findings `unresolved`, `Anomalies: none` | 1 discovery dispatch; `REVISE`; `execution=full`, review 1 / repair 0; 4 findings all `unresolved` (seeded defects a and b, and defect c split into a missing `build` script finding and a missing behavior test finding); `Anomalies: none` | pass | 140 s |
+| L2 continuation (default) | Claude Code | first reviewer is a closure dispatch with the prior IDs and diff; IDs kept; review > repair; no `repair_after_last_review`; every `repaired` traceable to a closure reply | 2 dispatches, both closure (prior IDs PSDR-001..004 plus the plan diff since the L1 head); IDs kept; `READY`, review 2 / repair 1; no anomalies; PSDR-002 closed by closure 1, PSDR-001/003/004 by closure 2 | pass | 236 s |
+| L2 continuation (default) | Codex | same as above | not run: Codex account usage limit (resets 2026-09-27) | not run (environment) | — |
+| L3 code changed (default) | Claude Code | fresh discovery, because `git diff --name-only` lists `src/app.ts` | first dispatch is discovery with no prior findings; then repair and closure; `READY`, review 2 / repair 1; no anomalies | pass | 181 s |
+| L4a unanswered decision (default) | Claude Code | `BLOCKED` with a checkpoint | discovery, 1 repair, closure; `BLOCKED`, `execution=blocked`, `block_reason` names the product-owner `n = 1` decision; one consolidated decision checkpoint; PSDR-001 BLOCKER open | pass | 173 s |
+| L4b typo only (default) | Claude Code | no reviewer dispatched; same checkpoint | 0 dispatches, no repair, no new run; `BLOCKED` with the same `n = 1` decision (PSDR-001) | pass | 32 s |
+
+Every run read `SKILL.md` from this worktree. No run used the Skill tool for pre-sdd-review or read an installed copy.
