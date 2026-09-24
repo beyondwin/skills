@@ -321,8 +321,12 @@ Superpowers `sdd-workspace`가 만든 계획 디렉터리 아래의 새 폴더�
 없거나 `run.json` 없이 있으면 시도가 만들어지기 전에 거절된 것이고 stderr의
 `BLOCKED:` 줄이 그 이유입니다.
 
-시그널은 두 갈래입니다. 러너(래퍼)에 SIGTERM 또는 Ctrl-C가 오면 `interrupted`,
-exit 130이고 프로세스 트리는 죽이지 않습니다. 워커에 SIGTERM이 가면
+시그널은 두 갈래입니다. 러너(래퍼)에 SIGTERM 또는 Ctrl-C가 오면 러너는 먼저
+`interrupted`를 기록하고, 타임아웃과 같은 방식(SIGTERM, 10초, SIGKILL)으로
+worker 프로세스 하나를 끝낸 뒤 회수한 `exit_code`를 다시 기록하고 130으로
+끝납니다. 그 대기 중 두 번째 인터럽트는 곧바로 SIGKILL로 넘어갑니다.
+`error`는 `the runner was interrupted (SIGTERM or Ctrl-C)`이며 신호를 보낸
+주체를 적지 않습니다. worker가 시작한 자식은 쫓지 않습니다. 워커에 SIGTERM이 가면
 `exited`(타임아웃이 보낸 것이면 `timed_out`)와 음수 `exit_code`입니다. SIGKILL은
 기록을 남기지 못하므로 `pid_alive`로 봅니다.
 

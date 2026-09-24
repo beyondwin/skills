@@ -280,14 +280,13 @@ That is process state, not task state; process exit 0 is not a clean DONE.
 
 The wrapper exit follows the worker's exit. A POSIX signal returns
 `128 + signal` while `run.json.exit_code` keeps the real negative returncode.
-A launch failure is 2, a handled controller interrupt is 130, and an attempt
-ended by its own timeout is 124. A handled interrupt records the exit it
-recovered, which may be none, and `run.json` does not say which of two routes
-reached that record: an interrupt while the runner was only waiting signals
-nothing at all and leaves the worker running, while an interrupt during a
-timeout's own SIGTERM and SIGKILL arrives after the worker has been signalled
-and is probably dead. SIGTERM to the runner uses the same `interrupted` / 130
-record as Ctrl-C and does not kill the tree. SIGTERM to the worker remains
+A launch failure is 2, a handled runner interrupt is 130, and an attempt
+ended by its own timeout is 124. On SIGTERM or Ctrl-C the runner records
+`interrupted` at once, then ends the worker process itself the way a timeout
+does (SIGTERM, ten seconds, SIGKILL) and records the exit it recovered; a
+second interrupt during that wait goes straight to SIGKILL. The `error` is
+`the runner was interrupted (SIGTERM or Ctrl-C)`: the runner cannot know who
+sent the signal, so it does not say. SIGTERM to the worker remains
 `exited` (or `timed_out` when the runner sent it) with the negative returncode.
 SIGKILL still cannot write a terminal state. Confirm the worker and anything
 it started have exited yourself either way, before Grok cleanup. Exit 2 is

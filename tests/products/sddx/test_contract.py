@@ -359,6 +359,18 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("pid_alive", text)
         self.assertIn("bounded tools index", text)
 
+    def test_interrupt_ends_the_worker_on_every_face(self) -> None:
+        dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
+        contract = (
+            ROOT / "docs" / "maintainers" / "products" / "sddx" / "contract.md"
+        ).read_text(encoding="utf-8")
+        fold = lambda value: re.sub(r"\s+", " ", value)
+        for text in (dispatch, contract):
+            self.assertIn("the runner was interrupted (SIGTERM or Ctrl-C)", fold(text))
+        self.assertNotIn("does not kill the tree", fold(dispatch))
+        self.assertNotIn("leaves the worker running", fold(dispatch))
+        self.assertNotIn("프로세스 트리는 죽이지 않습니다", fold(contract))
+
     def test_dispatch_opens_with_controller_procedure(self) -> None:
         text = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
         self.assertIn("## Controller procedure", text)

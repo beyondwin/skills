@@ -66,6 +66,8 @@ DEFAULT_TIMEOUT_SECONDS = 3600.0
 TERMINATE_GRACE_SECONDS = 10.0
 TIMEOUT_EXIT = 124
 
+INTERRUPTED_ERROR = "the runner was interrupted (SIGTERM or Ctrl-C)"
+
 # The reading bounds from the design spec's R4. A window is a byte range, not a
 # line, a JSON event, or a call/result pair: nothing here promises that a preview
 # contains anything whole except the characters it decoded.
@@ -384,7 +386,7 @@ def run_worker(options: RunOptions) -> int:
 
     A normally awaited worker's exit is returned as-is; a POSIX signal death
     becomes `128 + signal` while `run.json` keeps the real negative returncode.
-    A launch failure is 2, a controller interrupt handled here is 130, and an
+    A launch failure is 2, a runner interrupt handled here is 130, and an
     attempt ended by its own timeout is 124.
     """
     try:
@@ -497,17 +499,24 @@ def run_worker(options: RunOptions) -> int:
             write_metadata(metadata_path, metadata)
 
         def interrupted() -> int:
-            # Record only the exit actually recovered. The process tree is left
-            # alone and Grok cleanup stays the controller's call. An interrupted
+            # Recorded first, so a second interrupt can never leave `running`.
+            # Then this one child is ended the way a timeout ends it: a worker
+            # left alive keeps editing the worktree after the record says it
+            # stopped, and the next attempt shares that tree. Its descendants
+            # and Grok cleanup stay the controller's call. An interrupted
             # attempt may still be resumable, so keep the first ID already found.
             remember_session_id(metadata, stdout_path)
             metadata.update(
                 state="interrupted",
                 exit_code=process.poll(),
                 ended_at=utc_now(),
-                error="the controller interrupted the attempt",
+                error=INTERRUPTED_ERROR,
             )
             write_metadata(metadata_path, metadata)
+            if process.poll() is None:
+                _stop_child(process)
+                metadata["exit_code"] = process.poll()
+                write_metadata(metadata_path, metadata)
             return 130
 
         def timed_out() -> int:
@@ -539,7 +548,7 @@ def run_worker(options: RunOptions) -> int:
         # reach it: zero is the documented way to ask for no bound at all.
         deadline = time.monotonic() + options.timeout if options.timeout else None
         # SIGTERM to this runner is the same request as Ctrl-C: record
-        # interrupted and leave the child. Installed only for the wait, so a
+        # interrupted and end the child. Installed only for the wait, so a
         # launch failure does not change signal disposition.
         previous = signal.signal(signal.SIGTERM, _raise_keyboard_interrupt)
         try:
@@ -589,6 +598,21 @@ def _end_process(process: subprocess.Popen[bytes]) -> None:
     process.kill()
     with contextlib.suppress(subprocess.TimeoutExpired):
         process.wait(timeout=TERMINATE_GRACE_SECONDS)
+
+
+def _stop_child(process: subprocess.Popen[bytes]) -> None:
+    """End the child even when another interrupt arrives while doing it.
+
+    A second Ctrl-C or SIGTERM during the grace period skips straight to kill;
+    what was recovered is whatever `poll()` reports afterwards.
+    """
+    try:
+        _end_process(process)
+    except KeyboardInterrupt:
+        with contextlib.suppress(ProcessLookupError):
+            process.kill()
+        with contextlib.suppress(subprocess.TimeoutExpired, KeyboardInterrupt):
+            process.wait(timeout=TERMINATE_GRACE_SECONDS)
 
 
 def _log_size(path: Path) -> int:

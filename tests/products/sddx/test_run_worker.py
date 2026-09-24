@@ -1050,7 +1050,9 @@ class WorkerExecutionTests(RunnerFixture):
         self.assertIsNotNone(metadata["error"])
         self.assertEqual((self.attempt / "worker.jsonl").read_bytes(), b"")
 
-    def test_controller_interrupt_is_recorded_without_killing_the_tree(self) -> None:
+    def test_controller_interrupt_ends_the_worker_before_recording(self) -> None:
+        # Break: an interrupted runner leaves its worker running, so a second
+        # attempt can start in the same worktree while the first still edits it.
         module = self.load()
         self.write_grok(BEHAVIOUR_SLEEP)
         with self.on_synthetic_path():
@@ -1058,26 +1060,31 @@ class WorkerExecutionTests(RunnerFixture):
         started: list[subprocess.Popen] = []
 
         class InterruptingPopen(subprocess.Popen):
+            interrupted = False
+
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
                 started.append(self)
 
-            def wait(self, timeout=None):  # noqa: D102 - controller pressed Ctrl-C
-                raise KeyboardInterrupt
+            def wait(self, timeout=None):  # noqa: D102 - controller pressed Ctrl-C once
+                if not InterruptingPopen.interrupted:
+                    InterruptingPopen.interrupted = True
+                    raise KeyboardInterrupt
+                return super().wait(timeout)
 
         with mock.patch.object(module, "resolve", return_value=resolved):
             with mock.patch.object(module.subprocess, "Popen", InterruptingPopen):
                 code = self.invoke(module, self.options(module))
         self.assertEqual(len(started), 1)
         process = started[0]
-        # The override above raises on every call, so drain with the base method.
         self.addCleanup(lambda: subprocess.Popen.wait(process))
         self.addCleanup(process.kill)
         self.assertEqual(code, 130)
         metadata = self.metadata()
         self.assertEqual(metadata["state"], "interrupted")
-        self.assertIsNone(metadata["exit_code"])
-        self.assertIsNone(process.poll(), "runner must not kill the worker process tree")
+        self.assertEqual(metadata["error"], "the runner was interrupted (SIGTERM or Ctrl-C)")
+        self.assertIsNotNone(process.poll(), "runner must end its own worker")
+        self.assertEqual(metadata["exit_code"], process.poll())
 
     @unittest.skipUnless(os.name != "nt", "wrapper SIGTERM handling is a POSIX signal convention")
     def test_wrapper_sigterm_is_recorded_as_interrupted(self) -> None:
@@ -1097,11 +1104,16 @@ class WorkerExecutionTests(RunnerFixture):
             return signal.signal(sig, handler)
 
         class SignallingPopen(subprocess.Popen):
+            signalled = False
+
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
                 started.append(self)
 
-            def wait(self, timeout=None):  # noqa: D102 - controller sent SIGTERM
+            def wait(self, timeout=None):  # noqa: D102 - controller sent SIGTERM once
+                if SignallingPopen.signalled:
+                    return super().wait(timeout)
+                SignallingPopen.signalled = True
                 if not handlers:
                     raise AssertionError("SIGTERM handler was not installed before wait")
                 handlers[-1](signal.SIGTERM, None)
@@ -1118,8 +1130,46 @@ class WorkerExecutionTests(RunnerFixture):
         self.assertEqual(code, 130)
         metadata = self.metadata()
         self.assertEqual(metadata["state"], "interrupted")
-        self.assertEqual(metadata["error"], "the controller interrupted the attempt")
-        self.assertIsNone(process.poll(), "runner must not kill the worker process tree")
+        self.assertEqual(metadata["error"], "the runner was interrupted (SIGTERM or Ctrl-C)")
+        self.assertIsNotNone(process.poll(), "runner must end its own worker")
+
+    @unittest.skipUnless(os.name != "nt", "SIGKILL is a POSIX signal convention")
+    def test_a_second_interrupt_while_ending_the_worker_kills_it(self) -> None:
+        # Break: a second Ctrl-C while the runner ends its worker leaves
+        # `run.json` at `running`, or leaves a SIGTERM-ignoring worker alive.
+        import signal
+
+        module = self.load()
+        ready = self.base / "sigterm-handler-installed"
+        self.write_grok(behaviour_ignores_sigterm(ready))
+        started: list[subprocess.Popen] = []
+
+        class TwiceInterruptingPopen(subprocess.Popen):
+            interrupts = 0
+
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                started.append(self)
+                deadline = time.monotonic() + 30
+                while not ready.exists() and time.monotonic() < deadline:
+                    time.sleep(0.01)
+
+            def wait(self, timeout=None):  # noqa: D102 - Ctrl-C, then Ctrl-C again
+                if TwiceInterruptingPopen.interrupts < 2:
+                    TwiceInterruptingPopen.interrupts += 1
+                    raise KeyboardInterrupt
+                return super().wait(timeout)
+
+        with self.pinned_resolver(module):
+            with mock.patch.object(module.subprocess, "Popen", TwiceInterruptingPopen):
+                code = self.invoke(module, self.options(module))
+        process = started[0]
+        self.addCleanup(lambda: subprocess.Popen.wait(process))
+        self.addCleanup(process.kill)
+        self.assertEqual(code, 130)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "interrupted")
+        self.assertEqual(metadata["exit_code"], -signal.SIGKILL)
 
     def test_worker_standard_input_is_closed_rather_than_inherited(self) -> None:
         module = self.load()
@@ -1818,8 +1868,10 @@ class AttemptTimeoutTests(RunnerFixture):
         self.assertEqual(code, 130)
         metadata = self.metadata()
         self.assertEqual(metadata["state"], "interrupted")
-        self.assertEqual(metadata["error"], "the controller interrupted the attempt")
+        self.assertEqual(metadata["error"], "the runner was interrupted (SIGTERM or Ctrl-C)")
         self.assertIsNotNone(metadata["ended_at"])
+        # `_end_process` is patched to raise, so the runner must fall back to kill.
+        self.assertIsNotNone(process.poll(), "runner must still end its own worker")
 
     def test_an_infinite_timeout_never_starts_a_worker(self) -> None:
         module = self.load()
