@@ -495,7 +495,7 @@ def validate_finding(item: object, repair_passes: int, *, legacy: bool = False) 
         _enum(item["source"], "finding.source", FINDING_SOURCES)
     repair_pass = item["repair_pass"]
     if repair_pass is not None:
-        _integer(repair_pass, "finding.repair_pass", 0, 2)
+        _integer(repair_pass, "finding.repair_pass", 0, 3)
         if repair_pass > repair_passes:
             fail("schema-invalid", "finding.repair_pass exceeds repair_passes")
     location = item["location"]
@@ -533,11 +533,11 @@ def validate_finish_shape(payload: object, *, legacy: bool = False) -> dict[str,
         reasons = [str(_enum(item, "degraded_reasons[]", DEGRADED_REASONS)) for item in payload["degraded_reasons"]]
     verdict = _enum(payload["verdict"], "verdict", VERDICTS)
     block_reason = _string(payload["block_reason"], "block_reason", 100, nullable=True)
-    review_passes = _integer(payload["review_passes"], "review_passes", 1, 3)
-    repair_passes = _integer(payload["repair_passes"], "repair_passes", 0, 2)
+    review_passes = _integer(payload["review_passes"], "review_passes", 1, 4)
+    repair_passes = _integer(payload["repair_passes"], "repair_passes", 0, 3)
     if not isinstance(payload["findings"], list):
         fail("schema-invalid", "findings must be a list")
-    findings = [validate_finding(item, 2, legacy=legacy) for item in payload["findings"]]
+    findings = [validate_finding(item, 3, legacy=legacy) for item in payload["findings"]]
     identifiers = [str(item["id"]) for item in findings]
     if len(set(identifiers)) != len(identifiers):
         fail("schema-invalid", "finding ids must be unique")
@@ -579,7 +579,15 @@ def observation_anomalies(record: dict[str, object]) -> list[str]:
         "revise_without_unresolved_finding": record["verdict"] == "REVISE"
         and not any(status in ("unresolved", "partially-closed") for status in statuses),
         "blocked_without_reason": record["verdict"] == "BLOCKED" and record["block_reason"] is None,
-        "repair_without_repaired_finding": bool(record["repair_passes"]) and "repaired" not in statuses,
+        "repair_without_repaired_finding": bool(record["repair_passes"])
+        and not any(item["repair_pass"] is not None and item["repair_pass"] >= 1 for item in findings),
+        "repair_after_last_review": record["repair_passes"] > 0
+        and record["repair_passes"] >= record["review_passes"],
+        "open_blocker_without_blocked_verdict": record["verdict"] != "BLOCKED"
+        and any(
+            item["severity"] == "BLOCKER" and item["status"] in ("unresolved", "partially-closed")
+            for item in findings
+        ),
         "review_only_with_repair": record["mode"] == "review-only" and record["repair_passes"] != 0,
         "full_reviewer_count_mismatch": record["execution"] == "full" and record["reviewers"] != expected_reviewers,
         "full_with_degraded_reasons": record["execution"] == "full" and bool(record["degraded_reasons"]),
@@ -912,7 +920,6 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
     severities: list[str] = []
     statuses: list[str] = []
     classes: list[str] = []
-    costless_repairs = 0
     anomalous_run_ids: set[str] = set()
     anomalies: dict[str, list[object]] = {
         "blocked_execution_with_nonblocked_verdict": [],
@@ -925,6 +932,8 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
         "degraded_without_reason": [],
         "finding_repair_pass_exceeds_total": [],
         "repair_without_repaired_finding": [],
+        "repair_after_last_review": [],
+        "open_blocker_without_blocked_verdict": [],
         "head_changed_during_review": [],
         "design_unresolved_but_full_execution": [],
         "head_start_not_ancestor_of_head_end": [],
@@ -973,8 +982,6 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
             severities.append(str(item["severity"]))
             statuses.append(str(item["status"]))
             classes.append(str(item["class"]))
-            if item["repair_pass"] == 0 and item["status"] == "repaired":
-                costless_repairs += 1
             key = (str(item["class"]), str(item["pattern"]))
             runs_for_pattern = pattern_runs.setdefault(key, [])
             if run_id not in runs_for_pattern:
@@ -1003,7 +1010,6 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
             ["checkout-bound" if record["schema"] >= 3 else "historical-unbound" for record in records],
             ("checkout-bound", "historical-unbound"),
         ),
-        "costless_repairs": costless_repairs,
     }
     return {
         "schema": SCHEMA,

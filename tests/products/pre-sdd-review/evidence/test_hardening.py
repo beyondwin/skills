@@ -583,7 +583,7 @@ class ReaderTests(RecorderFixture):
             (("design", "sha_start"), "x"), (("git", "head_start"), "A" * 40),
             (("git", "head_end"), None), (("git", "dirty_end"), 0),
             (("abandon_reason",), "other"), (("reviewers",), True),
-            (("review_passes",), 0), (("repair_passes",), 3),
+            (("review_passes",), 0), (("repair_passes",), 4),
             (("degraded_reasons",), "text"), (("findings",), {}),
             (("findings",), [finding(), finding()]),
             (("findings", 0, "repair_pass"), True),
@@ -808,7 +808,7 @@ class ObservationTests(RecorderFixture):
     def test_multiple_anomalies_are_sorted_without_mutating_observations(self) -> None:
         run_id = start(self.home, self.repo, self.skill, mode="review-only")
         self.assertEqual(evidence.observation_anomalies(load(self.home, run_id)), [])
-        payload = finish_payload(execution="degraded", repair_passes=1,
+        payload = finish_payload(execution="degraded", review_passes=2, repair_passes=1,
                                  findings=[finding(status="unresolved", repair_pass=2)])
         code, _, err = finish(self.home, self.repo, run_id, payload)
         self.assertEqual((code, err), (0, ""))
@@ -816,7 +816,7 @@ class ObservationTests(RecorderFixture):
         before = copy.deepcopy(record)
         self.assertEqual(evidence.observation_anomalies(record), [
             "degraded_without_reason", "finding_repair_pass_exceeds_total",
-            "ready_with_unresolved_findings", "repair_without_repaired_finding",
+            "ready_with_unresolved_findings",
             "review_only_with_repair",
         ])
         self.assertEqual(record, before)
@@ -828,7 +828,7 @@ class ObservationTests(RecorderFixture):
         run_id = start(self.home, self.repo, self.skill)
         item = finding(**{"class": "repo-reality"}, evidence=["docs/plan.md"])
         self.assertEqual(finish(self.home, self.repo, run_id,
-                               finish_payload(repair_passes=1, findings=[item]))[0], 0)
+                               finish_payload(review_passes=2, repair_passes=1, findings=[item]))[0], 0)
         self.assertEqual(evidence.observation_anomalies(load(self.home, run_id)), [])
         code, out, err = run(["summary"], home=self.home, cwd=self.repo)
         self.assertEqual((code, err), (0, ""))

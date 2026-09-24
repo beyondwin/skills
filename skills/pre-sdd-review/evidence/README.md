@@ -69,11 +69,11 @@ is not a supported OS; this uses POSIX `fcntl.flock`.
 or null), `degraded_reasons` (list of `primary-role-not-obtained`,
 `focused-role-not-obtained`, `agent-reused-within-invocation`,
 `agent-reused-across-plans`, or `other`), `verdict`, `block_reason`,
-`review_passes` (1–3), `repair_passes` (0–2), and `findings`.
+`review_passes` (1–4), `repair_passes` (0–3), and `findings`.
 
 Each finding has `id` (`PSDR-001`), `severity`, `class`, `pattern`, `status`,
 `source` (`reviewer`, `ledger-pass`, `machine-check`), `repair_pass` (null or
-0–2, where `0` means the repair consumed no pass), `location` (`path`,
+0–3, where `0` marks a pre-pass ledger or machine-check repair), `location` (`path`,
 `locator`), `evidence` (relative paths), `consequence`, and `fix`.
 
 A schema 4 record adds `baseline` (`head` plus the ordered `prior_plans` this
@@ -118,10 +118,7 @@ their canonical start-time and `run_id` order.
 completed verdicts by whether `anomalies` observed a contradiction. The
 `counts.observation` map gives the normal and anomalous run totals, and
 `counts.binding` reports `checkout-bound` and `historical-unbound` records.
-`counts.costless_repairs` counts findings marked `repaired` whose
-`repair_pass` is `0`, a repair that closed a finding without consuming one of
-the run's `repair_passes`. Historical records do not form `chains` because
-they have no `repo_key`.
+Historical records do not form `chains` because they have no `repo_key`.
 
 These summaries are descriptive local observations. They are not model-quality
 measurements, proof that a verdict was correct, or a signed audit claim.

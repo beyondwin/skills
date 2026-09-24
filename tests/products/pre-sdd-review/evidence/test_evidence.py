@@ -293,14 +293,14 @@ class FinishTests(unittest.TestCase):
     def test_finish_preserves_contradictions_as_anomalies(self) -> None:
         cases = {
             "ready-with-unresolved": finish_payload(findings=[finding(status="unresolved", repair_pass=None)]),
-            "revise-without-unresolved": finish_payload(verdict="REVISE", repair_passes=1, findings=[finding()]),
+            "revise-without-unresolved": finish_payload(verdict="REVISE", review_passes=2, repair_passes=1, findings=[finding()]),
             "blocked-without-reason": finish_payload(verdict="BLOCKED", execution="blocked", reviewers=0),
-            "repair-without-repaired": finish_payload(repair_passes=1),
+            "repair-without-repaired": finish_payload(review_passes=2, repair_passes=1),
             "full-two-reviewers-no-trigger": finish_payload(reviewers=2),
             "full-one-reviewer-with-trigger": finish_payload(trigger="schema-migration"),
             "full-with-degraded-reason": finish_payload(degraded_reasons=["other"]),
             "degraded-without-reason": finish_payload(execution="degraded"),
-            "repair-pass-exceeds": finish_payload(repair_passes=1, findings=[finding(repair_pass=2)]),
+            "repair-pass-exceeds": finish_payload(review_passes=2, repair_passes=1, findings=[finding(repair_pass=2)]),
         }
         expected = {
             "ready-with-unresolved": "ready_with_unresolved_findings",
@@ -324,6 +324,43 @@ class FinishTests(unittest.TestCase):
                 code, out, err = run(["summary"], home=self.home, cwd=self.repo)
                 self.assertEqual((code, err), (0, ""))
                 self.assertIn(run_id, json.loads(out)["anomalies"][expected[name]])
+
+    def test_new_anomalies_fire_only_on_their_contradiction(self) -> None:
+        cases = {
+            "repair-last": (finish_payload(verdict="REVISE", review_passes=1, repair_passes=1, findings=[finding(status="unresolved", repair_pass=1)]), ["repair_after_last_review"]),
+            "open-blocker-revise": (finish_payload(verdict="REVISE", review_passes=2, repair_passes=1, findings=[finding(severity="BLOCKER", status="unresolved", repair_pass=1)]), ["open_blocker_without_blocked_verdict"]),
+            "partial-blocker-revise": (finish_payload(verdict="REVISE", review_passes=2, repair_passes=1, findings=[finding(severity="BLOCKER", status="partially-closed", repair_pass=1)]), ["open_blocker_without_blocked_verdict"]),
+            "blocker-by-authority": (finish_payload(verdict="BLOCKED", block_reason="decision", findings=[finding(severity="BLOCKER", status="blocked-by-authority", repair_pass=None)]), []),
+            "blocker-repaired-ready": (finish_payload(review_passes=2, repair_passes=1, findings=[finding(severity="BLOCKER")]), []),
+            "zero-repair": (finish_payload(), []),
+            "v5-0-shape": (finish_payload(review_passes=3, repair_passes=2, findings=[finding(id="PSDR-001", repair_pass=1), finding(id="PSDR-002", repair_pass=2)]), []),
+        }
+        for name, (payload, expected) in cases.items():
+            with self.subTest(name=name):
+                run_id = start(self.home, self.repo, self.skill)
+                code, out, err = finish(self.home, self.repo, run_id, payload)
+                self.assertEqual((code, err), (0, ""))
+                self.assertEqual(json.loads(out)["anomalies"], expected)
+
+    def test_an_applied_but_unclosed_repair_is_not_repair_without_repaired_finding(self) -> None:
+        payload = finish_payload(verdict="REVISE", review_passes=2, repair_passes=1, findings=[finding(status="unresolved", repair_pass=1)])
+        code, out, err = finish(self.home, self.repo, self.run_id, payload)
+        self.assertEqual((code, err), (0, ""))
+        self.assertEqual(json.loads(out)["anomalies"], [])
+
+    def test_widened_pass_ranges_accept_the_residual_pass(self) -> None:
+        accepted = finish_payload(review_passes=4, repair_passes=3, findings=[finding(repair_pass=3)])
+        code, _, err = finish(self.home, self.repo, self.run_id, accepted)
+        self.assertEqual((code, err), (0, ""))
+        for name, payload in {
+            "repair-passes-4": finish_payload(review_passes=4, repair_passes=4),
+            "review-passes-5": finish_payload(review_passes=5, repair_passes=3),
+            "finding-repair-pass-4": finish_payload(review_passes=4, repair_passes=3, findings=[finding(repair_pass=4)]),
+        }.items():
+            with self.subTest(name=name):
+                run_id = start(self.home, self.repo, self.skill)
+                code, _, err = finish(self.home, self.repo, run_id, payload)
+                self.assertEqual((code, error_code(err)), (2, "schema-invalid"))
 
     def test_finish_rejects_each_shape_violation(self) -> None:
         cases = {
@@ -356,7 +393,7 @@ class FinishTests(unittest.TestCase):
 
     def test_review_only_preserves_repair_passes_as_anomaly(self) -> None:
         run_id = start(self.home, self.repo, self.skill, mode="review-only")
-        code, _, err = finish(self.home, self.repo, run_id, finish_payload(repair_passes=1, findings=[finding()]))
+        code, _, err = finish(self.home, self.repo, run_id, finish_payload(review_passes=2, repair_passes=1, findings=[finding()]))
         self.assertEqual((code, err), (0, ""))
         record = load(self.home, run_id)
         self.assertEqual(record["repair_passes"], 1)
@@ -455,7 +492,7 @@ class FinishTests(unittest.TestCase):
         self.assertEqual(record["git"]["head_start"], record["git"]["head_end"])
         self.assertIsNone(record["git"]["head_start_is_ancestor_of_head_end"])
 
-    def test_finish_accepts_a_costless_repair_and_a_partial_closure(self) -> None:
+    def test_finish_accepts_an_intake_repair_and_a_partial_closure(self) -> None:
         payload = finish_payload(
             verdict="REVISE",
             repair_passes=1,
@@ -529,7 +566,7 @@ class FinishTests(unittest.TestCase):
         self.assertEqual((code, err), (0, ""))
         self.assertIn("document_changed_without_repair_pass", json.loads(out)["anomalies"])
 
-    def test_a_costless_repair_clears_the_document_change_anomaly(self) -> None:
+    def test_an_intake_repair_clears_the_document_change_anomaly(self) -> None:
         write(self.repo / "docs/plan.md", "# Plan\n\n**Spec:** docs/design.md\n\nchanged\n")
         payload = finish_payload(
             findings=[finding(status="repaired", repair_pass=0, source="machine-check")]
@@ -662,7 +699,6 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(summary["counts"]["status"], {"completed": 0, "abandoned": 0, "pending": 0})
         self.assertEqual(summary["counts"]["verdict"], {"READY": 0, "REVISE": 0, "BLOCKED": 0})
         self.assertEqual(summary["counts"]["outcome"], {"recorded": 0, "good": 0, "false-ready": 0, "noisy": 0, "abandoned": 0})
-        self.assertEqual(summary["counts"]["costless_repairs"], 0)
         self.assertEqual(summary["cost"], {"elapsed_s": {"median": None, "max": None}, "review_passes_avg": None, "repair_passes_avg": None})
         self.assertEqual(summary["anomalies"], {
             "blocked_execution_with_nonblocked_verdict": [],
@@ -675,6 +711,8 @@ class SummaryTests(unittest.TestCase):
             "degraded_without_reason": [],
             "finding_repair_pass_exceeds_total": [],
             "repair_without_repaired_finding": [],
+            "repair_after_last_review": [],
+            "open_blocker_without_blocked_verdict": [],
             "head_changed_during_review": [],
             "design_unresolved_but_full_execution": [],
             "head_start_not_ancestor_of_head_end": [],
@@ -743,20 +781,6 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(summary["anomalies"]["head_changed_during_review"], [second])
         self.assertEqual(summary["anomalies"]["design_unresolved_but_full_execution"], [unresolved_design])
         self.assertEqual(summary["anomalies"]["repo_reality_citing_documents_only"], [{"run_id": first, "finding_id": "PSDR-001"}])
-
-    def test_summary_counts_costless_repairs(self) -> None:
-        run_id = start(self.home, self.repo, self.skill)
-        payload = finish_payload(
-            findings=[
-                finding(id="PSDR-001", status="repaired", repair_pass=0, source="ledger-pass"),
-                finding(id="PSDR-002", status="repaired", repair_pass=1, source="reviewer"),
-            ],
-            repair_passes=1,
-        )
-        self.assertEqual(finish(self.home, self.repo, run_id, payload)[0], 0)
-        code, out, err = run(["summary"], home=self.home, cwd=self.repo)
-        self.assertEqual((code, err), (0, ""))
-        self.assertEqual(json.loads(out)["counts"]["costless_repairs"], 1)
 
     def test_summary_filters_by_repo_and_last(self) -> None:
         first = start(self.home, self.repo, self.skill)

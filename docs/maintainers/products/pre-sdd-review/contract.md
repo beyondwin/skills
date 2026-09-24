@@ -262,8 +262,8 @@ schema 2와 schema 3 record는 계속 읽습니다. 변경은 schema 4만 받습
 `other` 중 하나입니다. `run_id`는 컨트롤러 로컬이며 검토 문서 밖에 둡니다.
 
 schema 4 finding에는 `source`(`reviewer`, `ledger-pass`, `machine-check`)와
-`repair_pass`(`null` 또는 0..2, `0`은 패스를 먹지 않은 수리이고 `null`은
-미해결 발견입니다)가 들어갑니다. `source`는 schema 4가 더한 키입니다. schema
+`repair_pass`(`null` 또는 0..3, `0`은 사전 패스의 원장·기계 점검 수리이고 `null`은
+이 호출이 수리하지 않은 발견입니다)가 들어갑니다. `source`는 schema 4가 더한 키입니다. schema
 2·3 finding에는 없고, 없는 채로 계속 읽힙니다. `source`를 가진 legacy finding은
 `schema-invalid`입니다. schema 2·3의 `degraded_reasons`도 schema 4 어휘가 아니라
 자유 문자열로 읽습니다.
