@@ -317,7 +317,8 @@ the idle timeout (`--idle-timeout`, default 900): neither log grew for that
 long. Check the worktree for partial changes, then do not resume that session
 and do not raise either bound to re-run it; dispatch a fresh worker with a
 continuation brief that names the previous `report.md` and the commits
-already made.
+already made. Raise `--idle-timeout` before launch only when the brief names
+a single long foreground command, including that continuation attempt.
 
 There is no automatic retry anywhere in these helpers. `run.json.state` is
 process state, not task state, and process exit 0 is not a clean DONE.

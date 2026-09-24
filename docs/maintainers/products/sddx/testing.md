@@ -171,11 +171,11 @@ git diff --check
 `the worker wrote no output for <N> seconds`로 끝나는지(처음부터 조용한 경우,
 출력한 뒤 멈춘 경우, 실행 중간에 멈춘 경우, 재개), 계속 쓰는 worker와 stderr만 쓰는 worker는 창을 넘겨도
 끝나지 않는지, `--idle-timeout 0`이 끄는지, 음수·무한·NaN을 시도 생성 전에
-거절하는지, 기본 `--timeout`이 0이고 지정한 `--timeout`은 여전히 시도를 끝내며
+거절하는지, `--timeout`을 지정해도 유휴 타임아웃이 걸리는지, 기본 `--timeout`이 0이고 지정한 `--timeout`은 여전히 시도를 끝내며
 둘 다 지나면 먼저인지, 그리고 규칙 문구가 모든 면에 있는지를 잠급니다. 이 변경
-뒤 `sddx-contract`는 347개 테스트입니다. 파일별로 `test_contract` 36,
+뒤 `sddx-contract`는 348개 테스트입니다. 파일별로 `test_contract` 36,
 `test_extract_task` 38, `test_prepare_grok_sandbox` 23, `test_resolve_backend`
-75, `test_run_worker` 121, `test_worker_status` 54개입니다. 라이브 호출은 하지
+75, `test_run_worker` 122, `test_worker_status` 54개입니다. 라이브 호출은 하지
 않았습니다.
 
 기본값 900초의 근거는 저장소 밖 실제 시도 기록입니다(내용은 커밋하지 않음).

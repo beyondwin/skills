@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import codecs
 import contextlib
+import decimal
 import hashlib
 import json
 import math
@@ -681,8 +682,16 @@ def _kill_child(process: subprocess.Popen[bytes]) -> None:
 
 
 def idle_error(seconds: float) -> str:
-    """The `error` of an attempt ended by its idle timeout."""
-    return f"the worker wrote no output for {seconds:g} seconds"
+    """The `error` of an attempt ended by its idle timeout.
+
+    The seconds are a plain number: an integer when integral (`900`, never
+    `900.0` or `1e+06`), else a positional decimal (`0.5`).
+    """
+    if float(seconds).is_integer():
+        text = str(int(seconds))
+    else:
+        text = format(decimal.Decimal(repr(float(seconds))), "f")
+    return f"the worker wrote no output for {text} seconds"
 
 
 def _log_size(path: Path) -> int:

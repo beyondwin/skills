@@ -365,14 +365,16 @@ SIGTERM을 보내고 10초를 기다린 뒤 그래도 살아 있으면 kill한 �
 값을 유지하고, 아직 null이면 한 번만 더 스캔합니다. 그 뒤 124로 끝냅니다.
 
 유휴 타임아웃이면 `error`는 `the worker wrote no output for <N> seconds`이고
-`<N>`은 `--idle-timeout` 값입니다(기본 `the worker wrote no output for 900
-seconds`). 경과 시간 제한이면 `the attempt exceeded its timeout`이고, 둘 다
+`<N>`은 `--idle-timeout` 값을 평범한 숫자로 쓴 것입니다(`900`, `0.5`; 기본
+`the worker wrote no output for 900 seconds`). 경과 시간 제한이면 `the attempt exceeded its timeout`이고, 둘 다
 지났으면 경과 시간 제한이 먼저입니다. 유휴 타임아웃이면 worktree의 부분 변경을
 확인하고, 그 세션을 재개하거나 제한을 올려 다시 돌리지 않고, 이전 `report.md`와
 이미 만든 커밋을 적은 이어가기 브리프로 새 worker를 보냅니다. Grok은 셸 호출을
 그 호출이 돌아오거나 백그라운드로 넘어간 뒤에 기록하므로 전경 명령 하나가 유휴
 시간보다 오래 걸리면 그동안 아무것도 쓰지 않습니다. 브리프에 그런 명령이 있으면
-그 시도를 띄우기 전에만 `--idle-timeout`을 올립니다.
+그 시도를 띄우기 전에만 `--idle-timeout`을 올립니다. 그 명령을 적은 새 이어가기
+시도도 여기에 포함됩니다. 대신 브리프에서 그 명령을 백그라운드로 돌리게 할 수도
+있습니다. Grok은 백그라운드로 넘긴 셸을 바로 기록합니다.
 
 신호는 worker 프로세스 하나에만 보냅니다. worker는 터미널 인터럽트가 닿도록
 컨트롤러와 같은 프로세스 그룹에 남으므로, worker가 시작한 자식 프로세스는 쫓아가지

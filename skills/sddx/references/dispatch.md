@@ -228,16 +228,18 @@ worker, so confirm and end them by pid yourself before cleanup.
 
 An attempt ended by the idle timeout records `timed_out`, exit 124, and
 `error` `the worker wrote no output for <N> seconds`, where `<N>` is the
-`--idle-timeout` value (`the worker wrote no output for 900 seconds` by
-default). The wall-clock bound records `the attempt exceeded its timeout`
+`--idle-timeout` value written as a plain number (`900`, `0.5`; `the worker
+wrote no output for 900 seconds` by default). The wall-clock bound records `the attempt exceeded its timeout`
 instead, and wins when both have passed. After an idle timeout, check the
 worktree for partial changes, then do not resume that session; dispatch a
 fresh worker with a continuation brief that names the previous `report.md`
 and the commits already made. Do not raise either bound to re-run it. Raise
 `--idle-timeout` only before launching an attempt whose brief names one
-foreground command expected to run longer than the idle window: Grok writes a
-shell call to its stream only once the call returns or is backgrounded, so
-such a command is silent the whole time.
+foreground command expected to run longer than the idle window, including
+the fresh continuation attempt when its brief names that command: Grok writes
+a shell call to its stream only once the call returns or is backgrounded, so
+such a command is silent the whole time. The brief may instead ask the worker
+to run that command in the background, which Grok records right away.
 
 Do not pass `--worktree` to the provider CLI. Do not pass `--continue`. Do not
 copy host credentials or environment values into the brief or the dispatch.

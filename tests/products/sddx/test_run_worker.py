@@ -135,7 +135,7 @@ IDLE_PREFIX = "the worker wrote no output for"
 BEHAVIOUR_WRITE_TWICE_THEN_STALL = (
     "sys.stdout.write('{\"type\": \"assistant\"}\\n')\n"
     "sys.stdout.flush()\n"
-    "time.sleep(1.6)\n"
+    "time.sleep(1.2)\n"
     "sys.stdout.write('{\"type\": \"assistant\"}\\n')\n"
     "sys.stdout.flush()\n"
     "time.sleep(30)\n"
@@ -155,10 +155,10 @@ def behaviour_session_then_sleep(ready: Path) -> str:
 
 
 def behaviour_steady_writer(stream: str) -> str:
-    """Write one flushed line to `stream` every 0.2 s for 4 s, then exit 0."""
+    """Write one flushed line to `stream` every 0.2 s for 6 s, then exit 0."""
     return (
         "handle = getattr(sys, " + repr(stream) + ")\n"
-        "for index in range(20):\n"
+        "for index in range(30):\n"
         "    handle.write('tick ' + str(index) + '\\n')\n"
         "    handle.flush()\n"
         "    time.sleep(0.2)\n"
@@ -2059,7 +2059,7 @@ class SessionIdRecordingTests(RunnerFixture):
 
 
 class AttemptTimeoutTests(RunnerFixture):
-    """An attempt is bounded in wall-clock time, and says so when the bound fires."""
+    """An attempt is bounded by its idle and optional wall-clock timeouts, and says which fired."""
 
     def test_the_wall_clock_bound_is_off_by_default_and_the_idle_bound_is_on(self) -> None:
         module = self.load()
@@ -2090,6 +2090,8 @@ class AttemptTimeoutTests(RunnerFixture):
         self.assertFalse(hasattr(module, "FIRST_OUTPUT_SECONDS"))
         self.assertEqual(module.idle_error(900.0), "the worker wrote no output for 900 seconds")
         self.assertEqual(module.idle_error(0.5), "the worker wrote no output for 0.5 seconds")
+        self.assertEqual(module.idle_error(1e6), "the worker wrote no output for 1000000 seconds")
+        self.assertEqual(module.idle_error(1e-7), "the worker wrote no output for 0.0000001 seconds")
 
     def test_a_worker_silent_from_the_start_is_ended_by_the_idle_timeout(self) -> None:
         # Break: a worker that never writes a byte is waited on without a bound.
@@ -2126,9 +2128,9 @@ class AttemptTimeoutTests(RunnerFixture):
         module = self.load()
         self.write_grok(BEHAVIOUR_WRITE_TWICE_THEN_STALL)
         with self.pinned_resolver(module):
-            code = self.invoke(module, self.options(module, idle_timeout=1.5))
+            code = self.invoke(module, self.options(module, idle_timeout=2.5))
         self.assertEqual(code, 124)
-        self.assertEqual(self.metadata()["error"], "the worker wrote no output for 1.5 seconds")
+        self.assertEqual(self.metadata()["error"], "the worker wrote no output for 2.5 seconds")
         lines = (self.attempt / "worker.jsonl").read_text(encoding="utf-8").splitlines()
         self.assertEqual(len(lines), 2)
 
@@ -2145,12 +2147,12 @@ class AttemptTimeoutTests(RunnerFixture):
 
     def test_a_worker_whose_stdout_keeps_growing_is_not_ended(self) -> None:
         # Break: idleness is measured from launch instead of from the last growth.
-        # Growth is sampled on 1 s wait slices; writes every 0.2 s for 4 s keep
-        # every sample moving, while 4 s is well past the 1.5 s window.
+        # Growth is sampled on 1 s wait slices; writes every 0.2 s for 6 s keep
+        # every sample moving, while 6 s is well past the 2.5 s window.
         module = self.load()
         self.write_grok(behaviour_steady_writer("stdout"))
         with self.pinned_resolver(module):
-            code = self.invoke(module, self.options(module, idle_timeout=1.5))
+            code = self.invoke(module, self.options(module, idle_timeout=2.5))
         self.assertEqual(code, 0)
         self.assertEqual(self.metadata()["state"], "exited")
 
@@ -2159,10 +2161,19 @@ class AttemptTimeoutTests(RunnerFixture):
         module = self.load()
         self.write_grok(behaviour_steady_writer("stderr"))
         with self.pinned_resolver(module):
-            code = self.invoke(module, self.options(module, idle_timeout=1.5))
+            code = self.invoke(module, self.options(module, idle_timeout=2.5))
         self.assertEqual(code, 0)
         self.assertEqual(self.metadata()["state"], "exited")
         self.assertEqual((self.attempt / "worker.jsonl").stat().st_size, 0)
+
+    def test_the_idle_timeout_fires_while_a_wall_clock_timeout_is_set(self) -> None:
+        # Break: a set `--timeout` switches the idle bound off.
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        with self.pinned_resolver(module):
+            code = self.invoke(module, self.options(module, timeout=10, idle_timeout=0.5))
+        self.assertEqual(code, 124)
+        self.assertEqual(self.metadata()["error"], "the worker wrote no output for 0.5 seconds")
 
     def test_a_zero_idle_timeout_waits_for_a_silent_worker(self) -> None:
         module = self.load()
