@@ -133,7 +133,7 @@ BEHAVIOUR_SLEEP = "time.sleep(10)\nraise SystemExit(0)\n"
 BEHAVIOUR_OUTPUT_THEN_SLEEP = (
     "sys.stdout.write('{\"type\": \"assistant\"}\\n')\n"
     "sys.stdout.flush()\n"
-    "time.sleep(2.5)\n"
+    "time.sleep(3.5)\n"
     "raise SystemExit(0)\n"
 )
 NO_OUTPUT_PREFIX = "the worker wrote no output within"
@@ -1173,6 +1173,9 @@ class WorkerExecutionTests(RunnerFixture):
         process = started[0]
         self.addCleanup(lambda: subprocess.Popen.wait(process))
         self.addCleanup(process.kill)
+        # Without this the worker may never have ignored SIGTERM, and the
+        # SIGKILL below would prove nothing about the second interrupt.
+        self.assertTrue(ready.exists(), "worker never installed its SIGTERM-ignore handler")
         self.assertEqual(code, 130)
         metadata = self.metadata()
         self.assertEqual(metadata["state"], "interrupted")
@@ -1931,7 +1934,10 @@ class AttemptTimeoutTests(RunnerFixture):
         module = self.load()
         self.write_grok(BEHAVIOUR_OUTPUT_THEN_SLEEP)
         with self.pinned_resolver(module):
-            with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 0.5):
+            # 1.5 s leaves a slow interpreter start time to flush its first
+            # line; the 3.5 s sleep then puts at least two 1 s deadline
+            # checks after that write, so the pass is not a timing accident.
+            with mock.patch.object(module, "FIRST_OUTPUT_SECONDS", 1.5):
                 code = self.invoke(module, self.options(module))
         self.assertEqual(code, 0)
         self.assertEqual(self.metadata()["state"], "exited")
