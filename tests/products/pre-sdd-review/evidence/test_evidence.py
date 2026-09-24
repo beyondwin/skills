@@ -495,6 +495,7 @@ class FinishTests(unittest.TestCase):
     def test_finish_accepts_an_intake_repair_and_a_partial_closure(self) -> None:
         payload = finish_payload(
             verdict="REVISE",
+            review_passes=2,
             repair_passes=1,
             findings=[
                 finding(
@@ -521,6 +522,7 @@ class FinishTests(unittest.TestCase):
 
     def test_a_partial_closure_is_unresolved_for_a_ready_verdict(self) -> None:
         payload = finish_payload(
+            review_passes=2,
             repair_passes=1,
             findings=[finding(status="partially-closed", repair_pass=1)],
         )

@@ -39,9 +39,9 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     }
 )
 INSTRUCTION_DOCUMENT_SHA256 = {
-    "SKILL.md": "6ea66622e550b0bad861d2ca90623fe03de626509306c7487219b68a10948e3e",
+    "SKILL.md": "489580ce1414e43753a87da9e58f8c21279837ff9387409467285d160564de41",
     "references/reviewer-protocol.md": (
-        "fde65ce13f25d7bed4d7bf8bfb28c494269fbb0c5400b9d2c7bc3e9b6bf7a647"
+        "04bc4c7141343989418ab75c99e6928df46bc79c0f863878a646bbe586122afe"
     ),
 }
 CASE_IDS = (
@@ -95,6 +95,7 @@ CASE_IDS = (
     "continuation-needs-docs-only-diff",
     "continuation-needs-recorded-run",
     "focused-only-degraded-continues",
+    "continuation-after-recorded-decision",
 )
 FIXTURE_NAMES = (
     "conditional-edit-surface",
@@ -422,13 +423,13 @@ MAINTAINER_CANONICAL_SUBSECTION_DIGESTS = (
     ("### Finding classes", "2a0892a5aad034ceaf1218606d657f4b22bac89c0d2b67065b7018e811a44352"),
     ("### Conditional risk triggers", "346cdfb0c5a7df8461c7de1f7f217b499c29add6a0a2a7e88fea58449e6d223d"),
     ("### Verdicts", "c3b7669e38ade89cf67a2531fcc0e8ca0a05275550ad7f7a520c99ae060125eb"),
-    ("### Freshness", "2243844aefccdd84352f63f57f9cc58e9dd75b3c3dc75de1bb581a462da7a449"),
+    ("### Freshness", "673f390030a608b922a6f145fd8e33600df94b875c02968b854453176870a3df"),
     ("### SDD handoff", "2e0fcc729cb4455863165138c0f96256b27ddf9d4460c2f7a5ce51660806d9da"),
     ("### Ledger shape", "f1091388fd58d8db9f223fbd6e1457303c600107c4c89c37d1aded6caf2ae84e"),
     ("### Degraded reasons", "7a7a2dbb5b820bf79bd92612831807ce63000f7acb444c30bfa6b261977455a4"),
 )
-MAINTAINER_CANONICAL_DIGEST = "d3154de41e410c09d2bb37f08c117d43014ec3156d12c76ecc35508262aab844"
-TESTING_CANONICAL_DIGEST = "07dafa7c8529a778a6401c397c48a4fcdaac2eb88c2ea9a3f40cde594e60212e"
+MAINTAINER_CANONICAL_DIGEST = "0dcf5440176bb23cf7616310ad752d56294ba3948e8c0361c10cb048be2420f5"
+TESTING_CANONICAL_DIGEST = "e3be8b50180ef3c10bd37889614f81c8cc5ec812353a45bf310d649105f6238c"
 COMPATIBILITY_CANONICAL_DIGEST = "db8d19d45ca4f6748b73ace65da5e5e965f0e7002a6b0395bf563f524a424480"
 RELEASE_CANONICAL_DIGEST = "8d79c8164b43050ff344820fdf68417c46a9ff46c8e192f005fc91cab3a362db"
 
@@ -1196,6 +1197,7 @@ class PreSddReviewContractTests(unittest.TestCase):
                 r"-> authority-preserving document repair -> original closure review\s*"
                 r"-> conditional bounded repair-impact regression -> optional second repair\s*"
                 r"-> fresh original closure review \+ conditional bounded repair-impact regression\s*"
+                r"-> optional residual repair -> fresh closure of those IDs only\s*"
                 r"-> READY \| REVISE \| BLOCKED"
             ),
         )
@@ -1324,6 +1326,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertEqual(cases["continuation-needs-docs-only-diff"], ("fresh_discovery",))
         self.assertEqual(cases["continuation-needs-recorded-run"], ("fresh_discovery",))
         self.assertEqual(cases["focused-only-degraded-continues"], ("continuation", "no_focused_role", "degraded_focused_role_not_obtained"))
+        self.assertEqual(cases["continuation-after-recorded-decision"], ("continuation", "closure_first"))
 
     def test_authority_and_risk_selection_are_ordered_and_conditional(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -1466,7 +1469,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         normalized_flags = re.sub(r"\s+", " ", flags)
         for phrase in (
             "Resume a reviewer by naming findings, paths, symbols, or fixes",
-            "Start a new review when documents, `HEAD`, and the request are all unchanged since a `full` REVISE or BLOCKED run",
+            "Start a new review when documents, `HEAD`, and the request are all unchanged since a reusable REVISE run",
             "Reuse a handoff from an `execution=blocked` run, or reuse any handoff on document hashes alone",
             "Dispatch a second reviewer, or record `reviewers: 2`, with no risk trigger",
             "Return or accept a finding summary instead of complete PSDR records",
@@ -1654,7 +1657,7 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             normalized_korean,
         )
         self.assertIn(
-            "Only a `full` run's handoff, or a `degraded` run's whose only reason is "
+            "Only a `full` run's handoff, or that of a `degraded` run whose only reason is "
             "`focused-role-not-obtained`, is reused; any other `degraded` or `blocked` "
             "run's handoff is never reused.",
             normalized_english,
@@ -1805,8 +1808,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "not_measured",
         ):
             self.assertIn(fact, normalized_testing)
-        self.assertEqual(len(CASE_IDS), 50)
-        self.assertIn("정확히 쉰 개", normalized_testing)
+        self.assertEqual(len(CASE_IDS), 51)
+        self.assertIn("정확히 쉰한 개", normalized_testing)
         self.assertIn("지금은 Codex만 지원합니다", compatibility)
         self.assertIn("다른 호스트는 모두 `not_measured`", compatibility)
         self.assertIn("## 기록기 호환성", compatibility)

@@ -43,7 +43,7 @@ provider나 실제 모델을 호출하지 않으므로 실제 모델 리뷰 품�
 ## 픽스처 경계
 
 `cases.json`은 활성화, 기본 흐름, review-only, 판정, 위험, freshness,
-evidence, near-miss 사례를 정확히 쉰 개 소유합니다. `fixtures/`는 정확히
+evidence, near-miss 사례를 정확히 쉰한 개 소유합니다. `fixtures/`는 정확히
 `ready`, `missing-coverage`, `false-verification`, `runtime-removal`,
 `repair-induced-schema-consumer`, `state-machine-vacuous-pass`,
 `conditional-edit-surface` 일곱 합성 저장소를 소유합니다. 각 저장소에는
@@ -105,6 +105,7 @@ evidence, near-miss 사례를 정확히 쉰 개 소유합니다. `fixtures/`는 
 - `continuation-needs-docs-only-diff`
 - `continuation-needs-recorded-run`
 - `focused-only-degraded-continues`
+- `continuation-after-recorded-decision`
 
 ### Fixture inventory
 

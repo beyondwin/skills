@@ -137,9 +137,9 @@ run `summary --repo <repo display name>` before `start` and locate this plan in
 else: a pending run can outlive the invocation that opened it and be mistaken
 for a new round. If the latest completed verdict for that plan is `REVISE` or
 `BLOCKED`, `show` that run. Never reuse a handoff whose `execution` is
-`blocked`. For a `blocked` run whose `BLOCKED` was a user decision that no
-authority document records yet, follow the previous-decision rule under
-Verdict and handoff instead of re-running the gates. Otherwise re-run the
+`blocked`. For a `blocked` run whose `BLOCKED` was a user decision, follow the
+previous-decision rule under Verdict and handoff while no authority document
+records it, and take the continuation once one does. Otherwise re-run the
 input gates (`**Spec:**` resolution and the required implementation base) and
 call `start` if they pass. A run is reusable when its `execution` is `full`,
 or `degraded` with `focused-role-not-obtained` as its only reason; any other
@@ -148,9 +148,9 @@ review. For a reusable run, reuse the prior handoff without a new review only
 when `plan.sha_end` and `design.sha_end` match the current documents,
 `git.head_end` matches the current `HEAD`, and the outer request does not ask
 for a re-review or name changed authority or repository evidence. When only
-the documents changed, take the continuation in the default mode. Otherwise
-call `start` before semantic review with the skill root, the repository, the
-primary plan, the design path resolved from the plan's
+the documents changed, take the continuation described under Default mode.
+Otherwise call `start` before semantic review with the skill root, the
+repository, the primary plan, the design path resolved from the plan's
 `**Spec:**` field, the host client id, the host-reported model string (or
 `unknown`), and the mode.
 If `**Spec:**` cannot be resolved, omit `--design` and return `BLOCKED`; the
@@ -223,9 +223,9 @@ alone does not bar reuse or continuation.
 
 ## Default mode: review -> repair documents -> scoped re-review
 
-One invocation has one discovery stage, at most two repair passes plus one
-residual pass, and a terminal scoped closure. The default controller state
-machine is:
+One invocation has at most one discovery stage (none in a continuation), at
+most two repair passes plus one residual pass, and a terminal scoped closure.
+The default controller state machine is:
 
 ```text
 resolve plan -> resolve plan **Spec:** -> read binding references
@@ -235,6 +235,7 @@ resolve plan -> resolve plan **Spec:** -> read binding references
 -> authority-preserving document repair -> original closure review
 -> conditional bounded repair-impact regression -> optional second repair
 -> fresh original closure review + conditional bounded repair-impact regression
+-> optional residual repair -> fresh closure of those IDs only
 -> READY | REVISE | BLOCKED
 ```
 
@@ -277,8 +278,10 @@ scattered across. A finding still `partially-closed` at the end counts as
 unresolved for the verdict: it forces `REVISE`, or `BLOCKED` when it is a
 `BLOCKER`. A record's `repair_pass` is the last pass that repaired it.
 
-A new invocation does not copy a previous finding's `repair_pass`. Unresolved
-handoff findings use `repair_pass` null.
+A new invocation does not copy a previous finding's `repair_pass`. A finding
+this invocation did not repair uses `repair_pass` null, including an
+unresolved handoff finding and one closed by a change made between
+invocations.
 
 If a repair changes a schema, type, interface, state transition, conditional
 mutation surface, cross-task producer/consumer contract, verification meaning,
@@ -324,8 +327,9 @@ loop.
 
 A continuation replaces discovery with closure. Take it when all hold:
 
-- The recorder's latest completed run for this plan has verdict `REVISE` or
-  `BLOCKED` and a reusable `execution`.
+- The recorder's latest completed run for this plan has verdict `REVISE` with
+  a reusable `execution`, or verdict `BLOCKED` on a user decision that the
+  changed documents now record.
 - `git diff --name-only <git.head_end> HEAD` lists only the resolved design,
   plan, and ledger paths. This chooses between continuation and discovery; it
   does not narrow `head_changed_during_review` during a review.
@@ -338,7 +342,8 @@ continuation. The previous-decision rule in the verdict section still applies
 first.
 
 Call `start`, then dispatch one fresh read-only reviewer with the closure
-dispatch. Its open records are the prior unresolved handoff packet when this
+dispatch, whose repair diff is the document diff since the prior run's
+`sha_end`. Its open records are the prior unresolved handoff packet when this
 conversation holds it, else the prior run's recorded findings from `show`;
 their `id`, `severity`, `class`, `location`, and `evidence` are exact. Keep the
 prior finding IDs. The flow then continues as after an original closure
@@ -401,7 +406,7 @@ on a defect that is not there.
 Return `READY` only when no unresolved finding requires invention or permits a
 materially wrong implementation to pass the planned evidence. Return `REVISE`
 for a material repairable document defect, including one still material after
-the second pass. Return `BLOCKED` when required authority, input, or
+the last pass. Return `BLOCKED` when required authority, input, or
 repository evidence is unavailable, unresolvable, or would require a new
 product decision, or when an independent primary reviewer cannot be obtained.
 Record that run as `execution=blocked` and name the cause in `block_reason`; a
@@ -413,8 +418,8 @@ For final `REVISE` or `BLOCKED`, include an `unresolved handoff packet`: the
 unresolved finding, why it escaped an earlier pass when known, the bounded
 next document scope, whether new authority or evidence is required, and the
 next invocation scope. New authority implies `BLOCKED`, never `REVISE`. This
-packet does not authorize a third repair or certify its suggested scope as
-complete.
+packet does not authorize another repair pass or certify its suggested scope
+as complete.
 
 Do not automatically start another invocation after `REVISE` or `BLOCKED`.
 A later invocation requires an explicit outer request or changed document,
@@ -427,11 +432,13 @@ take the continuation described under Default mode instead.
 
 When this plan's previous run is `BLOCKED` on a user decision that no
 authority document records yet, dispatch no reviewer and make no repair: print
-the same checkpoint and stop. Other plans continue. When this run would end
-`BLOCKED` on a new product decision and the two preceding runs of this plan in
-the recorder's chain did too, the handoff sends the design back to be finished
-with all remaining decisions at once, and says the next invocation should wait
-for that. Without a chain, report the count you know and do not stop on it.
+the same checkpoint and stop. Call no `start`; print `Evidence: not_recorded;
+reason=previous-decision-checkpoint`. Once the decision is recorded, take the
+continuation. Other plans continue. When this run would end `BLOCKED` on a new
+product decision and the two preceding runs of this plan in the recorder's
+chain did too, the handoff sends the design back to be finished with all
+remaining decisions at once, and says the next invocation should wait for
+that. Without a chain, report the count you know and do not stop on it.
 
 Include a compact pass receipt in the final report: input and final document
 hashes, pass number, finding IDs/classes, triggered repair-impact categories,
@@ -455,7 +462,7 @@ proofread, publish a release, or make an accepted product decision.
 ## Red flags
 
 - Resume a reviewer by naming findings, paths, symbols, or fixes
-- Start a new review when documents, `HEAD`, and the request are all unchanged since a `full` REVISE or BLOCKED run
+- Start a new review when documents, `HEAD`, and the request are all unchanged since a reusable REVISE run
 - Reuse a handoff from an `execution=blocked` run, or reuse any handoff on document hashes alone
 - Dispatch a second reviewer, or record `reviewers: 2`, with no risk trigger
 - Return or accept a finding summary instead of complete PSDR records

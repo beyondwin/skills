@@ -426,7 +426,7 @@ class LegacyTests(RecorderFixture):
                         self.home,
                         self.repo,
                         run_id,
-                        finish_payload(repair_passes=1, findings=[finding()]),
+                        finish_payload(review_passes=2, repair_passes=1, findings=[finding()]),
                     )[0],
                     0,
                 )
@@ -536,7 +536,7 @@ class ReaderTests(RecorderFixture):
         good_id = start(self.home, self.repo, self.skill)
         bad_id = start(self.home, self.repo, self.skill, ledger="docs/design.md")
         pending = load(self.home, bad_id)
-        self.assertEqual(finish(self.home, self.repo, bad_id, finish_payload(repair_passes=1, findings=[finding()]))[0], 0)
+        self.assertEqual(finish(self.home, self.repo, bad_id, finish_payload(review_passes=2, repair_passes=1, findings=[finding()]))[0], 0)
         self.assertEqual(run(["outcome", "--run-id", bad_id, "--label", "good"], home=self.home, cwd=self.repo)[0], 0)
         completed = load(self.home, bad_id)
         for schema in (2, 3, 4):
@@ -567,7 +567,7 @@ class ReaderTests(RecorderFixture):
     def test_typed_field_status_date_and_path_damage(self) -> None:
         good_id = start(self.home, self.repo, self.skill)
         bad_id = start(self.home, self.repo, self.skill)
-        self.assertEqual(finish(self.home, self.repo, bad_id, finish_payload(repair_passes=1, findings=[finding()]))[0], 0)
+        self.assertEqual(finish(self.home, self.repo, bad_id, finish_payload(review_passes=2, repair_passes=1, findings=[finding()]))[0], 0)
         original = load(self.home, bad_id)
         changes = [
             (("schema",), 2), (("schema",), 5), (("schema",), 3.0),

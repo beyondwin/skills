@@ -229,6 +229,7 @@
     {"id": "continuation-after-committed-docs", "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a recorded REVISE run whose repaired plan was then committed", "expect": ["continuation", "docs_only_diff_predicate"]},
     {"id": "continuation-needs-docs-only-diff", "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a recorded REVISE run when src/app.ts also changed since", "expect": ["fresh_discovery"]},
     {"id": "continuation-needs-recorded-run", "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a REVISE run with no recorded evidence", "expect": ["fresh_discovery"]},
-    {"id": "focused-only-degraded-continues", "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a degraded REVISE run whose only reason is focused-role-not-obtained", "expect": ["continuation", "no_focused_role", "degraded_focused_role_not_obtained"]}
+    {"id": "focused-only-degraded-continues", "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a degraded REVISE run whose only reason is focused-role-not-obtained", "expect": ["continuation", "no_focused_role", "degraded_focused_role_not_obtained"]},
+    {"id": "continuation-after-recorded-decision", "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a BLOCKED run on a user decision that the design now records, with only docs changed since", "expect": ["continuation", "closure_first"]}
   ]
 }

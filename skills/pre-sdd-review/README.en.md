@@ -100,12 +100,15 @@ A `READY` report prints the observation anomalies that `finish` returned as an
 `Anomalies:` line. Anomalies do not change the verdict. A run whose last action
 was a repair is never `READY`, and an open `BLOCKER` makes it `BLOCKED`.
 
-One invocation ends after one discovery stage and its bounded re-reviews.
-If the first review finds nothing and no earlier repair touched files this
-plan reads, skip repair and re-review and return `READY`. If an earlier
-repair changed files this plan reads, take scoped closure even with zero
-findings. Discoveries of split plans may overlap; repairs do not. Closure requires the repair diff. A preceding `BLOCKED` plan does not stop later
-discovery.
+One invocation ends after at most one discovery stage and its bounded
+re-reviews. If the first review finds nothing and no earlier repair touched
+files this plan reads, skip repair and re-review and return `READY`. If an
+earlier repair changed files this plan reads, take scoped closure even with
+zero findings. Discoveries of split plans may overlap; repairs do not.
+Closure requires the repair diff. A preceding `BLOCKED` plan does not stop
+later discovery. A plan `BLOCKED` on an unanswered user decision is not
+re-reviewed until the decision is recorded; the same checkpoint is printed.
+Three consecutive new-decision blocks send the design back.
 
 Authority-preserving repairs need no approval; only a real product decision
 creates one consolidated checkpoint. The controller never automatically
@@ -125,7 +128,7 @@ line's exact bytes. When a compatible local recorder is present, the controller 
 `summary` first, calls `start` before semantic review, calls `finish` after the
 final verdict, and prints `Evidence: recorded; run_id=<run-id>`. Same-plan
 pending runs and invocations that end early close with `abandon`. Only a `full`
-run's handoff, or a `degraded` run's whose only reason is
+run's handoff, or that of a `degraded` run whose only reason is
 `focused-role-not-obtained`, is reused; any other `degraded` or `blocked`
 run's handoff is never reused. When the previous run was `REVISE` or
 `BLOCKED` and only the design, plan, or ledger changed since, the next
