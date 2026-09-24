@@ -276,7 +276,7 @@ XHigh, and the reverse is not a trigger either.
 | Implementation | Effort |
 | --- | --- |
 | Clear local or mechanical change, straightforward integration | High |
-| Changes to concurrency, races, locking, ordering, or shared state; auth, permission, secret, or sandbox boundaries; tangled side effects across subsystems; High already failed review on this task | XHigh |
+| Changes to concurrency, races, locking, ordering, or shared state; auth, permission, secret, or sandbox boundaries; tangled side effects across subsystems | XHigh |
 
 Architecture ambiguity is a ruling, not XHigh. File count, line count,
 "this is important", and "to be safe" are not triggers. Record
@@ -339,12 +339,13 @@ existing SDD ruling procedure before another attempt.
 The fix-round cap is unchanged. Neither a backend change nor more supplied
 context resets it.
 
-Split verification in the brief under two headings, `Worker checks` and
-`Host checks`. The worker runs the Worker checks. An outstanding host check
+Split verification in the brief under two headings, `Worker checks` and `Host
+checks`. The worker runs the Worker checks. Run a task's Host checks before that
+task's review, not batched at the end of the plan. An outstanding host check
 comes back through the existing `NEEDS_CONTEXT` or `BLOCKED` status with the
-items named; there is no new worker status for it. When the host can fill in
-the result and no code change is needed, run the host check here and do not
-call the worker again for the same reason.
+items named; there is no new worker status for it. When the host can fill in the
+result and no code change is needed, run the host check here and do not call the
+worker again for the same reason.
 
 A report-only correction is an evidence correction. It does not require a code
 change, a new commit, or a full re-review. A recorded role violation stays
@@ -405,6 +406,7 @@ explicitly after checking its ledger record and its processes. The supported OS 
 - A second current-state file beside the ledger block
 - Hand-composing a provider command, or a new execution script per run
 - Dumping a whole worker log into this session
+- Starting an attempt while the previous attempt's `pid_alive` is true, or stopping one with `pkill -f`
 - Re-querying the same status offset in a short loop
 - Retrying after a confirmed 402 without a changed condition
 - Calling the worker again for a host-only check

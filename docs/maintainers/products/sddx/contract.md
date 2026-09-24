@@ -115,8 +115,8 @@ frontmatter 이름만으로는 Task가 찾지 못합니다. 중첩 경로나 `pl
 effort를 구현에 복사하지 않습니다. 리뷰어 XHigh가 구현 XHigh를 강제하지
 않습니다. 요구가 분명하고 로컬·기계적인 변경, 단순한 통합은 High입니다.
 동시성·race·잠금·순서·공유 상태, auth·권한·secret·sandbox 경계, 여러
-하위계가 얽힌 부작용, 이 과제에서 High 리뷰가 이미 실패한 경우는
-XHigh입니다. 설계 모호함은 XHigh가 아니라 오케스트레이터 ruling입니다.
+하위계가 얽힌 부작용은 XHigh입니다. 설계 모호함은 XHigh가 아니라
+오케스트레이터 ruling입니다.
 이유를 대지 못하면 High입니다. effort가 오르면 새 워커입니다. worker가
 `NEEDS_CONTEXT` 또는 `BLOCKED`를 반환하면 ruling한 뒤 같은 backend로 다시
 보냅니다.
@@ -259,6 +259,10 @@ Windows 명령 전송은 제품 계약이 아닙니다. Cursor에는 이 변경�
 본문입니다. `Global Constraints`/`Global constraints` 절이 없거나, 둘
 이상이거나, 본문이 비어 있으면 exit 3이며 그 경우 워커를 보내지 않습니다.
 이미 있는 출력 파일은 덮어쓰지 않으므로 추출마다 새 경로를 씁니다.
+계획 제목이 없는 brief(fix 라운드, 이어가기)는
+`extract_task.py <plan-file> --heading "Global Constraints" --output <file>`로
+제약 절만 뽑아 그 출력으로 시작합니다. 계획이 다른 계획의 제약을 가리키면 그
+계획에서 뽑습니다. 손으로 옮기거나 `/tmp` 캐시를 쓰지 않습니다.
 
 worker 실행은 `scripts/run_worker.py run` 하나입니다. 공급자 명령을 직접
 조합하거나 실행마다 새 실행 스크립트를 만들지 않습니다. `--attempt-dir`는
@@ -306,6 +310,12 @@ Superpowers `sdd-workspace`가 만든 계획 디렉터리 아래의 새 폴더�
   `exit_code`는 null입니다. 파일 내용, stdout, stderr, thinking은
   없습니다. 한도: 읽기 64, 검색 32, 셸 32, 명령 200자. 알 수 없는 도구 모양은
   빈 목록이며 오류가 아닙니다. JSON이 아니거나 너무 깊은 줄은 건너뜁니다.
+
+시도가 끝났다는 판단은 `state`가 `running`이 아니고 `pid_alive`가 false인
+것입니다. 이전 시도의 `pid_alive`가 true인 동안 새 시도를 띄우지 않습니다.
+멈출 때는 그 러너의 pid에 SIGTERM을 보내고 `pkill -f`를 쓰지 않습니다.
+attempt 부모 폴더는 첫 실행 전에 만들고, `run`·`status` 출력을 exit를 가리는
+파이프로 넘기지 않습니다.
 
 `run.json`은 프로세스 사실만 담습니다. `schema_version` 2와 함께 `backend`,
 `identity`, `model`, `worktree`, `attempt_dir`, `brief_sha256`, `resume_id`,

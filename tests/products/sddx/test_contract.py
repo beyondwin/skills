@@ -397,6 +397,32 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("Grok `tool_use`", fold(contract))
         self.assertIn("Cursor·Grok 두 로그 형태의 bounded tools index", fold(testing))
 
+    def test_improvised_rules_are_on_every_face(self) -> None:
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
+        worker = (SKILL / "references" / "worker-prompt.md").read_text(encoding="utf-8")
+        contract = (
+            ROOT / "docs" / "maintainers" / "products" / "sddx" / "contract.md"
+        ).read_text(encoding="utf-8")
+        fold = lambda value: re.sub(r"\s+", " ", value)
+        skill, dispatch, worker, contract = map(fold, (skill, dispatch, worker, contract))
+        # R6: no implementer XHigh trigger that every fix round meets.
+        self.assertNotIn("High already failed review", skill)
+        self.assertNotIn("High 리뷰가 이미 실패한 경우", contract)
+        # R5: fix briefs start from the extracted constraints section.
+        for text in (dispatch, contract):
+            self.assertIn('--heading "Global Constraints"', text)
+        # R7: report timing, provider session stores, host-check timing.
+        self.assertIn("Write the report right after that commit", worker)
+        self.assertIn("provider's session directories", worker)
+        self.assertIn("before that task's review", skill)
+        # R7: attempt parent, no masking pipe, waiting and stopping.
+        self.assertIn("worker-attempts/", dispatch)
+        self.assertIn("`tail`", dispatch)
+        for text in (dispatch, contract):
+            self.assertIn("pkill -f", text)
+        self.assertIn("previous attempt's `pid_alive` is true", skill)
+
     def test_dispatch_opens_with_controller_procedure(self) -> None:
         text = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
         self.assertIn("## Controller procedure", text)

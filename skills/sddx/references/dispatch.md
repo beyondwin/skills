@@ -14,6 +14,11 @@
    Then add `Search paths`, `Worker checks`, `Host checks`, and task
    decisions. If extract exits 3 because Global Constraints are missing,
    duplicated, or empty, record that in the ledger and do not dispatch.
+   A brief with no plan heading of its own (a fix round, a continuation)
+   starts from the constraints section alone:
+   `extract_task.py <plan-file> --heading "Global Constraints" --output <new-path>`.
+   If the plan points at another plan's constraints, extract from that plan.
+   Do not copy constraints by hand or from a cached `/tmp` file.
 4. Grok: `prepare` → `run_worker.py run` → wait on the host job → the
    `status` windows you need → confirm the worker and its descendants have
    exited → `cleanup`. Cursor: the same run/status path without
@@ -177,6 +182,9 @@ prefix's sandbox value itself. `run_worker.py` never prepares or cleans up.
 `--attempt-dir` must be a new directory under the plan directory from Superpowers
 `sdd-workspace` (already inside the worktree `.superpowers/sdd/<plan>/` tree),
 never a shared flat `.superpowers/` name.
+Create its parent (for example `<plan-dir>/worker-attempts/`) before the first
+run; the runner refuses a missing parent. Do not pipe `run` or `status` through
+`tail` or another filter that hides the exit code.
 The runner writes six files there: `brief.md`, `dispatch.md`, `worker.jsonl`
 (raw stdout), `stderr.log`, `run.json`, and `report.md`, which the worker
 writes itself — the runner never writes the report. Grok receives the worker
@@ -241,6 +249,12 @@ for native reviewers.
     python3 "<skill-root>/scripts/run_worker.py" status --attempt-dir <attempt-dir> --stream stdout|stderr --offset N --max-bytes N
 
 `status` is read-only. Ask it instead of dumping the log.
+
+An attempt is over when `state` is not `running` and `pid_alive` is false; a
+worker can still be writing `report.md` after its record changed. Do not start
+the next attempt while the previous attempt's `pid_alive` is true. To stop an
+attempt, send SIGTERM to its runner's own pid; never `pkill -f`, which can miss
+the worker or hit another run.
 
 Read the bounded windows you need. Do not print a raw log wholesale into this
 session, and do not write a new execution script for a run. Do not re-query
