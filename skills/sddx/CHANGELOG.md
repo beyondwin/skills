@@ -34,7 +34,9 @@ No entries yet.
   create the attempt parent first, do not mask exits with `tail`, do not start
   an attempt while the previous one's `pid_alive` is true, and never
   `pkill -f`. Controllers stop an attempt by signalling the runner (the host
-  job, or the parent of `run.json.pid`), never the recorded worker pid.
+  job, or the parent of `run.json.pid`), never the recorded worker pid unless
+  its parent is pid 1: the runner is gone, so SIGTERM, then SIGKILL, the
+  recorded pid.
 - The runner's interrupt edges are hardened. An interrupt during a timeout's
   wait goes straight to SIGKILL. Once `interrupted` is recorded the runner
   exits 130 even if more interrupts arrive. The recorded `exit_code` is null

@@ -468,6 +468,8 @@ class SddxContractTests(unittest.TestCase):
         # The ppid route when the runner is already gone.
         self.assertIn("If that parent is pid 1", dispatch)
         self.assertIn("그 부모가 pid 1이면", contract)
+        changelog = fold((SKILL / "CHANGELOG.md").read_text(encoding="utf-8"))
+        self.assertIn("never the recorded worker pid unless its parent is pid 1", changelog)
         self.assertIn("previous attempt's `pid_alive` is true", skill)
         self.assertIn("signalling `run.json.pid` while its runner is alive", skill)
 
