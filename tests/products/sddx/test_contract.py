@@ -397,6 +397,47 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("Grok `tool_use`", fold(contract))
         self.assertIn("Cursor·Grok 두 로그 형태의 bounded tools index", fold(testing))
 
+    def test_runner_limits_are_on_every_face(self) -> None:
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
+        contract = (
+            ROOT / "docs" / "maintainers" / "products" / "sddx" / "contract.md"
+        ).read_text(encoding="utf-8")
+        fold = lambda value: re.sub(r"\s+", " ", value)
+        faces = {"dispatch.md": fold(dispatch), "contract.md": fold(contract)}
+        expected = {
+            "dispatch.md": (
+                # G1: an interrupted record's exit can be null.
+                "could not be confirmed ended",
+                "check `pid_alive` before cleanup",
+                # G9: a foreground Grok shell is indexed only once it returns.
+                "is not in the index yet",
+                # G10: the limits the runner deliberately keeps.
+                "bounded only by `--timeout`",
+                "build daemon",
+                "end them by pid",
+            ),
+            "contract.md": (
+                "확인하지 못하면 그 `exit_code`는 `null`",
+                "정리 전에 `pid_alive`를 확인합니다",
+                "아직 인덱스에 없습니다",
+                "`--timeout`으로만 제한됩니다",
+                "빌드 데몬",
+                "pid로 확인하고 끝냅니다",
+                # G6: one continuation-brief rule.
+                "이전 `report.md`와 이미 만든 커밋",
+            ),
+        }
+        for name, phrases in expected.items():
+            for phrase in phrases:
+                with self.subTest(face=name, phrase=phrase):
+                    self.assertTrue(phrase in faces[name], f"{phrase!r} missing from {name}")
+        paragraphs = [fold(part) for part in re.split(r"\n\s*\n", skill)]
+        continuation = [part for part in paragraphs if "continuation brief" in part]
+        self.assertEqual(len(continuation), 1)
+        self.assertIn("`report.md`", continuation[0])
+        self.assertIn("the commits already made", continuation[0])
+
     def test_improvised_rules_are_on_every_face(self) -> None:
         skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")

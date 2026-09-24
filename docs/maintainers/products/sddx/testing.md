@@ -70,12 +70,15 @@ worktree를 만들고 Git 경로 계산, 기존 TOML 원문 복원, 재진입, �
 `tests/products/sddx/test_run_worker.py`는 시도 디렉터리 여섯 파일, argv 구성,
 backend별 `--model`/`--sandbox-profile` 배타, `run.json` 필드(`skill_version`
 포함)와 상태, 실행 중 `session_id` 기록, 래퍼 SIGTERM → `interrupted`,
-래퍼 exit 규칙, 닫힌 stdin, 시도 경로 거절을 검사합니다.
+러너 중단 시 worker 종료와 두 번째 인터럽트의 kill, SIGTERM 처리기의 실행 전
+설치, 첫 출력 기한(`--timeout 0`·재개 포함, 더 짧은 `--timeout` 우선), 기본
+타임아웃 7200, 래퍼 exit 규칙, 닫힌 stdin, 시도 경로 거절을 검사합니다.
 `tests/products/sddx/test_worker_status.py`는 `stale`(running인데 pid가 없을
 때만 true), `session_id_in_log`(기록에 ID가 없을 때만 채움), 읽기 전용 응답,
 `pid_alive`,
-Cursor·Grok 두 로그 형태의 bounded tools index, 기본 응답에 로그 본문이 없다는 점, 너무 깊은 JSON 줄
-건너뛰기, `--stream` 기본 2048·최대 8192바이트, 64 KiB 응답 상한, offset
+Cursor·Grok 두 로그 형태의 bounded tools index, 기본 응답에 로그 본문이
+없다는 점, 너무 깊은 JSON 줄 건너뛰기, `--stream` 기본 2048·최대 8192바이트,
+64 KiB 응답 상한, offset
 처리를 검사합니다. 어느 검사도 공급자를 호출하지 않습니다.
 
 Windows `.cmd` 왕복 검사(`skipUnless(os.name == "nt")`)는 삭제했습니다.

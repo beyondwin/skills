@@ -218,15 +218,17 @@ SIGTERM, waits ten seconds, kills it if it is still alive, records `state`
 copied (or scans once more if that field is still null), and exits 124. Only
 the worker process itself is signalled. It shares the controller's process
 group so that a terminal interrupt reaches it, so descendants the worker
-started are not pursued and no process tree is cleaned up here. Confirm those
-have exited yourself before cleanup.
+started are not pursued and no process tree is cleaned up here. Those
+processes (for example a backgrounded shell or a build daemon) can outlive the
+worker, so confirm and end them by pid yourself before cleanup.
 
 A worker that writes no stdout at all within 300 seconds of starting, new or
 resumed, is ended the same way, even under `--timeout 0`: `timed_out`, exit
 124, `error` `the worker wrote no output within 300 seconds`. When that is the
 error, do not raise `--timeout` and do not resume that session; dispatch a
 fresh worker with a continuation brief that names the previous `report.md`
-and the commits already made.
+and the commits already made. The deadline watches only the first byte: a
+worker that printed and then stalls is bounded only by `--timeout`.
 
 Do not pass `--worktree` to the provider CLI. Do not pass `--continue`. Do not
 copy host credentials or environment values into the brief or the dispatch.
@@ -310,7 +312,9 @@ A launch failure is 2, a handled runner interrupt is 130, and an attempt
 ended by its own timeout is 124. On SIGTERM or Ctrl-C the runner records
 `interrupted` at once, then ends the worker process itself the way a timeout
 does (SIGTERM, ten seconds, SIGKILL) and records the exit it recovered; a
-second interrupt during that wait goes straight to SIGKILL. The `error` is
+second interrupt during that wait, or an interrupt during a timeout's own wait,
+goes straight to SIGKILL. That `exit_code` is `null` when the worker could not
+be confirmed ended, so check `pid_alive` before cleanup. The `error` is
 `the runner was interrupted (SIGTERM or Ctrl-C)`: the runner cannot know who
 sent the signal, so it does not say. SIGTERM to the worker remains
 `exited` (or `timed_out` when the runner sent it) with the negative returncode.
@@ -339,8 +343,11 @@ log body. Role compliance is still the controller's.
   command characters. It reads Cursor `tool_call` events and Grok `tool_use`
   items; a Grok `list_dir` is a search with `pattern` null, and a Grok shell's
   `exit_code` is null when no integer exit came back (a background task, or a
-  worker stopped first). Unknown tool shapes are empty lists, not an error.
-  File contents, stdout, stderr, and thinking stay out.
+  worker stopped first). Grok writes a shell call only once it returns or
+  moves to the background, so a Grok shell still running in the foreground is
+  not in the index yet; do not read its absence as "no command ran". Unknown
+  tool shapes are empty lists, not an error. File contents, stdout, stderr,
+  and thinking stay out.
 
 A window needs `--stream`; it defaults to 2048 bytes with a maximum of 8192,
 and the whole JSON answer is capped at 64 KiB.

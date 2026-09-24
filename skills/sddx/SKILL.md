@@ -315,7 +315,8 @@ a fresh attempt applies.
 An attempt whose `error` is `the worker wrote no output within 300 seconds`
 reported nothing on stdout; check the worktree for partial changes, then do
 not resume that session and do not raise `--timeout` for it; dispatch a fresh
-worker with a continuation brief.
+worker with a continuation brief that names the previous `report.md` and the
+commits already made.
 
 There is no automatic retry anywhere in these helpers. `run.json.state` is
 process state, not task state, and process exit 0 is not a clean DONE.

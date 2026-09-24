@@ -308,7 +308,10 @@ Superpowers `sdd-workspace`가 만든 계획 디렉터리 아래의 새 폴더�
   `shells`(종료 코드·명령), `truncated`. Cursor `tool_call` 이벤트와 Grok
   `tool_use` 항목을 읽습니다. Grok `list_dir`은 `pattern`이 null인 검색이고,
   정수 종료 코드가 돌아오지 않은 Grok 셸(백그라운드 작업, 먼저 멈춘 worker)의
-  `exit_code`는 null입니다. 파일 내용, stdout, stderr, thinking은
+  `exit_code`는 null입니다. Grok은 셸 호출을 그 호출이 돌아오거나
+  백그라운드로 옮겨진 뒤에야 적으므로, 포그라운드에서 아직 실행 중인 Grok 셸은
+  아직 인덱스에 없습니다. 없다고 "명령이 실행되지 않았다"로 읽지 않습니다.
+  파일 내용, stdout, stderr, thinking은
   없습니다. 한도: 읽기 64, 검색 32, 셸 32, 명령 200자. 알 수 없는 도구 모양은
   빈 목록이며 오류가 아닙니다. JSON이 아니거나 너무 깊은 줄은 건너뜁니다.
 
@@ -340,7 +343,9 @@ attempt 부모 폴더는 첫 실행 전에 만들고, `run`·`status` 출력을 
 시그널은 두 갈래입니다. 러너(래퍼)에 SIGTERM 또는 Ctrl-C가 오면 러너는 먼저
 `interrupted`를 기록하고, 타임아웃과 같은 방식(SIGTERM, 10초, SIGKILL)으로
 worker 프로세스 하나를 끝낸 뒤 회수한 `exit_code`를 다시 기록하고 130으로
-끝납니다. 그 대기 중 두 번째 인터럽트는 곧바로 SIGKILL로 넘어갑니다.
+끝납니다. worker가 끝났는지 확인하지 못하면 그 `exit_code`는 `null`이므로
+정리 전에 `pid_alive`를 확인합니다. 그 대기 중 두 번째 인터럽트와 타임아웃이
+worker를 끝내는 대기 중 들어온 인터럽트는 곧바로 SIGKILL로 넘어갑니다.
 `error`는 `the runner was interrupted (SIGTERM or Ctrl-C)`이며 신호를 보낸
 주체를 적지 않습니다. worker가 시작한 자식은 쫓지 않습니다. 워커에 SIGTERM이 가면
 `exited`(타임아웃이 보낸 것이면 `timed_out`)와 음수 `exit_code`입니다. SIGKILL은
@@ -356,11 +361,15 @@ worker 프로세스 하나를 끝낸 뒤 회수한 `exit_code`를 다시 기록�
 worker를 끝내고 `timed_out`, exit 124, `error` `the worker wrote no output within
 300 seconds`를 기록합니다. `--timeout 0`이어도 적용되고 플래그는 없습니다.
 `--timeout`이 더 짧으면 `--timeout`이 먼저입니다. 이 오류면 타임아웃을 올려 다시
-돌리거나 그 세션을 재개하지 않고, 이어가기 브리프로 새 worker를 보냅니다.
+돌리거나 그 세션을 재개하지 않고, 이전 `report.md`와 이미 만든 커밋을 적은
+이어가기 브리프로 새 worker를 보냅니다. 이 기한은 첫 바이트만 봅니다. 출력한
+뒤 멈춘 worker는 `--timeout`으로만 제한됩니다.
 
 신호는 worker 프로세스 하나에만 보냅니다. worker는 터미널 인터럽트가 닿도록
 컨트롤러와 같은 프로세스 그룹에 남으므로, worker가 시작한 자식 프로세스는 쫓아가지
 않습니다. 인터럽트 경로와 같은 한계이며 프로세스 트리를 정리했다고 적지 않습니다.
+worker가 시작한 프로세스(예: 백그라운드 셸, 빌드 데몬)는 worker보다 오래 남을 수
+있으니 정리 전에 pid로 확인하고 끝냅니다.
 
 요청 effort와 설정 effort는 따로 기록합니다. Cursor는 effort를 플래그가 아니라
 모델 ID에 담으므로, 러너는 선언된 effort가 `--effort`와 어긋나는 모델을 거부하고
