@@ -4,8 +4,8 @@ description: Use when an approved design spec and implementation plan already ex
 license: Apache-2.0
 compatibility: Requires a local Git repository, readable design and plan files, and Codex subagent support for independent review.
 metadata:
-  version: "5.1.0"
-  updated_at: "2026-09-24"
+  version: "6.0.0"
+  updated_at: "2026-09-25"
 ---
 
 # Pre-SDD Review
@@ -170,9 +170,10 @@ call `abandon` with one of `user-cancelled`, `input-changed`, `scope-changed`,
 display name and plan path are `pending`, close that run with `other` or
 `input-changed` before a new `start`.
 
-A schema 2 pending run is `historical-unbound` and read-only; a schema 3
-pending run accepts only `abandon`. Start a new run if recording is still
-wanted, and never infer a checkout identity for a historical record.
+The recorder reads only schema 4. A record left by an earlier recorder
+(schema 2 or 3) fails every command with `schema-unsupported`, cannot be
+closed, and never blocks `start`; leave it and start a new run. `summary`
+skips it and counts it in `unsupported_records`.
 
 Recording an `outcome` is not a controller duty. After SDD or implementation
 ends, the user or the SDD worker may record one label (`good`, `false-ready`,
@@ -208,9 +209,9 @@ and, when triggered, one focused risk role. The focused risk role is required
 only in an invocation that runs discovery; closure rounds and continuations do
 not dispatch it. A fresh re-review may replace the agent in either role, but
 it does not add a review role or broaden the triggered risk class. Evidence
-`reviewer_count` records these logical roles, not cumulative fresh agent
-calls, and evidence `reviewers` counts distinct agents obtained for the
-logical roles, not intended roles. If a fresh independent primary reviewer
+`reviewers` (0–2) counts distinct agents obtained for these logical roles, not
+intended roles and not cumulative fresh agent calls; a `full` run expects 2
+when a trigger applies and 1 otherwise. If a fresh independent primary reviewer
 cannot be obtained, return `BLOCKED`. Do not use the controlling agent as a
 substitute independent primary and do not run a short degraded round in its
 place. If the host can supply only k fresh agents, run discovery in waves of

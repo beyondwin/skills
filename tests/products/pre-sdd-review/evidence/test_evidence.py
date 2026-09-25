@@ -28,7 +28,7 @@ from support import (
 import evidence
 
 
-VERSION_LINE = b'{"cli_version":"5.1.0","schema":4,"skill_name":"pre-sdd-review"}\n'
+VERSION_LINE = b'{"cli_version":"6.0.0","schema":4,"skill_name":"pre-sdd-review"}\n'
 
 
 class VersionTests(unittest.TestCase):
@@ -695,9 +695,10 @@ class SummaryTests(unittest.TestCase):
 
     def test_summary_on_empty_home_has_exact_keys(self) -> None:
         summary = self._summary()
-        self.assertEqual(set(summary), {"schema", "runs", "counts", "cost", "chains", "findings", "anomalies", "invalid_records"})
+        self.assertEqual(set(summary), {"schema", "runs", "counts", "cost", "chains", "findings", "anomalies", "invalid_records", "unsupported_records"})
         self.assertEqual(summary["runs"], [])
         self.assertEqual(summary["invalid_records"], 0)
+        self.assertEqual(summary["unsupported_records"], 0)
         self.assertEqual(summary["counts"]["status"], {"completed": 0, "abandoned": 0, "pending": 0})
         self.assertEqual(summary["counts"]["verdict"], {"READY": 0, "REVISE": 0, "BLOCKED": 0})
         self.assertEqual(summary["counts"]["outcome"], {"recorded": 0, "good": 0, "false-ready": 0, "noisy": 0, "abandoned": 0})
@@ -748,7 +749,7 @@ class SummaryTests(unittest.TestCase):
         summary = self._summary()
         self.assertEqual(summary["invalid_records"], 2)
         self.assertEqual([item["run_id"] for item in summary["runs"]], [first, second, abandoned, pending, unresolved_design])
-        self.assertEqual(set(summary["runs"][0]), {"run_id", "started_at", "repo", "repo_key", "binding", "plan", "status", "verdict", "findings", "elapsed_s"})
+        self.assertEqual(set(summary["runs"][0]), {"run_id", "started_at", "repo", "repo_key", "plan", "status", "verdict", "findings", "elapsed_s"})
         self.assertEqual(summary["counts"]["observation"], {"normal": 0, "anomalous": 3})
         self.assertEqual(summary["counts"]["normal_verdict"], {"READY": 0, "REVISE": 0, "BLOCKED": 0})
         self.assertEqual(summary["counts"]["anomalous_verdict"], {"READY": 2, "REVISE": 1, "BLOCKED": 0})

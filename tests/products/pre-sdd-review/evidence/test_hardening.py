@@ -320,133 +320,116 @@ class UnsupportedLockingTests(RecorderFixture):
         self.assertFalse(self.home.exists())
 
 
-class LegacyTests(RecorderFixture):
-    def test_legacy_pending_is_readable_but_not_mutated(self) -> None:
-        run_id = start(self.home, self.repo, self.skill)
-        old = downgrade(load(self.home, run_id), 2)
-        path = self.put(run_id, old)
-        before = path.read_bytes()
-        code, out, err = run(
-            ["show", "--run-id", run_id], home=self.home, cwd=self.repo
-        )
-        self.assertEqual((code, out.encode(), err), (0, before, ""))
-        code, _, err = finish(self.home, self.repo, run_id, finish_payload())
-        self.assertEqual(code, 2)
-        self.assertEqual(error_code(err), "legacy-record-read-only")
-        code, _, err = run(
-            ["abandon", "--run-id", run_id, "--reason", "other"],
-            home=self.home,
-            cwd=self.repo,
-        )
-        self.assertEqual(code, 2)
-        self.assertEqual(error_code(err), "legacy-record-read-only")
-        self.assertEqual(path.read_bytes(), before)
+class UnsupportedSchemaTests(RecorderFixture):
+    """Schema 2 and 3 records from earlier recorders are refused, never read."""
 
-    def test_legacy_completed_outcome_is_refused_without_mutation(self) -> None:
-        run_id = start(self.home, self.repo, self.skill)
-        self.assertEqual(
-            finish(self.home, self.repo, run_id, finish_payload())[0], 0
-        )
-        old = downgrade(load(self.home, run_id), 2)
-        path = self.put(run_id, old)
-        before = path.read_bytes()
-        code, out, err = run(
-            ["show", "--run-id", run_id], home=self.home, cwd=self.repo
-        )
-        self.assertEqual((code, out.encode(), err), (0, before, ""))
-        code, _, err = run(
-            ["outcome", "--run-id", run_id, "--label", "good"],
-            home=self.home,
-            cwd=self.repo,
-        )
-        self.assertEqual(code, 2)
-        self.assertEqual(error_code(err), "legacy-record-read-only")
-        self.assertEqual(path.read_bytes(), before)
-        self.assertNotIn("repo_key", load(self.home, run_id))
+    def retire(self, run_id: str, schema: int) -> Path:
+        return self.put(run_id, downgrade(load(self.home, run_id), schema))
 
-    def test_a_schema_three_pending_run_can_only_be_abandoned(self) -> None:
-        run_id = start(self.home, self.repo, self.skill)
-        path = self.home / "runs" / f"{run_id}.json"
-        record = downgrade(json.loads(path.read_text(encoding="utf-8")), 3)
-        self.assertEqual(set(record), evidence.RECORD_KEYS_V3)
-        path.write_text(json.dumps(record, sort_keys=True), encoding="utf-8")
+    def assert_unsupported(self, argv: list[str], *, stdin: dict[str, object] | None = None) -> None:
+        if stdin is None:
+            code, out, err = run(argv, home=self.home, cwd=self.repo)
+        else:
+            code, out, err = run(argv, home=self.home, cwd=self.repo, stdin_text=json.dumps(stdin))
+        self.assertEqual((code, out), (2, ""))
+        self.assertEqual(error_code(err), "schema-unsupported")
+        self.assertEqual(len(err.splitlines()), 1)
+        self.assertNotIn("Traceback", err)
 
-        code, _, err = finish(self.home, self.repo, run_id, finish_payload())
-        self.assertEqual(code, 2)
-        self.assertEqual(error_code(err), "legacy-record-read-only")
+    def test_every_run_command_refuses_a_retired_pending_record_without_mutation(self) -> None:
+        for schema in evidence.UNSUPPORTED_SCHEMAS:
+            with self.subTest(schema=schema):
+                run_id = start(self.home, self.repo, self.skill)
+                path = self.retire(run_id, schema)
+                before = path.read_bytes()
+                self.assert_unsupported(["show", "--run-id", run_id])
+                self.assert_unsupported(
+                    ["finish", "--run-id", run_id, "--repo", str(self.repo)],
+                    stdin=finish_payload(),
+                )
+                self.assert_unsupported(["abandon", "--run-id", run_id, "--reason", "other"])
+                self.assertEqual(path.read_bytes(), before)
 
-        code, out, err = run(
-            ["abandon", "--run-id", run_id, "--reason", "input-format-fixed"],
-            home=self.home,
-            cwd=self.repo,
-        )
+    def test_every_run_command_refuses_a_retired_completed_record_without_mutation(self) -> None:
+        for schema in evidence.UNSUPPORTED_SCHEMAS:
+            with self.subTest(schema=schema):
+                run_id = start(self.home, self.repo, self.skill)
+                self.assertEqual(finish(self.home, self.repo, run_id, finish_payload())[0], 0)
+                path = self.retire(run_id, schema)
+                before = path.read_bytes()
+                self.assert_unsupported(["show", "--run-id", run_id])
+                self.assert_unsupported(["outcome", "--run-id", run_id, "--label", "good"])
+                self.assert_unsupported(
+                    ["finish", "--run-id", run_id, "--repo", str(self.repo)],
+                    stdin=finish_payload(),
+                )
+                self.assert_unsupported(["abandon", "--run-id", run_id, "--reason", "other"])
+                self.assertEqual(path.read_bytes(), before)
+
+    def test_retired_records_do_not_block_a_new_run(self) -> None:
+        pending = start(self.home, self.repo, self.skill)
+        completed = start(self.home, self.repo, self.skill)
+        self.assertEqual(finish(self.home, self.repo, completed, finish_payload())[0], 0)
+        retired = {
+            pending: self.retire(pending, 2).read_bytes(),
+            completed: self.retire(completed, 3).read_bytes(),
+        }
+
+        current = start(self.home, self.repo, self.skill)
+        code, _, err = finish(self.home, self.repo, current, finish_payload())
         self.assertEqual((code, err), (0, ""))
-        self.assertEqual(json.loads(out)["status"], "abandoned")
-        code, out, err = run(["show", "--run-id", run_id], home=self.home, cwd=self.repo)
+        code, out, err = run(["outcome", "--run-id", current, "--label", "good"], home=self.home, cwd=self.repo)
         self.assertEqual((code, err), (0, ""))
-        self.assertEqual(json.loads(out)["status"], "abandoned")
-        code, out, err = run(["summary"], home=self.home, cwd=self.repo)
-        self.assertEqual((code, err), (0, ""))
-        self.assertEqual(json.loads(out)["invalid_records"], 0)
-
-    def test_a_legacy_completed_record_with_a_free_text_degraded_reason_stays_readable(self) -> None:
-        run_id = start(self.home, self.repo, self.skill)
-        self.assertEqual(
-            finish(
-                self.home,
-                self.repo,
-                run_id,
-                finish_payload(execution="degraded", degraded_reasons=["other"]),
-            )[0],
-            0,
-        )
-        old = downgrade(load(self.home, run_id), 3)
-        # Schema 3 predates the closed DEGRADED_REASONS vocabulary; a stored
-        # free-text reason from that era must not become unreadable now.
-        old["degraded_reasons"] = ["fresh-reviewer-unavailable"]
-        self.put(run_id, old)
-
-        code, out, err = run(["show", "--run-id", run_id], home=self.home, cwd=self.repo)
-        self.assertEqual((code, err), (0, ""))
-        self.assertEqual(json.loads(out)["degraded_reasons"], ["fresh-reviewer-unavailable"])
 
         code, out, err = run(["summary"], home=self.home, cwd=self.repo)
         self.assertEqual((code, err), (0, ""))
         summary = json.loads(out)
+        self.assertEqual(summary["unsupported_records"], 2)
         self.assertEqual(summary["invalid_records"], 0)
-        self.assertEqual([item["run_id"] for item in summary["runs"]], [run_id])
+        self.assertEqual([item["run_id"] for item in summary["runs"]], [current])
+        self.assertEqual(summary["chains"], [])
+        for run_id, before in retired.items():
+            self.assertEqual((self.home / "runs" / f"{run_id}.json").read_bytes(), before)
 
-    def test_a_legacy_finding_without_source_stays_readable_at_schema_two_and_three(self) -> None:
-        expected: list[str] = []
-        for schema in (2, 3):
-            with self.subTest(schema=schema):
-                run_id = start(self.home, self.repo, self.skill)
-                self.assertEqual(
-                    finish(
-                        self.home,
-                        self.repo,
-                        run_id,
-                        finish_payload(review_passes=2, repair_passes=1, findings=[finding()]),
-                    )[0],
-                    0,
-                )
-                # Schema 2/3 findings predate the "source" key; a stored finding
-                # from that era must not become unreadable now that schema 4 adds it.
-                old = downgrade(load(self.home, run_id), schema)
-                self.assertNotIn("source", old["findings"][0])
-                path = self.put(run_id, old)
-                before = path.read_bytes()
+    def test_retired_records_are_counted_apart_from_damaged_records(self) -> None:
+        good = start(self.home, self.repo, self.skill)
+        retired = start(self.home, self.repo, self.skill)
+        self.retire(retired, 2)
+        damaged = start(self.home, self.repo, self.skill)
+        self.put(damaged, {**load(self.home, damaged), "schema": 5})
+        # A retired schema that is also malformed is still reported as retired:
+        # the schema decides first, so the user is told to delete it, not repair it.
+        malformed = start(self.home, self.repo, self.skill)
+        self.put(malformed, {"schema": 3, "run_id": malformed})
+        code, out, err = run(["summary"], home=self.home, cwd=self.repo)
+        self.assertEqual((code, err), (0, ""))
+        summary = json.loads(out)
+        self.assertEqual(summary["unsupported_records"], 2)
+        self.assertEqual(summary["invalid_records"], 1)
+        self.assertEqual([item["run_id"] for item in summary["runs"]], [good])
+        self.assert_unsupported(["show", "--run-id", malformed])
+        code, out, err = run(["show", "--run-id", damaged], home=self.home, cwd=self.repo)
+        self.assertEqual((code, out), (2, ""))
+        self.assertEqual(error_code(err), "schema-invalid")
 
-                code, out, err = run(["show", "--run-id", run_id], home=self.home, cwd=self.repo)
-                self.assertEqual((code, err), (0, ""))
-                self.assertEqual(out.encode(), before)
-
-                expected.append(run_id)
-                code, out, err = run(["summary"], home=self.home, cwd=self.repo)
-                self.assertEqual((code, err), (0, ""))
-                summary = json.loads(out)
-                self.assertEqual(summary["invalid_records"], 0)
-                self.assertEqual([item["run_id"] for item in summary["runs"]], expected)
+    def test_a_retired_finding_shape_is_not_accepted_under_schema_four(self) -> None:
+        run_id = start(self.home, self.repo, self.skill)
+        payload = finish_payload(review_passes=2, repair_passes=1, findings=[finding()])
+        self.assertEqual(finish(self.home, self.repo, run_id, payload)[0], 0)
+        record = load(self.home, run_id)
+        record["findings"] = [{key: value for key, value in record["findings"][0].items() if key != "source"}]
+        self.put(run_id, record)
+        code, out, err = run(["show", "--run-id", run_id], home=self.home, cwd=self.repo)
+        self.assertEqual((code, out), (2, ""))
+        self.assertEqual(error_code(err), "schema-invalid")
+        record = load(self.home, run_id)
+        record["findings"] = payload["findings"]
+        record["execution"] = "degraded"
+        record["degraded_reasons"] = ["fresh-reviewer-unavailable"]
+        self.put(run_id, record)
+        code, out, err = run(["show", "--run-id", run_id], home=self.home, cwd=self.repo)
+        self.assertEqual((code, out), (2, ""))
+        self.assertEqual(error_code(err), "schema-invalid")
 
 
 class ReaderTests(RecorderFixture):
@@ -505,11 +488,11 @@ class ReaderTests(RecorderFixture):
         self.assertEqual(json.loads(out)["invalid_records"], 1)
         self.assertEqual([item["run_id"] for item in json.loads(out)["runs"]], [good_id])
 
-    def test_all_statuses_and_legacy_records_preserve_source_bytes(self) -> None:
+    def test_all_statuses_preserve_source_bytes(self) -> None:
         expected = []
-        for schema in (2, 3, 4):
-            for status in ("pending", "completed", "abandoned"):
-                with self.subTest(schema=schema, status=status):
+        for status in ("pending", "completed", "abandoned"):
+            for _copy in range(2):
+                with self.subTest(status=status, copy=_copy):
                     run_id = start(self.home, self.repo, self.skill, design=False)
                     if status == "completed":
                         self.assertEqual(finish(self.home, self.repo, run_id, finish_payload())[0], 0)
@@ -517,8 +500,6 @@ class ReaderTests(RecorderFixture):
                     elif status == "abandoned":
                         self.assertEqual(run(["abandon", "--run-id", run_id, "--reason", "other"], home=self.home, cwd=self.repo)[0], 0)
                     record = load(self.home, run_id)
-                    if schema < 4:
-                        record = downgrade(record, schema)
                     raw = (json.dumps(record, indent=2) + "\n\n").encode()
                     path = self.home / "runs" / f"{run_id}.json"
                     path.write_bytes(raw)
@@ -532,37 +513,31 @@ class ReaderTests(RecorderFixture):
         self.assertEqual(json.loads(out)["invalid_records"], 0)
         self.assertEqual([item["run_id"] for item in json.loads(out)["runs"]], expected)
 
-    def test_missing_nested_fields_rejected_in_current_and_legacy_records(self) -> None:
+    def test_missing_nested_fields_are_rejected(self) -> None:
         good_id = start(self.home, self.repo, self.skill)
         bad_id = start(self.home, self.repo, self.skill, ledger="docs/design.md")
         pending = load(self.home, bad_id)
         self.assertEqual(finish(self.home, self.repo, bad_id, finish_payload(review_passes=2, repair_passes=1, findings=[finding()]))[0], 0)
         self.assertEqual(run(["outcome", "--run-id", bad_id, "--label", "good"], home=self.home, cwd=self.repo)[0], 0)
         completed = load(self.home, bad_id)
-        for schema in (2, 3, 4):
-            for original in (pending, completed):
-                sample = copy.deepcopy(original)
-                sample["schema"] = schema
-                if schema < 4:
-                    sample = downgrade(sample, schema)
-                objects = [(name,) for name in ("skill", "client", "plan", "design", "git")]
-                if schema == 4:
-                    objects += [("baseline",), ("ledger",)]
-                if sample["status"] == "completed":
-                    objects += [("outcome",), ("findings", 0), ("findings", 0, "location")]
-                for location in objects:
-                    nested = sample
-                    for key in location:
-                        nested = nested[key]
-                    for field in nested:
-                        with self.subTest(schema=schema, status=sample["status"], location=location, field=field):
-                            damaged = copy.deepcopy(sample)
-                            target = damaged
-                            for key in location:
-                                target = target[key]
-                            del target[field]
-                            self.put(bad_id, damaged)
-                            self.assert_damage_isolated(good_id, bad_id)
+        for original in (pending, completed):
+            sample = copy.deepcopy(original)
+            objects = [(name,) for name in ("skill", "client", "plan", "design", "git", "baseline", "ledger")]
+            if sample["status"] == "completed":
+                objects += [("outcome",), ("findings", 0), ("findings", 0, "location")]
+            for location in objects:
+                nested = sample
+                for key in location:
+                    nested = nested[key]
+                for field in nested:
+                    with self.subTest(status=sample["status"], location=location, field=field):
+                        damaged = copy.deepcopy(sample)
+                        target = damaged
+                        for key in location:
+                            target = target[key]
+                        del target[field]
+                        self.put(bad_id, damaged)
+                        self.assert_damage_isolated(good_id, bad_id)
 
     def test_typed_field_status_date_and_path_damage(self) -> None:
         good_id = start(self.home, self.repo, self.skill)
@@ -570,7 +545,7 @@ class ReaderTests(RecorderFixture):
         self.assertEqual(finish(self.home, self.repo, bad_id, finish_payload(review_passes=2, repair_passes=1, findings=[finding()]))[0], 0)
         original = load(self.home, bad_id)
         changes = [
-            (("schema",), 2), (("schema",), 5), (("schema",), 3.0),
+            (("schema",), 1), (("schema",), 5), (("schema",), 3.0), (("schema",), 4.0),
             (("run_id",), bad_id.upper()), (("run_id",), "bad-uuid"), (("run_id",), 12),
             (("started_at",), "2026-02-30T00:00:00.000000Z"),
             (("started_at",), "2026-01-01T00:00:00Z"),
@@ -676,8 +651,7 @@ class ReaderTests(RecorderFixture):
         for payload in payloads:
             with self.subTest(payload=payload):
                 self.assertEqual(evidence.validate_finish(payload, "default"), payload)
-                record = downgrade({**original, **payload}, 2)
-                path = self.put(run_id, record)
+                path = self.put(run_id, {**original, **payload})
                 before = path.read_bytes()
                 code, out, err = run(["show", "--run-id", run_id], home=self.home, cwd=self.repo)
                 self.assertEqual((code, err), (0, ""))
@@ -780,15 +754,11 @@ class ObservationTests(RecorderFixture):
         self.assertEqual(summary["counts"]["verdict"]["READY"], 2)
         self.assertEqual(path.read_bytes(), before)
 
-    def test_same_basename_and_legacy_are_not_checkout_chains(self) -> None:
+    def test_same_basename_is_not_a_checkout_chain(self) -> None:
         first = start(self.home, self.repo, self.skill)
         second = start(self.home, self.repo, self.skill)
         other = make_git_repo(self.workspace / "second", "same")
         third = start(self.home, other, self.skill)
-        legacy = start(self.home, self.repo, self.skill)
-        record = downgrade(load(self.home, legacy), 2)
-        path = self.put(legacy, record)
-        before = path.read_bytes()
         code, out, err = run(["summary", "--repo", "same"], home=self.home, cwd=self.repo)
         self.assertEqual((code, err), (0, ""))
         summary = json.loads(out)
@@ -797,13 +767,11 @@ class ObservationTests(RecorderFixture):
         self.assertEqual([row["run_id"] for row in chain["runs"]], [first, second])
         self.assertEqual((chain["repo"], chain["plan"], chain["repo_key"]), ("same", "docs/plan.md", self.key(first)))
         rows = {row["run_id"]: row for row in summary["runs"]}
-        self.assertEqual(rows[legacy]["binding"], "historical-unbound")
-        self.assertIsNone(rows[legacy]["repo_key"])
-        self.assertEqual(rows[first]["binding"], "checkout-bound")
+        self.assertEqual(set(rows), {first, second, third})
+        self.assertEqual(rows[first]["repo_key"], rows[second]["repo_key"])
         self.assertNotEqual(rows[first]["repo_key"], rows[third]["repo_key"])
-        self.assertEqual(summary["counts"]["binding"], {"checkout-bound": 3, "historical-unbound": 1})
+        self.assertNotIn("binding", summary["counts"])
         self.assertEqual(summary["counts"]["observation"], {"normal": 0, "anomalous": 0})
-        self.assertEqual(path.read_bytes(), before)
 
     def test_multiple_anomalies_are_sorted_without_mutating_observations(self) -> None:
         run_id = start(self.home, self.repo, self.skill, mode="review-only")

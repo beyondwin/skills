@@ -4,9 +4,20 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+### Breaking
+
+- 기록기가 schema 4만 읽습니다. 5.1.0 이하가 쓴 schema 2·3 record는 더 읽지도, 옮기지도, 닫지도 않습니다. `show`, `finish`, `abandon`, `outcome`은 그 run을 `schema-unsupported`로 거절하고 파일을 바꾸지 않습니다. `summary`는 그 파일을 건너뛰고 새 `unsupported_records`로 셉니다. 옛 record가 있어도 `start`는 막히지 않습니다.
+- 할 일: 옛 record를 치우려면 `~/.pre-sdd-review/runs/`(또는 `PRE_SDD_REVIEW_HOME/runs/`)에서 최상위 `"schema"`가 2나 3인 `<run-id>.json`을 지웁니다. 예: `grep -lE '"schema": ?[23][,}]' ~/.pre-sdd-review/runs/*.json`로 찾아 확인한 뒤 지웁니다. 진행 중이던 schema 3 pending run은 닫을 수 없으니 새 run을 시작합니다.
+- 오류 코드 `legacy-record-read-only`와 `summary`의 `binding` 필드(`runs[].binding`, `counts.binding`, `historical-unbound`, `checkout-bound`)를 없앴습니다. 옛 기록을 위한 예외(`source` 없는 발견, 자유 문자열 `degraded_reasons`)도 없어졌습니다.
+
 ### Changed
 
 - README wording is shorter and uses plain terms. Behavior is unchanged.
+- `SKILL.md`가 없는 필드 `reviewer_count`를 더 설명하지 않습니다. 기록 필드는 `reviewers`(0–2) 하나이고, `full` 실행이면 trigger가 있을 때 2, 없을 때 1입니다.
+
+### Notes
+
+- Handshake `cli_version`은 6.0.0입니다. Record schema는 4 그대로입니다. GitHub 태그와 Release는 만들지 않습니다.
 
 ## 5.1.0 - 2026-09-24
 

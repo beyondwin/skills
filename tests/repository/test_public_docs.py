@@ -940,6 +940,7 @@ class UserGuideFactTests(unittest.TestCase):
                     "14 cases / 17 repeats", "119 / 3 / 122 / 38 / 160",
                     "hard", "failed", "partially_verified", "fence/hop",
                     "loading", "syntax", "meaning", "schema 2", "schema 3",
+                    "schema-unsupported", "unsupported_records",
                     "historical-unbound", "checkout", "LF",
                     '"schema":4,"skill_name":"pre-sdd-review"', "schema 4",
                 ):
@@ -970,9 +971,11 @@ class UserGuideFactTests(unittest.TestCase):
                 for phrase in (
                     "receipt", "semantic verdict", "32-byte", ".identity-salt",
                     "HMAC-SHA-256", "repo_key", "clone/worktree", "evidence home",
-                    "schema 2", "historical-unbound",
+                    "schema 2", "schema-unsupported",
                 ):
                     self.assertIn(phrase.lower(), safety.lower())
+                self.assertNotIn("schema 3와 4", safety)
+                self.assertNotIn("schema 3 and 4", safety.lower())
 
     def test_pre_sdd_review_shared_guides_preserve_scope_and_evidence_limits(self) -> None:
         korean_codex = _read(ROOT / "docs/users/ko/install-codex.md")
@@ -1474,8 +1477,9 @@ class MaintainerStructureTests(unittest.TestCase):
             ),
             (
                 contract.replace(
-                    "이 문서는 Pre-SDD Review의 활성화 조건, 권위 순서, 리뷰어 격리,\n"
-                    "문서 수정 경계, finding, freshness, verdict, SDD handoff를 소유합니다.",
+                    "이 문서는 Pre-SDD Review가 언제 켜지는지, 어떤 문서를 먼저 따르는지,\n"
+                    "검토자를 어떻게 떼어 두는지, 문서를 어디까지 고치는지를 정합니다. 발견,\n"
+                    "신선도, 판정, SDD 인계 규칙도 여기서 정합니다.",
                     "한.",
                     1,
                 ),
@@ -1493,16 +1497,16 @@ class MaintainerStructureTests(unittest.TestCase):
                 ROOT / "docs/maintainers/products/pre-sdd-review/testing.md",
                 "# pre-sdd-review 테스트",
                 "# pre-sdd-review testing",
-                "이 문서는 provider-free contract evidence, 제한된 합성 픽스처, 선택적\n"
-                "live-check 경계를 소유합니다. 모델의 실제 리뷰 품질을 측정했다고 주장하지\n"
-                "않습니다.",
+                "이 문서는 모델을 부르지 않고 도는 계약 검사, 작게 만든 합성 픽스처,\n"
+                "실제 모델을 부르는 선택적 라이브 검사가 각각 어디까지 증명하는지 정합니다.\n"
+                "모델의 실제 리뷰 품질을 측정했다고 주장하지 않습니다.",
                 "This document owns provider-free evidence and optional live checks.",
             ),
             (
                 ROOT / "docs/maintainers/products/pre-sdd-review/compatibility.md",
                 "# pre-sdd-review 호환성",
                 "# pre-sdd-review compatibility",
-                "이 문서는 Pre-SDD Review의 측정된 호스트 경계를 소유합니다.",
+                "이 문서는 Pre-SDD Review를 어느 호스트에서 실제로 확인했는지 정합니다.",
                 "This document owns the measured-host boundary.",
             ),
             (

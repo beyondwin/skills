@@ -1,6 +1,6 @@
 # pre-sdd-review 호환성
 
-이 문서는 Pre-SDD Review의 측정된 호스트 경계를 소유합니다.
+이 문서는 Pre-SDD Review를 어느 호스트에서 실제로 확인했는지 정합니다.
 
 ## 지원 호스트
 

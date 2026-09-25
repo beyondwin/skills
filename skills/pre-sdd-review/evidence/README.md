@@ -18,32 +18,35 @@ The compatibility handshake is exactly `skill_name=pre-sdd-review` and
 `schema=4`. The canonical version output is one JSON line followed by one LF:
 
 ```json
-{"cli_version":"5.1.0","schema":4,"skill_name":"pre-sdd-review"}
+{"cli_version":"6.0.0","schema":4,"skill_name":"pre-sdd-review"}
 ```
 
 ## Data and checkout identity
 
 Each run is one file, `~/.pre-sdd-review/runs/<run-id>.json`. The only
 override for the evidence home is a non-empty absolute
-`PRE_SDD_REVIEW_HOME`. Schema 4 records are at most 64 KiB. Readers validate
-schema 2, 3, and 4 files in `runs/*.json`; `finish` and `outcome` accept only
-schema 4. A schema 3 pending run may be `abandon`ed so an
-in-flight run survives the upgrade; a schema 2 record stays fully read-only.
+`PRE_SDD_REVIEW_HOME`. Records are at most 64 KiB. Every command reads and
+writes schema 4 only.
 
 The recorder creates `.identity-salt` as private local state containing
 exactly 32 random bytes. It never prints or records the salt. The normalized
-Git directory and normalized checkout root feed HMAC-SHA-256 only; a schema 3
-or 4 record stores the repository display name in `repo` and the derived
-digest in `repo_key`. It never stores either identity input path.
+Git directory and normalized checkout root feed HMAC-SHA-256 only; a record
+stores the repository display name in `repo` and the derived digest in
+`repo_key`. It never stores either identity input path.
 
 The binding belongs to the current checkout, evidence home, and salt. A moved
 checkout, clone, other worktree, lost salt, or different evidence home cannot
 be treated as the original binding. Start a new run. Never infer identity from
-the display name or infer a checkout identity for a historical record.
+the display name.
 
-Schema 2 remains readable as `historical-unbound`. A schema 2 pending run is
-read-only: preserve it and start a new run if recording is still wanted.
-Attempts to mutate it fail with `legacy-record-read-only`.
+## Records from earlier recorders
+
+Recorders before 6.0.0 wrote schema 2 and schema 3 files. This recorder does
+not read, migrate, or close them. `show`, `finish`, `abandon`, and `outcome` on
+such a run fail with `schema-unsupported` and leave the file unchanged.
+`summary` skips it and counts it in `unsupported_records`. They never block
+`start`: a new run is always schema 4. To clear them, delete each
+`~/.pre-sdd-review/runs/<run-id>.json` whose top-level `schema` is 2 or 3.
 
 ## Locks and commands
 
@@ -58,8 +61,8 @@ supported OS; this uses POSIX `fcntl.flock`.
 | `--version` | none | Print the canonical schema 4 handshake |
 | `start` | `--skill-root --repo --plan [--design] [--ledger] [--prior-plan ...] --client --model --mode` | Create the identity if needed, hash documents, read Git state, write a checkout-bound `pending` record, print `run_id` |
 | `finish` | `--run-id --repo` and one JSON object on stdin | Require the original checkout binding, recompute end hashes and Git state, validate, write `completed`, print `run_id`, `verdict`, and this run's `anomalies` |
-| `abandon` | `--run-id --reason` | Close a schema 4 pending run, or a schema 3 pending run left over from before the upgrade; reason is `user-cancelled`, `input-changed`, `scope-changed`, `input-format-fixed`, or `other` |
-| `outcome` | `--run-id --label [--note]` | Record `good`, `false-ready`, `noisy`, or `abandoned` on a completed schema 4 run; may be re-recorded |
+| `abandon` | `--run-id --reason` | Close a pending run; reason is `user-cancelled`, `input-changed`, `scope-changed`, `input-format-fixed`, or `other` |
+| `outcome` | `--run-id --label [--note]` | Record `good`, `false-ready`, `noisy`, or `abandoned` on a completed run; may be re-recorded |
 | `show` | `--run-id` | Validate the record, then return its original bytes unchanged |
 | `summary` | `[--repo NAME] [--last N]` | Scan and validate records, then print the aggregate JSON below |
 
@@ -76,17 +79,12 @@ Each finding has `id` (`PSDR-001`), `severity`, `class`, `pattern`, `status`,
 0–3, where `0` marks a pre-pass ledger or machine-check repair), `location`
 (`path`, `locator`), `evidence` (relative paths), `consequence`, and `fix`.
 
-A schema 4 record adds `baseline` (`head` plus the ordered `prior_plans` this
+A record also carries `baseline` (`head` plus the ordered `prior_plans` this
 plan's turn assumes) and `ledger` (the shared-file ledger's `path` and `sha`, or
-null). `git` adds `head_start_is_ancestor_of_head_end`: true when the checkout
-moved forward, false when it did not, null when the question is moot. Each
-finding adds `source`.
-
-`source` is the only finding key schema 4 added, so a schema 2 or 3 finding does
-not carry it and stays readable without it; a legacy finding that does carry it
-is `schema-invalid`. Every other finding key is the same across schema 2, 3, and
-4. A schema 2 or 3 `degraded_reasons` entry is likewise read back as free text
-rather than against the schema 4 vocabulary.
+null). `git` carries `head_start_is_ancestor_of_head_end`: true when the
+checkout moved forward, false when it did not, null when the question is moot.
+Every stored finding must carry `source`, and every stored `degraded_reasons`
+entry must come from the list above.
 
 Shape, enum and count ranges, record-size limits, safe repository-relative
 paths, and required fields are rejected input when invalid. Semantic review
@@ -111,22 +109,21 @@ The log is for agents.
 - After `finish`, print the `anomalies` it returned; do not look the run up in
   a windowed `summary`.
 
-`summary` returns `runs`, `counts`, `cost`, `chains` (checkout-bound plans
-reviewed more than once), `findings` (with `repeated_patterns`), and
+`summary` returns `runs`, `counts`, `cost`, `chains` (plans reviewed more
+than once in the same checkout), `findings` (with `repeated_patterns`), and
 `anomalies`; every drill-down entry carries `run_id` values for `show`. Start
 from `anomalies` and `chains`.
 
 `invalid_records` is the number of invalid files found across the entire scan
-before any filters. `--repo` filters only the display name in `repo`; it is not
-an identity or checkout filter. `--last` selects from the validated records in
+before any filters. `unsupported_records` counts, the same way, the schema 2
+and 3 files from earlier recorders. `--repo` filters only the display name in
+`repo`; it is not an identity or checkout filter. `--last` selects from the validated records in
 their canonical start-time and `run_id` order.
 
 `counts.verdict` counts every validated completed record. The separate
 `counts.normal_verdict` and `counts.anomalous_verdict` maps split those same
 completed verdicts by whether `anomalies` observed a contradiction. The
-`counts.observation` map gives the normal and anomalous run totals, and
-`counts.binding` reports `checkout-bound` and `historical-unbound` records.
-Historical records do not form `chains` because they have no `repo_key`.
+`counts.observation` map gives the normal and anomalous run totals.
 
 These summaries are descriptive local observations. They are not model-quality
 measurements, proof that a verdict was correct, or a signed audit claim.
@@ -150,5 +147,5 @@ or `BLOCKED`.
 Failures print one line to stderr, `{"error":{"code":"…","message":"…"}}`,
 and exit 2. Codes: `invalid-arguments`, `schema-invalid`, `run-not-found`,
 `not-git-repository`, `outside-repository`, `already-finished`,
-`evidence-home-unwritable`, `identity-unavailable`,
-`legacy-record-read-only`, and `locking-unavailable`.
+`evidence-home-unwritable`, `identity-unavailable`, `schema-unsupported`,
+and `locking-unavailable`.

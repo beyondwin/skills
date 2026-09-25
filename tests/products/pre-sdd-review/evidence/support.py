@@ -121,12 +121,12 @@ def start(
 
 
 def downgrade(record: dict[str, object], schema: int) -> dict[str, object]:
-    """Reshape a schema 4 record to look like one written by schema 2 or 3.
+    """Reshape a schema 4 record to look like one a pre-6.0.0 recorder wrote.
 
-    Schema 3 predates baseline/ledger/git ancestry; schema 2 additionally predates
-    repo_key. Both predate the "source" key on findings -- strip it from every
-    finding too, or a "downgraded" record would silently keep the schema 4 shape.
-    Callers must only pass schema in (2, 3); schema 4 needs no reshaping.
+    The current recorder refuses these retired schemas; tests use this helper to
+    prove the refusal. Schema 3 predates baseline/ledger/git ancestry; schema 2
+    additionally predates repo_key. Both predate the "source" key on findings.
+    Callers must only pass schema in (2, 3).
     """
     record = dict(record)
     record["schema"] = schema

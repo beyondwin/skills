@@ -23,7 +23,7 @@ from scripts.lib.product_registry import load_registry  # noqa: E402
 SKILL = ROOT / "skills" / "pre-sdd-review"
 CASES = ROOT / "tests" / "products" / "pre-sdd-review" / "cases.json"
 FIXTURES = ROOT / "tests" / "products" / "pre-sdd-review" / "fixtures"
-TARGET_VERSION = "5.1.0"
+TARGET_VERSION = "6.0.0"
 PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     {
         "CHANGELOG.md",
@@ -951,7 +951,10 @@ class PreSddReviewContractTests(unittest.TestCase):
         changelog = (SKILL / "CHANGELOG.md").read_text(encoding="utf-8")
         self.assertEqual(release["version"], TARGET_VERSION)
         self.assertEqual(frontmatter["metadata"]["version"], TARGET_VERSION)
-        self.assertIn(f"## {TARGET_VERSION} - 2026-09-24", changelog)
+        unreleased = changelog.split("## Unreleased", 1)[1].split("\n## ", 1)[0]
+        self.assertIn("### Breaking", unreleased)
+        self.assertIn(f"Handshake `cli_version`은 {TARGET_VERSION}입니다", unreleased)
+        self.assertIn("## 5.1.0 - 2026-09-24", changelog)
         self.assertIn("## 3.0.0 - 2026-09-08", changelog)
 
     def test_required_implementation_base_blocks_before_reviewer_dispatch(self) -> None:
@@ -1201,7 +1204,7 @@ class PreSddReviewContractTests(unittest.TestCase):
             re.compile(r"unavailable, malformed, incompatible, or permission.*continue.*review", re.IGNORECASE),
         )
 
-    def test_recorder_v3_documents_legacy_and_observation_boundaries(self) -> None:
+    def test_recorder_documents_retired_schemas_and_observation_boundaries(self) -> None:
         skill_text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         recorder = (SKILL / "evidence/README.md").read_text(encoding="utf-8")
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
@@ -1209,14 +1212,19 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("schema=4", skill_text)
         for token in (
             "repo_key",
-            "historical-unbound",
-            "legacy-record-read-only",
+            "schema-unsupported",
+            "unsupported_records",
             "locking-unavailable",
             "invalid_records",
             "normal_verdict",
             "anomalous_verdict",
         ):
             self.assertIn(token, recorder)
+        for document in (skill_text, recorder, contract):
+            for retired in ("historical-unbound", "legacy-record-read-only", "`reviewer_count`"):
+                self.assertNotIn(retired, document)
+        self.assertIn("schema-unsupported", skill_text)
+        self.assertIn("schema-unsupported", contract)
         self.assertIn("`READY`, `REVISE`, `BLOCKED`를 바꾸지는 않습니다", contract)
         self.assertIn("`false-ready`는 `READY` 판정이 있어야", contract)
 
@@ -1746,7 +1754,7 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
 
         for fact in (
             "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover",
-            "provider-free",
+            "## 공급자 없는 증거",
             "`ready`, `missing-coverage`, `false-verification`, `runtime-removal`,",
             "`runtime-removal`",
             "`design.md`, `plan.md`,",
@@ -1809,7 +1817,7 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "prompts",
             "transcripts",
             "credentials",
-            "schema 3",
+            "schema-unsupported",
         ):
             self.assertIn(phrase, combined)
 

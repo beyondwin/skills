@@ -1,11 +1,8 @@
 # pre-sdd-review 테스트
 
-이 문서는 provider-free contract evidence, 제한된 합성 픽스처, 선택적
-live-check 경계를 소유합니다. 모델의 실제 리뷰 품질을 측정했다고 주장하지
-않습니다.
-
-provider-free는 공급자 자격 증명과 모델 호출 없이 돈다는 뜻이고, live-check는
-실제 모델을 부르는 선택적 라이브 검사입니다.
+이 문서는 모델을 부르지 않고 도는 계약 검사, 작게 만든 합성 픽스처,
+실제 모델을 부르는 선택적 라이브 검사가 각각 어디까지 증명하는지 정합니다.
+모델의 실제 리뷰 품질을 측정했다고 주장하지 않습니다.
 
 공급자 없는 테스트와 픽스처는 `tests/products/pre-sdd-review/`에 있습니다.
 
@@ -24,7 +21,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
 다른 호스트의 동등 지원은 증명하지 않습니다.
 
 `evidence/evidence.py` 기록기의 계약은 별도의 공급자 없는 단계로 실행합니다.
-schema 4 checkout 결속, schema 2 읽기 전용 legacy 처리, 변경 lock, 손상 기록
+schema 4 checkout 결속, schema 2·3 옛 기록 거절(`schema-unsupported`), 변경 lock, 손상 기록
 격리, 여섯 명령, summary 관찰 집계를 확인합니다. 기록기는
 `python3 skills/pre-sdd-review/evidence/evidence.py`로 돌리며 설치하지
 않습니다.

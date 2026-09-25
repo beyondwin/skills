@@ -1,7 +1,8 @@
 # pre-sdd-review 계약
 
-이 문서는 Pre-SDD Review의 활성화 조건, 권위 순서, 리뷰어 격리,
-문서 수정 경계, finding, freshness, verdict, SDD handoff를 소유합니다.
+이 문서는 Pre-SDD Review가 언제 켜지는지, 어떤 문서를 먼저 따르는지,
+검토자를 어떻게 떼어 두는지, 문서를 어디까지 고치는지를 정합니다. 발견,
+신선도, 판정, SDD 인계 규칙도 여기서 정합니다.
 
 규범 문서입니다. 아래에서 발견은 finding, 신선도는 freshness, 판정은 verdict,
 인계는 handoff를 뜻하고, 리뷰어는 검토자라고 부릅니다.
@@ -157,8 +158,10 @@
 
 호출 전체에서 검토 역할은 최대 둘입니다. 기본 역할 하나와, 조건이 맞을 때의
 집중 위험 역할 하나입니다. 새 재검토는 에이전트를 바꿀 수 있지만 역할을
-추가하거나 위험 분류를 넓히지 않습니다. Evidence `reviewer_count`는 누적 호출이
-아니라 논리 역할을 셉니다.
+추가하거나 위험 분류를 넓히지 않습니다. Evidence `reviewers`(0–2)는 누적 호출도,
+의도한 역할 수도 아니고 논리 역할에 실제로 얻은 서로 다른 에이전트 수를 셉니다.
+`full` 실행이면 trigger가 있을 때 2, 없을 때 1이어야 하고, 다르면
+`full_reviewer_count_mismatch`로 관찰합니다.
 
 ### Degraded reasons
 
@@ -293,7 +296,7 @@ ID/분류, 영향 범위 트리거, 바뀐 문서 해시, 판정을 담습니다
 1. 로드된 스킬 루트에서 `python3 "<skill-root>/evidence/evidence.py" --version`을
    실행합니다. handshake가 정확히 `skill_name=pre-sdd-review`와 `schema=4`일
    때만 기록합니다. 정규 한 줄은
-   `{"cli_version":"5.1.0","schema":4,"skill_name":"pre-sdd-review"}` 뒤에
+   `{"cli_version":"6.0.0","schema":4,"skill_name":"pre-sdd-review"}` 뒤에
    LF 하나입니다.
 2. 호환되면 `start` 전에 `summary --repo <표시 이름>`을 실행해 `runs`와
    `chains`에서 그 계획을 찾습니다. 같은 `repo` 표시 이름과 계획 경로가
@@ -318,11 +321,14 @@ ID/분류, 영향 범위 트리거, 바뀐 문서 해시, 판정을 담습니다
 
 schema 호환:
 
-- schema 2와 schema 3 기록은 계속 읽습니다. 변경은 schema 4만 받습니다.
-- 예외로 schema 3 pending은 `abandon`만 허용해, 업그레이드 시점에 진행 중이던
-  run을 닫을 수 있게 합니다.
-- schema 2는 `historical-unbound`이며 읽기 전용입니다.
-- `start`는 schema 4 checkout 결속 run을 만듭니다.
+- 기록기는 schema 4만 읽고 씁니다. `start`는 늘 schema 4 checkout 결속 run을
+  만듭니다.
+- 6.0.0 전 기록기가 쓴 schema 2·3 파일은 읽지도, 옮기지도, 닫지도 않습니다.
+  `show`, `finish`, `abandon`, `outcome`은 `schema-unsupported`로 거절하고
+  파일을 바꾸지 않습니다. `summary`는 그 파일을 건너뛰고
+  `unsupported_records`로 셉니다.
+- 옛 파일은 `start`를 막지 않습니다. 치우려면 최상위 `schema`가 2나 3인
+  `runs/<run-id>.json`을 지웁니다.
 
 컨트롤러는 계획의 `**Spec:**`에서 설계 경로를 해석해 `--design`으로 넘깁니다.
 해석할 수 없으면 `--design`을 생략하고 `BLOCKED`를 반환합니다. 기록기는
@@ -333,9 +339,7 @@ schema 호환:
 schema 4 발견에는 `source`(`reviewer`, `ledger-pass`, `machine-check`)와
 `repair_pass`가 들어갑니다. `repair_pass`는 `null` 또는 0..3입니다. `0`은 사전
 패스의 원장·기계 점검 수리이고, `null`은 이 호출이 수리하지 않은 발견입니다.
-`source`는 schema 4가 더한 키이므로 schema 2·3 발견에는 없고, 없는 채로 계속
-읽힙니다. `source`를 가진 legacy 발견은 `schema-invalid`입니다. schema 2·3의
-`degraded_reasons`도 schema 4 어휘가 아니라 자유 문자열로 읽습니다.
+`source`가 없는 발견과 정해진 어휘 밖의 `degraded_reasons`는 `schema-invalid`입니다.
 `finding.evidence`는 산문이 아니라 저장소 상대 경로의 목록입니다.
 
 기록기는 `~/.pre-sdd-review/runs/` 아래의 경로, 해시, Git 사실, 검증, 원자적
@@ -354,11 +358,11 @@ evidence home은 `.identity-salt`를 로컬 비공개 32-byte 상태로 두고, 
 locking이 필요 없습니다. Windows는 지원하지 않습니다.
 
 `show`는 기록을 검증하고 원본 바이트를 돌려줍니다. `summary`는 필터 전 전체
-검사의 `invalid_records`를 보고합니다. `--repo`는 `repo` 표시 이름만 거르고,
-`--last`는 유효한 순서 있는 기록을 고릅니다. `counts.verdict`는 본 완료 판정을
-모두 포함하고, `normal_verdict`와 `anomalous_verdict`는 관찰로 나누며, 결속
-수는 `checkout-bound`와 `historical-unbound`를 구분합니다. 이 값은 로컬
-관찰이지 모델 품질 측정이나 서명된 감사 주장이 아닙니다.
+검사의 `invalid_records`와 `unsupported_records`를 보고합니다. `--repo`는
+`repo` 표시 이름만 거르고, `--last`는 유효한 순서 있는 기록을 고릅니다.
+`counts.verdict`는 본 완료 판정을 모두 포함하고, `normal_verdict`와
+`anomalous_verdict`는 관찰로 나눕니다. 이 값은 로컬 관찰이지 모델 품질 측정이나
+서명된 감사 주장이 아닙니다.
 
 입력 형태, 열거·개수 범위, 기록 크기, 필수 필드, 경로 제한은 계속 검증합니다.
 의미 검토는 기존 판정, 검토자, 발견, 수정 규칙을 따릅니다. 구조가 맞는 이탈은

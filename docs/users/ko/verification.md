@@ -60,7 +60,7 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 Evidence 단계는 `tests/products/pre-sdd-review/evidence/`에서 `evidence.py`를 검사합니다. 네트워크, 모델, provider, telemetry를 호출하지 않습니다.
 
-Pre-SDD는 schema 2 record를 `historical-unbound`로 읽기만 지원합니다. 변경 명령은 schema 4의 checkout 결속이 필요하고, schema 3 pending run은 `abandon`만 됩니다. schema 2 pending record는 보존하고 새 run을 시작합니다. `--version`은 `"schema":4,"skill_name":"pre-sdd-review"`가 든 canonical JSON 한 줄과 마지막 LF 하나를 출력하며 evidence home을 만들지 않습니다. 정확한 바이트는 [기록기 README](../../../skills/pre-sdd-review/evidence/README.md)를 보세요.
+Pre-SDD 기록기는 schema 4만 읽고 쓰며, 변경 명령은 그 checkout 결속이 필요합니다. 6.0.0 전 기록기가 쓴 schema 2·schema 3 record는 모든 명령에서 `schema-unsupported`로 거절되고, `summary`는 `unsupported_records`로 셉니다. 새 run을 막지 않으며, 치우려면 그 파일을 지웁니다. `--version`은 `"schema":4,"skill_name":"pre-sdd-review"`가 든 canonical JSON 한 줄과 마지막 LF 하나를 출력하며 evidence home을 만들지 않습니다. 정확한 바이트는 [기록기 README](../../../skills/pre-sdd-review/evidence/README.md)를 보세요.
 
 Ubuntu CI의 `full` 통과는 native macOS 지원을 증명하지 않습니다.
 

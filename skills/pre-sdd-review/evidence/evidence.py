@@ -20,7 +20,7 @@ from contextlib import contextmanager, suppress
 from pathlib import Path
 from typing import TextIO
 
-CLI_VERSION = "5.1.0"
+CLI_VERSION = "6.0.0"
 SCHEMA = 4
 SKILL_NAME = "pre-sdd-review"
 RECORD_LIMIT = 64 * 1024
@@ -64,16 +64,16 @@ FINISH_KEYS = frozenset(
         "findings",
     }
 )
-RECORD_KEYS_V2 = {
+RECORD_KEYS = {
     "schema", "run_id", "status", "started_at", "completed_at", "elapsed_s",
-    "skill", "client", "repo", "mode", "plan", "design", "git", "execution",
-    "reviewers", "trigger", "degraded_reasons", "review_passes", "repair_passes",
-    "verdict", "block_reason", "abandon_reason", "findings", "outcome",
+    "skill", "client", "repo", "repo_key", "mode", "plan", "design", "baseline",
+    "ledger", "git", "execution", "reviewers", "trigger", "degraded_reasons",
+    "review_passes", "repair_passes", "verdict", "block_reason", "abandon_reason",
+    "findings", "outcome",
 }
-RECORD_KEYS_V3 = RECORD_KEYS_V2 | {"repo_key"}
-RECORD_KEYS_V4 = RECORD_KEYS_V3 | {"baseline", "ledger"}
-GIT_KEYS_V3 = {"head_start", "head_end", "dirty_start", "dirty_end"}
-GIT_KEYS_V4 = GIT_KEYS_V3 | {"head_start_is_ancestor_of_head_end"}
+GIT_KEYS = {"head_start", "head_end", "dirty_start", "dirty_end", "head_start_is_ancestor_of_head_end"}
+# Schemas written by earlier recorders. They are refused, never read or migrated.
+UNSUPPORTED_SCHEMAS = (2, 3)
 MAX_PRIOR_PLANS = 40
 FINDING_KEYS = frozenset(
     {
@@ -253,21 +253,28 @@ def load_record(home: Path, run_id: str) -> dict[str, object]:
     return _read_record(run_path(home, run_id))[1]
 
 
-def scan_records(home: Path) -> tuple[list[dict[str, object]], int]:
+def scan_records(home: Path) -> tuple[list[dict[str, object]], int, int]:
+    """Valid records plus the counts of skipped invalid and retired-schema files."""
     runs = home / "runs"
     if not runs.is_dir():
-        return [], 0
+        return [], 0, 0
     records: list[dict[str, object]] = []
     invalid = 0
+    unsupported = 0
     for path in sorted(runs.glob("*.json")):
         try:
             if not stat.S_ISREG(path.stat().st_mode):
                 continue
             records.append(_read_record(path)[1])
-        except (EvidenceError, OSError):
+        except EvidenceError as exc:
+            if exc.code == "schema-unsupported":
+                unsupported += 1
+            else:
+                invalid += 1
+        except OSError:
             invalid += 1
     records.sort(key=lambda item: (str(item["started_at"]), str(item["run_id"])))
-    return records, invalid
+    return records, invalid, unsupported
 
 
 def iter_records(home: Path) -> list[dict[str, object]]:
@@ -346,18 +353,6 @@ def checkout_key(root: Path, home: Path, *, create: bool) -> str:
     return hmac.new(
         _identity_salt(home, create=create), material, hashlib.sha256
     ).hexdigest()
-
-
-def require_mutable_schema(record: dict[str, object], *, abandon: bool = False) -> None:
-    schema = record["schema"]
-    if schema == SCHEMA:
-        return
-    if abandon and schema == 3:
-        return
-    fail(
-        "legacy-record-read-only",
-        "only a schema 4 run is mutable; a schema 3 pending run may be abandoned",
-    )
 
 
 def locator(cwd: Path, value: str) -> Path:
@@ -472,15 +467,8 @@ def _relative_argument(value: str, name: str) -> str:
     return str(value)
 
 
-def validate_finding(item: object, repair_passes: int, *, legacy: bool = False) -> dict[str, object]:
-    if legacy:
-        # A schema 2/3 finding predates the "source" key; re-validating it must not
-        # make an already-stored finding unreadable, but it must not accept "source"
-        # either -- that would silently promote a legacy record to the schema 4 shape.
-        expected_keys = FINDING_KEYS - {"source"}
-    else:
-        expected_keys = FINDING_KEYS
-    if not isinstance(item, dict) or set(item) != expected_keys:
+def validate_finding(item: object, repair_passes: int) -> dict[str, object]:
+    if not isinstance(item, dict) or set(item) != FINDING_KEYS:
         fail("schema-invalid", "finding must contain exactly the finding keys")
     identifier = _string(item["id"], "finding.id", 20)
     if identifier is None or not _FINDING_ID.fullmatch(identifier):
@@ -491,8 +479,7 @@ def validate_finding(item: object, repair_passes: int, *, legacy: bool = False) 
     if pattern is None or not _PATTERN.fullmatch(pattern):
         fail("schema-invalid", "finding.pattern must be lowercase kebab, dot, or underscore tokens")
     _enum(item["status"], "finding.status", FINDING_STATUSES)
-    if not legacy:
-        _enum(item["source"], "finding.source", FINDING_SOURCES)
+    _enum(item["source"], "finding.source", FINDING_SOURCES)
     repair_pass = item["repair_pass"]
     if repair_pass is not None:
         _integer(repair_pass, "finding.repair_pass", 0, 3)
@@ -517,7 +504,7 @@ def validate_finding(item: object, repair_passes: int, *, legacy: bool = False) 
     return normalized
 
 
-def validate_finish_shape(payload: object, *, legacy: bool = False) -> dict[str, object]:
+def validate_finish_shape(payload: object) -> dict[str, object]:
     if not isinstance(payload, dict) or set(payload) != FINISH_KEYS:
         fail("schema-invalid", "finish input must contain exactly the finish keys")
     execution = _enum(payload["execution"], "execution", EXECUTIONS)
@@ -525,19 +512,14 @@ def validate_finish_shape(payload: object, *, legacy: bool = False) -> dict[str,
     trigger = _enum(payload["trigger"], "trigger", TRIGGERS, nullable=True)
     if not isinstance(payload["degraded_reasons"], list):
         fail("schema-invalid", "degraded_reasons must be a list")
-    if legacy:
-        # A schema 2/3 record predates the closed DEGRADED_REASONS vocabulary;
-        # re-validating it must not make an already-stored reason unreadable.
-        reasons = [str(_string(item, "degraded_reasons[]", 100)) for item in payload["degraded_reasons"]]
-    else:
-        reasons = [str(_enum(item, "degraded_reasons[]", DEGRADED_REASONS)) for item in payload["degraded_reasons"]]
+    reasons = [str(_enum(item, "degraded_reasons[]", DEGRADED_REASONS)) for item in payload["degraded_reasons"]]
     verdict = _enum(payload["verdict"], "verdict", VERDICTS)
     block_reason = _string(payload["block_reason"], "block_reason", 100, nullable=True)
     review_passes = _integer(payload["review_passes"], "review_passes", 1, 4)
     repair_passes = _integer(payload["repair_passes"], "repair_passes", 0, 3)
     if not isinstance(payload["findings"], list):
         fail("schema-invalid", "findings must be a list")
-    findings = [validate_finding(item, 3, legacy=legacy) for item in payload["findings"]]
+    findings = [validate_finding(item, 3) for item in payload["findings"]]
     identifiers = [str(item["id"]) for item in findings]
     if len(set(identifiers)) != len(identifiers):
         fail("schema-invalid", "finding ids must be unique")
@@ -595,7 +577,7 @@ def observation_anomalies(record: dict[str, object]) -> list[str]:
         "finding_repair_pass_exceeds_total": any(item["repair_pass"] is not None and item["repair_pass"] > record["repair_passes"] for item in findings),
         "head_changed_during_review": record["git"]["head_start"] != record["git"]["head_end"],
         "design_unresolved_but_full_execution": record["design"] is None and record["execution"] == "full",
-        "head_start_not_ancestor_of_head_end": record["git"].get("head_start_is_ancestor_of_head_end") is False,
+        "head_start_not_ancestor_of_head_end": record["git"]["head_start_is_ancestor_of_head_end"] is False,
         "document_changed_without_repair_pass": _documents_changed(record)
         and record["repair_passes"] == 0
         and not any(item["repair_pass"] == 0 for item in findings),
@@ -664,10 +646,14 @@ def validate_record(record: object, expected_run_id: str) -> dict[str, object]:
     if not isinstance(record, dict) or type(record.get("schema")) is not int:
         fail("schema-invalid", "record schema must be an integer")
     schema = record["schema"]
-    if schema not in (2, 3, 4):
-        fail("schema-invalid", "record must use schema 2, 3, or 4")
-    keys = {2: RECORD_KEYS_V2, 3: RECORD_KEYS_V3, 4: RECORD_KEYS_V4}[schema]
-    value = _object(record, "record", keys)
+    if schema in UNSUPPORTED_SCHEMAS:
+        fail(
+            "schema-unsupported",
+            f"record uses retired schema {schema}; this recorder reads only schema {SCHEMA}",
+        )
+    if schema != SCHEMA:
+        fail("schema-invalid", f"record must use schema {SCHEMA}")
+    value = _object(record, "record", RECORD_KEYS)
     if not isinstance(value["run_id"], str):
         fail("schema-invalid", "record run_id must be a string")
     try:
@@ -680,8 +666,7 @@ def validate_record(record: object, expected_run_id: str) -> dict[str, object]:
     repo = _string(value["repo"], "repo", 255)
     if repo in (".", "..") or "/" in repo or "\\" in repo:
         fail("schema-invalid", "repo must be a display basename")
-    if schema >= 3:
-        _digest(value["repo_key"], "repo_key")
+    _digest(value["repo_key"], "repo_key")
     _enum(value["mode"], "mode", MODES)
     status = _enum(value["status"], "status", ("pending", "completed", "abandoned"))
     started = _timestamp(value["started_at"], "started_at")
@@ -709,7 +694,7 @@ def validate_record(record: object, expected_run_id: str) -> dict[str, object]:
             _digest(document["sha_end"], name + ".sha_end")
         elif document["sha_end"] is not None:
             fail("schema-invalid", "unfinished documents cannot have end hashes")
-    git_facts = _object(value["git"], "git", GIT_KEYS_V4 if schema == 4 else GIT_KEYS_V3)
+    git_facts = _object(value["git"], "git", GIT_KEYS)
     for suffix in ("start", "end"):
         head, dirty = git_facts["head_" + suffix], git_facts["dirty_" + suffix]
         if suffix == "end" and status != "completed":
@@ -719,15 +704,14 @@ def validate_record(record: object, expected_run_id: str) -> dict[str, object]:
             if not isinstance(head, str) or not re.fullmatch(r"unborn|[0-9a-f]{40}|[0-9a-f]{64}", head):
                 fail("schema-invalid", "Git head must be unborn or a commit hash")
             _boolean(dirty, "git.dirty_" + suffix)
-    if schema == 4:
-        ancestry = git_facts["head_start_is_ancestor_of_head_end"]
-        if status != "completed":
-            if ancestry is not None:
-                fail("schema-invalid", "unfinished review cannot have ancestry facts")
-        elif ancestry is not None:
-            _boolean(ancestry, "git.head_start_is_ancestor_of_head_end")
+    ancestry = git_facts["head_start_is_ancestor_of_head_end"]
+    if status != "completed":
+        if ancestry is not None:
+            fail("schema-invalid", "unfinished review cannot have ancestry facts")
+    elif ancestry is not None:
+        _boolean(ancestry, "git.head_start_is_ancestor_of_head_end")
     if status == "completed":
-        validate_finish_shape({key: value[key] for key in FINISH_KEYS}, legacy=schema < 4)
+        validate_finish_shape({key: value[key] for key in FINISH_KEYS})
         if value["abandon_reason"] is not None:
             fail("schema-invalid", "completed records cannot have abandon_reason")
     else:
@@ -740,20 +724,19 @@ def validate_record(record: object, expected_run_id: str) -> dict[str, object]:
             _enum(value["abandon_reason"], "abandon_reason", ABANDON_REASONS)
         elif value["abandon_reason"] is not None:
             fail("schema-invalid", "pending records cannot have abandon_reason")
-    if schema == 4:
-        baseline = _object(value["baseline"], "baseline", {"head", "prior_plans"})
-        if baseline["head"] != git_facts["head_start"]:
-            fail("schema-invalid", "baseline.head must equal git.head_start")
-        if not isinstance(baseline["prior_plans"], list):
-            fail("schema-invalid", "baseline.prior_plans must be a list")
-        if len(baseline["prior_plans"]) > MAX_PRIOR_PLANS:
-            fail("schema-invalid", f"baseline.prior_plans exceeds {MAX_PRIOR_PLANS} entries")
-        for prior in baseline["prior_plans"]:
-            _relative(prior, "baseline.prior_plans[]")
-        if value["ledger"] is not None:
-            ledger = _object(value["ledger"], "ledger", {"path", "sha"})
-            _relative(ledger["path"], "ledger.path")
-            _digest(ledger["sha"], "ledger.sha")
+    baseline = _object(value["baseline"], "baseline", {"head", "prior_plans"})
+    if baseline["head"] != git_facts["head_start"]:
+        fail("schema-invalid", "baseline.head must equal git.head_start")
+    if not isinstance(baseline["prior_plans"], list):
+        fail("schema-invalid", "baseline.prior_plans must be a list")
+    if len(baseline["prior_plans"]) > MAX_PRIOR_PLANS:
+        fail("schema-invalid", f"baseline.prior_plans exceeds {MAX_PRIOR_PLANS} entries")
+    for prior in baseline["prior_plans"]:
+        _relative(prior, "baseline.prior_plans[]")
+    if value["ledger"] is not None:
+        ledger = _object(value["ledger"], "ledger", {"path", "sha"})
+        _relative(ledger["path"], "ledger.path")
+        _digest(ledger["sha"], "ledger.sha")
     if value["outcome"] is not None:
         if status != "completed":
             fail("schema-invalid", "outcome requires a completed record")
@@ -826,9 +809,8 @@ def cmd_start(args: argparse.Namespace, home: Path, cwd: Path) -> dict[str, obje
     return {"run_id": run_id, "status": "pending"}
 
 
-def _require_pending(home: Path, run_id: str, *, abandon: bool = False) -> dict[str, object]:
+def _require_pending(home: Path, run_id: str) -> dict[str, object]:
     record = load_record(home, run_id)
-    require_mutable_schema(record, abandon=abandon)
     if record["status"] != "pending":
         fail("already-finished", "run is already finished")
     return record
@@ -875,7 +857,7 @@ def cmd_finish(args: argparse.Namespace, home: Path, cwd: Path, stdin: TextIO) -
 def cmd_abandon(args: argparse.Namespace, home: Path) -> dict[str, object]:
     lock = home / "locks" / f"{validate_run_id(args.run_id)}.lock"
     with _file_lock(lock):
-        record = _require_pending(home, args.run_id, abandon=True)
+        record = _require_pending(home, args.run_id)
         completed_at = utc_now()
         record["status"] = "abandoned"
         record["abandon_reason"] = args.reason
@@ -889,7 +871,6 @@ def cmd_outcome(args: argparse.Namespace, home: Path) -> dict[str, object]:
     lock = home / "locks" / f"{validate_run_id(args.run_id)}.lock"
     with _file_lock(lock):
         record = load_record(home, args.run_id)
-        require_mutable_schema(record)
         if record["status"] != "completed":
             fail("schema-invalid", "outcome requires a completed run")
         if args.label == "false-ready" and record["verdict"] != "READY":
@@ -952,8 +933,7 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
                 "run_id": run_id,
                 "started_at": record["started_at"],
                 "repo": record["repo"],
-                "repo_key": record["repo_key"] if record["schema"] >= 3 else None,
-                "binding": "checkout-bound" if record["schema"] >= 3 else "historical-unbound",
+                "repo_key": record["repo_key"],
                 "plan": plan["path"],
                 "status": record["status"],
                 "verdict": record["verdict"],
@@ -961,12 +941,11 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
                 "elapsed_s": record["elapsed_s"],
             }
         )
-        if record["schema"] >= 3:
-            chain_key = (str(record["repo_key"]), str(plan["path"]))
-            chain_repos.setdefault(chain_key, str(record["repo"]))
-            chains.setdefault(chain_key, []).append(
-                {"run_id": run_id, "status": record["status"], "verdict": record["verdict"]}
-            )
+        chain_key = (str(record["repo_key"]), str(plan["path"]))
+        chain_repos.setdefault(chain_key, str(record["repo"]))
+        chains.setdefault(chain_key, []).append(
+            {"run_id": run_id, "status": record["status"], "verdict": record["verdict"]}
+        )
         if record["status"] != "completed":
             continue
         for anomaly in observation_anomalies(record):
@@ -1006,10 +985,6 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
         "observation": {"normal": len(normal), "anomalous": len(anomalous)},
         "normal_verdict": _count([str(record["verdict"]) for record in normal], VERDICTS),
         "anomalous_verdict": _count([str(record["verdict"]) for record in anomalous], VERDICTS),
-        "binding": _count(
-            ["checkout-bound" if record["schema"] >= 3 else "historical-unbound" for record in records],
-            ("checkout-bound", "historical-unbound"),
-        ),
     }
     return {
         "schema": SCHEMA,
@@ -1054,13 +1029,14 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
 def cmd_summary(args: argparse.Namespace, home: Path) -> dict[str, object]:
     if args.last is not None and args.last < 1:
         fail("invalid-arguments", "--last must be a positive integer")
-    records, invalid = scan_records(home)
+    records, invalid, unsupported = scan_records(home)
     if args.repo is not None:
         records = [record for record in records if record["repo"] == args.repo]
     if args.last is not None:
         records = records[-args.last :]
     result = summarize(records)
     result["invalid_records"] = invalid
+    result["unsupported_records"] = unsupported
     return result
 
 
