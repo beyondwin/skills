@@ -229,6 +229,11 @@ class RegistryRejectionTests(unittest.TestCase):
                 "unknown host",
             ),
             (
+                "worker CLI as host",
+                _registry(_product(supported_hosts='["codex", "cursor"]')),
+                "unknown host cursor",
+            ),
+            (
                 "absolute paths",
                 _registry(
                     _product(skill_path='"/tmp/skills/sample-product"'),

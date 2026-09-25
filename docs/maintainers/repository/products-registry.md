@@ -23,7 +23,7 @@
 | `skill_path` | 제품 | 설치 파일 디렉터리. 저장소 상대, `..`와 절대 경로 금지 |
 | `test_path` | 제품 | 제품 테스트 디렉터리 |
 | `maintainer_docs` | 제품 | 제품 관리자 문서 디렉터리 |
-| `supported_hosts` | 제품 | 허용 값: `codex`, `claude-code`, `grok`, `cursor` |
+| `supported_hosts` | 제품 | 허용 값: `codex`, `claude-code`, `grok` |
 | `owned_paths` | 제품 | 변경 라우팅 접두사. 디렉터리 항목은 끝 `/`가 필요 |
 | `verify_stages` | 제품 | 코드에 등록된 검증 단계 식별자. 셸 명령이 아님 |
 

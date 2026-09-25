@@ -7,7 +7,7 @@ import re
 import tomllib
 
 
-KNOWN_HOSTS = frozenset({"codex", "claude-code", "grok", "cursor"})
+KNOWN_HOSTS = frozenset({"codex", "claude-code", "grok"})
 PRODUCT_KEYS = frozenset({
     "name", "display_name", "skill_path", "test_path", "maintainer_docs",
     "supported_hosts", "owned_paths", "verify_stages",
