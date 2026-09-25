@@ -28,7 +28,7 @@ jobs:
         run: python scripts/changed_targets.py --event "${{ github.event_name }}" --base "${{ github.event.pull_request.base.sha }}" --head "${{ github.event.pull_request.head.sha }}"
 
   verify:
-    name: ${{ matrix.os }} / ${{ matrix.profile }}
+    name: ${{ matrix.os }} / ${{ matrix.target || 'all' }}
     needs: detect
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
@@ -43,4 +43,4 @@ jobs:
         with:
           python-version: "3.11"
       - name: Verify
-        run: python scripts/verify.py --profile "${{ matrix.profile }}" ${{ matrix.selector }}
+        run: python scripts/verify.py ${{ matrix.selector }}

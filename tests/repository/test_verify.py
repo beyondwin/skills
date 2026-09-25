@@ -5,6 +5,7 @@ import builtins
 import contextlib
 import dataclasses
 import importlib.util
+import inspect
 import io
 import sys
 import tempfile
@@ -90,17 +91,12 @@ class VerifyStageTests(unittest.TestCase):
         self.assertTrue(VERIFY_PATH.is_file(), "scripts.verify does not exist")
         return load_verify()
 
-    def _selected(
-        self,
-        profile: str,
-        *,
-        skill: str | None = None,
-    ):
-        return stages(ROOT, profile, self.registry, skill=skill)
+    def _selected(self, *, skill: str | None = None):
+        return stages(ROOT, self.registry, skill=skill)
 
     def test_product_stage_order_comes_from_registry(self) -> None:
         product = self.registry.require("how-it-works")
-        selected = stages(ROOT, "full", self.registry, skill="how-it-works")
+        selected = stages(ROOT, self.registry, skill="how-it-works")
         self.assertEqual(tuple(stage.name for stage in selected), product.verify_stages)
 
     def test_product_stage_order_follows_replaced_registry_entry(self) -> None:
@@ -115,46 +111,41 @@ class VerifyStageTests(unittest.TestCase):
                 for item in self.registry.products
             ),
         )
-        selected = stages(ROOT, "full", replaced, skill="how-it-works")
+        selected = stages(ROOT, replaced, skill="how-it-works")
         self.assertEqual(tuple(stage.name for stage in selected), product.verify_stages)
 
-    def test_full_profile_contains_all_provider_free_gates(self) -> None:
-        names = [stage.name for stage in self._selected("full")]
+    def test_full_run_contains_all_provider_free_gates(self) -> None:
+        names = [stage.name for stage in self._selected()]
         self.assertEqual(names, list(FULL_STAGE_NAMES))
 
-    def test_unknown_profile_is_rejected(self) -> None:
-        with self.assertRaises(ValueError):
-            stages(ROOT, "linux", self.registry)
-
-    def test_windows_portable_profile_is_unknown(self) -> None:
-        with self.assertRaises(ValueError) as raised:
-            stages(ROOT, "windows-portable", self.registry)
-        self.assertIn("unknown profile", str(raised.exception))
+    def test_stages_take_no_profile_argument(self) -> None:
+        self.assertEqual(
+            tuple(inspect.signature(stages).parameters),
+            ("root", "registry", "skill"),
+        )
 
     def test_contract_discovery_runs_first(self) -> None:
-        for profile in ("full",):
-            selected = self._selected(profile)
-            self.assertTrue(selected)
-            self.assertEqual(selected[0].name, "repository-contract")
-            argv = selected[0].argv
-            self.assertEqual(argv[0], sys.executable)
-            self.assertEqual(argv[1:4], ("-m", "unittest", "discover"))
-            self.assertIn("tests/repository", argv)
+        selected = self._selected()
+        self.assertTrue(selected)
+        self.assertEqual(selected[0].name, "repository-contract")
+        argv = selected[0].argv
+        self.assertEqual(argv[0], sys.executable)
+        self.assertEqual(argv[1:4], ("-m", "unittest", "discover"))
+        self.assertIn("tests/repository", argv)
 
     def test_every_stage_uses_sys_executable_and_list_argv(self) -> None:
-        for profile in ("full",):
-            for stage in self._selected(profile):
-                self.assertIsInstance(stage.argv, tuple)
-                self.assertTrue(stage.argv, stage.name)
-                self.assertEqual(stage.argv[0], sys.executable)
-                self.assertEqual(stage.cwd, ROOT)
-                joined = " ".join(stage.argv)
-                self.assertNotIn("&&", joined)
-                self.assertNotIn("|", joined)
-                self.assertNotIn(";", joined)
+        for stage in self._selected():
+            self.assertIsInstance(stage.argv, tuple)
+            self.assertTrue(stage.argv, stage.name)
+            self.assertEqual(stage.argv[0], sys.executable)
+            self.assertEqual(stage.cwd, ROOT)
+            joined = " ".join(stage.argv)
+            self.assertNotIn("&&", joined)
+            self.assertNotIn("|", joined)
+            self.assertNotIn(";", joined)
 
     def test_korean_offline_runs_full_scope_evaluator(self) -> None:
-        stage = self._stage("full", "korean-offline")
+        stage = self._stage("korean-offline")
         self.assertEqual(stage.argv[0], sys.executable)
         self.assertTrue(stage.argv[1].replace("\\", "/").endswith(
             "tests/products/korean-writing-editor/offline/run.py"
@@ -163,7 +154,7 @@ class VerifyStageTests(unittest.TestCase):
         self.assertIn("full", stage.argv)
 
     def test_image_contract_runs_full_scope_evaluator(self) -> None:
-        stage = self._stage("full", "image-contract")
+        stage = self._stage("image-contract")
         self.assertTrue(stage.argv[1].replace("\\", "/").endswith(
             "tests/products/image-workbench/run.py"
         ))
@@ -171,17 +162,17 @@ class VerifyStageTests(unittest.TestCase):
         self.assertIn("full", stage.argv)
 
     def test_image_inspector_discovers_external_inspector_tests(self) -> None:
-        stage = self._stage("full", "image-inspector")
+        stage = self._stage("image-inspector")
         self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
         self.assertIn("tests/products/image-workbench", stage.argv)
 
     def test_korean_live_unit_discovers_live_tests(self) -> None:
-        stage = self._stage("full", "korean-live-unit")
+        stage = self._stage("korean-live-unit")
         self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
         self.assertIn("tests/products/korean-writing-editor/live", stage.argv)
 
     def test_korean_live_dry_run_is_dry_run_only(self) -> None:
-        stage = self._stage("full", "korean-live-dry-run")
+        stage = self._stage("korean-live-dry-run")
         self.assertTrue(stage.argv[1].replace("\\", "/").endswith(
             "tests/products/korean-writing-editor/live/live_matrix.py"
         ))
@@ -190,13 +181,12 @@ class VerifyStageTests(unittest.TestCase):
         self.assertNotIn("--preflight", stage.argv)
 
     def test_no_stage_invokes_live_execute(self) -> None:
-        for profile in ("full",):
-            for stage in self._selected(profile):
-                self.assertNotIn("--execute", stage.argv)
-                self.assertNotIn("--preflight", stage.argv)
+        for stage in self._selected():
+            self.assertNotIn("--execute", stage.argv)
+            self.assertNotIn("--preflight", stage.argv)
 
     def test_python_compile_covers_scripts_skill_scripts_and_tests(self) -> None:
-        stage = self._stage("full", "python-compile")
+        stage = self._stage("python-compile")
         self.assertEqual(stage.argv[1:3], ("-m", "compileall"))
         paths = [part.replace("\\", "/") for part in stage.argv[3:]]
         self.assertTrue(any(part == "scripts" or part.endswith("/scripts") for part in paths))
@@ -263,17 +253,17 @@ class VerifyStageTests(unittest.TestCase):
             self.assertFalse(marker.exists())
 
     def test_how_it_works_selection_runs_only_shared_and_how_it_works_gates(self) -> None:
-        names = [stage.name for stage in self._selected("full", skill="how-it-works")]
+        names = [stage.name for stage in self._selected(skill="how-it-works")]
         self.assertEqual(names, ["product-contract", "how-it-works-contract", "python-compile"])
 
     def test_sddx_selection_runs_only_shared_and_sddx_gates(self) -> None:
-        names = [stage.name for stage in self._selected("full", skill="sddx")]
+        names = [stage.name for stage in self._selected(skill="sddx")]
         self.assertEqual(names, ["product-contract", "sddx-contract", "python-compile"])
 
 
     def test_pre_sdd_review_selects_its_registered_stages(self) -> None:
         product = self.registry.require("pre-sdd-review")
-        selected = stages(ROOT, "full", self.registry, skill=product.name)
+        selected = stages(ROOT, self.registry, skill=product.name)
         self.assertEqual(
             tuple(stage.name for stage in selected),
             ("product-contract", "pre-sdd-review-contract", "pre-sdd-review-evidence", "python-compile"),
@@ -282,7 +272,7 @@ class VerifyStageTests(unittest.TestCase):
     def test_korean_selection_runs_only_shared_and_korean_gates(self) -> None:
         names = [
             stage.name
-            for stage in self._selected("full", skill="korean-writing-editor")
+            for stage in self._selected(skill="korean-writing-editor")
         ]
         self.assertEqual(
             names,
@@ -298,7 +288,7 @@ class VerifyStageTests(unittest.TestCase):
 
     def test_image_selection_runs_only_shared_and_image_gates(self) -> None:
         names = [
-            stage.name for stage in self._selected("full", skill="image-workbench")
+            stage.name for stage in self._selected(skill="image-workbench")
         ]
         self.assertEqual(
             names,
@@ -311,7 +301,7 @@ class VerifyStageTests(unittest.TestCase):
         )
 
     def test_product_contract_runs_release_contract_module(self) -> None:
-        stage = self._stage("full", "product-contract", skill="how-it-works")
+        stage = self._stage("product-contract", skill="how-it-works")
         self.assertEqual(stage.argv[0], sys.executable)
         self.assertEqual(
             stage.argv[1:4],
@@ -319,7 +309,7 @@ class VerifyStageTests(unittest.TestCase):
         )
 
     def test_full_run_covers_public_docs_through_repository_discovery(self) -> None:
-        stage = self._stage("full", "repository-contract")
+        stage = self._stage("repository-contract")
         self.assertEqual(stage.argv[0], sys.executable)
         self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
         self.assertIn("tests/repository", stage.argv)
@@ -330,45 +320,34 @@ class VerifyStageTests(unittest.TestCase):
             self.assertNotIn(name, REGISTERED_STAGE_NAMES)
 
     def test_korean_package_runs_korean_package_module(self) -> None:
-        stage = self._stage(
-            "full", "korean-package", skill="korean-writing-editor"
+        stage = self._stage("korean-package", skill="korean-writing-editor"
         )
         self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
         self.assertIn("tests/products/korean-writing-editor", stage.argv)
         self.assertIn("test_package.py", stage.argv)
 
     def test_how_it_works_contract_runs_how_it_works_module(self) -> None:
-        stage = self._stage("full", "how-it-works-contract", skill="how-it-works")
+        stage = self._stage("how-it-works-contract", skill="how-it-works")
         self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
         self.assertIn("tests/products/how-it-works", stage.argv)
         self.assertEqual(stage.argv[stage.argv.index("-p") + 1], "test_*.py")
 
     def test_pre_sdd_review_contract_is_portable_unittest_discovery(self) -> None:
-        for profile in ("full",):
-            stage = self._stage(
-                profile,
-                "pre-sdd-review-contract",
-                skill="pre-sdd-review",
-            )
-            self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
-            self.assertIn("tests/products/pre-sdd-review", stage.argv)
-            self.assertIn("test_c*.py", stage.argv)
+        stage = self._stage("pre-sdd-review-contract", skill="pre-sdd-review")
+        self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
+        self.assertIn("tests/products/pre-sdd-review", stage.argv)
+        self.assertIn("test_c*.py", stage.argv)
 
     def test_pre_sdd_review_evidence_full_gate_uses_unittest_discovery(self) -> None:
-        stage = self._stage("full", "pre-sdd-review-evidence", skill="pre-sdd-review")
+        stage = self._stage("pre-sdd-review-evidence", skill="pre-sdd-review")
         self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
         self.assertIn("tests/products/pre-sdd-review/evidence", stage.argv)
         self.assertIn("test_*.py", stage.argv)
 
     def test_selected_stages_use_sys_executable_and_tuple_argv(self) -> None:
-        selections = (
-            ("full", "how-it-works"),
-            ("full", "korean-writing-editor"),
-            ("full", "image-workbench"),
-            ("full", None),
-        )
-        for profile, skill in selections:
-            for stage in self._selected(profile, skill=skill):
+        selections = ("how-it-works", "korean-writing-editor", "image-workbench", None)
+        for skill in selections:
+            for stage in self._selected(skill=skill):
                 self.assertIsInstance(stage.argv, tuple)
                 self.assertTrue(stage.argv, stage.name)
                 self.assertEqual(stage.argv[0], sys.executable)
@@ -378,13 +357,15 @@ class VerifyStageTests(unittest.TestCase):
                 self.assertNotIn("|", joined)
                 self.assertNotIn(";", joined)
 
-    def test_cli_rejects_unknown_profile(self) -> None:
+    def test_cli_rejects_retired_profile_option(self) -> None:
         verify = self._load()
-        stderr = io.StringIO()
-        with contextlib.redirect_stderr(stderr):
-            with self.assertRaises(SystemExit) as raised:
-                verify.main(["--profile", "linux"])
-        self.assertNotEqual(raised.exception.code, 0)
+        for argv in (["--profile", "full"], ["--profile", "linux"]):
+            stderr = io.StringIO()
+            with self.subTest(argv=argv), contextlib.redirect_stderr(stderr):
+                with self.assertRaises(SystemExit) as raised:
+                    verify.main(argv)
+            self.assertEqual(raised.exception.code, 2)
+            self.assertIn("unrecognized arguments: --profile", stderr.getvalue())
 
     def test_cli_rejects_unknown_skill(self) -> None:
         verify = self._load()
@@ -402,18 +383,13 @@ class VerifyStageTests(unittest.TestCase):
                 verify.main(["--catalog"])
         self.assertNotEqual(raised.exception.code, 0)
 
-    def test_cli_defaults_to_full_profile(self) -> None:
+    def test_cli_defaults_to_full_run(self) -> None:
         verify = self._load()
-        recorded: list[tuple[str, str | None]] = []
+        recorded: list[str | None] = []
         original = verify.stages
 
-        def fake_stages(
-            root,
-            profile: str,
-            registry,
-            skill: str | None = None,
-        ):
-            recorded.append((profile, skill))
+        def fake_stages(root, registry, skill: str | None = None):
+            recorded.append(skill)
             return (
                 Stage("test", (sys.executable, "-c", "raise SystemExit(0)"), cwd=ROOT),
             )
@@ -423,20 +399,15 @@ class VerifyStageTests(unittest.TestCase):
             self.assertEqual(verify.main([]), 0)
         finally:
             verify.stages = original  # type: ignore[method-assign]
-        self.assertEqual(recorded, [("full", None)])
+        self.assertEqual(recorded, [None])
 
     def test_cli_passes_skill_selector(self) -> None:
         verify = self._load()
-        recorded: list[tuple[str, str | None]] = []
+        recorded: list[str | None] = []
         original = verify.stages
 
-        def fake_stages(
-            root,
-            profile: str,
-            registry,
-            skill: str | None = None,
-        ):
-            recorded.append((profile, skill))
+        def fake_stages(root, registry, skill: str | None = None):
+            recorded.append(skill)
             return (
                 Stage("test", (sys.executable, "-c", "raise SystemExit(0)"), cwd=ROOT),
             )
@@ -446,7 +417,7 @@ class VerifyStageTests(unittest.TestCase):
             self.assertEqual(verify.main(["--skill", "how-it-works"]), 0)
         finally:
             verify.stages = original  # type: ignore[method-assign]
-        self.assertEqual(recorded, [("full", "how-it-works")])
+        self.assertEqual(recorded, ["how-it-works"])
 
     def test_live_unit_module_is_importable_without_fcntl(self) -> None:
         self.assertTrue(LIVE_TEST_PATH.is_file(), "live unit tests are absent")
@@ -474,17 +445,11 @@ class VerifyStageTests(unittest.TestCase):
             "Unix-only live tests must skipIf FIFO/fcntl/dir_fd fixtures on Windows",
         )
 
-    def _stage(
-        self,
-        profile: str,
-        name: str,
-        *,
-        skill: str | None = None,
-    ):
-        for stage in self._selected(profile, skill=skill):
+    def _stage(self, name: str, *, skill: str | None = None):
+        for stage in self._selected(skill=skill):
             if stage.name == name:
                 return stage
-        self.fail(f"profile {profile!r} is missing stage {name!r}")
+        self.fail(f"selection {skill or 'full'!r} is missing stage {name!r}")
 
 
 def _load_live_tests_without_fcntl() -> ModuleType:

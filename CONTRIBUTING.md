@@ -56,6 +56,6 @@ python3 scripts/verify.py
 - Before merge, run `python3 scripts/verify.py`.
 - Run live `--execute` only when that product's runtime or execution contract changed, on macOS, and only with explicit approval.
 
-CI runs only `python scripts/verify.py --profile full`. It does not use secrets, live `--execute`/`--preflight`, a provider CLI, or a remote image call. An Ubuntu CI pass is not macOS support evidence.
+CI runs only `python scripts/verify.py`, on the whole repo or with `--skill <name>`. It does not use secrets, live `--execute`/`--preflight`, a provider CLI, or a remote image call. An Ubuntu CI pass is not macOS support evidence.
 
 See [SECURITY.md](SECURITY.md) for private vulnerability reporting and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community standards.

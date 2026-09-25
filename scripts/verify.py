@@ -14,7 +14,6 @@ if str(ROOT) not in sys.path:
 
 from scripts.lib.product_registry import load_registry, validate_registry  # noqa: E402
 from scripts.lib.verification import (  # noqa: E402
-    PROFILES,
     REGISTERED_STAGE_NAMES,
     run_stages,
     stages,
@@ -23,12 +22,6 @@ from scripts.lib.verification import (  # noqa: E402
 
 def build_parser(names: tuple[str, ...]) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--profile",
-        choices=PROFILES,
-        default="full",
-        help="verification profile (default: full)",
-    )
     parser.add_argument("--skill", choices=names)
     return parser
 
@@ -42,7 +35,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     parser = build_parser(registry.names)
     args = parser.parse_args(argv)
-    return run_stages(stages(ROOT, args.profile, registry, skill=args.skill))
+    return run_stages(stages(ROOT, registry, skill=args.skill))
 
 
 if __name__ == "__main__":

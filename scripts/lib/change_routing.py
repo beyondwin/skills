@@ -8,9 +8,7 @@ from collections.abc import Iterable, Sequence
 from scripts.lib.product_registry import ProductRegistry, normalize_repo_path
 
 
-OS_ROWS = (
-    ("ubuntu-latest", "full"),
-)
+CI_OS = "ubuntu-latest"
 FULL_REPOSITORY_EVENTS = frozenset({"push", "workflow_dispatch"})
 
 
@@ -71,28 +69,16 @@ def matrix_for_targets(
     selected = tuple(target for target in order if target in wanted)
     if not selected:
         selected = order
-    include: list[dict[str, str]] = []
-    for target in selected:
-        selector = _selector(target)
-        for os_name, profile in OS_ROWS:
-            include.append(
-                {
-                    "target": target,
-                    "os": os_name,
-                    "profile": profile,
-                    "selector": selector,
-                }
-            )
-    return {"include": include}
+    return {
+        "include": [
+            {"target": target, "os": CI_OS, "selector": _selector(target)}
+            for target in selected
+        ]
+    }
 
 
 def full_repository_matrix() -> dict[str, list[dict[str, str]]]:
-    return {
-        "include": [
-            {"os": os_name, "profile": profile, "selector": ""}
-            for os_name, profile in OS_ROWS
-        ]
-    }
+    return {"include": [{"os": CI_OS, "selector": ""}]}
 
 
 def serialize_matrix(matrix: dict[str, list[dict[str, str]]]) -> str:

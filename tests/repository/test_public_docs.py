@@ -471,12 +471,10 @@ def pre_sdd_shared_contract_errors(
         ("ko", "verification"): (
             "`pre-sdd-review`의 공급자 없는 픽스처는 지시와 패키지 계약만 검증합니다.",
             "리뷰어 독립성, 의미 완전성, 라이브 리뷰 품질을 증명하지 않습니다.",
-            "Ubuntu CI의 `full` 통과는 native macOS 지원을 증명하지 않습니다.",
         ),
         ("en", "verification"): (
             "`pre-sdd-review` provider-free fixtures validate only instruction and package contracts.",
             "They do not prove reviewer independence, semantic completeness, or live review quality.",
-            "An Ubuntu `full` CI pass does not prove native macOS support.",
         ),
     }
     key = (language, document)
@@ -641,7 +639,7 @@ class RootReadmeTests(unittest.TestCase):
             korean,
         )
         self.assertIn(
-            "CI Ubuntu `full` 통과는 Linux 지원이 아니고 macOS 지원 증거도 아닙니다.",
+            "CI Ubuntu 전체 검증 통과는 Linux 지원이 아니고 macOS 지원 증거도 아닙니다.",
             korean,
         )
         self.assertIn(
@@ -649,7 +647,7 @@ class RootReadmeTests(unittest.TestCase):
             english,
         )
         self.assertIn(
-            "An Ubuntu CI `full` pass is not Linux support and is not macOS support evidence.",
+            "A passing Ubuntu CI run is not Linux support and is not macOS support evidence.",
             english,
         )
 
@@ -896,19 +894,29 @@ class UserGuideFactTests(unittest.TestCase):
             verify = _read(ROOT / "docs" / "users" / language / "verification.md")
             self.assertIn("python3 scripts/verify.py --skill sddx", verify)
 
-    def test_verification_owns_offline_live_evidence_and_profiles(self) -> None:
-        for document in (
-            ROOT / "docs" / "users" / "ko" / "verification.md",
-            ROOT / "docs" / "users" / "en" / "verification.md",
-        ):
+    def test_verification_owns_offline_live_evidence_and_ci_scope(self) -> None:
+        ci_sentences = {
+            "ko": "CI는 Ubuntu에서 이 검증을 돌립니다. Ubuntu CI 통과는 macOS 지원을 증명하지 않습니다.",
+            "en": "CI runs this verification on Ubuntu. An Ubuntu CI pass does not prove macOS support.",
+        }
+        for language, ci_sentence in ci_sentences.items():
+            document = ROOT / "docs" / "users" / language / "verification.md"
             _assert_exists(self, document)
             text = _read(document)
             self.assertIn(OFFLINE_EVIDENCE, text)
             self.assertIn(LIVE_EVIDENCE, text)
             self.assertIn("python3 scripts/verify.py", text)
-            self.assertIn("--profile full", text)
+            self.assertNotIn("--profile", text)
             self.assertNotIn("windows-portable", text)
-            self.assertIn("`full`", text)
+            self.assertNotIn("`full`", text)
+            self.assertEqual(text.count(ci_sentence), 1, document.name)
+            intro = text.split("\n## ", 1)[0]
+            self.assertIn(
+                ci_sentence,
+                intro,
+                f"{document.name} must state the CI scope next to the stage list",
+            )
+            self.assertLess(intro.index("- python-compile"), intro.index(ci_sentence))
             self.assertTrue(
                 "does not prove" in text.lower() or "증명하지 않습니다" in text,
                 f"{document.name} must not treat offline fixtures as live quality evidence",

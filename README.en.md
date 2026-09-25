@@ -9,8 +9,8 @@
 Five skills for AI coding tools such as Codex, Claude Code, and Grok. Pick the
 ones you need and install each one on its own. The license is Apache-2.0.
 
-The supported OS is macOS only. Windows and Linux are unsupported. An Ubuntu CI
-`full` pass is not Linux support and is not macOS support evidence.
+The supported OS is macOS only. Windows and Linux are unsupported. A passing Ubuntu CI
+run is not Linux support and is not macOS support evidence.
 
 ## Choose a skill
 

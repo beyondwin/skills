@@ -129,5 +129,5 @@ git diff --check
 공통 `how-it-works-contract` stage는 `tests/products/how-it-works`에서
 `test_*.py`를 발견하므로, `--skill` 검사가 `test_contract.py`와
 `test_evidence_contract.py`를 함께 실행합니다. 위 직접 `unittest` 명령은 한 파일만
-빠르게 돌릴 때 씁니다. 제품 단위 순수 검사 통과는 전체 profile 검사나 라이브 모델
+빠르게 돌릴 때 씁니다. 제품 단위 순수 검사 통과는 전체 검증이나 라이브 모델
 품질의 통과를 대신하지 않습니다.

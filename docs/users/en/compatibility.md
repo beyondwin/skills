@@ -46,7 +46,7 @@ The preserved `how-it-works` smoke is `historical-unbound`; it is separate from 
 
 ## Operating system
 
-The supported OS is macOS only. Windows and Linux are unsupported. CI may run the `full` profile on Ubuntu. That pass is not Linux support and is not macOS support evidence.
+The supported OS is macOS only. Windows and Linux are unsupported. CI may run the full verification on Ubuntu. That pass is not Linux support and is not macOS support evidence.
 
 ## Install paths and hosts
 

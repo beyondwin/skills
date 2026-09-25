@@ -10,7 +10,6 @@ from scripts.lib.product_registry import ProductRegistry
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-PROFILES = ("full",)
 _SHARED_PRODUCT_STAGES = frozenset({"product-contract", "python-compile"})
 
 
@@ -198,12 +197,9 @@ def _full_stage_names(registry: ProductRegistry) -> tuple[str, ...]:
 
 def stages(
     root: pathlib.Path,
-    profile: str,
     registry: ProductRegistry,
     skill: str | None = None,
 ) -> Sequence[Stage]:
-    if profile not in PROFILES:
-        raise ValueError(f"unknown profile: {profile}")
     names: tuple[str, ...]
     if skill is not None:
         try:

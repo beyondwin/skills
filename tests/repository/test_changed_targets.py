@@ -225,13 +225,16 @@ class TargetMappingTests(RegistryRoutingTestCase):
 
 
 class MatrixSerializationTests(RegistryRoutingTestCase):
-    def test_each_target_runs_ubuntu_full_only(self) -> None:
+    def test_each_target_runs_one_ubuntu_row(self) -> None:
         matrix = matrix_for_targets(["how-it-works"], self.registry)
-        rows = matrix["include"]
         self.assertEqual(
-            [(row["os"], row["profile"], row["selector"], row["target"]) for row in rows],
+            matrix["include"],
             [
-                ("ubuntu-latest", "full", "--skill how-it-works", "how-it-works"),
+                {
+                    "os": "ubuntu-latest",
+                    "selector": "--skill how-it-works",
+                    "target": "how-it-works",
+                },
             ],
         )
 
@@ -244,9 +247,7 @@ class MatrixSerializationTests(RegistryRoutingTestCase):
         self.assertFalse(
             any(row["os"] == "windows-latest" for row in matrix["include"])
         )
-        self.assertFalse(
-            any(row["profile"] == "windows-portable" for row in matrix["include"])
-        )
+        self.assertFalse(any("profile" in row for row in matrix["include"]))
 
     def test_matrix_rows_follow_targets_order_not_input_order(self) -> None:
         matrix = matrix_for_targets(("how-it-works", "korean-writing-editor"), self.registry)
@@ -276,17 +277,11 @@ class MatrixSerializationTests(RegistryRoutingTestCase):
         self.assertEqual(json.loads(encoded), matrix)
         self.assertTrue(encoded.startswith('{"include":['))
 
-    def test_full_repository_matrix_is_one_ubuntu_full_row(self) -> None:
-        matrix = full_repository_matrix()
+    def test_full_repository_matrix_is_one_ubuntu_row(self) -> None:
         self.assertEqual(
-            [(row["os"], row["profile"], row.get("selector", ""), row.get("target")) for row in matrix["include"]],
-            [
-                ("ubuntu-latest", "full", "", None),
-            ],
+            full_repository_matrix(),
+            {"include": [{"os": "ubuntu-latest", "selector": ""}]},
         )
-        for row in matrix["include"]:
-            self.assertNotIn("target", row)
-            self.assertEqual(row["selector"], "")
 
     def test_push_and_dispatch_events_use_full_repository_matrix(self) -> None:
         expected = full_repository_matrix()
@@ -307,7 +302,7 @@ class MatrixSerializationTests(RegistryRoutingTestCase):
                 self.assertEqual(row["selector"], "")
                 names = [
                     stage.name
-                    for stage in stages(ROOT, row["profile"], self.registry)
+                    for stage in stages(ROOT, self.registry)
                 ]
                 self.assertIn("repository-contract", names)
 

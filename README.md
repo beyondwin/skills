@@ -9,7 +9,7 @@
 Codex, Claude Code, Grok 같은 AI 코딩 도구에 넣어 쓰는 스킬 다섯 개를 모아 둔
 저장소입니다. 필요한 스킬만 골라 하나씩 설치합니다. 라이선스는 Apache-2.0입니다.
 
-지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다. CI Ubuntu `full`
+지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다. CI Ubuntu 전체 검증
 통과는 Linux 지원이 아니고 macOS 지원 증거도 아닙니다.
 
 ## 스킬 고르기

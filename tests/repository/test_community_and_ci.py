@@ -33,9 +33,8 @@ ACTION_PIN_RE = re.compile(
 CREDENTIAL_MARKERS = ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "CURSOR_API_KEY")
 PERSONAL_MARKERS = ("/Users/", "source/private", "SKILLS_ARCHIVE_CHECKOUT")
 EMAIL_RE = re.compile(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", re.IGNORECASE)
-VERIFIER_COMMAND = (
-    'python scripts/verify.py --profile "${{ matrix.profile }}" ${{ matrix.selector }}'
-)
+VERIFIER_COMMAND = "python scripts/verify.py ${{ matrix.selector }}"
+VERIFY_JOB_NAME = "name: ${{ matrix.os }} / ${{ matrix.target || 'all' }}"
 DETECT_COMMAND = (
     'python scripts/changed_targets.py --event "${{ github.event_name }}" '
     '--base "${{ github.event.pull_request.base.sha }}" '
@@ -85,22 +84,18 @@ class CiWorkflowTests(unittest.TestCase):
         self.assertIn("fromJSON", workflow)
         self.assertRegex(workflow, r"(?m)^  detect:")
         self.assertIn("needs: detect", workflow)
-        full_rows = [
-            (row["os"], row["profile"])
-            for row in full_repository_matrix()["include"]
-        ]
         self.assertEqual(
-            full_rows,
-            [("ubuntu-latest", "full")],
+            full_repository_matrix()["include"],
+            [{"os": "ubuntu-latest", "selector": ""}],
         )
-        pr_os_profiles = {
-            (row["os"], row["profile"])
-            for row in matrix_for_targets(REGISTRY.names, REGISTRY)["include"]
-        }
+        pr_rows = matrix_for_targets(REGISTRY.names, REGISTRY)["include"]
+        self.assertEqual({row["os"] for row in pr_rows}, {"ubuntu-latest"})
         self.assertEqual(
-            pr_os_profiles,
-            {("ubuntu-latest", "full")},
+            {frozenset(row) for row in pr_rows},
+            {frozenset({"os", "selector", "target"})},
         )
+        self.assertIn(VERIFY_JOB_NAME, workflow)
+        self.assertNotIn("matrix.profile", workflow)
         self.assertIn("pull_request", workflow)
         self.assertIn("workflow_dispatch", workflow)
         self.assertRegex(workflow, r"branches:\s*\[main\]|-\s*main")

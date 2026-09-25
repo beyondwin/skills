@@ -10,9 +10,7 @@ In short: a fixture is a saved test example. A smoke is a recorded live run. `no
 python3 scripts/verify.py
 ```
 
-That command is `--profile full`.
-
-Stages run in this order. The first failing stage stops the command.
+With no arguments it runs every stage. Stages run in this order. The first failing stage stops the command.
 
 - repository-contract
 - korean-package
@@ -27,11 +25,7 @@ Stages run in this order. The first failing stage stops the command.
 - sddx-contract
 - python-compile
 
-`full` is the only profile. CI may run `full` on Ubuntu; that pass is not macOS support evidence.
-
-```bash
-python3 scripts/verify.py --profile full
-```
+CI runs this verification on Ubuntu. An Ubuntu CI pass does not prove macOS support.
 
 Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md), [`sddx`](../../../skills/sddx/README.en.md).
 
@@ -61,8 +55,6 @@ For Korean candidates, hard failures take precedence as `failed`. After hard che
 The evidence stage under `tests/products/pre-sdd-review/evidence/` checks `evidence.py`. It makes no network, model, provider, or telemetry call.
 
 The Pre-SDD recorder reads and writes schema 4 only, and mutation commands require its checkout binding. Records in schema 2 and schema 3, written by recorders before 6.0.0, fail every command with `schema-unsupported`; `summary` counts them in `unsupported_records`. They never block a new run; delete them to clear them. `--version` emits one canonical JSON line containing `"schema":4,"skill_name":"pre-sdd-review"`, followed by one LF, and creates no evidence home. The exact bytes are in the [recorder README](../../../skills/pre-sdd-review/evidence/README.md).
-
-An Ubuntu `full` CI pass does not prove native macOS support.
 
 A pass does not prove general quality. The license is Apache-2.0.
 

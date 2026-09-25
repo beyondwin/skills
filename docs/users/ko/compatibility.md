@@ -46,7 +46,7 @@ sddx: Claude Code and Codex supported for local or repository-based use.
 
 ## 운영체제
 
-지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다. CI는 Ubuntu에서 `full` 프로필을 돌릴 수 있습니다. 그 통과는 Linux 지원이 아니고 macOS 지원 증거도 아닙니다.
+지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다. CI는 Ubuntu에서 전체 검증을 돌릴 수 있습니다. 그 통과는 Linux 지원이 아니고 macOS 지원 증거도 아닙니다.
 
 ## 설치 경로와 호스트
 
