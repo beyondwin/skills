@@ -4,23 +4,27 @@
 
 ## Purpose
 
-It plans, makes, edits, compares, or checks bitmap images (PNG, JPG, and
-similar) that will actually go into this project. It does not keep a result
-that does not fit the project or that breaks a given constraint.
+It plans, makes, edits, compares, and checks bitmap images (PNG, JPG, and
+similar) that go into your project. It drops any result that does not fit the
+project or breaks a given constraint.
 
 ## When to use and not use
 
 Use it when you need an image that belongs in the project.
 
-Do not use `image-workbench` for a casual one-off picture, SVG or code-drawn
-UI, actual screen implementation, or copying an external prompt gallery.
+Do not use `image-workbench` for:
+
+- a casual one-off picture
+- SVG or code-drawn UI
+- actual screen implementation
+- copying an external prompt gallery
 
 ## Supported hosts
 
 image-workbench: Codex and Grok supported; generate/edit requires the current host's built-in image generation and local image viewing.
 
-It runs on `codex` and `grok` today. To make or edit an image, that host needs
-its own image tool and a way to open the result. Limits are in
+It runs on `codex` and `grok` today. To make or edit an image, the host (the
+agent app you are using) needs its own image tool and a way to open the result. Limits are in
 [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/users/en/compatibility.md).
 
 ## Install
@@ -34,7 +38,8 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-work
 Full Codex steps are in
 [Codex install](https://github.com/beyondwin/skills/blob/main/docs/users/en/install-codex.md).
 
-In Grok, clone this repo and make one shortcut where Grok looks for skills.
+In Grok, clone this repo and make one shortcut (symlink) in the folder where
+Grok looks for skills.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -42,9 +47,9 @@ cd skills
 mkdir -p ~/.agents/skills
 ```
 
-The Python below creates that shortcut. It checks that the source is a skill
-folder. If the same shortcut already exists, it leaves it. It will not replace a
-different shortcut, file, or folder.
+The Python below creates that shortcut. It first checks that the source is a
+skill folder. If the same shortcut already exists, it leaves it. It will not
+replace a different shortcut, file, or folder.
 
 <!-- image-workbench-local-links -->
 ```python
@@ -77,11 +82,15 @@ except FileExistsError:
 print("linked")
 ```
 
-Run it once in a terminal. The first line is
-`python3 - "$PWD/skills/image-workbench" "$HOME/.agents/skills/image-workbench" <<'PY'`.
-Paste the Python above on the next lines and end with `PY`. Keep the path quotes.
+Run it once in a terminal.
 
-Inspect the shortcut before deleting it.
+1. First line: `python3 - "$PWD/skills/image-workbench" "$HOME/.agents/skills/image-workbench" <<'PY'`
+2. Next lines: paste the Python above as is.
+3. Last line: `PY`
+
+Keep the path quotes.
+
+To remove it, first check that it is a shortcut.
 
 ```bash
 ls -ld ~/.agents/skills/image-workbench
@@ -93,7 +102,7 @@ Do not copy the skill into `~/.grok` or `~/.codex`. The same steps are in
 
 ## First call
 
-After install, invoke it on the next turn. Codex uses `$image-workbench`. Grok
+After install, call it in your next conversation. Codex uses `$image-workbench`. Grok
 uses `/image-workbench`.
 
 ```text
@@ -103,11 +112,15 @@ $image-workbench Make a landing-page hero image for this project.
 
 ## Expected result
 
-Choose one mode first. `brief` only writes down what image is needed and
-does not create one. `generate` makes a new image. `edit` changes an
-existing image. `audit` only inspects and does not create. `brief` and
-`audit` are read-only. An image is created only when the generate or edit
-request is clear.
+It picks exactly one mode first.
+
+- `brief`: writes down what image is needed. It does not create one.
+- `generate`: makes a new image.
+- `edit`: changes an existing image.
+- `audit`: inspects only. It does not create.
+
+`brief` and `audit` are read-only. An image is created only when the generate
+or edit request is clear.
 
 For a file that will live in the project, run
 `python3 scripts/inspect_asset.py` from this skill folder to check format and
@@ -116,7 +129,7 @@ size. A preview path that exists only in the chat is not the final file.
 That check looks at basic PNG, JPEG, or WebP structure only. A pass does not
 mean the picture looks good, the whole file was decoded, or you have the
 rights to use it. Open every final candidate. `--output facts.json` can update
-a separate JSON report; it refuses to overwrite the input image.
+a separate JSON report only. It refuses to overwrite the input image.
 
 ## See also
 

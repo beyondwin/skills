@@ -1,7 +1,7 @@
 # 문서 / Documentation
 
-어디를 보면 되는지 가리킵니다. 각 스킬의 쓰임새는 제품 README에, 변경 규칙은
-관리자 문서에 있습니다. 트리가 어떻게 나뉘는지는
+어떤 문서를 보면 되는지 안내합니다. 스킬을 쓰는 법은 각 제품 README에, 바꾸는
+규칙은 관리자 문서에 있습니다. 트리가 어떻게 나뉘는지는
 [저장소 구조](maintainers/repository/architecture.md)를 보세요.
 
 지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다. 호스트별 지원은
@@ -24,7 +24,7 @@ Windows and Linux are unsupported.
 
 ## 제품을 쓸 때 / Use a product
 
-지금 쓰는 각 스킬의 한국어·영어 README를 읽습니다.
+각 스킬의 한국어·영어 README를 읽습니다.
 
 - [`korean-writing-editor`](../skills/korean-writing-editor/README.md) · [English](../skills/korean-writing-editor/README.en.md) — Codex
 - [`image-workbench`](../skills/image-workbench/README.md) · [English](../skills/image-workbench/README.en.md) — Codex, Grok
@@ -34,7 +34,8 @@ Windows and Linux are unsupported.
 
 ## 유지·변경·릴리스 / Maintain, change, or release
 
-관리자 작업은 [`docs/maintainers/`](maintainers/)를 따릅니다.
+관리자 작업은 [`docs/maintainers/`](maintainers/)를 따릅니다. 카탈로그 묶음은
+[`catalog/`](../catalog/README.md)를 보세요.
 
 ## 기록 / History
 

@@ -4,7 +4,10 @@
 live-check 경계를 소유합니다. 모델의 실제 리뷰 품질을 측정했다고 주장하지
 않습니다.
 
-공급자 없는 픽스처 경로는 `tests/products/pre-sdd-review/`입니다.
+provider-free는 공급자 자격 증명과 모델 호출 없이 돈다는 뜻이고, live-check는
+실제 모델을 부르는 선택적 라이브 검사입니다.
+
+공급자 없는 테스트와 픽스처는 `tests/products/pre-sdd-review/`에 있습니다.
 
 ## 공급자 없는 증거
 
@@ -16,13 +19,13 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
 ```
 
 이 명령은 `test_contract.py`(패키지 정체, 지시문, 픽스처, 활성화 경계)와
-`test_campaign_schedule.py`(발견 웨이브, 수리 직렬, dirty 전파)를 함께
-돌립니다. evidence 하위 스위트는 포함하지 않습니다. 라이브 검토, 의미 품질,
+`test_campaign_schedule.py`(발견 웨이브, 수리 직렬 실행, dirty 전파)를 함께
+돌립니다. evidence 하위 테스트 묶음은 포함하지 않습니다. 라이브 검토, 의미 품질,
 다른 호스트의 동등 지원은 증명하지 않습니다.
 
-`evidence/evidence.py` 기록기의 schema 4 checkout 결속, schema 2 read-only
-legacy 처리, mutation lock, 손상 record 격리, 여섯 명령, summary 관찰 집계
-계약은 별도 공급자 없는 단계로 실행합니다. 기록기는
+`evidence/evidence.py` 기록기의 계약은 별도의 공급자 없는 단계로 실행합니다.
+schema 4 checkout 결속, schema 2 읽기 전용 legacy 처리, 변경 lock, 손상 기록
+격리, 여섯 명령, summary 관찰 집계를 확인합니다. 기록기는
 `python3 skills/pre-sdd-review/evidence/evidence.py`로 돌리며 설치하지
 않습니다.
 
@@ -34,11 +37,10 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
 이 단계는 네트워크나 공급자를 호출하지 않습니다. DB나 index도 추가하지
 않습니다.
 
-`test_contract.py`의 schema 4 문서 assertion은 설치 지시문, 기록기 안내,
-maintainer contract가 같은 lifecycle을 설명하는지 확인하는 일관성 증거입니다.
-실제 recorder 동작 증거는 evidence suite가 소유합니다. 이 승인 범위에서는
-provider나 실제 모델을 호출하지 않으므로 실제 모델 리뷰 품질은
-`not_measured`입니다.
+`test_contract.py`의 schema 4 문서 검사는 설치 지시문, 기록기 안내, 유지보수
+계약이 같은 수명 주기를 설명하는지 보는 일관성 증거일 뿐입니다. 실제 기록기
+동작의 증거는 evidence 테스트 묶음이 맡습니다. 이 승인 범위에서는 공급자나
+실제 모델을 호출하지 않으므로 실제 모델 검토 품질은 `not_measured`입니다.
 
 ## 픽스처 경계
 
@@ -142,7 +144,7 @@ SKILL.md와 스킬 루트만 주고 정답이나 기대 결과는 주지 않습�
   상태로 `execution=blocked`, `reviewers=0`인 `BLOCKED` 기록을 만든 뒤 ref를
   `HEAD`에 만듭니다. 문서 해시는 그대로입니다. 컨트롤러가 `start`에 이르면
   통과입니다. 이전 인계를 재사용하면 실패입니다.
-- 불완전 기록 재질의: 리뷰어가 요약과 판정만 돌려준 상황을 주고 다음
+- 불완전 기록 재질의: 검토자가 요약과 판정만 돌려준 상황을 주고 다음
   메시지를 파일로 받습니다. 빠진 필드만 요청하고 발견·경로·심볼·수정을
   넣지 않으면 통과입니다.
 - 이상 있는 READY 보고: `reviewers=2`, trigger 없음으로 `finish`한 기록을
@@ -156,9 +158,9 @@ SKILL.md와 스킬 루트만 주고 정답이나 기대 결과는 주지 않습�
 이 프로브는 선택이며 CI가 요구하지 않습니다. 사례당 한 번의 결과는 모델
 품질 측정이 아닙니다.
 
-Evidence 테스트는 임시 Git 저장소와 합성 skill root만 사용합니다. 원문,
+Evidence 테스트는 임시 Git 저장소와 합성 스킬 루트만 사용합니다. 원문,
 경로 원본, 프롬프트, 대화 기록, 자격 증명을 기록에 넣지 않습니다. `outcome`
-label과 정상/이상 verdict 분리는 관찰자 입력이며 모델 품질이나 감사급 증명이
-아닙니다. 손상 record 수는 filter 전 전체 scan에서 확인합니다. Windows와
+라벨과 정상/이상 판정 분리는 관찰자 입력이며 모델 품질이나 감사급 증명이
+아닙니다. 손상 기록 수는 필터 전 전체 검사에서 확인합니다. Windows와
 Linux는 지원하지 않습니다. Claude Code, Cursor, Grok은 각 native 또는 live
 단계가 별도로 실행되기 전까지 `not_measured`입니다.

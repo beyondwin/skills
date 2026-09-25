@@ -1,12 +1,13 @@
 # 독립 제품 릴리스
 
-이 문서는 현재 독립 제품의 검사·빌드·다운로드 검증만 다룹니다. 현재 버전
-숫자를 복제하지 않습니다. 제품 버전 원본은 `skills/<name>/release.toml`입니다.
-SemVer 판정은 [버저닝](versioning.md)을 따릅니다. 제품별 계약 예시는
-`docs/maintainers/products/<name>/release.md`를 보세요.
+제품 하나를 검사하고, ZIP으로 만들고, 공개 후 받은 파일을 검증하는 절차입니다.
+현재 버전 숫자는 여기 적지 않습니다.
 
-카탈로그 번들 릴리스는 [카탈로그](catalog.md)의 별도 작업입니다. 제품 릴리스가
-`catalog/` lock을 자동으로 바꾸지 않습니다.
+- 버전 원본: `skills/<name>/release.toml`
+- SemVer 판정: [버저닝](versioning.md)
+- 제품별 예시: `docs/maintainers/products/<name>/release.md`
+- 카탈로그 번들 릴리스는 [카탈로그](catalog.md)의 별도 작업입니다. 제품 릴리스가
+  `catalog/` lock을 자동으로 바꾸지 않습니다.
 
 ## 검사, 빌드, 다운로드 검증
 
@@ -23,25 +24,29 @@ python3 scripts/release.py verify-download --product <name> --input <fresh-downl
   검증을 확인합니다.
 - `build`는 새 빈 출력 디렉터리만 쓰고 standalone ZIP 하나와 `SHA256SUMS`를
   만듭니다.
-- `verify-download`는 새로 받은 바이트의 checksum, ZIP 구조, 추출 payload
-  hash, 제품 검증과 설치 smoke를 확인합니다.
+- `verify-download`는 새로 받은 바이트의 checksum, ZIP 구조, 추출한 스킬
+  파일(payload)의 hash, 제품 검증과 설치 확인(smoke)을 확인합니다.
 
-받은 파일이 진짜인지 확인한 뒤에야 풀어 봅니다. checksum만으로는 부족합니다.
 다운로드 검증 순서는 checksum → archive checks → extract → metadata → 신뢰 소스 hash → smoke입니다. checksum 단독으로는 인증이 아닙니다. 추출 payload를 신뢰하는 소스의 payload hash에 결속한 뒤 smoke를 실행합니다.
 
 카탈로그 다운로드 검증은 `release_kind=independent`에만 현재 제품 smoke를 적용합니다. 불변 `legacy-bundle`은 신뢰 lock, metadata·member·archive 검사와 정확한 payload hash로 인증합니다. 현재 제품 회귀 스위트는 과거 payload의 판정 기준이 아니므로 적용하지 않습니다. 이 경계는 과거 payload가 새 hardening을 상속했다는 뜻은 아닙니다.
 
-로컬 `dist/`는 공개 증거가 아닙니다. 제품 태그는 `<name>-v<version>`
-annotated tag입니다. 이미 있는 태그는 재사용하거나 이동하지 않습니다. 태그와
-GitHub Release는 명시적 출시 작업입니다. 로컬 빌드의 부수 효과가 아닙니다.
+## 태그와 공개
+
+- 로컬 `dist/`는 공개 증거가 아닙니다.
+- 제품 태그는 `<name>-v<version>` annotated tag입니다. 이미 있는 태그는
+  재사용하거나 이동하지 않습니다.
+- 태그와 GitHub Release는 명시적 출시 작업입니다. 로컬 빌드의 부수 효과가
+  아닙니다.
 
 ## 실패 복구
 
 - 로컬 검증 실패: 파일, 버전, CHANGELOG 또는 테스트를 고치고 다시 검증합니다.
 - 패키징 실패: 새 출력 디렉터리에서 다시 빌드합니다. 부분 결과를 재사용하지
   않습니다.
-- 태그 뒤 Draft 실패: 태그를 이동하지 않습니다. 같은 커밋의 정확한 아티팩트만
-  고쳐서 검증하거나, 코드 변경이 필요하면 새 버전을 준비합니다.
+- 태그 뒤 Draft(공개 전 GitHub Release 초안) 실패: 태그를 이동하지 않습니다.
+  같은 커밋의 정확한 아티팩트만 고쳐서 검증하거나, 코드 변경이 필요하면 새
+  버전을 준비합니다.
 - 원격 검증 실패: Draft를 비공개로 유지합니다. 로컬 성공을 공개 증거로 대체하지
   않습니다.
 - 한 제품 실패: 다른 제품의 버전, 태그, Release와 카탈로그 lock을 바꾸지

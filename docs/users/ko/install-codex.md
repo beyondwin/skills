@@ -4,7 +4,7 @@
 
 ## 기본 설치 (Codex)
 
-`$skill-installer`는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md)에 씁니다. 같은 폴더가 이미 있으면 설치기는 멈춥니다. 이 세 스킬의 기본 위치는 `$CODEX_HOME/skills/<skill-name>`입니다. `CODEX_HOME`이 없으면 `~/.codex/skills`입니다. How It Works와 SDDx는 여기가 아닙니다.
+[`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md)는 Codex에서 `$skill-installer`로 설치합니다. 같은 폴더가 이미 있으면 설치기는 멈춥니다. 이 세 스킬의 기본 위치는 `$CODEX_HOME/skills/<skill-name>`입니다. `CODEX_HOME`이 없으면 `~/.codex/skills`입니다. How It Works와 SDDx는 여기에 설치하지 않습니다([로컬 링크](install-local.md)).
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
@@ -26,7 +26,7 @@ npx skills add beyondwin/skills --skill korean-writing-editor
 
 ## Codex 전용 Git 클론
 
-`npx`를 쓰지 않으면 저장소를 클론합니다. 그다음 Codex가 기대하는 스킬 폴더에, 확인된 디렉터리만 복사합니다.
+`npx`를 쓰지 않으려면 저장소를 클론(복제)합니다. 그다음 Codex 스킬 폴더에, 확인된 디렉터리만 복사합니다.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git

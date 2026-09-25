@@ -4,23 +4,24 @@
 
 ## Purpose
 
-It explains how one machine works. You pick one depth:
+It explains how one mechanism works, in a single chat reply. Every reply has
+a Mermaid diagram and numbered steps. There are four depths. If you do not
+pick one, it starts at picture.
 
 - picture: the whole shape at a glance
 - path: the flow, one step at a time
 - skeleton: the internal structure and branches
 - fracture: where it breaks
 
-It does not swap the content for a cute analogy. It does not talk down in a
-child voice.
+It does not swap the content for an analogy or talk down in a child voice.
 
 ## When to use and not use
 
-Use it to explain how one machine works at a depth you pick.
+Use it when you want to understand how something works.
 
 Do not use `how-it-works` for debugging, implementing, reviewing,
-translating, one-line factual lookups, child-register explainers, or as a
-stand-in for `/eli5`.
+translating, one-line factual lookups, or child-register explainers. It is not
+a stand-in for `/eli5`.
 
 ## Supported hosts
 
@@ -28,15 +29,16 @@ how-it-works: Codex and Claude Code supported for local or repository-based use.
 
 The supported host ids are `codex` and `claude-code`. Live evidence for the
 current install files is `not_measured`. In the preserved 2026-08-28 measurement,
-Grok failed and Cursor was not run. That historical record is not current-run
-evidence. Claude.ai, Cowork, Skills API upload, and marketplace publication are
-not supported. Shared limits are in
+Grok failed and Cursor was not run. That old record is not a current result.
+
+Claude.ai, Cowork, Skills API upload, and marketplace publication are not
+supported. Shared limits are in
 [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/users/en/compatibility.md).
 
 ## Install
 
-Clone the repo, then make two links. The first link serves Codex. The second
-serves Claude Code.
+Clone the repo, then make two links to the skill folder: one for Codex, one
+for Claude Code.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -44,10 +46,13 @@ cd skills
 mkdir -p ~/.agents/skills ~/.claude/skills
 ```
 
-The one-shot Python block below takes source and target as arguments. It first
-validates that source is a skill directory and treats the same link as success.
-It does not replace a different link, dangling link, file, or directory. It also
-stops if the target appears after inspection, so inspect it before retrying.
+The Python block below takes two arguments, source (the skill folder) and
+target (where the link goes), and makes the link.
+
+- It first checks that source is a real skill directory.
+- If the same link already exists, it counts as success.
+- It does not replace a different link, dangling link, file, or directory.
+- It also stops if the target appears after the check. Inspect it before retrying.
 
 <!-- how-it-works-local-links -->
 ```python
@@ -80,36 +85,40 @@ except FileExistsError:
 print("linked")
 ```
 
-Put this block on standard input through a quoted here-document and run it once
-per target. The Codex invocation starts with
-`python3 - "$PWD/skills/how-it-works" "$HOME/.agents/skills/how-it-works" <<'PY'`;
-the Claude Code invocation starts with
-`python3 - "$PWD/skills/how-it-works" "$HOME/.claude/skills/how-it-works" <<'PY'`.
-Place the Python block above unchanged on the following lines and close each
-invocation with `PY` on its own line. Keep the source and target arguments
-quoted.
+Run it twice, once per target. Feed the block on standard input through a
+quoted here-document (`<<'PY'`).
 
-`$skill-installer` names the public GitHub path. Codex still discovers
-`~/.agents/skills/how-it-works`. Do not create a `~/.codex` duplicate.
+- Codex:
+  `python3 - "$PWD/skills/how-it-works" "$HOME/.agents/skills/how-it-works" <<'PY'`
+- Claude Code:
+  `python3 - "$PWD/skills/how-it-works" "$HOME/.claude/skills/how-it-works" <<'PY'`
+
+After that first line, paste the Python block above unchanged, then close with
+`PY` on its own line. Keep the source and target arguments quoted.
+
+On Codex you can also install from the public GitHub path with
+`$skill-installer`. Codex finds the skill in `~/.agents/skills/how-it-works`,
+so do not create a `~/.codex` duplicate.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/how-it-works
 ```
 
-Shared install steps are in
+Other install steps, such as update and removal, are in
 [Installation](https://github.com/beyondwin/skills/blob/main/docs/users/en/install-local.md).
 
 ## First call
 
-Explicit calls are `$how-it-works` on Codex and `/how-it-works` on Claude
-Code.
+To call it by name, use `$how-it-works` on Codex and `/how-it-works` on
+Claude Code. A bare topic gets the default depth, picture.
 
 ```text
 $how-it-works DNS
 /how-it-works DNS
 ```
 
-The explicit path example is unchanged.
+The explicit path example is unchanged. To pick a depth yourself, name it in
+the request.
 
 ```text
 $how-it-works Explain DNS as a path.
@@ -118,11 +127,11 @@ $how-it-works Explain DNS as a path.
 
 ## Expected result
 
-The explanation is complete in this chat reply. A host page, Canvas,
-browser, URL, file, or mermaid renderer is not required. A missing renderer
-is not a failed task.
+The explanation is complete in one chat reply. A host page, Canvas, browser,
+URL, file, or mermaid renderer (a tool that draws the diagram) is not required.
+A missing renderer is not a failed task.
 
-The six required items are:
+Every reply has these six items:
 
 1. one-sentence claim — what moves, in one sentence
 2. Mermaid — the diagram
@@ -131,9 +140,10 @@ The six required items are:
 5. adjacent slices — nearby explanations you are not covering now
 6. one next move — exactly one thing to do next
 
-At picture, Map prints the numbered hop list before the mermaid fence. Body does not walk the hops again.
+At picture, Map prints the numbered steps (hops) before the Mermaid source.
+Body does not walk the hops again.
 
-Skeleton:
+Reply outline:
 
 ````markdown
 # {slice} · {picture|path|skeleton|fracture}

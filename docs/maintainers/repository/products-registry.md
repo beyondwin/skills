@@ -1,16 +1,17 @@
 # 제품 목록
 
-`products.toml`은 현재 독립 제품의 유일한 순서 있는 색인입니다. 이름, 폴더,
-호스트의 원본이 여기입니다. 버전, 태그, 셸 명령을 소유하지 않습니다. 제품 버전
-원본은 각 `skills/<name>/release.toml`입니다.
+`products.toml`은 현재 독립 제품의 유일한 순서 있는 색인입니다. 제품을 추가하거나
+폴더·지원 호스트를 바꿀 때 이 파일을 고칩니다. 이름, 폴더, 호스트의 원본이
+여기입니다. 버전, 태그, 셸 명령은 소유하지 않습니다. 제품 버전 원본은 각
+`skills/<name>/release.toml`입니다.
 
 카탈로그 `catalog/`는 이 목록과 별개입니다. 목록에 제품을 넣는 것만으로
 `catalog/` lock이나 공개 플러그인 묶음이 바뀌지 않습니다.
 
 ## 스키마
 
-최상위와 각 `[[products]]` 항목의 필드만 허용합니다. 추가 키, 누락 키, 잘못된
-타입은 로드가 실패합니다.
+아래 표의 필드만 허용합니다. 추가 키, 누락 키, 잘못된 타입이 있으면 로드가
+실패합니다.
 
 허용 최상위 키는 정확히 `schema_version`, `products`입니다. `schema_version`은 bool이 아닌 정확한 정수 `1`이어야 합니다. `supported_hosts`, `owned_paths`, `verify_stages`는 비어 있지 않은 필수 목록입니다. 각 목록 내부의 중복과 제품 간 중복 이름·경로를 거부합니다. 빈 runner 목록과 빈 stage 목록도 실패로 닫힙니다.
 
@@ -27,11 +28,14 @@
 | `verify_stages` | 제품 | 코드에 등록된 검증 단계 식별자. 셸 명령이 아님 |
 
 `version`, `tag_prefix`, `command` 필드는 없습니다. 제품 순서와 중복
-이름·경로 거부는 파서가 강제합니다.
+이름·경로 거부는 파서(`scripts/lib/product_registry.py`)가 강제합니다.
+
+지원 호스트를 바꾸면 같은 변경에서 해당 제품 `compatibility.md`, 제품 README,
+공개 안내, 테스트를 함께 고칩니다.
 
 ## 등록 절차
 
-새 현재 독립 제품을 넣으려면 같은 변경에 다음이 있어야 합니다.
+새 독립 제품을 넣으려면 한 변경 안에서 다음을 모두 합니다.
 
 1. `products.toml`에 제품 항목을 추가한다
 2. `skills/<name>/`, `tests/products/<name>/`, `docs/maintainers/products/<name>/`를 만든다
@@ -39,12 +43,12 @@
 4. 등록된 검증 단계 식별자를 `verify_stages`에 적는다
 5. 레지스트리 검증이 통과한다
 
-등록되지 않은 `skills/`, `tests/products/`, `docs/maintainers/products/` 자식,
-알 수 없는 호스트·단계, 이름 불일치는 실패로 닫힙니다.
+다음은 모두 검증 실패입니다: 등록되지 않은 `skills/`, `tests/products/`,
+`docs/maintainers/products/` 하위 폴더, 알 수 없는 호스트·단계, 이름 불일치.
 
 ## 검증 명령
 
-레지스트리 로드와 `validate_registry`는 모든 공급자 없는 검증의 앞단입니다.
+어떤 검증 명령이든 먼저 `products.toml`을 읽고 `validate_registry`로 확인합니다.
 
 ```bash
 python3 scripts/verify.py
@@ -52,5 +56,5 @@ python3 scripts/verify.py --skill <name>
 python3 scripts/verify.py --catalog
 ```
 
-어느 선택자를 써도 `products.toml`을 읽고 등록된 단계 이름에 대해
-검증합니다. 오류가 있으면 단계 실행 전에 종료 코드 1로 멈춥니다.
+어느 selector를 써도 `products.toml`을 코드에 등록된 단계 이름과 대조합니다.
+오류가 있으면 단계를 실행하기 전에 종료 코드 1로 멈춥니다.

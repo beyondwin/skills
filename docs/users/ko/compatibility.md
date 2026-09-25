@@ -2,11 +2,23 @@
 
 [English](../en/compatibility.md) · [설치](installation.md)
 
-지금 쓰는 스킬은 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md), [`sddx`](../../../skills/sddx/README.md)입니다. How It Works와 SDDx는 Codex와 Claude Code에서 씁니다. Korean Writing Editor와 Pre-SDD Review는 Codex에서만 지원합니다. Image Workbench는 Codex와 Grok에서 지원합니다.
+지금 쓰는 스킬은 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md), [`sddx`](../../../skills/sddx/README.md)입니다.
 
-쉽게 말하면: 한국어 편집기와 SDD 전 검토는 지금 Codex만 확인했습니다. 이미지 작업대는 Codex와 Grok에서 확인했습니다. How It Works와 SDDx는 Codex와 Claude Code에서 이 저장소를 연결해 씁니다.
+| 스킬 | 지원 호스트 |
+| --- | --- |
+| Korean Writing Editor | Codex만 |
+| Pre-SDD Review | Codex만 |
+| Image Workbench | Codex, Grok |
+| How It Works | Codex, Claude Code (이 저장소를 연결해 씀) |
+| SDDx | Codex, Claude Code (이 저장소를 연결해 씀) |
 
-말 뜻: 호스트는 스킬을 실행하는 프로그램입니다. smoke는 실제로 한 번 돌려 본 기록입니다. `not_measured`는 아직 확인하지 않음, `historical-unbound`는 예전 기록, `current-bounded`는 버전과 hash만 묶였다는 뜻입니다.
+말 뜻:
+
+- 호스트: 스킬을 실행하는 프로그램
+- smoke: 실제로 한 번 돌려 본 기록
+- `not_measured`: 아직 확인하지 않음
+- `historical-unbound`: 예전 기록. 지금 실행 증거가 아님
+- `current-bounded`: 버전과 hash만 묶였음
 
 ## 공유 지원 문장
 
@@ -26,18 +38,20 @@ sddx: Claude Code and Codex supported for local or repository-based use.
 
 `how-it-works`는 로컬 또는 저장소 기준으로 Codex와 Claude Code를 지원합니다. Claude.ai, Cowork, Skills API 업로드, marketplace 게시는 지원하지 않습니다.
 
-`image-workbench`로 그림을 만들거나 고치려면 지금 쓰는 프로그램의 그림 도구와, 결과를 열어 보는 기능이 필요합니다. Grok 바로가기는 `~/.agents/skills/image-workbench`입니다. 다른 프로그램의 비슷한 도구만으로는 지원이 아닙니다.
+`image-workbench`로 그림을 만들거나 고치려면 지금 쓰는 호스트에 자체 그림 도구가 있고, 결과를 열어 볼 수 있어야 합니다. 그렇지 않으면 그림을 만들거나 고친다고 말하지 않습니다. 다른 호스트의 비슷한 도구만으로는 지원이 아닙니다. Grok 바로가기는 `~/.agents/skills/image-workbench`입니다.
 
 `pre-sdd-review`의 다른 호스트는 아직 확인하지 않았습니다(`not_measured`).
 
-보존된 `how-it-works` smoke는 `historical-unbound`(예전 기록, 지금 실행 증거가 아님)이며 현재 설치 파일·모델 실행 증거와 별개입니다. 현재 설치 파일의 실제 실행은 `not_measured`입니다. `current-bounded`는 버전/hash와 메타데이터만 묶여 있는지 보며, 실제 실행이나 설명 품질을 증명하지 않습니다. 지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다. CI는 Ubuntu에서 `full` 프로필을 돌릴 수 있습니다. 그 통과는 Linux 지원이 아니고 macOS 지원 증거도 아닙니다.
+보존된 `how-it-works` smoke는 `historical-unbound`이며 현재 설치 파일·모델 실행 증거와 별개입니다. 현재 설치 파일의 실제 실행은 `not_measured`입니다. `current-bounded`는 버전/hash와 메타데이터가 묶였는지만 보며, 실제 실행이나 설명 품질을 증명하지 않습니다.
 
-이 저장소의 카탈로그 플러그인 이름은 `beyondwin-skills`입니다. 마켓플레이스에 올라 있다는 뜻이 아닙니다.
+## 운영체제
+
+지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다. CI는 Ubuntu에서 `full` 프로필을 돌릴 수 있습니다. 그 통과는 Linux 지원이 아니고 macOS 지원 증거도 아닙니다.
 
 ## 설치 경로와 호스트
 
-설치·링크·제거는 [설치](installation.md)를 보세요. 검증은 [검증](verification.md)을 보세요.
+이 저장소의 카탈로그 플러그인 이름은 `beyondwin-skills`입니다. 마켓플레이스에 올라 있다는 뜻이 아닙니다.
 
-`image-workbench`로 그림을 만들거나 고친다고 말하려면, 그 프로그램에 그림 도구가 있고 결과를 열 수 있어야 합니다.
+설치·링크·제거는 [설치](installation.md)를 보세요. 검증은 [검증](verification.md)을 보세요.
 
 라이선스는 Apache-2.0입니다.

@@ -15,9 +15,9 @@ SDD(계획 실행) 직전에, 승인된 설계와 구현 계획이 서로 맞는
 
 - 판정을 내는 한 호출은 계획 하나만 다룹니다. 여러 계획의 결과를 합쳐 `READY`
   하나로 내지 않습니다.
-- 요청이 계획을 둘 이상 이름 붙이거나 명시적으로 요청하면, 판정을 내는 첫 호출 전에
-  공유 파일 원장(여러 계획이 함께 건드리는 파일 목록)을 만드는 판정 없는 선행 패스를
-  한 번 돌립니다.
+- 요청에 계획이 둘 이상 있거나 사용자가 따로 요청하면, 판정을 내는 첫 호출 전에
+  공유 파일 원장(여러 계획이 함께 건드리는 파일 목록)을 만드는 판정 없는 선행
+  패스를 한 번 돌립니다.
 - 계획이 필수 베이스(branch, ref, commit)를 적었는데 찾을 수 없거나 현재 `HEAD`의
   조상이 아니면, 검토 전에 `BLOCKED`입니다.
 
@@ -107,14 +107,15 @@ $pre-sdd-review review-only docs/history/specs/<design>.md docs/history/plans/<p
 | 지난 판정 뒤 상황 | 이번 호출 |
 | --- | --- |
 | 문서, `HEAD`, 요청이 모두 그대로 | 다시 검토하지 않고 지난 인계(남은 문제 목록)를 그대로 씁니다 |
-| `REVISE`였거나, 사용자 결정을 이제 문서에 적은 `BLOCKED`였고, 설계·계획·원장만 바뀜 | 새 발견 없이 종결부터 이어 검토합니다. 이 계획의 기록 run이 있어야 합니다 |
+| `REVISE`였거나, 사용자 결정을 이제 문서에 적은 `BLOCKED`였고, 설계·계획·원장만 바뀜 | 새 발견 없이 종결부터 이어 검토합니다. 이 계획의 실행 기록(run)이 있어야 합니다 |
 | 사용자 결정에 아직 답하지 않은 `BLOCKED` | 검토자를 부르지 않고 같은 질문을 다시 보여 주며 `Evidence: not_recorded; reason=previous-decision-checkpoint`를 출력합니다 |
 | 그 밖의 경우(다른 파일도 바뀜, 전체 재검토 요청, 기록 없음) | 처음부터 새로 검토합니다 |
 
 `execution`이 `full`인 run과 사유가 `focused-role-not-obtained`뿐인 `degraded` run의
 인계만 재사용하며, 다른 `degraded`나 `blocked`인 run의 인계는 재사용하지 않습니다.
 `degraded`는 역할마다 새 검토자를 구하지 못했거나 한 검토자를 겹쳐 쓴 run입니다.
-새 사용자 결정 때문에 세 판 연속 `BLOCKED`가 나오면, 남은 결정을 한꺼번에 정하도록 설계로 돌려보냅니다.
+새 사용자 결정 때문에 세 번 연속 `BLOCKED`가 나오면, 남은 결정을 한꺼번에
+정하도록 설계로 돌려보냅니다.
 
 ### 여러 계획과 추가 검토자
 
@@ -142,7 +143,7 @@ handshake가 정확히 `skill_name=pre-sdd-review`와 `schema=4`일 때만 호�
 - 기록기가 없거나 호환되지 않거나 권한 오류가 나도 검토는 계속되고
   `Evidence: not_recorded; reason=<code>`를 출력합니다. 판정은 바뀌지 않습니다.
 
-영수증은 `~/.pre-sdd-review/`에 로컬로만 남습니다. 로컬 파일 저장은 서명된 audit
+기록은 `~/.pre-sdd-review/`에 로컬로만 남습니다. 로컬 파일 저장은 서명된 audit
 log가 아닙니다. `outcome`(SDD 뒤 붙이는 결과 표시)과 `summary`는
 [evidence README](evidence/README.md)를 보세요.
 

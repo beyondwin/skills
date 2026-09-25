@@ -1,17 +1,12 @@
 # 마이그레이션과 Archive
 
-Archive에서 공개 저장소로 가져온 출처 pin과 캡처 절차를 적습니다. 끝난 이관
-기록입니다. 지금 쓰는 제품 계약을 바꾸지 않습니다.
+공개 `beyondwin/skills` 저장소를 만들 때 `beyondwin/Archive`에서 가져온 출처를
+고정(pin)한 기록입니다. 끝난 이관 기록이라 지금 쓰는 제품 계약을 바꾸지 않습니다.
+평소 작업에서는 고칠 일이 없습니다. 출처 pin을 다시 확인할 때만 봅니다.
 
-아래 표는 가져온 출처 pin입니다. 지금 Archive 트리를 설명하지 않습니다.
-로컬 checkout 경로를 이 기록의 일부로 취급하지 않습니다.
-
-## Archive 스킬 이관 출처
-
-이 문서는 공개 `beyondwin/skills` 저장소를 만들 때 쓴 `beyondwin/Archive`
-출처를 고정합니다. 가져온 출처 pin입니다. 지금 Archive 트리를 설명하지
-않습니다. Archive 이력을 다시 쓰지 마세요. 로컬 checkout 경로를 이 기록의
-일부로 취급하지 마세요.
+- 아래 값은 가져온 출처 pin입니다. 지금 Archive 트리를 설명하지 않습니다.
+- Archive 이력을 다시 쓰지 마세요.
+- 로컬 checkout 경로를 이 기록의 일부로 취급하지 마세요.
 
 ## 고정한 출처
 
@@ -40,7 +35,7 @@ python3 scripts/capture_archive_manifest.py verify \
 
 ## 22개 파일 출처 경계
 
-가져오기 권위는 두 접두사 아래의 추적된 파일 22개입니다. 각 파일은 Git
+가져오기의 기준은 두 접두사 아래의 추적된 파일 22개입니다. 각 파일은 Git
 mode, blob OID, 바이트 크기, SHA-256으로 기록되어 있습니다. 이후 작업은
 그 바이트를 복사합니다. Archive Git 이력을 가져오지 않습니다.
 

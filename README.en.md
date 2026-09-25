@@ -2,24 +2,22 @@
 
 [한국어](README.md)
 
-Five skills live here. The supported OS is macOS only. Windows and Linux are
-unsupported. An Ubuntu CI `full` pass is not Linux support and is not macOS
-support evidence. Korean Writing Editor and Pre-SDD Review install in Codex.
-Image Workbench installs in Codex and Grok. How It Works and SDDx link this
-repo for Codex and Claude Code.
-
 [![CI](https://github.com/beyondwin/skills/actions/workflows/verify.yml/badge.svg)](https://github.com/beyondwin/skills/actions/workflows/verify.yml)
 [![Release](https://img.shields.io/github/v/release/beyondwin/skills)](https://github.com/beyondwin/skills/releases)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-The license is Apache-2.0.
+Five skills for AI coding tools such as Codex, Claude Code, and Grok. Pick the
+ones you need and install each one on its own. The license is Apache-2.0.
 
-## Standalone products
+The supported OS is macOS only. Windows and Linux are unsupported. An Ubuntu CI
+`full` pass is not Linux support and is not macOS support evidence.
 
-The current standalone products are these five. The catalog bundle `v2.0.0`
-does not include How It Works, Pre-SDD Review, or SDDx.
+## Choose a skill
 
-| Skill | Role | Hosts |
+The current standalone products are these five. A host is the program that runs
+the skill.
+
+| Skill | What it does | Hosts |
 | --- | --- | --- |
 | [`korean-writing-editor`](skills/korean-writing-editor/README.en.md) | Takes Korean text you already have and fixes spelling and sentences without changing the meaning. | Codex |
 | [`image-workbench`](skills/image-workbench/README.en.md) | Plans, makes, or edits PNG/JPG images that belong in this project. | Codex, Grok |
@@ -27,12 +25,15 @@ does not include How It Works, Pre-SDD Review, or SDDx.
 | [`pre-sdd-review`](skills/pre-sdd-review/README.en.md) | Right before SDD, checks an approved design and implementation plan against the repository as it is now, repairs the documents, and re-checks what changed. | Codex |
 | [`sddx`](skills/sddx/README.en.md) | Runs Superpowers SDD in your session and hands only the coding to Cursor Agent or Grok Build (Grok 4.7). | Claude Code, Codex |
 
-Each product README has install and first-call steps.
+Each skill README has usage and first-call steps. The earlier catalog bundle
+`v2.0.0` does not include How It Works, Pre-SDD Review, or SDDx.
 
 ## Install
 
-For Korean Writing Editor, Image Workbench, and Pre-SDD Review, use
-`$skill-installer` with the public GitHub skill path.
+There are two install methods, depending on the host.
+
+Korean Writing Editor, Image Workbench, and Pre-SDD Review install in Codex with
+`$skill-installer`. Full steps are in [Codex install](docs/users/en/install-codex.md).
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
@@ -40,17 +41,19 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-work
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-review
 ```
 
-The How It Works public path is
-https://github.com/beyondwin/skills/tree/main/skills/how-it-works.
-The SDDx public path is
-https://github.com/beyondwin/skills/tree/main/skills/sddx.
-How It Works, SDDx, and Grok Image Workbench use
-[local links](docs/users/en/install-local.md).
+How It Works and SDDx (Codex, Claude Code), and Image Workbench on Grok, use a
+shortcut (symbolic link) to a clone of this repo. Steps are in
+[Local links](docs/users/en/install-local.md). The public paths are:
 
-Install, update, uninstall, and the third-party installer are in
-[Installation](docs/users/en/installation.md).
+- How It Works: https://github.com/beyondwin/skills/tree/main/skills/how-it-works
+- SDDx: https://github.com/beyondwin/skills/tree/main/skills/sddx
 
-To check the repo without a model:
+The per-skill method table, update and uninstall, and the third-party installer
+are reachable from [Installation](docs/users/en/installation.md).
+
+## Verify
+
+Check the repo rules without credentials or model calls.
 
 ```bash
 python3 scripts/verify.py

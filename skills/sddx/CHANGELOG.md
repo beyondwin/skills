@@ -4,7 +4,9 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
-No entries yet.
+### Changed
+
+- README wording is shorter and uses plain terms. Behavior is unchanged.
 
 ## 7.0.1 - 2026-09-24
 

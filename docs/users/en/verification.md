@@ -54,7 +54,7 @@ The offline suites prove the deterministic contract only. Product fixture paths 
 
 Current Korean offline coverage is 34 cases (`normative=10 preservation=8 noop=6 voice=4 trigger=6`). New Korean live evidence uses runner 18; historical runner receipts do not prove a runner 18 execution. Image coverage is 32 fixtures and 17 mutations.
 
-For Korean candidates, hard failures take precedence as `failed`. After hard checks pass, unobserved meaning, attribution, or requested edit execution yields `partially_verified`; offline contract success alone is not a live status. For How, fence/hop validity, loading, syntax, and meaning require separate evidence. The historical smoke remains `historical-unbound`; current metadata binding alone proves no model execution.
+For Korean candidates, hard failures take precedence as `failed`. After hard checks pass, unobserved meaning, attribution, or requested edit execution yields `partially_verified`; offline contract success alone is not a live status. For How It Works, fence/hop validity, loading, syntax, and meaning require separate evidence. The historical smoke remains `historical-unbound`; current metadata binding alone proves no model execution.
 
 `pre-sdd-review` provider-free fixtures validate only instruction and package contracts. They do not prove reviewer independence, semantic completeness, or live review quality.
 

@@ -4,23 +4,26 @@
 
 ## 목적
 
-이 프로젝트에 넣을 PNG, JPG 같은 비트맵 이미지를 기획하고, 만들고, 고치고,
-비교하고, 점검합니다. 프로젝트에 안 맞거나 주어진 조건을 어기는 결과는
-쓰지 않습니다.
+프로젝트에 넣을 PNG, JPG 같은 비트맵 이미지를 기획·생성·편집·비교·점검합니다.
+프로젝트에 안 맞거나 주어진 조건을 어긴 결과는 쓰지 않습니다.
 
 ## 사용할 때와 사용하지 않을 때
 
 프로젝트에 넣을 이미지가 필요할 때 씁니다.
 
-재미로 한 장만 그리는 일, SVG나 코드로 만드는 UI, 실제 화면 구현, 외부
-프롬프트 모음 베끼기에는 쓰지 않습니다.
+다음에는 쓰지 않습니다.
+
+- 재미로 한 장만 그리는 일
+- SVG나 코드로 만드는 UI
+- 실제 화면 구현
+- 외부 프롬프트 모음 베끼기
 
 ## 지원 호스트
 
 image-workbench: Codex and Grok supported; generate/edit requires the current host's built-in image generation and local image viewing.
 
-지금은 `codex`와 `grok`에서 씁니다. 그림을 만들거나 고치려면 그 프로그램에
-그림 도구가 있고, 결과를 열어서 볼 수 있어야 합니다. 한계는
+지금은 `codex`와 `grok`에서 씁니다. 그림을 만들거나 고치려면 지금 쓰는
+프로그램(호스트)에 그림 도구가 있고, 결과를 열어 볼 수 있어야 합니다. 한계는
 [호환성](https://github.com/beyondwin/skills/blob/main/docs/users/ko/compatibility.md)을 보세요.
 
 ## 설치
@@ -33,7 +36,8 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-work
 
 자세한 Codex 설치는 [Codex 설치](https://github.com/beyondwin/skills/blob/main/docs/users/ko/install-codex.md)를 보세요.
 
-Grok에서는 이 저장소를 받은 뒤, Grok가 찾는 폴더에 바로가기 하나만 만듭니다.
+Grok에서는 이 저장소를 받은 뒤, Grok가 스킬을 찾는 폴더에 바로가기(심볼릭
+링크) 하나만 만듭니다.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -41,8 +45,9 @@ cd skills
 mkdir -p ~/.agents/skills
 ```
 
-아래 Python 코드가 바로가기를 만듭니다. 스킬 폴더가 맞는지 확인하고, 이미 같은
-바로가기가 있으면 그대로 둡니다. 다른 바로가기나 파일이 있으면 덮어쓰지 않습니다.
+아래 Python 코드가 바로가기를 만듭니다. 원본이 스킬 폴더인지 먼저 확인합니다.
+같은 바로가기가 이미 있으면 그대로 둡니다. 다른 바로가기나 파일, 폴더가 있으면
+덮어쓰지 않습니다.
 
 <!-- image-workbench-local-links -->
 ```python
@@ -75,12 +80,15 @@ except FileExistsError:
 print("linked")
 ```
 
-터미널에서 한 번 실행합니다. 첫 줄은
-`python3 - "$PWD/skills/image-workbench" "$HOME/.agents/skills/image-workbench" <<'PY'`
-입니다. 그다음 줄에 위 Python 코드를 그대로 넣고, 마지막 줄은 `PY`입니다. 경로
-따옴표는 빼지 마세요.
+터미널에서 한 번 실행합니다.
 
-바로가기는 확인한 뒤에만 지웁니다.
+1. 첫 줄: `python3 - "$PWD/skills/image-workbench" "$HOME/.agents/skills/image-workbench" <<'PY'`
+2. 다음 줄부터: 위 Python 코드를 그대로 붙여 넣습니다.
+3. 마지막 줄: `PY`
+
+경로 따옴표는 빼지 마세요.
+
+지울 때는 바로가기인지 먼저 확인합니다.
 
 ```bash
 ls -ld ~/.agents/skills/image-workbench
@@ -93,7 +101,7 @@ unlink ~/.agents/skills/image-workbench
 
 ## 첫 호출
 
-설치 다음 대화에서 이렇게 부릅니다. Codex는 `$image-workbench`, Grok는
+설치한 뒤 다음 대화에서 부릅니다. Codex는 `$image-workbench`, Grok는
 `/image-workbench`입니다.
 
 ```text
@@ -103,18 +111,23 @@ $image-workbench 이 프로젝트 랜딩 페이지 hero 이미지를 만들어�
 
 ## 예상 결과
 
-먼저 모드를 하나만 고릅니다. `brief`는 어떤 이미지가 필요한지 정리만 하고
-만들지 않습니다. `generate`는 새 이미지를 만듭니다. `edit`는 있는 이미지를
-고칩니다. `audit`은 점검만 하고 만들지 않습니다. `brief`와 `audit`은 읽기
-전용입니다. 생성·편집 요청이 분명할 때만 이미지를 만듭니다.
+먼저 모드를 하나만 고릅니다.
+
+- `brief`: 어떤 이미지가 필요한지 정리만 합니다. 만들지 않습니다.
+- `generate`: 새 이미지를 만듭니다.
+- `edit`: 있는 이미지를 고칩니다.
+- `audit`: 점검만 합니다. 만들지 않습니다.
+
+`brief`와 `audit`은 읽기 전용입니다. 생성·편집 요청이 분명할 때만 이미지를
+만듭니다.
 
 프로젝트에 넣을 최종 파일은 스킬 폴더에서 `python3 scripts/inspect_asset.py`로
 형식과 크기를 확인합니다. 대화 창에만 보이는 미리보기 경로는 최종 파일이
 아닙니다.
 
-이 검사는 PNG·JPEG·WebP의 기본 구조만 봅니다. 통과해도 그림이 좋거나, 파일을
-끝까지 읽었거나, 써도 되는 권리가 있다는 뜻은 아닙니다. 최종 후보는 반드시
-열어서 확인합니다. `--output facts.json`은 별도 JSON만 갱신할 수 있고, 입력
+이 검사는 PNG·JPEG·WebP의 기본 구조만 봅니다. 통과해도 그림이 좋다거나, 파일을
+끝까지 읽었다거나, 써도 될 권리가 있다는 뜻은 아닙니다. 최종 후보는 반드시
+열어서 확인합니다. `--output facts.json`은 별도 JSON 보고서만 갱신합니다. 입력
 이미지를 덮어쓰려 하면 거부합니다.
 
 ## 더 보기

@@ -5,21 +5,21 @@
 ## Purpose
 
 It edits Korean text you already have. It fixes spelling, spacing, and
-awkward sentences. Meaning and the writer's voice stay the same. Names,
-dates, and numbers stay the same.
+awkward sentences. Meaning, the writer's voice, names, dates, and numbers
+stay the same.
 
 ## When to use and not use
 
-Use it when you already have Korean text and want that text edited.
+Use it when you already have Korean text and want it corrected or polished.
 
 Do not use `korean-writing-editor` for translation, drafting, summarization,
-code review, casual conversation, authorship detection, or detector evasion.
+code review, casual conversation, AI-authorship detection, or detector evasion.
 
 ## Supported hosts
 
 korean-writing-editor: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
 
-Codex is the measured host today. Other hosts are in
+Codex is the only supported host today. For other hosts, see
 [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/users/en/compatibility.md).
 
 ## Install
@@ -47,14 +47,15 @@ For spelling and spacing only:
 $korean-writing-editor Fix typos only: (Korean source)
 ```
 
-Both `$korean-writing-editor` and `/korean-writing-editor` work. Codex is
-the host we have checked.
+Both `$korean-writing-editor` and `/korean-writing-editor` work. Both forms
+were checked in Codex.
 
 ## Expected result
 
-The default (`polish`) makes the text a bit easier to read and keeps
-meaning and voice. `diagnose` names problems and does not rewrite.
-`correct` fixes spelling, spacing, and clearly broken grammar only.
+- `polish` (default): makes the text a bit easier to read and keeps meaning
+  and voice.
+- `diagnose`: names problems and does not rewrite.
+- `correct`: fixes spelling, spacing, and clearly broken grammar only.
 
 ## See also
 

@@ -4,63 +4,77 @@
 `skills/sddx/release.toml`입니다. `SKILL.md` `metadata.version`은 검증된
 복제 값입니다. 사람이 체감하는 이력은 같은 디렉터리의 `CHANGELOG.md`입니다.
 
+## 이 문서에서 찾을 수 있는 것
+
+- 지금 버전과 공개 여부: 「현재 상태」
+- 각 MAJOR·문서 정정 버전이 무엇을 바꿨는지: 「버전 이력」
+- 릴리스 전 검사와 손으로 하는 확인: 「검사, 빌드, 다운로드」
+- 실패했을 때: 「실패 복구」
+
+## 현재 상태
+
 공개 sddx 릴리스는 아직 없습니다. 이 제품은 통합 `v2.0.0` GitHub Release와
 불변 카탈로그 lock에 포함되지 않았습니다. 지금 개발 중인 독립 버전은
 `7.0.1`이며 `release.toml`이 원본입니다. 태그와 아티팩트는 없습니다.
 
-`7.0.1`은 동작 변경 없는 문서 정정입니다. 7.0.0 라이브 확인에서 Grok이
-백그라운드로 넘긴 명령을 기다리는 동안에도 아무것도 쓰지 않아 유휴 타임아웃에
-걸렸으므로, 백그라운드 실행 권고를 지우고 긴 명령이 있으면 띄우기 전에
-`--idle-timeout`을 그 명령의 예상 시간보다 크게 올리는 규칙으로 바꿨습니다.
-변경은 CHANGELOG의 `## 7.0.1 - 2026-09-24`에 있습니다.
+`release.toml`, `SKILL.md` `metadata.version`, `.claude-plugin/plugin.json`의
+`version`은 항상 같은 값이어야 합니다.
 
-그 전 `7.0.0`은 러너 실행 계약의 비호환 변경입니다. 첫 출력 300초 기한 대신, 두
-로그가 `--idle-timeout`(기본 900초) 동안 자라지 않으면 시도를 끝내고 `error`는
-`the worker wrote no output for <N> seconds`입니다. 기본 `--timeout`은 7200이
-아니라 0(끔)입니다. 변경은 CHANGELOG의 `## 7.0.0 - 2026-09-24`에 있습니다.
+## 버전 이력
 
-그 전 `6.0.0`은 러너 실행 계약의 비호환 변경입니다. 러너가 중단되면 자기가 띄운
-worker를 끝내고, 300초 동안 출력이 없는 시도를 끝내며, 기본 타임아웃은
-7200초입니다. 변경은 CHANGELOG의 `## 6.0.0 - 2026-09-24`에 있습니다.
+최신순입니다. 자세한 변경은 각 CHANGELOG 절에 있습니다.
 
-그 전 `5.0.0`은 워커 모델 계약의 비호환 변경입니다. Grok Build와 Cursor Agent는
-Grok 4.7만 쓰고, `-fast` 변형은 쓰지 않습니다. Grok은 `--model grok-4.7`이
-필수입니다. 변경은 CHANGELOG의 `## 5.0.0 - 2026-09-22`에 있습니다. 공개
-태그는 아직 없습니다. `4.0.3` 변경은 `## 4.0.3 - 2026-09-19`에 남아 있습니다.
-`release.toml`, `SKILL.md` `metadata.version`,
-`.claude-plugin/plugin.json`의 `version`은 항상 같은 값이어야 합니다.
+- `7.0.1`: 동작 변경 없는 문서 정정입니다. 7.0.0 라이브 확인에서 Grok이
+  백그라운드로 넘긴 명령을 기다리는 동안에도 아무것도 쓰지 않아 유휴 타임아웃에
+  걸렸으므로, 백그라운드 실행 권고를 지우고 긴 명령이 있으면 띄우기 전에
+  `--idle-timeout`을 그 명령의 예상 시간보다 크게 올리는 규칙으로 바꿨습니다.
+  변경은 CHANGELOG의 `## 7.0.1 - 2026-09-24`에 있습니다.
+- `7.0.0`: 러너 실행 계약의 비호환 변경입니다. 첫 출력 300초 기한 대신, 두
+  로그가 `--idle-timeout`(기본 900초) 동안 자라지 않으면 시도를 끝내고 `error`는
+  `the worker wrote no output for <N> seconds`입니다. 기본 `--timeout`은
+  7200이 아니라 0(끔)입니다. 변경은 CHANGELOG의 `## 7.0.0 - 2026-09-24`에
+  있습니다.
+- `6.0.0`: 러너 실행 계약의 비호환 변경입니다. 러너가 중단되면 자기가 띄운 워커를
+  끝내고, 300초 동안 출력이 없는 시도를 끝내며, 기본 타임아웃은 7200초입니다.
+  변경은 CHANGELOG의 `## 6.0.0 - 2026-09-24`에 있습니다.
+- `5.0.0`: 워커 모델 계약의 비호환 변경입니다. Grok Build와 Cursor Agent는
+  Grok 4.7만 쓰고, `-fast` 변형은 쓰지 않습니다. Grok은 `--model grok-4.7`이
+  필수입니다. 변경은 CHANGELOG의 `## 5.0.0 - 2026-09-22`에 있습니다. 공개
+  태그는 아직 없습니다.
+- `4.0.3`: 변경은 `## 4.0.3 - 2026-09-19`에 남아 있습니다.
+- `2.0.0`: 그 이전 MAJOR입니다. Cursor 백엔드의 필수 CLI 기능과 기본 실행
+  계약이 바뀌었습니다. `--auto-review`, `--sandbox`, 구조화 출력 형식을
+  선언하지 않는 기존 Cursor CLI는 `--force`/`--yolo` 일괄 승인으로 물러나지
+  않고 `available: false`, `reason: missing_flags`로 차단됩니다.
+- `1.0.2`와 `1.0.3`: 태그와 아티팩트 없이 main에만 올라간 개발 단계 버전이며
+  출시되지 않았습니다. 두 버전의 변경은 `1.1.0`에 포함됩니다. 유지보수 문서의
+  `1.0.2`·`1.0.3` 절은 그 시점의 측정 기록이므로 번호를 그대로 둡니다.
 
-`2.0.0`은 그 이전 MAJOR입니다. Cursor backend의 필수 CLI 기능과 기본 실행
-계약이 바뀌었습니다. `--auto-review`, `--sandbox`, 구조화 출력 형식을
-선언하지 않는 기존 Cursor CLI는 `--force`/`--yolo` 일괄 승인으로 물러나지
-않고 `available: false`, `reason: missing_flags`로 차단됩니다. 공개 태그가
-아직 없는 제품이어도 개발 버전의 계약 변경을 숨기지 않습니다. 판단 기준은
-[`docs/maintainers/repository/versioning.md`](../../repository/versioning.md)의
+공개 태그가 아직 없는 제품이어도 개발 버전의 계약 변경을 숨기지 않습니다. 판단
+기준은 [`docs/maintainers/repository/versioning.md`](../../repository/versioning.md)의
 스킬 SemVer 표입니다.
-
-`1.0.2`와 `1.0.3`은 태그와 아티팩트 없이 main에만 올라간 개발 단계 버전이며
-출시되지 않았습니다. 두 버전의 변경은 `1.1.0`에 포함됩니다. 유지보수 문서의
-`1.0.2`·`1.0.3` 절은 그 시점의 측정 기록이므로 번호를 그대로 둡니다.
 
 ## 검사, 빌드, 다운로드
 
 공통 check / build / verify-download 명령은
 [`docs/maintainers/repository/release.md`](../../repository/release.md)를
 보세요. 제품 검사는 `python3 scripts/release.py check --product sddx`입니다.
+이 명령은 제품 소유 경로와 공용 릴리스 코드의 작업 트리가 깨끗할 때만
+통과하므로 변경을 커밋한 뒤 실행합니다.
 
 `python3 scripts/release.py check --product sddx`는 오프라인 검사이므로 Claude
-Code가 `agents/sddx-reviewer-xhigh.md`를 계속 싣는지는 확인하지 못합니다. 릴리스마다
-[`testing.md`](testing.md)의 `리뷰어 effort 증거` 절에 있는 라이브 확인을 수동으로
-실행하고, 실패하면 릴리스를 멈춥니다.
-
+Code가 `agents/sddx-reviewer-xhigh.md`를 계속 싣는지는 확인하지 못합니다.
 XHigh 리뷰어 정의가 Claude Code에 실제로 실리는지는 공개 태그 전에 확인할
-절차입니다. `4.0.3`에서 `plugin details` Agents (1), Task 이름
-`sddx:sddx-reviewer-xhigh`, 자식 트랜스크립트 `effort: xhigh`를 확인했습니다.
-확인 없이 공개 릴리스 완료를 선언하지 않습니다. 이 명령은 제품 소유 경로와 공용 릴리스 코드의 작업 트리가 깨끗할
-때만 통과하므로 변경을 커밋한 뒤 실행합니다.
+절차입니다.
 
-제품 태그는 `sddx-v<version>`입니다. 태그와 Draft는 명시적 출시 작업입니다.
-로컬 빌드의 부수 효과가 아닙니다.
+- 릴리스마다 [`testing.md`](testing.md)의 `리뷰어 effort 증거` 절에 있는 라이브
+  확인을 수동으로 실행하고, 실패하면 릴리스를 멈춥니다.
+- 확인 없이 공개 릴리스 완료를 선언하지 않습니다.
+- `4.0.3`에서 `plugin details` Agents (1), Task 이름
+  `sddx:sddx-reviewer-xhigh`, 자식 트랜스크립트 `effort: xhigh`를 확인했습니다.
+
+제품 태그는 `sddx-v<version>`입니다. 태그와 Draft는 명시적 출시 작업이며, 로컬
+빌드의 부수 효과가 아닙니다.
 
 설치 파일이 바뀌면 `release.toml`과 `SKILL.md` 버전 결정과 제품 CHANGELOG
 항목이 같은 변경에 있어야 합니다. 초판은 태그를 만들지 않습니다.

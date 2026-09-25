@@ -12,7 +12,7 @@
 
 ## 설명 주제
 
-`how-it-works`는 사용자 주제를 테스트 예시나 로그로 저장하지 않습니다. Codex나 Claude Code에 로컬로 설치되어도 같습니다. 인용은 그 턴에서 가져온 URL만 보입니다. 비공개 자료 모음이 아닙니다. 의료·법률·금융 슬라이스는 메커니즘만 설명합니다. 조언이 아닙니다.
+`how-it-works`는 사용자 주제를 테스트 예시나 로그로 저장하지 않습니다. Codex나 Claude Code에 로컬로 설치되어도 같습니다. 인용은 그 턴에서 가져온 URL만 보입니다. 비공개 자료 모음이 아닙니다. 의료·법률·금융 슬라이스(설명 범위)는 메커니즘만 설명합니다. 조언이 아닙니다.
 
 ## 이미지 참조와 동의
 
@@ -24,9 +24,9 @@
 
 선택 기록기 `evidence/evidence.py`는 설치하지 않습니다. Python 표준 라이브러리만 씁니다. run마다 record 하나를 `~/.pre-sdd-review/runs/`에 둡니다. 루트를 바꾸려면 절대 경로 `PRE_SDD_REVIEW_HOME`을 씁니다. 명령은 [기록기 README](../../../skills/pre-sdd-review/evidence/README.md)를 보세요.
 
-record에는 저장소 상대 경로, 디렉터리 이름, 해시, 열거값, 정수, 시각, 짧은 paraphrase만 넣습니다. source 원문, 절대 경로, prompt, provider transcript, command output, credential, 환경 변수 값은 넣지 마세요. 짧게 제한된 note·consequence·fix에도 넣지 마세요. 기록기는 자동 비밀 탐지를 약속하지 않습니다.
+record에는 저장소 상대 경로, 디렉터리 이름, 해시, 열거값, 정수, 시각, 짧은 바꿔 쓴 요약(paraphrase)만 넣습니다. source 원문, 절대 경로, prompt, provider transcript, command output, credential, 환경 변수 값은 넣지 마세요. 짧게 제한된 note·consequence·fix에도 넣지 마세요. 기록기는 자동 비밀 탐지를 약속하지 않습니다.
 
-기록은 선택이며 receipt 오류는 semantic verdict를 바꾸지 않습니다. schema 3와 4는 정규화한 Git 디렉터리와 checkout 루트에서 로컬 비공개 32-byte `.identity-salt`를 사용한 HMAC-SHA-256으로 `repo_key`를 유도합니다. 원시 절대 identity 경로와 salt는 출력하거나 기록하지 않습니다. 결속은 checkout·evidence home·salt에 속합니다. 별도 clone/worktree, checkout 경로 이동, 다른 evidence home, salt 유실은 새 run이 필요합니다. 표시 이름만으로 identity를 판단하지 않습니다. schema 2는 읽기 전용 `historical-unbound` 증거로 남으며 checkout 결속을 추정하지 않습니다.
+기록은 선택이며 실행 기록(receipt) 오류는 의미 판정(semantic verdict)을 바꾸지 않습니다. schema 3와 4는 정규화한 Git 디렉터리와 checkout 루트에서 로컬 비공개 32-byte `.identity-salt`를 사용한 HMAC-SHA-256으로 `repo_key`를 유도합니다. 원시 절대 identity 경로와 salt는 출력하거나 기록하지 않습니다. 결속은 checkout·evidence home·salt에 속합니다. 별도 clone/worktree, checkout 경로 이동, 다른 evidence home, salt 유실은 새 run이 필요합니다. 표시 이름만으로 identity를 판단하지 않습니다. schema 2는 읽기 전용 `historical-unbound` 증거로 남으며 checkout 결속을 추정하지 않습니다.
 
 원자적 로컬 저장은 협력하는 client 사이의 일관성을 제공할 뿐, 악의적인 로컬 변조를 막는 서명된 audit log가 아닙니다.
 
@@ -37,7 +37,7 @@ record에는 저장소 상대 경로, 디렉터리 이름, 해시, 열거값, �
 `sddx`로 실제 구현을 돌리면 워커(Cursor Agent 또는 Grok Build)가 과제
 내용과 worktree 내용을 Cursor 또는 xAI 공급자에게 보냅니다. 그 전송은 해당 CLI의
 데이터 정책을 따릅니다. 기본 `verify.py`와 CI는 Cursor나 Grok CLI를 부르지
-않습니다. 워커 대화, 자격 증명, 공급자 receipt(공급자가 돌려준 실행 기록)는
+않습니다. 워커 대화, 자격 증명, 공급자 실행 기록(receipt)은
 커밋하지 마세요. 호스트는 자기 비밀 값을 워커 프롬프트에 넣지 않습니다.
 
 ## 이해관계가 큰 요청

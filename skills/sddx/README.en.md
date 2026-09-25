@@ -10,7 +10,7 @@ Build. Both use only Grok 4.7, never a `-fast` variant.
 
 | Term | Meaning |
 | --- | --- |
-| Host | The session that got `/sddx` or `$sddx` (the contract's controller). It hands out tasks, checks results, and runs reviews. |
+| Host | Claude Code or Codex, the program that runs the skill. The session that got `/sddx` or `$sddx` (the contract's orchestrator) hands out tasks, checks results, and runs reviews. |
 | Worker | The outside CLI that codes and commits one task. |
 | Brief | The one-task sheet a worker gets, with the plan's run-wide constraints. |
 | Runner | `run_worker.py`, which starts the worker and records the attempt. |
@@ -32,8 +32,9 @@ sddx: Claude Code and Codex supported for local or repository-based use.
   workers, not hosts.
 - The OS is macOS only. Windows and Linux are unsupported, and the product
   CLIs refuse Windows.
-- A Grok worker needs Python 3.11+ in a linked worktree, turns off MCP call
-  tools, and will not run without `--disallowed-tools` and `--deny`.
+- A Grok worker needs Python 3.11+ in a linked worktree (one added with
+  `git worktree`). It turns off MCP call tools, and it will not run on a Grok
+  CLI that lacks `--disallowed-tools` and `--deny`.
 - Claude.ai, Cowork, Skills API upload, and marketplace publication are not
   supported.
 - All four host/worker pairs have been run for real on macOS. What was
@@ -134,8 +135,9 @@ $sddx docs/history/plans/example.md grok
    the host's own model reviews: High, or XHigh for concurrency, permission,
    secret, or sandbox changes and round 4-5 re-reviews.
 4. Fix rounds 1-3 resume (continue) the same worker session if effort is
-   unchanged; rounds 4-5 use a fresh XHigh worker. Work outside the plan is asked about first, and a needed
-   push or publish stops as BLOCKED.
+   unchanged; rounds 4-5 use a fresh XHigh worker.
+5. Work outside the plan is asked about first. A needed push or publish stops
+   as `BLOCKED`.
 
 Each attempt leaves `run.json`, `report.md`, and the log in a folder under
 `.superpowers/sdd/<plan>/` in the worktree. Watch progress with

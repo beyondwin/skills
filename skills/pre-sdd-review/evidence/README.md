@@ -26,8 +26,8 @@ The compatibility handshake is exactly `skill_name=pre-sdd-review` and
 Each run is one file, `~/.pre-sdd-review/runs/<run-id>.json`. The only
 override for the evidence home is a non-empty absolute
 `PRE_SDD_REVIEW_HOME`. Schema 4 records are at most 64 KiB. Readers validate
-schema 2, 3, and 4 files in `runs/*.json`; `finish` and
-`outcome` accept only schema 4. A schema 3 pending run may be `abandon`ed so an
+schema 2, 3, and 4 files in `runs/*.json`; `finish` and `outcome` accept only
+schema 4. A schema 3 pending run may be `abandon`ed so an
 in-flight run survives the upgrade; a schema 2 record stays fully read-only.
 
 The recorder creates `.identity-salt` as private local state containing
@@ -49,9 +49,9 @@ Attempts to mutate it fail with `legacy-record-read-only`.
 
 Mutations serialize identity creation with `.identity.lock` and a run change
 with `locks/<run-id>.lock`. After the command releases the lock, it removes
-that lock file. These locks require supported OS file locking.
-Read-only `show`, `summary`, and `--version` do not require locking. Windows
-is not a supported OS; this uses POSIX `fcntl.flock`.
+that lock file. These locks require supported OS file locking. Read-only
+`show`, `summary`, and `--version` do not require locking. Windows is not a
+supported OS; this uses POSIX `fcntl.flock`.
 
 | Command | Arguments | Effect |
 | --- | --- | --- |
@@ -73,8 +73,8 @@ or null), `degraded_reasons` (list of `primary-role-not-obtained`,
 
 Each finding has `id` (`PSDR-001`), `severity`, `class`, `pattern`, `status`,
 `source` (`reviewer`, `ledger-pass`, `machine-check`), `repair_pass` (null or
-0–3, where `0` marks a pre-pass ledger or machine-check repair), `location` (`path`,
-`locator`), `evidence` (relative paths), `consequence`, and `fix`.
+0–3, where `0` marks a pre-pass ledger or machine-check repair), `location`
+(`path`, `locator`), `evidence` (relative paths), `consequence`, and `fix`.
 
 A schema 4 record adds `baseline` (`head` plus the ordered `prior_plans` this
 plan's turn assumes) and `ledger` (the shared-file ledger's `path` and `sha`, or
@@ -97,20 +97,24 @@ rewrite or override the semantic verdict.
 
 ## Reading the log
 
-The log is for agents. Before `start`, run `summary --repo <display name>`
-and find the plan in `runs` and `chains`. Close a same-plan `pending` run.
-A handoff is reusable only from a run whose `execution` is `full`, or
-`degraded` with `focused-role-not-obtained` as its only reason; never from a
-`blocked` run or any other `degraded` run. Reuse it only when its document
-hashes, `git.head_end`, and the request are all unchanged. When only the
-design, plan, or ledger changed since a `REVISE` run, or since a `BLOCKED`
-run whose user decision the documents now record, the next invocation
-continues from closure; `show` supplies that run's findings. After
-`finish`, print the `anomalies` it returned; do not look the run up in a windowed
-`summary`. `summary` returns `runs`, `counts`, `cost`, `chains`
-(checkout-bound plans reviewed more than once), `findings` (with
-`repeated_patterns`), and `anomalies`; every drill-down entry carries `run_id`
-values for `show`. Start from `anomalies` and `chains`.
+The log is for agents.
+
+- Before `start`, run `summary --repo <display name>` and find the plan in
+  `runs` and `chains`. Close a same-plan `pending` run.
+- A handoff is reusable only from a run whose `execution` is `full`, or
+  `degraded` with `focused-role-not-obtained` as its only reason; never from a
+  `blocked` run or any other `degraded` run. Reuse it only when its document
+  hashes, `git.head_end`, and the request are all unchanged.
+- When only the design, plan, or ledger changed since a `REVISE` run, or since
+  a `BLOCKED` run whose user decision the documents now record, the next
+  invocation continues from closure; `show` supplies that run's findings.
+- After `finish`, print the `anomalies` it returned; do not look the run up in
+  a windowed `summary`.
+
+`summary` returns `runs`, `counts`, `cost`, `chains` (checkout-bound plans
+reviewed more than once), `findings` (with `repeated_patterns`), and
+`anomalies`; every drill-down entry carries `run_id` values for `show`. Start
+from `anomalies` and `chains`.
 
 `invalid_records` is the number of invalid files found across the entire scan
 before any filters. `--repo` filters only the display name in `repo`; it is not

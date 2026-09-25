@@ -2,11 +2,23 @@
 
 [한국어](../ko/compatibility.md) · [Installation](installation.md)
 
-The skills in use are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md), and [`sddx`](../../../skills/sddx/README.en.md). How It Works and SDDx currently claim Codex and Claude Code. Korean Writing Editor and Pre-SDD Review keep their registered Codex boundaries. Image Workbench claims Codex and Grok.
+The skills in use are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md), and [`sddx`](../../../skills/sddx/README.en.md).
 
-In short: the Korean editor and Pre-SDD Review are confirmed on Codex today. Image Workbench is confirmed on Codex and Grok. How It Works and SDDx link this repo for Codex and Claude Code.
+| Skill | Supported hosts |
+| --- | --- |
+| Korean Writing Editor | Codex only |
+| Pre-SDD Review | Codex only |
+| Image Workbench | Codex, Grok |
+| How It Works | Codex, Claude Code (linked from this repo) |
+| SDDx | Codex, Claude Code (linked from this repo) |
 
-A host is the program that runs the skill. A smoke is a recorded live run. `not_measured` means not checked yet. `historical-unbound` is an old record. `current-bounded` means only version and hash are bound.
+Terms:
+
+- host: the program that runs the skill
+- smoke: a recorded live run
+- `not_measured`: not checked yet
+- `historical-unbound`: an old record, not current execution evidence
+- `current-bounded`: only version and hash are bound
 
 ## Shared support sentences
 
@@ -26,18 +38,20 @@ A matching folder layout does not mean that host is supported. Adding a new supp
 
 `how-it-works` supports Codex and Claude Code for local or repository-based use. Claude.ai, Cowork, Skills API upload, and marketplace publication are not supported.
 
-`image-workbench` can make or edit an image only when this host has its own image tool and you can open the result. The Grok shortcut is `~/.agents/skills/image-workbench`. A similar tool on another host is not support.
+`image-workbench` can make or edit an image only when the current host has its own image tool and you can open the result. Otherwise, do not say it can make or edit images. A similar tool on another host is not support. The Grok shortcut is `~/.agents/skills/image-workbench`.
 
 Other hosts for `pre-sdd-review` have not been checked yet (`not_measured`).
 
-The preserved `how-it-works` smoke is `historical-unbound`; it is separate from current payload and model execution evidence. Actual execution of the current install files is `not_measured`. `current-bounded` validates version/hash and metadata binding only, not actual execution or explanation quality. The supported OS is macOS only. Windows and Linux are unsupported. CI may run the `full` profile on Ubuntu. That pass is not Linux support and is not macOS support evidence.
+The preserved `how-it-works` smoke is `historical-unbound`; it is separate from current payload and model execution evidence. Actual execution of the current install files is `not_measured`. `current-bounded` validates version/hash and metadata binding only, not actual execution or explanation quality.
 
-The catalog plugin name is `beyondwin-skills`. That does not mean a marketplace listing.
+## Operating system
+
+The supported OS is macOS only. Windows and Linux are unsupported. CI may run the `full` profile on Ubuntu. That pass is not Linux support and is not macOS support evidence.
 
 ## Install paths and hosts
 
-Install, link, and remove steps are in [Installation](installation.md). Verification is in [Verification](verification.md).
+The catalog plugin name is `beyondwin-skills`. That does not mean a marketplace listing.
 
-Do not say `image-workbench` can make or edit images unless that host has its own image tool and you can open the result.
+Install, link, and remove steps are in [Installation](installation.md). Verification is in [Verification](verification.md).
 
 The license is Apache-2.0.

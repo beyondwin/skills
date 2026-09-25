@@ -10,7 +10,7 @@
 
 | 말 | 뜻 |
 | --- | --- |
-| 호스트 | `/sddx` 또는 `$sddx`를 받은 세션(계약의 controller)입니다. 과제를 나눠 주고, 결과를 확인하고, 리뷰를 돌립니다. |
+| 호스트 | 스킬을 실행하는 Claude Code 또는 Codex입니다. `/sddx`나 `$sddx`를 받은 그 세션(계약의 오케스트레이터)이 과제를 나눠 주고, 결과를 확인하고, 리뷰를 돌립니다. |
 | 워커(worker) | 과제 하나를 코딩하고 커밋하는 외부 CLI입니다. |
 | 브리프(brief) | 워커가 받는 과제 한 건의 설명서입니다. 계획 전체에 걸린 제약도 담습니다. |
 | 러너(runner) | 워커를 띄우고 시도를 기록하는 `run_worker.py`입니다. |
@@ -33,8 +33,9 @@ sddx: Claude Code and Codex supported for local or repository-based use.
   호스트가 아닙니다.
 - OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않고, Windows에서는 제품 CLI가
   거절합니다.
-- Grok 워커는 linked worktree에서 Python 3.11+가 필요하고, MCP 호출 도구를 끄며,
-  `--disallowed-tools`와 `--deny`가 없으면 실행하지 않습니다.
+- Grok 워커는 linked worktree(`git worktree`로 추가한 작업 트리)에서 Python
+  3.11+가 필요합니다. MCP 호출 도구를 끄며, `--disallowed-tools`와 `--deny`를
+  지원하지 않는 Grok CLI로는 실행하지 않습니다.
 - Claude.ai, Cowork, Skills API 업로드, marketplace 게시는 지원하지 않습니다.
 - 호스트·워커 네 조합을 macOS에서 실제로 돌려 보았습니다. 확인 범위는
   [호환성](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/sddx/compatibility.md),
@@ -129,7 +130,8 @@ $sddx docs/history/plans/example.md grok
    기록(무엇을 읽고 실행했는지)을 확인한 뒤 호스트와 같은 모델로 리뷰합니다. 보통
    High이고, 동시성·권한·비밀·샌드박스 변경과 4~5회차 재리뷰는 XHigh입니다.
 4. 수정 1~3회차는 강도가 같으면 같은 워커 세션을 이어서(resume), 4~5회차는 새
-   XHigh 워커가 합니다. 계획 밖 작업은 먼저 묻고, push나 게시가 필요하면 BLOCKED로 멈춥니다.
+   XHigh 워커가 합니다.
+5. 계획 밖 작업은 먼저 묻습니다. push나 게시가 필요하면 `BLOCKED`로 멈춥니다.
 
 시도마다 작업 트리 `.superpowers/sdd/<계획이름>/` 아래 폴더에 `run.json`,
 `report.md`, 로그가 남습니다. 진행 상황은 `run_worker.py status`로 봅니다. 세션

@@ -4,6 +4,8 @@
 
 The skills you can install are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md), and [`sddx`](../../../skills/sddx/README.en.md). The license is Apache-2.0. Host support is in [Compatibility](compatibility.md).
 
+Find the skill you want in the table below and follow its guide. Update and uninstall steps are in the same guide.
+
 | Skill | Method | Guide |
 | --- | --- | --- |
 | `korean-writing-editor` | Codex `$skill-installer` | [Codex install](install-codex.md) |

@@ -4,6 +4,10 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- README wording is shorter and uses plain terms. Behavior is unchanged.
+
 ## 5.1.0 - 2026-09-24
 
 ### Changed

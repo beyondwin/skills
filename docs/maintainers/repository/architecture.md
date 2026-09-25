@@ -1,27 +1,18 @@
 # 저장소 구조
 
-이 저장소는 스킬 다섯 개를 한곳에 모아 둔 곳입니다. 따로 버전을 매기는 카탈로그
-플러그인 `beyondwin-skills`도 둡니다.
-
-현재 독립 제품은 `products.toml`이 가리키는 `korean-writing-editor`,
-`image-workbench`, `how-it-works`, `pre-sdd-review`, `sddx`입니다. 마지막 공개
-카탈로그 `2.0.0`은 공개 `v2.0.0`의 두 스킬만 고정합니다. Apache-2.0은 루트와
-각 따로 설치하는 스킬에 적용됩니다.
-
-저장소 루트는 개별 스킬을 GitHub 경로로 설치하는 작업 공간입니다.
-플러그인 메타데이터는 루트가 소유하지 않습니다.
-카탈로그 플러그인 정보는 `catalog/plugin/.codex-plugin/plugin.json`에
-있습니다. 카탈로그 릴리스 때 플러그인 ZIP 루트로 복사됩니다. 지원되는 카탈로그
-결과물은 공개된 플러그인 ZIP뿐입니다.
+이 저장소에는 따로 설치하는 스킬 다섯 개와, 따로 버전을 매기는 카탈로그 플러그인
+`beyondwin-skills`가 있습니다. 무엇을 고칠 때 어디를 보고 무엇을 검사하는지 이
+문서가 정합니다. Apache-2.0은 루트와 각 따로 설치하는 스킬에 적용됩니다.
 
 ## 한눈에
 
 갈래는 두 개입니다. 서로 버전을 맞출 필요가 없습니다.
 
-1. **지금 쓰는 제품** — `products.toml`이 가리키는 다섯 스킬. GitHub 경로로
+1. 지금 쓰는 제품: `products.toml`이 가리키는 `korean-writing-editor`,
+   `image-workbench`, `how-it-works`, `pre-sdd-review`, `sddx`. GitHub 경로로
    하나씩 설치합니다.
-2. **지난 카탈로그 묶음** — `catalog/`의 `beyondwin-skills` `2.0.0`. 공개 당시의
-   `korean-writing-editor`와 `image-workbench`만 고정합니다.
+2. 지난 카탈로그 묶음: `catalog/`의 `beyondwin-skills` `2.0.0`. 공개 `v2.0.0`
+   당시의 `korean-writing-editor`와 `image-workbench` 두 스킬만 고정합니다.
 
 ```mermaid
 flowchart TB
@@ -43,7 +34,12 @@ flowchart TB
   C -.->|"자동으로 따라가지 않음"| live
 ```
 
-누가 어디를 보는지:
+저장소 루트는 개별 스킬을 GitHub 경로로 설치하는 작업 공간입니다.
+플러그인 메타데이터는 루트가 소유하지 않습니다. 카탈로그 플러그인 정보는
+`catalog/plugin/.codex-plugin/plugin.json`에 있고, 카탈로그 릴리스 때 플러그인 ZIP
+루트로 복사됩니다. 지원되는 카탈로그 결과물은 공개된 플러그인 ZIP뿐입니다.
+
+어디를 보는지:
 
 | 할 일 | 문서 |
 | --- | --- |
@@ -66,23 +62,23 @@ flowchart TB
 | 독립 제품 | `products.toml`에 있는, 하나씩 설치하는 스킬. 일상어로는 지금 쓰는 스킬 |
 | 카탈로그 | 예전에 묶어 낸 플러그인 ZIP. 지금 제품과 버전이 달라도 됨 |
 | lock | 채택한 버전을 고정한 목록 |
+| payload | ZIP 안에 든 스킬 파일 묶음 |
 | 호스트 | 스킬을 실행하는 프로그램. Codex, Claude Code, Grok |
 | 지원 OS | macOS만. Windows와 Linux는 미지원. Ubuntu CI 통과는 OS 지원이 아님 |
 | worker | 구현만 맡는 외부 CLI. Cursor, Grok CLI. 호스트가 아님 |
-| selector | 어떤 검사만 돌릴지 고르는 이름. `--skill`, `--catalog` |
+| selector | 어떤 검사만 돌릴지 고르는 옵션. `--skill`, `--catalog` |
 | digest | payload나 manifest의 SHA-256 지문. 테스트는 문서를 이 방식으로 핀하지 않고 문구·사실만 확인함 |
 | 픽스처 | 미리 만들어 둔 검사 예시 |
-| smoke | 실제로 한 번 돌려 본 기록 |
+| smoke | 실제로 한 번 돌려 보는 설치·실행 확인 |
 | `not_measured` | 아직 이 환경에서 확인하지 않음 |
 | `historical-unbound` | 예전 기록. 지금 실행 증거가 아님 |
 | `current-bounded` | 버전과 hash만 묶임. 실제 실행은 증명하지 않음 |
 
 ## 설치 파일과 개발 증거
 
-GitHub 경로 설치의 스킬 파일은 `skills/<name>/`입니다. 제품 README, 영어
-README, CHANGELOG, `release.toml`, 라이선스, 실행에 필요한 파일은 설치에
-포함됩니다. 테스트, 관리자 문서, 라이브 증거, 저장소 운영 도구는 설치 밖에
-둡니다.
+GitHub 경로로 설치하면 `skills/<name>/`만 받습니다. 실행에 필요한 파일과 사용자
+안내는 여기에 둡니다. 테스트, 관리자 문서, 라이브 증거, 저장소 운영 도구는 설치
+밖에 둡니다.
 
 설치에 들어갑니다.
 
@@ -98,6 +94,7 @@ README, CHANGELOG, `release.toml`, 라이선스, 실행에 필요한 파일은 �
 
 | 경로 | 역할 |
 | --- | --- |
+| `products.toml` | 현재 독립 제품 목록. [제품 목록](products-registry.md) |
 | `catalog/catalog.lock.json` | 카탈로그가 채택한 불변 스킬 릴리스 |
 | `catalog/release.toml` | 카탈로그 식별 (`beyondwin-skills` `2.0.0`) |
 | `tests/repository/` | 매니페스트, 링크, 패키징, 공개 문서 사실 |
@@ -112,14 +109,19 @@ README, CHANGELOG, `release.toml`, 라이선스, 실행에 필요한 파일은 �
 | `docs/maintainers/` | 구조, 제품 목록, 버저닝, 릴리스, 카탈로그, 마이그레이션, 제품 규칙 |
 | `docs/history/` | 진행 중인 설계·계획. 현재 계약을 정의하지 않음 |
 | `scripts/verify.py` | 모델 없는 검사 스크립트 |
+| `scripts/changed_targets.py` | 바뀐 경로로 CI 검사 범위를 고르는 스크립트 |
+| `scripts/release.py` | 제품·카탈로그 check/build/verify-download. [릴리스](release.md) |
+| `scripts/catalog_lock.py` | 예전 통합 릴리스의 standalone ZIP을 lock으로 가져오는 도구 |
+| `scripts/capture_archive_manifest.py` | Archive 출처 매니페스트 캡처·확인. [마이그레이션](migrations.md) |
 
-설치 폴더에는 `CHANGE_PROTOCOL.md`, `evals/`, `tests/`를 두지
-않습니다. `README.md`, `README.en.md`, `CHANGELOG.md`, `release.toml`은
-허용되며 필수입니다. `image-workbench` inspector
-`skills/image-workbench/scripts/inspect_asset.py`는 런타임 코드입니다. 테스트는
-`tests/products/image-workbench/`에 둡니다. inspector는 스킬 루트에서
-`python3 scripts/inspect_asset.py`로 호출합니다. 저장소 상대 `skills/`
-경로로 호출하지 않습니다.
+설치 폴더 규칙:
+
+- `CHANGE_PROTOCOL.md`, `evals/`, `tests/`를 두지 않습니다.
+- `README.md`, `README.en.md`, `CHANGELOG.md`, `release.toml`은 허용되며 필수입니다.
+- `image-workbench` inspector `skills/image-workbench/scripts/inspect_asset.py`는
+  런타임 코드입니다. 테스트는 `tests/products/image-workbench/`에 둡니다.
+  inspector는 스킬 루트에서 `python3 scripts/inspect_asset.py`로 호출합니다.
+  저장소 상대 `skills/` 경로로 호출하지 않습니다.
 
 제품별 픽스처 경로의 세부는 각 제품 `testing.md`가 소유합니다.
 
@@ -140,18 +142,23 @@ README, CHANGELOG, `release.toml`, 라이선스, 실행에 필요한 파일은 �
 
 ## 검증 경계
 
-어떤 검사를 돌릴지는 바뀐 경로로 고릅니다. 공통 경로, unknown 경로, 빈 diff, diff 실패이면 selector 없는 전체 검사를 실행합니다. 제품 전용 변경일 때만 해당 제품 selector로 좁은 검사를 실행합니다.
-
 필수 로컬 검증:
 
 ```bash
 python3 scripts/verify.py
 ```
 
-이 명령은 자격 증명과 공급자가 없습니다. 제품만 검증하려면
-`python3 scripts/verify.py --skill <name>`을 씁니다. 카탈로그만 검증하려면
-`python3 scripts/verify.py --catalog`를 씁니다. 한국어 라이브 평가는 명시적인
-로컬 작업입니다.
+이 명령은 자격 증명과 공급자 호출 없이 돕니다. 좁혀 돌리려면 selector를 붙입니다.
+
+- 제품만: `python3 scripts/verify.py --skill <name>`
+- 카탈로그만: `python3 scripts/verify.py --catalog`
+
+어떤 검사를 돌릴지는 바뀐 경로로 고릅니다. 공통 경로, unknown 경로, 빈 diff, diff 실패이면 selector 없는 전체 검사를 실행합니다. 제품 전용 변경일 때만 해당 제품 selector로 좁은 검사를 실행합니다.
+제품 전용 경로는 `products.toml`의 `owned_paths`이고, `catalog/` 아래 변경은
+`--catalog`로 갑니다. CI에서는 `scripts/changed_targets.py`가 이 규칙으로 검사
+범위를 정합니다.
+
+한국어 라이브 평가는 명시적인 로컬 작업입니다.
 
 제품 프로토콜은
 [korean-writing-editor](../products/korean-writing-editor/contract.md),

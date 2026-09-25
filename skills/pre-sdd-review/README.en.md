@@ -127,8 +127,9 @@ The skill never re-runs itself after `REVISE` or `BLOCKED`. When you call it aga
 Only a `full` run's handoff, or that of a `degraded` run whose only reason is
 `focused-role-not-obtained`, is reused; any other `degraded` or `blocked`
 run's handoff is never reused. A `degraded` run is one that could not get a
-fresh reviewer for every role, or reused one. After three `BLOCKED` runs in a row on new user decisions, the
-design is sent back to settle the remaining decisions at once.
+fresh reviewer for every role, or reused one. After three `BLOCKED` runs in a
+row on new user decisions, the design is sent back to settle the remaining
+decisions at once.
 
 ### Several plans and extra reviewers
 
@@ -162,7 +163,7 @@ line's exact bytes.
   continues and prints `Evidence: not_recorded; reason=<code>`. The verdict
   does not change.
 
-Receipts stay local under `~/.pre-sdd-review/`. Local file storage is not a
+Records stay local under `~/.pre-sdd-review/`. Local file storage is not a
 signed audit log. `outcome` (a label added after SDD) and `summary` are in the
 [evidence README](evidence/README.md).
 

@@ -1,6 +1,6 @@
 # pre-sdd-review 릴리스
 
-이 문서는 Pre-SDD Review의 독립 패키징 절차를 소유합니다.
+이 문서는 Pre-SDD Review를 따로 패키징하는 절차를 정합니다.
 버전 원본은 `skills/pre-sdd-review/release.toml`입니다. `SKILL.md`의
 `metadata.version`은 검증된 복사본입니다. `CHANGELOG.md`는 사람이 읽는 계약
 이력입니다.
