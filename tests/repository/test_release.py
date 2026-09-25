@@ -31,43 +31,11 @@ from scripts.lib.archive import (  # noqa: E402
 )
 
 
-BUILD_RELEASE_PATH = ROOT / "scripts" / "build_release.py"
-WRAPPER_MESSAGE = (
-    "scripts/build_release.py no longer builds a shared-version bundle. "
-    "Use scripts/release.py after the independent release pipeline lands.\n"
-)
 ZIP_EPOCH = (1980, 1, 1, 0, 0, 0)
 
 
 def unix_mode(info: zipfile.ZipInfo) -> int:
     return (info.external_attr >> 16) & 0o777
-
-
-class BuildReleaseWrapperTests(unittest.TestCase):
-    def test_build_release_module_exists(self) -> None:
-        self.assertTrue(BUILD_RELEASE_PATH.is_file(), "scripts.build_release does not exist")
-
-    def test_wrapper_prints_exact_message_exits_2_and_creates_no_files(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            output = Path(directory)
-            completed = subprocess.run(
-                [
-                    sys.executable,
-                    str(BUILD_RELEASE_PATH),
-                    "--version",
-                    "2.0.0",
-                    "--output",
-                    str(output),
-                ],
-                cwd=ROOT,
-                check=False,
-                capture_output=True,
-                text=True,
-            )
-            self.assertEqual(completed.returncode, 2)
-            self.assertEqual(completed.stderr, WRAPPER_MESSAGE)
-            self.assertEqual(completed.stdout, "")
-            self.assertEqual(list(output.iterdir()), [])
 
 
 class ProductBuildTests(unittest.TestCase):

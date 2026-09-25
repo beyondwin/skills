@@ -859,53 +859,6 @@ def assert_live_guide_contract(markdown: str) -> None:
         assert normalized_markdown_paragraphs(markdown).count(paragraph) == 1
 
 
-CHANGE_PROTOCOL_HEADINGS = (
-    ("#", "Change Protocol"),
-    ("##", "Contract Changes"),
-    ("##", "Evidence Changes"),
-    ("##", "Fixture Changes"),
-    ("##", "Live Harness Invariants"),
-    ("##", "Versioning"),
-    ("##", "Required Verification"),
-)
-CHANGE_PROTOCOL_VERIFICATION_FENCE = (
-    "python3 tests/products/korean-writing-editor/offline/run.py --scope full\n"
-    "bun run agent:verify\n"
-    "git diff --check"
-)
-
-
-def assert_change_protocol_contract(markdown: str) -> None:
-    first_section = markdown.find("\n## ")
-    assert first_section > 0
-    assert markdown[:first_section].strip().startswith("# Change Protocol\n\n")
-    headings = tuple(
-        re.findall(r"^(#{1,2}) (.+)$", markdown, flags=re.MULTILINE)
-    )
-    assert headings == CHANGE_PROTOCOL_HEADINGS
-    sections = normalized_guide_sections(markdown)
-    assert tuple(heading for heading, _ in sections) == tuple(
-        heading for _, heading in CHANGE_PROTOCOL_HEADINGS[1:]
-    )
-    live_sections = tuple(
-        body for heading, body in sections if heading == "Live Harness Invariants"
-    )
-    assert live_sections == (
-        (
-            GUIDE_RESERVATION_PARAGRAPH,
-            GUIDE_DURABLE_EVIDENCE_PARAGRAPH,
-            GUIDE_BODY_INTEGRITY_PARAGRAPH,
-            GUIDE_LEASE_PARAGRAPH,
-        ),
-    )
-    assert re.findall(
-        r"```bash\n(.*?)\n```", markdown, flags=re.DOTALL
-    ) == [CHANGE_PROTOCOL_VERIFICATION_FENCE]
-    assert markdown.count(
-        "A live-harness or dated-report-only change does not bump the skill version."
-    ) == 1
-
-
 class PublicLayoutTests(unittest.TestCase):
     def test_default_source_is_public_payload(self) -> None:
         self.assertEqual(

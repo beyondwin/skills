@@ -12,7 +12,7 @@ All notable changes to this product are documented in this file.
 
 ### Changed
 
-- README wording is shorter and uses plain terms. Behavior is unchanged.
+- README 문장을 더 짧고 쉬운 말로 고쳤습니다. 동작은 같습니다.
 - `SKILL.md`가 없는 필드 `reviewer_count`를 더 설명하지 않습니다. 기록 필드는 `reviewers`(0–2) 하나이고, `full` 실행이면 trigger가 있을 때 2, 없을 때 1입니다.
 
 ### Notes

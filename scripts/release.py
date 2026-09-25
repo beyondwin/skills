@@ -261,12 +261,6 @@ def _add_target_selector(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--product", choices=REGISTRY.names, required=True)
 
 
-def _read_bytes(path: Path) -> bytes:
-    # Isolation tests patch Path.read_bytes; this repo's path contains "/skills/".
-    with open(path, "rb") as handle:
-        return handle.read()
-
-
 def _download_directory_errors(directory: Path, expected_zip: str) -> list[str]:
     expected = {expected_zip, "SHA256SUMS"}
     errors: list[str] = []

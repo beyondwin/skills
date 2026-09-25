@@ -277,10 +277,6 @@ def scan_records(home: Path) -> tuple[list[dict[str, object]], int, int]:
     return records, invalid, unsupported
 
 
-def iter_records(home: Path) -> list[dict[str, object]]:
-    return scan_records(home)[0]
-
-
 def git(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(["git", "-C", str(root), *args], check=False, capture_output=True, text=True)
 

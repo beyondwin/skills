@@ -438,7 +438,7 @@ class RepositoryContractTests(unittest.TestCase):
     def test_reusable_tooling_lives_under_scripts_lib(self) -> None:
         forbidden = {
             "release_contract.py", "release_archive.py", "catalog_contract.py",
-            "catalog_lock.py", "capture_archive_manifest.py",
+            "catalog_lock.py", "capture_archive_manifest.py", "build_release.py",
         }
         self.assertTrue(forbidden.isdisjoint({path.name for path in (ROOT / "scripts").glob("*.py")}))
         for name in (

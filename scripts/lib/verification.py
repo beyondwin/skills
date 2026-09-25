@@ -4,7 +4,7 @@ import dataclasses
 import pathlib
 import subprocess
 import sys
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Sequence
 
 from scripts.lib.product_registry import ProductRegistry
 
@@ -178,7 +178,6 @@ def _stage_map(root: pathlib.Path) -> dict[str, Stage]:
     }
 
 
-REGISTERED_STAGES: Mapping[str, Stage] = _stage_map(ROOT)
 REGISTERED_STAGE_NAMES = frozenset(_stage_map(ROOT))
 
 
