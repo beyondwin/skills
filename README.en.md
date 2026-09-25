@@ -1,4 +1,4 @@
-# beyondwin-skills
+# beyondwin/skills
 
 [한국어](README.md)
 
@@ -25,8 +25,7 @@ the skill.
 | [`pre-sdd-review`](skills/pre-sdd-review/README.en.md) | Right before SDD, checks an approved design and implementation plan against the repository as it is now, repairs the documents, and re-checks what changed. | Codex |
 | [`sddx`](skills/sddx/README.en.md) | Runs Superpowers SDD in your session and hands only the coding to Cursor Agent or Grok Build (Grok 4.7). | Claude Code, Codex |
 
-Each skill README has usage and first-call steps. The earlier catalog bundle
-`v2.0.0` does not include How It Works, Pre-SDD Review, or SDDx.
+Each skill README has usage and first-call steps.
 
 ## Install
 

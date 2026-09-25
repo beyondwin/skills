@@ -25,8 +25,6 @@ def active_markdown_paths(root: pathlib.Path) -> tuple[pathlib.Path, ...]:
         root / "docs" / "README.md",
         root / "docs" / "maintainers" / "README.md",
         root / "docs" / "history" / "README.md",
-        root / "catalog" / "README.md",
-        root / "catalog" / "CHANGELOG.md",
     ]
     for product in registry.products:
         for name in _PRODUCT_README_NAMES:

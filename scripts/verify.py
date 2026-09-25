@@ -29,9 +29,7 @@ def build_parser(names: tuple[str, ...]) -> argparse.ArgumentParser:
         default="full",
         help="verification profile (default: full)",
     )
-    target = parser.add_mutually_exclusive_group()
-    target.add_argument("--skill", choices=names)
-    target.add_argument("--catalog", action="store_true")
+    parser.add_argument("--skill", choices=names)
     return parser
 
 
@@ -44,7 +42,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     parser = build_parser(registry.names)
     args = parser.parse_args(argv)
-    return run_stages(stages(ROOT, args.profile, registry, skill=args.skill, catalog=args.catalog))
+    return run_stages(stages(ROOT, args.profile, registry, skill=args.skill))
 
 
 if __name__ == "__main__":

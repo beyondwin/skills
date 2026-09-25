@@ -52,7 +52,6 @@ CASE_IDS = (
     "implementer-effort-per-task-xhigh",
     "implementer-effort-not-session",
     "effort-increase-fresh-worker",
-    "catalog-excludes-sddx",
     "one-available-backend-still-confirms",
     "worker-no-host-outside-side-effects",
     "no-credentials-in-worker-prompt",
@@ -149,7 +148,6 @@ EXPECT_LOCK = {
     "native_reviewer": {
         "skill_must": ("Task reviewers, scoped re-reviewers, and the final reviewer stay native",)
     },
-    "not_in_catalog": {"catalog_must_not": ("sddx",)},
     "confirm_even_if_one": {"skill_must": ("Do not auto-select the only CLI.",)},
     "stop_no_push_publish": {"skill_must": ("stop and return BLOCKED",)},
     "no_host_secrets": {"skill_must": ("Do not copy host credentials",)},
@@ -230,13 +228,11 @@ class SddxContractTests(unittest.TestCase):
         description = str(
             parse_skill_frontmatter(skill).get("description", "")
         )
-        catalog = (ROOT / "catalog" / "catalog.lock.json").read_text(encoding="utf-8")
         sources = {
             "skill": skill,
             "dispatch": dispatch,
             "worker": worker,
             "description": description,
-            "catalog": catalog,
         }
         fold = lambda value: re.sub(r"\s+", " ", value)
         for tag, lock in EXPECT_LOCK.items():
@@ -592,8 +588,6 @@ class SddxContractTests(unittest.TestCase):
     def test_hosts_are_not_backends(self) -> None:
         registry = load_registry(ROOT / "products.toml")
         self.assertEqual(registry.require("sddx").supported_hosts, ("claude-code", "codex"))
-        lock = (ROOT / "catalog" / "catalog.lock.json").read_text(encoding="utf-8")
-        self.assertNotIn("sddx", lock)
 
     def test_near_miss_phrases_are_explicit(self) -> None:
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")

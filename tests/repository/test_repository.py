@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import os
 import shutil
 import subprocess
@@ -24,58 +23,15 @@ from scripts.lib.product_registry import load_registry  # noqa: E402
 
 REGISTRY = load_registry(ROOT / "products.toml")
 SKILLS = tuple(ROOT / "skills" / name for name in REGISTRY.names)
-PLUGIN_PATH = ROOT / "catalog" / "plugin" / ".codex-plugin" / "plugin.json"
 LICENSE_PATH = ROOT / "LICENSE"
 NOTICE_PATH = ROOT / "NOTICE"
 ARCHIVE_REPOSITORY = "https://github.com/beyondwin/Archive.git"
 PINNED_SOURCE_COMMIT = "76e6bf4ebbc9430aee9a04a5b780ae38330f3021"
-MANIFEST_DIGEST = "6917f68e6e0d81226e50195d58a884373d23ffbbbe48363ef2428c8cbcb83f78"
-EXPECTED_PLUGIN: dict[str, object] = {
-    "name": "beyondwin-skills",
-    "version": "2.0.0",
-    "description": "Two conservative, project-aware skills for Korean editing and raster asset work.",
-    "author": {"name": "beyondwin", "url": "https://github.com/beyondwin"},
-    "homepage": "https://github.com/beyondwin/skills",
-    "repository": "https://github.com/beyondwin/skills",
-    "license": "Apache-2.0",
-    "keywords": ["agent-skills", "codex", "korean-writing", "image-workbench"],
-    "skills": "./skills/",
-    "interface": {
-        "displayName": "Beyondwin Skills",
-        "shortDescription": "Korean editing and raster asset workflows",
-        "longDescription": (
-            "A curated pair of Codex-first skills for conservative Korean text "
-            "editing and project-bound raster asset work."
-        ),
-        "developerName": "beyondwin",
-        "category": "Developer Tools",
-        "capabilities": ["Interactive", "Read", "Write"],
-        "websiteURL": "https://github.com/beyondwin/skills",
-        "defaultPrompt": [
-            "Polish supplied Korean text",
-            "Plan or audit a project raster asset",
-        ],
-    },
-}
 FORBIDDEN_PAYLOAD_NAMES = frozenset({"CHANGE_PROTOCOL.md", "evals", "tests"})
-UNSUPPORTED_PLUGIN_FIELDS = ("hooks", "mcpServers", "apps")
-UNSUPPORTED_INTERFACE_FIELDS = (
-    "privacyPolicyURL",
-    "termsOfServiceURL",
-    "logo",
-    "composerIcon",
-    "logoDark",
-    "screenshots",
-    "brandColor",
-)
 LEGACY_IDENTIFIERS = (
     "kws-korean-writing-editor",
     "kws-image-workbench",
 )
-
-
-def load_plugin_manifest() -> dict[str, object]:
-    return json.loads(PLUGIN_PATH.read_text(encoding="utf-8"))
 
 
 def _copy_skill(source: Path, destination: Path) -> Path:
@@ -103,41 +59,16 @@ def _tracked_test_roots(root: Path) -> set[str]:
     }
 
 
-class PluginManifestTests(unittest.TestCase):
-    def test_plugin_discovers_the_curated_skills(self) -> None:
-        self.assertFalse((ROOT / ".codex-plugin" / "plugin.json").exists())
-        self.assertTrue(PLUGIN_PATH.is_file(), "plugin manifest is absent")
-        manifest = load_plugin_manifest()
-        self.assertEqual(manifest["name"], "beyondwin-skills")
-        self.assertEqual(manifest["version"], "2.0.0")
-        self.assertEqual(manifest["skills"], "./skills/")
-        from scripts.lib.catalog import load_catalog_lock
-
-        lock_names = {
-            item.name for item in load_catalog_lock(ROOT / "catalog" / "catalog.lock.json").skills
-        }
-        for name in set(REGISTRY.names) - lock_names:
-            self.assertNotIn(name, json.dumps(manifest))
+class SkillDirectoryTests(unittest.TestCase):
+    def test_root_owns_no_plugin_manifest(self) -> None:
+        self.assertFalse((ROOT / ".codex-plugin").exists())
+        self.assertFalse((ROOT / "catalog").exists())
 
     def test_skill_directories_include_unpublished_current_products(self) -> None:
         self.assertEqual(
             {path.name for path in (ROOT / "skills").iterdir() if path.is_dir()},
             set(REGISTRY.names),
         )
-
-    def test_plugin_manifest_matches_curated_bundle(self) -> None:
-        self.assertTrue(PLUGIN_PATH.is_file(), "plugin manifest is absent")
-        self.assertEqual(load_plugin_manifest(), EXPECTED_PLUGIN)
-
-    def test_plugin_omits_unsupported_components(self) -> None:
-        self.assertTrue(PLUGIN_PATH.is_file(), "plugin manifest is absent")
-        manifest = load_plugin_manifest()
-        for field in UNSUPPORTED_PLUGIN_FIELDS:
-            self.assertNotIn(field, manifest)
-        interface = manifest["interface"]
-        self.assertIsInstance(interface, dict)
-        for field in UNSUPPORTED_INTERFACE_FIELDS:
-            self.assertNotIn(field, interface)
 
 
 class LicenseNoticeTests(unittest.TestCase):
@@ -159,11 +90,10 @@ class LicenseNoticeTests(unittest.TestCase):
     def test_notice_records_archive_provenance(self) -> None:
         self.assertTrue(NOTICE_PATH.is_file(), "NOTICE is absent")
         text = NOTICE_PATH.read_text(encoding="utf-8")
-        self.assertIn("beyondwin-skills", text)
-        self.assertIn("beyondwin", text)
+        self.assertIn("beyondwin/skills", text)
+        self.assertNotIn("beyondwin-skills", text)
         self.assertIn(ARCHIVE_REPOSITORY, text)
         self.assertIn(PINNED_SOURCE_COMMIT, text)
-        self.assertIn(MANIFEST_DIGEST, text)
         self.assertNotIn("manifest path", text)
         self.assertNotIn("/Users/", text)
         self.assertNotIn("source/private", text)
@@ -508,6 +438,7 @@ class RepositoryContractTests(unittest.TestCase):
     def test_reusable_tooling_lives_under_scripts_lib(self) -> None:
         forbidden = {
             "release_contract.py", "release_archive.py", "catalog_contract.py",
+            "catalog_lock.py", "capture_archive_manifest.py",
         }
         self.assertTrue(forbidden.isdisjoint({path.name for path in (ROOT / "scripts").glob("*.py")}))
         for name in (
@@ -516,8 +447,6 @@ class RepositoryContractTests(unittest.TestCase):
             "verification.py",
             "change_routing.py",
             "archive.py",
-            "catalog.py",
-            "archive_manifest.py",
             "documentation.py",
             "stale_identifiers.py",
         ):
@@ -534,18 +463,6 @@ class LegacyIdentifierAllowlistTests(unittest.TestCase):
         )
         self.assertIn("kws-korean-writing-editor", korean_cases)
         self.assertIn("kws-image-workbench", image_cases)
-
-    def test_legacy_identifiers_remain_in_pinned_migration_evidence(self) -> None:
-        manifest = (
-            ROOT / "docs" / "maintainers" / "repository" / "archive-source-manifest.json"
-        ).read_text(encoding="utf-8")
-        notes = (
-            ROOT / "docs" / "maintainers" / "repository" / "migrations.md"
-        ).read_text(encoding="utf-8")
-        self.assertIn("kws-korean-writing-editor", manifest)
-        self.assertIn("kws-image-workbench", manifest)
-        self.assertIn("kws-korean-writing-editor", notes)
-        self.assertIn("kws-image-workbench", notes)
 
 
 if __name__ == "__main__":

@@ -34,8 +34,7 @@ Windows and Linux are unsupported.
 
 ## 유지·변경·릴리스 / Maintain, change, or release
 
-관리자 작업은 [`docs/maintainers/`](maintainers/)를 따릅니다. 카탈로그 묶음은
-[`catalog/`](../catalog/README.md)를 보세요.
+관리자 작업은 [`docs/maintainers/`](maintainers/)를 따릅니다.
 
 ## 기록 / History
 

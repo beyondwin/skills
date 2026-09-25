@@ -14,8 +14,6 @@
 | 제품 등록 | `products.toml` | `skills/<name>/`, `tests/products/<name>/`, `docs/maintainers/products/<name>/`. 절차는 [제품 목록](repository/products-registry.md) | `python3 scripts/verify.py` |
 | 버전 올리기 | `skills/<name>/release.toml` | `SKILL.md` `metadata.version`, `CHANGELOG.md`. 판정은 [버저닝](repository/versioning.md) | `python3 scripts/verify.py --skill <name>` |
 | 제품 릴리스 | `skills/<name>/CHANGELOG.md`의 `Unreleased` 확정 | 해당 제품 `release.md`. 절차는 [독립 제품 릴리스](repository/release.md) | `python3 scripts/release.py check --product <name>` (깨끗한 트리에서) |
-| 불변 카탈로그 확인 | `catalog/` | lock, `catalog/CHANGELOG.md`, 플러그인 버전. 절차는 [카탈로그](repository/catalog.md) | `python3 scripts/verify.py --catalog` |
-| 마이그레이션·Archive 확인 | 없음 (끝난 기록) | 절차는 [마이그레이션](repository/migrations.md) | `python3 scripts/capture_archive_manifest.py verify` (인자는 해당 문서) |
 | 진행 중인 설계·계획 | `docs/history/` | 끝나면 지움. [기록](../history/) | 없음 |
 
 어떤 작업이든 머지 전에는 `python3 scripts/verify.py`를 돌립니다.
@@ -42,10 +40,8 @@
 | --- | --- |
 | [구조](repository/architecture.md) | 설치 파일과 개발 증거의 경계, 검사 범위 |
 | [제품 목록](repository/products-registry.md) | `products.toml` 스키마와 등록 절차 |
-| [버저닝](repository/versioning.md) | 제품·카탈로그 SemVer 판정표와 태그 |
+| [버저닝](repository/versioning.md) | 제품 SemVer 판정표와 태그 |
 | [릴리스](repository/release.md) | 독립 제품 check/build/verify-download |
-| [카탈로그](repository/catalog.md) | lock 채택과 원격 다운로드 검증 |
-| [마이그레이션](repository/migrations.md) | Archive에서 가져온 출처 고정값(pin)과 기록 |
 
 ## 제품별 문서
 

@@ -37,8 +37,8 @@
 [`docs/maintainers/repository/release.md`](../../repository/release.md)를
 보세요. 제품 검사는 `python3 scripts/release.py check --product korean-writing-editor`입니다.
 
-제품 태그는 `korean-writing-editor-v<version>`입니다. 기존 통합 태그 `v2.0.0`의
-standalone ZIP은 레거시 기준선입니다. 제품 한정 태그
+제품 태그는 `korean-writing-editor-v<version>`입니다. 옛 standalone ZIP은 통합
+태그 `v2.0.0`의 GitHub Release에 남아 있습니다. 제품 한정 태그
 `korean-writing-editor-v2.0.0`은 없습니다.
 
 ## 실패 복구
@@ -47,4 +47,4 @@ standalone ZIP은 레거시 기준선입니다. 제품 한정 태그
 - 패키징 실패: 새 출력 디렉터리에서 다시 빌드합니다. 부분 결과를 재사용하지 않습니다.
 - 태그 뒤 Draft 실패: 태그를 옮기지 않습니다. 같은 커밋의 정확한 아티팩트만 고쳐서 검증하거나, 코드 변경이 필요하면 새 버전을 준비합니다.
 - 원격 검증 실패: Draft를 비공개로 유지합니다. 로컬 성공을 공개 증거로 대신하지 않습니다.
-- 이 제품의 실패: 다른 제품의 버전, 태그, Release와 카탈로그 lock을 바꾸지 않습니다.
+- 이 제품의 실패: 다른 제품의 버전, 태그, Release를 바꾸지 않습니다.

@@ -5,9 +5,6 @@
 여기입니다. 버전, 태그, 셸 명령은 소유하지 않습니다. 제품 버전 원본은 각
 `skills/<name>/release.toml`입니다.
 
-카탈로그 `catalog/`는 이 목록과 별개입니다. 목록에 제품을 넣는 것만으로
-`catalog/` lock이나 공개 플러그인 묶음이 바뀌지 않습니다.
-
 ## 스키마
 
 아래 표의 필드만 허용합니다. 추가 키, 누락 키, 잘못된 타입이 있으면 로드가
@@ -53,7 +50,6 @@
 ```bash
 python3 scripts/verify.py
 python3 scripts/verify.py --skill <name>
-python3 scripts/verify.py --catalog
 ```
 
 어느 selector를 써도 `products.toml`을 코드에 등록된 단계 이름과 대조합니다.

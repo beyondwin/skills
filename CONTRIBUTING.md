@@ -14,8 +14,6 @@ This repository ships five standalone products. Where documents live is in
 
 New skills are not accepted by default. A pull request that adds another skill is out of scope unless repository governance is changed first.
 
-The frozen plugin bundle under `catalog/` is separate from these products. It does not include `how-it-works`, `pre-sdd-review`, or `sddx`.
-
 The supported OS is macOS only. Windows and Linux are unsupported. An Ubuntu CI pass is not OS support evidence.
 
 Host support:

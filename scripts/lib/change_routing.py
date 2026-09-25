@@ -8,7 +8,6 @@ from collections.abc import Iterable, Sequence
 from scripts.lib.product_registry import ProductRegistry, normalize_repo_path
 
 
-CATALOG_PREFIX = "catalog/"
 OS_ROWS = (
     ("ubuntu-latest", "full"),
 )
@@ -16,7 +15,7 @@ FULL_REPOSITORY_EVENTS = frozenset({"push", "workflow_dispatch"})
 
 
 def _all_targets(registry: ProductRegistry) -> tuple[str, ...]:
-    return ("catalog", *registry.names)
+    return registry.names
 
 
 def _matches_owned(path: str, owned_paths: Iterable[pathlib.PurePosixPath]) -> bool:
@@ -28,8 +27,6 @@ def _matches_owned(path: str, owned_paths: Iterable[pathlib.PurePosixPath]) -> b
 
 
 def _selector(target: str) -> str:
-    if target == "catalog":
-        return "--catalog"
     return f"--skill {target}"
 
 
@@ -40,9 +37,6 @@ def targets_for_paths(paths: Iterable[str], registry: ProductRegistry) -> Sequen
     selected: set[str] = set()
     for path in normalized:
         matched = False
-        if path.startswith(CATALOG_PREFIX):
-            selected.add("catalog")
-            matched = True
         for product in registry.products:
             if _matches_owned(path, product.owned_paths):
                 selected.add(product.name)
@@ -60,7 +54,7 @@ def matrix_for_paths(
     if not normalized:
         return full_repository_matrix()
     for path in normalized:
-        known = path.startswith(CATALOG_PREFIX) or any(
+        known = any(
             _matches_owned(path, product.owned_paths) for product in registry.products
         )
         if not known:

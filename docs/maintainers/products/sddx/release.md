@@ -13,8 +13,8 @@
 
 ## 현재 상태
 
-공개 sddx 릴리스는 아직 없습니다. 이 제품은 통합 `v2.0.0` GitHub Release와
-불변 카탈로그 lock에 포함되지 않았습니다. 지금 개발 중인 독립 버전은
+공개 sddx 릴리스는 아직 없습니다. 이 제품은 통합 `v2.0.0` GitHub Release에
+포함되지 않았습니다. 지금 개발 중인 독립 버전은
 `7.0.1`이며 `release.toml`이 원본입니다. 태그와 아티팩트는 없습니다.
 
 `release.toml`, `SKILL.md` `metadata.version`, `.claude-plugin/plugin.json`의
@@ -83,6 +83,6 @@ XHigh 리뷰어 정의가 Claude Code에 실제로 실리는지는 공개 태그
 
 - 로컬 검증 실패: 파일, 버전, CHANGELOG 또는 테스트를 고치고 다시 검증합니다.
 - 패키징 실패: 새 출력 디렉터리에서 다시 빌드합니다. 부분 결과를 재사용하지 않습니다.
-- 이 제품 실패: 다른 제품의 버전, 태그, Release와 카탈로그 lock을 바꾸지 않습니다.
+- 이 제품 실패: 다른 제품의 버전, 태그, Release를 바꾸지 않습니다.
 
 이 명령은 태그 또는 GitHub Release를 만들지 않습니다.

@@ -797,7 +797,6 @@ class SharedReleasePathTests(unittest.TestCase):
             "products.toml",
             "scripts/release.py",
             "scripts/lib/archive.py",
-            "scripts/lib/catalog.py",
             "scripts/lib/product_contract.py",
             "scripts/lib/product_registry.py",
         }
@@ -806,6 +805,7 @@ class SharedReleasePathTests(unittest.TestCase):
             self.assertTrue((ROOT / relative).is_file(), relative)
         self.assertNotIn("scripts/release_archive.py", release.SHARED_RELEASE_PATHS)
         self.assertNotIn("scripts/catalog_contract.py", release.SHARED_RELEASE_PATHS)
+        self.assertNotIn("scripts/lib/catalog.py", release.SHARED_RELEASE_PATHS)
 
 
 if __name__ == "__main__":

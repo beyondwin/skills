@@ -11,12 +11,6 @@ from scripts.lib.product_registry import ProductRegistry
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 PROFILES = ("full",)
-CATALOG_STAGE_NAMES = (
-    "catalog-contract",
-    "catalog-release-contract",
-    "public-docs",
-    "python-compile",
-)
 _SHARED_PRODUCT_STAGES = frozenset({"product-contract", "python-compile"})
 
 
@@ -49,7 +43,7 @@ def _compile_paths(root: pathlib.Path) -> tuple[str, ...]:
     return tuple(paths)
 
 
-def _stage_catalog(root: pathlib.Path) -> dict[str, Stage]:
+def _stage_map(root: pathlib.Path) -> dict[str, Stage]:
     root = pathlib.Path(root)
     return {
         "repository-contract": Stage(
@@ -182,26 +176,11 @@ def _stage_catalog(root: pathlib.Path) -> dict[str, Stage]:
             ),
             cwd=root,
         ),
-        "catalog-contract": Stage(
-            "catalog-contract",
-            _python("-m", "unittest", "tests.repository.test_catalog_contract"),
-            cwd=root,
-        ),
-        "catalog-release-contract": Stage(
-            "catalog-release-contract",
-            _python("-m", "unittest", "tests.repository.test_catalog_release"),
-            cwd=root,
-        ),
-        "public-docs": Stage(
-            "public-docs",
-            _python("-m", "unittest", "tests.repository.test_public_docs"),
-            cwd=root,
-        ),
     }
 
 
-REGISTERED_STAGES: Mapping[str, Stage] = _stage_catalog(ROOT)
-REGISTERED_STAGE_NAMES = frozenset(_stage_catalog(ROOT))
+REGISTERED_STAGES: Mapping[str, Stage] = _stage_map(ROOT)
+REGISTERED_STAGE_NAMES = frozenset(_stage_map(ROOT))
 
 
 def _full_stage_names(registry: ProductRegistry) -> tuple[str, ...]:
@@ -222,22 +201,18 @@ def stages(
     profile: str,
     registry: ProductRegistry,
     skill: str | None = None,
-    catalog: bool = False,
 ) -> Sequence[Stage]:
     if profile not in PROFILES:
         raise ValueError(f"unknown profile: {profile}")
-    if skill is not None and catalog:
-        raise ValueError("skill and catalog selectors are mutually exclusive")
-    if catalog:
-        names: tuple[str, ...] = CATALOG_STAGE_NAMES
-    elif skill is not None:
+    names: tuple[str, ...]
+    if skill is not None:
         try:
             names = registry.require(skill).verify_stages
         except KeyError as exc:
             raise ValueError(f"unknown skill: {skill}") from exc
     else:
         names = _full_stage_names(registry)
-    stage_map = _stage_catalog(root)
+    stage_map = _stage_map(root)
     return tuple(stage_map[name] for name in names)
 
 

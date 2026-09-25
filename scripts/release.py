@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""Check, build, and verify one product or a locked catalog bundle."""
+"""Check, build, and verify one product release."""
 
 from __future__ import annotations
 
 import argparse
 import json
 import os
-import pathlib
 import stat
 import subprocess
 import sys
@@ -19,23 +18,9 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.lib.catalog import (  # noqa: E402
-    CatalogLock,
-    catalog_artifact_name,
-    load_catalog_lock,
-    load_catalog_release,
-    locked_artifact_name,
-    locked_extract_errors,
-    validate_catalog,
-    validate_catalog_inputs,
-)
 from scripts.lib.archive import (  # noqa: E402
-    FORBIDDEN_NAMES,
-    FORBIDDEN_PARTS,
     ArchiveMember,
     ReleaseError,
-    _member_mode_errors,
-    _member_safety_errors,
     _parse_checksums,
     _reject_source_name,
     ensure_new_empty_directory,
@@ -62,7 +47,6 @@ SHARED_RELEASE_PATHS = (
     "products.toml",
     "scripts/release.py",
     "scripts/lib/archive.py",
-    "scripts/lib/catalog.py",
     "scripts/lib/product_contract.py",
     "scripts/lib/product_registry.py",
 )
@@ -235,168 +219,37 @@ def verify_product_download(root: Path, name: str, directory: Path) -> list[str]
         return _run_product_smoke(root, name, skill_root)
 
 
-def build_catalog(root: Path, input_dir: Path, output: Path) -> tuple[Path, Path]:
-    root = Path(root)
-    input_dir = Path(input_dir)
-    errors = validate_catalog_inputs(root, input_dir, REGISTRY)
-    if errors:
-        raise ReleaseError("\n".join(errors))
-    output = ensure_new_empty_directory(output)
-    release_info = load_catalog_release(root / "catalog" / "release.toml")
-    lock = load_catalog_lock(root / "catalog" / "catalog.lock.json")
-    plugin_path = root / "catalog" / "plugin" / ".codex-plugin" / "plugin.json"
-    license_path = root / "LICENSE"
-    notice_path = root / "NOTICE"
-    for path, label in (
-        (plugin_path, "catalog/plugin/.codex-plugin/plugin.json"),
-        (license_path, "LICENSE"),
-        (notice_path, "NOTICE"),
-    ):
-        if not path.is_file():
-            raise ReleaseError(f"missing {label}")
-    members: list[ArchiveMember] = [
-        ArchiveMember(".codex-plugin/plugin.json", _read_bytes(plugin_path), False),
-        ArchiveMember("LICENSE", _read_bytes(license_path), False),
-        ArchiveMember("NOTICE", _read_bytes(notice_path), False),
-    ]
-    standalone_payloads: dict[str, dict[str, bytes]] = {}
-    for item in lock.skills:
-        archive = input_dir / locked_artifact_name(item)
-        payload, skill_members = _standalone_skill_members(archive, item.name)
-        standalone_payloads[item.name] = payload
-        members.extend(skill_members)
-    plugin_zip = output / catalog_artifact_name(release_info)
-    write_zip(plugin_zip, members)
-    archive_errors = _verify_catalog_archive(plugin_zip, lock)
-    if archive_errors:
-        raise ReleaseError("\n".join(archive_errors))
-    equivalence = _plugin_standalone_equivalence_errors(plugin_zip, standalone_payloads)
-    if equivalence:
-        raise ReleaseError("\n".join(equivalence))
-    checksums = write_checksums((plugin_zip,), output / "SHA256SUMS")
-    return plugin_zip, checksums
-
-
-def verify_catalog_download(root: Path, directory: Path) -> list[str]:
-    root = Path(root)
-    directory = Path(directory)
-    errors = validate_catalog(root)
-    if errors:
-        return errors
-    if not directory.is_dir():
-        return [f"download directory is not a directory: {directory}"]
-    release_info = load_catalog_release(root / "catalog" / "release.toml")
-    lock = load_catalog_lock(root / "catalog" / "catalog.lock.json")
-    expected_zip = catalog_artifact_name(release_info)
-    errors.extend(_download_directory_errors(directory, expected_zip))
-    errors.extend(_verify_download_checksums(directory, expected_zip))
-    if errors:
-        return errors
-    archive = directory / expected_zip
-    archive_errors = _verify_catalog_archive(archive, lock)
-    if archive_errors:
-        return archive_errors
-    with tempfile.TemporaryDirectory() as tmp:
-        destination = Path(tmp)
-        extract_errors = extract_archive(archive, destination)
-        if extract_errors:
-            return extract_errors
-        plugin_path = destination / ".codex-plugin" / "plugin.json"
-        if not plugin_path.is_file():
-            return ["missing .codex-plugin/plugin.json"]
-        try:
-            plugin = json.loads(plugin_path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
-            return [f"invalid catalog plugin manifest: {exc}"]
-        plugin_version = plugin.get("version") if isinstance(plugin, dict) else None
-        if plugin_version != release_info.version:
-            return [
-                f"catalog/plugin version {plugin_version!r} != {release_info.version!r}"
-            ]
-        skills_root = destination / "skills"
-        present = (
-            {path.name for path in skills_root.iterdir() if path.is_dir()}
-            if skills_root.is_dir()
-            else set()
-        )
-        lock_names = {item.name for item in lock.skills}
-        if present != lock_names:
-            return [
-                "plugin members do not match lock: "
-                f"{sorted(present)} != {sorted(lock_names)}"
-            ]
-        collected: list[str] = []
-        for item in lock.skills:
-            skill_root = skills_root / item.name
-            item_errors = locked_extract_errors(root, skill_root, item, REGISTRY)
-            for error in item_errors:
-                if error == f"payload hash mismatch: {item.name}":
-                    collected.append(
-                        f"{item.name}: standalone payload is not byte-equivalent"
-                    )
-                else:
-                    collected.append(error)
-            if item_errors:
-                continue
-            if item.release_kind == "independent":
-                collected.extend(_run_product_smoke(root, item.name, skill_root))
-        return collected
-
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
-    check = subparsers.add_parser("check", help="Validate one product or catalog for release")
+    check = subparsers.add_parser("check", help="Validate one product for release")
     _add_target_selector(check)
-    check.add_argument("--input", type=Path)
-    build = subparsers.add_parser("build", help="Build one product or catalog ZIP and SHA256SUMS")
+    build = subparsers.add_parser("build", help="Build one product ZIP and SHA256SUMS")
     _add_target_selector(build)
-    build.add_argument("--input", type=Path)
     build.add_argument("--output", type=Path, required=True)
     verify_download = subparsers.add_parser(
         "verify-download",
-        help="Verify one downloaded product or catalog ZIP and SHA256SUMS",
+        help="Verify one downloaded product ZIP and SHA256SUMS",
     )
     _add_target_selector(verify_download)
     verify_download.add_argument("--input", type=Path, required=True)
     args = parser.parse_args(argv)
     if args.command == "check":
-        if args.catalog:
-            if args.input is None:
-                parser.error("check --catalog requires --input")
-            errors = validate_catalog_inputs(ROOT, args.input, REGISTRY)
-        else:
-            if args.input is not None:
-                parser.error("check --product does not accept --input")
-            errors = check_product(ROOT, args.product, False)
+        errors = check_product(ROOT, args.product, False)
         for error in errors:
             print(error, file=sys.stderr)
         return 0 if not errors else 1
     if args.command == "build":
-        if args.catalog:
-            if args.input is None:
-                parser.error("build --catalog requires --input")
-            try:
-                artifacts = build_catalog(ROOT, args.input, args.output)
-            except ReleaseError as exc:
-                print(str(exc), file=sys.stderr)
-                return 1
-        else:
-            if args.input is not None:
-                parser.error("build --product does not accept --input")
-            try:
-                artifacts = build_product(ROOT, args.product, args.output)
-            except ReleaseError as exc:
-                print(str(exc), file=sys.stderr)
-                return 1
+        try:
+            artifacts = build_product(ROOT, args.product, args.output)
+        except ReleaseError as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
         for path in artifacts:
             print(path)
         return 0
     if args.command == "verify-download":
-        if args.catalog:
-            errors = verify_catalog_download(ROOT, args.input)
-        else:
-            errors = verify_product_download(ROOT, args.product, args.input)
+        errors = verify_product_download(ROOT, args.product, args.input)
         for error in errors:
             print(error, file=sys.stderr)
         return 0 if not errors else 1
@@ -405,110 +258,13 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _add_target_selector(parser: argparse.ArgumentParser) -> None:
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--product", choices=REGISTRY.names)
-    group.add_argument("--catalog", action="store_true")
+    parser.add_argument("--product", choices=REGISTRY.names, required=True)
 
 
 def _read_bytes(path: Path) -> bytes:
     # Isolation tests patch Path.read_bytes; this repo's path contains "/skills/".
     with open(path, "rb") as handle:
         return handle.read()
-
-
-def _standalone_skill_members(
-    archive: Path, product_name: str
-) -> tuple[dict[str, bytes], list[ArchiveMember]]:
-    prefix = f"{product_name}/"
-    payload: dict[str, bytes] = {}
-    members: list[ArchiveMember] = []
-    with zipfile.ZipFile(archive) as source:
-        for info in source.infolist():
-            if info.is_dir() or info.filename.endswith("/"):
-                continue
-            name = info.filename.replace("\\", "/")
-            if not name.startswith(prefix):
-                raise ReleaseError(f"unexpected member: {name}")
-            data = source.read(info)
-            payload[name] = data
-            unix_mode = (info.external_attr >> 16) & 0o777
-            executable = bool(unix_mode & 0o111) or data.startswith(b"#!")
-            members.append(ArchiveMember(f"skills/{name}", data, executable))
-    return payload, members
-
-
-def _plugin_standalone_equivalence_errors(
-    plugin_zip: Path, standalone_payloads: dict[str, dict[str, bytes]]
-) -> list[str]:
-    errors: list[str] = []
-    with zipfile.ZipFile(plugin_zip) as plugin:
-        for name, expected in standalone_payloads.items():
-            prefix = f"skills/{name}/"
-            actual = {
-                member.removeprefix("skills/"): plugin.read(member)
-                for member in plugin.namelist()
-                if member.startswith(prefix) and not member.endswith("/")
-            }
-            if actual != expected:
-                errors.append(f"{name}: standalone payload is not byte-equivalent")
-    return errors
-
-
-def _verify_catalog_archive(path: Path, lock: CatalogLock) -> list[str]:
-    path = Path(path)
-    try:
-        archive = zipfile.ZipFile(path)
-    except zipfile.BadZipFile as exc:
-        return [f"invalid zip: {exc}"]
-    errors: list[str] = []
-    seen: set[str] = set()
-    folded: dict[str, str] = {}
-    allowed_root = {".codex-plugin/plugin.json", "LICENSE", "NOTICE"}
-    allowed_prefixes = tuple(f"skills/{item.name}/" for item in lock.skills)
-    lock_names = {item.name for item in lock.skills}
-    skill_dirs: set[str] = set()
-    with archive:
-        for info in archive.infolist():
-            name = info.filename
-            member_errors = _member_safety_errors(name, seen, folded)
-            errors.extend(member_errors)
-            errors.extend(_member_mode_errors(name, info))
-            if member_errors:
-                continue
-            if name.endswith("/"):
-                continue
-            if name in allowed_root:
-                continue
-            posix = pathlib.PurePosixPath(name)
-            if any(part in FORBIDDEN_PARTS for part in posix.parts):
-                errors.append(f"unexpected member: {name}")
-                continue
-            if posix.name in FORBIDDEN_NAMES:
-                errors.append(f"unexpected member: {name}")
-                continue
-            if not name.startswith("skills/"):
-                errors.append(f"unexpected member: {name}")
-                continue
-            parts = name.split("/")
-            if len(parts) < 3 or not parts[1]:
-                errors.append(f"unexpected member: {name}")
-                continue
-            skill_dirs.add(parts[1])
-            if not name.startswith(allowed_prefixes):
-                errors.append(f"unexpected member: {name}")
-    if skill_dirs != lock_names:
-        errors.append(
-            "plugin members do not match lock: "
-            f"{sorted(skill_dirs)} != {sorted(lock_names)}"
-        )
-    required = [".codex-plugin/plugin.json", "LICENSE", "NOTICE"]
-    for item in lock.skills:
-        required.append(f"skills/{item.name}/SKILL.md")
-        required.append(f"skills/{item.name}/LICENSE.txt")
-    for member in required:
-        if member not in seen:
-            errors.append(f"missing required member: {member}")
-    return errors
 
 
 def _download_directory_errors(directory: Path, expected_zip: str) -> list[str]:
@@ -893,17 +649,6 @@ def _latest_baseline(root: Path, name: str) -> tuple[str, str] | None:
             continue
         digest = _payload_sha256_from_tag(root, tag, name)
         candidates.append((_semver_tuple(version), version, digest))
-    lock_path = root / "catalog" / "catalog.lock.json"
-    if lock_path.is_file():
-        try:
-            lock = load_catalog_lock(lock_path)
-        except (OSError, ValueError, KeyError, TypeError) as exc:
-            raise ReleaseError(f"catalog.lock.json: {exc}") from exc
-        for item in lock.skills:
-            if item.name == name:
-                candidates.append(
-                    (_semver_tuple(item.version), item.version, item.payload_sha256)
-                )
     if not candidates:
         return None
     candidates.sort()

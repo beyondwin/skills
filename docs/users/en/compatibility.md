@@ -50,7 +50,7 @@ The supported OS is macOS only. Windows and Linux are unsupported. CI may run th
 
 ## Install paths and hosts
 
-The catalog plugin name is `beyondwin-skills`. That does not mean a marketplace listing.
+These skills have no marketplace listing.
 
 Install, link, and remove steps are in [Installation](installation.md). Verification is in [Verification](verification.md).
 

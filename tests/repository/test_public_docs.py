@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import re
 import shutil
 import sys
@@ -173,11 +172,6 @@ REPOSITORY_DOCS = (
     ROOT / "docs" / "maintainers" / "repository" / "versioning.md",
     ROOT / "docs" / "maintainers" / "repository" / "products-registry.md",
     ROOT / "docs" / "maintainers" / "repository" / "release.md",
-    ROOT / "docs" / "maintainers" / "repository" / "catalog.md",
-    ROOT / "docs" / "maintainers" / "repository" / "migrations.md",
-)
-ARCHIVE_MANIFEST = (
-    ROOT / "docs" / "maintainers" / "repository" / "archive-source-manifest.json"
 )
 PRODUCT_PROTOCOL_FILES = ("contract.md", "testing.md", "compatibility.md", "release.md")
 REGISTRY_SCHEMA_FIELDS = (
@@ -196,23 +190,22 @@ MAINTAINER_DOCS = (MAINTAINER_INDEX,) + REPOSITORY_DOCS + tuple(
     for product in REGISTRY.products
     for filename in PRODUCT_PROTOCOL_FILES
 )
-CATALOG_DOCS = (
-    ROOT / "catalog" / "README.md",
-    ROOT / "catalog" / "CHANGELOG.md",
-)
 ACTIVE_USER_DOCS = README_PATHS + PRODUCT_README_PATHS + USER_GUIDES + (DOCS_INDEX,)
-PUBLIC_DOC_PATHS = ACTIVE_USER_DOCS + MAINTAINER_DOCS + CATALOG_DOCS + (HISTORY_README,)
+PUBLIC_DOC_PATHS = ACTIVE_USER_DOCS + MAINTAINER_DOCS + (HISTORY_README,)
 OBSOLETE_MAINTAINER_RELATIVE = (
     "docs/maintainers/architecture.md",
     "docs/maintainers/release-process.md",
     *("docs/maintainers/" + name + ".md" for name in REGISTRY.names),
     "docs/maintainers/archive-migration.md",
     "docs/maintainers/archive-source-manifest.json",
+    "docs/maintainers/repository/catalog.md",
+    "docs/maintainers/repository/migrations.md",
+    "docs/maintainers/repository/archive-source-manifest.json",
+    "catalog/catalog.lock.json",
+    "catalog/release.toml",
+    "catalog/plugin/.codex-plugin/plugin.json",
 )
-HISTORY_PREFIXES = (
-    "docs/history/",
-    "catalog/CHANGELOG.md",
-)
+HISTORY_PREFIXES = ("docs/history/",)
 DEAD_RECORDER_STRINGS = (
     "install.py",
     "--bin-dir",
@@ -231,7 +224,6 @@ ACTIVE_ROUTING_SURFACES = (
     + MAINTAINER_DOCS
     + (
         DOCS_INDEX,
-        ROOT / "catalog" / "README.md",
         ROOT / "CONTRIBUTING.md",
         ROOT / "SECURITY.md",
         ROOT / "CODE_OF_CONDUCT.md",
@@ -281,7 +273,7 @@ STALE_THREE_PRODUCT = (
 )
 PERSONAL_MARKERS = ("/Users/", "source/private", "SKILLS_ARCHIVE_CHECKOUT")
 README_ORDER_EN = (
-    "beyondwin-skills",
+    "# beyondwin/skills",
     "actions/workflows/verify.yml",
     REGISTRY.names[0],
     "$skill-installer",
@@ -289,7 +281,7 @@ README_ORDER_EN = (
     "CONTRIBUTING.md",
 )
 README_ORDER_KO = (
-    "beyondwin-skills",
+    "# beyondwin/skills",
     "actions/workflows/verify.yml",
     REGISTRY.names[0],
     "$skill-installer",
@@ -640,7 +632,7 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
                 self.assertNotIn(f"docs/maintainers/{product.name}.md", text)
 
 
-class RootCatalogTests(unittest.TestCase):
+class RootReadmeTests(unittest.TestCase):
     def test_root_readmes_pin_macos_only_os_policy(self) -> None:
         korean = re.sub(r"\s+", " ", _read(ROOT / "README.md"))
         english = re.sub(r"\s+", " ", _read(ROOT / "README.en.md"))
@@ -672,7 +664,7 @@ class RootCatalogTests(unittest.TestCase):
             self.assertIn("Claude Code", document)
             self.assertIn("Codex", document)
 
-    def test_readmes_follow_catalog_section_order(self) -> None:
+    def test_readmes_follow_section_order(self) -> None:
         cases = (
             (ROOT / "README.md", README_ORDER_KO),
             (ROOT / "README.en.md", README_ORDER_EN),
@@ -772,7 +764,7 @@ class UserGuideFactTests(unittest.TestCase):
             self.assertIn("cowork", lowered)
             self.assertIn("skills api", lowered)
             self.assertTrue("marketplace" in lowered or "마켓플레이스" in text)
-            self.assertTrue("catalog" in lowered or "카탈로그" in text)
+            self.assertNotIn("beyondwin-skills", text)
             self.assertNotIn(
                 "how-it-works: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.",
                 text,
@@ -1239,14 +1231,17 @@ class DocumentationArchitectureTests(unittest.TestCase):
         ):
             self.assertIn(href, text)
 
-    def test_repository_guides_cover_registry_release_catalog_and_migrations(self) -> None:
+    def test_repository_guides_cover_registry_and_release(self) -> None:
         registry_doc = ROOT / "docs" / "maintainers" / "repository" / "products-registry.md"
         release_doc = ROOT / "docs" / "maintainers" / "repository" / "release.md"
-        catalog_doc = ROOT / "docs" / "maintainers" / "repository" / "catalog.md"
-        migrations_doc = ROOT / "docs" / "maintainers" / "repository" / "migrations.md"
-        for path in (registry_doc, release_doc, catalog_doc, migrations_doc):
+        for path in (registry_doc, release_doc):
             _assert_exists(self, path)
             self.assertRegex(_read(path), r"[가-힣]")
+        for retired in ("catalog.md", "migrations.md", "archive-source-manifest.json"):
+            self.assertFalse(
+                (ROOT / "docs" / "maintainers" / "repository" / retired).exists(),
+                retired,
+            )
         self.assertFalse(
             (ROOT / "docs" / "maintainers" / "repository" / "catalog-release.md").exists()
         )
@@ -1275,20 +1270,9 @@ class DocumentationArchitectureTests(unittest.TestCase):
             release_text,
         )
         self.assertIn("checksum 단독으로는 인증이 아닙니다", release_text)
-        self.assertIn("`release_kind=independent`에만 현재 제품 smoke", release_text)
-        self.assertIn("`legacy-bundle`은 신뢰 lock", release_text)
-        self.assertIn("과거 payload가 새 hardening을 상속했다는 뜻은 아닙니다", release_text)
-        catalog_text = _read(catalog_doc)
-        self.assertIn(
-            "현재 독립 제품이 카탈로그 lock이나 공개 `v2.0.0`\n번들에 자동으로 들어가지 않습니다",
-            catalog_text,
-        )
-        migrations_text = _read(migrations_doc)
-        self.assertIn("76e6bf4ebbc9430aee9a04a5b780ae38330f3021", migrations_text)
-        self.assertIn(
-            "docs/maintainers/repository/archive-source-manifest.json",
-            migrations_text,
-        )
+        self.assertIn("버전 기준선은 가장 최근의 `<name>-v<version>` 태그입니다", release_text)
+        self.assertNotIn("catalog", release_text)
+        self.assertNotIn("카탈로그", release_text)
 
     def test_maintainer_index_links_task_routes(self) -> None:
         _assert_exists(self, MAINTAINER_INDEX)
@@ -1298,11 +1282,11 @@ class DocumentationArchitectureTests(unittest.TestCase):
             "products/",
             "repository/products-registry.md",
             "repository/release.md",
-            "repository/catalog.md",
-            "repository/migrations.md",
             "../history/",
         ):
             self.assertIn(href, index)
+        for retired in ("repository/catalog.md", "repository/migrations.md", "--catalog"):
+            self.assertNotIn(retired, index)
 
 
 def _linked_path(document: Path, href: str) -> Path | None:
@@ -1416,7 +1400,7 @@ class ReachabilityTests(unittest.TestCase):
     def test_public_relative_links_and_anchors_resolve(self) -> None:
         self.assertEqual(broken_markdown_links(ROOT, PUBLIC_DOC_PATHS), [])
 
-    def test_no_user_document_is_orphaned_from_the_root_catalog(self) -> None:
+    def test_no_user_document_is_orphaned_from_the_root_index(self) -> None:
         targets = {path.resolve() for path in ACTIVE_USER_DOCS}
         reachable: set[Path] = set()
         stack = [ROOT / "README.md", ROOT / "README.en.md"]
@@ -1640,15 +1624,10 @@ class MaintainerStructureTests(unittest.TestCase):
                         (),
                     )
 
-    def test_repository_trio_and_archive_evidence_live_under_repository(self) -> None:
+    def test_repository_docs_live_under_repository(self) -> None:
         for path in REPOSITORY_DOCS:
             _assert_exists(self, path)
             self.assertRegex(_read(path), r"[가-힣]")
-        _assert_exists(self, ARCHIVE_MANIFEST)
-        self.assertEqual(
-            json.loads(_read(ARCHIVE_MANIFEST))["manifest_sha256"],
-            "6917f68e6e0d81226e50195d58a884373d23ffbbbe48363ef2428c8cbcb83f78",
-        )
 
     def test_maintainer_index_reaches_every_maintainer_document(self) -> None:
         _assert_exists(self, MAINTAINER_INDEX)
@@ -1659,8 +1638,6 @@ class MaintainerStructureTests(unittest.TestCase):
             "repository/versioning.md",
             "repository/products-registry.md",
             "repository/release.md",
-            "repository/catalog.md",
-            "repository/migrations.md",
         ):
             self.assertIn(href, index)
         for product in REGISTRY.products:
@@ -1712,12 +1689,10 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertRegex(text, r"[가-힣]")
         self.assertIn("skills/", text)
         self.assertIn("tests/", text)
-        self.assertIn("beyondwin-skills", text)
         self.assertIn("python3 scripts/verify.py", text)
-        self.assertIn("2.0.0", text)
-        self.assertIn("catalog/plugin/.codex-plugin/plugin.json", text)
-        self.assertIn("catalog/catalog.lock.json", text)
         self.assertIn("플러그인 메타데이터는 루트가 소유하지 않습니다", text)
+        for retired in ("beyondwin-skills", "catalog/", "--catalog", "카탈로그"):
+            self.assertNotIn(retired, text)
         self.assertIn("공통 경로, unknown 경로, 빈 diff, diff 실패", text)
         self.assertIn("selector 없는 전체 검사", text)
         self.assertIn("제품 전용 변경일 때만 해당 제품 selector로 좁은 검사", text)
@@ -1726,8 +1701,8 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("release.toml", text)
         self.assertIn("docs/README.md", text)
         self.assertIn("docs/history/", text)
-        self.assertIn("catalog.md", text)
-        self.assertIn("migrations.md", text)
+        self.assertNotIn("catalog.md", text)
+        self.assertNotIn("migrations.md", text)
         for product in REGISTRY.products:
             self.assertIn(product.name, text)
             self.assertIn(f"tests/products/{product.name}/", text)
@@ -1742,30 +1717,10 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("MAJOR", text)
         self.assertIn("release.toml", text)
         self.assertIn("기본 모드", text)
-        self.assertIn("카탈로그", text)
-        self.assertIn("catalog.md", text)
-
-    def test_catalog_release_owns_lock_adoption_and_remote_byte_gates(self) -> None:
-        path = ROOT / "docs" / "maintainers" / "repository" / "catalog.md"
-        _assert_exists(self, path)
-        text = _read(path)
-        self.assertRegex(text, r"[가-힣]")
-        lowered = text.lower()
-        for token in (
-            "clean",
-            "archive",
-            "extract",
-            "checksum",
-            "download",
-            "deletion",
-        ):
-            self.assertIn(token, lowered)
-        self.assertIn("SHA256SUMS", text)
         self.assertIn("v2.0.0", text)
-        self.assertIn("catalog/plugin/.codex-plugin/plugin.json", text)
-        self.assertIn("catalog.lock.json", text)
-        self.assertIn("legacy-bundle", text)
-        self.assertIn("verify-download", text)
+        self.assertNotIn("catalog.md", text)
+        self.assertNotIn("카탈로그 SemVer", text)
+        self.assertNotIn("beyondwin-skills-v", text)
 
     def test_korean_protocol_preserves_fixture_sync_and_live_budgets(self) -> None:
         contract = ROOT / "docs" / "maintainers" / "products" / "korean-writing-editor" / "contract.md"
@@ -1860,38 +1815,25 @@ class MaintainerProtocolTests(unittest.TestCase):
             "release.md must end with the no-publication sentence",
         )
 
-    def test_archive_migration_freeze_record_is_preserved(self) -> None:
-        path = ROOT / "docs" / "maintainers" / "repository" / "migrations.md"
-        _assert_exists(self, path)
-        text = _read(path)
-        self.assertIn("76e6bf4ebbc9430aee9a04a5b780ae38330f3021", text)
-        self.assertIn(
-            "6917f68e6e0d81226e50195d58a884373d23ffbbbe48363ef2428c8cbcb83f78",
-            text,
-        )
-        self.assertIn(
-            "docs/maintainers/repository/archive-source-manifest.json",
-            text,
-        )
-
 
 class ChangelogPublicationTests(unittest.TestCase):
     def test_changelog_records_published_github_release(self) -> None:
-        path = ROOT / "catalog" / "CHANGELOG.md"
-        _assert_exists(self, path)
-        text = _read(path)
-        self.assertIn(
-            "https://github.com/beyondwin/skills/releases/tag/v2.0.0",
-            text,
-        )
-        self.assertNotIn(
-            "It does not claim that a GitHub tag, GitHub Release",
-            text,
-        )
-        self.assertNotIn("Archive remains read-only", text)
-        lowered = text.lower()
-        self.assertNotIn("listed in a marketplace", lowered)
-        self.assertNotIn("available in the marketplace", lowered)
+        for name in ("image-workbench", "korean-writing-editor"):
+            path = ROOT / "skills" / name / "CHANGELOG.md"
+            _assert_exists(self, path)
+            text = _read(path)
+            self.assertIn(
+                "https://github.com/beyondwin/skills/releases/tag/v2.0.0",
+                text,
+            )
+            self.assertNotIn(
+                "It does not claim that a GitHub tag, GitHub Release",
+                text,
+            )
+            self.assertNotIn("Archive remains read-only", text)
+            lowered = text.lower()
+            self.assertNotIn("listed in a marketplace", lowered)
+            self.assertNotIn("available in the marketplace", lowered)
 
 
 class PublicClaimTests(unittest.TestCase):
@@ -1948,7 +1890,7 @@ class PublicClaimTests(unittest.TestCase):
             )
 
     def test_public_docs_omit_personal_paths(self) -> None:
-        for document in PUBLIC_DOC_PATHS + (ARCHIVE_MANIFEST,):
+        for document in PUBLIC_DOC_PATHS:
             _assert_exists(self, document)
             text = _read(document)
             for marker in PERSONAL_MARKERS:

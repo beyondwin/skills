@@ -95,7 +95,7 @@ class CiWorkflowTests(unittest.TestCase):
         )
         pr_os_profiles = {
             (row["os"], row["profile"])
-            for row in matrix_for_targets(("catalog", *REGISTRY.names), REGISTRY)["include"]
+            for row in matrix_for_targets(REGISTRY.names, REGISTRY)["include"]
         }
         self.assertEqual(
             pr_os_profiles,

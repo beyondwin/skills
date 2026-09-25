@@ -1,4 +1,4 @@
-# beyondwin-skills
+# beyondwin/skills
 
 [English](README.en.md)
 
@@ -24,8 +24,7 @@ Codex, Claude Code, Grok 같은 AI 코딩 도구에 넣어 쓰는 스킬 다섯 
 | [`pre-sdd-review`](skills/pre-sdd-review/README.md) | SDD 직전에 승인된 설계와 구현 계획을 지금 저장소와 맞춰 보고, 문서를 고친 뒤 고친 곳을 다시 확인합니다. | Codex |
 | [`sddx`](skills/sddx/README.md) | Superpowers SDD는 지금 세션이 진행하고, 코드 작성만 Cursor Agent 또는 Grok Build(Grok 4.7)에 맡깁니다. | Claude Code, Codex |
 
-쓰는 법과 첫 호출은 각 스킬 README에 있습니다. 지난 카탈로그 묶음 `v2.0.0`에는
-How It Works, Pre-SDD Review, SDDx가 들어 있지 않습니다.
+쓰는 법과 첫 호출은 각 스킬 README에 있습니다.
 
 ## 설치
 

@@ -51,7 +51,7 @@ class RegistryRoutingTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.registry = load_registry(ROOT / "products.toml")
-        cls.all_targets = ("catalog", *cls.registry.names)
+        cls.all_targets = cls.registry.names
 
 
 class TargetMappingTests(RegistryRoutingTestCase):
@@ -68,7 +68,7 @@ class TargetMappingTests(RegistryRoutingTestCase):
         )
 
     def test_unmatched_path_selects_full_matrix(self) -> None:
-        self.assertEqual(targets_for_paths(["products.toml"], self.registry), ("catalog", *self.registry.names))
+        self.assertEqual(targets_for_paths(["products.toml"], self.registry), self.registry.names)
 
     def test_product_path_selects_only_that_product(self) -> None:
         self.assertEqual(targets_for_paths(["skills/how-it-works/SKILL.md"], self.registry), ("how-it-works",))
@@ -131,11 +131,10 @@ class TargetMappingTests(RegistryRoutingTestCase):
             ("korean-writing-editor",),
         )
 
-    def test_catalog_path_selects_catalog(self) -> None:
-        self.assertEqual(targets_for_paths(["catalog/release.toml"], self.registry), ("catalog",))
+    def test_retired_catalog_path_fails_safe_to_every_target(self) -> None:
         self.assertEqual(
-            targets_for_paths(["catalog/plugin/.codex-plugin/plugin.json"], self.registry),
-            ("catalog",),
+            targets_for_paths(["catalog/release.toml"], self.registry),
+            self.all_targets,
         )
 
     def test_shared_public_docs_select_every_target(self) -> None:
@@ -175,13 +174,12 @@ class TargetMappingTests(RegistryRoutingTestCase):
         self.assertEqual(
             targets_for_paths(
                 [
-                    "skills/korean-writing-editor/SKILL.md",
-                    "catalog/README.md",
                     "skills/how-it-works/SKILL.md",
+                    "skills/korean-writing-editor/SKILL.md",
                 ],
                 self.registry,
             ),
-            ("catalog", "korean-writing-editor", "how-it-works"),
+            ("korean-writing-editor", "how-it-works"),
         )
 
     def test_product_plus_unknown_fails_safe_to_every_target(self) -> None:
@@ -190,8 +188,8 @@ class TargetMappingTests(RegistryRoutingTestCase):
             self.all_targets,
         )
 
-    def test_all_targets_follow_catalog_then_registry_order(self) -> None:
-        self.assertEqual(self.all_targets, ("catalog", *self.registry.names))
+    def test_all_targets_follow_registry_order(self) -> None:
+        self.assertEqual(self.all_targets, self.registry.names)
         self.assertEqual(
             self.registry.names,
             (
@@ -222,7 +220,7 @@ class TargetMappingTests(RegistryRoutingTestCase):
         )
         self.assertEqual(
             targets_for_paths(["skills/how-it-works/SKILL.md"], registry),
-            ("catalog", *registry.names),
+            registry.names,
         )
 
 
@@ -251,10 +249,10 @@ class MatrixSerializationTests(RegistryRoutingTestCase):
         )
 
     def test_matrix_rows_follow_targets_order_not_input_order(self) -> None:
-        matrix = matrix_for_targets(("korean-writing-editor", "catalog"), self.registry)
+        matrix = matrix_for_targets(("how-it-works", "korean-writing-editor"), self.registry)
         self.assertEqual(
             [row["target"] for row in matrix["include"]],
-            ["catalog", "korean-writing-editor"],
+            ["korean-writing-editor", "how-it-works"],
         )
 
     def test_selectors_are_fixed_strings(self) -> None:
@@ -262,12 +260,11 @@ class MatrixSerializationTests(RegistryRoutingTestCase):
             row["target"]: row["selector"]
             for row in matrix_for_targets(self.all_targets, self.registry)["include"]
         }
-        expected = {"catalog": "--catalog"}
-        expected.update({name: f"--skill {name}" for name in self.registry.names})
+        expected = {name: f"--skill {name}" for name in self.registry.names}
         self.assertEqual(by_target, expected)
 
     def test_json_serialization_is_canonical_and_compact(self) -> None:
-        matrix = matrix_for_targets(["catalog", "how-it-works"], self.registry)
+        matrix = matrix_for_targets(["korean-writing-editor", "how-it-works"], self.registry)
         encoded = serialize_matrix(matrix)
         self.assertEqual(
             encoded,
@@ -342,7 +339,7 @@ class MatrixSerializationTests(RegistryRoutingTestCase):
             {f"--skill {name}" for name in self.registry.names},
         )
 
-    def test_catalog_path_retains_narrow_catalog_selector(self) -> None:
+    def test_retired_catalog_path_uses_full_repository_matrix(self) -> None:
         with mock.patch(
             "scripts.lib.change_routing.changed_paths",
             return_value=("catalog/release.toml",),
@@ -350,10 +347,7 @@ class MatrixSerializationTests(RegistryRoutingTestCase):
             matrix = matrix_for_event(
                 "pull_request", ROOT, self.registry, "base", "head"
             )
-        self.assertEqual(len(matrix["include"]), 1)
-        self.assertEqual(
-            {row["selector"] for row in matrix["include"]}, {"--catalog"}
-        )
+        self.assertEqual(matrix, full_repository_matrix())
 
     def test_unknown_event_uses_full_repository_matrix(self) -> None:
         self.assertEqual(
@@ -375,15 +369,15 @@ class ChangedPathAndCliTests(RegistryRoutingTestCase):
             run_git(repository, "commit", "-m", "base")
             base = run_git(repository, "rev-parse", "HEAD")
             first.write_text("two\n", encoding="utf-8")
-            extra = repository / "catalog" / "release.toml"
+            extra = repository / "docs" / "notes.md"
             extra.parent.mkdir(parents=True)
-            extra.write_text("name = 'catalog'\n", encoding="utf-8")
+            extra.write_text("notes\n", encoding="utf-8")
             run_git(repository, "add", "-A")
             run_git(repository, "commit", "-m", "head")
             head = run_git(repository, "rev-parse", "HEAD")
             self.assertEqual(
                 tuple(sorted(changed_paths(repository, base, head))),
-                ("catalog/release.toml", "skills/how-it-works/SKILL.md"),
+                ("docs/notes.md", "skills/how-it-works/SKILL.md"),
             )
 
     def test_empty_git_diff_is_empty_path_list(self) -> None:

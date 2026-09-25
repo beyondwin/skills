@@ -29,7 +29,6 @@
     {"id": "implementer-effort-per-task-xhigh", "request": "/sddx plan.md Task 2 lock acquisition order", "expect": ["implementer_effort_per_task_xhigh"]},
     {"id": "implementer-effort-not-session", "request": "/sddx plan.md session already xhigh, task is a string rename", "expect": ["implementer_effort_not_session"]},
     {"id": "effort-increase-fresh-worker", "request": "/sddx plan.md High failed review then XHigh", "expect": ["effort_increase_fresh_worker"]},
-    {"id": "catalog-excludes-sddx", "request": "catalog lock", "expect": ["not_in_catalog"]},
     {"id": "one-available-backend-still-confirms", "request": "/sddx plan.md with only grok available", "expect": ["confirm_even_if_one"]},
     {"id": "worker-no-host-outside-side-effects", "request": "worker wants git push", "expect": ["stop_no_push_publish"]},
     {"id": "no-credentials-in-worker-prompt", "request": "compose worker prompt", "expect": ["no_host_secrets"]},

@@ -50,7 +50,7 @@ sddx: Claude Code and Codex supported for local or repository-based use.
 
 ## 설치 경로와 호스트
 
-이 저장소의 카탈로그 플러그인 이름은 `beyondwin-skills`입니다. 마켓플레이스에 올라 있다는 뜻이 아닙니다.
+이 저장소의 스킬은 마켓플레이스에 올라 있지 않습니다.
 
 설치·링크·제거는 [설치](installation.md)를 보세요. 검증은 [검증](verification.md)을 보세요.
 
