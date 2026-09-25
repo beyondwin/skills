@@ -48,10 +48,8 @@ Cursor model known to be unavailable emits an honest zero-provider
 `not_measured` receipt and consumes zero calls.
 
 Receipt JSON uses an exact top-level key schema; unknown or omitted keys fail
-closed. Explicit runner-version-10 compatibility permits its omitted
-per-finding `certainty`, which reads as `hard`, and its original empty-finding
-`partially_verified` shape. It does not permit an omitted top-level `band`; all
-122 retained version-10 receipts contain that field. A positive call number can
+closed. Each finding uses the same exact key schema, including `certainty`;
+there is no exception for older runner versions. A positive call number can
 never claim `not_measured`, including on resume, so a forged terminal receipt
 cannot hide a charged call from the remaining-work or budget ledger.
 
@@ -223,12 +221,11 @@ schemas at load, publication, resume budgeting, report assembly, and review
 sampling. Integers reject booleans and out-of-range values; timestamps, hashes,
 stream byte/hash pairs, terminal statuses, evidence paths, call identity, and
 reservation relationships must be coherent before a receipt can authorize any
-later step. Every current `partially_verified` receipt carries at least one
-typed `not_measured` finding. Immutable runner-version-10 evidence remains
-readable with only its original omitted finding certainty and empty-finding
-`partially_verified` shape treated as explicit legacy compatibility. Receipts
-from runners 10 through 17 remain readable without upgrade, and their statuses
-retain their original meaning. They are not reusable as a runner-version-18
+later step. Every finding carries `certainty`, and every `partially_verified`
+receipt carries at least one `not_measured` finding, whatever the runner
+version. A receipt that breaks either rule fails to load. Receipts from runners
+10 through 17 that follow these rules remain readable, and their statuses keep
+their original meaning. They are not reusable as a runner-version-18
 execution identity; this hardening series requires runner 18 evidence and a new
 run ID.
 
@@ -274,11 +271,10 @@ cannot be proven from a positive canonical form emits
 `diagnostic_semantics_not_measured` or
 `structural_semantics_not_measured` and produces `partially_verified`, never an
 unsupported hard failure or `verified`. Finding certainty is serialized as
-`hard` or `not_measured`; legacy receipts without the field remain readable as
-`hard`. A response whose host activation cannot be observed and has no hard
-failure adds `activation_not_measured`, including alongside another soft
-signal. Reviewer packets and reports keep not-measured signals separate from
-hard findings.
+`hard` or `not_measured`; a receipt without the field fails to load. A
+response whose host activation cannot be observed and has no hard failure adds
+`activation_not_measured`, including alongside another soft signal. Reviewer
+packets and reports keep not-measured signals separate from hard findings.
 
 For `diagnose`, omitting source facts, including nonnumeric protected phrases,
 does not prove factual drift. `diagnostic_fact_drift` requires a complete

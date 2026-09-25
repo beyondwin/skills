@@ -173,7 +173,7 @@ def json_shape(value: object) -> object:
 
 
 def strict_receipt_payload() -> dict[str, object]:
-    """Return one fully captured legacy-v10 producer receipt for mutation tests."""
+    """Return one fully captured runner-version-10 producer receipt for mutation tests."""
     empty_sha256 = hashlib.sha256(b"").hexdigest()
     return {
         "band": "valid-mode",
@@ -469,10 +469,8 @@ GUIDE_BODY_INTEGRITY_PARAGRAPH = (
 )
 GUIDE_RECEIPT_SCHEMA_PARAGRAPH = (
     "Receipt JSON uses an exact top-level key schema; unknown or omitted keys "
-    "fail closed. Explicit runner-version-10 compatibility permits its omitted "
-    "per-finding `certainty`, which reads as `hard`, and its original empty-finding "
-    "`partially_verified` shape. It does not permit an omitted top-level `band`; "
-    "all 122 retained version-10 receipts contain that field. A positive call "
+    "fail closed. Each finding uses the same exact key schema, including "
+    "`certainty`; there is no exception for older runner versions. A positive call "
     "number can never claim "
     "`not_measured`, including on resume, so a forged terminal receipt cannot hide a "
     "charged call from the remaining-work or budget ledger."
@@ -483,12 +481,11 @@ GUIDE_V18_RECEIPT_PARAGRAPH = (
     "sampling. Integers reject booleans and out-of-range values; timestamps, hashes, "
     "stream byte/hash pairs, terminal statuses, evidence paths, call identity, and "
     "reservation relationships must be coherent before a receipt can authorize any "
-    "later step. Every current `partially_verified` receipt carries at least one "
-    "typed `not_measured` finding. Immutable runner-version-10 evidence remains "
-    "readable with only its original omitted finding certainty and empty-finding "
-    "`partially_verified` shape treated as explicit legacy compatibility. Receipts "
-    "from runners 10 through 17 remain readable without upgrade, and their statuses "
-    "retain their original meaning. They are not reusable as a runner-version-18 "
+    "later step. Every finding carries `certainty`, and every `partially_verified` "
+    "receipt carries at least one `not_measured` finding, whatever the runner "
+    "version. A receipt that breaks either rule fails to load. Receipts from runners "
+    "10 through 17 that follow these rules remain readable, and their statuses keep "
+    "their original meaning. They are not reusable as a runner-version-18 "
     "execution identity; this hardening series requires runner 18 evidence and a "
     "new run ID."
 )
@@ -607,8 +604,8 @@ GUIDE_JUDGE_PARAGRAPH = (
     "`diagnostic_semantics_not_measured` or "
     "`structural_semantics_not_measured` and produces `partially_verified`, never an "
     "unsupported hard failure or `verified`. Finding certainty is serialized as "
-    "`hard` or `not_measured`; legacy receipts without the field remain readable as "
-    "`hard`. A response whose host activation cannot be observed and has no hard "
+    "`hard` or `not_measured`; a receipt without the field fails to load. A "
+    "response whose host activation cannot be observed and has no hard "
     "failure adds `activation_not_measured`, including alongside another soft "
     "signal. Reviewer packets and reports keep not-measured signals separate from "
     "hard findings."
@@ -1162,8 +1159,8 @@ class LiveDocumentationTests(unittest.TestCase):
         )
         for required in (
             "Runner version 18 validates the exact receipt and nested identity/finding schemas",
-            "Every current `partially_verified` receipt carries at least one typed `not_measured` finding",
-            "runner-version-10 evidence remains readable",
+            "Every finding carries `certainty`, and every `partially_verified` receipt carries at least one `not_measured` finding, whatever the runner version",
+            "A receipt that breaks either rule fails to load",
             "emitted into the canonical review prompt",
             "Changing either the validated case ID or response hash changes the reviewer prompt hash",
             "Activation-only soft evidence may be reported as a limitation, but cannot displace both diagnostic and structural semantic representatives",
@@ -4844,7 +4841,7 @@ class LiveMatrixLifecycleTests(UnixOnlyLiveTestMixin, unittest.TestCase):
                 ):
                     live_matrix._receipt_from_json(candidate)
 
-    def test_v10_receipt_missing_band_is_not_a_legacy_exception(self) -> None:
+    def test_v10_receipt_missing_band_is_malformed(self) -> None:
         payload = strict_receipt_payload()
         identity = payload["identity"]
         self.assertIsInstance(identity, dict)
@@ -5026,19 +5023,19 @@ class LiveMatrixLifecycleTests(UnixOnlyLiveTestMixin, unittest.TestCase):
                 ):
                     live_matrix._validate_receipt_provider_shape(malformed)
 
-    def test_receipt_rejects_malformed_findings_and_preserves_legacy_certainty(self) -> None:
+    def test_receipt_rejects_malformed_findings(self) -> None:
         payload = strict_receipt_payload()
         payload["status"] = "failed"
-        legacy = {
+        current = {
             "code": "literal_changed",
             "message": "literal changed",
             "literal": "30일",
+            "certainty": "hard",
         }
-        payload["findings"] = [legacy]
+        payload["findings"] = [current]
         loaded = live_matrix._receipt_from_json(payload)
         self.assertEqual(loaded.findings, (live_matrix.Finding("literal_changed", "literal changed", "30일"),))
 
-        current = {**legacy, "certainty": "hard"}
         mutations = (
             ("code-type", {**current, "code": 7}),
             ("code-empty", {**current, "code": ""}),
@@ -5051,6 +5048,14 @@ class LiveMatrixLifecycleTests(UnixOnlyLiveTestMixin, unittest.TestCase):
             ("certainty-enum", {**current, "certainty": "maybe"}),
             ("unknown", {**current, "unknown": "field"}),
             ("missing", {key: value for key, value in current.items() if key != "message"}),
+            (
+                "certainty-missing",
+                {key: value for key, value in current.items() if key != "certainty"},
+            ),
+            (
+                "literal-missing",
+                {key: value for key, value in current.items() if key != "literal"},
+            ),
         )
         for label, finding in mutations:
             with self.subTest(label=label):
@@ -5104,7 +5109,7 @@ class LiveMatrixLifecycleTests(UnixOnlyLiveTestMixin, unittest.TestCase):
         ):
             live_matrix._receipt_from_json(receipt.as_json())
 
-    def test_receipt_round_trips_soft_certainty_and_reads_legacy_hard_findings(self) -> None:
+    def test_receipt_round_trips_soft_certainty_and_rejects_old_shapes(self) -> None:
         soft = live_matrix.Finding(
             "diagnostic_semantics_not_measured",
             "semantic equivalence is not deterministically measured",
@@ -5119,27 +5124,31 @@ class LiveMatrixLifecycleTests(UnixOnlyLiveTestMixin, unittest.TestCase):
         self.assertEqual(payload["findings"][0]["certainty"], "not_measured")
         self.assertEqual(live_matrix._receipt_from_json(payload), receipt)
 
-        legacy = live_matrix.CallReceipt.for_test(
-            "legacy-call",
+        v10_omission = live_matrix.CallReceipt.for_test(
+            "v10-call",
             identity=live_matrix.RunIdentity.for_test(runner_version="10"),
             status="failed",
             findings=(live_matrix.Finding("literal_changed", "literal changed"),),
         ).as_json()
-        del legacy["findings"][0]["certainty"]
-        loaded = live_matrix._receipt_from_json(legacy)
-        self.assertEqual(loaded.findings[0].certainty, "hard")
+        del v10_omission["findings"][0]["certainty"]
+        with self.assertRaisesRegex(
+            live_matrix.LiveMatrixError, "malformed receipt: finding must have exactly"
+        ):
+            live_matrix._receipt_from_json(v10_omission)
 
-        nonlegacy_omission = receipt.as_json()
-        del nonlegacy_omission["findings"][0]["certainty"]
-        with self.assertRaisesRegex(live_matrix.LiveMatrixError, "legacy v10"):
-            live_matrix._receipt_from_json(nonlegacy_omission)
+        current_omission = receipt.as_json()
+        del current_omission["findings"][0]["certainty"]
+        with self.assertRaisesRegex(
+            live_matrix.LiveMatrixError, "malformed receipt: finding must have exactly"
+        ):
+            live_matrix._receipt_from_json(current_omission)
 
-        legacy_partial = strict_receipt_payload()
-        legacy_partial["status"] = "partially_verified"
-        self.assertEqual(
-            live_matrix._receipt_from_json(legacy_partial).findings,
-            (),
-        )
+        v10_empty_partial = strict_receipt_payload()
+        v10_empty_partial["status"] = "partially_verified"
+        with self.assertRaisesRegex(
+            live_matrix.LiveMatrixError, "finding certainty does not match status"
+        ):
+            live_matrix._receipt_from_json(v10_empty_partial)
 
     def test_current_partial_receipt_requires_a_typed_not_measured_finding(self) -> None:
         activation = live_matrix.Finding(

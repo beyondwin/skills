@@ -230,6 +230,7 @@ IDENTITY_FIELDS = frozenset(
     }
 )
 FINDING_CERTAINTIES = frozenset({"hard", "not_measured"})
+FINDING_FIELDS = frozenset({"code", "message", "literal", "certainty"})
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 GIT_OBJECT_ID_RE = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
 SAFE_METADATA_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$")
@@ -4021,16 +4022,10 @@ def _validate_receipt_provider_shape(receipt: CallReceipt) -> None:
     if receipt.call_number > 0:
         if receipt.status == "not_measured":
             raise LiveMatrixError("positive receipt cannot be not_measured")
-        legacy_v10_partial = (
-            receipt.identity.runner_version == "10"
-            and receipt.status == "partially_verified"
-            and not receipt.findings
-        )
         if (
             (receipt.status == "verified" and receipt.findings)
             or (
                 receipt.status == "partially_verified"
-                and not legacy_v10_partial
                 and (not receipt.findings or certainties != {"not_measured"})
             )
             or (receipt.status in {"failed", "blocked"} and "hard" not in certainties)
@@ -4124,21 +4119,16 @@ def _receipt_from_json(payload: Any) -> CallReceipt:
         if type(finding_values) is not list:
             raise ValueError("findings must be an array")
         findings: list[Finding] = []
-        legacy_finding_fields = {"code", "literal", "message"}
-        current_finding_fields = legacy_finding_fields | {"certainty"}
         for item in finding_values:
-            if type(item) is not dict or frozenset(item) not in {
-                frozenset(legacy_finding_fields),
-                frozenset(current_finding_fields),
-            }:
-                raise ValueError("invalid finding shape")
-            code = item["code"]
-            message = item["message"]
-            literal = item["literal"]
-            if "certainty" not in item and identity.runner_version != "10":
-                raise ValueError("finding certainty omission is not legacy v10")
-            certainty = item.get("certainty", "hard")
-            findings.append(Finding(code, message, literal, certainty))
+            if type(item) is not dict or frozenset(item) != FINDING_FIELDS:
+                raise ValueError(
+                    "finding must have exactly code, message, literal, and certainty"
+                )
+            findings.append(
+                Finding(
+                    item["code"], item["message"], item["literal"], item["certainty"]
+                )
+            )
         receipt = CallReceipt(
             identity=identity,
             logical_call_id=payload["logical_call_id"],
