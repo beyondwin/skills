@@ -1,0 +1,5 @@
+runs/
+logs/
+judge_tmp/
+setup_check/
+__pycache__/

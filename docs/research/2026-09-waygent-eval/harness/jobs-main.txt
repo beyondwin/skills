@@ -1,0 +1,16 @@
+waygent opus 1
+vanilla opus 2
+waygent_fo opus 1
+waygent grok 1
+waygent opus 2
+vanilla opus 3
+waygent_fo opus 2
+vanilla grok 1
+waygent opus 3
+waygent_fo opus 3
+waygent fable 1
+vanilla fable 1
+waygent grok 2
+both opus 1
+waygent opus 1 --kill-after-task
+vanilla opus 1 --kill-after-task

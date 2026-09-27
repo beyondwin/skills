@@ -1,0 +1,416 @@
+{
+ "main": {
+  "vanilla-opus-1": [
+   {
+    "severity": "High",
+    "where": "promptops/store.py:48",
+    "design": "§4",
+    "summary": "Deleting and recreating an ID resets its version to 1, so stale sessions, candidate sets, or batch operations holding version 1 can silently overwrite the replacement prompt.",
+    "repro": "from promptops.session import EditSession\nfrom promptops.store import PromptStore\ns=PromptStore(); s.create('p','old'); e=EditSession(s,'p')\ne.edit('mine'); s.delete('p'); s.create('p','new')\ne.save(); print(s.get('p').body)  # mine"
+   },
+   {
+    "severity": "High",
+    "where": "promptops/batch.py:104",
+    "design": "§6",
+    "summary": "Cancelled items never emit batch.progress, although every completed item must emit one; cancellation therefore leaves progress subscribers without the final per-item updates.",
+    "repro": "import asyncio\nfrom promptops.batch import BatchRun\nfrom promptops.fake_model import FakeModel\nfrom promptops.store import PromptStore\ns=PromptStore(); s.create('p','x'); r=BatchRun(s,FakeModel(),['p'],style='w',model_name='m'); r.cancel(); asyncio.run(r.run()); print(s.events.of('batch.progress'))  # []"
+   },
+   {
+    "severity": "Medium",
+    "where": "promptops/concurrency.py:16",
+    "design": "§8",
+    "summary": "A non-positive concurrency limit raises a plain ValueError through the public candidate API, bypassing the PromptOpsError type the UI is specified to catch.",
+    "repro": "import asyncio\nfrom promptops.candidates import generate_candidates\nfrom promptops.fake_model import FakeModel\nfrom promptops.store import PromptStore\ns=PromptStore(); s.create('p','x'); asyncio.run(generate_candidates(s,FakeModel(),'p',['w'],model_name='m',limit=0))"
+   }
+  ],
+  "waygent_fo-opus-1": [
+   {
+    "severity": "High",
+    "where": "promptops/store.py:39",
+    "design": "§4",
+    "summary": "Deleting and recreating an id resets its version to 1, so a stale editor, batch, candidate set, or undo can match the reused version and overwrite a different prompt without VersionConflict.",
+    "repro": "from promptops.session import EditSession\nfrom promptops.store import PromptStore\ns=PromptStore(); s.create(\"p\",\"old\"); e=EditSession(s,\"p\"); e.edit(\"mine\")\ns.delete(\"p\"); s.create(\"p\",\"other\")\ne.save(); print(s.get(\"p\").body)"
+   },
+   {
+    "severity": "High",
+    "where": "promptops/events.py:16",
+    "design": "§4",
+    "summary": "EventLog.of() returns the internal payload dictionaries, so UI or audit-export code can mutate committed event history through a returned value.",
+    "repro": "from promptops.store import PromptStore\ns=PromptStore(); s.create(\"p\",\"x\")\nevents=s.events.of(\"prompt.created\")\nevents[0][\"id\"]=\"corrupt\"\nprint(s.events.of(\"prompt.created\"))"
+   },
+   {
+    "severity": "Medium",
+    "where": "promptops/batch.py:150",
+    "design": "§6",
+    "summary": "Cancellation adds unfinished items directly to outcomes without emitting the required batch.progress event for each item; a started two-item batch can finish with two outcomes and zero progress events.",
+    "repro": "import asyncio; from promptops.batch import BatchRun; from promptops.fake_model import FakeModel; from promptops.store import PromptStore\ns=PromptStore(); s.create(\"a\",\"x\"); s.create(\"b\",\"y\"); run=None\ndef stop(*_): run.cancel()\nrun=BatchRun(s,FakeModel(on_call=stop),[\"a\",\"b\"],style=\"w\",model_name=\"m\",limit=1)\nasyncio.run(run.run()); print(len(run.outcomes),len(s.events.of(\"batch.progress\")))"
+   },
+   {
+    "severity": "Medium",
+    "where": "promptops/batch.py:173",
+    "design": "§5",
+    "summary": "Retries are controlled only by exception type, not the batch cancellation flag. If a model client converts task cancellation into ModelError, retry_async invokes the model again after cancel() has returned.",
+    "repro": "import asyncio; from promptops.batch import BatchRun; from promptops.fake_model import FakeModel,ModelError; from promptops.store import PromptStore\nasync def main(): s=PromptStore(); s.create(\"p\",\"x\"); F=type(\"F\",(asyncio.Future,),{\"cancel\":lambda self,msg=None:(self.set_exception(ModelError()),True)[1]}); f=F(); it=iter([f,None]); m=FakeModel(delay=0,on_call=lambda *_:next(it)); r=BatchRun(s,m,[\"p\"],style=\"w\",model_name=\"m\"); t=asyncio.create_task(r.run()); await asyncio.sleep(0); await asyncio.sleep(0); await asyncio.sleep(0); r.cancel(); await t; print(len(m.calls))\nasyncio.run(main())"
+   },
+   {
+    "severity": "Medium",
+    "where": "promptops/batch.py:180",
+    "design": "§3",
+    "summary": "An in-flight item that reports ModelRefused after cancellation is recorded as rejected rather than cancelled, even though it was unfinished when the operator stopped the batch.",
+    "repro": "import asyncio; from promptops.batch import BatchRun; from promptops.fake_model import FakeModel,ModelRefused; from promptops.store import PromptStore\nasync def main(): s=PromptStore(); s.create(\"p\",\"x\"); F=type(\"F\",(asyncio.Future,),{\"cancel\":lambda self,msg=None:(self.set_exception(ModelRefused()),True)[1]}); m=FakeModel(delay=0,on_call=lambda *_:F()); r=BatchRun(s,m,[\"p\"],style=\"w\",model_name=\"m\"); t=asyncio.create_task(r.run()); await asyncio.sleep(0); await asyncio.sleep(0); await asyncio.sleep(0); r.cancel(); await t; print(r.outcomes)\nasyncio.run(main())"
+   },
+   {
+    "severity": "Medium",
+    "where": "promptops/store.py:38",
+    "design": "§8",
+    "summary": "Creating an existing prompt raises a plain ValueError rather than a PromptOpsError subtype, so the UI cannot handle this domain failure through its required common error boundary.",
+    "repro": "from promptops.errors import PromptOpsError\nfrom promptops.store import PromptStore\ns=PromptStore(); s.create(\"p\",\"x\")\ntry: s.create(\"p\",\"y\")\nexcept Exception as e: print(type(e).__name__,isinstance(e,PromptOpsError))"
+   }
+  ],
+  "waygent_fo-opus-2": [
+   {
+    "severity": "High",
+    "where": "promptops/events.py:16",
+    "design": "§6",
+    "summary": "EventLog.of returns references to stored payloads, allowing subscribers to overwrite historical audit events.",
+    "repro": "from promptops.events import EventLog\nlog = EventLog(); log.emit(\"x\", id=\"p\")\nlog.of(\"x\")[0][\"id\"] = \"changed\"\nprint(log.of(\"x\"))"
+   },
+   {
+    "severity": "Medium",
+    "where": "promptops/store.py:41",
+    "design": "§8",
+    "summary": "Creating an existing prompt raises plain ValueError instead of PromptOpsError, so the UI cannot handle it as a domain error.",
+    "repro": "from promptops.errors import PromptOpsError\nfrom promptops.store import PromptStore\ns = PromptStore(); s.create(\"p\", \"x\")\ntry: s.create(\"p\", \"y\")\nexcept Exception as e: print(type(e).__name__, isinstance(e, PromptOpsError))"
+   }
+  ],
+  "waygent-opus-1": [
+   {
+    "severity": "High",
+    "where": "promptops/batch.py:180",
+    "design": "§6",
+    "summary": "Cancelled items are bulk-counted without emitting the required batch.progress event for each completed item.",
+    "repro": "import asyncio\nfrom promptops.batch import BatchRun; from promptops.fake_model import FakeModel; from promptops.store import PromptStore\ns=PromptStore(); s.create('a','A')\nr=BatchRun(s,FakeModel(delay=0),['a'],style='warm',model_name='m'); r.cancel(); asyncio.run(r.run())\nprint(s.events.of('batch.progress'))  # []"
+   },
+   {
+    "severity": "High",
+    "where": "promptops/events.py:16",
+    "design": "§6",
+    "summary": "EventLog.of() exposes stored payload dictionaries directly, so a UI or audit consumer can overwrite historical event data.",
+    "repro": "from promptops.store import PromptStore\ns=PromptStore(); s.create('a','A')\nevents=s.events.of('prompt.created'); events[0]['id']='corrupt'\nprint(s.events.of('prompt.created'))  # [{'id': 'corrupt'}]"
+   }
+  ],
+  "superpowers-opus-1": [
+   {
+    "severity": "Medium",
+    "where": "promptops/batch.py:275",
+    "design": "§6",
+    "summary": "Cancellation finalizes every unfinished item without emitting the required batch.progress event for each completed item.",
+    "repro": "import asyncio; from promptops.batch import BatchRun; from promptops.fake_model import FakeModel; from promptops.store import PromptStore\ns=PromptStore(); s.create('a','x'); s.create('b','x')\nbox={}; m=FakeModel(0,on_call=lambda *_: box['r'].cancel())\nbox['r']=BatchRun(s,m,['a','b'],style='w',model_name='m',limit=1); asyncio.run(box['r'].run())\nprint(s.events.of('batch.progress'), box['r'].outcomes)  # [] despite two completed cancellations"
+   },
+   {
+    "severity": "Medium",
+    "where": "promptops/session.py:63",
+    "design": "§4",
+    "summary": "A save conflict after a previously missing prompt is recreated leaves missing=True even though the prompt exists, so the editor exposes contradictory stale state.",
+    "repro": "from promptops.session import EditSession; from promptops.store import PromptStore,VersionConflict\ns=PromptStore(); s.create('p','old'); e=EditSession(s,'p'); e.edit('mine'); s.delete('p'); e.reload(); s.create('p','new')\ntry: e.save()\nexcept VersionConflict: pass\nprint(e.missing,e.conflict)  # True True"
+   },
+   {
+    "severity": "Medium",
+    "where": "promptops/candidates.py:73",
+    "design": "§4",
+    "summary": "all_failed reads the caller-mutable public errors dictionary rather than an internal generation snapshot, so mutating returned result data rewrites whether generation is reported as wholly failed.",
+    "repro": "import asyncio; from promptops.candidates import generate_candidates; from promptops.fake_model import FakeModel; from promptops.store import PromptStore\ns=PromptStore(); s.create('p','REFUSE')\nc=asyncio.run(generate_candidates(s,FakeModel(0),'p',['warm'],model_name='m'))\nc.errors.clear()\nprint(c.all_failed)  # False although every requested candidate failed"
+   }
+  ],
+  "waygent_fo-opus-3": [
+   {
+    "severity": "High",
+    "where": "promptops/events.py:16",
+    "design": "§6",
+    "summary": "EventLog.of() exposes internal payload dictionaries, so a subscriber can overwrite an already-recorded audit event instead of the log remaining append-only.",
+    "repro": "from promptops.store import PromptStore\ns = PromptStore(); s.create(\"p\", \"x\")\ns.events.of(\"prompt.created\")[0][\"id\"] = \"changed\"\nprint(s.events.of(\"prompt.created\"))"
+   },
+   {
+    "severity": "High",
+    "where": "promptops/store.py:51",
+    "design": "§8",
+    "summary": "Creating an existing prompt raises bare ValueError, so UI code catching PromptOpsError cannot handle this domain failure and instead shows an unknown error.",
+    "repro": "from promptops.errors import PromptOpsError\nfrom promptops.store import PromptStore\ns = PromptStore(); s.create(\"p\", \"x\")\ntry: s.create(\"p\", \"y\")\nexcept Exception as e: print(type(e).__name__, isinstance(e, PromptOpsError))"
+   }
+  ],
+  "vanilla-opus-3": [
+   {
+    "severity": "High",
+    "where": "promptops/store.py:45",
+    "design": "§4",
+    "summary": "Deleting and recreating an ID resets its version to 1, so a stale editor, batch, or candidate set can pass optimistic locking and overwrite the recreated prompt.",
+    "repro": "from promptops.store import PromptStore\nfrom promptops.session import EditSession\ns=PromptStore(); s.create('p','old'); e=EditSession(s,'p')\ns.delete('p'); s.create('p','new'); e.edit('mine'); e.save()\nprint(s.get('p').body)  # mine"
+   },
+   {
+    "severity": "High",
+    "where": "promptops/events.py:16",
+    "design": "§6",
+    "summary": "Event queries expose the log's mutable payload dictionaries, allowing a UI or audit consumer to overwrite previously recorded audit data.",
+    "repro": "from promptops.store import PromptStore\ns=PromptStore(); s.create('p','x')\ns.events.of('prompt.created')[0]['id']='forged'\nprint(s.events.of('prompt.created'))  # [{'id': 'forged'}]"
+   },
+   {
+    "severity": "Low",
+    "where": "promptops/fake_model.py:10",
+    "design": "§8",
+    "summary": "ModelRefused and ModelError are package-defined exceptions but do not inherit PromptOpsError, so callers cannot catch every exception created by this layer through the required common base.",
+    "repro": "from promptops.errors import PromptOpsError\nfrom promptops.fake_model import ModelError, ModelRefused\nprint(issubclass(ModelError,PromptOpsError), issubclass(ModelRefused,PromptOpsError))  # False False"
+   }
+  ],
+  "vanilla-opus-2": [
+   {
+    "severity": "High",
+    "where": "promptops/store.py:55",
+    "design": "§4",
+    "summary": "Deleting and recreating an ID resets its version, so a stale version from the deleted prompt can silently overwrite the replacement.",
+    "repro": "from promptops.store import PromptStore\ns = PromptStore(); old = s.create('p', 'old')\ns.delete('p'); s.create('p', 'replacement')\nprint(s.save('p', 'stale', old.version).body)"
+   },
+   {
+    "severity": "High",
+    "where": "promptops/batch.py:118",
+    "design": "§6",
+    "summary": "Cancellation records unfinished items as cancelled without emitting the required batch.progress event for each item that reaches that terminal outcome.",
+    "repro": "import asyncio\nfrom promptops.batch import BatchRun\nfrom promptops.fake_model import FakeModel; from promptops.store import PromptStore\nasync def main(): s=PromptStore(); [s.create(x,'x') for x in 'ab']; r=BatchRun(s,FakeModel(1),list('ab'),style='w',model_name='m',limit=1); t=asyncio.create_task(r.run()); await asyncio.sleep(0); r.cancel(); await t; print(r.counts,s.events.of('batch.progress'))\nasyncio.run(main())"
+   }
+  ],
+  "waygent-opus-2": [
+   {
+    "severity": "High",
+    "where": "promptops/store.py:65",
+    "design": "§4",
+    "summary": "Deleting and recreating an ID resets its version to 1, so a stale save from the prior incarnation passes optimistic locking and silently overwrites the replacement prompt.",
+    "repro": "from promptops.store import PromptStore\ns=PromptStore(); old=s.create('p','old')\ns.delete('p'); s.create('p','new')\ns.save('p','stale',old.version)\nassert s.get('p').body == 'new'"
+   },
+   {
+    "severity": "Medium",
+    "where": "promptops/events.py:16",
+    "design": "§4",
+    "summary": "EventLog.of() returns its stored payload dictionaries directly, allowing a UI or audit consumer to mutate repository-owned event history.",
+    "repro": "from promptops.store import PromptStore\ns=PromptStore(); s.create('p','x')\nseen=s.events.of('prompt.created'); seen[0]['id']='corrupt'\nassert s.events.of('prompt.created') == [{'id':'p'}]"
+   },
+   {
+    "severity": "Medium",
+    "where": "promptops/fake_model.py:10",
+    "design": "§8",
+    "summary": "ModelRefused and ModelError do not inherit PromptOpsError, so callers of the public model-call helper cannot catch all package-defined domain failures through the required base type.",
+    "repro": "from promptops.errors import PromptOpsError\nfrom promptops.fake_model import ModelError, ModelRefused\nassert all(issubclass(e, PromptOpsError) for e in (ModelError, ModelRefused))"
+   }
+  ],
+  "both-opus-1": [
+   {
+    "severity": "Medium",
+    "where": "promptops/store.py:54",
+    "design": "§2",
+    "summary": "Recreating a deleted prompt continues its old version, although the plan requires every create to produce version 1.",
+    "repro": "from promptops.store import PromptStore\ns=PromptStore(); s.create('a','v1'); s.save('a','v2',1); s.delete('a')\nprint(s.create('a','new').version)  # 3, expected 1"
+   },
+   {
+    "severity": "Medium",
+    "where": "promptops/batch.py:180",
+    "design": "§6",
+    "summary": "Cancellation finalizes unfinished items as cancelled without emitting the required batch.progress event for each finished item.",
+    "repro": "import asyncio; from promptops.store import PromptStore; from promptops.batch import BatchRun; from promptops.fake_model import FakeModel\ns=PromptStore(); [s.create(x,x) for x in ('a','b')]\nr=BatchRun(s,FakeModel(on_call=lambda *_: r.cancel()),['a','b'],style='x',model_name='m',limit=1)\nasyncio.run(r.run())\nprint(r.outcomes, len(s.events.of('batch.progress')))  # 2 outcomes, 0 events"
+   }
+  ],
+  "waygent-opus-3": [
+   {
+    "severity": "Medium",
+    "where": "promptops/store.py:40",
+    "design": "§8",
+    "summary": "Creating an existing prompt raises a bare ValueError, bypassing the UI's required PromptOpsError catch.",
+    "repro": "from promptops.store import PromptStore\nfrom promptops.errors import PromptOpsError\ns = PromptStore(); s.create('p', 'x')\ntry: s.create('p', 'y')\nexcept Exception as e: print(type(e).__name__, isinstance(e, PromptOpsError))  # ValueError False"
+   }
+  ],
+  "vanilla-fable-1": [
+   {
+    "severity": "High",
+    "where": "promptops/store.py:63",
+    "design": "§4",
+    "summary": "Version numbers restart at 1 when a deleted ID is recreated, so stale edits can match the new prompt's version and silently overwrite it.",
+    "repro": "from promptops.store import PromptStore; from promptops.session import EditSession\ns=PromptStore(); s.create('p','old')\ne=EditSession(s,'p'); e.edit('mine')\ns.delete('p'); s.create('p','new'); e.reload(); e.save()\nprint(s.get('p').body)  # mine"
+   },
+   {
+    "severity": "High",
+    "where": "promptops/events.py:16",
+    "design": "§4",
+    "summary": "EventLog.of returns stored payload dictionaries by reference, allowing a UI or audit consumer to rewrite committed event history.",
+    "repro": "from promptops.store import PromptStore\ns=PromptStore(); s.create('p','x')\nevent=s.events.of('prompt.created')[0]\nevent['id']='tampered'\nprint(s.events.of('prompt.created'))  # [{'id': 'tampered'}]"
+   },
+   {
+    "severity": "High",
+    "where": "promptops/model.py:16",
+    "design": "§8",
+    "summary": "ModelRefused and ModelError do not inherit PromptOpsError, so the UI's required domain-error handler cannot catch model-layer failures.",
+    "repro": "from promptops.errors import PromptOpsError\nfrom promptops.model import ModelError, ModelRefused\nprint(issubclass(ModelError, PromptOpsError), issubclass(ModelRefused, PromptOpsError))  # False False"
+   },
+   {
+    "severity": "Medium",
+    "where": "promptops/concurrency.py:16",
+    "design": "§8",
+    "summary": "An invalid public concurrency limit raises plain ValueError even though the plan does not designate ValueError for this API, bypassing PromptOpsError handling.",
+    "repro": "import asyncio; from promptops.concurrency import gather_limited\nfrom promptops.errors import PromptOpsError\nasync def f(x): return x\ntry: asyncio.run(gather_limited([], f, 0))\nexcept Exception as e: print(type(e).__name__, isinstance(e, PromptOpsError))  # ValueError False"
+   }
+  ],
+  "waygent-fable-1": [
+   {
+    "severity": "High",
+    "where": "promptops/batch.py:211",
+    "design": "§4",
+    "summary": "A prompt deleted and recreated during the model call can have the same version, so the batch silently overwrites the recreated prompt and reports it as applied.",
+    "repro": "import asyncio; from promptops.store import PromptStore; from promptops.batch import BatchRun; from promptops.fake_model import FakeModel\ns=PromptStore(); s.create('p','old')\nswap=lambda *_:(s.delete('p'),s.create('p','theirs'))\nr=BatchRun(s,FakeModel(0,on_call=swap),['p'],style='warm',model_name='m')\nprint(asyncio.run(r.run()),s.get('p').body)"
+   },
+   {
+    "severity": "High",
+    "where": "promptops/candidates.py:67",
+    "design": "§4",
+    "summary": "Candidate selection checks only the old version; deletion and recreation reset the version to 1, allowing choose() to overwrite another operator's recreated prompt.",
+    "repro": "import asyncio; from promptops.store import PromptStore; from promptops.fake_model import FakeModel; from promptops.candidates import generate_candidates\ns=PromptStore(); s.create('p','old')\ncs=asyncio.run(generate_candidates(s,FakeModel(0),'p',['warm'],model_name='m'))\ns.delete('p'); s.create('p','theirs')\nprint(cs.choose('warm').body)"
+   },
+   {
+    "severity": "Medium",
+    "where": "promptops/concurrency.py:15",
+    "design": "§8",
+    "summary": "An invalid candidate-generation concurrency limit leaks a bare ValueError instead of a PromptOpsError, so the UI cannot handle it as a domain error.",
+    "repro": "import asyncio; from promptops.store import PromptStore; from promptops.fake_model import FakeModel; from promptops.candidates import generate_candidates; from promptops.errors import PromptOpsError\ns=PromptStore(); s.create('p','old')\ntry: asyncio.run(generate_candidates(s,FakeModel(),'p',['warm'],model_name='m',limit=0))\nexcept Exception as e: print(type(e).__name__,isinstance(e,PromptOpsError))"
+   },
+   {
+    "severity": "Medium",
+    "where": "promptops/store.py:52",
+    "design": "§8",
+    "summary": "Creating an already-existing prompt raises a bare ValueError rather than an exception derived from PromptOpsError.",
+    "repro": "from promptops.store import PromptStore; from promptops.errors import PromptOpsError\ns=PromptStore(); s.create('p','old')\ntry: s.create('p','new')\nexcept Exception as e: print(type(e).__name__,isinstance(e,PromptOpsError))"
+   }
+  ],
+  "vanilla-grok-1": [
+   {
+    "severity": "High",
+    "where": "promptops/workspace.py:36",
+    "design": "§3",
+    "summary": "Cancelling the task before its coroutine starts leaves the workspace permanently busy because the lock is acquired outside the coroutine but released only inside it.",
+    "repro": "import asyncio\nfrom promptops.store import PromptStore; from promptops.fake_model import FakeModel; from promptops.workspace import Workspace\nw=Workspace(PromptStore(),FakeModel())\nasync def f(): t=asyncio.create_task(w.run_batch([])); t.cancel(); await asyncio.gather(t,return_exceptions=True)\nasyncio.run(f()); assert not w.busy"
+   },
+   {
+    "severity": "High",
+    "where": "promptops/store.py:35",
+    "design": "§8",
+    "summary": "Creating an existing prompt raises plain ValueError, so the UI cannot catch it through PromptOpsError as required.",
+    "repro": "from promptops.store import PromptStore\nfrom promptops.errors import PromptOpsError\ns=PromptStore(); s.create('a','x')\ntry: s.create('a','y')\nexcept Exception as e: assert isinstance(e,PromptOpsError)"
+   },
+   {
+    "severity": "Medium",
+    "where": "promptops/batch.py:155",
+    "design": "§3",
+    "summary": "Repeated prompt IDs overwrite each other's outcome while total still counts every occurrence, so final counts do not add up to total.",
+    "repro": "import asyncio\nfrom promptops.store import PromptStore; from promptops.fake_model import FakeModel; from promptops.batch import BatchRun\ns=PromptStore(); s.create('a','x')\nb=BatchRun(s,FakeModel(delay=0),['a','a'],style='warm',model_name='base'); asyncio.run(b.run())\nassert sum(b.counts[k] for k in ('applied','rejected','failed','cancelled'))==b.counts['total']"
+   },
+   {
+    "severity": "Medium",
+    "where": "promptops/batch.py:52",
+    "design": "§2",
+    "summary": "A completed BatchRun can be run again, applying the style and saving the prompts a second time even though the object represents one batch execution.",
+    "repro": "import asyncio\nfrom promptops.store import PromptStore; from promptops.fake_model import FakeModel; from promptops.batch import BatchRun\ns=PromptStore(); s.create('a','x')\nb=BatchRun(s,FakeModel(delay=0),['a'],style='warm',model_name='base')\nasyncio.run(b.run()); asyncio.run(b.run()); assert s.get('a').body=='[warm|base] x'"
+   }
+  ],
+  "superpowers-opus-1-resume": [
+   {
+    "severity": "High",
+    "where": "promptops/store.py:57",
+    "design": "§4",
+    "summary": "Versions reset when an ID is deleted and recreated, so a stale editor, batch, or candidate can silently overwrite the replacement prompt when its version matches.",
+    "repro": "from promptops.store import PromptStore\nfrom promptops.session import EditSession\ns=PromptStore(); s.create('a','old'); e=EditSession(s,'a'); e.edit('mine')\ns.delete('a'); s.create('a','new'); e.save(); print(s.get('a').body)  # mine"
+   },
+   {
+    "severity": "High",
+    "where": "promptops/batch.py:227",
+    "design": "§3",
+    "summary": "An item still in a model call when cancellation occurs is reported as rejected or failed if that call subsequently raises, although unfinished items in a stopped batch must be counted as cancelled.",
+    "repro": "import asyncio\nfrom promptops.batch import BatchRun; from promptops.fake_model import FakeModel; from promptops.store import PromptStore\nasync def main():\n s=PromptStore(); s.create('a','REFUSE'); box={}; m=FakeModel(0,lambda *_: box['r'].cancel()); box['r']=BatchRun(s,m,['a'],style='warm',model_name='m'); print(await box['r'].run())\nasyncio.run(main())  # {'a': 'rejected'}"
+   },
+   {
+    "severity": "Medium",
+    "where": "promptops/events.py:16",
+    "design": "§6",
+    "summary": "EventLog.of returns the stored payload dictionaries themselves, allowing a UI or audit consumer to rewrite previously recorded events.",
+    "repro": "from promptops.store import PromptStore\ns=PromptStore(); s.create('a','x')\ns.events.of('prompt.created')[0]['id']='changed'\nprint(s.events.of('prompt.created'))  # [{'id': 'changed'}]"
+   }
+  ],
+  "vanilla-opus-1-resume": [
+   {
+    "severity": "High",
+    "where": "promptops/store.py:50",
+    "design": "§4",
+    "summary": "Deleting and recreating an ID resets its version to 1, so a stale save can silently overwrite the replacement prompt.",
+    "repro": "from promptops.store import PromptStore\ns=PromptStore(); p=s.create(\"x\", \"old\")\ns.delete(\"x\"); s.create(\"x\", \"replacement\")\nprint(s.save(\"x\", \"stale\", p.version).body)  # stale"
+   },
+   {
+    "severity": "High",
+    "where": "promptops/batch.py:137",
+    "design": "§6",
+    "summary": "Cancellation finalizes unfinished items without emitting the required batch.progress event for each item.",
+    "repro": "from promptops.batch import BatchRun\nfrom promptops.fake_model import FakeModel\nfrom promptops.store import PromptStore\ns=PromptStore(); s.create(\"a\", \"x\"); r=BatchRun(s,FakeModel(),[\"a\"],style=\"s\",model_name=\"m\"); r.cancel()\nprint(r.outcomes, s.events.of(\"batch.progress\"))  # cancelled, []"
+   },
+   {
+    "severity": "Medium",
+    "where": "promptops/candidates.py:53",
+    "design": "§8",
+    "summary": "An invalid candidate concurrency limit leaks a built-in ValueError instead of a PromptOpsError-derived domain exception.",
+    "repro": "import asyncio; from promptops.candidates import generate_candidates; from promptops.errors import PromptOpsError; from promptops.fake_model import FakeModel; from promptops.store import PromptStore\ns=PromptStore(); s.create(\"a\", \"x\")\ntry:\n asyncio.run(generate_candidates(s,FakeModel(),\"a\",[\"s\"],model_name=\"m\",limit=0))\nexcept Exception as e: print(type(e).__name__, isinstance(e, PromptOpsError))  # ValueError False"
+   }
+  ],
+  "waygent-opus-1-resume": [
+   {
+    "severity": "High",
+    "where": "promptops/store.py:77",
+    "design": "§4",
+    "summary": "The documented save API omits an incarnation token, so a stale version can silently overwrite a prompt deleted and recreated at the same ID.",
+    "repro": "from promptops.store import PromptStore\ns = PromptStore(); old = s.create(\"a\", \"old\")\ns.delete(\"a\"); s.create(\"a\", \"new\")\ns.save(\"a\", \"stale\", old.version); print(s.get(\"a\").body)"
+   },
+   {
+    "severity": "High",
+    "where": "promptops/events.py:16",
+    "design": "§6",
+    "summary": "EventLog.of() returns references to stored payload dictionaries, allowing a reader to rewrite audit history.",
+    "repro": "from promptops.store import PromptStore\ns = PromptStore(); s.create(\"a\", \"x\")\nevents = s.events.of(\"prompt.created\"); events[0][\"id\"] = \"forged\"\nprint(s.events.of(\"prompt.created\"))"
+   },
+   {
+    "severity": "Medium",
+    "where": "promptops/batch.py:134",
+    "design": "§3",
+    "summary": "An item task ending with CancelledError is swallowed by gather_limited and ignored, so the batch reports done with no outcome and final counts do not sum to total.",
+    "repro": "import asyncio; from promptops.batch import BatchRun; from promptops.store import PromptStore\nclass M:\n async def restyle(self, *_): raise asyncio.CancelledError()\ns = PromptStore(); s.create(\"a\", \"x\"); r = BatchRun(s, M(), [\"a\"], style=\"w\", model_name=\"m\")\nprint(asyncio.run(r.run()), r.state, r.counts)"
+   },
+   {
+    "severity": "Medium",
+    "where": "promptops/batch.py:180",
+    "design": "§5",
+    "summary": "The same try block covers model and repository operations, so an unexpected model exception whose type is PromptMissing or VersionConflict is falsely reported as a repository missing/conflict result instead of failed:error.",
+    "repro": "import asyncio; from promptops.batch import BatchRun; from promptops.store import PromptStore, PromptMissing\nclass M:\n async def restyle(self, *_): raise PromptMissing(\"model-internal\")\ns = PromptStore(); s.create(\"a\", \"x\")\nprint(asyncio.run(BatchRun(s, M(), [\"a\"], style=\"w\", model_name=\"m\").run()))"
+   }
+  ],
+  "superpowers-opus-2": []
+ },
+ "rev2": {
+  "waygent-opus-1": [
+   {
+    "severity": "Medium",
+    "where": "promptops/batch.py:127",
+    "design": "§8",
+    "summary": "Calling BatchRun.run() more than once raises a bare RuntimeError instead of a PromptOpsError subtype, so the UI's domain-error handler cannot catch it.",
+    "repro": "import asyncio\nfrom promptops.batch import BatchRun\nfrom promptops.fake_model import FakeModel\nfrom promptops.store import PromptStore\ns=PromptStore(); r=BatchRun(s,FakeModel(0),[],style='x',model_name='m'); asyncio.run(r.run()); asyncio.run(r.run())"
+   }
+  ],
+  "waygent-opus-2": [
+   {
+    "severity": "Medium",
+    "where": "promptops/store.py:43",
+    "design": "§8",
+    "summary": "Creating an existing prompt raises plain ValueError instead of a PromptOpsError subtype, so the UI cannot handle it as a domain error.",
+    "repro": "from promptops.errors import PromptOpsError\nfrom promptops.store import PromptStore\ns = PromptStore(); s.create(\"a\", \"x\")\ntry: s.create(\"a\", \"y\")\nexcept Exception as e: print(type(e).__name__, isinstance(e, PromptOpsError))"
+   }
+  ]
+ }
+}

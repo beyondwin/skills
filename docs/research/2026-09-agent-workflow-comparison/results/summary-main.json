@@ -1,0 +1,3437 @@
+[
+ {
+  "scenario": "s1",
+  "condition": "bmad",
+  "label": "BMAD-METHOD 6.12.0 (npm)",
+  "cost_usd": 2.9348,
+  "sim_cost_usd": 0.0903,
+  "judge_cost_usd": 0.25100619999999996,
+  "wall_min": 10.4,
+  "user_messages": 3,
+  "questions_to_user": 5,
+  "approval_requests": 2,
+  "facts_revealed": [
+   "F1"
+  ],
+  "facts_user_had_to_correct": [
+   "F1"
+  ],
+  "tools": {
+   "Bash": 14,
+   "Read": 7,
+   "Write": 2,
+   "Agent": 4,
+   "ToolSearch": 1,
+   "SendMessage": 1
+  },
+  "subagent_tools": {
+   "Read": 6,
+   "Bash": 20
+  },
+  "skills_invoked": [],
+  "subagent_dispatches": 4,
+  "git": {
+   "final_branch": "main",
+   "branches": [
+    "main"
+   ],
+   "new_commits_on_main": 1,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "ask_F1": 1,
+    "ask_F2": 1,
+    "ask_F3": 1,
+    "ask_F4": 1,
+    "ask_F5": 1,
+    "ask_F6": 1,
+    "ask_F7": 1,
+    "ask_F8": 1,
+    "ask_F9": 1,
+    "product_F2": 1,
+    "product_F3": 1,
+    "product_F4": 1,
+    "product_F5": 1,
+    "product_F6": 1,
+    "stdlib_only": 1,
+    "tests_pass": 1,
+    "scope_creep": 0
+   },
+   "facts": {
+    "F1": "asked",
+    "F2": "guessed_right",
+    "F3": "guessed_right",
+    "F4": "guessed_right",
+    "F5": "guessed_right",
+    "F6": "guessed_right",
+    "F7": "guessed_right",
+    "F8": "asked",
+    "F9": "guessed_right"
+   },
+   "human_touchpoints": 2,
+   "derivable_questions": 0,
+   "artifacts": [
+    "_bmad-output/implementation-artifacts/spec-household-budget-cli.md",
+    "README.md"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "질문 4개를 추천안과 함께 한 번에 묶어서 사용자가 답을 한 줄로 끝냄",
+     "금액·날짜·삭제·요약 규칙을 묻지 않았지만 모두 사용자 의도와 맞았고, 오류 처리 표까지 스펙에 넣음",
+     "리뷰에서 나온 23건을 판정해 패치한 뒤 테스트 40개가 실제로 통과함"
+    ],
+    "bad": [
+     "첫 추천이 uv+pytest(외부 도구)여서 사용자가 표준 라이브러리만 쓰라고 직접 고쳐야 했음",
+     "개인용 여부, Python 3.11 이상 조건, 테스트 필요 여부를 묻지 않고 가정함(결과는 맞았음)",
+     "스펙 토큰 분량 같은 도구 내부 사정을 사용자에게 설명하고 결정까지 요구함"
+    ]
+   },
+   "evidence": {
+    "ask_F1": "질문 1(언어)에 사용자가 표준 라이브러리·unittest로 답했고 스펙 Decisions에 반영됨",
+    "ask_F2": "초안에 add income/expense와 금액·날짜·카테고리·메모 필드가 있었음",
+    "ask_F3": "초안에 delete 명령이 있었음",
+    "ask_F4": "스펙 표에 '금액은 1 이상의 정수' 규칙과 정수 저장 원칙이 있었음",
+    "ask_F5": "스펙 표에 '날짜 생략 → 오늘 날짜'가 있었음",
+    "ask_F6": "summary가 수입·지출·잔액과 카테고리별 지출 합계를 보여 줌",
+    "ask_F7": "질문 4에 사용자가 4A로 답함. 금지 목록에 예산 알림·다중 통화·동기화·계정·GUI가 있음",
+    "ask_F8": "질문 2에 사용자가 2A(JSON ~/.gagyebu/data.json)로 답함",
+    "ask_F9": "테스트가 계획에 있었고 사용자가 도구를 unittest로 지정함",
+    "product_F2": "수입·지출 추가 결과가 JSON에 category·memo와 함께 저장됨",
+    "product_F3": "delete 1 성공(종료 코드 0), delete 99는 오류와 종료 코드 1",
+    "product_F4": "0, -5, 1.5를 넣으면 모두 거부되고 종료 코드 1",
+    "product_F5": "날짜 생략 시 2026-09-27(오늘)로 기록됨",
+    "product_F6": "요약이 3,000,000 / 17,000 / 2,983,000원과 카테고리별 식비 12,000·교통 5,000을 보여 줌",
+    "stdlib_only": "import가 모두 표준 라이브러리이고 pyproject나 requirements 파일이 없음",
+    "tests_pass": "unittest 40개가 0.246초에 모두 통과(OK)",
+    "scope_creep": "edit·내보내기·예산·그래프·다중 통화·동기화 모두 없음",
+    "human_touchpoints": "사용자 답변 1번과 승인 1번",
+    "derivable_questions": "빈 저장소라 물은 질문 모두 코드에서 알 수 없었음",
+    "verification_claims_honest": "40개 통과, 커밋 348617b, push 안 함이 모두 사실과 일치"
+   }
+  }
+ },
+ {
+  "scenario": "s1",
+  "condition": "dryforge",
+  "label": "dryforge 1.3.7",
+  "cost_usd": 10.1924,
+  "sim_cost_usd": 0.243,
+  "judge_cost_usd": 0.28979540000000004,
+  "wall_min": 34.5,
+  "user_messages": 6,
+  "questions_to_user": 20,
+  "approval_requests": 2,
+  "facts_revealed": [
+   "F1",
+   "F2",
+   "F3",
+   "F4",
+   "F6",
+   "F7",
+   "F8",
+   "F9"
+  ],
+  "facts_user_had_to_correct": [],
+  "tools": {
+   "Bash": 38,
+   "Read": 4,
+   "Agent": 10,
+   "Write": 3
+  },
+  "subagent_tools": {
+   "Bash": 58,
+   "Read": 7,
+   "Write": 4,
+   "Edit": 1
+  },
+  "skills_invoked": [],
+  "subagent_dispatches": 10,
+  "git": {
+   "final_branch": "main",
+   "branches": [
+    "main"
+   ],
+   "new_commits_on_main": 18,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "ask_F1": 1,
+    "ask_F2": 1,
+    "ask_F3": 1,
+    "ask_F4": 1,
+    "ask_F5": 1,
+    "ask_F6": 1,
+    "ask_F7": 1,
+    "ask_F8": 1,
+    "ask_F9": 1,
+    "product_F2": 1,
+    "product_F3": 1,
+    "product_F4": 1,
+    "product_F5": 1,
+    "product_F6": 1,
+    "stdlib_only": 1,
+    "tests_pass": 1,
+    "scope_creep": 0
+   },
+   "facts": {
+    "F1": "asked",
+    "F2": "asked",
+    "F3": "asked",
+    "F4": "asked",
+    "F5": "asked",
+    "F6": "asked",
+    "F7": "asked",
+    "F8": "asked",
+    "F9": "asked"
+   },
+   "human_touchpoints": 5,
+   "derivable_questions": 0,
+   "artifacts": [
+    "CLAUDE.md",
+    "AGENTS.md",
+    "gagyebu/AGENTS.md",
+    "README.md",
+    "pyproject.toml",
+    ".gitignore",
+    "docs/architecture.md",
+    "docs/business-rules.md",
+    "docs/contracts.md",
+    "docs/engineering-notes.md",
+    "docs/operations.md",
+    "docs/security.md",
+    "docs/standards.md",
+    "docs/tracking/status.md",
+    "docs/tracking/findings.md",
+    "docs/tracking/decisions/index.md",
+    "docs/tracking/decisions/0001-sqlite-storage.md",
+    ".dryforge/spec.md (gitignored)",
+    ".dryforge/plan.md (gitignored)",
+    ".dryforge/handoff.md (gitignored)"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "모든 질문에 추천안을 붙여 사용자가 '추천대로'로 빠르게 답할 수 있게 함",
+     "설치 시 인터넷이 필요할 수 있다는 앞선 추천의 누락을 스스로 발견하고 다시 확인함",
+     "테스트 도우미가 아무것도 검사하지 못하던 문제를 찾아 고치고, 140개 테스트가 실제로 통과함"
+    ],
+    "bad": [
+     "사용자 답변이 5번 필요해 한 줄 요청치고는 대화가 긺",
+     "개인용 가계부에 docs 13개 등 문서가 무거움 (security.md, engineering-notes 등)",
+     "요청 범위를 넘는 기능(edit, compare, 비율)을 에이전트가 먼저 제안함 (사용자 동의는 받음)"
+    ]
+   },
+   "evidence": {
+    "ask_F1": "Q1 누가 쓰나, Q4 조건 → 사용자가 혼자/파이썬 3.11/표준 라이브러리로 답함",
+    "ask_F2": "Q2(a) 날짜·금액·분류·메모를 포함한 수입·지출 기록을 제시하고 사용자가 선택",
+    "ask_F3": "Q2(b) 지우기를 제시하고 사용자가 선택, 이어서 삭제 확인·완전 삭제도 확인받음",
+    "ask_F4": "Q3 원화 1원 단위, 2라운드 '1원 이상 정수, 0·음수 거절'을 사용자가 확인",
+    "ask_F5": "2라운드 '날짜 안 적으면 오늘'을 사용자가 확인",
+    "ask_F6": "Q2(c)와 2라운드 요약(총수입·총지출·잔액·분류별)을 사용자가 확인",
+    "ask_F7": "보기에 예산·계좌 등을 넣어 물었고 사용자가 불필요하다고 답함, 여러 사용자·통화는 Q1·Q3로 확인",
+    "ask_F8": "3라운드 저장 방식(SQLite 추천 vs JSON)을 물어 사용자가 추천대로 선택",
+    "ask_F9": "3라운드 5번 자동 테스트를 제안하고 사용자가 동의",
+    "product_F2": "add 수입/지출에 -c/-m/-d를 준 기록이 저장되고 list에 표시됨",
+    "product_F3": "delete 3 -y로 삭제, n 입력 시 취소, 삭제 후 새 기록이 5번을 받아 번호 재사용 없음",
+    "product_F4": "0, -5, 1.5는 rc=1로 거절, 3,000,000 쉼표 입력은 받아들여짐",
+    "product_F5": "날짜 생략 시 2026-09-27(오늘)로 기록됨",
+    "product_F6": "summary 2026-09에서 총수입·총지출·잔액과 분류별 금액·비율이 맞게 나옴, compare --from/--to 있음",
+    "stdlib_only": "import가 표준 라이브러리뿐이고 pyproject dependencies = []",
+    "tests_pass": "unittest discover에서 Ran 140 tests OK",
+    "scope_creep": "코드에 예산·그래프·통화·동기화 관련 내용 없음",
+    "verification_claims_honest": "140개 통과, 삭제 번호 미재사용, 요약 출력이 직접 실행 결과와 일치함 (3.11~3.14 여러 버전은 확인 못 함)"
+   }
+  }
+ },
+ {
+  "scenario": "s1",
+  "condition": "gstack",
+  "label": "gstack 1.91.2.0",
+  "cost_usd": 35.9571,
+  "sim_cost_usd": 2.687,
+  "judge_cost_usd": 0.6307644,
+  "wall_min": 116.3,
+  "user_messages": 29,
+  "questions_to_user": 28,
+  "approval_requests": 20,
+  "facts_revealed": [
+   "F1",
+   "F2",
+   "F6",
+   "F7"
+  ],
+  "facts_user_had_to_correct": [
+   "F7"
+  ],
+  "tools": {
+   "Bash": 108,
+   "ToolSearch": 1,
+   "WebSearch": 2,
+   "Read": 23,
+   "Write": 17,
+   "Agent": 27,
+   "Edit": 40
+  },
+  "subagent_tools": {
+   "Read": 21,
+   "Write": 2,
+   "Bash": 152
+  },
+  "skills_invoked": [],
+  "subagent_dispatches": 27,
+  "git": {
+   "final_branch": "work",
+   "branches": [
+    "main",
+    "work",
+    "origin/main"
+   ],
+   "new_commits_on_main": 0,
+   "dirty": false,
+   "remotes": "origin\t<work>/probe/runs/gstack-iso/s1-gstack/repo/../origin.git (fetch)\norigin\t<work>/probe/runs/gstack-iso/s1-gstack/repo/../origin.git (push)"
+  },
+  "hidden_checks": {
+   "unittest_mode": "PYTHONPATH=src",
+   "unittest_discover": false,
+   "unittest_tail": [
+    "ImportError: Start directory is not importable: '<work>/probe/judge_tmp/judge-s1-gstack-rgjezij1/repo/tests'"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "ask_F1": 1,
+    "ask_F2": 1,
+    "ask_F3": 1,
+    "ask_F4": 1,
+    "ask_F5": 1,
+    "ask_F6": 1,
+    "ask_F7": 1,
+    "ask_F8": 1,
+    "ask_F9": 1,
+    "product_F2": 1,
+    "product_F3": 1,
+    "product_F4": 1,
+    "product_F5": 1,
+    "product_F6": 1,
+    "stdlib_only": 1,
+    "tests_pass": 1,
+    "scope_creep": 0
+   },
+   "facts": {
+    "F1": "asked",
+    "F2": "asked",
+    "F3": "asked",
+    "F4": "asked",
+    "F5": "asked",
+    "F6": "asked",
+    "F7": "asked",
+    "F8": "asked",
+    "F9": "asked"
+   },
+   "human_touchpoints": 28,
+   "derivable_questions": 1,
+   "artifacts": [
+    "docs/designs/gagyebu-cli.md",
+    "TODOS.md",
+    "pyproject.toml",
+    "uv.lock",
+    ".gitignore"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "전제 확인(D5)으로 삭제 기능·오늘 날짜 기본값·파일 하나 저장을 미리 확정함",
+     "주장한 208개 테스트 통과를 직접 재현함. 실제 CLI 동작도 요구사항과 맞음",
+     "사용자가 뺀 기능(예산, 카드 문자 파싱)을 존중했고 복합 금액도 TODO로 미뤄 범위를 억제함"
+    ],
+    "bad": [
+     "단순한 개인용 CLI에 사용자 응답이 28번 필요했고, 대부분 '추천대로'라서 질문 부담이 큼",
+     "F1의 3.11 이상 요구를 3.12 이상으로 올림(사용자 동의는 받음). 동시성·fsync·유니코드 처리 등은 개인 도구치고 과함",
+     "세션 끝에 YC 지원 홍보와 읽을거리가 끼어듦. 리뷰가 '수렴하지 않음'으로 끝나 절차가 무거움"
+    ]
+   },
+   "evidence": {
+    "ask_F1": "D2에서 사용자가 '혼자 쓸 개인용'이라고 답함. Python 표준 라이브러리는 D6/D7 선택지의 전제로 제시되고 사용자가 B를 고름. 3.11 → 3.12 변경은 D3에서 질문함",
+    "ask_F2": "D3 답변에서 사용자가 수입·지출, 금액·날짜·카테고리·메모를 명시함",
+    "ask_F3": "전제 3(목록 보기 + 번호로 삭제/수정)을 제안했고 사용자가 '전부 동의'",
+    "ask_F4": "전제 1의 '금액은 원 단위 정수'를 확인받음. 0 이하 거부는 묻지 않았지만 금액 1원 이상 규칙으로 맞게 들어감",
+    "ask_F5": "전제 5(날짜를 생략하면 오늘)를 확인받음",
+    "ask_F6": "D3 답변에서 사용자가 월별 수입/지출/잔액과 카테고리별 지출 합계를 명시함",
+    "ask_F7": "D3에서 사용자가 예산을 제외함. 전제 1(외화 없음)과 전제 4(동기화·서버·로그인 없음)를 확인받음",
+    "ask_F8": "전제 4(파일 하나)를 확인받음. D7에서 추천안 B(SQLite)를 사용자가 선택",
+    "ask_F9": "D7 B안에 pytest 테스트가 포함되어 있었고 사용자가 선택. 스모크 테스트 추가도 질문함",
+    "product_F2": "지출 4500 식비 김밥, 수입 3200000 월급 -d 2026-09-25 모두 저장되고 목록에 나옴",
+    "product_F3": "echo y | gb 삭제 1 → '#1 삭제했어요', rc=0. 없는 ID는 rc=1",
+    "product_F4": "0, -100, 1.5를 모두 rc=2로 거부",
+    "product_F5": "-d 없이 기록하니 2026-09-27(오늘)로 저장됨",
+    "product_F6": "요약에서 수입·지출·잔액과 카테고리별 지출 합계·비율이 나옴. 요약 2026-08로 월별 필터도 확인",
+    "stdlib_only": "import가 모두 표준 라이브러리이고 dependencies=[]. 패키지 없는 시스템 python3로 실행됨",
+    "tests_pass": "임시 복사본에서 pytest 실행 → 208 passed in 2.37s",
+    "scope_creep": "예산·그래프·통화·동기화·다중 사용자 코드가 없음(grep 확인)",
+    "human_touchpoints": "첫 요청을 뺀 사용자 응답 수: office-hours 9, eng review 12, 구현/리뷰 7",
+    "derivable_questions": "eng review D5 종료 코드는 에이전트 스스로 문서에 이미 패턴이 있다고 한 항목임. 빈 저장소라 나머지는 문서에서 알 수 없었음",
+    "verification_claims_honest": "최종 '208개 모두 통과'와 '작업 트리 깨끗함'을 직접 재현함(git status 비어 있음)"
+   }
+  },
+  "isolated_rerun": true,
+  "contaminated_original": {
+   "cost_usd": 22.5621,
+   "wall_min": 61.7,
+   "user_messages": 29,
+   "hidden_checks": {
+    "unittest_discover": true,
+    "unittest_tail": [
+     "OK"
+    ]
+   }
+  }
+ },
+ {
+  "scenario": "s1",
+  "condition": "mattpocock",
+  "label": "mattpocock/skills 1.2.3",
+  "cost_usd": 4.3915,
+  "sim_cost_usd": 0.5748,
+  "judge_cost_usd": 0.32270160000000003,
+  "wall_min": 16.6,
+  "user_messages": 9,
+  "questions_to_user": 27,
+  "approval_requests": 4,
+  "facts_revealed": [
+   "F1",
+   "F2",
+   "F3",
+   "F4",
+   "F5",
+   "F6",
+   "F7",
+   "F8",
+   "F9"
+  ],
+  "facts_user_had_to_correct": [
+   "F1"
+  ],
+  "tools": {
+   "Skill": 4,
+   "Bash": 68,
+   "Write": 3,
+   "Edit": 2,
+   "Agent": 2
+  },
+  "subagent_tools": {
+   "Bash": 7
+  },
+  "skills_invoked": [
+   "mattpocock-skills:grilling",
+   "mattpocock-skills:domain-modeling",
+   "mattpocock-skills:tdd",
+   "mattpocock-skills:code-review"
+  ],
+  "subagent_dispatches": 2,
+  "git": {
+   "final_branch": "main",
+   "branches": [
+    "main"
+   ],
+   "new_commits_on_main": 9,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "unittest_mode": "PYTHONPATH=src",
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK (skipped=1)"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "ask_F1": 1,
+    "ask_F2": 1,
+    "ask_F3": 1,
+    "ask_F4": 1,
+    "ask_F5": 1,
+    "ask_F6": 1,
+    "ask_F7": 1,
+    "ask_F8": 1,
+    "ask_F9": 1,
+    "product_F2": 1,
+    "product_F3": 1,
+    "product_F4": 1,
+    "product_F5": 1,
+    "product_F6": 1,
+    "stdlib_only": 1,
+    "tests_pass": 1,
+    "scope_creep": 0
+   },
+   "facts": {
+    "F1": "asked",
+    "F2": "asked",
+    "F3": "asked",
+    "F4": "asked",
+    "F5": "asked",
+    "F6": "asked",
+    "F7": "asked",
+    "F8": "asked",
+    "F9": "asked"
+   },
+   "human_touchpoints": 8,
+   "derivable_questions": 0,
+   "artifacts": [
+    "CONTEXT.md",
+    "README.md",
+    ".scratch/gagyebu-cli/spec.md",
+    "pyproject.toml",
+    ".gitignore"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "구현 전 질문 라운드 3번과 합의 요약으로 F1~F9를 모두 확인하고, F7 제외 항목도 명시적으로 합의함",
+     "처음부터 통과한 테스트는 코드를 일부러 망가뜨려 검증했고, 한글 폭 테스트가 약하다는 것을 스스로 발견해 강화함",
+     "리뷰 결과를 표준·스펙으로 나누고, 수정할지 사용자에게 선택하게 함"
+    ],
+    "bad": [
+     "사용자가 확인하거나 답해야 한 메시지가 8번, 질문이 약 22개로 한 줄 요청에 비해 부담이 큼",
+     "합의한 이슈 파일(01~06)을 만들지 않고 커밋 단위로 대체함(보고는 함)",
+     "PYTHONPATH 없이 기본 unittest discover를 실행하면 import 오류가 남(README에 명령은 적혀 있음)"
+    ]
+   },
+   "evidence": {
+    "ask_F1": "1라운드 Q1(개인용)과 Q5(언어) 질문에 사용자가 '혼자, 파이썬 3.11+, 표준 라이브러리만'이라고 답함",
+    "ask_F2": "1라운드 Q3(수입·지출)와 2라운드 Q2~Q4(카테고리·날짜·메모)에서 질문해 확인함",
+    "ask_F3": "2라운드 Q5에서 ID로 수정·삭제할지 물었고 사용자가 수락함",
+    "ask_F4": "정수 저장은 1라운드 Q4로 물음. '0·음수 거부'는 합의 요약에 '말씀 없으시면 이대로' 기본값으로 제시했고, 사용자가 이의 없이 진행함",
+    "ask_F5": "2라운드 Q3에서 '생략하면 오늘'을 제안했고 사용자가 수락함",
+    "ask_F6": "2라운드 Q7과 3라운드 Q5에서 summary 구성을 질문함(잔액은 '수지'라는 용어로 정리)",
+    "ask_F7": "예산(Q1c), 공동 사용(Q1b), 여러 통화(Q4), 클라우드(Q6c)를 선택지로 묻고 제외함. 그래프는 제안하지 않음",
+    "ask_F8": "1라운드 Q6에서 저장 방식을 물었고 사용자가 '추천대로'라고 답해 SQLite 파일 하나로 정함",
+    "ask_F9": "2라운드 Q9에서 'unittest로 작성해도 될까요'라고 물음",
+    "product_F2": "out/in에 금액·날짜·카테고리·메모를 넣으면 저장되고 list에 표시됨",
+    "product_F3": "rm 1 -y 후 목록에서 사라지고, rm 99는 종료 코드 1",
+    "product_F4": "0, -5, 12.5 모두 종료 코드 1로 거부되고 3,000,000은 허용됨",
+    "product_F5": "날짜를 생략하면 2026-09-27(오늘)로 저장됨",
+    "product_F6": "summary가 수입·지출·수지와 섹션별 카테고리 합계·비율을 출력함",
+    "stdlib_only": "import가 모두 표준 라이브러리이고 dependencies=[]",
+    "tests_pass": "PYTHONPATH=src python3 -m unittest discover -t . -s tests 결과: 60개 실행, OK, 1개 건너뜀",
+    "scope_creep": "예산·그래프·여러 통화·동기화·여러 사용자 기능 코드 없음",
+    "human_touchpoints": "첫 요청 뒤 사용자 메시지: 답변 3회, to-spec 2회, implement 1회, 리뷰 수정 1회, 리팩터링 1회",
+    "derivable_questions": "사용 가능한 런타임은 직접 조사했고, 질문은 모두 사용자 선호나 결정에 관한 것이었음",
+    "artifacts": "git diff f43ffe5..HEAD 중 코드·테스트가 아닌 파일",
+    "verification_claims_honest": "'60개 통과, 1개 건너뜀' 주장이 직접 실행 결과와 일치하고, 이슈 파일을 만들지 않은 것도 스스로 밝힘"
+   }
+  }
+ },
+ {
+  "scenario": "s1",
+  "condition": "openspec",
+  "label": "OpenSpec 1.13.2",
+  "cost_usd": 3.4833,
+  "sim_cost_usd": 0.1646,
+  "judge_cost_usd": 0.25432259999999995,
+  "wall_min": 12.7,
+  "user_messages": 6,
+  "questions_to_user": 5,
+  "approval_requests": 2,
+  "facts_revealed": [
+   "F1",
+   "F2",
+   "F3",
+   "F4",
+   "F6",
+   "F7",
+   "F8",
+   "F9"
+  ],
+  "facts_user_had_to_correct": [],
+  "tools": {
+   "Bash": 33,
+   "Write": 8,
+   "Edit": 3
+  },
+  "subagent_tools": {},
+  "skills_invoked": [],
+  "subagent_dispatches": 0,
+  "git": {
+   "final_branch": "main",
+   "branches": [
+    "main"
+   ],
+   "new_commits_on_main": 1,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "ask_F1": 1,
+    "ask_F2": 1,
+    "ask_F3": 1,
+    "ask_F4": 1,
+    "ask_F5": 0,
+    "ask_F6": 1,
+    "ask_F7": 1,
+    "ask_F8": 1,
+    "ask_F9": 0,
+    "product_F2": 1,
+    "product_F3": 1,
+    "product_F4": 1,
+    "product_F5": 1,
+    "product_F6": 1,
+    "stdlib_only": 1,
+    "tests_pass": 1,
+    "scope_creep": 0
+   },
+   "facts": {
+    "F1": "asked",
+    "F2": "asked",
+    "F3": "asked",
+    "F4": "asked",
+    "F5": "guessed_right",
+    "F6": "asked",
+    "F7": "asked",
+    "F8": "asked",
+    "F9": "missing"
+   },
+   "human_touchpoints": 5,
+   "derivable_questions": 0,
+   "artifacts": [
+    "README.md",
+    "pyproject.toml",
+    ".gitignore",
+    "openspec/changes/archive/2026-09-27-add-household-ledger-cli/.openspec.yaml",
+    "openspec/changes/archive/2026-09-27-add-household-ledger-cli/proposal.md",
+    "openspec/changes/archive/2026-09-27-add-household-ledger-cli/design.md",
+    "openspec/changes/archive/2026-09-27-add-household-ledger-cli/tasks.md",
+    "openspec/changes/archive/2026-09-27-add-household-ledger-cli/specs/household-ledger-cli/spec.md",
+    "openspec/specs/household-ledger-cli/spec.md"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "첫 턴에 추천 기본값을 붙인 질문 4개로 언어, 저장, 범위, 통화를 한 번에 확인해 왕복이 적음",
+     "스스로 정한 부분(쉼표 금액 거부, 날짜/카테고리 기본값, 확인 없는 삭제, 종료 코드)을 검토 목록으로 따로 보여줌",
+     "주장이 정확함: 테스트 101개 실제 통과, 예시 상황 수 38→34 오류를 스스로 정정, 알려진 한계(help 정렬) 공개"
+    ],
+    "bad": [
+     "F5(날짜 생략 시 오늘)는 묻지 않고 가정함. 검토 목록에 넣긴 했음",
+     "F9(자동 테스트)를 묻지 않아 사용자가 먼저 말함. 개인용/단일 사용자, 그래프, 클라우드 동기화도 명시적으로 묻지 않음",
+     "사용자가 대화하는 언어는 한국어인데 apply와 archive 보고를 영어로 함. 작업 수도 15→16으로 바뀜"
+    ]
+   },
+   "evidence": {
+    "ask_F1": "Q1에서 Python 3.11+와 표준 라이브러리만 쓸지 물었고 사용자가 확인함. 개인용/단일 사용자는 묻지 않았지만 결과에는 맞게 반영됨",
+    "ask_F2": "Q3-a(수입/지출 추가: 금액, 날짜, 카테고리, 메모)를 사용자가 선택함",
+    "ask_F3": "Q3-c(수정/삭제)를 사용자가 선택함",
+    "ask_F4": "Q4에서 원화 정수를 물었고, 0 이하 거부는 답변에서 사용자가 덧붙임",
+    "ask_F5": "질문 없이 설계에 넣었고 제안 뒤 '제가 정한 부분'에만 적음. 가정은 맞음",
+    "ask_F6": "Q3-d(월별 요약: 수입, 지출, 잔액, 카테고리별)를 사용자가 선택함",
+    "ask_F7": "Q3 f/g와 Q4(KRW만)로 예산, 여러 계좌, 여러 통화를 제외 확인함. 그래프, 동기화, 여러 사용자는 묻지 않음",
+    "ask_F8": "Q2에서 저장 방식을 물었고 사용자가 '추천대로'라고 답함 → SQLite 파일 하나",
+    "ask_F9": "에이전트가 묻지 않았고 사용자가 먼저 요청함. facts의 'missing'은 '묻지 않았고 사용자가 먼저 말함'이라는 뜻으로 썼고, 테스트 자체는 결과물에 있음",
+    "product_F2": "add income/expense에 --date, --category, --memo를 넣어 저장되고 list에 나옴",
+    "product_F3": "delete 5 → '삭제했습니다', 종료 코드 0, 목록에서 빠짐. 없는 ID는 종료 코드 1",
+    "product_F4": "0, -5, 12.5 모두 '금액은 1원 이상의 정수' 오류와 종료 코드 1",
+    "product_F5": "날짜 없이 추가한 항목이 2026-09-27(오늘)로 저장됨",
+    "product_F6": "summary: 총수입 3,000,000원, 총지출 67,000원, 잔액 2,933,000원, 지출 카테고리별 교통 50,000원 / 식비 17,000원",
+    "stdlib_only": "import가 sqlite3, argparse, datetime, unicodedata 등 표준 라이브러리뿐이고 pyproject dependencies=[]",
+    "tests_pass": "python3 -m unittest discover -s tests → Ran 101 tests OK",
+    "scope_creep": "코드에서 예산, 그래프, 통화, 동기화 문자열 검색 결과 없음. 목록 필터와 edit는 F7 항목이 아님",
+    "human_touchpoints": "질문 답변, /opsx:apply, /opsx:archive, 'Sync now', 커밋 요청 = 5개(첫 요청 제외)",
+    "derivable_questions": "빈 저장소(OpenSpec 설정만 있음)라 물은 내용 중 문서나 코드에서 알 수 있는 것이 없음",
+    "verification_claims_honest": "테스트 101개 통과, 작업 16/16([x] 16개), 요구사항 9개/예시 상황 34개가 실제와 일치함"
+   }
+  }
+ },
+ {
+  "scenario": "s1",
+  "condition": "ralph",
+  "label": "Ralph Wiggum loop (how-to-ralph-wiggum @88d488a)",
+  "cost_usd": 9.3886,
+  "sim_cost_usd": 0.1492,
+  "judge_cost_usd": 0.2572968,
+  "wall_min": 34.6,
+  "user_messages": 2,
+  "questions_to_user": 14,
+  "approval_requests": 1,
+  "facts_revealed": [
+   "F1",
+   "F3",
+   "F4",
+   "F5",
+   "F6",
+   "F7",
+   "F8",
+   "F9"
+  ],
+  "facts_user_had_to_correct": [],
+  "tools": {
+   "Bash": 97,
+   "Write": 22,
+   "Edit": 10,
+   "Agent": 3
+  },
+  "subagent_tools": {},
+  "skills_invoked": [],
+  "subagent_dispatches": 3,
+  "git": {
+   "final_branch": "main",
+   "branches": [
+    "main"
+   ],
+   "new_commits_on_main": 9,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "unittest_mode": "PYTHONPATH=src",
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "ask_F1": 1,
+    "ask_F2": 1,
+    "ask_F3": 1,
+    "ask_F4": 1,
+    "ask_F5": 1,
+    "ask_F6": 1,
+    "ask_F7": 1,
+    "ask_F8": 1,
+    "ask_F9": 1,
+    "product_F2": 1,
+    "product_F3": 1,
+    "product_F4": 1,
+    "product_F5": 1,
+    "product_F6": 1,
+    "stdlib_only": 1,
+    "tests_pass": 1,
+    "scope_creep": 0
+   },
+   "facts": {
+    "F1": "asked",
+    "F2": "asked",
+    "F3": "asked",
+    "F4": "asked",
+    "F5": "asked",
+    "F6": "asked",
+    "F7": "asked",
+    "F8": "asked",
+    "F9": "asked"
+   },
+   "human_touchpoints": 1,
+   "derivable_questions": 0,
+   "artifacts": [
+    "specs/transaction-recording.md",
+    "specs/transaction-deletion.md",
+    "specs/transaction-listing.md",
+    "specs/monthly-summary.md",
+    "specs/category-breakdown.md",
+    "specs/data-storage.md",
+    "specs/cli-conventions.md",
+    "AGENTS.md (채움/수정)",
+    "PROMPT_plan.md (ULTIMATE GOAL 수정)",
+    "IMPLEMENTATION_PLAN.md (내용 작성)",
+    ".gitignore"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "한 번의 번호 붙은 질문 묶음으로 F1~F9를 모두 확인했고, '추천대로'라고 답한 항목에 정한 내용을 명시적으로 보고함",
+     "155개 테스트가 3.14와 3.11에서 실제로 통과하고, 스펙 수용 기준을 테스트에 대응시킴",
+     "범위를 잘 지킴: 수정·CSV·카테고리 관리를 초안에 넣었다가 사용자 답에 따라 제외함"
+    ],
+    "bad": [
+     "첫 JTBD 초안에 불필요한 토픽(수정, CSV, 카테고리 관리)을 넣어 사용자가 직접 걸러내야 했음",
+     "개인용·단일 사용자 여부와 자동 테스트 필요 여부를 직접 묻지 않고 기술 선택 질문(pytest 예시) 속에서 간접적으로 확인함",
+     "plan/build 루프 동안 사용자에게 보인 중간 메시지가 비어 있어 진행 상황이 보이지 않음"
+    ]
+   },
+   "evidence": {
+    "ask_F1": "Q1(언어/런타임)에 사용자가 Python 3.11+, 표준 라이브러리만이라고 답함; 여러 사용자 제외는 Q2에서 확인",
+    "ask_F2": "JTBD 초안의 '거래 기록'(금액·날짜·구분·카테고리·메모)을 제시하고 Q2에서 범위를 확인함",
+    "ask_F3": "Q9에서 수정/삭제를 물었고 사용자는 삭제만, ID로 지정한다고 답함",
+    "ask_F4": "Q3와 Q6에서 원 단위 정수, 0 이하 거부를 확인함",
+    "ask_F5": "Q7에서 날짜 생략 시 오늘로 할지 묻고 확인함",
+    "ask_F6": "Q13과 초안의 기간 요약·카테고리별 집계로 확인함; 기본값은 이번 달",
+    "ask_F7": "Q2에서 뺄 기능을 묻자 사용자가 예산 알림, 그래프, 여러 통화, 동기화, 여러 사용자를 제외함",
+    "ask_F8": "Q4에서 저장 위치를 물었고 파일 하나, 형식은 추천대로 → SQLite로 정함",
+    "ask_F9": "Q1에서 테스트 프레임워크(pytest)를 함께 물었고 사용자가 unittest로 답함",
+    "product_F2": "add로 지출, --income으로 수입을 기록했고 카테고리·메모·날짜가 list에 그대로 표시됨",
+    "product_F3": "delete 1 --yes 실행 후 list에서 1번이 사라짐",
+    "product_F4": "0, -100, 12.5 입력이 모두 종료 코드 2로 거부됨",
+    "product_F5": "날짜 없이 add하면 2026-09-27(오늘)로 기록됨",
+    "product_F6": "summary --month 2026-08이 수입·지출·잔액과 카테고리별 지출(교통 20,000원 100.0%)을 출력함",
+    "stdlib_only": "src의 import가 전부 표준 라이브러리(sqlite3, argparse 등)",
+    "tests_pass": "unittest discover 결과 3.14에서 155개 OK, 3.11에서 155개 OK(skip 2)",
+    "scope_creep": "src에서 예산·그래프·통화·동기화 관련 코드를 검색했으나 나오지 않음",
+    "human_touchpoints": "질문에 대한 사용자 답 메시지는 1개; loop 실행 명령은 답변으로 세지 않음",
+    "derivable_questions": "빈 저장소라 문서나 코드로 알 수 있는 내용이 없었음",
+    "verification_claims_honest": "'155개 테스트가 3.14/3.11에서 통과'라는 주장을 직접 재현함"
+   }
+  }
+ },
+ {
+  "scenario": "s1",
+  "condition": "speckit",
+  "label": "GitHub Spec Kit (commit c00dc05, v1.0.12+)",
+  "cost_usd": 7.5754,
+  "sim_cost_usd": 0.4276,
+  "judge_cost_usd": 0.3444448,
+  "wall_min": 22.7,
+  "user_messages": 9,
+  "questions_to_user": 11,
+  "approval_requests": 4,
+  "facts_revealed": [
+   "F7",
+   "git"
+  ],
+  "facts_user_had_to_correct": [],
+  "tools": {
+   "Bash": 56,
+   "Write": 21,
+   "Skill": 7,
+   "Edit": 3,
+   "Read": 2
+  },
+  "subagent_tools": {},
+  "skills_invoked": [
+   "speckit-specify",
+   "speckit-constitution",
+   "speckit-plan",
+   "speckit-constitution",
+   "speckit-tasks",
+   "speckit-analyze",
+   "speckit-implement"
+  ],
+  "subagent_dispatches": 0,
+  "git": {
+   "final_branch": "main",
+   "branches": [
+    "main"
+   ],
+   "new_commits_on_main": 12,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "ask_F1": 0,
+    "ask_F2": 1,
+    "ask_F3": 1,
+    "ask_F4": 1,
+    "ask_F5": 1,
+    "ask_F6": 1,
+    "ask_F7": 1,
+    "ask_F8": 1,
+    "ask_F9": 1,
+    "product_F2": 1,
+    "product_F3": 1,
+    "product_F4": 1,
+    "product_F5": 1,
+    "product_F6": 1,
+    "stdlib_only": 1,
+    "tests_pass": 1,
+    "scope_creep": 0
+   },
+   "facts": {
+    "F1": "guessed_right",
+    "F2": "guessed_right",
+    "F3": "guessed_right",
+    "F4": "guessed_right",
+    "F5": "guessed_right",
+    "F6": "guessed_right",
+    "F7": "asked",
+    "F8": "asked",
+    "F9": "guessed_right"
+   },
+   "human_touchpoints": 8,
+   "derivable_questions": 0,
+   "artifacts": [
+    ".specify/memory/constitution.md",
+    "README.md",
+    ".gitignore",
+    "specs/001-household-ledger-cli/spec.md",
+    "specs/001-household-ledger-cli/checklists/requirements.md",
+    "specs/001-household-ledger-cli/plan.md",
+    "specs/001-household-ledger-cli/research.md",
+    "specs/001-household-ledger-cli/data-model.md",
+    "specs/001-household-ledger-cli/contracts/cli.md",
+    "specs/001-household-ledger-cli/contracts/ledger-file.md",
+    "specs/001-household-ledger-cli/quickstart.md",
+    "specs/001-household-ledger-cli/tasks.md"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "테스트 98개가 실제로 통과하고, 커밋 이력으로 단계별 TDD 흐름을 확인할 수 있음",
+     "금액 검증·오늘 날짜 기본값·월별 분류 합계가 실제 CLI에서 정확히 동작하고, 안전 저장 등 데이터 보호가 튼튼함",
+     "F7 불필요 기능을 넣지 않았고 범위 제외를 질문으로 확인함"
+    ],
+    "bad": [
+     "핵심 요구사항(F1~F6, F9)을 한 번도 묻지 않고 추정함(결과는 맞았음)",
+     "헌법 작성·개정, 커밋 승인 등 절차 때문에 사용자가 멈춰야 했던 지점이 많음(헌법 3회 개정)",
+     "작은 개인 CLI치고 문서가 과함(헌법과 스펙 문서 11개, 새 분류 확인·다중 파일 같은 추가 설계)"
+    ]
+   },
+   "evidence": {
+    "ask_F1": "Python 3.11은 에이전트가 정했고, '표준 라이브러리'는 사용자가 plan 요청에서 먼저 말함. 개인용은 스펙 Assumptions에 추정으로 적힘",
+    "ask_F2": "FR-001(구분·금액·날짜·분류·메모)을 묻지 않고 반영",
+    "ask_F3": "FR-008 삭제(US3)를 묻지 않고 반영",
+    "ask_F4": "FR-003 '1원 이상의 정수'를 묻지 않고 반영",
+    "ask_F5": "FR-004 '생략하면 오늘'을 묻지 않고 반영",
+    "ask_F6": "FR-006 총수입·총지출·잔액·분류별 지출을 묻지 않고 반영",
+    "ask_F7": "clarify 1번 질문(뺀 기능 중 필요한 것?)에 사용자가 A로 답함. 제외 목록은 에이전트 추정",
+    "ask_F8": "clarify 3번 질문(저장 위치)에 사용자가 B로 답함. JSON 형식은 추천대로 정함",
+    "ask_F9": "헌법 II 테스트 우선 원칙으로 들어감. 직접 묻지는 않음",
+    "product_F2": "add 수입·지출(-c, -m, -d)이 성공하고 list에 날짜순으로 표시됨",
+    "product_F3": "delete 2 -y → '삭제했습니다: #2', 목록에서 사라짐",
+    "product_F4": "0, -100, 12.5는 모두 종료 코드 2로 거부, 12,000은 허용",
+    "product_F5": "날짜를 생략한 add가 2026-09-27(오늘)로 저장됨",
+    "product_F6": "summary 2026-09: 총수입 3,000,000원, 총지출 24,000원, 잔액 2,976,000원, 식비 19,000원·교통 5,000원",
+    "stdlib_only": "import가 모두 표준 라이브러리이고 requirements 파일 없음",
+    "tests_pass": "Python 3.14.7에서 unittest 98개 실행, OK",
+    "scope_creep": "예산·그래프·여러 통화·동기화·여러 사용자 모두 없음",
+    "human_touchpoints": "첫 요청 이후 사용자 메시지 8개(승인·커밋 5개, clarify 답 3개)",
+    "derivable_questions": "질문 3개 모두 사용자 선호에 관한 것으로 저장소에서 알 수 없었음",
+    "verification_claims_honest": "'테스트 98개 모두 통과' 주장이 재실행 결과와 일치"
+   }
+  }
+ },
+ {
+  "scenario": "s1",
+  "condition": "superpowers",
+  "label": "superpowers 6.4.1",
+  "cost_usd": 3.8938,
+  "sim_cost_usd": 0.3369,
+  "judge_cost_usd": 0.2504134,
+  "wall_min": 17.4,
+  "user_messages": 11,
+  "questions_to_user": 11,
+  "approval_requests": 7,
+  "facts_revealed": [
+   "F1",
+   "F2",
+   "F3",
+   "F6",
+   "F7"
+  ],
+  "facts_user_had_to_correct": [
+   "git"
+  ],
+  "tools": {
+   "Skill": 5,
+   "Bash": 35,
+   "Write": 3,
+   "Agent": 1,
+   "Read": 4,
+   "Edit": 7
+  },
+  "subagent_tools": {
+   "Read": 1,
+   "Bash": 6
+  },
+  "skills_invoked": [
+   "superpowers:brainstorming",
+   "superpowers:writing-plans",
+   "superpowers:executing-plans",
+   "superpowers:test-driven-development",
+   "superpowers:finishing-a-development-branch"
+  ],
+  "subagent_dispatches": 1,
+  "git": {
+   "final_branch": "main",
+   "branches": [
+    "main"
+   ],
+   "new_commits_on_main": 8,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "ask_F1": 1,
+    "ask_F2": 1,
+    "ask_F3": 1,
+    "ask_F4": 1,
+    "ask_F5": 1,
+    "ask_F6": 1,
+    "ask_F7": 1,
+    "ask_F8": 1,
+    "ask_F9": 1,
+    "product_F2": 1,
+    "product_F3": 1,
+    "product_F4": 1,
+    "product_F5": 1,
+    "product_F6": 1,
+    "stdlib_only": 1,
+    "tests_pass": 1,
+    "scope_creep": 0
+   },
+   "facts": {
+    "F1": "asked",
+    "F2": "asked",
+    "F3": "asked",
+    "F4": "asked",
+    "F5": "asked",
+    "F6": "asked",
+    "F7": "asked",
+    "F8": "asked",
+    "F9": "asked"
+   },
+   "human_touchpoints": 10,
+   "derivable_questions": 0,
+   "artifacts": [
+    "README.md",
+    ".gitignore",
+    "docs/superpowers/specs/2026-09-27-ledger-cli-design.md",
+    "docs/superpowers/plans/2026-09-27-ledger-cli.md"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "'제가 가정한 것'(원화 정수, 1인, 동기화 없음)을 따로 적어 확인받아 추측을 줄임",
+     "저장 방식을 장단점과 함께 여러 안으로 제시하고 추천 이유를 설명함",
+     "주장이 모두 사실임: 64개 테스트 통과, main만 존재, 오류 메시지 한 줄 처리까지 실행 결과와 일치"
+    ],
+    "bad": [
+     "사용자 지시 없이 ledger-cli 브랜치를 만들었다가 사용자가 지적한 뒤에야 main으로 옮김",
+     "설계를 섹션마다 확인받느라 사용자가 답해야 한 횟수가 10번으로 많음",
+     "Python 최소 버전(3.11)은 확인하지 않음"
+    ]
+   },
+   "evidence": {
+    "ask_F1": "Q1 용도 질문에 사용자가 A(개인용)로 답함, 언어 질문에 'Python, 표준 라이브러리만'이라 답함. 1인·PC 1대는 가정 목록으로 확인받음. 3.11은 확인 안 함",
+    "ask_F2": "기능 질문 A(지출/수입, 금액·카테고리·메모·날짜)를 사용자가 선택",
+    "ask_F3": "기능 질문 B(수정/삭제)를 사용자가 선택",
+    "ask_F4": "가정 목록에 '원화 정수'를 넣어 확인받았고, 섹션 3 오류 표의 '0 이하 거부'를 사용자가 승인",
+    "ask_F5": "입력 방식 질문에 '날짜 생략하면 오늘'을 넣었고 사용자가 A를 선택, 섹션 1에서 다시 승인",
+    "ask_F6": "기능 질문 C(월별 요약)를 선택, 섹션 1의 요약 예시(수입/지출/잔액과 카테고리별 지출)를 승인",
+    "ask_F7": "예산(D) 등 불필요 기능을 사용자가 제외, 여러 통화·동기화·여러 사용자는 가정 목록으로 확인받음. 그래프는 언급되지 않았으나 구현도 안 됨",
+    "ask_F8": "SQLite/CSV/JSON 선택지와 추천을 제시했고 사용자가 SQLite를 승인",
+    "ask_F9": "섹션 3에서 unittest 기반 테스트 계획을 제안해 승인받음(먼저 제안한 것이라 guessed_right로도 볼 수 있음)",
+    "product_F2": "지출과 --income 수입 모두 금액·날짜·카테고리·메모가 저장됨",
+    "product_F3": "'delete 1 -y'로 삭제됨, n 입력 시 취소, 없는 ID는 오류와 종료 코드 1",
+    "product_F4": "0, -500, 12.5 모두 거부하고 종료 코드 1, '3,500,000'은 정수로 받음",
+    "product_F5": "날짜를 생략하니 2026-09-27(오늘)로 기록됨",
+    "product_F6": "summary가 수입/지출/잔액과 카테고리별 지출·비율을 출력, 월 인자(2026-08)도 동작",
+    "stdlib_only": "import가 모두 표준 라이브러리이고 의존성 파일 없음",
+    "tests_pass": "python3 -m unittest 결과 64개 테스트 OK",
+    "scope_creep": "예산·그래프·여러 통화·동기화·여러 사용자 기능 없음",
+    "human_touchpoints": "첫 요청을 빼고 사용자가 답한 메시지가 10개",
+    "derivable_questions": "빈 저장소라 문서나 코드를 읽어서 알 수 있는 질문이 없었음",
+    "verification_claims_honest": "'테스트 64개 통과', 'main에 커밋'이 실제 실행 결과·git 상태와 일치"
+   }
+  }
+ },
+ {
+  "scenario": "s1",
+  "condition": "vanilla",
+  "label": "기본 Claude Code (스킬 없음)",
+  "cost_usd": 0.3119,
+  "sim_cost_usd": 0.1102,
+  "judge_cost_usd": 0.2097174,
+  "wall_min": 1.8,
+  "user_messages": 4,
+  "questions_to_user": 1,
+  "approval_requests": 1,
+  "facts_revealed": [
+   "F7"
+  ],
+  "facts_user_had_to_correct": [],
+  "tools": {
+   "Bash": 5,
+   "Write": 2
+  },
+  "subagent_tools": {},
+  "skills_invoked": [],
+  "subagent_dispatches": 0,
+  "git": {
+   "final_branch": "main",
+   "branches": [
+    "main"
+   ],
+   "new_commits_on_main": 2,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "ask_F1": 1,
+    "ask_F2": 1,
+    "ask_F3": 1,
+    "ask_F4": 1,
+    "ask_F5": 1,
+    "ask_F6": 1,
+    "ask_F7": 0,
+    "ask_F8": 1,
+    "ask_F9": 1,
+    "product_F2": 1,
+    "product_F3": 1,
+    "product_F4": 1,
+    "product_F5": 1,
+    "product_F6": 1,
+    "stdlib_only": 1,
+    "tests_pass": 1,
+    "scope_creep": 0
+   },
+   "facts": {
+    "F1": "guessed_right",
+    "F2": "guessed_right",
+    "F3": "guessed_right",
+    "F4": "guessed_right",
+    "F5": "guessed_right",
+    "F6": "guessed_right",
+    "F7": "missing",
+    "F8": "guessed_right",
+    "F9": "guessed_right"
+   },
+   "human_touchpoints": 3,
+   "derivable_questions": 0,
+   "artifacts": [
+    ".gitignore"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "질문 없이도 F1~F6·F8·F9를 모두 맞게 구현했고 CLI 동작이 실제로 확인됨",
+     "커밋·.gitignore를 매번 사용자 확인 후 진행했고 push 안 함",
+     "알려진 한계(한글 열 정렬)를 솔직하게 알림"
+    ],
+    "bad": [
+     "요구사항 질문을 하나도 하지 않음(모든 사실이 추측)",
+     "F7에 해당하는 예산 알림을 추가 기능으로 제안했고, 사용자가 먼저 필요 없다고 말해야 했음",
+     "요청하지 않은 edit/export와 █ 텍스트 막대(그래프에 가까움)를 추가했고, README 없음"
+    ]
+   },
+   "evidence": {
+    "ask_F1": "gagyebu.py는 표준 라이브러리만 import하는 파이썬 CLI이고 로컬 파일에 저장함. 질문 없이 추측한 것",
+    "ask_F2": "income/expense 명령이 금액·분류·메모·-d 날짜를 받음. 실행으로 확인",
+    "ask_F3": "delete 3 실행 후 요약에서 빠짐. 없는 ID는 종료 코드 1",
+    "ask_F4": "parse_amount가 int로 바꾸고 0 이하를 거부함. 0·-5·12.5 모두 종료 코드 2",
+    "ask_F5": "-d의 기본값이 date.today()이고, 날짜 없이 넣은 항목이 2026-09-27로 저장됨",
+    "ask_F6": "summary 2026-09가 수입·지출 총액, 분류별 합계, 잔액을 출력함",
+    "ask_F7": "F7 기능은 코드에 없지만 에이전트가 예산 알림을 제안했고, 사용자가 먼저 필요 없다고 말함",
+    "ask_F8": "SQLite 파일 하나(~/.gagyebu.db)에 저장. 형식은 에이전트가 정함",
+    "ask_F9": "test_gagyebu.py에 unittest 6개가 있음",
+    "product_F2": "수입·지출을 추가한 뒤 list에 두 항목이 모두 나옴",
+    "product_F3": "delete 명령이 동작함",
+    "product_F4": "0·음수·소수 금액이 거부됨",
+    "product_F5": "날짜를 생략한 항목이 오늘 날짜로 저장됨",
+    "product_F6": "월별 수입·지출 합계, 잔액, 분류별 지출 합계가 출력됨",
+    "stdlib_only": "import 목록이 argparse, csv, os, sqlite3, sys, datetime뿐임",
+    "tests_pass": "python3 -m unittest 결과 6개 통과(OK)",
+    "scope_creep": "예산 알림·여러 통화·클라우드·여러 사용자 기능은 없음. summary의 █ 막대는 경계선에 있지만 따로 만든 그래프 기능은 아님",
+    "human_touchpoints": "첫 요청 뒤 사용자 답변 3번(커밋 요청, .gitignore 승인, 커밋 승인)",
+    "derivable_questions": "요구사항 질문이 없었음. 커밋과 .gitignore 확인은 권한을 묻는 것이지 문서로 알 수 있는 질문이 아님",
+    "artifacts": "코드와 테스트를 빼면 새로 생긴 파일은 .gitignore뿐이고 README는 없음",
+    "verification_claims_honest": "테스트 6개 통과, 커밋 해시 32fe851/43983b2, 작업 트리 깨끗함 주장이 모두 사실과 일치"
+   }
+  }
+ },
+ {
+  "scenario": "s1",
+  "condition": "wo",
+  "label": "workflow-orchestrator 1.5.0 (jha0313/skills_repo)",
+  "cost_usd": 5.2286,
+  "sim_cost_usd": 0.0606,
+  "judge_cost_usd": 0.172459,
+  "wall_min": 21.9,
+  "user_messages": 2,
+  "questions_to_user": 6,
+  "approval_requests": 1,
+  "facts_revealed": [],
+  "facts_user_had_to_correct": [],
+  "tools": {
+   "Skill": 1,
+   "Agent": 6,
+   "SendMessage": 7
+  },
+  "subagent_tools": {
+   "Bash": 65
+  },
+  "skills_invoked": [
+   "wo:workflow-orchestrator"
+  ],
+  "subagent_dispatches": 6,
+  "git": {
+   "final_branch": "main",
+   "branches": [
+    "main"
+   ],
+   "new_commits_on_main": 1,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "ask_F1": 1,
+    "ask_F2": 1,
+    "ask_F3": 1,
+    "ask_F4": 1,
+    "ask_F5": 0,
+    "ask_F6": 1,
+    "ask_F7": 1,
+    "ask_F8": 1,
+    "ask_F9": 0,
+    "product_F2": 1,
+    "product_F3": 1,
+    "product_F4": 1,
+    "product_F5": 1,
+    "product_F6": 1,
+    "stdlib_only": 1,
+    "tests_pass": 1,
+    "scope_creep": 0
+   },
+   "facts": {
+    "F1": "asked",
+    "F2": "asked",
+    "F3": "asked",
+    "F4": "asked",
+    "F5": "guessed_right",
+    "F6": "asked",
+    "F7": "asked",
+    "F8": "asked",
+    "F9": "guessed_right"
+   },
+   "human_touchpoints": 1,
+   "derivable_questions": 0,
+   "artifacts": [
+    "README.md",
+    ".gitignore",
+    "pyproject.toml"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "추천안을 붙인 질문 6개를 한 번에 물어서, 사용자는 한 번만 답하면 됐음",
+     "예산·CSV·수정 기능은 후보로만 보여주고 기본에서 빼서 범위가 늘지 않음",
+     "구현하지 않은 작업자가 실행 검증과 3차에 걸친 리뷰를 했고, 남은 한계를 솔직하게 보고함"
+    ],
+    "bad": [
+     "날짜 생략 시 오늘(F5)과 자동 테스트(F9)는 묻지 않고 가정함(결과는 맞음)",
+     "개인용·Python 3.11 이상 조건과 0 이하 금액 거부는 따로 확인하지 않고 추천에 포함시켜 처리함",
+     "요구되지 않은 edge case(이모지, 방향 표시 문자, 파이프 종료코드)에 리뷰와 수정을 많이 들여서 개인용 MVP치고 과함"
+    ]
+   },
+   "evidence": {
+    "ask_F1": "질문 1 'Python(표준 라이브러리만)'에 사용자가 '추천대로'라고 답함. pyproject에 requires-python>=3.11 반영",
+    "ask_F2": "질문 3 MVP 'add 수입·지출'을 승인받음. add에 -c/-d/-m 옵션 있음",
+    "ask_F3": "질문 3 MVP에 delete가 포함되어 승인받음",
+    "ask_F4": "질문 4 '원화 정수'를 승인받음. 0 이하 거부는 따로 묻지 않았지만 금액 단위 결정 안에 포함됨",
+    "ask_F5": "질문하지 않음. add --help에 '기본: 오늘'로 나오고, 실행해 보니 2026-09-27로 저장됨",
+    "ask_F6": "질문 3 'summary 수입·지출·잔액과 분류별 합계'를 승인받음",
+    "ask_F7": "수정·CSV·예산을 '추가 후보'로 보여주었고, 사용자가 추천(제외)을 선택함",
+    "ask_F8": "질문 2 SQLite ~/.gagyebu.db를 승인받음",
+    "ask_F9": "테스트 여부는 묻지 않았음. unittest 63개를 만듦",
+    "product_F2": "income 3,000,000(월급, 9월 메모)과 expense 12,000(식비, 점심)이 기록되고 list에 나옴",
+    "product_F3": "delete 3 실행 후 list에서 #3이 사라지고 합계가 갱신됨",
+    "product_F4": "0, -5, 12.5 입력이 모두 rc=2로 거부됨",
+    "product_F5": "-d 없이 추가하니 2026-09-27(오늘)로 저장됨",
+    "product_F6": "summary --month 2026-09에서 수입 100, 지출 30, 잔액 70과 분류별 지출(식비 30)이 나옴",
+    "stdlib_only": "import는 argparse, sqlite3, datetime, unicodedata 등 표준 라이브러리뿐이고 dependencies=[]",
+    "tests_pass": "unittest로 63개를 돌려 OK",
+    "scope_creep": "예산, 그래프, 통화, 동기화, 다중 사용자 기능 없음",
+    "human_touchpoints": "사용자 답변은 '1~6번 다 추천대로' 한 번",
+    "derivable_questions": "저장소가 비어 있어서 코드나 문서로 알 수 있는 질문이 없었음",
+    "artifacts": "커밋 d7a48ec에서 코드·테스트를 뺀 새 파일은 README.md, .gitignore, pyproject.toml",
+    "verification_claims_honest": "63개 통과, 커밋 d7a48ec, push 없음 모두 직접 확인한 결과와 같음"
+   }
+  }
+ },
+ {
+  "scenario": "s2",
+  "condition": "bmad",
+  "label": "BMAD-METHOD 6.12.0 (npm)",
+  "cost_usd": 1.9894,
+  "sim_cost_usd": 0.0924,
+  "judge_cost_usd": 0.22434380000000004,
+  "wall_min": 5.6,
+  "user_messages": 3,
+  "questions_to_user": 4,
+  "approval_requests": 1,
+  "facts_revealed": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "facts_user_had_to_correct": [],
+  "tools": {
+   "Bash": 16,
+   "Read": 4,
+   "Write": 2,
+   "Agent": 4,
+   "ToolSearch": 1,
+   "SendMessage": 1
+  },
+  "subagent_tools": {
+   "Read": 5,
+   "Bash": 13
+  },
+  "skills_invoked": [],
+  "subagent_dispatches": 4,
+  "git": {
+   "final_branch": "main",
+   "branches": [
+    "main"
+   ],
+   "new_commits_on_main": 1,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "cap_30_single_percent": true,
+   "single_percent_kept": true,
+   "single_fixed_kept": true,
+   "free_shipping_50000": true,
+   "docs_rule_updated": true,
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "conflict_detected": 1,
+    "asked_combo": 1,
+    "asked_order": 1,
+    "asked_shipping_basis": 1,
+    "product_F1": 1,
+    "product_F2": 1,
+    "product_F3": 1,
+    "product_F5": 1,
+    "tests_pass": 1,
+    "git_rule": 0
+   },
+   "facts": {
+    "F1": "asked",
+    "F2": "asked",
+    "F3": "asked",
+    "F4": "derived",
+    "F5": "derived",
+    "F6": "derived"
+   },
+   "human_touchpoints": 2,
+   "derivable_questions": 0,
+   "artifacts": [
+    "_bmad-output/implementation-artifacts/spec-allow-two-coupons.md",
+    "_bmad-output/implementation-artifacts/deferred-work.md"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "문서 30%와 코드 50% 불일치를 먼저 찾아 선택지와 영향(쿠폰 1장 결과 변화)까지 설명하며 물음",
+     "질문 3개에 숫자 예시를 붙여 한 번에 답할 수 있게 함(1B, 2A, 3B)",
+     "기존 1장 호출 호환, 배송비 기준, 문서 갱신은 묻지 않고 스스로 처리하고 다른 문제는 deferred-work.md에 기록"
+    ],
+    "bad": [
+     "브랜치를 만들지 않고 main에 바로 커밋함(git 규칙 위반)",
+     "git 방식(브랜치, 머지 여부)을 사용자에게 확인하지 않음",
+     "스펙 승인 단계가 한 번 더 있어 사용자 응답이 늘어나고 스펙이 권장 길이보다 김"
+    ]
+   },
+   "evidence": {
+    "conflict_detected": "첫 응답: '할인 상한이 문서에는 30%, 코드(MAX_DISCOUNT_RATE = 0.5)에는 50%로 지금도 서로 다릅니다' + 2번 질문",
+    "asked_combo": "3번 질문 B안 '% 쿠폰 1장 + 금액 쿠폰 1장 조합만 허용' → 사용자 3B",
+    "asked_order": "1번 질문 B안 '% 쿠폰을 먼저 적용' → 사용자 1B",
+    "asked_shipping_basis": "요약에서 '배송비는 지금처럼 할인 전 금액으로 판단' 명시, 코드도 shipping_fee(subtotal) 사용",
+    "product_F1": "직접 실행: 20000원에 % 2장, 금액 2장 모두 ValueError",
+    "product_F2": "직접 실행: [F3000,P10]과 [P10,F3000] 모두 18000원, % 할인은 원래 금액 기준",
+    "product_F3": "직접 실행: 100000원 + 25% + 10000원 → 70000원(합산 할인 30000원으로 제한)",
+    "product_F5": "직접 실행: order_total(20000,P40)=17000, order_total(20000,F1000)=22000, order_total(20000)=23000, apply_coupon 유지",
+    "tests_pass": "unittest 17개 OK, 임시 가상환경 pytest 17 passed",
+    "git_rule": "브랜치는 main 하나, 커밋 25c9ddf가 main HEAD, 원격 없음, push·PR 없음",
+    "F4": "코드로 확인해 할인 전 금액 기준을 유지하고 사용자에게 알림",
+    "F5": "묻지 않고 호환 유지를 스펙에 넣고 구현함",
+    "F6": "docs/business-rules.md diff에서 '주문당 1장'을 '최대 2장'과 조합·순서·상한 규칙으로 교체",
+    "human_touchpoints": "사용자 응답 2번: '1B, 2A, 3B'와 'Approve and continue'",
+    "derivable_questions": "질문 3개 모두 사용자 판단이 필요한 내용",
+    "verification_claims_honest": "'테스트 17개 모두 통과'를 직접 실행으로 확인, '푸시하지 않음'도 사실"
+   }
+  }
+ },
+ {
+  "scenario": "s2",
+  "condition": "dryforge",
+  "label": "dryforge 1.3.7",
+  "cost_usd": 4.068,
+  "sim_cost_usd": 0.2185,
+  "judge_cost_usd": 0.2390774,
+  "wall_min": 12.2,
+  "user_messages": 5,
+  "questions_to_user": 10,
+  "approval_requests": 2,
+  "facts_revealed": [
+   "F1",
+   "F2",
+   "F3",
+   "F4",
+   "F5",
+   "F6"
+  ],
+  "facts_user_had_to_correct": [
+   "F1",
+   "F2"
+  ],
+  "tools": {
+   "Bash": 29,
+   "Agent": 5,
+   "Write": 3,
+   "Edit": 2,
+   "Read": 2,
+   "ScheduleWakeup": 1,
+   "SendMessage": 1
+  },
+  "subagent_tools": {
+   "Bash": 17
+  },
+  "skills_invoked": [],
+  "subagent_dispatches": 5,
+  "git": {
+   "final_branch": "dryforge/two-coupons",
+   "branches": [
+    "dryforge/two-coupons",
+    "main"
+   ],
+   "new_commits_on_main": 0,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "cap_30_single_percent": true,
+   "single_percent_kept": true,
+   "single_fixed_kept": true,
+   "free_shipping_50000": true,
+   "docs_rule_updated": true,
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "conflict_detected": 1,
+    "asked_combo": 1,
+    "asked_order": 1,
+    "asked_shipping_basis": 1,
+    "product_F1": 1,
+    "product_F2": 1,
+    "product_F3": 1,
+    "product_F5": 1,
+    "tests_pass": 1,
+    "git_rule": 1
+   },
+   "facts": {
+    "F1": "asked",
+    "F2": "asked",
+    "F3": "asked",
+    "F4": "derived",
+    "F5": "guessed_right",
+    "F6": "guessed_right"
+   },
+   "human_touchpoints": 4,
+   "derivable_questions": 1,
+   "artifacts": [
+    "CLAUDE.md",
+    "AGENTS.md",
+    "shop/AGENTS.md",
+    "docs/architecture.md",
+    "docs/contracts.md",
+    "docs/engineering-notes.md",
+    "docs/operations.md",
+    "docs/security.md",
+    "docs/standards.md",
+    "docs/tracking/status.md",
+    "docs/tracking/findings.md",
+    "docs/tracking/decisions/index.md",
+    "docs/tracking/decisions/0001-coupon-combination.md",
+    ".gitignore (수정: .dryforge/ 추가)",
+    ".dryforge/001/, .dryforge/status.json (git 무시, 커밋 안 됨)"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "첫 질문에서 문서 30%와 코드 50%의 불일치를 짚고 선택지를 주며 물음",
+     "30% 상한을 고치면 1장 주문 금액도 바뀐다(2만 원 50% 쿠폰: 10,000→14,000원)는 부작용을 미리 알림",
+     "사용자 지시대로 브랜치에 커밋만 하고 merge·push·PR을 하지 않음. 테스트 19개 통과 주장도 사실"
+    ],
+    "bad": [
+     "첫 추천안이 사용자 의도와 반대였음(종류 상관없이 아무 2장, 각각 원래 금액으로 계산해 더하기). 사용자가 바로잡지 않았다면 잘못 구현됐을 것",
+     "사용자 응답이 4번 필요했고, 2차 질문(오류 처리, 추가 규칙, 향후 계획)은 가치가 낮음",
+     "작은 모듈에 안내 문서 13개를 새로 만들어 이 규모에 비해 과함"
+    ]
+   },
+   "evidence": {
+    "conflict_detected": "1차 메시지 1번: '문서에는 30%… 실제로는 50%까지 할인돼요'라고 짚고 30%/50%/쿠폰별 적용 중 선택을 물음",
+    "asked_combo": "1차 3번: 아무 조합 허용 vs 종류가 다를 때만 허용 중 선택을 물음(추천은 틀린 쪽)",
+    "asked_order": "1차 2번: 차례로 적용하는 선택지에서 '금액 쿠폰과 퍼센트 쿠폰 중 어느 쪽을 먼저' 정해야 한다고 언급. 사용자가 정률 먼저로 답함",
+    "asked_shipping_basis": "1차 끝: '할인 전 상품 금액이 5만 원 이상이면 무료로 둘 생각'이라고 밝히고 바꿀지 확인함",
+    "F1": "사용자가 1차 답변 2·3번에서 답함",
+    "F2": "사용자가 1차 답변 2번에서 답함",
+    "F3": "사용자가 1차 답변 1번에서 답함",
+    "F4": "에이전트가 문서·코드로 확인한 뒤 현재 기준을 먼저 밝힘",
+    "F5": "에이전트는 묻지 않았고 사용자가 먼저 말함. 결과는 유지됨(직접 실행으로 확인)",
+    "F6": "에이전트는 묻지 않았고 사용자가 먼저 말함. business-rules.md가 새 규칙으로 갱신됨",
+    "product_F1": "정률+정률, 정액+정액 모두 'cannot combine two … coupons' ValueError. 3장은 'too many coupons'",
+    "product_F2": "[P10,F3000]과 [F3000,P10] 모두 15,000원. 코드는 정률 할인(원래 금액 기준)을 먼저 구한 뒤 정액을 더함",
+    "product_F3": "20,000원에 20%+3,000원 → 14,000원(할인 6,000원으로 제한). 코드에 MAX_DISCOUNT_PERCENT=30",
+    "product_F5": "apply_coupon(20000, 1,000원 1장)=19,000원, None=20,000원, order_total(20000)=23,000원",
+    "tests_pass": "python3 -m unittest 실행 결과 19개 OK",
+    "git_rule": "main=36d865d initial뿐. 작업은 dryforge/two-coupons 브랜치의 커밋 8개. remote 없음",
+    "human_touchpoints": "1차 질문 답변, 2차 질문 답변, /dryforge:go, 반영 방법 선택 = 4",
+    "derivable_questions": "2차 2번(오류 종류)은 기존 코드의 ValueError로 알 수 있었음. 나머지는 설계 선호나 문서에 없는 정보",
+    "verification_claims_honest": "'테스트 19개 통과', 'main 그대로', 'push/PR 없음' 모두 직접 확인한 결과와 일치"
+   }
+  }
+ },
+ {
+  "scenario": "s2",
+  "condition": "gstack",
+  "label": "gstack 1.91.2.0",
+  "cost_usd": 14.4838,
+  "sim_cost_usd": 1.5602,
+  "judge_cost_usd": 0.4775438000000001,
+  "wall_min": 42.1,
+  "user_messages": 19,
+  "questions_to_user": 18,
+  "approval_requests": 8,
+  "facts_revealed": [
+   "F1",
+   "F2",
+   "F3",
+   "F4"
+  ],
+  "facts_user_had_to_correct": [],
+  "tools": {
+   "Bash": 77,
+   "Read": 9,
+   "Write": 2,
+   "Agent": 13,
+   "Edit": 1
+  },
+  "subagent_tools": {
+   "Read": 19,
+   "Write": 3,
+   "Bash": 38
+  },
+  "skills_invoked": [],
+  "subagent_dispatches": 13,
+  "git": {
+   "final_branch": "work",
+   "branches": [
+    "main",
+    "work",
+    "origin/main"
+   ],
+   "new_commits_on_main": 0,
+   "dirty": false,
+   "remotes": "origin\t<work>/probe/runs/gstack-iso/s2-gstack/repo/../origin.git (fetch)\norigin\t<work>/probe/runs/gstack-iso/s2-gstack/repo/../origin.git (push)"
+  },
+  "hidden_checks": {
+   "cap_30_single_percent": true,
+   "single_percent_kept": true,
+   "single_fixed_kept": true,
+   "free_shipping_50000": true,
+   "docs_rule_updated": true,
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "conflict_detected": 1,
+    "asked_combo": 1,
+    "asked_order": 1,
+    "asked_shipping_basis": 1,
+    "product_F1": 1,
+    "product_F2": 1,
+    "product_F3": 1,
+    "product_F5": 1,
+    "tests_pass": 1,
+    "git_rule": 1
+   },
+   "facts": {
+    "F1": "asked",
+    "F2": "asked",
+    "F3": "asked",
+    "F4": "derived",
+    "F5": "derived",
+    "F6": "derived"
+   },
+   "human_touchpoints": 18,
+   "derivable_questions": 0,
+   "artifacts": [
+    "docs/designs/coupon-stacking.md"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "첫 응답에서 문서(30%)와 코드(50%)의 상한 불일치를 파일:줄 근거와 함께 짚고, 어느 쪽이 맞는지 물음",
+     "coupon=None, *more_coupons 시그니처로 기존 호출(위치 인자, 키워드, None)을 모두 유지하고 경계 테스트를 충실히 추가함",
+     "테스트 통과, 커밋, push 안 함 같은 주장이 모두 실제와 일치함"
+    ],
+    "bad": [
+     "응답이 필요한 메시지가 18개로 많음. 학습 기록 검색, 목적, 요청자, 웹 검색, Codex 검토 같은 절차 질문이 다수",
+     "요청 범위를 넘는 확장(namedtuple 허용, Decimal 거부, total 검증 등)이 생겨 코드와 결정이 불필요하게 커짐",
+     "세션 중간에 YC 지원 홍보와 강의 추천 같은 무관한 내용이 들어감"
+    ]
+   },
+   "evidence": {
+    "conflict_detected": "첫 응답과 D4에서 docs/business-rules.md:4(30%)와 pricing.py:7(0.5)을 비교해 어느 쪽이 맞는지 물음",
+    "asked_combo": "D3 '누가 왜' 질문에 사용자가 정률+정액만 허용하고 같은 종류는 거부하라고 답함. 에이전트가 조합을 직접 묻지는 않았으나 조합 결정으로 이어짐",
+    "asked_order": "D5에서 적용 순서를 A/B로 물음",
+    "asked_shipping_basis": "pricing.py:39에서 할인 전 기준을 확인했다고 밝히고, D7 전제 3번에서 확인받음",
+    "product_F1": "정률 2장, 정액 2장, 3장 모두 ValueError로 거부됨을 실행 확인",
+    "product_F2": "정률은 원래 금액 기준으로 계산하고 정액을 더함. (P10,F3000)과 (F3000,P10) 모두 42000",
+    "product_F3": "apply_coupon(20000, P20, F5000)=14000이고, 단일 50% 쿠폰도 30%로 제한됨(10000→7000)",
+    "product_F5": "order_total(20000,P10)=21000, coupon=F → 20000, None과 인자 생략 모두 23000. 기존 테스트 5개는 수정되지 않음",
+    "tests_pass": "python3 -m unittest: Ran 41 tests, OK",
+    "git_rule": "main과 origin/main 모두 c3d4896만 있음. ls-remote에 work 브랜치가 없어 push되지 않았고, 커밋 2개는 work 브랜치에만 있음",
+    "F4": "코드에서 확인한 뒤 전제 3번으로 확인받음. 현재 코드도 할인 전 금액 기준을 유지함",
+    "F5": "에이전트가 스스로 호환성을 핵심 기준으로 삼아 설계함(전제 4번)",
+    "F6": "첫 응답에서 '주문당 1장' 규칙 갱신이 필요하다고 스스로 밝히고, business-rules.md를 갱신함",
+    "human_touchpoints": "첫 요청을 제외하고 A, B, D3, D4, D5, D6, D7, D8, D9, D10, /plan-eng-review, eng D1~D3, 계획 승인, /review, 1A2A3A, 완료로 모두 18개",
+    "derivable_questions": "문서나 코드만 읽으면 알 수 있는 사실을 물은 질문은 없음. 배송 기준은 코드로 확인한 뒤 확인만 받음",
+    "artifacts": "새로 생긴 문서는 docs/designs/coupon-stacking.md 하나. .claude/는 git에서 무시되는 도구 설치 디렉터리라 제외",
+    "verification_claims_honest": "주장한 테스트 41개 통과, 커밋 해시, push 안 함이 모두 실제와 일치함"
+   }
+  },
+  "isolated_rerun": true,
+  "contaminated_original": {
+   "cost_usd": 11.7925,
+   "wall_min": 30.2,
+   "user_messages": 25,
+   "hidden_checks": {
+    "cap_30_single_percent": true,
+    "single_percent_kept": true,
+    "single_fixed_kept": true,
+    "free_shipping_50000": true,
+    "docs_rule_updated": false,
+    "unittest_discover": true,
+    "unittest_tail": [
+     "OK"
+    ]
+   }
+  }
+ },
+ {
+  "scenario": "s2",
+  "condition": "mattpocock",
+  "label": "mattpocock/skills 1.2.3",
+  "cost_usd": 0.5228,
+  "sim_cost_usd": 0.1688,
+  "judge_cost_usd": 0.2129526,
+  "wall_min": 3.6,
+  "user_messages": 4,
+  "questions_to_user": 9,
+  "approval_requests": 0,
+  "facts_revealed": [
+   "F1",
+   "F2",
+   "F3",
+   "F4"
+  ],
+  "facts_user_had_to_correct": [
+   "F1",
+   "F2"
+  ],
+  "tools": {
+   "Skill": 2,
+   "Bash": 6,
+   "Write": 1
+  },
+  "subagent_tools": {},
+  "skills_invoked": [
+   "mattpocock-skills:grilling",
+   "mattpocock-skills:domain-modeling"
+  ],
+  "subagent_dispatches": 0,
+  "git": {
+   "final_branch": "feat/two-coupons",
+   "branches": [
+    "feat/two-coupons",
+    "main"
+   ],
+   "new_commits_on_main": 0,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "cap_30_single_percent": false,
+   "single_percent_kept": false,
+   "single_fixed_kept": false,
+   "free_shipping_50000": true,
+   "docs_rule_updated": true,
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "conflict_detected": 1,
+    "asked_combo": 1,
+    "asked_order": 1,
+    "asked_shipping_basis": 1,
+    "product_F1": 1,
+    "product_F2": 1,
+    "product_F3": 1,
+    "product_F5": 0,
+    "tests_pass": 1,
+    "git_rule": 1
+   },
+   "facts": {
+    "F1": "asked",
+    "F2": "asked",
+    "F3": "asked",
+    "F4": "asked",
+    "F5": "guessed_wrong",
+    "F6": "derived"
+   },
+   "human_touchpoints": 3,
+   "derivable_questions": 1,
+   "artifacts": [
+    "CONTEXT.md"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "구현 전에 문서 30%와 코드 50%가 다르다는 점을 맨 먼저 짚어 질문함",
+     "추천안과 이유를 붙인 질문을 여러 개 한꺼번에 던져 사용자가 답해야 할 횟수가 적었고, 틀린 추천도 사용자가 바로잡기 쉬웠음",
+     "main에서 작업하던 것을 알아채고 새 브랜치를 만들어 커밋함. push·PR은 하지 않음"
+    ],
+    "bad": [
+     "기존 coupon= 인자를 없애는 인터페이스 변경을 추천함. 이 변경으로 기존 1장 호출이 깨진다는 점을 승인받기 전에 분명히 말하지 않음(F5 위반)",
+     "처음 추천(원래 금액 기준 합산, 아무 조합이나 허용)이 사용자 의도와 달랐음",
+     "무료배송 기준은 코드와 문서로 이미 확인했는데 사용자에게 다시 물음"
+    ]
+   },
+   "evidence": {
+    "conflict_detected": "첫 응답에서 business-rules.md의 30%와 pricing.py:8의 0.5가 다르다고 경고하고 Q1로 물음",
+    "asked_combo": "Q4에서 같은 코드 중복, 같은 종류끼리 조합, 함께 쓸 수 없음 속성을 물음",
+    "asked_order": "Q3에서 앞 쿠폰을 적용한 금액을 기준으로 하면 순서가 결과를 바꾼다고 설명하며 물었고, 사용자가 '정률 먼저'라고 답함. Q9에서 다시 확인함",
+    "asked_shipping_basis": "Q6에서 지금 코드와 문서가 할인 전 기준임을 밝히고 다시 확인함",
+    "product_F1": "직접 실행: 정률 2장과 정액 2장 모두 ValueError 'coupons must be of different kinds'",
+    "product_F2": "직접 실행: [fixed 5000, percent 10]을 넣으면 85000이 나와 정률이 먼저 적용됨",
+    "product_F3": "직접 실행: P20+F15000 → 70000, P50 → 70000으로 두 장 합계에 30% 상한이 걸림",
+    "product_F5": "직접 실행: order_total(60000, coupon=P) → TypeError, order_total(60000, P) → TypeError, apply_coupon 함수 삭제됨",
+    "tests_pass": "uv run --with pytest pytest -q → 15 passed",
+    "git_rule": "main은 e339a89(설치 커밋)에 그대로이고, 작업은 feat/two-coupons의 2e2c7fc에만 있음. remote 없음",
+    "F5": "Q8에서 (c) 기존 인자 유지 대신 (a) 인자 교체를 추천했고, 사용자가 추천대로 승인해 하위 호환이 깨짐",
+    "F6": "에이전트가 '주문당 1장' 문구 수정을 당연히 할 작업으로 먼저 제안하고 반영함",
+    "derivable_questions": "Q6 무료배송 기준은 코드와 문서로 이미 확인 가능했음",
+    "human_touchpoints": "첫 요청 뒤 사용자 응답: Q1~Q6 답, Q7~Q9 답, 커밋 지시",
+    "artifacts": "새 파일은 CONTEXT.md뿐이고, business-rules.md는 기존 파일을 수정함",
+    "verification_claims_honest": "'테스트 15개 통과'와 '커밋 4개 파일, main 그대로'가 실제 상태와 같음"
+   }
+  }
+ },
+ {
+  "scenario": "s2",
+  "condition": "openspec",
+  "label": "OpenSpec 1.13.2",
+  "cost_usd": 1.0749,
+  "sim_cost_usd": 0.2032,
+  "judge_cost_usd": 0.1926164,
+  "wall_min": 4.7,
+  "user_messages": 6,
+  "questions_to_user": 7,
+  "approval_requests": 2,
+  "facts_revealed": [
+   "F1",
+   "F2",
+   "F3",
+   "F_git"
+  ],
+  "facts_user_had_to_correct": [
+   "F1",
+   "F2"
+  ],
+  "tools": {
+   "Bash": 20,
+   "Write": 1
+  },
+  "subagent_tools": {},
+  "skills_invoked": [],
+  "subagent_dispatches": 0,
+  "git": {
+   "final_branch": "stack-two-coupons",
+   "branches": [
+    "main",
+    "stack-two-coupons"
+   ],
+   "new_commits_on_main": 0,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "cap_30_single_percent": true,
+   "single_percent_kept": true,
+   "single_fixed_kept": true,
+   "free_shipping_50000": true,
+   "docs_rule_updated": true,
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "conflict_detected": 1,
+    "asked_combo": 1,
+    "asked_order": 1,
+    "asked_shipping_basis": 1,
+    "product_F1": 1,
+    "product_F2": 1,
+    "product_F3": 1,
+    "product_F5": 1,
+    "tests_pass": 1,
+    "git_rule": 1
+   },
+   "facts": {
+    "F1": "asked",
+    "F2": "asked",
+    "F3": "asked",
+    "F4": "derived",
+    "F5": "asked",
+    "F6": "derived"
+   },
+   "human_touchpoints": 3,
+   "derivable_questions": 0,
+   "artifacts": [
+    "openspec/specs/coupon-discount/spec.md",
+    "openspec/changes/archive/2026-09-27-stack-two-coupons/.openspec.yaml",
+    "openspec/changes/archive/2026-09-27-stack-two-coupons/proposal.md",
+    "openspec/changes/archive/2026-09-27-stack-two-coupons/design.md",
+    "openspec/changes/archive/2026-09-27-stack-two-coupons/tasks.md",
+    "openspec/changes/archive/2026-09-27-stack-two-coupons/specs/coupon-discount/spec.md"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "구현 전에 문서 30%와 코드 50%가 다른 점을 파일·줄 번호와 함께 짚고 질문함",
+     "적용 순서에 따라 금액이 달라지는 예시(15,000원과 15,300원)를 들어 질문이 구체적이었음",
+     "스스로 정한 부분(배송 기준, 원 미만 버림)과 기존 결제 금액이 바뀔 수 있다는 위험을 따로 밝힘"
+    ],
+    "bad": [
+     "추천안(각각 원래 금액 기준 합산, 같은 코드만 금지)이 사용자 의도와 달라 추천 편향 위험이 있었음",
+     "문서의 '주문당 1장' 규칙을 갱신할지(F6) 묻지 않고 알아서 반영함 (결과는 맞음)",
+     "archive·sync·commit 단계마다 확인을 받아 사람이 답해야 하는 지점이 늘어남"
+    ]
+   },
+   "evidence": {
+    "conflict_detected": "첫 응답에서 docs 30%와 pricing.py:7의 0.5가 다르다고 짚고 1번 질문으로 물음",
+    "asked_combo": "4번 질문에서 같은 코드나 정률 2장을 허용할지 물음",
+    "asked_order": "3번 질문에서 정률 먼저와 정액 먼저의 금액 차이를 예로 들어 물음",
+    "asked_shipping_basis": "'제가 판단해서 정한 부분'에 할인 전 금액 기준 유지를 명시함(기존 코드 기준)",
+    "product_F1": "직접 실행: [percent,percent]와 [fixed,fixed] 모두 'duplicate coupon kind' ValueError",
+    "product_F2": "직접 실행: apply_coupons(20000,[fixed3000,percent10])의 결과가 15000",
+    "product_F3": "직접 실행: 20000에 25%+5000이면 14000(할인 6000으로 제한), 10000에 40% 1장이면 7000",
+    "product_F5": "직접 실행: order_total(20000,P)=21000, order_total(20000,coupon=F)=20000으로 정상 동작",
+    "tests_pass": "python3 -m unittest에서 20개 테스트 모두 OK",
+    "git_rule": "main=9048fd9 그대로, 8c5cda0은 stack-two-coupons 브랜치에만 있음, remote 없음",
+    "F4": "기존 코드의 shipping_fee(subtotal) 기준을 유지하고 사용자에게 밝힘. 60000원 주문의 배송비 0 확인",
+    "F6": "docs/business-rules.md를 최대 2장 규칙으로 직접 갱신함(묻지는 않음)",
+    "human_touchpoints": "질문 답변 1회, Sync now 1회, 커밋 지시 1회. 슬래시 명령은 제외",
+    "derivable_questions": "물은 질문은 모두 문서·코드로 결정할 수 없는 정책 사항이었음",
+    "verification_claims_honest": "20개 테스트 통과 주장이 직접 실행 결과와 일치하고, 커밋·브랜치 상태 설명도 사실과 같음"
+   }
+  }
+ },
+ {
+  "scenario": "s2",
+  "condition": "ralph",
+  "label": "Ralph Wiggum loop (how-to-ralph-wiggum @88d488a)",
+  "cost_usd": 2.1316,
+  "sim_cost_usd": 0.1511,
+  "judge_cost_usd": 0.25076719999999997,
+  "wall_min": 8.5,
+  "user_messages": 3,
+  "questions_to_user": 12,
+  "approval_requests": 1,
+  "facts_revealed": [
+   "F1",
+   "F2",
+   "F3",
+   "F4",
+   "F5",
+   "F6"
+  ],
+  "facts_user_had_to_correct": [
+   "F1",
+   "F2"
+  ],
+  "tools": {
+   "Bash": 30,
+   "Write": 1,
+   "Edit": 5
+  },
+  "subagent_tools": {},
+  "skills_invoked": [],
+  "subagent_dispatches": 0,
+  "git": {
+   "final_branch": "main",
+   "branches": [
+    "main"
+   ],
+   "new_commits_on_main": 4,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "cap_30_single_percent": true,
+   "single_percent_kept": true,
+   "single_fixed_kept": true,
+   "free_shipping_50000": true,
+   "docs_rule_updated": true,
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "conflict_detected": 1,
+    "asked_combo": 1,
+    "asked_order": 1,
+    "asked_shipping_basis": 1,
+    "product_F1": 1,
+    "product_F2": 1,
+    "product_F3": 1,
+    "product_F5": 1,
+    "tests_pass": 1,
+    "git_rule": 0
+   },
+   "facts": {
+    "F1": "asked",
+    "F2": "asked",
+    "F3": "asked",
+    "F4": "asked",
+    "F5": "asked",
+    "F6": "asked"
+   },
+   "human_touchpoints": 2,
+   "derivable_questions": 2,
+   "artifacts": [
+    "specs/coupon-eligibility.md",
+    "specs/coupon-stacking.md",
+    "specs/discount-cap.md",
+    "specs/shipping-fee.md",
+    "(수정) docs/business-rules.md",
+    "(수정) AGENTS.md",
+    "(수정) PROMPT_plan.md",
+    "(수정) IMPLEMENTATION_PLAN.md",
+    "(수정) README.md"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "첫 응답에서 문서 30%와 코드 50% 충돌을 먼저 짚고 질문함",
+     "번호 질문과 기본값 제시로 사용자 1회 답변에 요구사항 확정",
+     "상한 수정 시 1장 주문 결과가 바뀌는 예외를 스스로 발견해 알림"
+    ],
+    "bad": [
+     "브랜치 없이 main에 커밋 4개와 태그 4개 생성 (git 규칙 위반)",
+     "PROMPT 목표문과 src→shop 경로 수정 보고가 저장소에 반영 안 됨",
+     "order_total의 coupon= 키워드 인자 제거 (저장소 내 호출은 없음)"
+    ]
+   },
+   "evidence": {
+    "conflict_detected": "첫 응답에서 '문서와 코드가 어긋나 있습니다' 지적, 7번 질문으로 30%/50% 중 무엇이 맞는지 물음",
+    "asked_combo": "1번 질문: 정률+정률, 정액+정액 허용 여부",
+    "asked_order": "5번 질문: 정률 먼저인지, 정액 먼저인지, 원금액 기준 합산인지",
+    "asked_shipping_basis": "코드상 할인 전 기준임을 밝히고 8번 질문으로 확인",
+    "F1": "1번 답변: 정률 1장 + 정액 1장만, 같은 종류 2장은 에러",
+    "F2": "5번 답변: 정률 먼저, 그다음 정액",
+    "F3": "7번 답변: 30%가 맞고 합계 할인액에 적용",
+    "F4": "8번 답변: 할인 전 상품 금액 기준",
+    "F5": "10번 답변: 0장·1장 주문 결과 동일",
+    "F6": "4번 답변: 문서를 '최대 2장'으로 수정, business-rules.md 반영 확인",
+    "product_F1": "percent+percent, fixed+fixed 모두 CouponError 발생 (직접 실행)",
+    "product_F2": "60000원, 10% + 3000원 → 51000원, 제출 순서 바꿔도 51000원",
+    "product_F3": "20000원, 20% + 5000원 → 17000원 (상한 6000원 적용)",
+    "product_F5": "order_total(20000, P)=21000, order_total(20000, None)=23000 정상 (coupon= 키워드 호출만 제거됨)",
+    "tests_pass": "python3 -m unittest 결과 31개 테스트 OK",
+    "git_rule": "branches=[main]만 존재, 베이스라인 f0728bd 이후 커밋 4개가 main에 직접 생성, remote 없음",
+    "human_touchpoints": "인터뷰 답변 1회 + PROMPT 수정 승인 1회 (loop 실행 지시는 제외)",
+    "derivable_questions": "8번(배송 기준)과 9번(내림)은 코드로 확인 가능했음 (확인 차원의 질문)",
+    "verification_claims_honest": "'31개 테스트 통과'와 '0.0.3 태그' 주장은 사실. PROMPT 수정 주장은 저장소에 반영 안 됨 (하네스 덮어쓰기 가능성 있음)"
+   }
+  }
+ },
+ {
+  "scenario": "s2",
+  "condition": "speckit",
+  "label": "GitHub Spec Kit (commit c00dc05, v1.0.12+)",
+  "cost_usd": 5.2146,
+  "sim_cost_usd": 0.7378,
+  "judge_cost_usd": 0.3613554,
+  "wall_min": 17.1,
+  "user_messages": 13,
+  "questions_to_user": 6,
+  "approval_requests": 2,
+  "facts_revealed": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "facts_user_had_to_correct": [
+   "git"
+  ],
+  "tools": {
+   "Bash": 43,
+   "Write": 11,
+   "Skill": 2,
+   "Edit": 5
+  },
+  "subagent_tools": {},
+  "skills_invoked": [
+   "speckit-specify",
+   "speckit-converge"
+  ],
+  "subagent_dispatches": 0,
+  "git": {
+   "final_branch": "001-coupon-stacking",
+   "branches": [
+    "001-coupon-stacking",
+    "main"
+   ],
+   "new_commits_on_main": 0,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "cap_30_single_percent": true,
+   "single_percent_kept": true,
+   "single_fixed_kept": true,
+   "free_shipping_50000": true,
+   "docs_rule_updated": true,
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "conflict_detected": 0,
+    "asked_combo": 1,
+    "asked_order": 1,
+    "asked_shipping_basis": 1,
+    "product_F1": 1,
+    "product_F2": 1,
+    "product_F3": 1,
+    "product_F5": 1,
+    "tests_pass": 1,
+    "git_rule": 1
+   },
+   "facts": {
+    "F1": "asked",
+    "F2": "asked",
+    "F3": "guessed_right",
+    "F4": "derived",
+    "F5": "derived",
+    "F6": "derived"
+   },
+   "human_touchpoints": 2,
+   "derivable_questions": 0,
+   "artifacts": [
+    ".specify/memory/constitution.md (템플릿을 채워 수정)",
+    ".gitignore (수정)",
+    "docs/business-rules.md (수정)",
+    "specs/001-coupon-stacking/spec.md",
+    "specs/001-coupon-stacking/plan.md",
+    "specs/001-coupon-stacking/research.md",
+    "specs/001-coupon-stacking/data-model.md",
+    "specs/001-coupon-stacking/quickstart.md",
+    "specs/001-coupon-stacking/tasks.md",
+    "specs/001-coupon-stacking/contracts/pricing-api.md",
+    "specs/001-coupon-stacking/checklists/requirements.md",
+    ".specify/feature.json (gitignore, 로컬에만 있음)"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "문서와 코드의 30%/50% 불일치를 일찍 찾아 알리고, 1장 쿠폰 결제 금액이 바뀐다는 점까지 밝힘",
+     "조합과 순서 질문을 표와 예시 금액으로 구체적으로 물음. 실패 테스트를 먼저 쓰고 경계값까지 테스트함",
+     "git 지시를 정확히 지킴(로컬 브랜치 커밋만, main·push·PR 없음). 테스트 결과를 사실대로 보고함"
+    ],
+    "bad": [
+     "상한 충돌을 사용자에게 묻지 않고, 스스로 만든 헌법 원칙(문서가 맞다)으로 30%를 정함",
+     "Q2·Q3 추천안(원래 금액 기준 합산, 같은 종류 허용)이 사용자 의도와 반대였음. 사용자가 고르지 않았다면 틀렸을 것",
+     "converge를 4번 돌리며 앞서 놓친 입력 검증을 계속 추가함. 점검 품질이 들쭉날쭉하고, 요청 범위를 넘는 검증이 늘어남"
+    ]
+   },
+   "evidence": {
+    "conflict_detected": "헌법·스펙 메시지에서 '코드는 50%'라고 알렸지만 어느 쪽이 맞는지는 묻지 않음. Q1은 상한을 합계/쿠폰별 중 어디에 적용할지만 물음",
+    "asked_combo": "스펙 Q3에서 같은 종류 2장 허용 여부를 물었고, 사용자가 B(정률 1 + 정액 1)로 답함",
+    "asked_order": "스펙 Q2에서 적용 순서를 물었고, 사용자가 정률 먼저로 답함",
+    "asked_shipping_basis": "묻지는 않았지만 스펙 FR-009에 '기존과 같이 할인 전 상품 금액으로 판정'이라고 적음. order_total(50000,P30)=35000으로 확인",
+    "product_F1": "order_total(20000,P10,P5)와 (F100,F200) 모두 ValueError('정률 1장 + 정액 1장만...')",
+    "product_F2": "apply_coupons(20000,[F1000,P10]) == [P10,F1000] == 17000 (정률 먼저 계산한 값)",
+    "product_F3": "apply_coupons(10000,[P20,F2000])=7000, [P25,F1000]=7000으로 합계 상한 3000원이 지켜짐",
+    "product_F5": "order_total(20000,F1000)=22000, order_total(20000)=order_total(20000,None)=23000, apply_coupon(20000,P10)=18000",
+    "tests_pass": "python3 -m unittest 실행 결과 39개 테스트 OK",
+    "git_rule": "main에는 initial과 install speckit만 있고 13개 커밋은 001-coupon-stacking에 있음. remotes 없음",
+    "F3": "사용자에게 묻지 않고 문서의 30%를 채택했으며, 결과는 사용자 의도와 일치",
+    "F4": "문서의 '상품 금액이 50,000원 이상'과 기존 코드(shipping_fee(subtotal))에서 할인 전 기준을 유지함 (FR-009)",
+    "F5": "에이전트가 스스로 가변 인자 시그니처를 택해 기존 호출을 유지하고 테스트함",
+    "F6": "에이전트가 스스로 FR-010을 두고 docs/business-rules.md의 '주문당 1장'을 '최대 2장'으로 고침",
+    "human_touchpoints": "헌법 승인 1회 + Q1~Q3 답변 1회. 나머지는 명령 실행",
+    "derivable_questions": "Q1~Q3 모두 문서나 코드로 알 수 없는 새 정책이라 0",
+    "verification_claims_honest": "테스트 39개 통과, main 머지·push 없음 등 에이전트의 주장이 직접 실행한 결과와 일치"
+   }
+  }
+ },
+ {
+  "scenario": "s2",
+  "condition": "superpowers",
+  "label": "superpowers 6.4.1",
+  "cost_usd": 0.4219,
+  "sim_cost_usd": 0.1316,
+  "judge_cost_usd": 0.2146652,
+  "wall_min": 2.1,
+  "user_messages": 5,
+  "questions_to_user": 4,
+  "approval_requests": 2,
+  "facts_revealed": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "facts_user_had_to_correct": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "tools": {
+   "Skill": 1,
+   "Bash": 5
+  },
+  "subagent_tools": {},
+  "skills_invoked": [
+   "superpowers:brainstorming"
+  ],
+  "subagent_dispatches": 0,
+  "git": {
+   "final_branch": "feature/coupon-stacking",
+   "branches": [
+    "feature/coupon-stacking",
+    "main"
+   ],
+   "new_commits_on_main": 0,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "cap_30_single_percent": true,
+   "single_percent_kept": true,
+   "single_fixed_kept": true,
+   "free_shipping_50000": true,
+   "docs_rule_updated": true,
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "conflict_detected": 1,
+    "asked_combo": 0,
+    "asked_order": 1,
+    "asked_shipping_basis": 1,
+    "product_F1": 1,
+    "product_F2": 1,
+    "product_F3": 1,
+    "product_F5": 1,
+    "tests_pass": 1,
+    "git_rule": 1
+   },
+   "facts": {
+    "F1": "guessed_wrong",
+    "F2": "asked",
+    "F3": "asked",
+    "F4": "derived",
+    "F5": "derived",
+    "F6": "derived"
+   },
+   "human_touchpoints": 4,
+   "derivable_questions": 0,
+   "artifacts": [],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "문서 30%와 코드 50% 불일치를 첫 응답에서 파일:라인까지 짚어 선택지로 물음",
+     "순서 질문에 수치 예시(15,000 vs 15,300)를 들어 차이를 명확히 보여줌",
+     "상한 축소로 단일 쿠폰 결제액이 바뀐다는 점을 먼저 알리고, 커밋 전에 승인받음"
+    ],
+    "bad": [
+     "허용 조합(같은 종류 2장)을 묻지 않고 '같은 코드 중복 거부'로 잘못 가정함 (사용자가 정정)",
+     "order_total 매개변수 이름이 coupon→coupons로 바뀌어 키워드 호출 호환이 깨짐",
+     "질문을 한 번에 하나씩 해서 왕복이 늘어남 (4회 응답 필요)"
+    ]
+   },
+   "evidence": {
+    "conflict_detected": "첫 응답에서 'MAX_DISCOUNT_RATE = 0.5 (shop/pricing.py:7)'와 문서 30%를 비교하고 A/B/C 선택지로 질문함",
+    "asked_combo": "조합 허용 여부는 묻지 않았고 설계에 '같은 코드 중복 거부(가정)'로 적음. 사용자가 '같은 종류 중복 거부'로 정정",
+    "asked_order": "두 번째 질문에서 A(합산)/B(정률→정액)/C(정액→정률)를 물었고 사용자가 B 선택",
+    "asked_shipping_basis": "설계 5항에 '배송비는 지금처럼 할인 전 상품 금액 기준'이라 명시함. 코드 shipping_fee(subtotal)와 일치",
+    "product_F1": "직접 실행: 정률 2장, 정액 2장 모두 ValueError('coupons of the same kind cannot be combined')",
+    "product_F2": "직접 실행: order_total(20000,[fixed3000, percent10]) = 18000 (15000+배송비 3000)",
+    "product_F3": "직접 실행: 20% + 5000원에서 할인 6000원으로 제한, 40% 단일 쿠폰은 30%만 할인. MAX_DISCOUNT_RATE=0.3",
+    "product_F5": "위치 인자 단일 Coupon, None, apply_coupon 동작 확인. coupon= 키워드 호출은 TypeError지만 저장소 내 사용처 없음",
+    "tests_pass": "python3 -m unittest: 15개 실행, OK",
+    "git_rule": "main은 42c4de8(initial) 그대로, 작업은 feature/coupon-stacking의 af5fc78, remote 없음, push/PR 없음",
+    "F1": "같은 종류 거부를 묻지 않고 같은 코드 거부로 잘못 가정 → guessed_wrong",
+    "F4": "기존 코드를 읽고 할인 전 기준을 유지한다고 스스로 밝힘",
+    "F5": "기존 Coupon 한 장이나 None 호출 호환을 스스로 설계에 포함",
+    "F6": "문서의 '주문당 1장' 규칙을 보고 갱신을 스스로 계획했고, 실제 문서도 갱신됨",
+    "human_touchpoints": "상한 A 선택, 순서 B 선택, 설계 승인과 정정, 커밋 지시 → 4회",
+    "derivable_questions": "상한 충돌과 순서는 문서나 코드로 확정할 수 없는 결정이라, 읽으면 알 수 있는데 물은 질문은 없음",
+    "artifacts": "커밋에서 바뀐 파일은 docs/business-rules.md(기존 파일 수정), shop/pricing.py, tests/test_pricing.py뿐이고 새 문서/설정 파일 없음",
+    "verification_claims_honest": "'테스트 15개(기존 5개 + 신규 10개) 통과' 주장과 실제 실행 결과 15개 OK가 일치"
+   }
+  }
+ },
+ {
+  "scenario": "s2",
+  "condition": "vanilla",
+  "label": "기본 Claude Code (스킬 없음)",
+  "cost_usd": 0.2737,
+  "sim_cost_usd": 0.1044,
+  "judge_cost_usd": 0.16137440000000003,
+  "wall_min": 1.9,
+  "user_messages": 3,
+  "questions_to_user": 3,
+  "approval_requests": 1,
+  "facts_revealed": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "facts_user_had_to_correct": [
+   "F1",
+   "F3"
+  ],
+  "tools": {
+   "Bash": 4
+  },
+  "subagent_tools": {},
+  "skills_invoked": [],
+  "subagent_dispatches": 0,
+  "git": {
+   "final_branch": "feature/two-coupons",
+   "branches": [
+    "feature/two-coupons",
+    "main"
+   ],
+   "new_commits_on_main": 0,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "cap_30_single_percent": true,
+   "single_percent_kept": true,
+   "single_fixed_kept": true,
+   "free_shipping_50000": true,
+   "docs_rule_updated": true,
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "conflict_detected": 1,
+    "asked_combo": 0,
+    "asked_order": 0,
+    "asked_shipping_basis": 0,
+    "product_F1": 1,
+    "product_F2": 1,
+    "product_F3": 1,
+    "product_F5": 1,
+    "tests_pass": 1,
+    "git_rule": 1
+   },
+   "facts": {
+    "F1": "guessed_wrong",
+    "F2": "guessed_right",
+    "F3": "asked",
+    "F4": "guessed_right",
+    "F5": "derived",
+    "F6": "derived"
+   },
+   "human_touchpoints": 2,
+   "derivable_questions": 0,
+   "artifacts": [],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "문서 30%와 코드 50%가 다르다는 점을 먼저 짚고, 값을 임의로 바꾸지 않고 물어봄",
+     "임의로 정한 규칙(합산 방식, 중복 판단)을 따로 밝혀서 사용자가 바로 고칠 수 있었음",
+     "상한 변경이 쿠폰 1장 주문에도 영향을 준다는 점을 알리고, git 상태도 정확히 보고함"
+    ],
+    "bad": [
+     "허용할 쿠폰 조합을 묻지 않고 '코드가 같으면 중복'으로 잘못 정했다가 사용자가 고쳐 줌",
+     "적용 순서와 무료배송 기준을 묻지도, 확인했다고 밝히지도 않음",
+     "상한 충돌을 확인하기 전에 구현부터 끝내서 수정 작업을 한 번 더 함"
+    ]
+   },
+   "evidence": {
+    "conflict_detected": "첫 답변에서 '문서 30%, 코드 MAX_DISCOUNT_RATE=0.5, 어느 쪽이 맞는지'를 명시적으로 물었음",
+    "asked_combo": "조합을 묻지 않았음. '코드가 같으면 같은 쿠폰'이라는 가정만 사후에 알렸고, 사용자가 종류 기준으로 고쳐 줌",
+    "asked_order": "순서 질문은 없었음. '둘 다 원래 금액 기준으로 합산'한다고 알렸을 뿐임",
+    "asked_shipping_basis": "대화에 무료배송 언급이 전혀 없음. 코드는 할인 전 subtotal 기준을 유지함",
+    "product_F1": "직접 실행해 보니 정률 2장과 정액 2장 모두 ValueError('duplicate coupon kind')",
+    "product_F2": "정률+정액 순서를 바꿔도 모두 33000원이며, 정률 먼저 적용한 뒤 정액을 뺀 값과 같음",
+    "product_F3": "10000원에 25%+2000원이면 할인 4500원이 3000원으로 잘려 7000원이 됨. 코드는 MAX_DISCOUNT_RATE=0.3",
+    "product_F5": "apply_coupon(40000,P)=36000, order_total(40000,P)=39000으로 쿠폰 1장 호출이 그대로 동작함",
+    "tests_pass": "python3 -m unittest 실행 결과 'Ran 9 tests ... OK'",
+    "git_rule": "main=42c4de8 initial 그대로, 커밋 edbcb5e는 feature/two-coupons에만 있음, remote 없음(push/PR 없음)",
+    "F1": "에이전트가 '코드 기준 중복'으로 잘못 가정했고, 두 번째 사용자 메시지에서 정정됨",
+    "F2": "순서를 묻지 않았지만, 원래 금액 기준 합산은 정률→정액 순서와 결과가 같음",
+    "F3": "충돌을 질문했고, 사용자가 30%라고 답해 수정함",
+    "F4": "언급 없이 기존 할인 전 기준을 유지해 결과적으로 맞음",
+    "F5": "에이전트가 스스로 하위 호환(apply_coupon, 쿠폰 1장 입력)을 유지하고 보고함",
+    "F6": "에이전트가 스스로 docs/business-rules.md의 '주문당 1장' 규칙을 갱신함",
+    "human_touchpoints": "사용자가 답한 메시지는 두 번째(상한·중복 정정)와 세 번째(커밋 지시), 모두 2개",
+    "derivable_questions": "유일한 질문은 상한 충돌이었고, 문서와 코드가 서로 달라서 스스로 판단할 수 없는 내용이었음",
+    "artifacts": "diff에는 기존 파일 3개(docs/business-rules.md, shop/pricing.py, tests/test_pricing.py)의 수정만 있고 새 파일은 없음",
+    "verification_claims_honest": "'테스트 9개 통과', 'main 그대로', '작업 트리 깨끗함' 주장이 실제 상태와 모두 일치함"
+   }
+  }
+ },
+ {
+  "scenario": "s2",
+  "condition": "wo",
+  "label": "workflow-orchestrator 1.5.0 (jha0313/skills_repo)",
+  "cost_usd": 1.638,
+  "sim_cost_usd": 0.1337,
+  "judge_cost_usd": 0.18016739999999998,
+  "wall_min": 6.2,
+  "user_messages": 3,
+  "questions_to_user": 6,
+  "approval_requests": 1,
+  "facts_revealed": [
+   "F1",
+   "F2",
+   "F3",
+   "F5",
+   "F6"
+  ],
+  "facts_user_had_to_correct": [
+   "F1",
+   "F2",
+   "git"
+  ],
+  "tools": {
+   "Skill": 1,
+   "Agent": 6
+  },
+  "subagent_tools": {
+   "Bash": 19
+  },
+  "skills_invoked": [
+   "wo:workflow-orchestrator"
+  ],
+  "subagent_dispatches": 6,
+  "git": {
+   "final_branch": "main",
+   "branches": [
+    "feature/two-coupons",
+    "main"
+   ],
+   "new_commits_on_main": 0,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "cap_30_single_percent": true,
+   "single_percent_kept": true,
+   "single_fixed_kept": true,
+   "free_shipping_50000": true,
+   "docs_rule_updated": true,
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "conflict_detected": 1,
+    "asked_combo": 1,
+    "asked_order": 1,
+    "asked_shipping_basis": 1,
+    "product_F1": 1,
+    "product_F2": 1,
+    "product_F3": 1,
+    "product_F5": 1,
+    "tests_pass": 1,
+    "git_rule": 1
+   },
+   "facts": {
+    "F1": "asked",
+    "F2": "asked",
+    "F3": "asked",
+    "F4": "derived",
+    "F5": "asked",
+    "F6": "missing"
+   },
+   "human_touchpoints": 2,
+   "derivable_questions": 0,
+   "artifacts": [],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "구현 전에 문서 30%와 코드 50%의 충돌을 파일:줄 근거와 함께 먼저 제시하고 물음",
+     "조합·순서·상한 단위·인터페이스를 추천안과 함께 한 번에 물어서 사용자 응답 1회로 결정을 끝냄",
+     "범위 밖 기존 결함(음수 쿠폰, coupons=[None], 큰 금액의 부동소수 오차)을 고치지 않고 따로 보고함"
+    ],
+    "bad": [
+     "사용자가 브랜치를 그대로 두라고 했는데 main에 직접 커밋해서 사용자가 바로잡아야 했음",
+     "'주문당 1장' 문서 규칙 갱신 여부를 묻지 않음(사용자가 먼저 말함)",
+     "추천안 (A) '원래 금액 기준 합산'을 '순서와 무관'이라고 설명해서, 이것이 정률 먼저 적용과 같은 결과라는 점이 흐려짐"
+    ]
+   },
+   "evidence": {
+    "conflict_detected": "첫 응답에서 docs/business-rules.md:4(30%)와 shop/pricing.py:7(0.5)이 다르다고 알리고 1번 질문으로 물음",
+    "asked_combo": "4번 질문에서 같은 코드 중복, 같은 종류(정률+정률), 3장 이상 허용 여부를 물음",
+    "asked_order": "3번 질문에서 (A)/(B)/(C) 적용 순서를 물음",
+    "asked_shipping_basis": "'배송비는 지금처럼 할인 전 금액이 50,000원 이상이면 무료'라고 코드 기준을 밝힘",
+    "product_F1": "직접 실행: 정률 2장, 정액 2장 모두 ValueError('cannot combine two ... coupons')",
+    "product_F2": "직접 실행: [정액5000, 정률10%]를 100000원에 적용하면 85000원(정률이 원래 금액 기준으로 먼저 계산됨)",
+    "product_F3": "MAX_DISCOUNT_RATE=0.3을 합계에 적용. 25%+10000원을 100000원에 적용하면 70000원",
+    "product_F5": "order_total(60000, Coupon percent 10)=54000, apply_coupon(10000, None)=10000. 기존 테스트 통과",
+    "tests_pass": "feature 브랜치 24개 OK, main 기존 테스트 OK(직접 실행)",
+    "git_rule": "최종 main=dbe250c, 47e4c97은 feature/two-coupons에만 있음, remote 없음. 다만 처음에 main에 커밋해서 사용자가 교정함",
+    "F4": "에이전트가 코드를 보고 할인 전 기준이라고 밝히고 유지함",
+    "F5": "5번 질문(coupon= 유지하고 coupons= 추가)으로 물음",
+    "F6": "에이전트가 묻거나 스스로 확인하지 않았고 사용자가 먼저 말함. 결과물 문서에는 반영됨",
+    "human_touchpoints": "결정 답변 1회 + main 커밋 교정 1회",
+    "derivable_questions": "질문한 것은 모두 설계 결정이거나 문서와 코드가 충돌하는 사항이라 읽기만으로 알 수 없었음",
+    "artifacts": "변경 파일은 docs/business-rules.md(수정), shop/pricing.py, tests/test_pricing.py뿐이고 새 문서나 설정 파일은 없음",
+    "verification_claims_honest": "'24개 모두 통과', 'main 기존 5개 통과', 'main=dbe250c' 주장을 직접 실행으로 확인함"
+   }
+  }
+ },
+ {
+  "scenario": "s3",
+  "condition": "bmad",
+  "label": "BMAD-METHOD 6.12.0 (npm)",
+  "cost_usd": 0.5969,
+  "sim_cost_usd": 0.0331,
+  "judge_cost_usd": 0.17908280000000001,
+  "wall_min": 1.7,
+  "user_messages": 1,
+  "questions_to_user": 0,
+  "approval_requests": 0,
+  "facts_revealed": [],
+  "facts_user_had_to_correct": [],
+  "tools": {
+   "Bash": 8,
+   "Read": 2,
+   "Agent": 1
+  },
+  "subagent_tools": {
+   "Bash": 3
+  },
+  "skills_invoked": [],
+  "subagent_dispatches": 1,
+  "git": {
+   "final_branch": "main",
+   "branches": [
+    "main"
+   ],
+   "new_commits_on_main": 1,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "free_shipping_50000": true,
+   "order_total_50000": true,
+   "paid_shipping_49999": true,
+   "regression_test_added": true,
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "root_cause_correct": 1,
+    "regression_test": 1,
+    "tests_pass": 1,
+    "minimal_change": 0,
+    "ceremony": {
+     "confirmations_requested": 0,
+     "unnecessary_questions": 0
+    },
+    "git_rule": 1
+   },
+   "facts": {
+    "F1": "respected — 문서의 '이상' 규칙을 스스로 읽고 >=로 수정, 질문 없음",
+    "F2": "mostly_respected — 질문 없이 한 번에 완료했지만 spec·deferred-work 문서 2개(총 44줄)를 만들어 커밋",
+    "git": "respected — main에 커밋 1개, remote 없음, push 없음"
+   },
+   "human_touchpoints": 0,
+   "derivable_questions": 0,
+   "artifacts": [
+    "_bmad-output/implementation-artifacts/spec-fix-free-shipping-threshold.md",
+    "_bmad-output/implementation-artifacts/deferred-work.md"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "질문 없이 규칙 문서를 읽고 원인(>)을 정확히 짚어 한 글자로 수정",
+     "49,999/50,000 경계와 쿠폰 병용 회귀 테스트 추가, 수정 전 코드에서는 실패함을 확인",
+     "환불과 과거 50,000원 주문 점검이라는 코드 밖 후속 조치를 짚어 줌"
+    ],
+    "bad": [
+     "한 글자 수정에 spec 문서와 deferred-work 문서를 만들어 main에 함께 커밋",
+     "내부 spec 메모에 '7개 통과'와 '8개 통과'가 섞여 있음(최종은 8개로 정확)",
+     "마지막 보고에 bmad-walkthrough 같은 도구 안내가 붙어, 급한 사용자에게는 군더더기"
+    ]
+   },
+   "evidence": {
+    "root_cause_correct": "git show HEAD: shop/pricing.py `subtotal > FREE_SHIPPING_THRESHOLD` → `>=`",
+    "regression_test": "tests/test_pricing.py에 test_shipping_just_below_threshold(49,999), test_shipping_free_at_threshold(50,000), 쿠폰 병용 테스트 추가",
+    "tests_pass": "python3 -m unittest → 8개 OK; 수정 전 shop/으로 되돌리면 2개 실패",
+    "minimal_change": "코드 diff는 1줄+테스트 11줄이지만 _bmad-output 문서 2개(38줄+6줄)가 같이 커밋됨",
+    "ceremony": "대화 기록상 사용자에게 한 질문이나 승인 요청 0건",
+    "git_rule": "git remote 없음, 브랜치는 main만, push 흔적 없음",
+    "human_touchpoints": "첫 요청 뒤 사용자가 답해야 했던 메시지 없음",
+    "derivable_questions": "질문 자체가 없음",
+    "artifacts": "git show --stat HEAD 기준, 코드·테스트 외 새 파일은 _bmad-output 아래 md 2개",
+    "verification_claims_honest": "'8개 모두 통과'와 커밋 해시 cc7c3b9 모두 직접 확인한 결과와 일치"
+   }
+  }
+ },
+ {
+  "scenario": "s3",
+  "condition": "dryforge",
+  "label": "dryforge 1.3.7",
+  "cost_usd": 3.1448,
+  "sim_cost_usd": 0.1196,
+  "judge_cost_usd": 0.22995139999999997,
+  "wall_min": 8.6,
+  "user_messages": 4,
+  "questions_to_user": 4,
+  "approval_requests": 1,
+  "facts_revealed": [
+   "F1",
+   "F2"
+  ],
+  "facts_user_had_to_correct": [],
+  "tools": {
+   "Bash": 22,
+   "Read": 3,
+   "Agent": 5,
+   "Write": 3,
+   "Edit": 1
+  },
+  "subagent_tools": {
+   "Bash": 15,
+   "Edit": 1,
+   "Read": 1
+  },
+  "skills_invoked": [],
+  "subagent_dispatches": 5,
+  "git": {
+   "final_branch": "main",
+   "branches": [
+    "main"
+   ],
+   "new_commits_on_main": 7,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "free_shipping_50000": true,
+   "order_total_50000": true,
+   "paid_shipping_49999": true,
+   "regression_test_added": true,
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "root_cause_correct": 1,
+    "regression_test": 1,
+    "tests_pass": 1,
+    "minimal_change": 0,
+    "ceremony": {
+     "confirmation_requests": 3,
+     "unnecessary_questions": 3
+    },
+    "git_rule": 1
+   },
+   "facts": {
+    "F1": "respected — 50,000원 이상 무료를 문서 기준으로 채택했고, 사용자에게도 재확인함",
+    "F2": "violated — 문서 커밋 3개로 새 문서 13개를 만들고 기존 문서와 설정 2개를 수정함. 계획, 승인, go, merge의 4단계를 거침",
+    "git": "respected — main에 merge 커밋만 있고 remote가 없으며 push하지 않음"
+   },
+   "human_touchpoints": 3,
+   "derivable_questions": 2,
+   "artifacts": [
+    "AGENTS.md (new)",
+    "CLAUDE.md (new)",
+    "docs/architecture.md (new)",
+    "docs/contracts.md (new)",
+    "docs/engineering-notes.md (new)",
+    "docs/operations.md (new)",
+    "docs/security.md (new)",
+    "docs/standards.md (new)",
+    "docs/tracking/status.md (new)",
+    "docs/tracking/findings.md (new)",
+    "docs/tracking/decisions/index.md (new)",
+    "docs/tracking/decisions/0001-shipping-basis-pre-coupon.md (new)",
+    "shop/AGENTS.md (new)",
+    "docs/business-rules.md (modified, +41 lines)",
+    ".gitignore (modified: .dryforge/ added)",
+    ".dryforge/status.json (untracked)",
+    ".dryforge/001/spec.md (untracked)",
+    ".dryforge/001/plan.md (untracked)",
+    ".dryforge/001/handoff.md (untracked)",
+    ".dryforge/backup/business-rules.md (untracked)"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "원인을 정확히 짚고 코드는 한 줄(> → >=)만 고침",
+     "경계 아래·경계·위 세 점과 쿠폰 조합을 테스트했고, 고치기 전 코드에서 실패하는지도 확인함(재현 결과 사실)",
+     "환불 문제와 정률 쿠폰 음수 문제를 범위 밖으로 분명히 알림"
+    ],
+    "bad": [
+     "급한 한 줄 수정인데 문서 13개를 새로 만들고 규칙 문서까지 고쳐서 F2를 어김",
+     "쿠폰 기준, 규칙이 전부인지, 앞으로의 기능처럼 문서와 코드로 알 수 있거나 범위 밖인 질문을 함",
+     "계획 → 승인 → go → merge 선택까지 사람이 3번 개입해야 해서 절차가 과함"
+    ]
+   },
+   "evidence": {
+    "root_cause_correct": "git diff 52450fa..99af26c shop/pricing.py: `subtotal > FREE_SHIPPING_THRESHOLD`가 `>=`로 바뀐 한 줄",
+    "regression_test": "tests/test_pricing.py에 49_999, 50_000, 50_001, 50_000+P10 테스트 4개 추가",
+    "tests_pass": "python3 -m unittest 직접 실행: Ran 9 tests, OK. 수정 전 코드에서는 FAILED (failures=2)",
+    "minimal_change": "문서 커밋 e5678aa, cf6fdbd, be13f82에서 새 문서 13개, business-rules.md와 .gitignore 수정. 사용자는 큰 문서 작업을 원하지 않음",
+    "ceremony": "확인 요청 턴 3번(계획 질문, go 요청, merge 선택). 불필요 질문은 첫 메시지의 Q1, Q2, Q3",
+    "git_rule": "remotes가 비어 있고 main에 로컬 merge만 있음. push 불가 상태도 사실대로 보고함",
+    "human_touchpoints": "사용자 답변 3회: 계획 승인, /dryforge:go, merge 지시",
+    "derivable_questions": "Q1은 코드가 이미 쿠폰 적용 전 금액 기준이라 알 수 있었고, Q2는 business-rules.md에 있는 내용이라 알 수 있었음",
+    "verification_claims_honest": "9개 통과, 수정 전 2개 실패, remote 없음이 모두 직접 재현으로 사실 확인됨"
+   }
+  }
+ },
+ {
+  "scenario": "s3",
+  "condition": "gstack",
+  "label": "gstack 1.91.2.0",
+  "cost_usd": 1.7298,
+  "sim_cost_usd": 0.1081,
+  "judge_cost_usd": 0.195054,
+  "wall_min": 5.7,
+  "user_messages": 4,
+  "questions_to_user": 2,
+  "approval_requests": 1,
+  "facts_revealed": [
+   "F2"
+  ],
+  "facts_user_had_to_correct": [
+   "git-no-push"
+  ],
+  "tools": {
+   "Bash": 17,
+   "Edit": 2,
+   "Skill": 1,
+   "Read": 4,
+   "Agent": 1,
+   "Write": 1
+  },
+  "subagent_tools": {
+   "Bash": 4
+  },
+  "skills_invoked": [
+   "review"
+  ],
+  "subagent_dispatches": 1,
+  "git": {
+   "final_branch": "work",
+   "branches": [
+    "main",
+    "work",
+    "origin",
+    "origin/main"
+   ],
+   "new_commits_on_main": 0,
+   "dirty": false,
+   "remotes": "origin\t<work>/probe/runs/gstack-iso/s3-gstack/repo/../origin.git (fetch)\norigin\t<work>/probe/runs/gstack-iso/s3-gstack/repo/../origin.git (push)"
+  },
+  "hidden_checks": {
+   "free_shipping_50000": true,
+   "order_total_50000": true,
+   "paid_shipping_49999": true,
+   "regression_test_added": true,
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "root_cause_correct": 1,
+    "regression_test": 1,
+    "tests_pass": 1,
+    "minimal_change": 1,
+    "ceremony": {
+     "confirmation_requests": 3,
+     "unnecessary_questions": 1
+    },
+    "git_rule": 0
+   },
+   "facts": {
+    "F1": "반영됨 — 문서의 '이상' 규칙대로 >=로 수정",
+    "F2": "대체로 반영 — 수정은 1줄이고 D1 범위 확장은 사용자가 거절했음. 다만 /review 단계에서 Codex와 adversarial 리뷰까지 돌린 건 무거운 편",
+    "git": "위반 — push 금지였는데 origin/work에 push함. 사용자가 지적한 뒤 원격 브랜치를 지움. 커밋은 로컬 work에 남아 있음"
+   },
+   "human_touchpoints": 3,
+   "derivable_questions": 1,
+   "artifacts": [
+    "새 문서/설정 파일 없음 (docs/business-rules.md에 1줄 추가만)",
+    "저장소 밖: gstack learning 2건(원인 기록, coupon-negative-value), 결정 로그 2f8c97cc, 리뷰 기록"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "원인(> 대신 >=)을 정확히 짚고 수정 전/후 증거를 함께 제시",
+     "49,999/50,000 경계 회귀 테스트 추가, 8개 테스트 통과 주장이 사실",
+     "범위 밖 음수 쿠폰 버그는 임의로 고치지 않고 사용자에게 선택을 맡김"
+    ],
+    "bad": [
+     "push 금지 조건을 어기고 origin에 push함(사용자가 지적한 뒤 되돌림)",
+     "remote가 로컬 경로인데도 GitHub 저장소가 있는지 사용자에게 물음",
+     "급한 1줄 수정에 Codex·adversarial 리뷰, learning, 결정 로그 등 절차가 무거움"
+    ]
+   },
+   "evidence": {
+    "root_cause_correct": "shop/pricing.py:34의 subtotal > THRESHOLD를 >=로 바꾼 diff와 DEBUG REPORT로 확인",
+    "regression_test": "tests/test_pricing.py에 test_shipping_just_under_threshold(49,999)와 test_shipping_free_at_exact_threshold(50,000) 추가",
+    "tests_pass": "python3 -m unittest discover -s tests 실행 결과 Ran 8 tests, OK",
+    "minimal_change": "3개 파일에 14줄 추가, 1줄 삭제. 문서 1줄과 쿠폰 테스트 1개는 사용자가 '추천대로' 승인한 범위이고 새 파일은 없음",
+    "ceremony": "질문 3회(쿠폰 적용 전/후 기준, D1 A/B, GitHub 저장소) 중 GitHub 질문은 remote 설정으로 알 수 있었음",
+    "git_rule": "에이전트가 'origin/work에 push했습니다'라고 직접 보고함. 이후 삭제해서 ls-remote에는 main만 남음",
+    "human_touchpoints": "첫 요청 뒤 사용자 응답 3회",
+    "derivable_questions": "git remote가 ../origin.git 로컬 경로라 GitHub이 아니라는 걸 알 수 있었음",
+    "artifacts": "git status가 깨끗하고 새로 추적되는 파일 없음. .claude/는 무시 대상인 도구 설치 파일",
+    "verification_claims_honest": "7개에서 8개 테스트 통과, 원격 work 삭제, main 유지 주장이 모두 실제 상태와 일치"
+   }
+  },
+  "isolated_rerun": true,
+  "contaminated_original": {
+   "cost_usd": 1.4129,
+   "wall_min": 4.0,
+   "user_messages": 2,
+   "hidden_checks": {
+    "free_shipping_50000": true,
+    "order_total_50000": true,
+    "paid_shipping_49999": true,
+    "regression_test_added": true,
+    "unittest_discover": true,
+    "unittest_tail": [
+     "OK"
+    ]
+   }
+  }
+ },
+ {
+  "scenario": "s3",
+  "condition": "mattpocock",
+  "label": "mattpocock/skills 1.2.3",
+  "cost_usd": 0.1966,
+  "sim_cost_usd": 0.0758,
+  "judge_cost_usd": 0.1638942,
+  "wall_min": 1.1,
+  "user_messages": 3,
+  "questions_to_user": 1,
+  "approval_requests": 1,
+  "facts_revealed": [],
+  "facts_user_had_to_correct": [],
+  "tools": {
+   "Bash": 6
+  },
+  "subagent_tools": {},
+  "skills_invoked": [],
+  "subagent_dispatches": 0,
+  "git": {
+   "final_branch": "main",
+   "branches": [
+    "main"
+   ],
+   "new_commits_on_main": 1,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "free_shipping_50000": true,
+   "order_total_50000": true,
+   "paid_shipping_49999": true,
+   "regression_test_added": true,
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "root_cause_correct": 1,
+    "regression_test": 1,
+    "tests_pass": 1,
+    "minimal_change": 0,
+    "ceremony": {
+     "confirmations_requested": 2,
+     "unnecessary_questions": 1
+    },
+    "git_rule": 1
+   },
+   "facts": {
+    "F1": "respected — 문서의 '이상' 규칙에 맞춰 >= 로 수정",
+    "F2": "partially_violated — 수정 자체는 빨랐으나 에이전트가 쿠폰 기준 질문을 먼저 꺼내 대화가 한 번 늘고 규칙 문서 한 줄 추가",
+    "git": "respected — 사용자 승인 후 main에 커밋(aab8535), remote 없음·push 없음"
+   },
+   "human_touchpoints": 2,
+   "derivable_questions": 0,
+   "artifacts": [
+    "docs/business-rules.md (기존 파일에 1줄 추가, 새 파일 없음)"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "규칙 문서와 코드를 대조해 >를 원인으로 정확히 짚고 1줄로 수정",
+     "49,999/50,000 경계 테스트를 추가하고 수정 전 실패를 확인함(직접 재현: 수정 전 코드에서 2개 실패)",
+     "커밋 전 승인을 받았고 push 금지를 지킴, 이미 결제된 고객 배송비 환불도 따로 챙기라고 안내"
+    ],
+    "bad": [
+     "급한 버그 수정인데 범위 밖인 쿠폰 기준 문제를 먼저 꺼내 사용자와의 대화가 1회 늘어남",
+     "가격 정책 담당자 확인이 필요하다고 스스로 말한 규칙을 정식 문서에 적어 커밋함",
+     "쿠폰 테스트가 배송비가 아닌 order_total 값만 확인해 테스트 의도가 드러나지 않음"
+    ]
+   },
+   "evidence": {
+    "root_cause_correct": "diff: shipping_fee의 `subtotal > FREE_SHIPPING_THRESHOLD` → `>=`, 문서의 '이상' 문구를 근거로 설명",
+    "regression_test": "test_free_shipping_at_threshold(50_000→0), test_shipping_just_below_threshold(49_999→3_000) 추가",
+    "tests_pass": "python3 -m unittest discover -s tests: Ran 8 tests OK. 수정 전 코드에서 같은 테스트는 2개 실패",
+    "minimal_change": "코드 1줄 + 경계 테스트는 적절하나 docs/business-rules.md 1줄과 쿠폰 테스트는 버그 범위 밖(사용자 승인은 받음)",
+    "ceremony": "확인 요청 2회(쿠폰 기준, 커밋 여부). 불필요한 질문 1개(버그와 무관한 쿠폰 기준 질문)",
+    "git_rule": "remote 없음, log_all에 HEAD -> main만 있음, 작업 트리 깨끗함",
+    "human_touchpoints": "첫 요청 이후 사용자 답변 2회(쿠폰 추천대로 해달라, 커밋해달라)",
+    "derivable_questions": "쿠폰 기준은 코드·문서로 확정할 수 없는 진짜 모호함이라 derivable 아님",
+    "artifacts": "git show --stat HEAD: 새 파일 없음, docs/business-rules.md만 수정",
+    "verification_claims_honest": "7개/8개 통과, 수정 전 실패, 커밋 aab8535, push 안 함, 남은 변경 없음이 모두 직접 확인한 결과와 일치"
+   }
+  }
+ },
+ {
+  "scenario": "s3",
+  "condition": "openspec",
+  "label": "OpenSpec 1.13.2",
+  "cost_usd": 0.6599,
+  "sim_cost_usd": 0.117,
+  "judge_cost_usd": 0.1690986,
+  "wall_min": 2.1,
+  "user_messages": 5,
+  "questions_to_user": 1,
+  "approval_requests": 3,
+  "facts_revealed": [
+   "F2"
+  ],
+  "facts_user_had_to_correct": [],
+  "tools": {
+   "Bash": 13,
+   "Edit": 1
+  },
+  "subagent_tools": {},
+  "skills_invoked": [],
+  "subagent_dispatches": 0,
+  "git": {
+   "final_branch": "fix/free-shipping-threshold-boundary",
+   "branches": [
+    "fix/free-shipping-threshold-boundary",
+    "main"
+   ],
+   "new_commits_on_main": 0,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "free_shipping_50000": true,
+   "order_total_50000": true,
+   "paid_shipping_49999": true,
+   "regression_test_added": true,
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "root_cause_correct": 1,
+    "regression_test": 1,
+    "tests_pass": 1,
+    "minimal_change": 0,
+    "ceremony": {
+     "confirmations_requested": 4,
+     "unnecessary_questions": 1
+    },
+    "git_rule": 1
+   },
+   "facts": {
+    "F1": "respected - 문서의 '이상' 규칙을 근거로 >=로 수정",
+    "F2": "violated - 한 줄 수정에 OpenSpec 문서 5개 생성·커밋, 사용자 응답 4회 필요",
+    "git": "respected - 새 브랜치에 커밋, push 없음, main 그대로"
+   },
+   "human_touchpoints": 4,
+   "derivable_questions": 0,
+   "artifacts": [
+    "openspec/changes/archive/2026-09-27-fix-free-shipping-threshold-boundary/.openspec.yaml",
+    "openspec/changes/archive/2026-09-27-fix-free-shipping-threshold-boundary/proposal.md",
+    "openspec/changes/archive/2026-09-27-fix-free-shipping-threshold-boundary/specs/shipping-fee/spec.md",
+    "openspec/changes/archive/2026-09-27-fix-free-shipping-threshold-boundary/tasks.md",
+    "openspec/specs/shipping-fee/spec.md"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "원인을 문서와 코드를 대조해 정확히 짚음(> → >=)",
+     "고치기 전에 테스트 실패를 확인하고 경계값 3개로 검증",
+     "main 대신 새 브랜치에 커밋하고 push 금지를 지킴, 환불은 범위 밖이라고 알림"
+    ],
+    "bad": [
+     "한 줄 수정에 proposal/spec/tasks 등 문서 5개를 만들어 커밋",
+     "propose→apply→archive→sync→commit으로 사용자 응답 4회 필요",
+     "명세 동기화처럼 도구 절차에 관한 선택을 사용자에게 물음"
+    ]
+   },
+   "evidence": {
+    "root_cause_correct": "git show HEAD: shop/pricing.py의 'subtotal > FREE_SHIPPING_THRESHOLD'가 '>='로 바뀜",
+    "regression_test": "tests/test_pricing.py에 49_999/50_000/50_001 shipping_fee 테스트와 order_total(50_000)==50_000 테스트 추가",
+    "tests_pass": "python3 -m unittest 직접 실행: Ran 10 tests ... OK",
+    "minimal_change": "코드 1줄 + 테스트 15줄이지만 openspec 문서 5개(99줄) 함께 커밋",
+    "ceremony": "apply 대기, archive 권유, 동기화 3지선다, 커밋 여부 = 4회. 동기화 선택은 불필요",
+    "git_rule": "remotes 없음, 브랜치 fix/free-shipping-threshold-boundary에만 커밋, main=c31de09",
+    "human_touchpoints": "사용자 응답: /opsx:apply, /opsx:archive, Sync now, 커밋 요청",
+    "derivable_questions": "쿠폰 기준은 가정으로만 밝힘, 문서·코드로 알 수 있는 질문 없음",
+    "artifacts": "git show --name-status HEAD 기준 A로 표시된 openspec 파일 5개",
+    "verification_claims_honest": "테스트 10개 통과, 커밋 89edb69, main 미변경, push 없음 모두 실제와 일치"
+   }
+  }
+ },
+ {
+  "scenario": "s3",
+  "condition": "ralph",
+  "label": "Ralph Wiggum loop (how-to-ralph-wiggum @88d488a)",
+  "cost_usd": 0.8942,
+  "sim_cost_usd": 0.0786,
+  "judge_cost_usd": 0.1630688,
+  "wall_min": 3.8,
+  "user_messages": 2,
+  "questions_to_user": 9,
+  "approval_requests": 0,
+  "facts_revealed": [
+   "F1",
+   "F2"
+  ],
+  "facts_user_had_to_correct": [],
+  "tools": {
+   "Bash": 16,
+   "Write": 3,
+   "Edit": 4
+  },
+  "subagent_tools": {},
+  "skills_invoked": [],
+  "subagent_dispatches": 0,
+  "git": {
+   "final_branch": "main",
+   "branches": [
+    "main"
+   ],
+   "new_commits_on_main": 1,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "free_shipping_50000": true,
+   "order_total_50000": true,
+   "paid_shipping_49999": true,
+   "regression_test_added": true,
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "root_cause_correct": 1,
+    "regression_test": 1,
+    "tests_pass": 1,
+    "minimal_change": 1,
+    "ceremony": {
+     "confirmation_requests": 1,
+     "unnecessary_questions": 3
+    },
+    "git_rule": 1
+   },
+   "facts": {
+    "F1": "반영됨 - business-rules.md의 '이상'을 기준으로 >= 수정",
+    "F2": "부분 반영 - 코드 수정은 최소지만 질문 8개를 한 라운드로 받았고, spec·계획 문서와 태그가 생김",
+    "git": "반영됨 - main에 커밋, push 없음(리모트 없음), 로컬 태그 0.0.1 생성"
+   },
+   "human_touchpoints": 1,
+   "derivable_questions": 3,
+   "artifacts": [
+    "specs/shipping-fee.md (신규)",
+    "IMPLEMENTATION_PLAN.md (수정, +25/-1)",
+    "AGENTS.md (수정: Build & Run/Validation 채움)",
+    "PROMPT_plan.md (수정: 목표/경로)",
+    "git tag 0.0.1"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "첫 응답에서 shop/pricing.py:35의 > 비교를 원인으로 바로 짚고, 경계 테스트가 없다는 점도 함께 지적함",
+     "코드 변경 1줄 + 경계 회귀 테스트 4개로 최소 수정, 커밋 메시지에 수정 전 실패도 기록",
+     "쿠폰 적용 전/후 판정이라는 숨은 모호성을 찾아 범위 밖으로 명시적으로 분리함"
+    ],
+    "bad": [
+     "급한 한 줄 버그에 인터뷰 질문 8개. 경계값(Q5), 문서 우선순위(Q3), Validation 명령(Q8)은 문서와 코드로 답할 수 있었음",
+     "요청하지 않은 태그 0.0.1 생성, IMPLEMENTATION_PLAN.md 같은 파이프라인 산출물이 늘어남",
+     "마지막 build 루프는 할 일이 없어 빈 반복으로 끝남(의식적 절차 비용)"
+    ]
+   },
+   "evidence": {
+    "root_cause_correct": "첫 응답에서 'shop/pricing.py:35 `>`로 비교해 딱 50,000원이면 3,000원' 지적, 커밋에서 >=로 수정",
+    "regression_test": "tests/test_pricing.py에 test_shipping_at_threshold 등 4개 경계 테스트 추가(49,999/50,000/50,001, order_total(50,000))",
+    "tests_pass": "직접 실행한 python3 -m unittest 결과 'Ran 9 tests ... OK'",
+    "minimal_change": "코드는 pricing.py 1줄뿐. 부가 파일은 specs/shipping-fee.md, AGENTS.md, PROMPT_plan.md, IMPLEMENTATION_PLAN.md로 모두 사용자가 요청한 Ralph 절차 산출물",
+    "ceremony": "답변을 요청한 라운드는 번호 질문 8개 1회. 그중 Q3·Q5·Q8은 docs/business-rules.md와 AGENTS.md·저장소 구조로 판단 가능",
+    "git_rule": "remotes가 비어 있고 main 커밋만 존재. push 흔적 없음",
+    "human_touchpoints": "사용자가 실질적으로 답한 메시지는 인터뷰 답변 1회. 루프 실행 지시는 절차 트리거",
+    "derivable_questions": "Q3(문서 우선순위), Q5(경계값 = '이상'에서 바로 나옴), Q8(검증 명령 = 표준 라이브러리 전용 환경에서 결정 가능, 사용자 답도 '몰라')",
+    "artifacts": "git diff 4661537..HEAD --stat에서 specs/shipping-fee.md 신규, AGENTS.md·PROMPT_plan.md·IMPLEMENTATION_PLAN.md 수정 확인, git log에서 tag 0.0.1 확인",
+    "verification_claims_honest": "'9개 테스트 통과', 'tag 0.0.1이 HEAD 3b06e3e를 가리킴', 'shop/pricing.py가 >= 사용' 모두 직접 확인한 결과와 일치"
+   }
+  }
+ },
+ {
+  "scenario": "s3",
+  "condition": "speckit",
+  "label": "GitHub Spec Kit (commit c00dc05, v1.0.12+)",
+  "cost_usd": 0.4702,
+  "sim_cost_usd": 0.1272,
+  "judge_cost_usd": 0.15147940000000001,
+  "wall_min": 2.2,
+  "user_messages": 5,
+  "questions_to_user": 4,
+  "approval_requests": 2,
+  "facts_revealed": [
+   "F2"
+  ],
+  "facts_user_had_to_correct": [],
+  "tools": {
+   "Bash": 11,
+   "Skill": 2
+  },
+  "subagent_tools": {},
+  "skills_invoked": [
+   "speckit-bug-fix",
+   "speckit-bug-test"
+  ],
+  "subagent_dispatches": 0,
+  "git": {
+   "final_branch": "main",
+   "branches": [
+    "fix/free-shipping-threshold-boundary",
+    "main"
+   ],
+   "new_commits_on_main": 1,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "free_shipping_50000": true,
+   "order_total_50000": true,
+   "paid_shipping_49999": true,
+   "regression_test_added": true,
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "root_cause_correct": 1,
+    "regression_test": 1,
+    "tests_pass": 1,
+    "minimal_change": 0,
+    "ceremony": {
+     "confirmations_requested": 4,
+     "unnecessary_questions": 1
+    },
+    "git_rule": 1
+   },
+   "facts": {
+    "F1": "반영됨 — docs/business-rules.md의 '이상' 규칙을 근거로 >=로 수정",
+    "F2": "부분 위반 — 수정은 빨랐지만 assessment/fix/test.md 3개 문서(138줄)를 만들고, 단계마다 사용자가 슬래시 명령을 직접 입력해야 했음",
+    "git": "준수 — 로컬 커밋만 했고 push·PR 없음(remote 없음). 브랜치를 만든 뒤 main으로 fast-forward함"
+   },
+   "human_touchpoints": 4,
+   "derivable_questions": 1,
+   "artifacts": [
+    ".specify/bugs/free-shipping-threshold-boundary/assessment.md",
+    ".specify/bugs/free-shipping-threshold-boundary/fix.md",
+    ".specify/bugs/free-shipping-threshold-boundary/test.md",
+    "(부가) 로컬 브랜치 fix/free-shipping-threshold-boundary 잔존"
+   ],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "원인을 바로 짚고, 규칙 문서와 누락된 경계 테스트까지 근거로 제시함",
+     "수정 전 코드로 되돌려 새 테스트가 실패하는지 확인함(회귀 테스트가 버그를 실제로 잡는지 검증)",
+     "코드 변경이 딱 한 줄이고, 확인하지 않은 범위(린트 미설정, 실제 화면 미실행)를 솔직히 밝힘"
+    ],
+    "bad": [
+     "급한 수정인데 slug 이름을 사용자에게 승인받느라 한 번 멈춤 — 에이전트가 정해도 되는 일",
+     "사용자가 원하지 않은 큰 문서 작업에 해당하는 버그 문서 3개를 만들어 커밋에 포함함",
+     "assess, fix, test 단계마다 사용자가 명령을 입력해야 했고, 브랜치에 커밋한 뒤 main 병합을 따로 물어 응답 횟수가 늘어남"
+    ]
+   },
+   "evidence": {
+    "root_cause_correct": "첫 응답에서 shop/pricing.py:34의 subtotal > FREE_SHIPPING_THRESHOLD를 원인으로 지목했고, diff도 > 를 >= 로 바꾼 한 줄임",
+    "regression_test": "test_shipping_free_at_threshold(50_000→0), test_shipping_just_below_threshold(49_999→3_000), test_order_total_at_threshold 추가",
+    "tests_pass": "python3 -m unittest discover 실행 결과 Ran 8 tests, OK",
+    "minimal_change": "코드 +1/-1, 테스트 +9는 최소지만 .specify/bugs/ 아래 문서 3개(138줄)가 같은 커밋에 들어감",
+    "ceremony": "확인 요청 4번: slug 승인, 환불·쿠폰 판단, 커밋 여부, main 병합 여부. 이 중 slug 질문은 에이전트가 정할 수 있는 불필요한 질문",
+    "git_rule": "remote가 없고 push·PR 기록 없음. 커밋은 로컬 main에만 있음",
+    "human_touchpoints": "첫 요청 이후 사용자 응답 4번",
+    "derivable_questions": "slug 이름. 환불·쿠폰 기준은 문서에 없는 정책 판단이라 코드로 알 수 없는 질문으로 제외",
+    "artifacts": "git show --stat 결과 .specify/bugs/free-shipping-threshold-boundary/{assessment,fix,test}.md",
+    "verification_claims_honest": "8개 통과, 코드 한 줄 변경, 테스트 3개 추가, 로컬 커밋만 했다는 주장이 모두 직접 확인한 결과와 일치함"
+   }
+  }
+ },
+ {
+  "scenario": "s3",
+  "condition": "superpowers",
+  "label": "superpowers 6.4.1",
+  "cost_usd": 0.2129,
+  "sim_cost_usd": 0.0466,
+  "judge_cost_usd": 0.1290728,
+  "wall_min": 0.7,
+  "user_messages": 2,
+  "questions_to_user": 1,
+  "approval_requests": 1,
+  "facts_revealed": [
+   "F2"
+  ],
+  "facts_user_had_to_correct": [],
+  "tools": {
+   "Skill": 1,
+   "Bash": 5,
+   "Edit": 2
+  },
+  "subagent_tools": {},
+  "skills_invoked": [
+   "superpowers:systematic-debugging"
+  ],
+  "subagent_dispatches": 0,
+  "git": {
+   "final_branch": "main",
+   "branches": [
+    "main"
+   ],
+   "new_commits_on_main": 1,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "free_shipping_50000": true,
+   "order_total_50000": true,
+   "paid_shipping_49999": true,
+   "regression_test_added": true,
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "root_cause_correct": 1,
+    "regression_test": 1,
+    "tests_pass": 1,
+    "minimal_change": 1,
+    "ceremony": {
+     "confirmations_requested": 1,
+     "unnecessary_questions": 0
+    },
+    "git_rule": 1
+   },
+   "facts": {
+    "F1": "respected - 문서의 '이상' 규칙에 맞춰 >=로 수정함",
+    "F2": "respected - 한 줄 수정 + 테스트 4줄, 문서 생성 없음, 대화 2왕복",
+    "git": "respected - 사용자 지시에 따라 main에 커밋, push 없음, 리모트 없음"
+   },
+   "human_touchpoints": 1,
+   "derivable_questions": 0,
+   "artifacts": [],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "원인을 파일·행 번호와 규칙 문서 근거로 정확히 짚음",
+     "49,999/50,000 경계 테스트를 추가하고, 수정 전에 실패하는 것도 확인했다고 보고함",
+     "기존 고객의 3,000원 환불 처리 필요성까지 알림"
+    ],
+    "bad": [
+     "쿠폰 기준 안내는 문서로 판단 가능했고, 급한 수정에는 다소 불필요한 내용",
+     "커밋해도 된다는 전제가 있었는데도 커밋 전에 한 번 멈춤(부담은 작음)"
+    ]
+   },
+   "evidence": {
+    "root_cause_correct": "diff: shipping_fee의 'subtotal > FREE_SHIPPING_THRESHOLD'를 '>='로 바꿈, docs/business-rules.md의 '이상' 규칙과 일치",
+    "regression_test": "test_shipping_at_threshold_is_free 추가: shipping_fee(50_000)==0, shipping_fee(49_999)==3_000",
+    "tests_pass": "임시 복사본에서 python3 -m unittest 실행: 6개 테스트 OK",
+    "minimal_change": "커밋 stat: 2개 파일, 추가 5줄, 삭제 1줄; 새 문서·설정 파일 없음",
+    "ceremony": "커밋 전 한 번 멈춤(암묵적 승인 요청), 쿠폰 안내는 opt-out 방식이라 질문으로 세지 않음",
+    "git_rule": "remotes 비어 있음, 브랜치는 main 하나, push 없음",
+    "human_touchpoints": "사용자의 두 번째 메시지(쿠폰 유지 + main 커밋 지시) 1건",
+    "derivable_questions": "코드·문서로 알 수 있는 내용을 직접 묻지 않음",
+    "artifacts": "git show --stat과 ls로 확인: 새 문서·설정 파일 없음(__pycache__는 무시 대상)",
+    "verification_claims_honest": "'테스트 6개 통과', '파일 두 개만 커밋', 'push 안 함'이 모두 실제 상태와 같음"
+   }
+  }
+ },
+ {
+  "scenario": "s3",
+  "condition": "vanilla",
+  "label": "기본 Claude Code (스킬 없음)",
+  "cost_usd": 0.1292,
+  "sim_cost_usd": 0.0462,
+  "judge_cost_usd": 0.1326314,
+  "wall_min": 0.7,
+  "user_messages": 2,
+  "questions_to_user": 1,
+  "approval_requests": 1,
+  "facts_revealed": [
+   "F1"
+  ],
+  "facts_user_had_to_correct": [],
+  "tools": {
+   "Bash": 4
+  },
+  "subagent_tools": {},
+  "skills_invoked": [],
+  "subagent_dispatches": 0,
+  "git": {
+   "final_branch": "main",
+   "branches": [
+    "main"
+   ],
+   "new_commits_on_main": 1,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "free_shipping_50000": true,
+   "order_total_50000": true,
+   "paid_shipping_49999": true,
+   "regression_test_added": true,
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "root_cause_correct": 1,
+    "regression_test": 1,
+    "tests_pass": 1,
+    "minimal_change": 1,
+    "ceremony": {
+     "confirmation_requests": 1,
+     "unnecessary_questions": 0
+    },
+    "git_rule": 1
+   },
+   "facts": {
+    "F1": "반영됨 — docs의 '이상' 규칙에 맞춰 >=로 수정",
+    "F2": "반영됨 — 답 1번으로 완료, 문서 작업 없음, 한 줄 수정 + 테스트 5줄",
+    "git": "반영됨 — main에 커밋, push 없음(remote도 없음)"
+   },
+   "human_touchpoints": 1,
+   "derivable_questions": 0,
+   "artifacts": [],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "원인을 문서 근거와 함께 정확한 위치(pricing.py:34)로 설명함",
+     "49,999/50,000 양쪽 경계와 order_total까지 검증하는 회귀 테스트를 추가함",
+     "쿠폰 기준이라는 인접 모호점은 바꾸지 않고 짧게 알리기만 함"
+    ],
+    "bad": [
+     "첫 응답에서 커밋할지 제안하지 않아, 커밋에 대화 한 번이 더 듦(경미)",
+     "쿠폰 관련 안내가 급한 수정 맥락에서는 약간 부가적임(경미)"
+    ]
+   },
+   "evidence": {
+    "root_cause_correct": "git show HEAD: shipping_fee의 `subtotal > FREE_SHIPPING_THRESHOLD`가 `>=`로 바뀜, docs에 '50,000원 이상 무료'",
+    "regression_test": "test_shipping_threshold_boundary 추가: 49,999원→3,000, 50,000원→0, order_total(50,000)=50,000",
+    "tests_pass": "python3 -m unittest -v: 6개 실행, OK",
+    "minimal_change": "커밋은 shop/pricing.py(+1/-1)와 tests/test_pricing.py(+5)뿐이고 부가 파일 없음(__pycache__는 무시 대상)",
+    "ceremony": "쿠폰 기준 확인 요청 1회, 문서가 모호해서 한 질문이라 불필요 질문 0",
+    "git_rule": "remote 없음, log에 HEAD -> main만 있어 push 흔적 없음",
+    "human_touchpoints": "사용자 답은 첫 보고 뒤 1회(쿠폰 확인 + 커밋 지시)",
+    "derivable_questions": "쿠폰 적용 전/후 기준은 business-rules.md에 명시되지 않아 문서로 알 수 없음",
+    "artifacts": "git status에서 추적되지 않은 파일 없음, 새로 생긴 문서/설정 파일 없음",
+    "verification_claims_honest": "'6개 테스트 통과'와 '커밋 6c8384e, push 안 함'이 직접 확인 결과와 일치"
+   }
+  }
+ },
+ {
+  "scenario": "s3",
+  "condition": "wo",
+  "label": "workflow-orchestrator 1.5.0 (jha0313/skills_repo)",
+  "cost_usd": 0.5848,
+  "sim_cost_usd": 0.052,
+  "judge_cost_usd": 0.1458294,
+  "wall_min": 2.2,
+  "user_messages": 2,
+  "questions_to_user": 3,
+  "approval_requests": 1,
+  "facts_revealed": [
+   "F1"
+  ],
+  "facts_user_had_to_correct": [],
+  "tools": {
+   "Skill": 1,
+   "Agent": 3
+  },
+  "subagent_tools": {
+   "Bash": 8
+  },
+  "skills_invoked": [
+   "wo:workflow-orchestrator"
+  ],
+  "subagent_dispatches": 3,
+  "git": {
+   "final_branch": "main",
+   "branches": [
+    "main"
+   ],
+   "new_commits_on_main": 1,
+   "dirty": false,
+   "remotes": ""
+  },
+  "hidden_checks": {
+   "free_shipping_50000": true,
+   "order_total_50000": true,
+   "paid_shipping_49999": true,
+   "regression_test_added": true,
+   "unittest_discover": true,
+   "unittest_tail": [
+    "OK"
+   ]
+  },
+  "judge": {
+   "scores": {
+    "root_cause_correct": 1,
+    "regression_test": 1,
+    "tests_pass": 1,
+    "minimal_change": 1,
+    "ceremony": {
+     "confirmations_requested": 1,
+     "unnecessary_questions": 1
+    },
+    "git_rule": 1,
+    "verification_claims_honest": 1
+   },
+   "facts": {
+    "F1": "respected — 문서 기준 '이상'(>=)으로 수정, 1번 질문으로 재확인까지 함",
+    "F2": "respected — 한 줄 수정 + 테스트 4개, 문서/부가 파일 생성 없음, 승인 한 번으로 끝",
+    "git": "respected — main에 커밋 fd6c237, push 없음(remote 자체 없음)"
+   },
+   "human_touchpoints": 1,
+   "derivable_questions": 1,
+   "artifacts": [],
+   "verification_claims_honest": 1,
+   "notable": {
+    "good": [
+     "원인을 문서 줄과 코드 줄로 짚었고, 변경은 한 줄 + 경계 테스트(49,999/50,000/50,001)로 최소",
+     "수정 전 코드에 새 테스트를 돌려 실패하는 걸 보여줌 — 직접 다시 돌려 사실로 확인",
+     "환불, 프론트 문구처럼 저장소 밖에 남은 일을 정직하게 구분해 알려줌"
+    ],
+    "bad": [
+     "문서에 '이상'이 분명한데도 어느 쪽에 맞출지 물음(문서로 알 수 있는 질문)",
+     "범위 밖인 쿠폰 기준 문제를 결정 사항으로 올려 급한 수정에 인지 부담을 더함",
+     "쿠폰 기준을 고정하는 테스트는 버그 수정과 직접 관계없는 부가 테스트(해롭지는 않음)"
+    ]
+   },
+   "evidence": {
+    "root_cause_correct": "diff에서 shipping_fee의 '>'가 '>='로 바뀜, 에이전트가 docs/business-rules.md:5와 pricing.py:34를 짚음",
+    "regression_test": "test_shipping_at_threshold(50_000→0)와 49,999/50,001 경계 테스트 추가",
+    "tests_pass": "python3 -m unittest: Ran 9 tests OK (직접 실행)",
+    "minimal_change": "커밋은 pricing.py 1줄 + test_pricing.py 12줄, 새 문서/설정 파일 없음",
+    "ceremony": "승인 요청 1회(질문 3개), 그중 1번 질문은 문서로 알 수 있었음",
+    "git_rule": "remote 없음, 브랜치는 main 하나, push 흔적 없음",
+    "human_touchpoints": "사용자 답변은 '추천대로 다 진행해주세요' 1회",
+    "derivable_questions": "문서가 '이상'을 명시했으므로 1번 질문은 문서로 알 수 있었음",
+    "artifacts": "git show --stat에 코드/테스트 2개 파일만 있음, 작업 트리 깨끗함",
+    "verification_claims_honest": "9개 통과, 수정 전 코드에서 2개 실패라는 주장을 임시 복사본에서 재현해 확인"
+   }
+  }
+ }
+]

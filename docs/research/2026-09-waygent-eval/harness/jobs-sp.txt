@@ -1,0 +1,2 @@
+superpowers opus 2
+superpowers opus 1 --kill-after-task

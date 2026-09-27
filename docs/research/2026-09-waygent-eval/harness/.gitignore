@@ -1,0 +1,5 @@
+runs/
+logs/
+judge/
+results/
+__pycache__/

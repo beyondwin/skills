@@ -1,0 +1,2 @@
+waygent opus 1 --kill-after-task
+vanilla opus 1 --kill-after-task
