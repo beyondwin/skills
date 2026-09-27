@@ -11,7 +11,7 @@
 | Image Workbench | Codex, Grok |
 | How It Works | Codex, Claude Code (이 저장소를 연결해 씀) |
 | SDDx | Codex, Claude Code (이 저장소를 연결해 씀) |
-| Waygent | Claude Code, Cursor Agent (이 저장소를 연결해 씀) |
+| Waygent | Claude Code, Codex, Cursor Agent (이 저장소를 연결해 씀) |
 
 말 뜻:
 
@@ -33,7 +33,7 @@ pre-sdd-review: Codex supported; other hosts not_measured.
 
 sddx: Claude Code and Codex supported for local or repository-based use.
 
-waygent: Claude Code and Cursor Agent supported for local or repository-based use.
+waygent: Claude Code, Codex, and Cursor Agent supported for local or repository-based use.
 
 ## 이식과 실제 지원
 
@@ -45,7 +45,7 @@ waygent: Claude Code and Cursor Agent supported for local or repository-based us
 
 `pre-sdd-review`의 다른 호스트는 아직 확인하지 않았습니다(`not_measured`).
 
-`waygent`는 Claude Code와 Cursor Agent를 호스트로 정했고, 둘 다 서브에이전트를 띄울 수 있어야 합니다. 2026-09-27에 0.1.0 작업본으로 10-Task 계획을 Claude Code 2.1.280(opus, fable)에서 끝까지 돌렸고, Cursor Agent 2026.09.23(grok-4.7-high)에서는 10개 Task를 모두 끝냈지만 매우 느렸습니다. 기록은 waygent 호환성 문서에 있습니다. Cursor Agent는 `sddx`에서는 여전히 워커이고 호스트가 아닙니다.
+`waygent`는 Claude Code, Codex, Cursor Agent를 호스트로 정했고, 셋 다 서브에이전트를 띄울 수 있어야 합니다. 2026-09-27에 0.1.0 작업본으로 10-Task 계획을 Claude Code 2.1.280(opus, fable)에서 끝까지 돌렸고, Cursor Agent 2026.09.23(grok-4.7-high)에서는 10개 Task를 모두 끝냈지만 매우 느렸습니다. 기록은 waygent 호환성 문서에 있습니다. Codex는 `~/.codex/config.toml`에서 `multi_agent = true`를 켜야 하고, Codex 측정 기록은 waygent 호환성 문서에 있습니다. Cursor Agent는 `sddx`에서는 여전히 워커이고 호스트가 아닙니다.
 
 보존된 `how-it-works` smoke는 `historical-unbound`이며 현재 설치 파일·모델 실행 증거와 별개입니다. 현재 설치 파일의 실제 실행은 `not_measured`입니다. `current-bounded`는 버전/hash와 메타데이터가 묶였는지만 보며, 실제 실행이나 설명 품질을 증명하지 않습니다.
 

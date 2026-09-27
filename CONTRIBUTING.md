@@ -20,7 +20,7 @@ The supported OS is macOS only. Windows and Linux are unsupported. An Ubuntu CI 
 Host support:
 
 - `how-it-works` and `sddx` currently claim Codex and Claude Code only.
-- `waygent` claims Claude Code and Cursor Agent only; current execution is `not_measured` until the running evaluation is recorded.
+- `waygent` claims Claude Code, Codex, and Cursor Agent; records are in `docs/maintainers/products/waygent/compatibility.md`.
 - Do not broaden host support for `korean-writing-editor` or `pre-sdd-review`.
 - `image-workbench` claims Codex and Grok only after a recorded smoke on the current build.
 

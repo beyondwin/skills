@@ -23,7 +23,7 @@ Codex, Claude Code, Cursor, Grok 같은 AI 코딩 도구에 넣어 쓰는 스킬
 | [`how-it-works`](skills/how-it-works/README.md) | 한 기계가 어떻게 도는지, 고른 깊이로 그림과 글로 설명합니다. | Codex, Claude Code |
 | [`pre-sdd-review`](skills/pre-sdd-review/README.md) | SDD 직전에 승인된 설계와 구현 계획을 지금 저장소와 맞춰 보고, 문서를 고친 뒤 고친 곳을 다시 확인합니다. | Codex |
 | [`sddx`](skills/sddx/README.md) | Superpowers SDD는 지금 세션이 진행하고, 코드 작성만 Cursor Agent 또는 Grok Build(Grok 4.7)에 맡깁니다. | Claude Code, Codex |
-| [`waygent`](skills/waygent/README.md) | `/waygent`로 부르면 구현 계획을 과제마다 새 서브에이전트에 맡기고, 테스트 먼저·과제별 리뷰 한 번·최종 리뷰 한 번으로 끝까지 돌립니다. | Claude Code, Cursor |
+| [`waygent`](skills/waygent/README.md) | `/waygent`(Codex는 `$waygent`)로 부르면 구현 계획을 과제마다 새 서브에이전트에 맡기고, 테스트 먼저·과제별 리뷰 한 번·최종 리뷰 한 번으로 끝까지 돌립니다. | Claude Code, Codex, Cursor |
 
 쓰는 법과 첫 호출은 각 스킬 README에 있습니다.
 
@@ -41,7 +41,7 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-work
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-review
 ```
 
-How It Works와 SDDx(Codex, Claude Code), Waygent(Claude Code, Cursor), 그리고
+How It Works와 SDDx(Codex, Claude Code), Waygent(Claude Code, Codex, Cursor), 그리고
 Grok의 Image Workbench는 이 저장소를 받은 뒤 바로가기(심볼릭 링크)를 겁니다. 순서는
 [로컬 링크](docs/users/ko/install-local.md)를 보세요. 공개 경로는 다음과 같습니다.
 

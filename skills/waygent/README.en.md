@@ -5,16 +5,17 @@
 ## Purpose
 
 A light workflow that runs an implementation plan one task at a time. The
-session that receives `/waygent` (the controller) does not write code. For each
+session that receives `/waygent` or `$waygent` (the controller) does not write code. For each
 task it starts one fresh implementer subagent and hands it a short brief plus a
 shared guide file.
 
 | Term | Meaning |
 | --- | --- |
-| controller | The session that got `/waygent`. It hands out tasks, checks results, and keeps the progress file. |
+| controller | The session that got `/waygent` or `$waygent`. It hands out tasks, checks results, and keeps the progress file. |
 | implementer subagent | A fresh subagent that writes the tests first, implements one task, and commits it. |
 | guide file | `guide.md`, written once: test and lint commands and the plan's global rules. Every implementer reads it. |
 | progress file | `progress.md`, the per-task state. It is never committed. |
+| review records | `reviews/task-N.md` and `reviews/final.md`, the full findings each reviewer writes. The controller gets only the short list. |
 
 ## When to use and not use
 
@@ -26,12 +27,14 @@ shared guide file.
 
 ## Supported hosts
 
-waygent: Claude Code and Cursor Agent supported for local or repository-based use.
+waygent: Claude Code, Codex, and Cursor Agent supported for local or repository-based use.
 
-- The host ids are `claude-code` and `cursor`. The host must be able to start
-  subagents.
+- The host ids are `claude-code`, `codex`, and `cursor`. The host must be able to start
+  subagents. Codex needs `multi_agent = true` under `[features]` in
+  `~/.codex/config.toml` for its subagent tool (`spawn_agent`).
 - Measured on 2026-09-27 (Claude Code opus/fable, Cursor Agent grok-4.7-high). Records:
   [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/waygent/compatibility.md).
+  Codex records are in the same doc.
 - The OS is macOS only. Windows and Linux are unsupported.
 - Use it inside a Git repository.
 - Claude.ai, Cowork, Skills API upload, and marketplace publication are not
@@ -41,12 +44,12 @@ waygent: Claude Code and Cursor Agent supported for local or repository-based us
 ## Install
 
 Clone the repo, then make a shortcut (symbolic link). Claude Code looks in
-`~/.claude/skills`; Cursor Agent looks in `~/.cursor/skills`.
+`~/.claude/skills`, Codex in `~/.agents/skills`, and Cursor Agent in `~/.cursor/skills`.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
 cd skills
-mkdir -p ~/.claude/skills ~/.cursor/skills
+mkdir -p ~/.claude/skills ~/.agents/skills ~/.cursor/skills
 ```
 
 The block below creates one link and treats the same link as success. It does
@@ -86,6 +89,8 @@ print("linked")
 
 Run it once per link. For Claude Code the first line is
 `python3 - "$PWD/skills/waygent" "$HOME/.claude/skills/waygent" <<'PY'`; for
+Codex it is
+`python3 - "$PWD/skills/waygent" "$HOME/.agents/skills/waygent" <<'PY'`; for
 Cursor Agent it is
 `python3 - "$PWD/skills/waygent" "$HOME/.cursor/skills/waygent" <<'PY'`. Paste
 the block unchanged on the following lines and end with `PY` on its own line.
@@ -93,12 +98,16 @@ the block unchanged on the following lines and end with `PY` on its own line.
 To remove, inspect first and remove only that link.
 
 ```bash
-ls -ld ~/.claude/skills/waygent ~/.cursor/skills/waygent
+ls -ld ~/.claude/skills/waygent ~/.agents/skills/waygent ~/.cursor/skills/waygent
 unlink ~/.claude/skills/waygent
+unlink ~/.agents/skills/waygent
 unlink ~/.cursor/skills/waygent
 ```
 
-The public `$skill-installer` path is below. Codex is not a supported host.
+The public path in `$skill-installer` form is below, but Codex finds this
+skill through the `~/.agents/skills/waygent` link. It is not one of the three
+skills in [Codex install](https://github.com/beyondwin/skills/blob/main/docs/users/en/install-codex.md);
+do not create a `~/.codex` copy.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/waygent
@@ -108,10 +117,12 @@ More is in [Local links](https://github.com/beyondwin/skills/blob/main/docs/user
 
 ## First call
 
-Give a plan file, or write a request with no plan.
+Claude Code and Cursor Agent use `/waygent`; Codex uses `$waygent`. Give a plan
+file, or write a request with no plan.
 
 ```text
 /waygent docs/plan.md
+$waygent docs/plan.md
 /waygent Add a show-password button to the login form
 ```
 
@@ -126,13 +137,20 @@ Give a plan file, or write a request with no plan.
    the suite.
 5. On a failure it writes down one cause first and retries once. A second
    failure stops the run with a report.
-6. Every subagent uses the same model as this session. It never switches to a
-   cheaper model.
+6. Implementers and per-task reviewers use the same model as this session, never
+   a cheaper model or lower effort. When the host can pick the model, only the
+   final review and the retry after a failure go one tier up (Claude Code:
+   sonnet → opus → fable). On Codex the dispatch names no model, so the child
+   inherits the session's; one tier up sets only
+   `reasoning_effort` to `xhigh`. No subagent starts subagents of its own.
 
-The progress file lives under `$(git rev-parse --git-path waygent)` and is
-never committed. Call `/waygent` again to resume. A task with a trailer commit
+Records live at the repository top level in `.waygent/<plan-slug>/`
+(`progress.md`, `guide.md`, `reviews/`). `.waygent/.gitignore` (the line `*`)
+keeps the folder out of git, so nothing is committed and your `.gitignore` is
+not touched. Call `/waygent` (Codex: `$waygent`) again to resume. A task with a trailer commit
 is done and is not redone. Uncommitted changes are not discarded; they go to a
-fresh implementer. On a usage limit it writes `paused: limit` and stops.
+fresh implementer. On a usage limit it writes `paused: limit` and stops. If `git clean -fdx`
+removes the records, progress is rebuilt from the trailer commits.
 
 Deliberately left out: brainstorming and spec phases, per-task brief files,
 re-review loops, parallel implementers, and a human checkpoint per task.

@@ -135,14 +135,14 @@ the Claude Code invocation starts with
 
 ## waygent
 
-Use this on Claude Code and Cursor Agent. The public GitHub path is https://github.com/beyondwin/skills/tree/main/skills/waygent. You make two shortcuts. The first link serves Claude Code. The second serves Cursor Agent. Cursor Agent looks in `~/.cursor/skills/waygent`. Do not create a Codex `~/.agents` link.
+Use this on Claude Code, Codex, and Cursor Agent. The public GitHub path is https://github.com/beyondwin/skills/tree/main/skills/waygent. You make three shortcuts. The first link serves Claude Code. The second serves Codex. The third serves Cursor Agent. Codex looks in `~/.agents/skills/waygent`; Cursor Agent looks in `~/.cursor/skills/waygent`. Do not create a `~/.codex` duplicate. Codex needs `multi_agent = true` under `[features]` in `~/.codex/config.toml`.
 
 1. Clone the repo and create the folders.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
 cd skills
-mkdir -p ~/.claude/skills ~/.cursor/skills
+mkdir -p ~/.claude/skills ~/.agents/skills ~/.cursor/skills
 ```
 
 2. Run the block below once per target.
@@ -180,6 +180,8 @@ print("linked")
 
 The Claude Code invocation starts with
 `python3 - "$PWD/skills/waygent" "$HOME/.claude/skills/waygent" <<'PY'`;
+the Codex invocation starts with
+`python3 - "$PWD/skills/waygent" "$HOME/.agents/skills/waygent" <<'PY'`;
 the Cursor Agent invocation starts with
 `python3 - "$PWD/skills/waygent" "$HOME/.cursor/skills/waygent" <<'PY'`.
 
@@ -260,8 +262,9 @@ unlink ~/.claude/skills/sddx
 `waygent` links:
 
 ```bash
-ls -ld ~/.claude/skills/waygent ~/.cursor/skills/waygent
+ls -ld ~/.claude/skills/waygent ~/.agents/skills/waygent ~/.cursor/skills/waygent
 unlink ~/.claude/skills/waygent
+unlink ~/.agents/skills/waygent
 unlink ~/.cursor/skills/waygent
 ```
 

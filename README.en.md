@@ -24,7 +24,7 @@ the skill.
 | [`how-it-works`](skills/how-it-works/README.en.md) | Explains how one machine works, at a depth you pick, in writing and diagrams. | Codex, Claude Code |
 | [`pre-sdd-review`](skills/pre-sdd-review/README.en.md) | Right before SDD, checks an approved design and implementation plan against the repository as it is now, repairs the documents, and re-checks what changed. | Codex |
 | [`sddx`](skills/sddx/README.en.md) | Runs Superpowers SDD in your session and hands only the coding to Cursor Agent or Grok Build (Grok 4.7). | Claude Code, Codex |
-| [`waygent`](skills/waygent/README.en.md) | Called with `/waygent`, runs an implementation plan with one fresh subagent per task: tests first, one review per task, one final review. | Claude Code, Cursor |
+| [`waygent`](skills/waygent/README.en.md) | Called with `/waygent` (Codex: `$waygent`), runs an implementation plan with one fresh subagent per task: tests first, one review per task, one final review. | Claude Code, Codex, Cursor |
 
 Each skill README has usage and first-call steps.
 
@@ -41,7 +41,7 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-work
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-review
 ```
 
-How It Works and SDDx (Codex, Claude Code), Waygent (Claude Code, Cursor), and
+How It Works and SDDx (Codex, Claude Code), Waygent (Claude Code, Codex, Cursor), and
 Image Workbench on Grok use a shortcut (symbolic link) to a clone of this repo. Steps are in
 [Local links](docs/users/en/install-local.md). The public paths are:
 

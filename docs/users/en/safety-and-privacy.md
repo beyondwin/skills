@@ -43,10 +43,11 @@ worker prompt.
 
 ## Per-task subagent implementation
 
-`waygent` starts subagents inside the host (Claude Code or Cursor Agent). Task
+`waygent` starts subagents inside the host (Claude Code, Codex, or Cursor Agent). Task
 content and repository files go to that host's model provider and follow that
-host's data policy. The progress file lives under
-`$(git rev-parse --git-path waygent)` and is never committed. Default
+host's data policy. The progress file and review records live in
+`.waygent/` at the repository top level; that folder's `.gitignore` keeps them
+out of commits. Default
 `verify.py` and CI never call a model.
 
 ## High-stakes requests

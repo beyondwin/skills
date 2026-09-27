@@ -61,7 +61,9 @@ class WaygentContractTests(unittest.TestCase):
         self.assertIn("single small fix", lowered)
 
     def test_progress_and_resume_contract(self) -> None:
-        self.assertIn("git rev-parse --git-path waygent", self.text)
+        self.assertIn(".waygent/<plan-slug>/", self.text)
+        self.assertIn("`.waygent/.gitignore`", self.text)
+        self.assertIn("single line `*`", self.text)
         self.assertIn("Waygent-Task:", self.text)
 
     def test_review_contract(self) -> None:
@@ -72,6 +74,15 @@ class WaygentContractTests(unittest.TestCase):
         self.assertIn("never commit to `main` or `master`", self.lowered)
         self.assertIn("same model", self.lowered)
         self.assertIn("cheaper model", self.lowered)
+        self.assertIn("one tier up", self.lowered)
+        self.assertIn("the final reviewer, and the retry after a failure", self.lowered)
+
+    def test_codex_contract(self) -> None:
+        description = str(self.frontmatter.get("description", ""))
+        self.assertIn("$waygent", description)
+        self.assertIn('`fork_turns: "none"`', self.text)
+        self.assertIn("do not guess your model name", self.lowered)
+        self.assertIn("no subagent spawns subagents of its own", self.lowered)
 
     def test_skill_stays_light(self) -> None:
         self.assertLess(len(self.raw.splitlines()), MAX_SKILL_LINES)

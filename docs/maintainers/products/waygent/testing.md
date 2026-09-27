@@ -17,8 +17,9 @@
   `release.toml` 일치
 - description의 `/waygent` 게이트와 가까운 요청 제외(`/sddx`,
   `subagent-driven-development`, 브레인스토밍·스펙, 작은 수정 하나)
-- `git rev-parse --git-path waygent` 진행 파일, `Waygent-Task:` 트레일러
-- 재리뷰 없음, 최종 리뷰 한 번, `main`·`master` 커밋 금지, 같은 모델·더 싼 모델 금지
+- `.waygent/` 기록 위치와 `.gitignore` `*`, `Waygent-Task:` 트레일러
+- 재리뷰 없음, 최종 리뷰 한 번, `main`·`master` 커밋 금지, 같은 모델·더 싼 모델 금지,
+  한 등급 위(`one tier up`)는 최종 리뷰와 재시도에만
 - `SKILL.md` 140줄 미만
 
 검사는 문구 몇 개만 봅니다. `SKILL.md`가 아직 바뀌는 중이라 digest나 전체 문장을

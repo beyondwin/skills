@@ -73,5 +73,5 @@
   테스트는 공급자 없는 신원 픽스처를 씁니다. 호환성은 Claude Code와 Codex 오케스트레이터이며,
   작업 CLI(worker)는 호스트가 아닙니다. 릴리스는 비게시 경계를 둡니다.
 - waygent: 계약은 `SKILL.md` 가운데 테스트가 잠그는 약속(트레일러, 진행 파일, 리뷰 횟수,
-  브랜치, 같은 모델, 줄 수 한도)만 적습니다. 호환성은 Claude Code와 Cursor Agent 호스트이며,
-  현재 실행 증거는 `not_measured`입니다.
+  브랜치, 같은 모델, 줄 수 한도)만 적습니다. 호환성은 Claude Code, Codex, Cursor Agent 호스트이며,
+  실측 기록은 waygent 호환성 문서에 있습니다.

@@ -11,7 +11,7 @@ The skills in use are [`korean-writing-editor`](../../../skills/korean-writing-e
 | Image Workbench | Codex, Grok |
 | How It Works | Codex, Claude Code (linked from this repo) |
 | SDDx | Codex, Claude Code (linked from this repo) |
-| Waygent | Claude Code, Cursor Agent (linked from this repo) |
+| Waygent | Claude Code, Codex, Cursor Agent (linked from this repo) |
 
 Terms:
 
@@ -33,7 +33,7 @@ pre-sdd-review: Codex supported; other hosts not_measured.
 
 sddx: Claude Code and Codex supported for local or repository-based use.
 
-waygent: Claude Code and Cursor Agent supported for local or repository-based use.
+waygent: Claude Code, Codex, and Cursor Agent supported for local or repository-based use.
 
 ## Contract portability versus measured support
 
@@ -45,7 +45,7 @@ A matching folder layout does not mean that host is supported. Adding a new supp
 
 Other hosts for `pre-sdd-review` have not been checked yet (`not_measured`).
 
-`waygent` names Claude Code and Cursor Agent as hosts; both must be able to start subagents. On 2026-09-27 the 0.1.0 working copy ran a 10-task plan end to end on Claude Code 2.1.280 (opus, fable); on Cursor Agent 2026.09.23 (grok-4.7-high) it finished all 10 tasks, but very slowly. Records are in the waygent compatibility doc. For `sddx`, Cursor Agent is still a worker, not a host.
+`waygent` names Claude Code, Codex, and Cursor Agent as hosts; all three must be able to start subagents. On 2026-09-27 the 0.1.0 working copy ran a 10-task plan end to end on Claude Code 2.1.280 (opus, fable); on Cursor Agent 2026.09.23 (grok-4.7-high) it finished all 10 tasks, but very slowly. Records are in the waygent compatibility doc. Codex needs `multi_agent = true` in `~/.codex/config.toml`; Codex records are in the waygent compatibility doc. For `sddx`, Cursor Agent is still a worker, not a host.
 
 The preserved `how-it-works` smoke is `historical-unbound`; it is separate from current payload and model execution evidence. Actual execution of the current install files is `not_measured`. `current-bounded` validates version/hash and metadata binding only, not actual execution or explanation quality.
 

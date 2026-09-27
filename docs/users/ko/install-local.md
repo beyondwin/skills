@@ -134,14 +134,14 @@ Claude Code 호출은
 
 ## waygent
 
-Claude Code와 Cursor Agent에서 씁니다. 공개 경로는 https://github.com/beyondwin/skills/tree/main/skills/waygent 입니다. 바로가기는 두 개입니다. 첫 링크는 Claude Code, 둘째는 Cursor Agent입니다. Cursor Agent는 `~/.cursor/skills/waygent`에서 찾습니다. Codex용 `~/.agents` 링크는 만들지 않습니다.
+Claude Code, Codex, Cursor Agent에서 씁니다. 공개 경로는 https://github.com/beyondwin/skills/tree/main/skills/waygent 입니다. 바로가기는 세 개입니다. 첫 링크는 Claude Code, 둘째는 Codex, 셋째는 Cursor Agent입니다. Codex는 `~/.agents/skills/waygent`, Cursor Agent는 `~/.cursor/skills/waygent`에서 찾습니다. `~/.codex` 복사본을 만들지 마세요. Codex는 `~/.codex/config.toml`의 `[features]`에 `multi_agent = true`가 있어야 합니다.
 
 1. 저장소를 받고 폴더를 만듭니다.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
 cd skills
-mkdir -p ~/.claude/skills ~/.cursor/skills
+mkdir -p ~/.claude/skills ~/.agents/skills ~/.cursor/skills
 ```
 
 2. 바로가기마다 아래 블록을 한 번씩 실행합니다.
@@ -179,6 +179,8 @@ print("linked")
 
 Claude Code는
 `python3 - "$PWD/skills/waygent" "$HOME/.claude/skills/waygent" <<'PY'`,
+Codex는
+`python3 - "$PWD/skills/waygent" "$HOME/.agents/skills/waygent" <<'PY'`,
 Cursor Agent는
 `python3 - "$PWD/skills/waygent" "$HOME/.cursor/skills/waygent" <<'PY'`로
 시작합니다.
@@ -260,8 +262,9 @@ unlink ~/.claude/skills/sddx
 `waygent` 링크:
 
 ```bash
-ls -ld ~/.claude/skills/waygent ~/.cursor/skills/waygent
+ls -ld ~/.claude/skills/waygent ~/.agents/skills/waygent ~/.cursor/skills/waygent
 unlink ~/.claude/skills/waygent
+unlink ~/.agents/skills/waygent
 unlink ~/.cursor/skills/waygent
 ```
 

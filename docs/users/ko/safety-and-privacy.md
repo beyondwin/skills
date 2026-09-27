@@ -42,10 +42,10 @@ record에는 저장소 상대 경로, 디렉터리 이름, 해시, 열거값, �
 
 ## 과제별 서브에이전트 구현
 
-`waygent`는 호스트(Claude Code 또는 Cursor Agent) 안에서 서브에이전트를 띄웁니다.
+`waygent`는 호스트(Claude Code, Codex 또는 Cursor Agent) 안에서 서브에이전트를 띄웁니다.
 과제 내용과 저장소 파일은 그 호스트의 모델 공급자에게 가고, 그 호스트의 데이터
-정책을 따릅니다. 진행 파일은 `$(git rev-parse --git-path waygent)` 아래에 두며
-커밋하지 않습니다. 기본 `verify.py`와 CI는 모델을 부르지 않습니다.
+정책을 따릅니다. 진행 파일과 리뷰 기록은 저장소 최상위 `.waygent/` 아래에 두며,
+그 폴더의 `.gitignore`로 커밋되지 않게 합니다. 기본 `verify.py`와 CI는 모델을 부르지 않습니다.
 
 ## 이해관계가 큰 요청
 
