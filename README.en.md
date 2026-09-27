@@ -6,7 +6,7 @@
 [![Release](https://img.shields.io/github/v/release/beyondwin/skills)](https://github.com/beyondwin/skills/releases)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-Five skills for AI coding tools such as Codex, Claude Code, and Grok. Pick the
+Six skills for AI coding tools such as Codex, Claude Code, Cursor, and Grok. Pick the
 ones you need and install each one on its own. The license is Apache-2.0.
 
 The supported OS is macOS only. Windows and Linux are unsupported. A passing Ubuntu CI
@@ -14,7 +14,7 @@ run is not Linux support and is not macOS support evidence.
 
 ## Choose a skill
 
-The current standalone products are these five. A host is the program that runs
+The current standalone products are these six. A host is the program that runs
 the skill.
 
 | Skill | What it does | Hosts |
@@ -24,6 +24,7 @@ the skill.
 | [`how-it-works`](skills/how-it-works/README.en.md) | Explains how one machine works, at a depth you pick, in writing and diagrams. | Codex, Claude Code |
 | [`pre-sdd-review`](skills/pre-sdd-review/README.en.md) | Right before SDD, checks an approved design and implementation plan against the repository as it is now, repairs the documents, and re-checks what changed. | Codex |
 | [`sddx`](skills/sddx/README.en.md) | Runs Superpowers SDD in your session and hands only the coding to Cursor Agent or Grok Build (Grok 4.7). | Claude Code, Codex |
+| [`waygent`](skills/waygent/README.en.md) | Called with `/waygent`, runs an implementation plan with one fresh subagent per task: tests first, one review per task, one final review. | Claude Code, Cursor |
 
 Each skill README has usage and first-call steps.
 
@@ -40,12 +41,13 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-work
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-review
 ```
 
-How It Works and SDDx (Codex, Claude Code), and Image Workbench on Grok, use a
-shortcut (symbolic link) to a clone of this repo. Steps are in
+How It Works and SDDx (Codex, Claude Code), Waygent (Claude Code, Cursor), and
+Image Workbench on Grok use a shortcut (symbolic link) to a clone of this repo. Steps are in
 [Local links](docs/users/en/install-local.md). The public paths are:
 
 - How It Works: https://github.com/beyondwin/skills/tree/main/skills/how-it-works
 - SDDx: https://github.com/beyondwin/skills/tree/main/skills/sddx
+- Waygent: https://github.com/beyondwin/skills/tree/main/skills/waygent
 
 The per-skill method table, update and uninstall, and the third-party installer
 are reachable from [Installation](docs/users/en/installation.md).

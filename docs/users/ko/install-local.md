@@ -2,10 +2,10 @@
 
 [English](../en/install-local.md) · [설치](installation.md) · [호환성](compatibility.md) · [안전과 개인정보](safety-and-privacy.md) · [검증](verification.md)
 
-How It Works와 SDDx, 그리고 Grok에서 쓰는 Image Workbench는 이 저장소를 받은
-뒤 스킬 폴더로 가는 바로가기(심볼릭 링크)를 겁니다. 스킬 폴더를 복사하지 않습니다.
+How It Works, SDDx, Waygent, 그리고 Grok에서 쓰는 Image Workbench는 이 저장소를
+받은 뒤 스킬 폴더로 가는 바로가기(심볼릭 링크)를 겁니다. 스킬 폴더를 복사하지 않습니다.
 
-순서는 세 스킬 모두 같습니다.
+순서는 네 스킬 모두 같습니다.
 
 1. 저장소를 받고, 바로가기를 둘 폴더를 만듭니다.
 2. 아래 Python 블록으로 바로가기를 겁니다. 바로가기(target)마다 한 번씩 실행합니다.
@@ -13,7 +13,7 @@ How It Works와 SDDx, 그리고 Grok에서 쓰는 Image Workbench는 이 저장�
 
 ## Python 블록이 하는 일
 
-아래 Python은 how-it-works, sddx, image-workbench가 같습니다. 덮어쓰지 않는
+아래 Python은 how-it-works, sddx, waygent, image-workbench가 같습니다. 덮어쓰지 않는
 바로가기를 만듭니다.
 
 이 일회성 Python 블록은 source(스킬 폴더)와 target(바로가기 위치)을 인자로
@@ -132,6 +132,59 @@ Claude Code 호출은
 
 3. 첫 호출은 [`sddx` README](../../../skills/sddx/README.md)를 보세요. 호스트마다 따로 복사하지 마세요.
 
+## waygent
+
+Claude Code와 Cursor Agent에서 씁니다. 공개 경로는 https://github.com/beyondwin/skills/tree/main/skills/waygent 입니다. 바로가기는 두 개입니다. 첫 링크는 Claude Code, 둘째는 Cursor Agent입니다. Cursor Agent는 `~/.cursor/skills/waygent`에서 찾습니다. Codex용 `~/.agents` 링크는 만들지 않습니다.
+
+1. 저장소를 받고 폴더를 만듭니다.
+
+```bash
+git clone https://github.com/beyondwin/skills.git
+cd skills
+mkdir -p ~/.claude/skills ~/.cursor/skills
+```
+
+2. 바로가기마다 아래 블록을 한 번씩 실행합니다.
+
+<!-- waygent-local-links -->
+```python
+import os
+import sys
+from pathlib import Path
+
+if len(sys.argv) != 3:
+    raise SystemExit("usage: python3 - SOURCE TARGET")
+source = Path(sys.argv[1]).expanduser().resolve(strict=True)
+target = Path(os.path.abspath(os.path.expanduser(sys.argv[2])))
+if not source.is_dir() or not (source / "SKILL.md").is_file():
+    raise SystemExit("source must be a skill directory")
+if target.is_symlink():
+    try:
+        same = target.resolve(strict=True) == source
+    except (OSError, RuntimeError):
+        same = False
+    if same:
+        print("already linked")
+        raise SystemExit(0)
+    raise SystemExit("refusing different or dangling link")
+if target.exists():
+    raise SystemExit("refusing existing file or directory")
+target.parent.mkdir(parents=True, exist_ok=True)
+try:
+    target.symlink_to(source, target_is_directory=True)
+except FileExistsError:
+    raise SystemExit("target appeared during installation; inspect it before retrying")
+print("linked")
+```
+
+Claude Code는
+`python3 - "$PWD/skills/waygent" "$HOME/.claude/skills/waygent" <<'PY'`,
+Cursor Agent는
+`python3 - "$PWD/skills/waygent" "$HOME/.cursor/skills/waygent" <<'PY'`로
+시작합니다.
+
+3. 첫 호출은 [`waygent` README](../../../skills/waygent/README.md)를 보세요. 호스트마다 따로 복사하지 마세요.
+
 ## image-workbench
 
 Grok에서 쓸 때만 이 방법을 씁니다. Codex는 [Codex 설치](install-codex.md)를 따릅니다. 공개 경로는 https://github.com/beyondwin/skills/tree/main/skills/image-workbench 입니다. 바로가기는 하나입니다. Grok는 `~/.agents/skills/image-workbench`에서 찾습니다. `~/.grok`나 `~/.codex`에 복사본을 만들지 마세요.
@@ -202,6 +255,14 @@ unlink ~/.claude/skills/how-it-works
 ls -ld ~/.agents/skills/sddx ~/.claude/skills/sddx
 unlink ~/.agents/skills/sddx
 unlink ~/.claude/skills/sddx
+```
+
+`waygent` 링크:
+
+```bash
+ls -ld ~/.claude/skills/waygent ~/.cursor/skills/waygent
+unlink ~/.claude/skills/waygent
+unlink ~/.cursor/skills/waygent
 ```
 
 `image-workbench` 링크:

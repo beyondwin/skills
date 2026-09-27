@@ -2,7 +2,7 @@
 
 [English](../en/compatibility.md) · [설치](installation.md)
 
-지금 쓰는 스킬은 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md), [`sddx`](../../../skills/sddx/README.md)입니다.
+지금 쓰는 스킬은 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md), [`sddx`](../../../skills/sddx/README.md), [`waygent`](../../../skills/waygent/README.md)입니다.
 
 | 스킬 | 지원 호스트 |
 | --- | --- |
@@ -11,6 +11,7 @@
 | Image Workbench | Codex, Grok |
 | How It Works | Codex, Claude Code (이 저장소를 연결해 씀) |
 | SDDx | Codex, Claude Code (이 저장소를 연결해 씀) |
+| Waygent | Claude Code, Cursor Agent (이 저장소를 연결해 씀) |
 
 말 뜻:
 
@@ -32,6 +33,8 @@ pre-sdd-review: Codex supported; other hosts not_measured.
 
 sddx: Claude Code and Codex supported for local or repository-based use.
 
+waygent: Claude Code and Cursor Agent supported for local or repository-based use.
+
 ## 이식과 실제 지원
 
 폴더 모양이 같다고 그 호스트를 지원하는 것은 아닙니다. 새 호스트를 지원하려면 지금 빌드를 실제로 돌려 본 기록(smoke)과 별도 결정이 필요합니다. “예전에 지원했다”와 “지금 이 환경에서 돌렸다”는 다릅니다. 지금 실행을 확인하지 않았으면 `not_measured`(아직 확인하지 않음)로 적습니다. 그것만으로 기존 지원 범위를 바꾸지는 않습니다. 제품별 안내는 각 README를 보세요.
@@ -41,6 +44,8 @@ sddx: Claude Code and Codex supported for local or repository-based use.
 `image-workbench`로 그림을 만들거나 고치려면 지금 쓰는 호스트에 자체 그림 도구가 있고, 결과를 열어 볼 수 있어야 합니다. 그렇지 않으면 그림을 만들거나 고친다고 말하지 않습니다. 다른 호스트의 비슷한 도구만으로는 지원이 아닙니다. Grok 바로가기는 `~/.agents/skills/image-workbench`입니다.
 
 `pre-sdd-review`의 다른 호스트는 아직 확인하지 않았습니다(`not_measured`).
+
+`waygent`는 Claude Code와 Cursor Agent를 호스트로 정했고, 둘 다 서브에이전트를 띄울 수 있어야 합니다. 2026-09-27에 0.1.0 작업본으로 10-Task 계획을 Claude Code 2.1.280(opus, fable)에서 끝까지 돌렸고, Cursor Agent 2026.09.23(grok-4.7-high)에서는 10개 Task를 모두 끝냈지만 매우 느렸습니다. 기록은 waygent 호환성 문서에 있습니다. Cursor Agent는 `sddx`에서는 여전히 워커이고 호스트가 아닙니다.
 
 보존된 `how-it-works` smoke는 `historical-unbound`이며 현재 설치 파일·모델 실행 증거와 별개입니다. 현재 설치 파일의 실제 실행은 `not_measured`입니다. `current-bounded`는 버전/hash와 메타데이터가 묶였는지만 보며, 실제 실행이나 설명 품질을 증명하지 않습니다.
 

@@ -4,7 +4,7 @@
 
 이 프로젝트 자체는 텔레메트리를 넣지 않습니다. 사용 기록을 밖으로 보내지 않습니다. 필수 CI와 `python3 scripts/verify.py`는 자격 증명, 모델 호출, 원격 업로드를 하지 않습니다. 선택적 제3자 설치기 `npx skills add beyondwin/skills --skill korean-writing-editor`는 제3자입니다. 자체 정책을 따릅니다.
 
-제품 안내는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md), [`sddx`](../../../skills/sddx/README.md)를 보세요.
+제품 안내는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md), [`sddx`](../../../skills/sddx/README.md), [`waygent`](../../../skills/waygent/README.md)를 보세요.
 
 ## 한국어 원문
 
@@ -39,6 +39,13 @@ record에는 저장소 상대 경로, 디렉터리 이름, 해시, 열거값, �
 데이터 정책을 따릅니다. 기본 `verify.py`와 CI는 Cursor나 Grok CLI를 부르지
 않습니다. 워커 대화, 자격 증명, 공급자 실행 기록(receipt)은
 커밋하지 마세요. 호스트는 자기 비밀 값을 워커 프롬프트에 넣지 않습니다.
+
+## 과제별 서브에이전트 구현
+
+`waygent`는 호스트(Claude Code 또는 Cursor Agent) 안에서 서브에이전트를 띄웁니다.
+과제 내용과 저장소 파일은 그 호스트의 모델 공급자에게 가고, 그 호스트의 데이터
+정책을 따릅니다. 진행 파일은 `$(git rev-parse --git-path waygent)` 아래에 두며
+커밋하지 않습니다. 기본 `verify.py`와 CI는 모델을 부르지 않습니다.
 
 ## 이해관계가 큰 요청
 

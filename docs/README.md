@@ -31,6 +31,7 @@ Windows and Linux are unsupported.
 - [`how-it-works`](../skills/how-it-works/README.md) · [English](../skills/how-it-works/README.en.md) — Codex, Claude Code
 - [`pre-sdd-review`](../skills/pre-sdd-review/README.md) · [English](../skills/pre-sdd-review/README.en.md) — Codex, SDD 전 문서 검토
 - [`sddx`](../skills/sddx/README.md) · [English](../skills/sddx/README.en.md) — Codex, Claude Code, 외부 구현
+- [`waygent`](../skills/waygent/README.md) · [English](../skills/waygent/README.en.md) — Claude Code, Cursor, 과제별 서브에이전트 구현
 
 ## 유지·변경·릴리스 / Maintain, change, or release
 
@@ -40,3 +41,8 @@ Windows and Linux are unsupported.
 
 아직 끝나지 않은 설계만 [`docs/history/`](history/)에 둡니다. 현재 계약을
 정의하지 않습니다.
+
+## 조사 / Research
+
+다른 저장소의 스킬을 직접 돌려 본 조사는 [`docs/research/`](research/README.md)에
+있습니다. 현재 계약을 정의하지 않습니다.

@@ -1,13 +1,13 @@
 # 저장소 구조
 
-이 저장소에는 따로 설치하는 스킬 다섯 개가 있습니다. 무엇을 고칠 때 어디를 보고
+이 저장소에는 따로 설치하는 스킬 여섯 개가 있습니다. 무엇을 고칠 때 어디를 보고
 무엇을 검사하는지 이 문서가 정합니다. Apache-2.0은 루트와 각 스킬에 적용됩니다.
 
 ## 한눈에
 
 지금 쓰는 제품은 `products.toml`이 가리키는 `korean-writing-editor`,
-`image-workbench`, `how-it-works`, `pre-sdd-review`, `sddx`입니다. 각자 버전을
-매기고, GitHub 경로로 하나씩 설치합니다.
+`image-workbench`, `how-it-works`, `pre-sdd-review`, `sddx`, `waygent`입니다. 각자
+버전을 매기고, GitHub 경로로 하나씩 설치합니다.
 
 ```mermaid
 flowchart TB
@@ -18,6 +18,7 @@ flowchart TB
     H[how-it-works]
     P[pre-sdd-review]
     S[sddx]
+    W[waygent]
   end
   R --> live
   live --> SK["skills/ 설치 파일"]
@@ -50,9 +51,9 @@ flowchart TB
 | 개발 증거 | 테스트·관리자 문서. 설치에 넣지 않음 |
 | 독립 제품 | `products.toml`에 있는, 하나씩 설치하는 스킬. 일상어로는 지금 쓰는 스킬 |
 | payload | ZIP 안에 든 스킬 파일 묶음 |
-| 호스트 | 스킬을 실행하는 프로그램. Codex, Claude Code, Grok |
+| 호스트 | 스킬을 실행하는 프로그램. Codex, Claude Code, Cursor Agent, Grok. 제품마다 `products.toml`의 `supported_hosts`가 정함 |
 | 지원 OS | macOS만. Windows와 Linux는 미지원. Ubuntu CI 통과는 OS 지원이 아님 |
-| worker | 구현만 맡는 외부 CLI. Cursor, Grok CLI. 호스트가 아님 |
+| worker | `sddx`에서 구현만 맡는 외부 CLI. Cursor, Grok CLI. `sddx`의 호스트가 아님. Cursor Agent는 `waygent`에서는 호스트임 |
 | selector | 어떤 검사만 돌릴지 고르는 옵션. `--skill <name>` |
 | digest | payload의 SHA-256 지문. 테스트는 문서를 이 방식으로 핀하지 않고 문구·사실만 확인함 |
 | 픽스처 | 미리 만들어 둔 검사 예시 |
@@ -88,10 +89,12 @@ GitHub 경로로 설치하면 `skills/<name>/`만 받습니다. 실행에 필요
 | `tests/products/how-it-works/` | 합성 DNS·rebase 규칙과 설치 파일 테스트 예시 |
 | `tests/products/pre-sdd-review/` | 합성 설계·계획 규칙 테스트 예시 |
 | `tests/products/sddx/` | backend 신원 픽스처와 제품 계약 |
+| `tests/products/waygent/` | 제품 계약 문구와 `SKILL.md` 줄 수 한도 |
 | `docs/README.md` | 설치·사용·관리·기록 라우팅 |
 | `docs/users/` | 공유 설치·호환성·안전·검증 안내 |
 | `docs/maintainers/` | 구조, 제품 목록, 버저닝, 릴리스, 제품 규칙 |
 | `docs/history/` | 진행 중인 설계·계획. 현재 계약을 정의하지 않음 |
+| `docs/research/` | 외부 스킬 실측 조사와 그 하네스. 현재 계약을 정의하지 않음. 라이브 호출 코드는 검증 대상이 아님 |
 | `scripts/verify.py` | 모델 없는 검사 스크립트 |
 | `scripts/changed_targets.py` | 바뀐 경로로 CI 검사 범위를 고르는 스크립트 |
 | `scripts/release.py` | 제품 check/build/verify-download. [릴리스](release.md) |
@@ -138,6 +141,7 @@ python3 scripts/verify.py
 [image-workbench](../products/image-workbench/contract.md),
 [how-it-works](../products/how-it-works/contract.md),
 [pre-sdd-review](../products/pre-sdd-review/contract.md),
-[sddx](../products/sddx/contract.md)를 보세요.
+[sddx](../products/sddx/contract.md),
+[waygent](../products/waygent/contract.md)를 보세요.
 레지스트리는 [products-registry.md](products-registry.md), 독립 릴리스는
 [release.md](release.md)입니다.

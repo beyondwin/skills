@@ -2,7 +2,7 @@
 
 [한국어](../ko/compatibility.md) · [Installation](installation.md)
 
-The skills in use are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md), and [`sddx`](../../../skills/sddx/README.en.md).
+The skills in use are [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), [`how-it-works`](../../../skills/how-it-works/README.en.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md), [`sddx`](../../../skills/sddx/README.en.md), and [`waygent`](../../../skills/waygent/README.en.md).
 
 | Skill | Supported hosts |
 | --- | --- |
@@ -11,6 +11,7 @@ The skills in use are [`korean-writing-editor`](../../../skills/korean-writing-e
 | Image Workbench | Codex, Grok |
 | How It Works | Codex, Claude Code (linked from this repo) |
 | SDDx | Codex, Claude Code (linked from this repo) |
+| Waygent | Claude Code, Cursor Agent (linked from this repo) |
 
 Terms:
 
@@ -32,6 +33,8 @@ pre-sdd-review: Codex supported; other hosts not_measured.
 
 sddx: Claude Code and Codex supported for local or repository-based use.
 
+waygent: Claude Code and Cursor Agent supported for local or repository-based use.
+
 ## Contract portability versus measured support
 
 A matching folder layout does not mean that host is supported. Adding a new supported host requires smoke evidence from the current build and an explicit support decision. Established support scope and current measurement status are separate. Record unmeasured current execution as `not_measured`; that alone does not change the established support scope. See each product README for the product guide.
@@ -41,6 +44,8 @@ A matching folder layout does not mean that host is supported. Adding a new supp
 `image-workbench` can make or edit an image only when the current host has its own image tool and you can open the result. Otherwise, do not say it can make or edit images. A similar tool on another host is not support. The Grok shortcut is `~/.agents/skills/image-workbench`.
 
 Other hosts for `pre-sdd-review` have not been checked yet (`not_measured`).
+
+`waygent` names Claude Code and Cursor Agent as hosts; both must be able to start subagents. On 2026-09-27 the 0.1.0 working copy ran a 10-task plan end to end on Claude Code 2.1.280 (opus, fable); on Cursor Agent 2026.09.23 (grok-4.7-high) it finished all 10 tasks, but very slowly. Records are in the waygent compatibility doc. For `sddx`, Cursor Agent is still a worker, not a host.
 
 The preserved `how-it-works` smoke is `historical-unbound`; it is separate from current payload and model execution evidence. Actual execution of the current install files is `not_measured`. `current-bounded` validates version/hash and metadata binding only, not actual execution or explanation quality.
 

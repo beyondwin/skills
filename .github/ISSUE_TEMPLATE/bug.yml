@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Report a defect in `korean-writing-editor`, `image-workbench`,
-        `how-it-works`, `pre-sdd-review`, or `sddx` only. Host-support claims
+        `how-it-works`, `pre-sdd-review`, `sddx`, or `waygent` only. Host-support claims
         must match `products.toml`, the docs, and the tests.
 
         Do not include personal Korean text, a private prompt, a private image,
@@ -25,6 +25,7 @@ body:
         - how-it-works
         - pre-sdd-review
         - sddx
+        - waygent
     validations:
       required: true
   - type: textarea

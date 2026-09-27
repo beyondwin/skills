@@ -88,12 +88,16 @@ PRE_SDD_REVIEW_SUPPORT = (
 SDDX_SUPPORT = (
     "sddx: Claude Code and Codex supported for local or repository-based use."
 )
+WAYGENT_SUPPORT = (
+    "waygent: Claude Code and Cursor Agent supported for local or repository-based use."
+)
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
     "image-workbench": IMAGE_SUPPORT,
     "how-it-works": HOW_IT_WORKS_SUPPORT,
     "pre-sdd-review": PRE_SDD_REVIEW_SUPPORT,
     "sddx": SDDX_SUPPORT,
+    "waygent": WAYGENT_SUPPORT,
 }
 HOW_IT_WORKS_MKDIR = "mkdir -p ~/.agents/skills ~/.claude/skills"
 HOW_IT_WORKS_AGENTS_INVOCATION = (
@@ -735,7 +739,7 @@ class UserGuideFactTests(unittest.TestCase):
             "safety-and-privacy.md": all_products,
             "verification.md": all_products,
             "install-codex.md": CODEX_PRODUCTS,
-            "install-local.md": ("how-it-works", "sddx", "image-workbench"),
+            "install-local.md": ("how-it-works", "sddx", "waygent", "image-workbench"),
         }
         for language in ("ko", "en"):
             readme = "README.en.md" if language == "en" else "README.md"
@@ -1683,6 +1687,7 @@ class MaintainerStructureTests(unittest.TestCase):
             "how-it-works": "tests/products/how-it-works/",
             "pre-sdd-review": "tests/products/pre-sdd-review/",
             "sddx": "tests/products/sddx/",
+            "waygent": "tests/products/waygent/",
         }
         for name, path in expected.items():
             text = _read(ROOT / "docs" / "maintainers" / "products" / name / "testing.md")

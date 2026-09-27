@@ -76,3 +76,17 @@ owned_paths = [
   "docs/maintainers/products/sddx/",
 ]
 verify_stages = ["product-contract", "sddx-contract", "python-compile"]
+
+[[products]]
+name = "waygent"
+display_name = "Waygent"
+skill_path = "skills/waygent"
+test_path = "tests/products/waygent"
+maintainer_docs = "docs/maintainers/products/waygent"
+supported_hosts = ["claude-code", "cursor"]
+owned_paths = [
+  "skills/waygent/",
+  "tests/products/waygent/",
+  "docs/maintainers/products/waygent/",
+]
+verify_stages = ["product-contract", "waygent-contract", "python-compile"]

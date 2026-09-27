@@ -198,6 +198,7 @@ class TargetMappingTests(RegistryRoutingTestCase):
                 "how-it-works",
                 "pre-sdd-review",
                 "sddx",
+                "waygent",
             ),
         )
 

@@ -41,6 +41,7 @@ FULL_STAGE_NAMES = (
     "pre-sdd-review-contract",
     "pre-sdd-review-evidence",
     "sddx-contract",
+    "waygent-contract",
     "python-compile",
 )
 LIVE_TEST_PATH = (

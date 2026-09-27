@@ -40,6 +40,7 @@ LEGACY_IDENTIFIERS = (
 )
 IGNORE_NAMES = frozenset({"__pycache__"})
 BYTECODE_SUFFIXES = {".pyc", ".pyo"}
+EXPLICIT_ONLY_SKILLS = frozenset({"sddx", "waygent"})
 
 
 @dataclasses.dataclass(frozen=True)
@@ -322,9 +323,9 @@ def _validate_openai_yaml(path: Path, skill_name: str) -> list[str]:
     if default_prompt is None or f"${skill_name}" not in default_prompt:
         errors.append("default_prompt must mention the skill")
     implicit = _yaml_scalar(text, "allow_implicit_invocation")
-    if skill_name == "sddx":
+    if skill_name in EXPLICIT_ONLY_SKILLS:
         if implicit != "false" or "allow_implicit_invocation: true" in text:
-            errors.append("sddx invocation policy must be explicit-only")
+            errors.append(f"{skill_name} invocation policy must be explicit-only")
     else:
         if "allow_implicit_invocation: true" not in text:
             errors.append("invocation policy must match the skill activation gate")

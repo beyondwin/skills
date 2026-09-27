@@ -83,6 +83,7 @@ class RegistryParsingTests(unittest.TestCase):
                 "how-it-works",
                 "pre-sdd-review",
                 "sddx",
+                "waygent",
             ),
         )
 
@@ -229,9 +230,9 @@ class RegistryRejectionTests(unittest.TestCase):
                 "unknown host",
             ),
             (
-                "worker CLI as host",
-                _registry(_product(supported_hosts='["codex", "cursor"]')),
-                "unknown host cursor",
+                "worker CLI binary as host",
+                _registry(_product(supported_hosts='["codex", "agent"]')),
+                "unknown host agent",
             ),
             (
                 "absolute paths",

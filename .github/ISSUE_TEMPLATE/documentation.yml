@@ -7,7 +7,8 @@ body:
     attributes:
       value: |
         Report a documentation issue for `korean-writing-editor`,
-        `image-workbench`, `how-it-works`, `pre-sdd-review`, or `sddx` only.
+        `image-workbench`, `how-it-works`, `pre-sdd-review`, `sddx`, or `waygent`
+        only.
         Host-support claims must match `products.toml`, the docs, and the
         tests.
 
@@ -26,6 +27,7 @@ body:
         - how-it-works
         - pre-sdd-review
         - sddx
+        - waygent
         - repository docs
     validations:
       required: true

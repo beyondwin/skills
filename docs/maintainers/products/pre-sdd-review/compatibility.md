@@ -19,6 +19,7 @@
 | --- | --- |
 | `claude-code` | `not_measured` |
 | `codex` | `supported` |
+| `cursor` | `not_measured` |
 | `grok` | `not_measured` |
 
 ## 지원 OS

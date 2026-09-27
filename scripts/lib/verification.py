@@ -160,6 +160,19 @@ def _stage_map(root: pathlib.Path) -> dict[str, Stage]:
             ),
             cwd=root,
         ),
+        "waygent-contract": Stage(
+            "waygent-contract",
+            _python(
+                "-m",
+                "unittest",
+                "discover",
+                "-s",
+                _posix("tests", "products", "waygent"),
+                "-p",
+                "test_*.py",
+            ),
+            cwd=root,
+        ),
 
         "pre-sdd-review-evidence": Stage(
             "pre-sdd-review-evidence",

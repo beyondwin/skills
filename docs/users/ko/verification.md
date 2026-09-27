@@ -23,17 +23,19 @@ python3 scripts/verify.py
 - pre-sdd-review-contract
 - pre-sdd-review-evidence
 - sddx-contract
+- waygent-contract
 - python-compile
 
 CI는 Ubuntu에서 이 검증을 돌립니다. Ubuntu CI 통과는 macOS 지원을 증명하지 않습니다.
 
-제품 안내는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md), [`sddx`](../../../skills/sddx/README.md)를 보세요.
+제품 안내는 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md), [`sddx`](../../../skills/sddx/README.md), [`waygent`](../../../skills/waygent/README.md)를 보세요.
 
-`pre-sdd-review` 또는 `sddx`만 검증하려면 다음 명령을 씁니다.
+`pre-sdd-review`, `sddx`, `waygent` 가운데 하나만 검증하려면 다음 명령을 씁니다.
 
 ```bash
 python3 scripts/verify.py --skill pre-sdd-review
 python3 scripts/verify.py --skill sddx
+python3 scripts/verify.py --skill waygent
 ```
 
 ## 공유 증거 문장
