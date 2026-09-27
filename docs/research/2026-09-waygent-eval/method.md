@@ -95,6 +95,8 @@ Claude가 아닌 모델(GPT-5.6 Sol High, 읽기 전용)에게 주고, 설계서
 
 - Claude Code 2.1.280, 모델 `opus`(Opus 5.5)와 `fable`(Fable 5.1).
 - Cursor Agent 2026.09.23, 모델 `grok-4.7-high`. superpowers는 Claude Code에서만 쟀습니다.
+- Codex CLI 0.154.0, 모델 `gpt-5.6-sol`, `reasoning_effort=high`. 기본과 waygent만 쟀습니다
+  ([실측 결과 11절](results.md)).
 
 ## 5. 격리
 
@@ -104,7 +106,9 @@ Claude가 아닌 모델(GPT-5.6 Sol High, 읽기 전용)에게 주고, 설계서
 - 실행 폴더 하나(`runs/<tag>/<조건>-<모델>-<회차>/`)에 저장소 사본, git 기록, 도구 상태.
 - Claude Code: `--setting-sources project`, `--strict-mcp-config`, `--disallowedTools AskUserQuestion`.
   사용자 설정, 다른 플러그인, 계정 커넥터가 들어오지 않습니다.
-- waygent 상태(`.git/waygent/`)는 그 실행의 저장소 안에만 있습니다.
+- waygent 상태(`.git/waygent/`, 뒤 문구는 `.waygent/`)는 그 실행의 저장소 안에만 있습니다.
+- Codex: 실행마다 HOME과 `CODEX_HOME`을 새로 만들고 인증 파일만 복사합니다. 사용자
+  스킬·플러그인·MCP 서버가 들어오지 않습니다. 스킬은 그 HOME의 `.agents/skills/waygent`에 둡니다.
 - 숨긴 테스트는 실행이 끝난 뒤 복사본에서만 돌립니다.
 
 같은 방식으로 지난 비교의 gstack S1~S3를 실행마다 따로 상태 폴더(`GSTACK_HOME`)를 두고 다시

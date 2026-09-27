@@ -46,11 +46,23 @@ def setup(run_dir, cond):
     for c in ["git init -q -b main", "git config user.name bench-user", "git config user.email bench@example.invalid",
               "git config commit.gpgsign false", "git add -A", "git commit -q -m initial", "git checkout -q -b work"]:
         sh(c, repo)
+    if CODEX:
+        # Isolated HOME: only the auth file is copied, so no user skills, plugins or MCP servers load.
+        home = run_dir / "home"
+        (home / ".codex").mkdir(parents=True)
+        shutil.copy(Path.home() / ".codex" / "auth.json", home / ".codex" / "auth.json")
+        (home / ".codex" / "config.toml").write_text("[features]\nmulti_agent = true\n")
     if cond in ("waygent", "both", "waygent_fo"):
-        dst = repo / (".cursor" if CURSOR else ".claude") / "skills" / "waygent"
+        if CODEX:
+            # codex exec does not expand a $skill mention for an explicit-only skill, so the
+            # bench copy leaves out agents/openai.yaml (the explicit-only policy) and nothing else.
+            dst = run_dir / "home" / ".agents" / "skills" / "waygent"
+        else:
+            dst = repo / (".cursor" if CURSOR else ".claude") / "skills" / "waygent"
         src = ROOT / "skill-variants" / "waygent-fo" if cond == "waygent_fo" else REPO_SKILLS / "skills" / "waygent"
         shutil.copytree(src, dst,
-                        ignore=shutil.ignore_patterns("README*", "CHANGELOG.md", "release.toml", "LICENSE.txt"))
+                        ignore=shutil.ignore_patterns("README*", "CHANGELOG.md", "release.toml", "LICENSE.txt",
+                                                      *(["agents"] if CODEX else [])))
         with open(repo / ".git" / "info" / "exclude", "a") as f:
             f.write(".claude/\n.cursor/\n")
     return repo
@@ -58,9 +70,17 @@ def setup(run_dir, cond):
 
 CURSOR = False  # set in main() when model is a Cursor model id
 CURSOR_MODELS = {"grok": "grok-4.7-high"}
+CODEX = False  # set in main() when model is a Codex model id
+CODEX_MODELS = {"sol": ("gpt-5.6-sol", "high")}
 
 
 def claude_cmd(cond, model, msg, session, first):
+    if CODEX:
+        assert cond in ("vanilla", "waygent"), "Codex is measured for vanilla and waygent only"
+        m, effort = CODEX_MODELS[model]
+        flags = ["--json", "--skip-git-repo-check", "--dangerously-bypass-approvals-and-sandbox",
+                 "-m", m, "-c", f'model_reasoning_effort="{effort}"']
+        return ["codex", "exec"] + flags + [msg] if first else ["codex", "exec", "resume"] + flags + [session, msg]
     if CURSOR:
         assert cond != "superpowers", "superpowers is measured on Claude Code only"
         cmd = ["cursor-agent", "-p", "--model", CURSOR_MODELS[model], "--force", "--trust",
@@ -97,9 +117,13 @@ def plan_complete(repo):
 
 def run_turn(repo, cmd, out_path, kill_when=None):
     t0 = time.time()
+    env = None
+    if CODEX:
+        home = repo.parent / "home"
+        env = {**os.environ, "HOME": str(home), "CODEX_HOME": str(home / ".codex")}
     with open(out_path, "w") as f:
         p = subprocess.Popen(cmd, cwd=repo, stdout=f, stderr=subprocess.STDOUT, start_new_session=True,
-                             stdin=subprocess.DEVNULL)
+                             stdin=subprocess.DEVNULL, env=env)
         killed = False
         while p.poll() is None:
             time.sleep(10)
@@ -139,6 +163,38 @@ def parse_cursor(path):
     return {"usage": {"main": {"in": u.get("inputTokens"), "out": u.get("outputTokens"), "cache_read": u.get("cacheReadTokens")}},
             "agents": agents, "skills": [], "tools": tools, "cost": None, "cursor_session": sid,
             "result_text": ((result or {}).get("result") or "")[-1500:], "is_error": (result or {}).get("is_error")}
+
+
+def parse_codex(path):
+    """Codex exec --json: tokens only. Subagent spawns are counted from the session rollout later."""
+    usage = {"in": 0, "cached": 0, "out": 0, "reasoning": 0}
+    items, sid, last_msg, failed = {}, None, "", False
+    for line in open(path, errors="replace"):
+        try:
+            d = json.loads(line)
+        except Exception:
+            continue
+        t = d.get("type")
+        if t == "thread.started":
+            sid = d.get("thread_id")
+        elif t == "turn.completed":
+            u = d.get("usage", {})
+            usage["in"] += u.get("input_tokens") or 0
+            usage["cached"] += u.get("cached_input_tokens") or 0
+            usage["out"] += u.get("output_tokens") or 0
+            usage["reasoning"] += u.get("reasoning_output_tokens") or 0
+        elif t == "turn.failed" or t == "error":
+            failed = True
+        elif t == "item.completed":
+            it = d.get("item", {})
+            k = it.get("type")
+            if k == "collab_tool_call" or it.get("tool"):
+                k = f"{k}:{it.get('tool')}"
+            items[k] = items.get(k, 0) + 1
+            if it.get("type") == "agent_message":
+                last_msg = it.get("text") or ""
+    return {"usage": {"main": usage}, "agents": [], "skills": [], "tools": items, "cost": None,
+            "codex_session": sid, "result_text": last_msg[-1500:], "is_error": failed}
 
 
 def parse(path):
@@ -185,7 +241,7 @@ def score(repo, run_dir):
     work = run_dir / "score"
     if work.exists():
         shutil.rmtree(work)
-    shutil.copytree(repo, work, ignore=shutil.ignore_patterns(".git", ".claude"))
+    shutil.copytree(repo, work, ignore=shutil.ignore_patterns(".git", ".claude", ".cursor", ".waygent"))
     hid = work / "_hidden"
     shutil.copytree(ROOT / "hidden", hid)
     res = {}
@@ -229,9 +285,10 @@ def git_facts(repo):
 
 
 def main():
-    global CURSOR
+    global CURSOR, CODEX
     cond, model, rep = sys.argv[1], sys.argv[2], sys.argv[3]
     CURSOR = model in CURSOR_MODELS
+    CODEX = model in CODEX_MODELS
     kill_after = "--kill-after-task" in sys.argv
     name = f"{cond}-{model}-{rep}" + ("-resume" if kill_after else "")
     run_dir = ROOT / "runs" / TAG / name
@@ -245,9 +302,11 @@ def main():
         out = run_dir / f"turn{i:02d}.jsonl"
         dur, killed = run_turn(repo, claude_cmd(cond, model, msg, session, first), out,
                                kill_when=task3_done if (kill_after and i == 0) else None)
-        pr = parse_cursor(out) if CURSOR else parse(out)
+        pr = parse_cursor(out) if CURSOR else parse_codex(out) if CODEX else parse(out)
         if CURSOR and first and pr.get("cursor_session"):
             session = pr["cursor_session"]
+        if CODEX and first and pr.get("codex_session"):
+            session = pr["codex_session"]
         meta["turns"].append({"i": i, "session": session, "dur_s": round(dur), "killed": killed, **pr})
         if session not in meta["sessions"]:
             meta["sessions"].append(session)

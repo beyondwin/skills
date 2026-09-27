@@ -1,0 +1,114 @@
+[
+ {
+  "run": "waygent-opus-1",
+  "host": "claude-code",
+  "skill_rev": "E",
+  "hidden": 64,
+  "failed_hidden": [],
+  "x_recreate_ok": true,
+  "cost_usd": 10.818,
+  "wall_min": 44.5,
+  "turns": 1,
+  "harness_continued": false,
+  "trailer_tasks": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10
+  ],
+  "main_commits": 0,
+  "codex_main_tokens": null
+ },
+ {
+  "run": "waygent-sol-1",
+  "host": "codex",
+  "skill_rev": "E",
+  "hidden": 63,
+  "failed_hidden": [
+   "test_x_edge_recreated_prompt_not_overwritten_by_stale_session"
+  ],
+  "x_recreate_ok": false,
+  "cost_usd": null,
+  "wall_min": 85.5,
+  "turns": 2,
+  "harness_continued": true,
+  "trailer_tasks": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10
+  ],
+  "main_commits": 0,
+  "codex_main_tokens": {
+   "in": 4114830,
+   "cached": 4040960,
+   "out": 17134
+  }
+ },
+ {
+  "run": "waygent-sol-2",
+  "host": "codex",
+  "skill_rev": "F",
+  "hidden": 62,
+  "failed_hidden": [
+   "test_t4_basic_cancel_before_start",
+   "test_t8_edge_finished_once_when_cancelled_before_start"
+  ],
+  "x_recreate_ok": true,
+  "cost_usd": null,
+  "wall_min": 79.4,
+  "turns": 1,
+  "harness_continued": false,
+  "trailer_tasks": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10
+  ],
+  "main_commits": 0,
+  "codex_main_tokens": {
+   "in": 3490884,
+   "cached": 3405568,
+   "out": 18556
+  }
+ },
+ {
+  "run": "vanilla-sol-1",
+  "host": "codex",
+  "skill_rev": null,
+  "hidden": 63,
+  "failed_hidden": [
+   "test_x_edge_recreated_prompt_not_overwritten_by_stale_session"
+  ],
+  "x_recreate_ok": false,
+  "cost_usd": null,
+  "wall_min": 9.7,
+  "turns": 1,
+  "harness_continued": false,
+  "trailer_tasks": [],
+  "main_commits": 0,
+  "codex_main_tokens": {
+   "in": 1235590,
+   "cached": 1185536,
+   "out": 26579
+  }
+ }
+]
