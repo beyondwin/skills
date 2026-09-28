@@ -118,7 +118,7 @@ print("linked")
 
 ## waygent
 
-Claude Code, Codex, Cursor Agent용입니다. 공개 경로: https://github.com/beyondwin/skills/tree/main/skills/waygent. 쓰는 호스트마다 링크를 하나씩 겁니다. Claude Code는 `~/.claude/skills/waygent`, Codex는 `~/.agents/skills/waygent`, Cursor Agent는 `~/.cursor/skills/waygent`를 읽습니다. `~/.codex`에 복사본을 만들지 마세요. Codex는 `~/.codex/config.toml`의 `[features]`에 `multi_agent = true`도 있어야 합니다.
+Claude Code, Codex, Cursor Agent, Grok Build용입니다. 공개 경로: https://github.com/beyondwin/skills/tree/main/skills/waygent. 쓰는 호스트마다 링크를 하나씩 겁니다. Claude Code는 `~/.claude/skills/waygent`, Codex는 `~/.agents/skills/waygent`, Cursor Agent는 `~/.cursor/skills/waygent`를 읽습니다. Grok Build는 셋 중 어느 것이든 읽으므로 링크를 따로 걸 필요가 없습니다. `~/.codex`에 복사본을 만들지 마세요. Codex는 `~/.codex/config.toml`의 `[features]`에 `multi_agent = true`도 있어야 합니다.
 
 1. 클론하고 폴더를 만듭니다.
 

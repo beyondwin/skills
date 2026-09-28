@@ -42,13 +42,14 @@
 
 ## 지원 호스트
 
-waygent: Claude Code, Codex, and Cursor Agent supported for local or repository-based use.
+waygent: Claude Code, Codex, Cursor Agent, and Grok Build supported for local or repository-based use.
 
 | 호스트 | 호출 | 설치 위치 | 서브에이전트 |
 | --- | --- | --- | --- |
 | Claude Code (`claude-code`) | `/waygent` | `~/.claude/skills/waygent` | Agent 도구 |
 | Codex (`codex`) | `$waygent` | `~/.agents/skills/waygent` | `spawn_agent`. `~/.codex/config.toml`에 `[features]` `multi_agent = true`가 있어야 함 |
 | Cursor Agent (`cursor`) | `/waygent` | `~/.cursor/skills/waygent` | Task 도구 |
+| Grok Build (`grok`) | `/waygent` | 위 세 링크 중 아무거나; 따로 걸 필요 없음 | `spawn_subagent` |
 
 - macOS에서, Git 저장소 안에서만 씁니다.
 - 호스트별 실측 기록은 [호환성](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/waygent/compatibility.md)에 있습니다.
@@ -166,8 +167,8 @@ $waygent docs/plan.md
 **모델**
 - 구현자와 과제별 리뷰어는 지금 세션과 같은 모델을 씁니다. 싼 모델로 내리지 않습니다.
 - 끝 전체 리뷰와 실패 뒤 재시도만 한 등급 위를 씁니다. Claude Code는 sonnet → opus →
-  fable 순이고, Codex는 같은 모델에 `reasoning_effort`만 `xhigh`로 올립니다. Cursor는
-  모델을 고를 수 없어 같은 모델을 씁니다.
+  fable 순이고, Codex는 같은 모델에 `reasoning_effort`만 `xhigh`로 올립니다. Cursor와
+  Grok Build는 모델을 고를 수 없어 같은 모델을 씁니다.
 
 **하지 않는 것**: 브레인스토밍·스펙 단계, 재리뷰 반복, 구현자 병렬 실행, 과제마다 사람
 확인, 문서 자동 생성, `CLAUDE.md`·`AGENTS.md` 수정.

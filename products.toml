@@ -83,7 +83,7 @@ display_name = "Waygent"
 skill_path = "skills/waygent"
 test_path = "tests/products/waygent"
 maintainer_docs = "docs/maintainers/products/waygent"
-supported_hosts = ["claude-code", "codex", "cursor"]
+supported_hosts = ["claude-code", "codex", "cursor", "grok"]
 owned_paths = [
   "skills/waygent/",
   "tests/products/waygent/",

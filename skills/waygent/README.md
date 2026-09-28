@@ -45,13 +45,14 @@ with superpowers, and with waygent
 
 ## Supported hosts
 
-waygent: Claude Code, Codex, and Cursor Agent supported for local or repository-based use.
+waygent: Claude Code, Codex, Cursor Agent, and Grok Build supported for local or repository-based use.
 
 | Host | Call | Install path | Subagents |
 | --- | --- | --- | --- |
 | Claude Code (`claude-code`) | `/waygent` | `~/.claude/skills/waygent` | Agent tool |
 | Codex (`codex`) | `$waygent` | `~/.agents/skills/waygent` | `spawn_agent`; needs `multi_agent = true` under `[features]` in `~/.codex/config.toml` |
 | Cursor Agent (`cursor`) | `/waygent` | `~/.cursor/skills/waygent` | Task tool |
+| Grok Build (`grok`) | `/waygent` | any of the three links above; no extra link | `spawn_subagent` |
 
 - macOS only, inside a Git repository.
 - Per-host measurements are in
@@ -175,7 +176,7 @@ overruled, the final test result, and anything not verified.
 - Implementers and per-task reviewers use this session's model, never a cheaper one.
 - Only the final review and the retry after a failure go one tier up: Claude Code
   goes sonnet → opus → fable; Codex keeps the model and sets `reasoning_effort` to
-  `xhigh`. Cursor cannot pick, so it uses the same model.
+  `xhigh`. Cursor and Grok Build cannot pick, so they use the same model.
 
 **Not done**: brainstorming or spec phases, re-review loops, parallel implementers,
 a human checkpoint per task, generated docs, edits to `CLAUDE.md` or `AGENTS.md`.

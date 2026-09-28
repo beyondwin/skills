@@ -2,7 +2,7 @@
 name: waygent
 description: Use only when the user message contains /waygent or $waygent. Runs a multi-task implementation with one fresh implementer subagent per task, test-first, one review per task, one final review, and resume from a progress file. Do not use for brainstorming, writing specs or plans, a single small fix, /sddx, or Superpowers subagent-driven-development.
 license: Apache-2.0
-compatibility: Requires a Git repository and a host with a subagent tool (Claude Code Agent tool, Codex spawn_agent with multi_agent enabled, or Cursor Agent Task tool). Works with or without a plan file.
+compatibility: Requires a Git repository and a host with a subagent tool (Claude Code Agent tool, Codex spawn_agent with multi_agent enabled, Cursor Agent Task tool, or Grok Build spawn_subagent). Works with or without a plan file.
 metadata:
   version: "0.1.0"
   updated_at: "2026-09-27"
@@ -124,6 +124,7 @@ cannot pick, use your own. No subagent spawns subagents of its own.
 - Codex: spawn with `fork_turns: "none"` and leave `model` and `reasoning_effort` unset
   so the child inherits yours; do not guess your model name. One tier up means setting
   only `reasoning_effort: "xhigh"`.
+- Grok Build: `spawn_subagent` with `run_in_background: false`, no `model`, no effort.
 
 ## Report
 
@@ -133,7 +134,6 @@ claim a result you did not run.
 
 ## Not in this skill
 
-No brainstorming, spec, or design phase. No per-task brief, diff, or report files;
-the only extra files are the reviewers' own `reviews/`. No parallel implementers or
-worktree pools. No re-review loop. No human checkpoint per task. No generated docs or
-edits to CLAUDE.md or AGENTS.md.
+No brainstorming, spec, or design phase. No per-task brief, diff, or report files
+beyond the reviewers' `reviews/`. No parallel implementers, worktree pools, re-review
+loop, human checkpoint per task, generated docs, or edits to CLAUDE.md or AGENTS.md.

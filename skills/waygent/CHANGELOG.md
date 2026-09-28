@@ -21,6 +21,8 @@ All notable changes to this product are documented in this file.
 - Models: implementers and per-task reviewers keep the session model, never a
   cheaper one or lower effort. When the host can pick, the final reviewer and
   the retry after a failure go one tier up.
+- Grok Build is a supported host: `/waygent`, subagents through `spawn_subagent`
+  with no model named, found through any of the three skill links.
 - Hosts: Claude Code, Codex, and Cursor Agent. Codex calls it with `$waygent`,
   finds it through `~/.agents/skills/waygent`, and needs `multi_agent = true`
   under `[features]` in `~/.codex/config.toml`. On Codex the controller names no

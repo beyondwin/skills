@@ -11,7 +11,7 @@ This page says which hosts each skill runs on. A host is the agent app that runs
 | Image Workbench | Codex, Grok | Codex: `$skill-installer`. Grok: local link |
 | How It Works | Codex, Claude Code | Local link |
 | SDDx | Claude Code, Codex | Local link |
-| Waygent | Claude Code, Codex, Cursor Agent | Local link |
+| Waygent | Claude Code, Codex, Cursor Agent, Grok Build | Local link |
 
 Terms:
 
@@ -31,7 +31,7 @@ pre-sdd-review: Codex supported; other hosts not_measured.
 
 sddx: Claude Code and Codex supported for local or repository-based use.
 
-waygent: Claude Code, Codex, and Cursor Agent supported for local or repository-based use.
+waygent: Claude Code, Codex, Cursor Agent, and Grok Build supported for local or repository-based use.
 
 ## What counts as support
 

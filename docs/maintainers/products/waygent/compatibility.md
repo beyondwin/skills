@@ -1,8 +1,8 @@
 # waygent compatibility
 
 This document sets which hosts and OS waygent supports, and on what evidence. The
-supported hosts are the three in the product registry, `claude-code`, `codex`, and
-`cursor`, for local or repository-linked use only. Support scope and measurement status
+supported hosts are the four in the product registry, `claude-code`, `codex`,
+`cursor`, and `grok`, for local or repository-linked use only. Support scope and measurement status
 are separate. Measurements are in the record below; installed files changed after that
 are `not_measured` until measured again.
 
@@ -11,7 +11,10 @@ are `not_measured` until measured again.
   `~/.codex/config.toml` must have `[features]` `multi_agent = true`.
 - Cursor Agent: a host for this product. In `sddx` it is still a worker, not a host.
   Subagents run through the `Task` tool and use the main model even when no model is given.
-- Grok: not supported.
+- Grok Build: called with `/waygent`. It reads skills from `~/.agents/skills`,
+  `~/.claude/skills`, and `~/.cursor/skills`, so any of the links above works.
+  Subagents run through `spawn_subagent`; with no `model` the child inherits the
+  session model, and a subagent cannot spawn its own (depth limit 1).
 - Claude.ai, Cowork, Skills API upload, and marketplace publication are not supported.
 
 ## Supported OS
@@ -27,6 +30,8 @@ skills/waygent/              repository source
 ├─ ~/.agents/skills/waygent ─→ Codex
 └─ ~/.cursor/skills/waygent ─→ Cursor Agent
 ```
+
+Grok Build reads all three folders and deduplicates by skill name.
 
 On 2026-09-27, Cursor Agent 2026.09.23 was confirmed to read both the project path
 `.cursor/skills/<name>/SKILL.md` and the user path `~/.cursor/skills/<name>/SKILL.md`
@@ -46,3 +51,4 @@ This record is execution evidence at that point in time and does not vouch for l
 | Claude Code | 2.1.280 | fable (Fable 5.1) | 2026-09-27 | 0.1.0 working copy | 1 run completed (64/64), $25.95 |
 | Cursor Agent | 2026.09.23 | grok-4.7-high | 2026-09-27 | 0.1.0 working copy | 2 runs. Both committed all 10 Tasks (63/64, 64/64). Run 1 was cut off by the harness turn cap before the final review. Very slow, 291 minutes on average |
 | Codex | 0.154.0 | gpt-5.6-sol (high) | 2026-09-27 | 0.1.0 working copy | 2 runs completed, both committed all 10 Tasks (63/64, 62/64). In run 1 the controller misidentified its own model and spawned children on a different model. In run 2, fixed to inherit the model, all 22 children used the session model. The final wording that pins one tier up to `xhigh` was not measured. Under `codex exec` an explicit-only skill is not loaded by `$waygent`, so `agents/openai.yaml` was removed from the measured copy |
+| Grok Build | 1.0.41 | grok-4.7 (default effort xhigh) | 2026-09-28 | 0.1.0 working copy (with the Grok line) | 1 smoke run on a 2-Task plan, completed: both Tasks committed with trailers, Task 1 review found 1 issue fixed by resuming the implementer (`resume_from`), final review High/Medium none, 14 tests pass, `.waygent/` records and `.gitignore` written. 6 subagents, none named a model. 29 minutes, $0.88. Not run on the 10-Task fixture |

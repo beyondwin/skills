@@ -42,7 +42,7 @@ CI는 Cursor나 Grok CLI를 부르지 않습니다. 워커 대화, 자격 증명
 
 ## 과제별 서브에이전트 구현
 
-`waygent`는 호스트(Claude Code, Codex 또는 Cursor Agent) 안에서 서브에이전트를
+`waygent`는 호스트(Claude Code, Codex, Cursor Agent 또는 Grok Build) 안에서 서브에이전트를
 띄웁니다. 과제 내용과 저장소 파일은 그 호스트의 모델 공급자에게 가며, 그 호스트의
 데이터 정책을 따릅니다. 진행 기록과 리뷰 기록은 저장소 최상위 `.waygent/`에 남고,
 그 폴더의 `.gitignore`가 커밋되지 않게 막습니다. 기본 `verify.py`와 CI는 모델을

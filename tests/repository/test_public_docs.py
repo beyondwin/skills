@@ -89,7 +89,7 @@ SDDX_SUPPORT = (
     "sddx: Claude Code and Codex supported for local or repository-based use."
 )
 WAYGENT_SUPPORT = (
-    "waygent: Claude Code, Codex, and Cursor Agent supported for local or repository-based use."
+    "waygent: Claude Code, Codex, Cursor Agent, and Grok Build supported for local or repository-based use."
 )
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,

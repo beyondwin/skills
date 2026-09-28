@@ -84,6 +84,13 @@ class WaygentContractTests(unittest.TestCase):
         self.assertIn("do not guess your model name", self.lowered)
         self.assertIn("no subagent spawns subagents of its own", self.lowered)
 
+    def test_grok_contract(self) -> None:
+        # The controller must wait for each child and let it inherit the model.
+        self.assertIn("`spawn_subagent` with `run_in_background: false`, no `model`", self.text)
+        registry = load_registry(ROOT / "products.toml")
+        product = next(p for p in registry.products if p.name == "waygent")
+        self.assertIn("grok", product.supported_hosts)
+
     def test_skill_stays_light(self) -> None:
         self.assertLess(len(self.raw.splitlines()), MAX_SKILL_LINES)
 

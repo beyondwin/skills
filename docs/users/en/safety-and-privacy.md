@@ -42,8 +42,8 @@ credentials, or provider receipts (the run records a provider returns).
 
 ## Per-task subagent implementation
 
-`waygent` starts subagents inside the host (Claude Code, Codex, or Cursor
-Agent). Task content and repository files go to that host's model provider
+`waygent` starts subagents inside the host (Claude Code, Codex, Cursor
+Agent, or Grok Build). Task content and repository files go to that host's model provider
 under that host's data policy. Progress and review records stay in `.waygent/`
 at the repository root, and its `.gitignore` keeps them out of commits. Default
 `verify.py` and CI never call a model.

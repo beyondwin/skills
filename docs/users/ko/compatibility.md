@@ -11,7 +11,7 @@
 | Image Workbench | Codex, Grok | Codex: `$skill-installer`. Grok: 로컬 링크 |
 | How It Works | Codex, Claude Code | 로컬 링크 |
 | SDDx | Claude Code, Codex | 로컬 링크 |
-| Waygent | Claude Code, Codex, Cursor Agent | 로컬 링크 |
+| Waygent | Claude Code, Codex, Cursor Agent, Grok Build | 로컬 링크 |
 
 말 뜻:
 
@@ -31,7 +31,7 @@ pre-sdd-review: Codex supported; other hosts not_measured.
 
 sddx: Claude Code and Codex supported for local or repository-based use.
 
-waygent: Claude Code, Codex, and Cursor Agent supported for local or repository-based use.
+waygent: Claude Code, Codex, Cursor Agent, and Grok Build supported for local or repository-based use.
 
 ## 무엇을 지원으로 보나
 

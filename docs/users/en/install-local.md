@@ -118,7 +118,7 @@ print("linked")
 
 ## waygent
 
-For Claude Code, Codex, and Cursor Agent. Public path: https://github.com/beyondwin/skills/tree/main/skills/waygent. Make one link per host you use: Claude Code reads `~/.claude/skills/waygent`, Codex reads `~/.agents/skills/waygent`, Cursor Agent reads `~/.cursor/skills/waygent`. Do not add a copy under `~/.codex`. Codex also needs `multi_agent = true` under `[features]` in `~/.codex/config.toml`.
+For Claude Code, Codex, Cursor Agent, and Grok Build. Public path: https://github.com/beyondwin/skills/tree/main/skills/waygent. Make one link per host you use: Claude Code reads `~/.claude/skills/waygent`, Codex reads `~/.agents/skills/waygent`, Cursor Agent reads `~/.cursor/skills/waygent`, and Grok Build reads any of the three, so it needs no link of its own. Do not add a copy under `~/.codex`. Codex also needs `multi_agent = true` under `[features]` in `~/.codex/config.toml`.
 
 1. Clone and create the folders.
 

@@ -9,7 +9,7 @@ document and "Files to change together" at the end.
 
 | Term | Meaning |
 | --- | --- |
-| Host | The program that runs the skill: `claude-code`, `codex`, or `cursor` (Cursor Agent). |
+| Host | The program that runs the skill: `claude-code`, `codex`, `cursor` (Cursor Agent), or `grok` (Grok Build). |
 | Controller | The host session that received `/waygent` or `$waygent`. It writes no code; it dispatches tasks, checks them, and writes the progress file. |
 | Implementer subagent | A fresh subagent that owns one task. |
 | Guide file | `guide.md`. Commands and plan-wide rules, written once and read by every implementer subagent. |
