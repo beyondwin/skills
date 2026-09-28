@@ -6,13 +6,12 @@ import collections.abc
 import pathlib
 import re
 
-from scripts.lib.product_registry import load_registry
+from scripts.lib.product_registry import load_registry, PRODUCT_README_NAMES
 
 
 _LINK_RE = re.compile(r"\[[^\]]*\]\(\s*(?:<([^>]+)>|([^)\s]+))")
 _HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$", re.MULTILINE)
 _SCHEME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")
-_PRODUCT_README_NAMES = ("README.md", "README.en.md")
 _USER_LANGUAGES = ("ko", "en")
 
 
@@ -21,13 +20,14 @@ def active_markdown_paths(root: pathlib.Path) -> tuple[pathlib.Path, ...]:
     registry = load_registry(root / "products.toml")
     candidates: list[pathlib.Path] = [
         root / "README.md",
-        root / "README.en.md",
+        root / "README.ko.md",
         root / "docs" / "README.md",
+        root / "docs" / "README.ko.md",
         root / "docs" / "maintainers" / "README.md",
         root / "docs" / "history" / "README.md",
     ]
     for product in registry.products:
-        for name in _PRODUCT_README_NAMES:
+        for name in PRODUCT_README_NAMES.values():
             candidates.append(root / product.skill_path / name)
         docs_root = root / product.maintainer_docs
         if docs_root.is_dir():

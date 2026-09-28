@@ -2,7 +2,6 @@
 
 import copy
 import importlib.util
-import json
 import shutil
 import sys
 import tempfile
@@ -43,13 +42,6 @@ class EvidenceContractTests(unittest.TestCase):
     def test_mismatched_hops_fail(self):
         text = '```mermaid\nflowchart LR\nA["H1 start"]\n```\n1. **H2** — stop\n'
         self.assertEqual(module.observe_text(text)["hop_ids"]["status"], "fail")
-
-    def test_legacy_record_is_unchanged_and_unbound(self):
-        record = json.loads((HERE / "live" / "smoke-record.json").read_text())
-        before = copy.deepcopy(record)
-        self.assertEqual(module.record_binding(record, current_version="2.0.0", current_hash="a"*64),
-                         "historical-unbound")
-        self.assertEqual(record, before)
 
     def test_different_payload_cannot_claim_current_build(self):
         record = synthetic_record()
@@ -175,15 +167,6 @@ class EvidenceContractTests(unittest.TestCase):
             variants.append(record)
         for record in variants:
             with self.subTest(record=record), self.assertRaises(ValueError):
-                module.record_binding(record, current_version="2.0.0", current_hash="a"*64)
-
-    def test_historical_shape_validation_does_not_reinterpret_host_verdicts(self):
-        historical = {"schema_version": 1, "executed_on": "2026-08-28", "hosts": []}
-        self.assertEqual(module.record_binding(historical, current_version="2.0.0", current_hash="a"*64),
-                         "historical-unbound")
-        for key, value in (("extra", True), ("executed_on", None), ("executed_on", "bad"), ("hosts", {})):
-            record = {**historical, key: value}
-            with self.subTest(key=key, value=value), self.assertRaises(ValueError):
                 module.record_binding(record, current_version="2.0.0", current_hash="a"*64)
 
     def test_unknown_model_stays_unbound_even_for_a_different_payload(self):

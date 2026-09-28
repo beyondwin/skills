@@ -37,7 +37,7 @@ EXPECTED_CATEGORY_COUNTS = {
     "preservation": 8,
     "noop": 6,
     "voice": 4,
-    "trigger": 6,
+    "trigger": 5,
 }
 CASE_ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 STRING_LIST_FIELDS = ("must_preserve", "required_substrings", "forbidden_substrings")
@@ -286,7 +286,7 @@ def validate_skill_tree(skill_root: pathlib.Path, scope: str) -> list[str]:
         "references/sources.md",
     ]
     if scope == "full":
-        required_files.extend(["README.md", "README.en.md"])
+        required_files.extend(["README.md", "README.ko.md"])
 
     if scope == "fixtures":
         return errors
@@ -743,7 +743,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     print(
-        "34 cases: "
+        "33 cases: "
         f"normative={category_counts['normative']} "
         f"preservation={category_counts['preservation']} "
         f"noop={category_counts['noop']} "

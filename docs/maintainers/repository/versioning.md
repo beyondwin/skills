@@ -1,43 +1,42 @@
-# 버저닝
+# Versioning
 
-밖에서 보이는 규칙이 바뀌면 버전을 올립니다. 설치되지 않는 테스트나 관리자
-문서만 바뀌면 올리지 않습니다. 올릴지와 얼마나 올릴지는 아래 표로 정합니다.
+Bump the version when a rule users can see changes. Do not bump it when only tests or
+maintainer docs change, since they are not installed. The table below decides whether
+to bump and by how much.
 
-제품 버전을 올릴 때 한 변경에서 함께 고칩니다.
+When you bump a product version, change these together in one change:
 
-- `skills/<name>/release.toml`: 버전의 원본
-- `SKILL.md`의 `metadata.version`: 설치하는 쪽이 읽는 배포용 복사 값. CI가 두
-  값을 함께 바꾸도록 강제합니다. 도구가 두 값을 몰래 맞추지 않습니다.
-- `skills/<name>/CHANGELOG.md`의 `Unreleased` 항목
+- `skills/<name>/release.toml`: the version source.
+- `SKILL.md` `metadata.version`: the copy installers read. CI requires both to change
+  together; no tool syncs them for you.
+- The `Unreleased` entry in `skills/<name>/CHANGELOG.md`.
 
-개발 중 `release.toml.version`은 다음 출시 목표입니다. 설치 파일이 마지막 공개
-제품 태그와 달라졌는데 버전이 그대로면 검사가 실패합니다. 릴리스 준비 시
-`Unreleased` 항목을 `## <version> - <date>`로 확정하고, 새 빈 `Unreleased`
-섹션을 엽니다.
+During development, `release.toml` `version` is the next release target. If the
+payload differs from the last published product tag but the version is unchanged, the
+check fails. When preparing a release, turn `Unreleased` into `## <version> - <date>`
+and open a new empty `Unreleased` section.
 
-## 스킬 SemVer
+## Skill SemVer
 
-SemVer는 파일 수가 아니라, 밖에서 보이는 제품 규칙의 영향을 기준으로
-판단합니다.
+Judge SemVer by the effect on product rules users can see, not by how many files
+changed.
 
-| 변경 | 스킬 버전 | 예시 |
+| Change | Skill version | Example |
 | --- | --- | --- |
-| 문서화된 규칙을 회복하는 호환 결함 수정 | PATCH | 잘못된 분기, 깨진 상대 링크, 투명한 보안 강화 |
-| 설치되는 README·CHANGELOG·패키지 정보 변경 | PATCH | 설치법 정정, 릴리스 출처(provenance) 보강 |
-| 기본 동작을 유지하는, 직접 켜는 기능 | MINOR | 새 선택 모드, 새 선택 인자, 선택적 스크립트 |
-| 활성화 또는 near-miss 경계의 비호환 변경 | MAJOR | 이전에 no-op이던 요청의 암묵 활성화 |
-| 기본 모드·기본 출력·필수 입력 변경 | MAJOR | 기본 경로 변경, 출력 형식 제거 또는 이름 변경 |
-| 필수 런타임·안전·데이터 처리 계약 변경 | MAJOR | 새 필수 공급자, 데이터 보존 정책 변경 |
-| 설치되지 않는 테스트·관리자 문서·CI만 변경 | 없음 | 테스트 리팩터링, 내부 운영 문구 정리 |
+| Compatible fix that restores a documented rule | PATCH | Wrong branch, broken relative link, transparent security hardening |
+| Change to installed README, CHANGELOG, or package info | PATCH | Install fix, added release provenance |
+| Opt-in feature that keeps default behavior | MINOR | New optional mode, argument, or script |
+| Breaking change to activation or near-miss bounds | MAJOR | Implicit activation of a request that used to be a no-op |
+| Change to default mode, default output, or required input | MAJOR | New default path, output format removed or renamed |
+| Change to the required runtime, safety, or data-handling contract | MAJOR | New required provider, new data retention policy |
+| Only uninstalled tests, maintainer docs, or CI change | None | Test refactor, internal wording cleanup |
 
-`SKILL.md`, `agents/openai.yaml`, 런타임 `references/`와 `scripts/` 변경은
-단순 문구 수정으로 자동 간주하지 않습니다. 에이전트 동작에 영향을 줄 수
-있으므로 계약 영향 평가와 최소 PATCH가 필요합니다. 반대로 관리자 문서나
-저장소 검증 도구만 바뀌고 배포 제품이 동일하면 스킬 버전을 올리지 않습니다.
+Changes to `SKILL.md`, `agents/openai.yaml`, runtime `references/`, or `scripts/` are
+never assumed to be wording-only. They can change agent behavior, so they need a
+contract impact review and at least a PATCH. If only maintainer docs or repository
+tools change and the shipped product is identical, do not bump the skill version.
 
-## 태그
+## Tags
 
-- 제품 태그: `<name>-v<version>` annotated tag. 이미 있는 태그는 재사용하거나
-  이동하지 않습니다.
-- 옛 통합 태그 `v2.0.0`은 그대로 둡니다. 옛 카탈로그 ZIP은 그 GitHub Release에
-  남아 있습니다. 소급해 제품 태그를 만들지 않습니다.
+- Product tag: an annotated `<name>-v<version>` tag. Never reuse or move an existing
+  tag.

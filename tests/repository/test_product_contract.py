@@ -12,7 +12,7 @@ class StandaloneLinkTests(unittest.TestCase):
             payload = root / "sample"
             payload.mkdir()
             (root / "outside.md").write_text("repository-only", encoding="utf-8")
-            for filename in ("README.md", "README.en.md"):
+            for filename in ("README.md", "README.ko.md"):
                 with self.subTest(filename=filename):
                     self.assertEqual(
                         _check_relative_links(payload, filename, "[guide](../outside.md)"),
@@ -27,7 +27,7 @@ class StandaloneLinkTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             payload = Path(tmp)
             (payload / "guide.md").write_text("standalone guide", encoding="utf-8")
-            for filename in ("README.md", "README.en.md"):
+            for filename in ("README.md", "README.ko.md"):
                 with self.subTest(filename=filename):
                     self.assertEqual(_check_relative_links(
                         payload, filename, "[guide](guide.md#section)",

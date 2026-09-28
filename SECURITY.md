@@ -2,12 +2,12 @@
 
 ## Supported Versions
 
-The current `2.x` line is supported.
+Only the latest release of each skill is supported. Older releases get no fixes.
 
 | Version | Supported |
 | --- | --- |
-| 2.x | yes |
-| < 2.0 | no |
+| Latest release of each skill | yes |
+| Anything older | no |
 
 ## Reporting a Vulnerability
 
@@ -17,6 +17,6 @@ Use GitHub private vulnerability reporting for this repository:
 
 https://github.com/beyondwin/skills/security/advisories/new
 
-Include the affected `2.x` version or commit, why the issue is security-sensitive, and exact reproduction that does not require a private prompt or private image. We will acknowledge private reports and say whether the supported `2.x` line is affected.
+Include the skill name and version (or commit), why the issue is security-sensitive, and exact reproduction that does not require a private prompt or private image. We will acknowledge private reports and say whether the latest release is affected.
 
 This policy does not publish a personal email address. GitHub private vulnerability reporting is the contact path.

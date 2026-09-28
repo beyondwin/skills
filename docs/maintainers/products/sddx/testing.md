@@ -1,116 +1,132 @@
-# sddx 테스트
+# sddx testing
 
-이 문서는 SDDx를 무엇으로 검사하는지와, 지금까지 실제 CLI로 무엇을 측정했는지를
-적습니다. 공급자(Cursor·Grok 계정) 없이 도는 계약 검사, `resolve_backend.py`
-픽스처 경계, Git 샌드박스 준비·정리, 범위를 좁힌 라이브 재검증을 소유합니다.
-라이브 관측을 일반적인 공급자 품질이나 다른 호스트의 실행 보장으로 넓히지
-않습니다.
+This document records what checks SDDx and what has been measured so far with the
+real CLIs. It owns the contract checks that run without a provider (Cursor or Grok
+account), the `resolve_backend.py` fixture boundaries, Git sandbox prepare and
+cleanup, and narrow live re-checks. It does not stretch live observations into
+general provider quality or run guarantees on other hosts.
 
-## 이 문서에서 찾을 수 있는 것
+## What this document covers
 
-- 지금 돌리는 검사와 각 테스트 파일이 잠그는 것: 「공급자 없는 증거」
-- 검사 명령: 「명령」
-- 릴리스마다 손으로 하는 XHigh 리뷰어 확인: 「리뷰어 effort 증거」
-- 버전별 측정 기록(최신순): 「측정 기록」. 그 시점의 관측이며 지금 계약을
-  바꾸지 않습니다.
+- The checks that run now and what each test file locks: "Provider-free evidence"
+- The check commands: "Commands"
+- The manual XHigh reviewer check done every release: "Reviewer effort evidence"
+- Measurements by version, newest first: "Measurement log". These are
+  observations from that time and do not change the current contract.
 
-픽스처(테스트용 가짜 입력과 저장소) 경로는 `tests/products/sddx/`입니다. 이
-문서에서 "라이브"는 실제 Cursor·Grok CLI를 호출한 실행, "합성 CLI"는 테스트가
-만든 가짜 CLI, "RED → GREEN"은 테스트가 먼저 실패하고 구현 뒤 통과한 순서를
-뜻합니다.
+Fixtures (fake inputs and repositories for tests) live in `tests/products/sddx/`.
+In this document, "live" means a run that called the real Cursor or Grok CLI,
+"synthetic CLI" means a fake CLI the test builds, and "RED → GREEN" means the test
+failed first and passed after the implementation.
 
-## 공급자 없는 증거
+## Provider-free evidence
 
-필수 증거는 `python3 scripts/verify.py --skill sddx`입니다. 어느 검사도 공급자를
-호출하지 않고, 실제 Cursor/Grok 계정을 쓰지 않습니다.
+The required evidence is `python3 scripts/verify.py --skill sddx`. No check calls
+a provider or uses a real Cursor/Grok account.
 
-테스트 파일별로 잠그는 것은 다음과 같습니다.
+What each test file locks:
 
-- `tests/products/sddx/test_resolve_backend.py`: PATH에 가짜 바이너리를 넣어 신원
-  규칙을 잠급니다. 합성 CLI는 stdout/stderr를 LF로 고정해 raw-byte 단언이 텍스트
-  변환과 섞이지 않게 합니다. 세부 항목은 아래 「결정적 검사」에 있습니다.
-- `tests/products/sddx/test_prepare_grok_sandbox.py`: 임시 저장소와 실제 linked
-  worktree를 만들고 Git 경로 계산, 기존 TOML 원문 복원, 재진입, 심볼릭 링크
-  거절, `fchmod` 없는 다시 쓰기, CLI 성공·실패 출력을 검사합니다. Git 경로는
-  pathlib로 정규화해 비교합니다. 표준 `tomllib`를 쓰므로 Python 3.11 이상이
-  필요합니다.
-- `tests/products/sddx/test_extract_task.py`: 제목 일치, 본문 경계, 중복·부재·빈
-  본문의 exit 3, 인자·파일 오류의 exit 2, 기존 출력 파일 비덮어쓰기를 잠급니다.
-- `tests/products/sddx/test_run_worker.py`: 시도 디렉터리 여섯 파일, argv 구성,
-  백엔드별 `--model`/`--sandbox-profile` 배타, `run.json` 필드(`skill_version`
-  포함)와 상태, 실행 중 `session_id` 기록, 래퍼 SIGTERM → `interrupted`, 러너
-  중단 시 워커 종료와 두 번째 인터럽트의 kill, SIGTERM 처리기의 실행 전 설치,
-  유휴 타임아웃(처음부터 조용한 워커, 출력 뒤 멈춘 워커, 재개 포함,
-  stdout·stderr 증가는 활동, `--idle-timeout 0`은 끔, 잘못된 값 거절, 더 짧은
-  `--timeout` 우선), 기본값(`--timeout` 0, `--idle-timeout` 900), 래퍼 exit
-  규칙, 닫힌 stdin, 시도 경로 거절을 검사합니다.
-- `tests/products/sddx/test_worker_status.py`: `stale`(running인데 pid가 없을
-  때만 true), `session_id_in_log`(기록에 ID가 없을 때만 채움), 읽기 전용 응답,
-  `pid_alive`, Cursor·Grok 두 로그 형태의 bounded tools index, 기본 응답에 로그
-  본문이 없다는 점, 너무 깊은 JSON 줄 건너뛰기, `--stream` 기본 2048·최대
-  8192바이트, 64 KiB 응답 상한, offset 처리를 검사합니다.
-- `tests/products/sddx/test_contract.py`: 문서·지침 문구와 플러그인 페이로드를
-  검사합니다. 리뷰어 정의 관련 항목은 「리뷰어 effort 증거」에 있습니다.
+- `tests/products/sddx/test_resolve_backend.py`: puts fake binaries on PATH to
+  lock the identity rules. The synthetic CLIs pin stdout/stderr to LF so raw-byte
+  assertions do not mix with text conversion. Details are in "Deterministic
+  checks" below.
+- `tests/products/sddx/test_prepare_grok_sandbox.py`: builds a temporary repository
+  and a real linked worktree, then checks Git path resolution, restoring the
+  original TOML text, re-entry, symlink refusal, rewrite without `fchmod`, and CLI
+  success and failure output. Git paths are normalized with pathlib before
+  comparison. It uses the standard `tomllib`, so it needs Python 3.11 or later.
+- `tests/products/sddx/test_extract_task.py`: locks heading match, body
+  boundaries, exit 3 for duplicate, missing, or empty bodies, exit 2 for argument
+  and file errors, and not overwriting an existing output file.
+- `tests/products/sddx/test_run_worker.py`: checks the six files in the attempt
+  directory, argv construction, the per-backend exclusivity of
+  `--model`/`--sandbox-profile`, `run.json` fields (including `skill_version`) and
+  states, recording `session_id` while running, wrapper SIGTERM → `interrupted`,
+  ending the worker when the runner is interrupted and the kill on a second
+  interrupt, installing the SIGTERM handler before launch, the idle timeout (a
+  worker silent from the start, a worker that stops after output, including
+  resume; stdout or stderr growth counts as activity; `--idle-timeout 0` turns it
+  off; bad values are refused; a shorter `--timeout` wins), the defaults
+  (`--timeout` 0, `--idle-timeout` 900), the wrapper exit rules, closed stdin,
+  and attempt path refusal.
+- `tests/products/sddx/test_worker_status.py`: checks `stale` (true only when
+  running and the pid is gone), `session_id_in_log` (filled only when the record
+  has no ID), read-only responses, `pid_alive`, a bounded tools index for both the
+  Cursor and Grok log shapes, that the default response has no log body, skipping
+  JSON lines that are too deep, `--stream` default 2048 and max 8192 bytes, the
+  64 KiB response cap, and offset handling.
+- `tests/products/sddx/test_contract.py`: checks doc and instruction wording and
+  the plugin payload. The reviewer definition items are in "Reviewer effort
+  evidence".
 
-생성되는 `sddx-worktree` 프로파일의 `read_write`는 linked worktree의 Git
-디렉터리와 공용 `.git` 디렉터리를 허용합니다. 따라서 공용 `.git` 안에 있는 다른
-브랜치 ref에도 쓰기 권한이 생깁니다. 이 검사는 정상적인 단일 컨트롤러 실행에서
-기존 파일 변경을 보존하는지 확인할 뿐, 악성 동시 변경에 대한 보안 경계나 Grok
-샌드박스의 실제 실행 성공을 입증하지 않습니다.
+The generated `sddx-worktree` profile's `read_write` allows the linked worktree's
+Git directory and the shared `.git` directory. That also grants write access to
+other branch refs inside the shared `.git`. This check only confirms that a normal
+single-controller run preserves existing file changes. It does not prove a
+security boundary against malicious concurrent changes, or that the Grok sandbox
+actually runs.
 
-Win32 전송 픽스처는 삭제했습니다.
-Windows `.cmd` 왕복 검사(`skipUnless(os.name == "nt")`)는 삭제했습니다.
-둘 다 Windows 지원 증거가 아니었습니다. CI에서 돈다고 적지 않으며, skip을 통과나
-Windows 지원으로 쓰지 않습니다. Windows는 지원하지 않습니다.
+The Win32 transport fixtures were deleted.
+The Windows `.cmd` round-trip check (`skipUnless(os.name == "nt")`) was deleted.
+Neither was evidence of Windows support. Do not say they run in CI, and do not
+treat a skip as a pass or as Windows support. Windows is unsupported.
 
-페이로드 계약 통과는 파일 정체성, 이식 가능한 frontmatter, 금지 문자열만
-증명합니다. 이 공급자 없는 증거만으로 라이브 CLI, 과금, 모델 품질을 측정했다고
-할 수 없습니다.
+A passing payload contract proves only file identity, portable frontmatter, and
+forbidden strings. This provider-free evidence alone does not measure the live
+CLI, billing, or model quality.
 
-### 결정적 검사
+### Deterministic checks
 
-`test_resolve_backend.py`와 `test_run_worker.py`가 잠그는 규칙입니다.
+The rules that `test_resolve_backend.py` and `test_run_worker.py` lock:
 
-- Grok 후보는 PATH의 `grok`뿐이다. `agent`만 있으면 `not_found`다.
-- `agent`는 Cursor로 채택되지 않는다.
-- Grok 신원의 `cursor-agent` 또는 `cursor`는 `identity_mismatch`다.
-- Cursor는 headless print(`--print` 또는 `-p`), `--trust`, `--auto-review`,
-  `--sandbox`, 확인된 `stream-json` 출력 형식을 모두 선언해야 한다. 하나라도
-  없으면 `missing_flags`이며 force/yolo 일괄 승인으로 물러나지 않는다.
-- Cursor와 Grok의 `--resume`은 값을 받는 선언(`<id>` 또는 `[id]`)이어야
-  한다. 이름만 있고 값이 없으면 `missing_flags`다.
-- Cursor Usage 줄에 `[prompt]` 또는 `[prompt...]`가 있어야 한다. 없으면
-  `missing_flags`다. `build_argv`가 위치 인자로 prompt를 붙이기 때문이다.
-- Cursor 모델 목록:
-  - 목록 명령이 성공해 id를 읽었고 그중 Grok이 없으면 `no_grok_model`이다.
-  - Grok id는 있는데 버전 세그먼트가 `4.7`인 것이 없으면 `no_grok_4_7`이다.
-    `-fast`만 있어도 `no_grok_4_7`이다.
-  - `cursor-grok-4.6-*`, `cursor-grok-4.5-*`, `-fast`로 끝나는 id는 목록에
-    있어도 `model_ids`에 들어가지 않는다.
-  - 선언된 목록 명령이 없거나 모두 실패하면 `no_model_list`, 목록은 왔으나 id를
-    하나도 읽지 못하면 `model_list_unreadable`이다.
-- Grok Build `models` 출력의 `* id (default)`와 `- id` 불릿에서 id를 읽는다.
-  `model_ids`는 정확히 `grok-4.7`만이다. `grok-4.7-build-fast`, `grok-4.6`,
-  `grok-4.5`는 빠진다. `grok-4.7`이 없으면 `no_grok_4_7`이다.
-- `run_worker.py`는 Grok과 Cursor 모두 `--model`을 넘긴다. Grok은 그 옆에
-  effort 플래그를 그대로 둔다. `model_ids` 밖의 id로는 워커를 시작하지 않는다.
-- 모델 목록의 ANSI 색상 escape는 id의 일부가 아니다. 색을 입힌 목록은 평문
-  목록과 똑같이 읽힌다. 탐사는 `FORCE_COLOR=0`·`NO_COLOR=1`·`CLICOLOR=0`을
-  붙여 실행하며 나머지 환경은 그대로 상속한다. 두 방어층(색 끄기 환경, 파서의
-  escape 제거)은 서로 독립이며 `test_resolve_backend.py`가 각각 고정한다.
-  - 실측(cursor-agent 2026.09.15-d2fe57e): 색을 칠지는 부모 환경의
-    `FORCE_COLOR`가 먼저 정하고 그다음이 TTY 여부다. `FORCE_COLOR=1`이면
-    파이프에도 904개의 escape가 섞이며 `NO_COLOR=1`·`CLICOLOR=0`·`TERM=dumb`로는
-    못 막는다.
-  - 재현은 둘 중 하나다. `FORCE_COLOR=1 cursor-agent --list-models | cat -v`,
-    또는 `pty.spawn`으로 stdout을 실제 TTY로 만들기. 고치기 전 파서는 그 실제
-    출력에서 grok 0개, 고친 파서는 14개를 읽었다.
-- Grok help에 `--cwd`가 없으면 `missing_flags`다.
-- argv에 `--worktree`와 `--plugin-dir`가 없다. Grok 고정 플래그에
-  `--disable-web-search`가 있다.
-- 없는 백엔드의 JSON은 `launch`가 `null`이고 `model_ids`가 빈 목록이다.
+- The only Grok candidate is `grok` on PATH. With only `agent`, the result is
+  `not_found`.
+- `agent` is not adopted as Cursor.
+- `cursor-agent` or `cursor` with a Grok identity is `identity_mismatch`.
+- Cursor must declare headless print (`--print` or `-p`), `--trust`,
+  `--auto-review`, `--sandbox`, and a confirmed `stream-json` output format. If any
+  is missing, the result is `missing_flags`; it never falls back to force/yolo
+  blanket approval.
+- Cursor and Grok `--resume` must be declared as taking a value (`<id>` or
+  `[id]`). A bare name with no value is `missing_flags`.
+- The Cursor Usage line must have `[prompt]` or `[prompt...]`. Without it, the
+  result is `missing_flags`, because `build_argv` appends the prompt as a
+  positional argument.
+- Cursor model list:
+  - If the list command succeeded and ids were read but none is Grok, the result
+    is `no_grok_model`.
+  - If there are Grok ids but none has version segment `4.7`, the result is
+    `no_grok_4_7`. Having only `-fast` ids is also `no_grok_4_7`.
+  - `cursor-grok-4.6-*`, `cursor-grok-4.5-*`, and ids ending in `-fast` never
+    enter `model_ids`, even when listed.
+  - If no list command is declared or all fail, the result is `no_model_list`; if
+    a list came back but no id could be read, it is `model_list_unreadable`.
+- Ids are read from the `* id (default)` and `- id` bullets of Grok Build
+  `models` output. `model_ids` is exactly `grok-4.7`. `grok-4.7-build-fast`,
+  `grok-4.6`, and `grok-4.5` are dropped. Without `grok-4.7`, the result is
+  `no_grok_4_7`.
+- `run_worker.py` passes `--model` for both Grok and Cursor. For Grok, the effort
+  flag stays next to it unchanged. A worker never starts with an id outside
+  `model_ids`.
+- ANSI color escapes in a model list are not part of an id. A colored list reads
+  exactly like a plain one. The probe runs with `FORCE_COLOR=0`, `NO_COLOR=1`, and
+  `CLICOLOR=0` added and inherits the rest of the environment. The two defense
+  layers (the color-off environment and the parser's escape stripping) are
+  independent, and `test_resolve_backend.py` pins each one.
+  - Measured (cursor-agent 2026.09.15-d2fe57e): the parent environment's
+    `FORCE_COLOR` decides coloring first, then whether stdout is a TTY. With
+    `FORCE_COLOR=1`, 904 escapes appear even in a pipe, and `NO_COLOR=1`,
+    `CLICOLOR=0`, or `TERM=dumb` do not stop them.
+  - Reproduce with either `FORCE_COLOR=1 cursor-agent --list-models | cat -v`,
+    or by making stdout a real TTY with `pty.spawn`. On that real output, the
+    parser before the fix read 0 grok ids; the fixed parser read 14.
+- If Grok help has no `--cwd`, the result is `missing_flags`.
+- argv has no `--worktree` or `--plugin-dir`. The fixed Grok flags include
+  `--disable-web-search`.
+- The JSON for a missing backend has `launch` set to `null` and an empty
+  `model_ids` list.
 
-## 명령
+## Commands
 
 ```bash
 python3 scripts/verify.py --skill sddx
@@ -121,506 +137,567 @@ python3 -m unittest discover -s tests/products/sddx -p test_prepare_grok_sandbox
 git diff --check
 ```
 
-`release.py check`는 제품 소유 경로와 공용 릴리스 코드의 작업 트리가 깨끗할 때만
-통과하므로, 변경을 커밋한 뒤에 실행합니다.
+`release.py check` passes only when the product's owned paths and the shared
+release code are clean in the working tree, so run it after committing.
 
-라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있습니다. CI가 요구하지
-않습니다. 오프라인 통과를 호스트 품질로 설명하지 마세요.
+Live runs are local, explicit, optional, and may cost money. CI does not require
+them. Do not describe an offline pass as host quality.
 
-## 리뷰어 effort 증거
+## Reviewer effort evidence
 
-XHigh 리뷰어 정의(`agents/sddx-reviewer-xhigh.md`)가 실제로 실리는지 확인하는
-방법입니다. 오프라인 검사와 릴리스마다 하는 라이브 확인, 두 가지가 있습니다.
+How to confirm that the XHigh reviewer definition (`agents/sddx-reviewer-xhigh.md`)
+actually loads. There are two parts: an offline check and a live check every
+release.
 
-공급자 없는 증거는 `tests/products/sddx/test_contract.py`의 계약 검사입니다.
-다음을 확인합니다.
+The provider-free evidence is the contract check in
+`tests/products/sddx/test_contract.py`. It confirms:
 
-- `.claude-plugin` 페이로드가 sddx에만 허용되고 다른 제품에는 거부된다.
-- `plugin.json`이 제품명을 가리키고, `plugin.json`의 version이 `release.toml`의
-  버전과 같고, `plugin.json`에 `agents` 키가 없다.
-- `agents/`의 마크다운 정의가 정확히 `sddx-reviewer-xhigh.md` 하나이고, `name`이
-  파일명과 같고, `effort`가 `xhigh`이며, `model` 키가 없고, `disallowedTools`가
-  Edit·Write·NotebookEdit를 이름으로 포함한다.
+- The `.claude-plugin` payload is allowed only for sddx and refused for other
+  products.
+- `plugin.json` names the product, its version equals the `release.toml` version,
+  and it has no `agents` key.
+- `agents/` has exactly one markdown definition, `sddx-reviewer-xhigh.md`; its
+  `name` equals the file name, `effort` is `xhigh`, it has no `model` key, and
+  `disallowedTools` names Edit, Write, and NotebookEdit.
 
-이 검사는 필드 선언까지만 확인하며, 호스트가 실제로 그 도구를 차단하는지는
-확인하지 않습니다.
+This check only confirms the declared fields. It does not confirm that the host
+actually blocks those tools.
 
-라이브 확인은 배포되는 제품 파일을 링크한 상태에서 합니다.
+The live check is done with the shipped product files linked.
 
-- `claude plugin details sddx@skills-dir`는 Agents (1) `sddx-reviewer-xhigh`여야
-  합니다.
-- Task는 `subagent_type: sddx:sddx-reviewer-xhigh`로 뜨고, 맨 이름으로는 찾지
-  못합니다.
-- 자식 트랜스크립트 어시스턴트 이벤트의 `effort`가 `xhigh`인지도 봅니다.
-- 스킬 호출 이름은 `sddx`입니다.
+- `claude plugin details sddx@skills-dir` must show Agents (1)
+  `sddx-reviewer-xhigh`.
+- Task starts with `subagent_type: sddx:sddx-reviewer-xhigh` and is not found by
+  the bare name.
+- Also check that `effort` in the child transcript's assistant events is `xhigh`.
+- The skill invocation name is `sddx`.
 
-`4.0.3`에서 확인했습니다. `plugin details` Agents (1). Task 자식 기록
-`effort: xhigh`(부모 세션은 high). Cursor `2026.09.15-d2fe57e`와 Grok
-`1.0.34` 워커 스모크는 둘 다 `state: exited`, 보고서 `DONE`입니다.
+Confirmed in `4.0.3`: `plugin details` showed Agents (1). The Task child record
+had `effort: xhigh` (the parent session was high). Worker smokes with Cursor
+`2026.09.15-d2fe57e` and Grok `1.0.34` both ended `state: exited` with report
+`DONE`.
 
-계약 검사는 파일이 존재한다는 것까지만 증명합니다. Claude Code가 skills-dir
-플러그인에서 agents를 계속 싣는지는 증명하지 못하므로, 릴리스마다 위 라이브 확인을
-반복합니다. 확인에 실패하면 정의가 조용히 사라진 상태이므로 릴리스를 멈춥니다.
+The contract check proves only that the file exists. It cannot prove that Claude
+Code keeps loading agents from a skills-dir plugin, so repeat the live check above
+every release. If it fails, the definition has silently disappeared, so stop the
+release.
 
-## 측정 기록
+## Measurement log
 
-버전별 관측을 최신순으로 둡니다. 각 기록은 그 시점의 환경과 CLI 버전에서 본
-것이며, 숫자와 판정은 당시 값 그대로입니다. 한 버전 안에서는 오프라인 검사가
-먼저, 라이브 확인이 뒤에 옵니다.
+Observations by version, newest first. Each entry is what was seen in that
+environment and CLI version; numbers and verdicts are the values from that time.
+Within a version, offline checks come first and live checks after.
 
-### 7.0.0 오프라인 검사
+### 7.0.0 offline checks
 
-7.0.0의 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다. 합성 CLI로
-다음을 잠급니다.
+The required evidence for 7.0.0 is `python3 scripts/verify.py --skill sddx`. With
+synthetic CLIs it locks:
 
-- 두 로그가 `--idle-timeout` 동안 자라지 않으면 `timed_out`, exit 124,
-  `the worker wrote no output for <N> seconds`로 끝나는지(처음부터 조용한 경우,
-  출력한 뒤 멈춘 경우, 실행 중간에 멈춘 경우, 재개).
-- 계속 쓰는 worker와 stderr만 쓰는 worker는 창을 넘겨도 끝나지 않는지.
-- `--idle-timeout 0`이 끄는지, 음수·무한·NaN을 시도 생성 전에 거절하는지.
-- `--timeout`을 지정해도 유휴 타임아웃이 걸리는지.
-- 기본 `--timeout`이 0이고, 지정한 `--timeout`은 여전히 시도를 끝내며, 둘 다
-  지나면 `--timeout`이 먼저인지.
-- 규칙 문구가 모든 면에 있는지.
+- If neither log grows for `--idle-timeout`, the attempt ends `timed_out`, exit
+  124, `the worker wrote no output for <N> seconds` (silent from the start,
+  stopped after output, stopped mid-run, and resume).
+- A worker that keeps writing, and one that writes only to stderr, do not end
+  even past the window.
+- `--idle-timeout 0` turns it off; negative, infinite, and NaN values are refused
+  before the attempt is created.
+- The idle timeout still applies when `--timeout` is given.
+- The default `--timeout` is 0, a given `--timeout` still ends the attempt, and
+  when both pass, `--timeout` comes first.
+- The rule wording is on every face.
 
-이 변경 뒤 `sddx-contract`는 348개 테스트입니다. 파일별로 `test_contract` 36,
+After this change, `sddx-contract` has 348 tests: `test_contract` 36,
 `test_extract_task` 38, `test_prepare_grok_sandbox` 23, `test_resolve_backend`
-75, `test_run_worker` 122, `test_worker_status` 54개입니다. 라이브 확인은 아래
-`7.0.0 라이브 확인`에 있습니다.
+75, `test_run_worker` 122, `test_worker_status` 54. The live check is in
+"7.0.0 live check" below.
 
-기본값 900초의 근거는 저장소 밖 실제 시도 기록입니다(내용은 커밋하지 않음).
-Cursor stdout은 이벤트마다 `timestamp_ms`를 싣습니다. 3개 시도(12~20분)에서
-이벤트 사이 최장 간격은 63.7초였습니다. Grok stdout에는 시각이 없어서 같은
-`session_id`의 Grok 세션 기록(1초 단위)을 대신 썼습니다. 도구 호출 완료 사이
-간격을 stdout 한 줄 사이 간격으로 보았고, 기록 시각이 쓰기 시각과 같다고 가정한
-근사입니다. 66개 시도(최장 약 68분)에서 최장 간격은 약 265초였고, 백그라운드로
-돌린 빌드·테스트를 기다린 간격은 200~223초였습니다. 900초는 관측 최대의 약
-3.4배입니다. 당시 기본 3600초 경과 시간 제한에 걸린 시도 하나는 같은 방식의
-최장 간격이 162초로, 일하던 중에 끊긴 것이었습니다.
+The 900-second default is based on real attempt records outside the repository
+(their content is not committed). Cursor stdout carries `timestamp_ms` on every
+event. Across 3 attempts (12 to 20 minutes), the longest gap between events was
+63.7 seconds. Grok stdout has no timestamps, so the Grok session record for the
+same `session_id` (1-second resolution) was used instead. The gap between tool
+call completions stood in for the gap between stdout lines; this is an
+approximation that assumes record time equals write time. Across 66 attempts
+(longest about 68 minutes), the longest gap was about 265 seconds, and gaps spent
+waiting on backgrounded builds or tests were 200 to 223 seconds. 900 seconds is
+about 3.4 times the observed maximum. One attempt that hit the then-default
+3600-second elapsed limit had a longest gap of 162 seconds by the same method; it
+was cut off while working.
 
-### 7.0.0 라이브 확인
+### 7.0.0 live check
 
-2026-09-24, macOS 26.5.2 arm64, `grok 1.0.41 (4220f3b224a6) [stable]` 모델
-`grok-4.7` High, Cursor Agent `2026.09.18-9a7762b` 모델 `grok-4.7-high`. 원격
-없는 새 로컬 저장소의 linked worktree에서 실제 호출 4회. Grok 시도마다 앞뒤로
-`prepare`/`cleanup`을 돌렸고 매번 `cleaned: true`였습니다. 경과는 `run.json`의
-`started_at`/`ended_at`, 무출력 간격은 두 로그 크기를 0.5초마다 잰 값입니다.
-receipt와 로그는 커밋하지 않았습니다. 비용은 출력에 보이지 않았습니다.
+2026-09-24, macOS 26.5.2 arm64, `grok 1.0.41 (4220f3b224a6) [stable]` with model
+`grok-4.7` High, and Cursor Agent `2026.09.18-9a7762b` with model
+`grok-4.7-high`. Four real calls in a linked worktree of a new local repository
+with no remote. Each Grok attempt ran `prepare`/`cleanup` before and after, and
+each returned `cleaned: true`. Elapsed time is `started_at`/`ended_at` from
+`run.json`; silent gaps come from sampling both log sizes every 0.5 seconds.
+Receipts and logs were not committed. Cost was not visible in the output.
 
-| # | worker · 유휴 설정 | 기대 | 관측 | 판정 |
+| # | Worker · idle setting | Expected | Observed | Verdict |
 | --- | --- | --- | --- | --- |
-| LT1 | Grok, `--idle-timeout 30`, 전경 `sleep 90` | `timed_out`, 124, `the worker wrote no output for 30 seconds`, 마지막 출력 뒤 30~45초 | wrapper 124, `timed_out`, `exit_code` -15, 같은 문구, 41.6초. 마지막 로그 증가 뒤 30.7초에 종료, `pid_alive: false`, ps에 Grok 없음. 전경 sleep 동안 두 로그 모두 자라지 않았고 셸 호출은 색인에 없음(6.0.0 관찰과 같음). worker가 띄운 zsh와 `sleep 90`은 pid 1로 남아 pid로 정리 | 통과 |
-| LT2 | Grok, 기본 900, 작은 커밋 | `exited`, 유휴 미발동 | `exited` 0, 78.1초, `shells` 3개 모두 exit 0, report 있음, 로그 증가 사이 최장 20.7초 | 통과 |
-| LT3 | Cursor, 기본 900, 같은 작업 | `exited`, 유휴 미발동 | `exited` 0, 82.5초, `shells` 3개 모두 exit 0, report 있음, 최장 17.2초. 시도 중 Cursor가 띄운 `worker-server` 프로세스(작업 디렉터리가 fixture worktree)가 worker 종료 뒤 pid 1로 입양된 채 남아 pid로 정리. 러너는 프로세스 트리를 관리하지 않으므로 7.0.1에서 worker보다 오래 남는 프로세스 예시에 추가 | 통과 |
-| LT4 | Grok, `--idle-timeout 30`, 배경 `sleep 90` 후 대기 | 권고대로라면 창을 넘겨 커밋 | wrapper 124, `timed_out`, -15, 같은 문구, 54.6초. 배경 호출은 곧바로 색인됨(`shells`에 `sleep 90`, `exit_code: null`), 그 뒤 30.4초 무출력으로 종료. 커밋 없음, 남은 zsh와 `sleep 90`은 pid로 정리 | 러너 통과, 권고 미확인 |
+| LT1 | Grok, `--idle-timeout 30`, foreground `sleep 90` | `timed_out`, 124, `the worker wrote no output for 30 seconds`, 30 to 45 seconds after the last output | wrapper 124, `timed_out`, `exit_code` -15, same message, 41.6 seconds. Ended 30.7 seconds after the last log growth, `pid_alive: false`, no Grok in ps. Neither log grew during the foreground sleep, and the shell call was not in the index (same as the 6.0.0 observation). The zsh and `sleep 90` the worker started stayed under pid 1 and were cleaned up by pid | Pass |
+| LT2 | Grok, default 900, small commit | `exited`, idle not triggered | `exited` 0, 78.1 seconds, 3 `shells` all exit 0, report present, longest gap between log growth 20.7 seconds | Pass |
+| LT3 | Cursor, default 900, same task | `exited`, idle not triggered | `exited` 0, 82.5 seconds, 3 `shells` all exit 0, report present, longest gap 17.2 seconds. A `worker-server` process Cursor started during the attempt (working directory the fixture worktree) stayed adopted by pid 1 after the worker exited and was cleaned up by pid. The runner does not manage the process tree, so 7.0.1 added it to the examples of processes that outlive the worker | Pass |
+| LT4 | Grok, `--idle-timeout 30`, background `sleep 90` then wait | Per the advice, commit past the window | wrapper 124, `timed_out`, -15, same message, 54.6 seconds. The background call was indexed right away (`sleep 90` in `shells`, `exit_code: null`), then the attempt ended after 30.4 seconds of silence. No commit; the leftover zsh and `sleep 90` were cleaned up by pid | Runner pass, advice not confirmed |
 
-관찰: Grok은 배경으로 넘긴 셸 호출을 바로 기록하지만, 그 작업을 기다리는 동안에는
-아무것도 쓰지 않았습니다. 그래서 이 표본에서는 배경 실행이 유휴 창을 넘기게 해
-주지 않았습니다. 컨트롤러 판단에 따라 7.0.1에서 배경 실행 권고를 지우고, 브리프에
-유휴 창보다 오래 걸릴 명령이 있으면 띄우기 전에 `--idle-timeout`을 그 명령의 예상
-시간보다 크게 올리는 규칙 하나로 바꿨습니다. 이 결과는 이 Mac과 이 두 CLI 버전의
-관측입니다.
+Observation: Grok records a backgrounded shell call right away, but writes nothing
+while it waits on that work. So in this sample, backgrounding did not get past the
+idle window. On the controller's call, 7.0.1 removed the background advice and
+replaced it with one rule: if a brief has a command that will run longer than the
+idle window, raise `--idle-timeout` above that command's expected duration before
+launch. This result is an observation on this Mac with these two CLI versions.
 
-### 6.0.0 오프라인 검사
+### 6.0.0 offline checks
 
-6.0.0의 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다. 러너 중단이
-worker를 끝내고 두 번째 인터럽트에도 `running`이 남지 않는지, 출력 없는 시도가
-`FIRST_OUTPUT_SECONDS` 뒤 `timed_out`으로 끝나는지(`--timeout 0`·재개 포함,
-더 짧은 `--timeout` 우선, 곧바로 출력하는 worker는 제외), 기본 타임아웃 7200,
-Grok `tool_use` 색인과 결과 본문 비복사, 그리고 각 규칙 문구가 모든 면에 있는지를
-잠급니다. 라이브 확인은 아래 `6.0.0 라이브 확인`에 있습니다.
-이 변경 뒤 `sddx-contract`는 342개 테스트입니다. 파일별로 `test_contract` 36,
+The required evidence for 6.0.0 is `python3 scripts/verify.py --skill sddx`. It
+locks that a runner interrupt ends the worker and a second interrupt leaves no
+`running`; that an attempt with no output ends `timed_out` after
+`FIRST_OUTPUT_SECONDS` (including `--timeout 0` and resume, a shorter `--timeout`
+wins, a worker that outputs right away is excluded); the default timeout of 7200;
+Grok `tool_use` indexing without copying result bodies; and that each rule's
+wording is on every face. The live check is in "6.0.0 live check" below.
+After this change, `sddx-contract` has 342 tests: `test_contract` 36,
 `test_extract_task` 38, `test_prepare_grok_sandbox` 23, `test_resolve_backend`
-75, `test_run_worker` 116, `test_worker_status` 54개입니다.
+75, `test_run_worker` 116, `test_worker_status` 54.
 
-### 6.0.0 라이브 확인
+### 6.0.0 live check
 
-2026-09-24, macOS 26.5.2 arm64, `grok 1.0.41 (4220f3b224a6) [stable]`, 모델
-`grok-4.7` High. 원격 없는 새 로컬 저장소의 linked worktree에서 실제 호출 8회.
-각 시도 앞뒤로 `prepare`/`cleanup`을 돌렸고 매번 `cleaned: true`였습니다. receipt와
-로그는 커밋하지 않았습니다.
+2026-09-24, macOS 26.5.2 arm64, `grok 1.0.41 (4220f3b224a6) [stable]`, model
+`grok-4.7` High. Eight real calls in a linked worktree of a new local repository
+with no remote. Each attempt ran `prepare`/`cleanup` before and after, and each
+returned `cleaned: true`. Receipts and logs were not committed.
 
-| # | 확인 | 결과 |
+| # | Check | Result |
 | --- | --- | --- |
-| 과거 로그 | 5.0.0과 같은 로그의 색인 비교(호출 없음) | Grok 실전 로그 두 개가 읽기·검색·셸 0/0/0에서 26/32/15, 64/32/32(`truncated`)로 채워짐. Cursor 실전 로그 두 개는 변경 전과 동일 |
-| L1 | 도구 색인 | `exited` 0, 70초. `reads` 2(brief, README), `searches` 1(`PAPAYA`), `shells` 4개 모두 exit 0(`echo hi` 포함). status에 파일 본문 없음 |
-| L2 | L1 세션 재개 | 같은 `session_id`로 `exited` 0, 77초. 무출력 기한 미발동 |
-| L3 | 러너 pid에만 SIGTERM | wrapper 130 즉시, worker 프로세스 사라짐, `interrupted`, `exit_code` -15, `the runner was interrupted (SIGTERM or Ctrl-C)`, `pid_alive: false`. worker가 띄운 zsh와 `sleep 120`은 pid 1로 입양되어 남았고(러너는 쫓지 않음) pid로 정리 |
-| L4 | L3의 중단 세션 재개 | `exited` 0, 18초. 멈춤 없음 |
-| L5 | `--timeout 45` | wrapper 124, `timed_out`, `exit_code` -15, worker 사라짐. 백그라운드로 넘어간 `sleep 120`은 `shells`에 `exit_code: null`로 기록. 손자 프로세스는 L3처럼 남아 pid로 정리 |
+| Past logs | Index comparison on the same logs as 5.0.0 (no calls) | Two real Grok logs went from reads/searches/shells 0/0/0 to 26/32/15 and 64/32/32 (`truncated`). Two real Cursor logs were unchanged |
+| L1 | Tool index | `exited` 0, 70 seconds. `reads` 2 (brief, README), `searches` 1 (`PAPAYA`), 4 `shells` all exit 0 (including `echo hi`). No file bodies in status |
+| L2 | Resume the L1 session | `exited` 0 with the same `session_id`, 77 seconds. No-output deadline not triggered |
+| L3 | SIGTERM to the runner pid only | wrapper 130 immediately, worker process gone, `interrupted`, `exit_code` -15, `the runner was interrupted (SIGTERM or Ctrl-C)`, `pid_alive: false`. The zsh and `sleep 120` the worker started were adopted by pid 1 and stayed (the runner does not chase them); cleaned up by pid |
+| L4 | Resume the interrupted L3 session | `exited` 0, 18 seconds. No stall |
+| L5 | `--timeout 45` | wrapper 124, `timed_out`, `exit_code` -15, worker gone. The backgrounded `sleep 120` was recorded in `shells` with `exit_code: null`. Grandchild processes stayed as in L3 and were cleaned up by pid |
 
-러너 가장자리 보강(97a5eec) 뒤 L1·L3·L5를 다시 돌렸습니다. L1b는 `exited`
-0(185초), `shells` 11개에 exit 1인 셸까지 종료 코드가 기록됐습니다. L3b는
-wrapper 130(1초), worker 사라짐, `interrupted`/-15/새 문구, 손자 프로세스는 남아
-pid로 정리했습니다. L5b는 wrapper 124, `timed_out`/-15, worker 사라짐, 손자
-프로세스는 pid로 정리했습니다. 모든 `cleanup`은 `cleaned: true`였습니다.
+After the runner edge hardening (97a5eec), L1, L3, and L5 were run again. L1b was
+`exited` 0 (185 seconds), with exit codes recorded for 11 `shells`, including one
+that exited 1. L3b was wrapper 130 (1 second), worker gone,
+`interrupted`/-15/new message; grandchild processes stayed and were cleaned up by
+pid. L5b was wrapper 124, `timed_out`/-15, worker gone, grandchild processes
+cleaned up by pid. Every `cleanup` returned `cleaned: true`.
 
-관찰: Grok은 셸 호출이 담긴 assistant 메시지를 그 호출이 돌아오거나 백그라운드로
-넘어간 뒤에 기록합니다. 그래서 L3처럼 전경에서 실행 중인 셸은 색인에 아직 없습니다.
+Observation: Grok records the assistant message holding a shell call only after
+that call returns or moves to the background. So a shell running in the
+foreground, as in L3, is not in the index yet.
 
-무출력 기한 자체는 오프라인 합성 CLI로 증명합니다. 실전 E3 멈춤은 재현을 목표로
-하지 않았고 L4에서도 나타나지 않았습니다. 이 결과는 이 Mac과 이 Grok 버전의
-관측이며 Cursor 경로는 오프라인 증거만 있습니다.
+The no-output deadline itself is proven offline with a synthetic CLI. Reproducing
+the real E3 stall was not a goal, and it did not appear in L4 either. This result
+is an observation on this Mac and this Grok version; the Cursor path has offline
+evidence only.
 
-### 5.0.0 오프라인 검사
+### 5.0.0 offline checks
 
-5.0.0의 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다.
-resolver가 Grok 4.7이 아닌 id와 `-fast` id를 `model_ids`에서 빼는지, Grok
-`run`이 `--model grok-4.7`을 넘기는지를 잠급니다. 이 변경에서
-`python3 scripts/verify.py`는 exit 0이었고 `sddx-contract`는 320개
-테스트였습니다. 라이브 워커 재실행은 요구하지 않습니다. 4.0.3의 XHigh
-로딩과 워커 스모크는 이 버전에서 다시 돌리지 않았습니다.
+The required evidence for 5.0.0 is `python3 scripts/verify.py --skill sddx`. It
+locks that the resolver drops non-Grok-4.7 ids and `-fast` ids from `model_ids`,
+and that Grok `run` passes `--model grok-4.7`. In this change,
+`python3 scripts/verify.py` exited 0 and `sddx-contract` had 320 tests. A live
+worker re-run is not required. The 4.0.3 XHigh loading and worker smoke were not
+re-run for this version.
 
-### 4.0.3 오프라인 검사
+### 4.0.3 offline checks
 
-4.0.3의 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다.
-정의 파일은 `agents/sddx-reviewer-xhigh.md`이고 `plugin.json`에 `agents` 키가
-없습니다.
+The required evidence for 4.0.3 is `python3 scripts/verify.py --skill sddx`. The
+definition file is `agents/sddx-reviewer-xhigh.md`, and `plugin.json` has no
+`agents` key.
 
-### 4.0.2 오프라인 검사
+### 4.0.2 offline checks
 
-4.0.2의 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다.
-SKILL.md가 `subagent_type: sddx:sddx-reviewer-xhigh`를 적는지를 잠급니다.
+The required evidence for 4.0.2 is `python3 scripts/verify.py --skill sddx`. It
+locks that SKILL.md writes `subagent_type: sddx:sddx-reviewer-xhigh`.
 
-### 4.0.1 오프라인 검사
+### 4.0.1 offline checks
 
-4.0.1의 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다.
-`test_resolve_backend.py`가 값을 받지 않는 `--resume`과 Cursor Usage에
-위치 인자 prompt가 없는 경우를 `missing_flags`로 잠급니다. 라이브 워커
-재실행은 요구하지 않습니다. XHigh 정의 로딩의 라이브 결과는 위
-「리뷰어 effort 증거」에 있습니다.
+The required evidence for 4.0.1 is `python3 scripts/verify.py --skill sddx`.
+`test_resolve_backend.py` locks a `--resume` that takes no value, and a Cursor
+Usage with no positional prompt, as `missing_flags`. A live worker re-run is not
+required. The live result for XHigh definition loading is in "Reviewer effort
+evidence" above.
 
-### 4.0.0 오프라인 검사
+### 4.0.0 offline checks
 
-4.0.0의 필수 증거는 `python3 scripts/verify.py --skill sddx`입니다.
-`tests/products/sddx/test_contract.py`의 expect lock이 description·HARD-GATE·
-cases 문구를 잠급니다. `tests/products/sddx/test_extract_task.py`가
-`--global-constraints`의 이어붙이기·부재·중복·빈 본문·exit 3을 잠급니다.
-라이브 워커 재실행은 요구하지 않습니다.
+The required evidence for 4.0.0 is `python3 scripts/verify.py --skill sddx`. The
+expect lock in `tests/products/sddx/test_contract.py` locks the description,
+HARD-GATE, and cases wording. `tests/products/sddx/test_extract_task.py` locks
+`--global-constraints` concatenation, absence, duplicates, empty bodies, and exit
+3. A live worker re-run is not required.
 
-### 2.0.0 검증
+### 2.0.0 verification
 
-증거는 네 종류로 나눠 기록하며 서로 대체하지 않습니다.
+Evidence is recorded in four kinds, and one never stands in for another.
 
-| 증거 종류 | 이 버전의 상태 |
+| Evidence kind | Status in this version |
 | --- | --- |
-| 오프라인 helper·argv 계약 검사 | 실행함 |
-| 지침 문구 검사 | 실행함 |
-| native 행동 probe | 이 버전에서 새로 실행하지 않음 |
-| 실제 공급자 실행 | 네 조합을 모두 실행함 (`measured`). 조합별·항목별 상태는 [호환성](compatibility.md)이 소유함 |
+| Offline helper and argv contract checks | Run |
+| Instruction wording checks | Run |
+| Native behavior probes | Not newly run in this version |
+| Real provider runs | All four pairs run (`measured`). [Compatibility](compatibility.md) owns the per-pair and per-item status |
 
-이 버전에서는 제품 소유자 승인 아래 Claude Code를 호스트로 한 두 조합으로 실제
-공급자를 호출했습니다. 둘 다 macOS 26.6.2 arm64입니다.
+In this version, with the product owner's approval, real providers were called in
+the two pairs with Claude Code as the host. Both were on macOS 26.6.2 arm64.
 
-Cursor는 `cursor-agent 2026.09.10-fd3934a`, 모델 `cursor-grok-4.6-high`로 worker
-시도 세 번을 실행했고, 승인 동작·모델 ID 수락과 `configured_effort` 기록·session
-ID 회수와 `--resume`·실제 worker 타임아웃·시도 생성 전 거절을 관측했습니다.
+Cursor ran three worker attempts with `cursor-agent 2026.09.10-fd3934a` and model
+`cursor-grok-4.6-high`, observing approval behavior, model ID acceptance and the
+`configured_effort` record, session ID recovery and `--resume`, a real worker
+timeout, and refusal before the attempt is created.
 
-Grok은 `grok 1.0.30 (04b7ffed98c6)`으로 모델 인자 없이 worker 시도 두 번을
-실행했고(init 이벤트가 보고한 모델은 `grok-4.6`), sandbox 프로파일 준비와
-정리까지 한 바퀴를 돌렸습니다.
-`streaming-messages-json` 스트림의 실제 형태, `--reasoning-effort`가 명령줄에
-실린 사실, session ID 회수와 `--resume`을 관측했습니다.
+Grok ran two worker attempts with `grok 1.0.30 (04b7ffed98c6)` and no model
+argument (the init event reported model `grok-4.6`), and ran one full round of
+sandbox profile prepare and cleanup.
+It observed the real shape of the `streaming-messages-json` stream, that
+`--reasoning-effort` was on the command line, and session ID recovery and
+`--resume`.
 
-모델이 실제 적용한 effort는 어느 조합에서도 관측하지 못했으므로 `not_measured`로
-남습니다. 요청·설정 effort는 적용값의 증거가 아니며, 공급자가 모델 ID를
-수락했다는 사실도, 요청 effort가 명령줄에 실렸다는 사실도 마찬가지입니다.
-worker 경계가 CLI에 의해 강제되는지도 `not_measured`입니다. Grok init 이벤트는
-`--no-subagents`를 넘긴 뒤에도 `spawn_subagent`를 도구 목록에 실었고, 두 시도가
-규칙을 지킨 것은 모델이 지시를 따랐기 때문입니다. Codex 호스트의 worker 실행은
-실행하지 않았으므로 `not_measured`로 남습니다. Windows는 지원하지 않으며
-`not_measured` OS 대기열이 아닙니다. 관측한 두 조합의 결과를 나머지로
-넓히지 않습니다.
-조합별 표와 항목별 측정 상태는 [호환성](compatibility.md)이 소유합니다.
+The effort the model actually applied was not observed in any pair, so it stays
+`not_measured`. Requested or configured effort is not evidence of the applied
+value; neither is the provider accepting a model ID, nor the requested effort
+being on the command line. Whether the CLI enforces the worker boundary is also
+`not_measured`. The Grok init event listed `spawn_subagent` in its tools even
+after `--no-subagents` was passed; both attempts kept the rule because the model
+followed instructions. Worker runs under the Codex host were not run, so they
+stay `not_measured`. Windows is unsupported and is not a `not_measured` OS in the
+queue. The results of the two observed pairs are not stretched to the others.
+[Compatibility](compatibility.md) owns the per-pair table and the per-item
+measurement status.
 
-#### 실제 관측
+#### Actual observations
 
-`tests/products/sddx/`의 discovery 검사(`sddx-contract`)는 281개 테스트로
-통과했습니다. `skipUnless(os.name == "nt")` 검사는 없습니다.
-파일별로는 `test_contract` 26, `test_extract_task` 29,
+The discovery check in `tests/products/sddx/` (`sddx-contract`) passed with 281
+tests. There is no `skipUnless(os.name == "nt")` check.
+By file: `test_contract` 26, `test_extract_task` 29,
 `test_prepare_grok_sandbox` 23, `test_resolve_backend` 58,
-`test_run_worker` 101, `test_worker_status` 44입니다. 이전 기록의 45개
-SDDx 테스트는 Task 1–4의 새 파일이 discovery에 들어오기 전 숫자이고, 212개는 이
-버전의 session ID 회수와 시도 타임아웃 작업이 들어오기 전 숫자이며, 269개는
-실행 중 `session_id`·`pid_alive`·tools 인덱스가 들어오기 전 숫자입니다.
+`test_run_worker` 101, `test_worker_status` 44. The earlier count of 45 SDDx
+tests was from before the new Task 1–4 files entered discovery; 212 was from
+before this version's session ID recovery and attempt timeout work; and 269 was
+from before the running `session_id`, `pid_alive`, and tools index.
 
-`verify.py`가 출력한 `python-compile` 단계 인자에 `skills/sddx/scripts`가
-들어 있으므로 `extract_task.py`, `run_worker.py`, `resolve_backend.py`,
-`prepare_grok_sandbox.py`가 모두 이 단계에서 컴파일됩니다.
+The `python-compile` stage arguments that `verify.py` printed include
+`skills/sddx/scripts`, so `extract_task.py`, `run_worker.py`,
+`resolve_backend.py`, and `prepare_grok_sandbox.py` are all compiled in that
+stage.
 
-`product-contract` 단계는 통과합니다. 작업 도중에는
-`tests/repository/test_release_contract.py`의 `EXPECTED` 표가 sddx를 이전 버전
-문자열로 고정하고 있어 `test_each_product_owns_an_independent_release_manifest`가
-`release.toml`의 새 버전과 어긋났습니다. 이 변경에서 그 표의 sddx 행 하나를 새
-버전으로 갱신했고 다른 제품 행은 건드리지 않았습니다. 갱신 뒤 `product-contract`는
-24개 테스트로 통과합니다. 제품 버전을 올릴 때는 이 표의 해당 행도 같은 변경에
-포함해야 합니다.
+The `product-contract` stage passes. During the work, the `EXPECTED` table in
+`tests/repository/test_release_contract.py` pinned sddx to the previous version
+string, so `test_each_product_owns_an_independent_release_manifest` disagreed
+with the new version in `release.toml`. This change updated only the sddx row of
+that table to the new version and left the other product rows alone. After the
+update, `product-contract` passes with 24 tests. When bumping the product
+version, include that row in the same change.
 
-Step 3의 네 명령은 최종 상태에서 모두 exit 0입니다.
+All four Step 3 commands exit 0 in the final state.
 
-| 명령 | exit |
+| Command | exit |
 | --- | --- |
 | `python3 scripts/verify.py --skill sddx` | 0 |
 | `python3 scripts/verify.py` | 0 |
 | `python3 scripts/release.py check --product sddx` | 0 |
 | `git diff --check` | 0 |
 
-`release.py check`는 출력 없이 통과합니다. 이 명령은 제품 소유 경로와 공용 릴리스
-코드의 작업 트리가 깨끗할 때만 통과하므로 커밋 뒤에 실행합니다.
+`release.py check` passes with no output. It passes only when the product's owned
+paths and the shared release code are clean in the working tree, so run it after
+committing.
 
-제품 검사는 `product-contract`, `sddx-contract`, `python-compile` 세 단계를 모두
-실행했습니다. 전체 검사는 12개 단계를 모두 실행해 통과했습니다:
+The product check ran all three stages: `product-contract`, `sddx-contract`, and
+`python-compile`. The full check ran and passed all 12 stages:
 `repository-contract` 361, `korean-package` 9, `korean-offline`,
 `korean-live-unit` 244, `korean-live-dry-run`, `image-contract`,
 `image-inspector` 48, `how-it-works-contract` 56, `pre-sdd-review-contract` 54,
 `pre-sdd-review-evidence` 61, `sddx-contract` 281, `python-compile`.
-새 버전에서 다른 제품 단계가 모두 통과하므로 이 버전 변경이 다른 제품을 건드리지
-않았음을 확인합니다. 오프라인 단계가 모두 통과해도 실제 공급자 실행 증거는 아닙니다.
+All other product stages pass on the new version, which confirms this version
+change did not touch other products. Passing every offline stage is still not
+evidence of a real provider run.
 
-### 2026-09-14 MCP 보완 회귀 검사
+### 2026-09-14 MCP follow-up regression check
 
-「2.0.0 검증」 절은 `bfd1cda`까지의 Claude Code 관측입니다. 이 절은 MCP 도구 필터를 넣으며
-추가한 검사와, 그 뒤 이 저장소에서 다시 돌린 라이브 확인을 기록합니다.
+The "2.0.0 verification" section covers Claude Code observations up to `bfd1cda`.
+This section records the checks added with the MCP tool filter, and the live
+check re-run in this repository afterward.
 
-새 공급자 없는 검사는 실제 합성 자식 프로세스에서 다음을 확인합니다.
+The new provider-free checks confirm, in a real synthetic child process:
 
-- Grok에만 Cursor/Claude MCP discovery 환경 변수 두 개가 `0`으로 전달되고,
-  부모 및 관계없는 환경 변수는 보존됩니다. Cursor 환경과 argv 정책도 보존됩니다.
-- Grok argv가 `search_tool,use_tool` 제외와 `MCPTool(*)` 거절을 전달합니다.
-  필요한 옵션이 없거나 값을 받지 않으면 resolver가 `missing_flags`를 반환합니다.
+- Only Grok gets the two Cursor/Claude MCP discovery environment variables set to
+  `0`; parent and unrelated environment variables are preserved. The Cursor
+  environment and argv policy are also preserved.
+- Grok argv passes the `search_tool,use_tool` exclusion and the `MCPTool(*)`
+  denial. If a needed option is missing or takes no value, the resolver returns
+  `missing_flags`.
 
-원인 분리 라이브 probe에서 MCP compatibility 환경 변수만 끈 호출은 handshake
-경고 0건, 도구 제외 옵션만 쓴 호출은 `handshake failed` 4건이었습니다. 둘을 합친
-초기 candidate 호출은 read_file을 실행하고 exit 0으로 끝났고
-그 candidate의 도구 목록에서는 spawn_subagent/search_tool/use_tool이 함께
-빠졌습니다. 이 목록은 폐기한 candidate의 것이며 실제로 넣은 필터의 결과가
-아닙니다. `Agent`와
-내부 `task` 제외는 명령 결과 조회·종료 도구까지 함께 제거했습니다. `spawn_subagent`
-표기만 제외하면 도구가 그대로 남았습니다. 따라서 최종 변경은 `search_tool,use_tool`
-제외만 채택하고 명령 조회·종료 도구를 보존합니다. 하위 에이전트 경계는 기존
-`--no-subagents`와 worker 지침을 유지하며 도구 제거를 주장하지 않습니다. `inspect`와 init의 MCP 서버 목록에는 가져오기 대상이
-계속 표시됐으므로 그 목록을 실제 연결 증거로 사용하지 않습니다.
+In the cause-isolating live probe, a call with only the MCP compatibility
+environment variables turned off had 0 handshake warnings, and a call with only
+the tool exclusion option had 4 `handshake failed`. The early candidate call that
+combined both ran read_file and ended with exit 0, and that candidate's tool list
+dropped spawn_subagent/search_tool/use_tool together. That list belongs to the
+discarded candidate, not to the filter that shipped. Excluding `Agent` and the
+internal `task` also removed the command result lookup and kill tools. Excluding
+only the `spawn_subagent` label left the tool in place. So the final change adopts
+only the `search_tool,use_tool` exclusion and keeps the command lookup and kill
+tools. The subagent boundary keeps the existing `--no-subagents` and worker
+instructions and does not claim tool removal. The MCP server lists in `inspect`
+and init kept showing the import targets, so those lists are not used as evidence
+of a real connection.
 
-공급자 원본 기록은 로컬에만 보존하고 커밋하지 않습니다.
+Raw provider records are kept locally only and are not committed.
 
-#### 병합 전 라이브 재확인
+#### Live re-check before merge
 
-같은 작업 트리에서 네 번 더 실제로 호출했습니다. Grok은 linked worktree에서
-`prepare` → 신규 → `--resume` → `cleanup` 한 바퀴, Cursor는 같은 seed의 다른
-worktree에서 신규와 재개입니다. 네 시도 모두 wrapper exit 0, `state: exited`,
-`exit_code: 0`이고 각각 구현을 커밋한 뒤 `report.md`를 직접 썼습니다. 각 바퀴의
-두 시도는 같은 `session_id`를 보고했습니다.
+Four more real calls in the same working tree. Grok did one round in a linked
+worktree: `prepare` → new → `--resume` → `cleanup`. Cursor did new and resume in
+another worktree from the same seed. All four attempts had wrapper exit 0,
+`state: exited`, and `exit_code: 0`, and each committed the implementation and
+then wrote `report.md` itself. The two attempts in each round reported the same
+`session_id`.
 
-Grok `prepare`가 만든 `read_write`에는 실제 Git 디렉터리와 공용 Git 디렉터리가
-들어갔고, worker는 그 linked worktree 안에서 직접 커밋했습니다. `cleanup`은
-`{"cleaned": true}`로 자기가 만든 `.grok`을 지웠습니다.
+The `read_write` that Grok `prepare` built held the real Git directory and the
+shared Git directory, and the worker committed directly inside that linked
+worktree. `cleanup` returned `{"cleaned": true}` and removed the `.grok` it made.
 
-보완 후 Grok init 이벤트의 도구 23개에 `search_tool`과 `use_tool`이 없고
-`spawn_subagent`, `get_command_or_subagent_output`, `kill_command_or_subagent`는
-남아 있습니다. 신규와 재개 양쪽에서 같았습니다. MCP 서버 세 개는 여전히
-connected로 표시됩니다.
+After the follow-up, the 23 tools in the Grok init event had no `search_tool` or
+`use_tool`, while `spawn_subagent`, `get_command_or_subagent_output`, and
+`kill_command_or_subagent` remained. New and resume were the same. The three MCP
+servers still showed as connected.
 
-네 시도 모두 stderr가 0바이트였습니다. 보완 전 이 저장소의 Grok 시도도 0바이트여서,
-여기서는 MCP discovery 환경 변수의 효과를 가를 수 없습니다. handshake 실패가
-줄었다는 관측은 Codex의 원인 분리 probe 기록이며 이 저장소에서 재현하지 않았습니다.
+All four attempts had 0 bytes of stderr. Grok attempts in this repository before
+the follow-up were also 0 bytes, so the effect of the MCP discovery environment
+variables cannot be separated here. The observation that handshake failures
+dropped comes from Codex's cause-isolating probe record and was not reproduced in
+this repository.
 
-한 시도에서 브리프가 `-t .`를 붙인 잘못된 discovery 명령을 지정했습니다. worker는
-그 명령을 실제로 실행해 exit 1을 확인하고, 원인(`tests/`에 `__init__.py` 없음)과
-지정 명령의 실제 exit 코드를 보고서에 적은 뒤 유효한 방법으로 RED exit 1 →
-GREEN exit 0을 다시 냈습니다. 상태는 `DONE_WITH_CONCERNS`였습니다. 작은 표본의
-역할 준수 관측이며 강제의 증거는 아닙니다.
+In one attempt, the brief named a wrong discovery command with `-t .` added. The
+worker actually ran it and saw exit 1, wrote the cause (`tests/` has no
+`__init__.py`) and the named command's real exit code in the report, and then
+produced RED exit 1 → GREEN exit 0 again with a valid method. The status was
+`DONE_WITH_CONCERNS`. This is a small-sample observation of role compliance, not
+evidence of enforcement.
 
-`python3 scripts/verify.py`는 exit 0이고 SDDx 266 tests를
-포함한 전체 공급자 없는 검사가 통과했습니다. 저장소 검사 361개도 통과했습니다.
-새 테스트는 각각 대응하는 소스 변형에서 실패하는 것을 확인했습니다. 도구 필터 값
-축소, 옵션 판정 제거, 퍼센트 변수 판정 되돌리기, `Popen`의 환경 전달 제거,
-환경 변수를 Cursor에도 적용하기 — 다섯 변형이 모두 잡혔고 소스는
-[호환성](compatibility.md)에 적힌 SHA-256으로 복구했습니다.
+`python3 scripts/verify.py` exited 0, and the full provider-free check including
+266 SDDx tests passed. The 361 repository checks also passed. Each new test was
+confirmed to fail on its matching source mutation: narrowing the tool filter
+value, removing the option check, reverting the percent-variable check, removing
+the environment pass-through in `Popen`, and applying the environment variables to
+Cursor too. All five mutations were caught, and the source was restored to the
+SHA-256 values recorded in [Compatibility](compatibility.md).
 
-### 1.0.3 파일명·설정 조회 명료화 검증
+### 1.0.3 file name and config lookup clarification
 
-현재 worktree의 파일명 목록과 task에 필요한 ignore·빌드·테스트 설정 직접 읽기를
-허용된 확인으로 명시합니다. 이 행동만으로는 scope concern이나 ruling을 요구하지
-않고, 내용 검색의 경로 제한·계획 본문 금지·기록 부족 UNVERIFIED는 유지합니다.
+Listing file names in the current worktree, and directly reading the ignore,
+build, and test config a task needs, are now stated as allowed checks. That
+behavior alone does not require a scope concern or a ruling. The path limit on
+content search, the ban on the plan body, and UNVERIFIED for missing records stay.
 
-독립 native 문맥에서 명료화 전·후 각각 5개 표본으로 파일명 조회, 설정 직접 읽기,
-실제 계획 내용 노출, 도구 기록 부재를 분류합니다. 실제 Grok에서는 파일명·설정 조회와
-native grep 또는 공백 경로의 shell rg를 한 작업에 함께 요구하고, 보고의 분류와
-실제 결과를 대조합니다. 이 검증은 지시된 상황의 관측이며 자연 발생 준수율이나
-OS 접근 차단을 입증하지 않습니다.
+In independent native contexts, 5 samples each before and after the
+clarification were classified for file name lookup, direct config reads, real
+plan content exposure, and missing tool records. On real Grok, one task asked
+together for file name and config lookups plus native grep or shell rg on a path
+with spaces, and the report's classification was compared with the real result.
+This check observes an instructed situation; it does not prove a natural
+compliance rate or OS-level access blocking.
 
 
-#### 실제 결과
+#### Actual results
 
-명료화 전 native 표본 5개는 파일명·설정 조회를 모두 AMBIGUOUS로, 수정 후 5개는
-모두 명시적 ALLOWED / none으로 분류했습니다. 계획 내용 노출 FAIL과 도구 기록
-부재 UNVERIFIED는 유지했습니다. 이 표본은 이전 응답을 주지 않은 별도 문맥이며
-모델 준수율 통계는 아닙니다.
+The 5 native samples before the clarification classified file name and config
+lookups as AMBIGUOUS in every case; the 5 after classified them all as explicit
+ALLOWED / none. Plan content exposure FAIL and missing-tool-record UNVERIFIED
+stayed. These samples were separate contexts with no prior response, not a model
+compliance statistic.
 
-새 Grok 세션 두 개에 최종 worker rules와 dispatch 경계를 전달했습니다. 두 작업 모두
-root 파일명 목록, .gitignore와 일반 테스트 설정 직접 읽기, 실제 내용 검색을 수행하고
-이를 보고서에 기록한 뒤 DONE / Scope deviations: none으로 마쳤습니다. Native grep은
-소스·테스트 경로를 각각 지정했고, shell rg는 공백을 포함한 두 경로를 따옴표로
-지정했습니다. 계획·범위 밖 메모에도 검색어를 두었으나 본문 반환은 없었습니다.
+Two new Grok sessions got the final worker rules and dispatch boundary. Both tasks
+listed root file names, directly read .gitignore and the usual test config, ran a
+real content search, recorded these in the report, and finished DONE / Scope
+deviations: none. Native grep named the source and test paths separately, and
+shell rg quoted two paths containing spaces. The search term was also placed in
+the plan and in an out-of-scope note, but no body text came back.
 
-Native 작업은 RED 10 tests/4 failures/exit 1 → GREEN 10/exit 0, shell 작업은
-RED 8 tests/4 failures/exit 1 → GREEN 8/exit 0이었습니다. 독립 최종 테스트도 각각
-10개·8개 exit 0이며, 설정에서 확인한 python3를 사용했습니다. 각 worker는 지정
-소스와 신규 테스트 두 파일만 직접 커밋했고 Git 상태는 clean이었습니다.
+The native task went RED 10 tests/4 failures/exit 1 → GREEN 10/exit 0, and the
+shell task RED 8 tests/4 failures/exit 1 → GREEN 8/exit 0. The independent final
+tests were also 10 and 8 with exit 0, using the python3 confirmed from the config.
+Each worker committed only the named source and the two new test files directly,
+and Git status was clean.
 
-두 작업의 도구 호출·결과는 각각 22/22이며, 기존 sandbox 원문·0640 권한 복원과
-journal 제거를 확인했습니다. Native 작업은 .git을 디렉터리로 조회해 IsAFile 오류를
-받은 뒤 worktree pointer 한 줄을 읽고 정상 Git 커밋 절차를 수행했습니다. Pointer
-조회는 원본 보고에 포함됐고 ListDir 오류는 원본 도구 기록에서 확인했습니다. Pointer
-대상의 파일 내용을 따라 읽지 않았습니다.
+Tool calls and results for the two tasks were 22/22 each, and restoring the
+original sandbox text, 0640 permissions, and journal removal were confirmed. The
+native task looked up .git as a directory, got an IsAFile error, then read the
+one-line worktree pointer and followed the normal Git commit steps. The pointer
+lookup was in the original report, and the ListDir error was confirmed in the
+original tool record. It did not go on to read the contents of the pointer's
+target.
 
-Runtime 6개 파일의 해시가 호출 전·후 동일했습니다. 전체 공급자 없는 검증은
-868 unittest와 추가 검사 exit 0, 제품 검사는 24개 계약·45개 SDDx 테스트와 compile
-exit 0이었습니다. 마지막 관측 결과 문서는 내용·링크·diff를 확인합니다. 이전 버전의
-실패와 모호함 기록은 이 새 결과로 덮어쓰지 않습니다.
+The hashes of the 6 runtime files were the same before and after the calls. The
+full provider-free check was 868 unittests plus extra checks, exit 0; the product
+check was 24 contract tests, 45 SDDx tests, and compile, exit 0. The final
+observation doc is checked for content, links, and diff. Earlier versions'
+failure and ambiguity records are not overwritten by this new result.
 
-### 1.0.2 검색 추가 검증과 남은 모호함
+### 1.0.2 extra search check and remaining ambiguity
 
-현재 main `2e9036a`의 문구로 새 Grok 세션 두 개에서 실제 내용 검색을 요구했습니다.
-Native grep은 명시한 소스와 테스트 경로에 각각 검색해 본문 5줄·4줄을 반환했고,
-shell rg는 공백을 포함한 두 경로를 따옴표로 지정해 파일 4개의 9줄을 반환했습니다.
-계획과 범위 밖 메모에도 같은 검색어를 두었으나 해당 내용은 반환되지 않았습니다.
-독립 테스트는 각각 12개·9개 exit 0, 도구 결과는 20/20·18/18을 대조했습니다.
+With the wording of main `2e9036a`, two new Grok sessions were asked to run a real
+content search. Native grep searched the named source and test paths separately
+and returned 5 and 4 lines of body text; shell rg quoted two paths containing
+spaces and returned 9 lines from 4 files. The same search term was placed in the
+plan and an out-of-scope note, but that content did not come back. Independent
+tests were 12 and 9 with exit 0, and tool results matched 20/20 and 18/18.
 
-파일명 조회의 분류는 모호했습니다. 이전 worker는 root 목록·ignore 규칙 조회를
-우려사항으로 보고했고, 추가 shell 실행은 root 목록 조회 뒤 none을 보고했습니다.
-독립 리뷰는 계획 본문 노출을 확인하지 못했지만 `any search`와 `content search`가
-섞인 문구로는 파일명 조회·필요한 설정 직접 읽기의 보고 기준이 명확하지 않다고
-판정했습니다. 당시 판정과 원본 보고는 수정 후에도 그대로 보존합니다.
+The classification of file name lookups was ambiguous. The earlier worker reported
+the root listing and ignore-rule lookup as a concern, and an extra shell run
+reported none after a root listing. The independent review found no plan body
+exposure, but judged that wording mixing `any search` and `content search` left
+the reporting standard for file name lookups and needed direct config reads
+unclear. The verdict and original reports from that time are kept after the fix.
 
-### 1.0.2 검증 절차
+### 1.0.2 verification procedure
 
-[행동 probe](../../../../tests/products/sddx/behavior-probes.md)의 모델 상속·High/XHigh,
-위반 보고·도구 기록 누락·계획 링크 시나리오를 독립 native 문맥에서 실행합니다.
-문구 포함 검사와 실제 행동 검사, 실제 Grok 실행은 서로 다른 증거입니다.
+Run the [behavior probes](../../../../tests/products/sddx/behavior-probes.md) for
+model inheritance, High/XHigh, violation reporting, missing tool records, and plan
+link scenarios in independent native contexts. Wording checks, real behavior
+checks, and real Grok runs are different kinds of evidence.
 
-라이브에서는 동일한 함수 → 통제된 같은 세션 수정 → 새 CLI 작업을 사용합니다.
-전체 계획은 fixture에 그대로 두어 읽지 않는 행동을 측정합니다. brief에 필요한
-조건을 완결하고 worker 규칙과 dispatch 경계를 모두 전달합니다. 각 호출에서
-실제 read와 shell 출력, scope deviations, 실제 테스트 exit, worker 커밋, session ID,
-기존 sandbox 원문·권한 복원을 확인합니다. 리뷰는 같은 오케스트레이터 모델을
-상속하며 effort를 따로 지정하고 선택 이유를 기록합니다. 역할 읽기 제한은 여전히
-프롬프트 지침이며 OS 파일 접근 차단을 구현한 것은 아닙니다.
+Live runs use the same function → a controlled same-session fix → a new CLI task.
+The full plan stays in the fixture to measure the behavior of not reading it. The
+brief is complete with the needed conditions, and both the worker rules and the
+dispatch boundary are passed. Each call checks real read and shell output, scope
+deviations, the real test exit, worker commits, session ID, and restoration of the
+original sandbox text and permissions. Reviews inherit the same orchestrator
+model, set effort separately, and record why it was chosen. The role read limit is
+still a prompt instruction, not an OS file access block.
 
-#### 1.0.2 작성 중 발견한 검색 노출
+#### Search exposure found while writing 1.0.2
 
-첫 candidate로 세 단계를 실행했을 때 함수·resume은 역할 준수를 확인했지만,
-CLI 작업이 대상 경로 없는 workspace `grep`으로 계획의 두 줄을 받아왔습니다.
-ReadFile로 열지 않아도 검색 결과에 계획 내용이 반환되면 역할 FAIL입니다.
-이번 worker는 이를 scope deviations에 공개하고 DONE_WITH_CONCERNS를 반환해
-보고 개선은 확인됐습니다. 첫 candidate의 최종 앱 14 tests·커밋·복원은 성공했으며,
-해당 실행 자체의 판정은 부분 통과로 유지합니다.
+When the first candidate ran the three steps, the function and resume steps showed
+role compliance, but the CLI task pulled two lines of the plan through a workspace
+`grep` with no target path. If search results return plan content, that is a role
+FAIL even without opening it with ReadFile. This worker disclosed it under scope
+deviations and returned DONE_WITH_CONCERNS, so the reporting improvement was
+confirmed. The first candidate's final app had 14 tests, a commit, and a
+successful restore; that run's own verdict stays partial pass.
 
-이를 근거로 brief의 구체적인 Search paths와 명시 파일 직접 읽기 순서를 추가했습니다.
-파일 glob만으로는 디렉터리 경계가 정해지지 않는 점을 명시했습니다. controller의
-증거 추출도 검색 결과를 포함한 모든 tool result를 보존하도록 보완한 별도 로컬
-검증 도구를 사용합니다. 이는 제품에 새 실행 엔진을 추가한 것이 아닙니다.
-이전 candidate의 소스 해시·원문과 실패 로그를 보존하고, 최종 문구로 세 단계를
-새 worktree에서 다시 검증했습니다.
+Based on this, the brief gained concrete Search paths and an order for direct
+reads of named files. It now states that a file glob alone does not set a
+directory boundary. The controller's evidence extraction also uses a separate
+local verification tool, extended to keep every tool result including search
+results. This did not add a new execution engine to the product. The previous
+candidate's source hashes, original text, and failure logs were kept, and the
+three steps were verified again with the final wording in a new worktree.
 
-#### 최종 문구의 실제 검증 결과
+#### Real verification of the final wording
 
-동일 seed에서 새 linked worktree를 만들어 Grok을 세 번 호출했습니다. 최종 runtime
-스킬·worker rules·dispatch·helper 등 6개 파일의 SHA-256을 호출 전 고정하고 종료 뒤
-일치를 확인했습니다. 함수는 RED exit 1 → GREEN 8 tests/exit 0, 통제된 같은 세션
-수정은 RED 9 tests/6 failures/exit 1 → GREEN 9/exit 0, 새 CLI는 RED 6 tests/4
-failures/exit 1 → 전체 GREEN 15/exit 0이었습니다. wrapper는 사용하지 않았습니다.
-최종 독립 검사도 15 tests/exit 0, 전체 diff check exit 0, clean fixture였습니다.
+A new linked worktree from the same seed called Grok three times. The SHA-256 of
+the 6 final runtime files (skill, worker rules, dispatch, helpers, and so on) was
+pinned before the calls and confirmed to match afterward. The function went RED
+exit 1 → GREEN 8 tests/exit 0; the controlled same-session fix RED 9 tests/6
+failures/exit 1 → GREEN 9/exit 0; the new CLI RED 6 tests/4 failures/exit 1 → full
+GREEN 15/exit 0. No wrapper was used. The final independent check was also 15
+tests/exit 0, full diff check exit 0, and a clean fixture.
 
-세 worker 직접 커밋은 task 파일 5개에 한정됐습니다. 기존 sandbox 원문·0640 권한과
-journal 제거, 실제 session 재사용·전환을 확인했습니다. 모든 tool 호출과 결과를
-14/14, 12/12, 16/16으로 대조했으며 최종 세 호출에는 계획 내용 읽기나 workspace
-내용 검색이 없었습니다. 필요한 파일 직접 읽기를 사용했으므로 검색 도구 자체의
-경로 제한 기능이나 강제 파일 접근 차단을 입증한 것은 아닙니다.
+The three workers' direct commits were limited to the 5 task files. Restoring the
+original sandbox text and 0640 permissions, journal removal, and real session
+reuse and switching were confirmed. All tool calls and results matched 14/14,
+12/12, and 16/16, and the final three calls had no plan content reads or
+workspace content searches. They used the needed direct file reads, so this does
+not prove the search tool's own path limiting or forced file access blocking.
 
-마지막 worker는 root 파일명 목록 조회와 .gitignore 읽기를 DONE_WITH_CONCERNS로
-공개했습니다. 독립 리뷰와 기존 컨트롤러 ruling은 이를 커밋·저장소 확인에 부수된
-비차단 관측으로 수용했습니다. 실제 목록에는 계획 파일명도 있었으나 내용은
-반환되지 않았습니다. 원본 보고와 Minor 절차 해석 사항을 보존합니다. 앞선 candidate의
-실제 계획 내용 검색 노출은 FAIL로 유지합니다. 이번 개선 작업의 Grok 호출은 처음
-3회와 최종 문구 3회를 합쳐 6회이며, 이들을 하나의 무실패 실행으로 합치지 않습니다.
+The last worker disclosed a root file name listing and a .gitignore read as
+DONE_WITH_CONCERNS. The independent review and the existing controller ruling
+accepted these as non-blocking observations incidental to committing and checking
+the repository. The real listing did include the plan file name, but no content
+came back. The original report and the Minor procedure interpretation notes are
+kept. The earlier candidate's real plan content search exposure stays FAIL. The
+Grok calls in this improvement work were 6 in total, the first 3 plus the 3 with
+the final wording, and they are not merged into one failure-free run.
 
-실제 오케스트레이터는 실행 기록으로 확인한 gpt-6-astra/XHigh였으며, 모든 native
-리뷰는 모델 인자를 생략해 상속했습니다. 국소 Task·재리뷰는 High, 전체 정책·증거
-검토는 XHigh입니다. 특정 모델 고정 정책이 아닙니다. 최종 문구 반영 후 전체 공급자
-없는 검증은 868 unittest와 추가 검사 exit 0이었으며, 이후 관측 결과 문서는
-내용·링크·diff로 확인합니다.
+The real orchestrator, confirmed from the run record, was gpt-6-astra/XHigh, and
+every native review omitted the model argument to inherit it. Local Task reviews
+and re-reviews were High; the full policy and evidence review was XHigh. This is
+not a policy of pinning a specific model. After the final wording landed, the full
+provider-free check was 868 unittests plus extra checks, exit 0, and the later
+observation doc is checked for content, links, and diff.
 
-### 1.0.1 후속 실패 재현
+### 1.0.1 follow-up failure reproduction
 
-동일 제품 HEAD `6cc1e39`를 대상으로 두 개의 새 local linked-worktree fixture에서
-각각 Grok을 세 번 호출했습니다. 첫 후속 fixture는 두 새 세션 모두 전체 계획을
-읽었고, 다음 main 기반 fixture는 CLI의 새 세션에서 이를 재현했습니다. 정확한
-worker rules가 전달됐고 실제 성공 read 결과가 계획 본문을 반환했으므로 규칙 전달
-누락으로 설명할 수 없습니다. worker의 clean DONE 보고에서 위반도 빠졌습니다.
+Against the same product HEAD `6cc1e39`, Grok was called three times in each of
+two new local linked-worktree fixtures. In the first follow-up fixture, both new
+sessions read the full plan; the next main-based fixture reproduced this in the
+CLI's new session. The exact worker rules were passed, and a real successful read
+result returned the plan body, so this cannot be explained as missing rule
+delivery. The worker's clean DONE report also left out the violation.
 
-두 fixture의 최종 앱 테스트는 각각 15개/14개 exit 0, worker 직접 커밋은 각각
-3개였습니다. 기존 CRLF·주석 포함 sandbox TOML의 원문과 0640 권한은 매 호출 후
-일치했고 journal도 제거됐습니다. 앱 성공과 별개로 역할 준수는 FAIL이며 독립 최종
-리뷰도 부분 통과로 판정했습니다. 이전 최초 성공 표본은 이 후속 실패를 상쇄하지
-않습니다. MCP 초기화 경고와 모델의 실제 MCP 도구 호출은 구분합니다.
+The final app tests in the two fixtures were 15 and 14 with exit 0, and each had 3
+direct worker commits. The original text and 0640 permissions of the existing
+sandbox TOML with CRLF and comments matched after every call, and the journal was
+removed. Separate from the app's success, role compliance was FAIL, and the
+independent final review also judged it a partial pass. The earlier first success
+sample does not offset this follow-up failure. MCP initialization warnings are
+kept separate from real MCP tool calls by the model.
 
-초기 empty fixture는 Python 3.14 unittest의 NO TESTS RAN/exit 5를 미측정으로
-기록합니다. shell wrapper exit 0 안의 실제 테스트 비0도 통과로 집계하지 않습니다.
-로컬 raw provider trace/receipt는 저장소에 커밋하지 않습니다.
+The initial empty fixture records Python 3.14 unittest's NO TESTS RAN/exit 5 as
+unmeasured. A real non-zero test inside a shell wrapper exit 0 is not counted as
+a pass either. Local raw provider traces and receipts are not committed to the
+repository.
 
-### 2026-09-11 1.0.1 최초 Grok 검사
+### 2026-09-11 1.0.1 first Grok check
 
-측정 환경은 macOS 26.5.2, Python 3.14.7, Codex controller, Grok 1.0.25,
-`grok-4.6` High였습니다. 새 remote 없는 로컬 저장소의 linked worktree에서 다음
-절차를 수행했습니다.
+The environment was macOS 26.5.2, Python 3.14.7, a Codex controller, Grok 1.0.25,
+and `grok-4.6` High. In a linked worktree of a new local repository with no
+remote, the steps were:
 
-1. 수정된 제품에서 resolver와 sandbox helper를 확인하고, 각 호출 전 `prepare`,
-   worker 종료 후 `cleanup`을 실행합니다.
-2. 첫 task에서 Unicode 공백 정규화 구현과 테스트를 worker가 직접 커밋하게 합니다.
-3. 같은 worker session에 TypeError 메시지와 동등성 테스트를 추가하라는 통제된
-   요구를 보내고, 수정 커밋 뒤 native scoped review를 반복합니다.
-4. 새 session으로 CLI task를 실행하고 worker의 세 번째 직접 커밋을 확인합니다.
-5. fixture에서 `python3 -m unittest discover -s tests -v`, 기준과 결과 commit을
-   인자로 준 `git diff --check`, `git status --short`, 변경 파일 목록과 최근 commit을
-   확인합니다.
+1. Check the resolver and sandbox helper from the changed product, running
+   `prepare` before each call and `cleanup` after the worker ends.
+2. In the first task, have the worker directly commit a Unicode whitespace
+   normalization implementation and tests.
+3. Send the same worker session a controlled request to add a TypeError message
+   and equality tests, and repeat the native scoped review after the fix commit.
+4. Run a CLI task in a new session and confirm the worker's third direct commit.
+5. In the fixture, check `python3 -m unittest discover -s tests -v`,
+   `git diff --check` with the base and result commits as arguments,
+   `git status --short`, the changed file list, and recent commits.
 
-실제 provider 호출은 세 번이었고 모두 worker exit 0, cleanup exit 0, report `DONE`,
-worker 직접 커밋으로 끝났습니다. 첫 task는 구현 전 `textnorm` 부재로 loader-error
-test 1개를 실행한 RED exit 1 뒤 GREEN 7 tests exit 0, 통제된 same-session 수정은
-RED 8 tests exit 1 뒤 GREEN 8 tests exit 0이었고, 둘째 task는 RED 14 tests
-exit 1 뒤 GREEN 14 tests exit 0이었습니다. 둘째 task의
-RED/GREEN은 shell wrapper exit 0 안의 실제 test exit를 별도로 확인했습니다. 원래
-구현 결함은 발견되지 않았으며, same-session 변경은 미리 승인된 추가 요구의 resume
-동작을 검증한 것입니다.
+There were three real provider calls, all ending with worker exit 0, cleanup exit
+0, report `DONE`, and a direct worker commit. The first task ran RED exit 1 with
+one loader-error test (because `textnorm` did not exist before implementation),
+then GREEN 7 tests exit 0; the controlled same-session fix went RED 8 tests exit
+1, then GREEN 8 tests exit 0; the second task went RED 14 tests exit 1, then
+GREEN 14 tests exit 0. For the second task's RED/GREEN, the real test exit inside
+the shell wrapper's exit 0 was checked separately. No defect in the original
+implementation was found; the same-session change verified resume behavior for a
+pre-approved extra request.
 
-최종 독립 unittest는 14 tests, exit 0이었고 전체 commit 범위의
-`git diff --check`도 exit 0이었습니다. worktree는 clean이었으며 세 worker commit에는
-요구된 애플리케이션·테스트·README 파일 다섯 개만 포함됐습니다. 컨트롤러가 구현을
-수정하거나 커밋을 보조하지 않았습니다. 생성 sandbox 설정과 복원 기록은 정리됐고,
-기존 설정 byte 보존은 라이브 fixture가 아니라 공급자 없는 검사에서 입증했습니다.
+The final independent unittest was 14 tests, exit 0, and `git diff --check` over
+the full commit range also exited 0. The worktree was clean, and the three worker
+commits held only the five required application, test, and README files. The
+controller did not modify the implementation or help with commits. The generated
+sandbox config and restore record were cleaned up; byte preservation of the
+existing config was proven by the provider-free check, not the live fixture.
 
-실제 tool trace의 수동 검토에서는 brief-first 순서를 확인했고 external skill·전체 계획
-읽기, nested agent, MCP tool 호출이나 역할 위반은 관측되지 않았습니다. 기존 host
-integration의 MCP 초기화·handshake·자동 재시작 경고는 계속 나타났습니다. 이 경고는
-모델의 MCP tool 호출과 다르며, 경고가 사라진다고 보장하지 않습니다.
+A manual review of the real tool trace confirmed the brief-first order, and
+observed no external skill or full plan reads, nested agents, MCP tool calls, or
+role violations. The existing host integration's MCP initialization, handshake,
+and auto-restart warnings kept appearing. These warnings differ from the model's
+MCP tool calls, and there is no guarantee they go away.
 
-독립 whole-fixture native review는 clean checkout, 생성 설정·journal 부재, worker가
-소유한 commit 범위, same-session 수정과 새 task session, 독립 14-test 로그를 다시
-확인하고 Critical/Important/Minor 0건으로 accept했습니다.
+The independent whole-fixture native review re-checked the clean checkout, the
+absence of the generated config and journal, the worker-owned commit range, the
+same-session fix and new task session, and the independent 14-test log, and
+accepted with 0 Critical/Important/Minor findings.
 
-제품 구현 HEAD에서 `python3 scripts/verify.py`는 868 unittest를 포함한 전체
-공급자 없는 검사를 완료해 exit 0이었습니다. 이후 변경은 문서뿐이므로 전체 suite를
-반복하지 않고 내용·링크·diff를 검사합니다. Cursor worker와 Claude Code host 실행은
-`not_measured`입니다.
+At the product implementation HEAD, `python3 scripts/verify.py` finished the full
+provider-free check including 868 unittests, exit 0. Later changes were docs
+only, so the full suite was not repeated; content, links, and diff were checked.
+Cursor worker and Claude Code host runs are `not_measured`.
 
-### 행동 probe
+### Behavior probes
 
-[행동 probe](../../../../tests/products/sddx/behavior-probes.md)는 이전 응답을 주지 않은
-독립 문맥에서 native 모델이 제안한 행동을 컨트롤러가 수동 판정합니다. 2026-09-11
-controller 시나리오 5개는 완료 판정, sandbox 실패, session 재사용·전환 기준을 모두
-통과했습니다. 별도의 worker 역할 합성 표본에서는 external skill 읽기 제안이 baseline
-2/5에서 candidate worker 안내 적용 후 0/5로 줄었습니다. 다섯 guided 응답은
-`candidate-worker.md`를 읽었고, 최종 역할 문장과 내용은 같지만 기존 문단의 순서와
-서식은 달랐습니다. 이 결과는 문자열 검사가 아니며, 작은 native simulation을 실제
-Grok 호출이나 runtime 신뢰도 통계로 취급하지 않습니다.
+For the [behavior probes](../../../../tests/products/sddx/behavior-probes.md), the
+controller manually judges the behavior a native model proposes in independent
+contexts with no prior response. On 2026-09-11, all 5 controller scenarios passed
+the completion verdict, sandbox failure, and session reuse and switching criteria.
+In a separate synthetic worker-role sample, proposals to read an external skill
+dropped from 2/5 at baseline to 0/5 after applying the candidate worker guidance.
+All five guided responses read `candidate-worker.md`; the final role sentence and
+content were the same, but the order and formatting of the existing paragraphs
+differed. This result is not a string check, and a small native simulation is not
+treated as a real Grok call or a runtime reliability statistic.

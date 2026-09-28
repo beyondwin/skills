@@ -1,141 +1,155 @@
-# 조사 방법
+# Method
 
-## 1. 설계 근거 모으기
+## 1. Gathering design evidence
 
-설계는 세 가지 근거에서 시작했습니다.
+The design started from three sources.
 
-- [에이전트 워크플로 비교](../2026-09-agent-workflow-comparison/README.md): 도구 9개와 기본
-  Claude Code를 과제 3개로 30회 실측한 기록.
-- 사용자가 직접 잰 v26/v27 비교: 같은 16-Task 계획을 superpowers SDD(v26)와 메인이 직접
-  구현자를 부르는 방식(v27)으로 구현. v27이 16% 빠르고 37% 쌌습니다. 대신 v26 리뷰가 잡은
-  높음 7건 중 5건이 v27에 남았고, 모두 상태·비동기 종류였습니다. Task 사이 문제는 끝 전체
-  리뷰만 잡았습니다. 싼 모델로 바꾼 구간은 오히려 비쌌습니다.
-- 조사 대상 도구들의 원본 코드.
+- [Agent workflow comparison](../2026-09-agent-workflow-comparison/README.md): 30 measured runs of
+  9 tools and plain Claude Code on 3 tasks.
+- The user's own v26/v27 comparison: the same 16-Task plan implemented with superpowers SDD (v26)
+  and with the main agent calling implementers directly (v27). v27 was 16% faster and 37% cheaper.
+  But 5 of the 7 high-severity defects the v26 review caught were still in v27, all of the
+  state/async kind. Only the final full review caught cross-Task problems. The stretch that
+  switched to a cheaper model ended up costing more.
+- The source code of the tools studied.
 
-## 2. 네 모델에 따로 설계 받기
+## 2. Four independent designs from four models
 
-같은 근거 묶음(위 두 조사 결과 + 사용자 요구)과 도구 원본 경로를 네 모델에 주고, 서로 보지
-못하게 따로 설계를 받았습니다. 받은 설계는 설계 입력으로만 쓰고, 근거로 삼지 않았습니다.
-근거는 아래 측정입니다.
+Four models got the same evidence pack (the two studies above plus the user's requirements) and
+the tool source paths, and each wrote a design without seeing the others. The designs were used
+only as design input, not as evidence. The evidence is the measurement below.
 
-| 모델 | 실행 | 사용량 |
+| Model | Run | Usage |
 | --- | --- | --- |
 | Claude Opus 5.5 | `claude -p --model opus` | $0.61 |
 | Claude Fable 5.1 | `claude -p --model fable` | $2.79 |
-| Grok 4.7 High | `cursor-agent -p --model grok-4.7-high` | 입력 11.5만, 출력 1.4만 토큰 |
-| GPT-5.6 Sol High | `codex exec -m gpt-5.6-sol -c model_reasoning_effort=high` | 7.4만 토큰 |
+| Grok 4.7 High | `cursor-agent -p --model grok-4.7-high` | 115k input, 14k output tokens |
+| GPT-5.6 Sol High | `codex exec -m gpt-5.6-sol -c model_reasoning_effort=high` | 74k tokens |
 
-넷이 모두 같게 말한 것은 이렇습니다.
+All four agreed on these points.
 
-- Task마다 구현자 하나를 새로 띄우고, 짧은 지시와 공통 지침 한 장만 줍니다.
-- 모델을 고정하고, 한도에 걸리면 싼 모델로 바꾸지 말고 멈춥니다.
-- 재리뷰 고리를 두지 않습니다. 고칠 때는 실패하는 테스트로 증명합니다.
-- 끝에 전체 리뷰를 한 번 합니다.
-- 진행 파일을 git 기록과 맞춰 봐서 이어 합니다.
-- 명시 호출로만 켜집니다.
+- Start a fresh implementer for each Task, and give it only a short brief and one shared guide.
+- Pin the model. On a rate limit, stop; do not switch to a cheaper model.
+- No re-review loop. Prove each fix with a failing test.
+- Do one full review at the end.
+- Resume by reconciling the progress file with git history.
+- Turn on only by explicit invocation.
 
-갈린 점은 Task마다 리뷰를 할지, 상태·비동기 Task에만 할지입니다. 이 질문은 측정 변형
-`waygent_fo`(Task별 리뷰 없이 끝 리뷰만)로 따로 쟀습니다. 원문은 [analysis/](analysis/)에
-있습니다.
+They split on whether to review every Task or only state/async Tasks. That question was measured
+separately with the variant `waygent_fo` (no per-Task review, final review only). The original
+designs are in [analysis/](analysis/).
 
-## 3. 과제
+## 3. Task
 
-작은 Python 도메인 계층(`promptops`)에 10-Task 계획을 구현하는 과제입니다. 표준 라이브러리만
-쓰고, 모델은 가짜(`FakeModel`)라 결과가 결정적입니다.
+The task is a 10-Task plan on a small Python domain layer (`promptops`). It uses only the standard
+library, and the model is a fake (`FakeModel`), so results are deterministic.
 
-- 기존 코드: 저장소, 가짜 모델, 공용 동시 실행 도우미, 재시도 도우미, 이벤트 기록, 예외 바탕
-  클래스. 새 코드가 따라야 할 관례가 기존 코드와 설계서에만 적혀 있습니다.
-- 계획(`docs/plan.md`): Task 순서, 파일, 이름과 시그니처만 정합니다. 동작은 "설계서를
-  따른다"고만 합니다.
-- 설계서(`docs/design.md`, 약 110줄): 운영자가 겪는 흐름, 충돌, 모델 호출, 이벤트, 되돌리기,
-  오류를 산문으로 적었습니다. 지켜야 할 원칙은 목록이 아니라 문장 속에 있습니다.
-- Task 1~10: 저장소 버전, 편집 세션, 일괄 입히기, 멈춤과 잠금, 작업 공간과 대상 고정, 후보
-  고르기, 일시적 실패 재시도(모든 모델 호출에), 진행 이벤트, 되돌리기, 작업 공간 되돌리기.
+- Existing code: a store, the fake model, a shared concurrency helper, a retry helper, an event
+  log, and exception base classes. The conventions new code must follow are written only in the
+  existing code and the design doc.
+- The plan (`docs/plan.md`) fixes only Task order, files, names, and signatures. For behavior it
+  says only "follow the design doc".
+- The design doc (`docs/design.md`, about 110 lines) describes in prose the operator's flow,
+  conflicts, model calls, events, undo, and errors. The principles to keep are in sentences, not
+  in a list.
+- Tasks 1-10: store versions, edit sessions, batch apply, pause and locks, workspace and target
+  pinning, candidate selection, retrying transient failures (on every model call), progress
+  events, undo, workspace undo.
 
-### 숨긴 테스트
+### Hidden tests
 
-에이전트가 보지 못하는 테스트 60개로 채점합니다. 기본 19개는 계획의 문장을 그대로 시험하고,
-경계 41개는 설계서가 원칙으로만 말한 동작을 시험합니다. v26 리뷰가 잡은 높음 결함과 같은
-종류(새로 고친 뒤 옛 폼, 도중 취소 뒤 저장, 대상 섞임, 부분 실패, 잠금이 안 풀림)를 일부러
-넣었습니다. 기준 구현이 60개를 모두 통과하는 것을 확인했습니다. 블라인드 채점 뒤 4개를
-더해 64개가 됐습니다(`hidden/test_x.py`). 기준 구현도 그중 하나(재생성 결함)를 갖고 있어
-고쳤습니다.
+Scoring uses 60 tests the agent cannot see. 19 basic tests check the plan's sentences literally;
+41 edge tests check behavior the design doc states only as principles. Defects of the same kinds
+the v26 review caught at high severity were planted on purpose (stale form after a refresh, save
+after a mid-flight cancel, mixed-up targets, partial failure, a lock that never releases). The
+reference implementation was confirmed to pass all 60. After blind scoring, 4 more were added for
+64 (`hidden/test_x.py`). The reference implementation had one of those defects too (the
+re-create defect) and was fixed.
 
-### 과제를 한 번 키운 이유
+### Why the task was enlarged once
 
-처음 과제(v1: Task 6개, 원칙 7개를 계획에 나열, 숨긴 테스트 36개)는 기본 Claude Code가
-3.7분, $0.84에 36개를 모두 통과했습니다. 원칙이 계획에 다 적혀 있으면 하네스 없이도
-충분하다는 결과입니다. v26 조건에 가깝게 한 번만 키웠습니다. 원칙을 설계서 산문으로 옮기고,
-기존 코드 관례를 넣고, Task를 10개로 늘렸습니다. 기본이 또 만점이 나오면 더 키우지 않기로
-미리 정했습니다(차이를 만들어 내려고 과제를 비트는 것을 막기 위해).
+On the first task (v1: 6 Tasks, 7 principles listed in the plan, 36 hidden tests), plain Claude
+Code passed all 36 in 3.7 minutes for $0.84. So when every principle is written in the plan, no
+harness is needed. The task was enlarged once, toward the v26 conditions: the principles moved into
+design-doc prose, existing-code conventions were added, and Tasks went up to 10. It was decided in
+advance not to enlarge it again if plain Claude Code scored full marks again (to avoid bending the
+task to manufacture a difference).
 
-### 결함 채점(블라인드)
+### Defect scoring (blind)
 
-숨긴 테스트가 못 보는 결함도 셉니다. 최종 코드를 조건 이름 없이 `tree-NN`으로 바꿔
-Claude가 아닌 모델(GPT-5.6 Sol High, 읽기 전용)에게 주고, 설계서와 어긋난 동작을 심각도,
-위치, 5줄 이하 재현 코드와 함께 적게 했습니다. 이 모델은 결함을 찾기만 합니다. 나온 지적 중
-설계서가 분명히 요구하고 계획의 API로 재현되는 것은 추가 숨긴 테스트로 옮겨, 모든 결과물을
-같은 잣대로 다시 채점했습니다. 모호한 지적은 따로 표시했습니다.
+Defects the hidden tests cannot see were counted too. The final code was renamed to `tree-NN`
+with no condition name and given to a non-Claude model (GPT-5.6 Sol High, read-only), which listed
+behavior that departs from the design doc, with severity, location, and repro code of 5 lines or
+fewer. That model only finds defects. Findings the design doc clearly requires and the plan's API
+can reproduce were turned into extra hidden tests, and every output was rescored against the
+same bar. Ambiguous findings were marked separately.
 
-## 4. 조건
+## 4. Conditions
 
-| 조건 | 첫 메시지 | 설치 |
+| Condition | First message | Installed |
 | --- | --- | --- |
-| 기본 | `docs/plan.md 계획대로 모든 Task를 구현해줘.` | 없음 |
-| superpowers | `superpowers:subagent-driven-development 로 docs/plan.md 계획을 끝까지 실행해줘.` | superpowers 6.4.1 플러그인(세션 시작 훅 포함) |
-| waygent | `/waygent docs/plan.md` | 프로젝트 스킬 `.claude/skills/waygent` (Cursor는 `.cursor/skills/waygent`) |
-| waygent_fo | `/waygent docs/plan.md` | 측정 전용 변형. 문구 B(고침 규칙을 고치기 전)에서 Task별 리뷰 단계만 뺌. `harness/skill-variants/` |
-| 공존 | `/waygent docs/plan.md` | superpowers 플러그인과 waygent를 함께 설치 |
+| Plain | `docs/plan.md 계획대로 모든 Task를 구현해줘.` ("Implement every Task per the docs/plan.md plan.") | Nothing |
+| superpowers | `superpowers:subagent-driven-development 로 docs/plan.md 계획을 끝까지 실행해줘.` ("Run the docs/plan.md plan to the end with superpowers:subagent-driven-development.") | superpowers 6.4.1 plugin (with session-start hook) |
+| waygent | `/waygent docs/plan.md` | Project skill `.claude/skills/waygent` (Cursor: `.cursor/skills/waygent`) |
+| waygent_fo | `/waygent docs/plan.md` | Measurement-only variant. Wording B (before the fix-rule change) with only the per-Task review step removed. `harness/skill-variants/` |
+| Coexist | `/waygent docs/plan.md` | superpowers plugin and waygent installed together |
 
-모든 첫 메시지 끝에 "나는 자리를 비우니 중간에 묻지 말고 끝까지 진행해."를 붙였습니다.
-사람이 없는 상태에서 끝까지 가는지를 보려는 것입니다. 에이전트가 계획을 다 끝내기 전에
-멈추면 "계속 진행해"를 최대 3번 보냅니다.
+Every first message ended with "나는 자리를 비우니 중간에 묻지 말고 끝까지 진행해." ("I'll be
+away, so don't ask anything midway; carry on to the end."). The point is to see whether the agent
+finishes with no human present. If the agent stops before finishing the plan, "계속 진행해"
+("keep going") is sent at most 3 times.
 
-호스트와 모델:
+Hosts and models:
 
-- Claude Code 2.1.280, 모델 `opus`(Opus 5.5)와 `fable`(Fable 5.1).
-- Cursor Agent 2026.09.23, 모델 `grok-4.7-high`. superpowers는 Claude Code에서만 쟀습니다.
-- Codex CLI 0.154.0, 모델 `gpt-5.6-sol`, `reasoning_effort=high`. 기본과 waygent만 쟀습니다
-  ([실측 결과 11절](results.md)).
+- Claude Code 2.1.280, models `opus` (Opus 5.5) and `fable` (Fable 5.1).
+- Cursor Agent 2026.09.23, model `grok-4.7-high`. superpowers was measured only in Claude Code.
+- Codex CLI 0.154.0, model `gpt-5.6-sol`, `reasoning_effort=high`. Only plain and waygent were
+  measured ([results, section 11](results.md)).
 
-## 5. 격리
+## 5. Isolation
 
-지난 비교에서 gstack이 과제 사이에 상태 폴더를 같이 써서 기록이 섞였습니다. 이번에는
-실행마다 다음을 새로 만듭니다.
+In the previous comparison, gstack shared a state folder across tasks and the records got mixed.
+This time each run creates fresh:
 
-- 실행 폴더 하나(`runs/<tag>/<조건>-<모델>-<회차>/`)에 저장소 사본, git 기록, 도구 상태.
+- One run folder (`runs/<tag>/<condition>-<model>-<run>/`) holding the repo copy, git history, and
+  tool state.
 - Claude Code: `--setting-sources project`, `--strict-mcp-config`, `--disallowedTools AskUserQuestion`.
-  사용자 설정, 다른 플러그인, 계정 커넥터가 들어오지 않습니다.
-- waygent 상태(`.git/waygent/`, 뒤 문구는 `.waygent/`)는 그 실행의 저장소 안에만 있습니다.
-- Codex: 실행마다 HOME과 `CODEX_HOME`을 새로 만들고 인증 파일만 복사합니다. 사용자
-  스킬·플러그인·MCP 서버가 들어오지 않습니다. 스킬은 그 HOME의 `.agents/skills/waygent`에 둡니다.
-- 숨긴 테스트는 실행이 끝난 뒤 복사본에서만 돌립니다.
+  No user settings, other plugins, or account connectors come in.
+- waygent state (`.git/waygent/`, `.waygent/` in later wordings) lives only inside that run's repo.
+- Codex: a fresh HOME and `CODEX_HOME` per run, with only the auth file copied. No user
+  skills, plugins, or MCP servers come in. The skill sits in that HOME's `.agents/skills/waygent`.
+- Hidden tests run only on a copy, after the run ends.
 
-같은 방식으로 지난 비교의 gstack S1~S3를 실행마다 따로 상태 폴더(`GSTACK_HOME`)를 두고 다시
-돌렸습니다. 결과는 [지난 비교의 결과](../2026-09-agent-workflow-comparison/results.md)에
-고쳐 넣었습니다.
+The previous comparison's gstack S1-S3 were rerun the same way, each run with its own state folder
+(`GSTACK_HOME`). The results were corrected in the
+[previous comparison's results](../2026-09-agent-workflow-comparison/results.md).
 
-## 6. 잰 것
+## 6. What was measured
 
-- 숨긴 테스트 통과 수(기본/경계), 블라인드 결함 수.
-- 비용: 세션의 마지막 `total_cost_usd`(이어 간 세션은 누적값이라 턴마다 더하면 부풀려짐).
-  서로 다른 세션만 더했습니다. Cursor는 달러를 주지 않아 토큰만 적었습니다.
-- 걸린 시간, 서브에이전트 수, 지시 길이.
-- 메인 컨텍스트: 메인 세션 호출마다 입력+캐시 읽기+캐시 쓰기 토큰의 최대값과 마지막 값.
-  서브에이전트 호출은 `parent_tool_use_id`로 갈라 따로 셉니다. 메시지별 출력 토큰은 스트림에서
-  블록 단위로 잘려 나와 믿을 수 없어서, 출력 합계는 `modelUsage`를 씁니다.
-- git: `main`에 커밋했는지, 작업 브랜치 커밋 수, 남은 변경.
-- 이어 하기: waygent, 기본, superpowers를 Task 3이 커밋된 순간 강제로 끊고, 새 세션에서 "이어서 해줘"로
-  다시 시작했습니다. 이미 끝난 Task를 다시 했는지, 결과가 맞는지 봅니다.
+- Hidden tests passed (basic/edge), blind defect count.
+- Cost: the session's last `total_cost_usd` (for a resumed session it is cumulative, so summing
+  turns inflates it). Only distinct sessions were summed. Cursor gives no dollars, so only tokens
+  were recorded.
+- Elapsed time, subagent count, brief length.
+- Main context: the max and last value of input + cache read + cache write tokens per main-session
+  call. Subagent calls are split out by `parent_tool_use_id` and counted separately. Per-message
+  output tokens arrive cut into blocks in the stream and are unreliable, so output totals use
+  `modelUsage`.
+- git: whether it committed to `main`, commit count on the work branch, leftover changes.
+- Resume: waygent, plain, and superpowers were force-killed the moment Task 3 was committed and
+  restarted in a new session with "이어서 해줘" ("continue"). Checked whether finished Tasks were
+  redone and whether the result was correct.
 
-## 7. 한계
+## 7. Limits
 
-- 과제가 작습니다. 전체 코드가 한 컨텍스트에 넉넉히 들어갑니다. 메인 컨텍스트를 아끼는 효과는
-  한 컨텍스트에 안 들어가는 작업에서만 나타날 수 있고, 이 과제로는 보여 줄 수 없습니다.
-- 조건마다 1~3회입니다. 몇 배 이상 나는 차이만 의미 있게 봅니다.
-- 가짜 모델이라 실제 모델 호출, UI, 배포는 재지 않았습니다.
-- 결함 채점자는 모델 하나입니다. 지적을 테스트로 옮길 때 제가 설계서와 대조해 걸렀습니다.
-  원시 지적의 약 절반은 과제용으로 제가 미리 만든 코드를 가리켜 개수는 쓰지 않았습니다.
-- Cursor grok 실행은 턴 상한(2.5시간)에 걸려 드라이버가 이어 보냈습니다.
-- 측정 뒤에 스킬 문구를 두 번 고쳤습니다. 첫 번째(고침 규칙)는 다시 쟀고(rev2),
-  두 번째("async는 async로", 끝 리뷰가 동작 결함도 봄)는 재지 않았습니다.
+- The task is small. All the code fits easily in one context. Any benefit of saving main context
+  can appear only on work that does not fit in one context, and this task cannot show it.
+- 1-3 runs per condition. Only differences of several-fold or more are treated as meaningful.
+- The model is fake, so real model calls, UI, and deployment were not measured.
+- The defect scorer is a single model. I filtered its findings against the design doc before
+  turning them into tests. About half the raw findings pointed at code I prebuilt for the task, so
+  counts are not used.
+- The Cursor grok runs hit the turn limit (2.5 hours) and the driver continued them.
+- The skill wording was changed twice after measurement. The first change (fix rule) was
+  remeasured (rev2); the second ("async stays async", final review also checks behavior defects)
+  was not.

@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 DOCUMENTS = (
     "skills/how-it-works/README.md",
-    "skills/how-it-works/README.en.md",
+    "skills/how-it-works/README.ko.md",
     "docs/users/ko/install-local.md",
     "docs/users/en/install-local.md",
 )
@@ -189,19 +189,19 @@ class InstallationContractTests(unittest.TestCase):
 LINKER_FIXTURE = ROOT / "tests" / "repository" / "fixtures" / "link-skill.py"
 LINKER_SURFACES = (
     ("skills/how-it-works/README.md", "<!-- how-it-works-local-links -->"),
-    ("skills/how-it-works/README.en.md", "<!-- how-it-works-local-links -->"),
+    ("skills/how-it-works/README.ko.md", "<!-- how-it-works-local-links -->"),
     ("docs/users/ko/install-local.md", "<!-- how-it-works-local-links -->"),
     ("docs/users/en/install-local.md", "<!-- how-it-works-local-links -->"),
     ("skills/sddx/README.md", "<!-- sddx-local-links -->"),
-    ("skills/sddx/README.en.md", "<!-- sddx-local-links -->"),
+    ("skills/sddx/README.ko.md", "<!-- sddx-local-links -->"),
     ("docs/users/ko/install-local.md", "<!-- sddx-local-links -->"),
     ("docs/users/en/install-local.md", "<!-- sddx-local-links -->"),
     ("skills/waygent/README.md", "<!-- waygent-local-links -->"),
-    ("skills/waygent/README.en.md", "<!-- waygent-local-links -->"),
+    ("skills/waygent/README.ko.md", "<!-- waygent-local-links -->"),
     ("docs/users/ko/install-local.md", "<!-- waygent-local-links -->"),
     ("docs/users/en/install-local.md", "<!-- waygent-local-links -->"),
     ("skills/image-workbench/README.md", "<!-- image-workbench-local-links -->"),
-    ("skills/image-workbench/README.en.md", "<!-- image-workbench-local-links -->"),
+    ("skills/image-workbench/README.ko.md", "<!-- image-workbench-local-links -->"),
     ("docs/users/ko/install-local.md", "<!-- image-workbench-local-links -->"),
     ("docs/users/en/install-local.md", "<!-- image-workbench-local-links -->"),
 )

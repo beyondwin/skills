@@ -1,54 +1,56 @@
-# pre-sdd-review 계약
+# pre-sdd-review contract
 
-이 문서는 Pre-SDD Review가 언제 켜지는지, 어떤 문서를 먼저 따르는지,
-검토자를 어떻게 떼어 두는지, 문서를 어디까지 고치는지를 정합니다. 발견,
-신선도, 판정, SDD 인계 규칙도 여기서 정합니다.
+This document sets when Pre-SDD Review turns on, which documents win a
+conflict, how reviewers stay isolated, and how far the skill may edit
+documents. It also sets the rules for findings, freshness, verdicts, and the
+SDD handoff.
 
-규범 문서입니다. 아래에서 발견은 finding, 신선도는 freshness, 판정은 verdict,
-인계는 handoff를 뜻하고, 리뷰어는 검토자라고 부릅니다.
+This is a normative document. Terms used here:
 
-이 문서에서 쓰는 말:
+- controller: the agent that runs the skill and edits the documents.
+- run: one execution recorded by the recorder.
+- ledger: the shared-file ledger, the list of files several plans touch.
+- dirty: a plan that needs closure again because a preceding plan's repair
+  changed something it reads.
 
-- 컨트롤러: 스킬을 실행하고 문서를 고치는 제어 에이전트.
-- run: 기록기에 남는 한 번의 실행 기록.
-- 원장(ledger): 여러 계획이 함께 건드리는 파일 목록, 즉 공유 파일 원장.
-- dirty: 앞 계획의 수리 때문에 다시 종결 검토가 필요해진 계획 상태.
+## Activation and input resolution
 
-## 활성화와 입력 해석
+Activate only when an approved design specification and an implementation
+plan both exist and the question is readiness right before SDD or plan
+execution. Do not use it to write a first design or plan, for code review,
+release readiness, proofreading, or general document work.
 
-승인된 설계 명세와 구현 계획이 모두 있고, SDD나 계획 실행 직전 준비 상태를
-볼 때만 활성화합니다. 설계나 계획을 처음 쓸 때, 코드 검토, 출시 준비, 교정,
-일반 문서 작업에는 쓰지 않습니다.
+Inputs resolve in this order:
 
-입력은 이 순서로 정합니다.
+- one implementation plan path;
+- the resolved design specification that the plan's `**Spec:**` field points
+  to;
+- explicitly bound references, the repository root, and the current Git state.
 
-- 구현 계획 경로 하나.
-- 그 계획의 `**Spec:**` 필드가 가리키는 해결된 설계 명세.
-- 명시적으로 묶인 참조, 저장소 루트, 현재 Git 상태.
+If the `**Spec:**` path is missing or cannot be resolved, return `BLOCKED`. Do
+not guess among nearby files.
 
-`**Spec:**` 경로가 없거나 해석할 수 없으면 `BLOCKED`입니다. 주변 파일을 추측해
-고르지 않습니다.
+A verdict-bearing invocation reviews exactly one implementation plan.
 
-판정을 내는 호출 하나는 구현 계획 하나만 검토합니다.
+- If it is unclear which plan, ask for the exact plan path. If none is given,
+  return `BLOCKED`.
+- Split plans get separate verdicts; never build one aggregate `READY`. A later
+  plan's `READY` is not tied to an earlier plan.
+- Discoveries may overlap; repairs do not. A preceding `BLOCKED` plan does not
+  stop later plans' discovery.
+- If a preceding plan's repair changes a shared design, mark every dependent
+  plan dirty in this campaign. That invalidation does not open a new campaign.
 
-- 어느 계획인지 분명하지 않으면 정확한 계획 경로를 다시 받습니다. 받을 수
-  없으면 `BLOCKED`입니다.
-- 계획을 나눠 여러 번 판정해도 전체를 묶은 `READY`는 만들지 않습니다. 뒤 계획의
-  `READY`를 앞 계획에 묶지 않습니다.
-- 발견은 겹칠 수 있고 수리는 겹치지 않습니다. 앞 계획이 `BLOCKED`여도 뒤 계획의
-  발견은 진행합니다.
-- 앞 계획의 수리가 공유 설계를 바꾸면 의존하는 모든 계획을 이번 캠페인에서
-  dirty로 표시합니다. 그 무효화로 새 캠페인을 열지 않습니다.
+If a plan names a required implementation base (`branch`, `ref`, or
+`commit`), check before dispatching any reviewer that the required base is an
+ancestor of `HEAD` with `git merge-base --is-ancestor <required-base> HEAD`. If
+the base cannot be resolved or is not an ancestor of `HEAD`, record the
+mismatch and return `BLOCKED`. Never review or edit a different checkout on
+your own.
 
-계획이 필수 구현 베이스(`branch`, `ref`, 또는 `commit`)를 적으면, 검토자를
-부르기 전에 필수 베이스가 `HEAD`의 조상인지
-`git merge-base --is-ancestor <required-base> HEAD`로 확인합니다. 베이스를
-해석할 수 없거나 `HEAD`의 조상이 아니면 불일치를 남기고 `BLOCKED`를 반환합니다.
-다른 checkout을 임의로 검토하거나 고치지 않습니다.
+## Authority
 
-## 권위 순서
-
-충돌은 아래 순서로 풉니다.
+Conflicts resolve in this order.
 
 ### Authority order
 
@@ -58,20 +60,22 @@
 4. The implementation plan.
 5. Repository reality at this plan's turn.
 
-저장소 현실은 실행 가능 여부와 영향 범위의 증거일 뿐, 승인된 제품 결정을
-대체하지 않습니다. 계획의 차례(turn)는 저장소에 이 계획보다 앞선 모든 계획을
-확정된 실행 순서로 더한 상태이며, 그때그때의 `HEAD`가 아닙니다. 수리에 새 제품
-결정이 필요하면 충돌을 보존하고 `BLOCKED`를 반환합니다.
+Repository reality is evidence of feasibility and blast radius; it never
+replaces an approved product decision. A plan's turn is the repository plus
+every plan before it in the settled execution order, not whatever `HEAD` is at
+the moment. If a repair needs a new product decision, keep the conflict and
+return `BLOCKED`.
 
-## 검토자 격리와 수정 허용 목록
+## Reviewer isolation and editable paths
 
-기본 검토자는 새로 부른 독립 `read-only` 검토자입니다. 검토자는 증거와 가장
-작은 권위 보존 수정만 보고하고, 문서는 컨트롤러만 고칩니다. 아래 경로만 고칠
-수 있으며 기능, 의존성, 호스트 주장, 제품 결정을 추가하지 않습니다.
+The default reviewer is a freshly dispatched, independent `read-only`
+reviewer. Reviewers report evidence and the smallest authority-preserving fix;
+only the controller edits documents. Only the paths below may be edited, and
+no feature, dependency, host claim, or product decision may be added.
 
-독립된 새 검토자를 구할 수 없어도 컨트롤러가 독립 1차 검토자를 대신하지
-않습니다. Evidence `reviewers`는 의도한 역할 수가 아니라 논리 역할에 실제로
-얻은 에이전트 수를 셉니다.
+If no independent fresh reviewer is available, the controller does not stand
+in for the independent primary reviewer. Evidence `reviewers` counts the agents
+actually obtained for logical roles, not the number of roles intended.
 
 ### Editable paths
 
@@ -79,8 +83,9 @@
 2. resolved implementation plan.
 3. resolved shared-file ledger.
 
-원장은 유도된 증거이지 권위가 아니므로 권위 순서 다섯 단계는 그대로입니다.
-원장이 계획의 `Files:`와 어긋나면 계획이 이기고 원장을 다시 만듭니다.
+The ledger is derived evidence, not authority, so the five authority levels
+stay as they are. When the ledger disagrees with a plan's `Files:`, the plan
+wins and the ledger is rebuilt.
 
 ### Excluded surfaces
 
@@ -92,34 +97,37 @@
 - `generated artifacts`
 - `unrelated documentation`
 
-## 선행 원장 패스
+## Ledger pre-pass
 
-바깥 요청이 계획을 둘 이상 이름 대거나 이 패스를 명시적으로 요청하면, 판정을
-내는 첫 호출 앞에 한 번 돕니다.
+When the outer request names two or more plans, or asks for this pass
+explicitly, it runs once before the first verdict-bearing invocation.
 
-- 판정을 내지 않습니다. 출력은 원장, 확정된 실행 순서, 저장소로 확인된 결함
-  후보입니다.
-- 컨트롤러가 전부 하고 검토자를 부르지 않습니다.
-- 확인된 후보는 검토자 파견 전에 고칩니다. 검토 이전 수리이므로 수리 패스로
-  세지 않고 `repair_pass: 0`으로 기록합니다.
-- `review-only`에서는 원장을 파일로 쓰지 않고 이 수리도 하지 않습니다.
-- 이 패스는 run으로 기록하지 않습니다.
+- It gives no verdict. Its output is the ledger, the settled execution order,
+  and repository-confirmed defect candidates.
+- The controller does all of it; no reviewer is dispatched.
+- Confirmed candidates are repaired before any reviewer is dispatched. These
+  are pre-review repairs, so they do not count as a repair pass and are
+  recorded as `repair_pass: 0`.
+- In `review-only`, the ledger is not written to a file and these repairs are
+  not made.
+- This pass is not recorded as a run.
 
-계획에 `Files:` 절이 없으면 멈추고 묻습니다. 작업(Task)의 편집 범위에서
-유도하지 않습니다.
+If a plan has no `Files:` section, stop and ask. Do not derive it from a
+task's edit scope.
 
 ### Ledger shape
 
-- 머리: 생성 시각, 대상 계획 목록과 각 계획의 SHA-256, 확정된 실행 순서
-- 본문: 한 행이 한 경로. `| path | 이 경로를 만지는 계획 (실행 순서대로) |`
-- 만지는 계획이 하나인 경로도 전부 적습니다. 스윕 대상은 계획이 둘 이상인
-  행입니다.
-- 기본 위치는 `docs/superpowers/ledgers/YYYY-MM-DD-<campaign>.md`이고 사용자
-  선호가 우선합니다.
+- Header: creation time, the target plans with each plan's SHA-256, and the
+  settled execution order.
+- Body: one row per path. `| path | plans touching this path (in execution order) |`
+- List every path, including paths only one plan touches. The sweep targets
+  rows with two or more plans.
+- The default location is `docs/superpowers/ledgers/YYYY-MM-DD-<campaign>.md`;
+  a user preference wins.
 
-## 검토 패스와 발견
+## Review passes and findings
 
-프로토콜은 정확히 `five passes`를 실행합니다.
+The protocol runs exactly `five passes`.
 
 ### Review passes
 
@@ -129,8 +137,9 @@
 4. verification falsification;
 5. readiness verdict.
 
-발견에는 ID, 심각도, 분류, 정확한 문서 위치, 증거, 구체적 결과, 가장 작은 문서
-수정을 적습니다. 발견이 0개여도 유효합니다. 심각도와 분류는 아래 목록뿐입니다.
+A finding records an ID, severity, class, exact document location, evidence,
+concrete consequence, and the smallest document fix. Zero findings is a valid
+result. Severities and classes come only from these lists.
 
 ### Severities
 
@@ -147,8 +156,8 @@
 
 ### Conditional risk triggers
 
-두 번째 검토자는 `conditional only`이며 매번 부르지 않습니다. 아래 목록이 두
-번째 검토자를 부르는 유일한 조건입니다.
+The second reviewer is `conditional only`, never routine. This list is the
+only reason to dispatch a second reviewer.
 
 - `framework or runtime removal`
 - `schema migration or data deletion`
@@ -156,12 +165,13 @@
 - `public/private data-boundary changes`
 - `external side effects such as publishing, billing, messaging, or production mutations`
 
-호출 전체에서 검토 역할은 최대 둘입니다. 기본 역할 하나와, 조건이 맞을 때의
-집중 위험 역할 하나입니다. 새 재검토는 에이전트를 바꿀 수 있지만 역할을
-추가하거나 위험 분류를 넓히지 않습니다. Evidence `reviewers`(0–2)는 누적 호출도,
-의도한 역할 수도 아니고 논리 역할에 실제로 얻은 서로 다른 에이전트 수를 셉니다.
-`full` 실행이면 trigger가 있을 때 2, 없을 때 1이어야 하고, 다르면
-`full_reviewer_count_mismatch`로 관찰합니다.
+An invocation has at most two review roles: one primary role and, when a
+trigger applies, one focused risk role. A new re-review may change the agent,
+but never adds a role or widens the risk class. Evidence `reviewers` (0-2) is
+neither a cumulative call count nor the intended role count; it counts the
+distinct agents actually obtained for logical roles. A `full` run must record 2
+with a trigger and 1 without; anything else is observed as
+`full_reviewer_count_mismatch`.
 
 ### Degraded reasons
 
@@ -171,67 +181,77 @@
 - `agent-reused-across-plans`
 - `other`
 
-독립 1차 검토자를 구할 수 없으면 `BLOCKED`입니다. 짧은 degraded 회차로 대신하지
-않습니다. 집중 위험 역할은 발견하는 호출에서만 부릅니다. 부르지 않았거나 구하지
-못하면 `degraded`와 `focused-role-not-obtained`로 기록합니다. 이 사유만으로는
-인계 재사용과 이어 검토를 막지 않습니다. 다른 사유의 `degraded` 인계는
-재사용하지 않습니다. 한 에이전트를 다른 계획의 호출에 돌려 쓰지 않습니다.
+If no independent primary reviewer is available, return `BLOCKED`; do not
+substitute a short degraded round. The focused risk role is dispatched only in
+an invocation that runs discovery. If it is not dispatched or not obtained,
+record `degraded` with `focused-role-not-obtained`. That reason alone does not
+bar handoff reuse or continuation. A `degraded` handoff with any other reason
+is not reused. One agent is never reused for another plan's invocation.
 
-## 기본 흐름, 판정, freshness
+## Default flow, verdicts, and freshness
 
-한 호출은 발견 단계 한 번(이어 검토에서는 없음), 수리 최대 두 번, 작은 잔여
-패스 한 번, 범위 제한 재검토로 끝납니다.
+An invocation is one discovery stage (none in a continuation), at most two
+repairs, one small residual pass, and a scoped re-review.
 
-- 첫 검토에서 발견이 없으면, 계획이 dirty가 아닐 때만 수리와 종결 재검토를
-  건너뛰고 `READY`입니다. dirty인 계획은 발견이 0건이어도 범위 제한 종결을
-  합니다.
-- 종결에는 설계·계획·원장의 수리 diff가 필수입니다.
-- 시작할 때 동결한 `HEAD`가 바뀌면 그 동결에 대해 `READY`를 내지 않습니다.
+- If the first review has zero findings, skip repair and closure and return
+  `READY`, but only when the plan is not dirty. A dirty plan still takes scoped
+  closure with zero findings.
+- Closure requires the repair diff of the design, plan, and ledger.
+- If the `HEAD` frozen at the start moves, no `READY` is returned against that
+  freeze.
 
-dirty는 컨트롤러 로컬 캠페인 상태입니다. 기록 필드도 아니고 worktree의 dirty
-상태도 아닙니다. 계획 i를 수리한 뒤의 변경 집합 Δ는 바뀐 해결 설계·계획·원장
-지문, 영향 표의 심볼·경로·명령·소비자, 수리한 발견이 인용한 경로의
-합집합입니다. i가 앞 계획이고 Δ가 계획 j의 읽기 집합과 겹치거나, j가 의존하는
-공유 설계가 바뀌면 j는 dirty입니다. j의 읽기 집합은 해결된 설계·계획·원장
-경로와 해시, `Files:` 경로, 선행 계획 경로, 발견 기록의 `evidence` 경로입니다.
-`Files:`에 없는 경로는 이 dirty 집합에 없습니다. 그 빈틈은 기계 점검이
-잡습니다.
+Dirty is controller-local campaign state. It is neither a record field nor the
+worktree's dirty state. After repairing plan i, the change set Δ is the union
+of the changed resolved design, plan, and ledger fingerprints; the symbols,
+paths, commands, and consumers in the impact table; and the paths cited by the
+repaired findings. If i precedes plan j and Δ overlaps j's read set, or a
+shared design j depends on changed, j is dirty. j's read set is the resolved
+design, plan, and ledger paths and hashes, the `Files:` paths, the preceding
+plan paths, and the `evidence` paths of its finding records. Paths not in
+`Files:` are not in this dirty set; the machine check catches that gap.
 
-수리 집계:
+Repair accounting:
 
-- `repair_passes`는 컨트롤러가 적용한 수리 패스를 모두 셉니다. 새 호출은 이전
-  발견의 `repair_pass`를 복사하지 않습니다.
-- `repaired`는 종결 검토자가 닫은 기록에만 씁니다.
-- 마지막 동작이 수리이면 `READY`를 내지 않습니다.
-- `partially-closed`로 남은 발견은 미해결로 계산해 `REVISE`를 강제하고,
-  `BLOCKER`이면 `BLOCKED`입니다.
+- `repair_passes` counts every repair pass the controller applied. A new
+  invocation does not copy an earlier finding's `repair_pass`.
+- `repaired` is used only for records a closure reviewer closed.
+- If the last action was a repair, never return `READY`.
+- A finding left `partially-closed` counts as unresolved and forces `REVISE`;
+  if it is a `BLOCKER`, the verdict is `BLOCKED`.
 
-수리가 스키마, 타입, 인터페이스, 상태 전이, 조건부 수정 면, 작업 간 계약, 검증
-의미, 공개/비공개 경계를 바꾸면 컨트롤러가 짧은 영향 범위 표를 만듭니다. 표에는
-바뀐 주장, 바뀐 심볼·상태·경로·명령, 직접 소비자, 이웃 작업 인터페이스,
-`modify | verified-no-change | unresolved` 처리, 검증 반례를 적습니다. 여기에
-해당하지 않는 단순 값·문구 수정은 표를 만들지 않습니다.
+When a repair changes a schema, type, interface, state transition,
+conditional mutation surface, cross-task contract, verification meaning, or
+public/private boundary, the controller writes a short impact table. It lists
+the changed claim, the changed symbols, states, paths, or commands, the direct
+consumers, adjacent task interfaces, a `modify | verified-no-change | unresolved`
+disposition, and a verification counterexample. Plain value or wording fixes
+outside that list need no table.
 
-새 검토자는 고친 최종 문서, 원래 발견, 영향 범위 표를 받아 원래 발견의 해결과
-제한된 영향 회귀를 순서대로 봅니다. 수리 패스는 최대 두 번입니다. 두 번째 종결
-뒤 원래 기록의 `IMPORTANT` 2건 이하가 한 자리 수정으로 남고 영향 표가 비어
-있으면, 그 ID만 한 번 더 고치고 새 종결 검토자 한 명이 그 ID만 봅니다. 여기서
-새 결함 모양이 나오면 호출을 끝냅니다. 마지막 패스 뒤에도 중요한 문제가 남으면
-심각도를 낮추지 않습니다. `review-only`는 파일을 바꾸지 않고 첫 검토 판정만
-반환합니다.
+The fresh reviewer gets the final repaired documents, the original findings,
+and the impact table, and checks first that the original findings are
+resolved, then for bounded impact regressions. There are at most two repair
+passes. After the second closure, if no more than two `IMPORTANT` original
+records remain, each fixable at one site, and the impact table is empty,
+repair only those IDs once more and have one fresh closure reviewer check only
+those IDs. If a new defect shape appears there, end the invocation. If a
+material problem remains after the last pass, do not lower its severity.
+`review-only` changes no file and returns the first review's verdict.
 
-범위 제한 재검토에서 지금 고칠 대상은 원래 발견이나 직접 대응된 수정 영향뿐입니다.
-최종 문서에서 찾은 대응되지 않은 중요 발견은 버리지 않지만 지금 수리에 넣지도
-않습니다. 호출을 끝내고 인계에 기록한 뒤 기존 판정 규칙을 따릅니다.
+In a scoped re-review, only an original finding or a direct mapped repair
+impact is repaired now. An unmapped material finding found in the final
+documents is not dropped, but it is not repaired now either: end the
+invocation, record it in the handoff, and apply the existing verdict rules.
 
 ### Verdicts
 
-- `READY`: 남은 문제를 추측하지 않고, 계획된 증거가 잘못된 구현을 통과시키지 않습니다.
-- `REVISE`: 고칠 수 있는 중요한 문서 결함이 남았습니다.
-- `BLOCKED`: 필요한 입력·권위·저장소 증거가 없거나, 새 제품 결정이 필요하거나,
-  독립 1차 검토자를 구할 수 없습니다. 열린 `BLOCKER`가 있으면 `BLOCKED`입니다.
+- `READY`: no remaining problem has to be guessed, and the planned evidence would not let a wrong implementation pass.
+- `REVISE`: a material, repairable document defect remains.
+- `BLOCKED`: required input, authority, or repository evidence is missing, a
+  new product decision is needed, or no independent primary reviewer is
+  available. An open `BLOCKER` forces `BLOCKED`.
 
-최종 보고에는 아래 신선도 목록과 무효화 규칙을 그대로 적습니다.
+The final report states the freshness list and invalidation rule below as
+written.
 
 ### Freshness
 
@@ -241,171 +261,185 @@ dirty는 컨트롤러 로컬 캠페인 상태입니다. 기록 필드도 아니�
 - worktree was clean or dirty
 - review timestamp
 - final verdict
-- baseline: `HEAD`, 또는 `HEAD`와 선행 계획 목록
-- ledger: 저장소 상대 경로와 SHA-256 (없으면 생략)
+- baseline: `HEAD`, or `HEAD` plus the list of preceding plans
+- ledger: repository-relative path and SHA-256 (omitted when there is none)
 - Any content change to either resolved document invalidates `READY`.
 
-최종 보고에는 짧은 패스 요약도 넣습니다. 입력·최종 문서 해시, 패스 번호, 발견
-ID/분류, 영향 범위 트리거, 바뀐 문서 해시, 판정을 담습니다.
+The final report also carries a short pass summary: input and final document
+hashes, pass numbers, finding IDs and classes, impact triggers, changed
+document hashes, and the verdict.
 
-- `finish`가 돌려준 관찰 이상(`anomalies`)을 `Anomalies:` 줄에 그대로 적습니다.
-  비어 있으면 `none`, 기록기를 쓰지 않았거나 `finish`가 실패했으면
-  `not_recorded`입니다. 이 run을 윈도우가 있는 `summary`에서 찾지 않습니다.
-  이상이 판정을 바꾸지는 않습니다.
-- `REVISE`와 `BLOCKED`는 미해결 발견과 다음 범위를 담은 인계 묶음을 반환합니다.
-  새 권위가 필요하면 판정은 `BLOCKED`입니다.
+- Copy the observation anomalies (`anomalies`) returned by `finish` onto the
+  `Anomalies:` line as they are. Print `none` when empty, and `not_recorded`
+  when the recorder was not used or `finish` failed. Do not look this run up
+  in a windowed `summary`. Anomalies do not change the verdict.
+- `REVISE` and `BLOCKED` return a handoff packet with the unresolved findings
+  and the next scope. If new authority is needed, the verdict is `BLOCKED`.
 
-검토자가 완전한 PSDR 기록 없이 요약만 내면, 그 검토자에게 한 번 빠진 필드
-이름만 들어 완전한 기록을 다시 받습니다. 의심되는 발견·경로·심볼·수정처럼
-답을 넣어 재질의하지 않습니다. 요약을 발견으로 받지 않습니다.
+If a reviewer returns only a summary without complete PSDR records, ask that
+reviewer once for the complete records, naming only the missing fields. Never
+re-ask with answers filled in, such as suspected findings, paths, symbols, or
+fixes. A summary is never accepted as a finding.
 
-### 다음 호출
+### Next invocation
 
-권위를 보존하는 수리에는 승인 질문을 하지 않습니다. 사용자 권위가 필요하면
-필요한 결정을 승인 요청 하나로 묶습니다. `REVISE`나 `BLOCKED` 뒤에 자동으로
-다시 호출하지 않습니다. 다시 부르면 아래 규칙을 따릅니다.
+Authority-preserving repairs are made without asking. When user authority is
+needed, bundle the needed decisions into one approval request. Never re-invoke
+automatically after `REVISE` or `BLOCKED`. A later call follows these rules.
 
-- 인계 재사용: 재사용 가능 run(`full`, 또는 사유가 `focused-role-not-obtained`뿐인
-  `degraded`)에서 문서, `HEAD`, 요청이 모두 바뀌지 않았을 때만 그 인계를
-  재사용합니다. 다른 `degraded`와 `blocked` run의 인계는 재사용하지 않습니다.
-- 이어 검토: 직전 run이 재사용 가능한 `REVISE`이거나, 문서에 이제 기록된 사용자
-  결정 때문에 `BLOCKED`였고, `git diff --name-only <head_end> HEAD`가
-  설계·계획·원장뿐이며, 사용자가 전체 재검토를 요청하지 않았으면 발견 없이
-  종결부터 합니다. 이 계획의 기록 run이 없으면 이어 검토는 없고 전체 발견을
-  돌립니다.
-  - 이전 run의 기록 발견을 열린 기록으로 읽는 것은 인계 재사용이 아닙니다.
-    이어 검토가 다시 봅니다.
-  - 이어받은 기록은 `id`, `severity`, `class`를 유지합니다. 종결에서 다른
-    심각도나 분류의 남은 부분이 나오면 이어받은 기록은 그 기록대로 닫거나
-    남기고, 남은 부분은 새 ID의 새 기록으로 적습니다.
-- 답을 기다리는 결정: 직전 run이 아직 권위 문서에 없는 사용자 결정 때문에
-  `BLOCKED`이면 검토자를 부르지 않고 수리하지 않으며 같은 체크포인트를 다시
-  보여 줍니다. `start`를 부르지 않고
-  `Evidence: not_recorded; reason=previous-decision-checkpoint`를 출력합니다.
-  다른 계획은 계속합니다.
-- 연속 차단: 같은 계획의 연속 세 run이 새 제품 결정으로 `BLOCKED`이면, 인계가
-  설계를 되돌려 보내 남은 결정을 한 번에 정하게 하고, 다음 호출은 그 결정을
-  기다린다고 적습니다. 같은 계획의 연속 run 묶음(chain)이 없으면 아는 횟수만
-  보고하고 멈추지 않습니다.
+- Handoff reuse: from a reusable run (`full`, or `degraded` whose only reason
+  is `focused-role-not-obtained`), reuse the handoff only when documents,
+  `HEAD`, and the request are all unchanged. Handoffs of other `degraded` runs
+  and of `blocked` runs are never reused.
+- Continuation: if the last run was a reusable `REVISE`, or `BLOCKED` on a user
+  decision the documents now record, and `git diff --name-only <head_end> HEAD`
+  shows only the design, plan, and ledger, and the user did not ask for a full
+  re-review, start from closure with no discovery. Without a recorded run for
+  this plan there is no continuation; run full discovery.
+  - Reading an earlier run's recorded findings as open records is not handoff
+    reuse; the continuation re-checks them.
+  - Carried records keep their `id`, `severity`, and `class`. If closure finds
+    a remainder with a different severity or class, close or keep the carried
+    record on its own terms and write the remainder as a new record with a new
+    ID.
+- Decision still pending: if the last run was `BLOCKED` on a user decision the
+  authority documents do not yet record, dispatch no reviewer, make no repair,
+  and show the same checkpoint again. Do not call `start`; print
+  `Evidence: not_recorded; reason=previous-decision-checkpoint`. Other plans
+  continue.
+- Repeated blocks: if three consecutive runs of the same plan are `BLOCKED` on
+  new product decisions, the handoff sends the design back to settle the
+  remaining decisions at once, and says the next call waits on them. Without a
+  chain of consecutive runs for that plan, report the known count and do not
+  stop.
 
-## 선택 기록기 계약
+## Optional recorder contract
 
-기록기는 선택 계약입니다. 권위 순서, 검토자 프로토콜, 수정 허용 목록, 판정
-규칙을 바꾸지 않습니다. 컨트롤러는 다음 순서로 씁니다.
+The recorder is an optional contract. It does not change the authority order,
+the reviewer protocol, the editable paths, or the verdict rules. The
+controller uses it in this order.
 
-1. 로드된 스킬 루트에서 `python3 "<skill-root>/evidence/evidence.py" --version`을
-   실행합니다. handshake가 정확히 `skill_name=pre-sdd-review`와 `schema=4`일
-   때만 기록합니다. 정규 한 줄은
-   `{"cli_version":"6.0.0","schema":4,"skill_name":"pre-sdd-review"}` 뒤에
-   LF 하나입니다.
-2. 호환되면 `start` 전에 `summary --repo <표시 이름>`을 실행해 `runs`와
-   `chains`에서 그 계획을 찾습니다. 같은 `repo` 표시 이름과 계획 경로가
-   `pending`이면 그 run을 `abandon`합니다. 그 계획의 마지막 완료 판정이
-   `REVISE` 또는 `BLOCKED`이면 `show`합니다.
-3. 직전 run의 `execution`으로 다음을 정합니다.
-   - `execution`이 `blocked`이면 인계를 재사용하지 않습니다. 그 run이 아직 권위
-     문서에 없는 사용자 결정 때문에 `BLOCKED`이면 입력 게이트를 다시 확인하지
-     않고 위 "답을 기다리는 결정" 규칙(`SKILL.md`의 Verdict and handoff)을
-     따릅니다. 결정이 기록되면 이어 검토 조건을 만족할 때 이어 검토하고, 아니면
-     발견을 돌립니다. 그 밖의 `blocked`는 입력 게이트를 다시 확인한 뒤
-     `start`합니다.
-   - `execution`이 `degraded`이고 사유가 `focused-role-not-obtained`뿐이 아니면
-     인계를 재사용하지 않고 새 전체 검토로 `start`합니다.
-   - 재사용 가능 run이면 문서 해시, `git.head_end`, 요청이 모두 같을 때만 이전
-     인계를 재사용합니다.
-4. 재사용하지 않으면 의미 검토 전에 `start`하고, 판정과 수리가 끝난 뒤
-   `finish`를 한 번 호출합니다.
-5. `Evidence:` 줄은 정확히 하나입니다. 기록기가 없거나 실패하면
-   `Evidence: not_recorded; reason=<code>`를 보고하며, 이 실패가
-   `READY`, `REVISE`, `BLOCKED`를 바꾸지는 않습니다.
+1. From the loaded skill root, run
+   `python3 "<skill-root>/evidence/evidence.py" --version`. Record only when
+   the handshake is exactly `skill_name=pre-sdd-review` and `schema=4`. The
+   canonical line is
+   `{"cli_version":"6.0.0","schema":4,"skill_name":"pre-sdd-review"}` followed
+   by one LF.
+2. If compatible, run `summary --repo <display name>` before `start` and find
+   the plan in `runs` and `chains`. If the same `repo` display name and plan
+   path are `pending`, `abandon` that run. If the plan's last completed verdict
+   is `REVISE` or `BLOCKED`, `show` it.
+3. The last run's `execution` decides the next step.
+   - When `execution` is `blocked`, never reuse its handoff. If that run was
+     `BLOCKED` on a user decision the authority documents do not yet record,
+     skip the input gate recheck and follow the "Decision still pending" rule
+     above (Verdict and handoff in `SKILL.md`). Once the decision is recorded,
+     continue when the continuation conditions hold; otherwise run discovery.
+     Any other `blocked` run rechecks the input gates and then calls `start`.
+   - When `execution` is `degraded` with any reason besides
+     `focused-role-not-obtained`, do not reuse the handoff; `start` a fresh
+     full review.
+   - For a reusable run, reuse the earlier handoff only when document hashes,
+     `git.head_end`, and the request are all the same.
+4. When not reusing, call `start` before the semantic review and call `finish`
+   once after the verdict and repairs are done.
+5. There is exactly one `Evidence:` line. If the recorder is missing or fails,
+   report `Evidence: not_recorded; reason=<code>`; that failure does not change
+   `READY`, `REVISE`, or `BLOCKED`.
 
-schema 호환:
+Schema compatibility:
 
-- 기록기는 schema 4만 읽고 씁니다. `start`는 늘 schema 4 checkout 결속 run을
-  만듭니다.
-- 6.0.0 전 기록기가 쓴 schema 2·3 파일은 읽지도, 옮기지도, 닫지도 않습니다.
-  `show`, `finish`, `abandon`, `outcome`은 `schema-unsupported`로 거절하고
-  파일을 바꾸지 않습니다. `summary`는 그 파일을 건너뛰고
-  `unsupported_records`로 셉니다.
-- 옛 파일은 `start`를 막지 않습니다. 치우려면 최상위 `schema`가 2나 3인
-  `runs/<run-id>.json`을 지웁니다.
+- The recorder reads and writes schema 4 only. `start` always creates a
+  checkout-bound schema 4 run.
+- Schema 2 and 3 files written by recorders before 6.0.0 are not read,
+  migrated, or closed. `show`, `finish`, `abandon`, and `outcome` refuse them
+  with `schema-unsupported` and leave the file unchanged. `summary` skips them
+  and counts them in `unsupported_records`.
+- Old files never block `start`. To clear them, delete the
+  `runs/<run-id>.json` files whose top-level `schema` is 2 or 3.
 
-컨트롤러는 계획의 `**Spec:**`에서 설계 경로를 해석해 `--design`으로 넘깁니다.
-해석할 수 없으면 `--design`을 생략하고 `BLOCKED`를 반환합니다. 기록기는
-`**Spec:**`를 파싱하지 않습니다. `finish` 전에 끝나면 `abandon` 이유는
-`user-cancelled`, `input-changed`, `scope-changed`, `input-format-fixed`,
-`other` 중 하나입니다. `run_id`는 컨트롤러 로컬이며 검토 문서 밖에 둡니다.
+The controller resolves the design path from the plan's `**Spec:**` and passes
+it as `--design`. If it cannot be resolved, omit `--design` and return
+`BLOCKED`. The recorder does not parse `**Spec:**`. When a run ends before
+`finish`, the `abandon` reason is one of `user-cancelled`, `input-changed`,
+`scope-changed`, `input-format-fixed`, or `other`. The `run_id` is
+controller-local and stays out of the reviewed documents.
 
-schema 4 발견에는 `source`(`reviewer`, `ledger-pass`, `machine-check`)와
-`repair_pass`가 들어갑니다. `repair_pass`는 `null` 또는 0..3입니다. `0`은 사전
-패스의 원장·기계 점검 수리이고, `null`은 이 호출이 수리하지 않은 발견입니다.
-`source`가 없는 발견과 정해진 어휘 밖의 `degraded_reasons`는 `schema-invalid`입니다.
-`finding.evidence`는 산문이 아니라 저장소 상대 경로의 목록입니다.
+A schema 4 finding carries `source` (`reviewer`, `ledger-pass`, or
+`machine-check`) and `repair_pass`. `repair_pass` is `null` or 0..3: `0` is a
+pre-pass ledger or machine-check repair, and `null` is a finding this
+invocation did not repair. A finding without `source`, or `degraded_reasons`
+outside the fixed vocabulary, is `schema-invalid`. `finding.evidence` is a list
+of repository-relative paths, not prose.
 
-기록기는 `~/.pre-sdd-review/runs/` 아래의 경로, 해시, Git 사실, 검증, 원자적
-파일 교체, 집계를 맡습니다. 의미 발견, 수정, 프로토콜 관찰, 판정은 검토자와
-컨트롤러만 맡습니다. 기록에는 저장소 상대 경로, 디렉터리 이름, `repo_key`,
-해시, 열거값, 정수, 시각, 짧은 요약 설명(paraphrase)만 넣습니다. 원문, 절대
-경로, 프롬프트, 공급자 대화, 명령 출력, 환경 값, 자격 증명, salt, 신원 경로
-재료는 넣지 않습니다. 로컬 파일은 서명된 audit log가 아닙니다.
+The recorder owns paths, hashes, Git facts, validation, atomic file
+replacement, and aggregation under `~/.pre-sdd-review/runs/`. Semantic
+findings, repairs, protocol observations, and verdicts belong only to the
+reviewer and the controller. Records hold only repository-relative paths,
+directory names, `repo_key`, hashes, enum values, integers, timestamps, and
+short paraphrases. They never hold source text, absolute paths, prompts,
+provider transcripts, command output, environment values, credentials, the
+salt, or identity path material. Local files are not a signed audit log.
 
-evidence home은 `.identity-salt`를 로컬 비공개 32-byte 상태로 두고, 변경에는
-`.identity.lock`과 `locks/<run-id>.lock`을 씁니다. 명령이 lock을 풀면 그 lock
-파일을 지웁니다. 정규화한 checkout 루트와 Git 디렉터리는 HMAC에만 들어가고,
-기록에는 유도한 `repo_key`와 `repo` 표시 이름만 남습니다. 옮긴 checkout, clone,
-다른 worktree, 잃어버린 salt, 다른 evidence home은 원래 결속이 아닙니다. lock은
-지원되는 OS locking이 필요합니다. 읽기 전용 `show`, `summary`, `--version`은
-locking이 필요 없습니다. Windows는 지원하지 않습니다.
+The evidence home keeps `.identity-salt` as private local 32-byte state and
+uses `.identity.lock` and `locks/<run-id>.lock` for mutations. When a command
+releases a lock, it deletes that lock file. The normalized checkout root and
+Git directory go only into the HMAC; records keep only the derived `repo_key`
+and the `repo` display name. A moved checkout, a clone, another worktree, a lost
+salt, or a different evidence home is not the original binding. Locks need
+supported OS locking. Read-only `show`, `summary`, and `--version` need no
+locking. Windows is not supported.
 
-`show`는 기록을 검증하고 원본 바이트를 돌려줍니다. `summary`는 필터 전 전체
-검사의 `invalid_records`와 `unsupported_records`를 보고합니다. `--repo`는
-`repo` 표시 이름만 거르고, `--last`는 유효한 순서 있는 기록을 고릅니다.
-`counts.verdict`는 본 완료 판정을 모두 포함하고, `normal_verdict`와
-`anomalous_verdict`는 관찰로 나눕니다. 이 값은 로컬 관찰이지 모델 품질 측정이나
-서명된 감사 주장이 아닙니다.
+`show` validates a record and returns its original bytes. `summary` reports
+`invalid_records` and `unsupported_records` from a full scan before filtering.
+`--repo` filters only on the `repo` display name, and `--last` picks valid
+ordered records. `counts.verdict` includes every completed verdict seen, and
+`normal_verdict` and `anomalous_verdict` split them by observation. These are
+local observations, not a model quality measure or a signed audit claim.
 
-입력 형태, 열거·개수 범위, 기록 크기, 필수 필드, 경로 제한은 계속 검증합니다.
-의미 검토는 기존 판정, 검토자, 발견, 수정 규칙을 따릅니다. 구조가 맞는 이탈은
-관찰 값으로 `anomalies`에 남고, evidence가 판정을 다시 쓰거나 변경 권위가 되지는
-않습니다.
+Input shape, enum and count ranges, record size, required fields, and path
+limits are always validated. The semantic review follows the existing verdict,
+reviewer, finding, and repair rules. A structurally valid deviation is kept as
+an observation in `anomalies`; evidence never rewrites a verdict or becomes
+authority to change anything.
 
-`outcome`은 컨트롤러 일이 아닙니다. SDD나 구현이 끝난 뒤 사람이나 SDD 작업자가
-라벨 하나(`good`, `false-ready`, `noisy`, `abandoned`)와 선택 메모를 남깁니다.
-`false-ready`는 `READY` 판정이 있어야 하고, 라벨은 다시 기록할 수 있습니다.
-`summary`는 에이전트용 JSON입니다. counts, cost, 계획별 chains, 반복 발견 패턴,
-anomalies에 각각 `run_id`가 붙습니다. 이 값으로 스킬을 자동 수정하거나,
-픽스처를 내보내거나, client/model 순위를 매기지 않습니다.
+`outcome` is not the controller's job. After SDD or implementation, a person or
+the SDD worker leaves one label (`good`, `false-ready`, `noisy`, `abandoned`)
+and an optional note. `false-ready` requires a `READY` verdict, and a label may
+be recorded again. `summary` is JSON for agents: counts, cost, per-plan chains,
+repeated finding patterns, and anomalies, each tagged with its `run_id`. These
+values never auto-edit the skill, export fixtures, or rank clients or models.
 
-## 함께 고칠 파일
+## Files to change together
 
-동작 변경을 한 파일에만 넣지 마세요.
+Never put a behavior change in only one file.
 
-- 권위 순서, 판정, 수리 한도, 검토자 역할: `skills/pre-sdd-review/SKILL.md`,
-  `references/reviewer-protocol.md`, 이 계약, `tests/products/pre-sdd-review/cases.json`,
-  제품 README
-- 기록기 명령·schema 4: `skills/pre-sdd-review/evidence/evidence.py`,
-  `evidence/README.md`, `tests/products/pre-sdd-review/evidence/`
-- 호스트 지원: `products.toml`, `compatibility.md`, 공개 안내, 해당 테스트.
-  이 작업에서 호스트 지원을 넓히지 않습니다.
+- Authority order, verdicts, repair limits, reviewer roles:
+  `skills/pre-sdd-review/SKILL.md`, `references/reviewer-protocol.md`, this
+  contract, `tests/products/pre-sdd-review/cases.json`, and the product READMEs.
+- Recorder commands and schema 4: `skills/pre-sdd-review/evidence/evidence.py`,
+  `evidence/README.md`, `tests/products/pre-sdd-review/evidence/`.
+- Host support: `products.toml`, `compatibility.md`, the public guides, and the
+  matching tests. This work does not widen host support.
 
-## 하지 않는 것
+## Not added
 
-아래는 명시적으로 추가하지 않습니다.
+These are explicitly not added:
 
 - closure-only input schema
 - evidence probe cache
 
-이번 판의 무효화는 컨트롤러 로컬 dirty 집합이 맡습니다.
+In this version, invalidation is handled by the controller-local dirty set.
 
-## 인계
+## Handoff
 
-`READY`이면 해결된 설계와 계획의 정확한 경로와 final fingerprints를 출력합니다.
-검토와 구현이 이어지는 흐름에서는 고치기 전 복사본이 아니라 최종 문서를 SDD
-작업자에게 넘깁니다.
+On `READY`, print the exact paths and final fingerprints of the resolved design
+and plan. In a review-then-implement flow, hand the SDD worker the final
+documents, not a pre-repair copy.
 
 ### SDD handoff
 
-바깥 요청이 구현을 명시하지 않으면 SDD를 시작하지 않습니다.
+Do not start SDD unless the outer request explicitly asks for implementation.
 
 ### Contract
 

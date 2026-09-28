@@ -1,246 +1,270 @@
-# sddx 호환성
+# sddx compatibility
 
-이 문서는 SDDx가 어느 프로그램에서 돌아가고, 구현은 어디에 넘기는지를 적습니다.
-호스트는 스킬을 실행하는 프로그램이고, 워커(worker)는 구현만 맡는 외부 CLI입니다.
+This document records which programs run SDDx and where it hands off the coding.
+A host is the program that runs the skill; a worker is the outside CLI that only
+does the implementation.
 
-현재 지원 호스트는 제품 목록의 `claude-code`, `codex`입니다. Cursor CLI와
-Grok CLI는 구현 워커이지 호스트가 아닙니다. 지원 범위와 현재 측정 상태는
-별개입니다. Claude.ai, Cowork, Skills API 업로드, marketplace 게시, 클라우드
-동기화는 지원하지 않습니다.
+The supported hosts are `claude-code` and `codex`, as listed in the product
+registry. Cursor CLI and Grok CLI are implementation workers, not hosts. What is
+supported and what has been measured are separate questions. Claude.ai, Cowork,
+Skills API upload, marketplace publication, and cloud sync are not supported.
 
-## 이 문서에서 찾을 수 있는 것
+## What is in this document
 
-- 지원 OS와 설치 링크 위치: 「지원 OS」, 「발견 경로」, 「호출 구문」
-- 오프라인 검사가 증명하는 범위: 「공급자 없는 증거」
-- Grok 워커에 주는 권한과 그 한계: 「Grok linked worktree 경계」
-- 호스트×워커 네 조합과 항목별 실제 측정 상태(`measured`는 실제로 관측함,
-  `not_measured`는 관측하지 않음): 「2.0.0 측정 상태」
-- 알려진 한계와 예전 관측: 「알려진 플랫폼·증거 한계」, 「1.0.x 관측 기록」
-- 라이브 실행을 증거로 쓰는 범위: 「라이브 증거 경계」
-- 새 호스트를 지원하려면: 「새 호스트 지원」
-- MCP 도구 필터를 고른 경위와 남긴 판단: 「2026-09-14 MCP 도구 필터를 넣게 된 경위」
+- Supported OS and install links: "Supported OS", "Discovery paths", "Invocation"
+- What the offline checks prove: "Evidence without a provider"
+- What access a Grok worker gets and its limits: "Grok linked worktree boundary"
+- The four host x worker pairs and per-item measurement state (`measured` means
+  observed for real, `not_measured` means not observed): "2.0.0 measurement state"
+- Known limits and older observations: "Known platform and evidence limits",
+  "1.0.x observations"
+- How far live runs count as evidence: "Live evidence boundary"
+- Adding a host: "Supporting a new host"
+- Why the MCP tool filter was added and the calls left open: "2026-09-14: how the
+  MCP tool filter came in"
 
-## 지원 OS
+## Supported OS
 
-지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다. CI는 Ubuntu에서
-전체 검증을 돌릴 수 있습니다. 그 통과는 Linux 지원이 아니고 macOS 지원
-증거도 아닙니다.
+The supported OS is macOS only. Windows and Linux are unsupported. CI can run the
+full check on Ubuntu. That pass is not Linux support and is not macOS support
+evidence.
 
-## 발견 경로
+## Discovery paths
 
 ```text
-skills/sddx/              저장소 원본
+skills/sddx/              repository source
 ├─ ~/.agents/skills/sddx ─→ Codex
 └─ ~/.claude/skills/sddx ─→ Claude Code
 ```
 
-`~/.codex`와 `~/.grok`에 복사본을 만들지 마세요. Cursor와 Grok을
-`supported_hosts`에 넣지 않습니다.
+Do not create copies in `~/.codex` or `~/.grok`. Do not add Cursor or Grok to
+`supported_hosts`.
 
-## 호출 구문
+## Invocation
 
-| 호스트 | 명시 호출 | 발견 경로 |
+| Host | Explicit call | Discovery path |
 | --- | --- | --- |
 | Codex | `$sddx` | `~/.agents/skills/sddx` |
 | Claude Code | `/sddx` | `~/.claude/skills/sddx` |
 
-`agents/openai.yaml`은 Codex 표시 메타데이터이며 선택적입니다. 런타임 필수
-파일이 아닙니다.
-`agents/sddx-reviewer-xhigh.md`는 성격이 다릅니다. Claude Code 런타임 정의이고
-`agents/*.md` 기본 스캔으로 전달됩니다. `plugin.json`에 `agents` 키를 두면
-`plugin details`가 Agents (0)을 보고하므로 두지 않습니다. Task 이름은
-`sddx:sddx-reviewer-xhigh`입니다. `--agent sddx-reviewer-xhigh`는 CLI 별칭으로
-로드됩니다. 맨 이름만으로 Task를 부르면 찾지 못합니다.
-`disallowedTools`(Edit, Write, NotebookEdit)는 로드된 세션 도구 목록에서
-빠집니다. Task 자식 트랜스크립트는 `effort: xhigh`를 기록합니다.
+`agents/openai.yaml` is optional Codex display metadata, not a required runtime
+file.
+`agents/sddx-reviewer-xhigh.md` is different. It is a Claude Code runtime
+definition, picked up by the default `agents/*.md` scan. Do not add an `agents`
+key to `plugin.json`: with it, `plugin details` reports Agents (0). The Task name
+is `sddx:sddx-reviewer-xhigh`. `--agent sddx-reviewer-xhigh` loads it as a CLI
+alias. A Task call with the bare name finds nothing.
+`disallowedTools` (Edit, Write, NotebookEdit) are removed from the loaded
+session's tool list. The Task child transcript records `effort: xhigh`.
 
-사용자 프로젝트의 `.claude/agents/`에 같은 이름의 정의가 있으면 그쪽이 우선합니다.
-제품 접두사를 붙인 이름 외에 방어 수단이 없습니다.
+A definition with the same name in the user project's `.claude/agents/` wins.
+The product-prefixed name is the only defense.
 
-## 공급자 없는 증거
+## Evidence without a provider
 
-필수 증거는 `python3 scripts/verify.py --skill sddx`입니다. 이 명령은
-패키지 정체, resolver 픽스처, sandbox 준비·복원을 검사합니다. 라이브 모델 품질과
-지원 호스트 런타임 동등은 증명하지 않습니다.
+The required evidence is `python3 scripts/verify.py --skill sddx`. It checks
+package identity, resolver fixtures, and sandbox prepare and restore. It does not
+prove live model quality or runtime parity across the supported hosts.
 
-## Grok linked worktree 경계
+## Grok linked worktree boundary
 
-Grok linked worktree(추가 작업 트리) 실행은 Python 3.11+가 필요합니다. 임시 작업
-프로파일은 `workspace`를 상속하고, 현재 작업 트리의 실제 Git 디렉터리와 공용 Git
-디렉터리에 쓰기 권한을 추가합니다. 워커가 커밋하려면 이 권한이 필요하며, 그만큼
-워커가 저장소의 공유 Git 메타데이터를 쓸 수 있다는 뜻입니다. 준비 도구가 만든
-설정과 복원 상태는 커밋하지 않고 워커 종료 뒤 정리합니다.
+A Grok run in a linked worktree (one added with `git worktree`) needs Python
+3.11+. The temporary profile inherits `workspace` and adds write access to the
+current worktree's real Git directory and the shared Git directory. The worker
+needs that access to commit, which also means it can write the repository's
+shared Git metadata. The settings and restore state the prepare tool creates are
+not committed and are cleaned up after the worker ends.
 
-외부 스킬·전체 계획을 읽지 못하게 하는 제한은 워커 프롬프트의 지침입니다. Grok은
-추가로 CLI에서 MCP 호출 도구를 빼고 MCP 권한 거절 규칙을 넘깁니다. 이는 모든
-초기화나 셸·파일 접근을 막는 격리가 아니며, 역할 이탈이 불가능하다는 보장도
-아닙니다.
+Keeping the worker away from outside skills and the full plan is an instruction
+in the worker prompt. Grok also drops the MCP call tools at the CLI and passes an
+MCP permission deny rule. This is not isolation that blocks every
+initialization, shell, or file access, and it does not guarantee the worker
+cannot leave its role.
 
-## 2.0.0 측정 상태
+## 2.0.0 measurement state
 
-현재 제품 버전은 `7.0.1`입니다. 아래 표의 워커 칸은 `2.0.0`대 CLI로 측정한
-기록이며, 이후 버전에서 다시 채우지 않았습니다.
+The current product version is `7.0.2`. The worker columns below were measured
+with `2.0.0`-era CLIs and have not been refilled since.
 
-- 7.0.1, 7.0.0, 6.0.0은 워커 모델 계약을 바꾸지 않습니다.
-- 5.0.0은 워커를 Grok 4.7로 고정하고 `-fast` 변형을 뺐지만, 표의 워커 칸은
-  바꾸지 않습니다.
-- 4.0.3에서 현재 Cursor `2026.09.15-d2fe57e`와 Grok `1.0.34`로 `run_worker.py`
-  스모크를 다시 돌렸습니다. 호스트×워커 네 조합 품질 표는 그 스모크로 바꾸지
-  않습니다.
+- 7.0.2, 7.0.1, 7.0.0, and 6.0.0 do not change the worker model contract.
+- 5.0.0 pinned workers to Grok 4.7 and dropped the `-fast` variants, but did not
+  change the worker columns in the table.
+- 4.0.3 re-ran the `run_worker.py` smoke with current Cursor
+  `2026.09.15-d2fe57e` and Grok `1.0.34`. That smoke does not change the quality
+  table for the four host x worker pairs.
 
-네 조합 모두 제품 소유자 승인 아래 실제 공급자를 호출했습니다. 측정 환경은
-모두 macOS 26.6.2 arm64입니다. Cursor는 `cursor-agent 2026.09.10-fd3934a`,
-모델 `cursor-grok-4.6-high`입니다. Grok은 `grok 1.0.30 (04b7ffed98c6)`으로
-모델 인자를 받지 않습니다. Grok은 모델을 스스로 고르며 init 이벤트가 보고한
-모델은 `grok-4.6`입니다.
+All four pairs called real providers with the product owner's approval. Every
+run was on macOS 26.6.2 arm64. Cursor was `cursor-agent 2026.09.10-fd3934a` with
+model `cursor-grok-4.6-high`. Grok was `grok 1.0.30 (04b7ffed98c6)`, which takes
+no model argument; Grok picks its own model, and the init event reported
+`grok-4.6`.
 
-시도는 MCP 도구 필터가 들어가기 전(`bfd1cda`까지)과 후로 나뉩니다. 보완 전은
-Claude Code 호스트에서 Cursor 세 번·Grok 두 번, Codex 호스트에서 Cursor 두 번·
-Grok 두 번입니다. 보완 후는 Claude Code 호스트에서 Cursor 두 번·Grok 두 번,
-Codex 호스트에서 Grok 두 번과 Cursor 재개 한 번입니다. 각 줄은 자기가 어느 쪽을
-관측했는지 밝히며, 관측한 조합의 결과를 나머지로 넓히지 않습니다.
+Attempts split into before the MCP tool filter (up to `bfd1cda`) and after it.
+Before: on the Claude Code host, Cursor three times and Grok twice; on the Codex
+host, Cursor twice and Grok twice. After: on the Claude Code host, Cursor twice
+and Grok twice; on the Codex host, Grok twice and one Cursor resume. Each row
+says which side it observed and does not extend its result to the others.
 
-| 오케스트레이터 호스트 | 구현 워커 | `2.0.0` 실제 실행 | 근거 |
+| Controller host | Implementation worker | `2.0.0` live run | Basis |
 | --- | --- | --- | --- |
-| Claude Code | Cursor CLI | `measured` | 보완 전 worker 시도 세 번, 보완 후 신규·재개 두 번이 각각 브리핑된 작업을 구현하고 브리프의 테스트를 실행하고 커밋한 뒤 `report.md`를 직접 씀. 보완 후 두 번은 같은 `session_id`를 보고했고, 읽어 본 report는 계약이 요구하는 항목(상태, 변경 파일, RED·GREEN exit 코드를 포함한 worker 검사, 커밋 SHA, 범위 이탈)을 담고 있었음 |
-| Claude Code | Grok CLI | `measured` | `prepare_grok_sandbox.py prepare` → `run_worker.py run` → `--resume` → `cleanup` 한 바퀴를 보완 전 일반 체크아웃에서, 보완 후 linked worktree에서 각각 돌림. 네 시도 모두 구현·테스트·커밋·`report.md` 작성을 마쳤고, 각 바퀴의 두 시도는 같은 `session_id`를 보고했음. 읽어 본 report는 계약이 요구하는 항목을 담고 있었음 |
-| Codex | Cursor CLI | `measured` | Codex 세션이 controller로 신규·재개 두 번을 실행해 구현·RED exit 1 → GREEN exit 0·worker 직접 커밋(`6c244d5`, `bffd2f9`)을 마쳤고, 보완 후 러너에서 재개 한 번을 더 실행함. 이 저장소 관리자가 직접 관측한 것이 아니라 Codex가 남긴 `trace-audit.json`과 attempt별 `run.json`을 읽어 확인한 기록이며 원본은 로컬 증거 디렉터리에만 있음 |
-| Codex | Grok CLI | `measured` | 위와 같은 방식으로 신규·재개 두 번(`033cb04`, `85ade8f`), 보완 후 최종 필터로 신규·재개 두 번을 더 실행함. 마찬가지로 Codex가 남긴 기록을 읽어 확인함 |
+| Claude Code | Cursor CLI | `measured` | Three worker attempts before the fix and two after (new and resumed) each implemented the briefed task, ran the brief's tests, committed, and wrote `report.md` themselves. The two after the fix reported the same `session_id`, and the reports read contained the items the contract requires (status, changed files, worker checks with RED and GREEN exit codes, commit SHA, scope departures) |
+| Claude Code | Grok CLI | `measured` | One full `prepare_grok_sandbox.py prepare` → `run_worker.py run` → `--resume` → `cleanup` cycle in a plain checkout before the fix and one in a linked worktree after. All four attempts finished implementation, tests, commit, and `report.md`, and the two attempts in each cycle reported the same `session_id`. The reports read contained the items the contract requires |
+| Codex | Cursor CLI | `measured` | A Codex session as controller ran new and resumed attempts that implemented the task, went RED exit 1 → GREEN exit 0, and committed from the worker (`6c244d5`, `bffd2f9`); one more resume ran on the fixed runner. The repository maintainer did not observe this directly: it was confirmed by reading the `trace-audit.json` and per-attempt `run.json` files Codex left, and the originals are only in a local evidence directory |
+| Codex | Grok CLI | `measured` | The same way: new and resumed attempts (`033cb04`, `85ade8f`), then new and resumed attempts again with the final filter. Also confirmed from the records Codex left |
 
-항목별로도 측정한 것과 측정하지 않은 것을 나눠 적습니다. `measured` 줄은 각 줄이
-밝힌 조합에서 관측한 사실이며 그 이상을 뜻하지 않습니다.
+Items are also split into measured and not measured. A `measured` row is what was
+observed in the pair that row names, and nothing more.
 
-| 항목 | `2.0.0` 상태 | 근거 |
+| Item | `2.0.0` state | Basis |
 | --- | --- | --- |
-| 실제 Cursor 승인 동작 | `measured` | resolver가 만든 argv(`--print --trust --auto-review --sandbox enabled`)로 파일 쓰기·테스트 실행·`git commit`을 포함한 도구 호출 22개가 stdin `DEVNULL`, 대화형 프롬프트 없이 실행됨. 스트림의 init 이벤트는 `permissionMode: "default"` |
-| 모델 ID 수락과 `configured_effort` 기록 | `measured` | `--effort high`와 `--model cursor-grok-4.6-high` 요청에 init 이벤트가 표시 이름 `"model": "Cursor Grok 4.6 High"`로 그 모델 ID를 받아들였음을 알렸고, `run.json`의 `configured_effort` `high`는 러너가 같은 ID에서 읽어 적은 값. 공급자가 어떤 ID를 수락했는지의 관측이며 모델이 적용한 effort의 관측이 아님 |
-| session ID 회수와 `--resume` | `measured` | Cursor와 Grok 양쪽에서, 실제 스트림에서 회수한 `session_id`를 `--resume`으로 돌려주자 같은 `session_id`를 보고하는 시도가 돌아왔고 worker가 작업을 이어감 |
-| 실제 worker의 타임아웃 | `measured` | 실제 worker에 `--timeout 5`를 걸어 래퍼 exit 124, `state: timed_out`, `exit_code: 143`, `session_id` 기록을 확인했고 그 시도가 남긴 프로세스는 없음 |
-| 시도 생성 전 거절 | `measured` | effort와 모델 ID의 모순, 그리고 `--timeout inf`가 각각 시도 디렉터리가 만들어지기 전에 exit 2와 `BLOCKED:` 줄로 거절됨 |
-| 실제 Cursor OS 격리 | `not_measured` | `--sandbox enabled`는 선언 확인이며 실제 격리 범위를 측정하지 않음 |
-| 모델이 실제 적용한 effort | `not_measured` | 요청·설정 effort만 기록하며 적용값을 확인할 경로가 없음. 이번 라이브 실행도 그 경로를 만들지 않았고, 모델 ID 수락 확인은 적용값의 증거가 아님 |
-| Grok 스트림 형태 | `measured` | `streaming-messages-json` 스트림 두 개(19줄, 17줄)를 관측함. 두 스트림 모두 전 줄이 JSON object로 파싱되고 전 줄이 `session_id` 키를 가졌으며, 다른 철자의 세션 키는 없었음. 첫 줄은 둘 다 `system`/`init`이고 이는 같은 자리에서 관측한 Cursor 스트림의 첫 줄과 같은 철자 |
-| Grok sandbox 프로파일 왕복 | `measured` | `prepare`가 `.grok/sandbox.toml`에 `sddx-worktree` 프로파일(`extends = "workspace"`)을 만들고 `cleanup`이 자기가 만든 `.grok`을 지움. 일반 체크아웃에서는 `read_write`가 빈 목록이었고, linked worktree에서는 실제 Git 디렉터리와 공용 Git 디렉터리 두 개가 들어갔음. 위 「Grok linked worktree 경계」가 말하는 쓰기 권한 부여 경로가 그 실행에서 동작했고, worker가 linked worktree 안에서 직접 커밋을 남겼음. 커밋에는 과제 파일만 들어갔고 증거·sandbox 파일은 커밋되지 않음 |
-| Grok sandbox의 실제 격리 | `not_measured` | 프로파일이 만들어지고 인자로 전달된 것까지만 확인했으며 그 프로파일이 무엇을 실제로 막았는지는 측정하지 않음 |
-| Grok의 실제 effort 인자 | `measured` | resolver가 고른 `--reasoning-effort high`가 실제로 명령줄에 실려 실행됐고 `run.json`의 `configured_effort`는 `high`. 명령줄에 실린 요청값의 관측이며 모델이 적용한 effort의 관측이 아님 |
-| Grok MCP 호출 도구 제거 | `measured` | 보완 후 실행의 init 이벤트 도구 목록 23개에 `search_tool`과 `use_tool`이 없음. 신규와 재개 양쪽에서 확인했고, 도구 제거는 CLI가 한 것이므로 지침이 아니라 강제임 |
-| Grok 하위 에이전트 경계의 강제 여부 | `not_measured` | 같은 init 이벤트는 `--no-subagents`를 넘긴 뒤에도 `spawn_subagent`를 도구 목록에 싣고, 호스트 skill 전부와 MCP 서버 세 개(`context7`, `x-docs`, `playwright-sandboxed`)를 connected로 보고함. `Agent`/`task` 그룹 제외는 명령 결과 조회·종료 도구까지 없애므로 채택하지 않았음. 관측한 시도에서 하위 에이전트 호출이 없었던 것은 모델이 지시를 따랐기 때문이며 CLI가 막았다는 증거는 아님 |
-| MCP 서버 목록 표시 | `measured` | 도구 필터를 넣은 뒤에도 init 이벤트는 서버 세 개를 여전히 connected로 보고함. 이 목록은 실제 연결이나 호출의 증거가 아니며, 호출 도구가 사라졌다는 사실과 서로 모순되지 않음 |
-| MCP discovery 환경 변수의 효과 | `not_measured` | runner는 Grok 자식에만 `GROK_CURSOR_MCPS_ENABLED=0`과 `GROK_CLAUDE_MCPS_ENABLED=0`을 설정함. 이 변수가 전달된다는 사실은 오프라인 검사로 확인했으나, 이 저장소에서 관측한 Grok 시도는 보완 전후 모두 stderr가 0바이트여서 효과를 가를 수 없었음. handshake 실패 4건에서 0건으로 줄었다는 관측은 Codex가 남긴 원인 분리 probe 기록이며 여기서 재현하지 않음. 변수 이름은 공급자 내부 규약이라 Grok이 이름을 바꾸면 오류 없이 조용히 무력해짐 |
-| Grok 도구 필터 옵션 요구 | `measured` | resolver는 값을 받는 `--disallowed-tools`와 `--deny` 선언을 요구하고, 없으면 `missing_flags`로 실행을 거절함. 설치된 `grok 1.0.30`의 help는 `--deny <RULE>`과 `--disallowed-tools <TOOLS>`로 선언하며 실제 해석 결과 `available: true`. 이 판정은 그 help 표기에만 맞춰져 있어, 같은 옵션을 다른 표기로 적는 빌드는 실행 가능한데도 거절됨 |
-| `read_session_id`의 대체 키 철자 | `not_measured` | 두 공급자 모두에서 `session_id`로 세션 ID를 회수했고 Grok 스트림에는 다른 철자가 없었음. 이 키를 먼저 보므로 `sessionId`·`chatId`·`chat_id` 분기는 실행된 적이 없음 |
-| Claude Code agent 정의 로딩 | `measured` | Claude Code `2.1.258`. 파일이 `agents/sddx-reviewer-xhigh.md`이고 `plugin.json`에 `agents` 키가 없으면 `claude plugin details sddx@skills-dir`가 Agents (1) `sddx-reviewer-xhigh`를 보고, 목록 이름은 `sddx:sddx-reviewer-xhigh`. Task 맨 이름은 spawned 0, 등록 이름은 spawned 1. `--agent sddx-reviewer-xhigh`는 CLI 별칭 |
-| Claude Code `disallowedTools` | `measured` | `--agent sddx-reviewer-xhigh` 세션 init 도구 목록에 Write, Edit, NotebookEdit가 없고 Read는 있다. Write로 probe.txt를 만들라는 요청에 파일이 생기지 않았고 응답은 `BLOCKED Write`. permission_denials는 빈 목록(목록에서 빠짐) |
-| Claude Code reviewer 적용 effort | `measured` | 부모 세션 effort는 high. Task `sddx:sddx-reviewer-xhigh` 자식 트랜스크립트 어시스턴트 이벤트가 `effort: xhigh`를 기록함 |
-| 현재 Cursor/Grok `run_worker.py` 스모크 | `measured` | Cursor `2026.09.15-d2fe57e` 모델 `cursor-grok-4.6-high`, Grok `1.0.34` prepare→run→cleanup. 둘 다 `state: exited`, `exit_code: 0`, `report.md` `DONE`, session_id 회수. 호스트×워커 네 조합 품질을 이 스모크로 바꾸지 않음 |
-| 새 세션 전환과 일반 역할 준수 | `not_measured` | 위에 센 시도 밖의 역할 준수와 세션 전환은 관측하지 않음. 관측한 시도에서는 worker가 브리프의 잘못된 검사 명령을 실행해 실패를 확인하고 그 사실을 보고서에 적은 뒤 유효한 방법으로 RED·GREEN을 다시 냈음 |
+| Real Cursor approval behavior | `measured` | With the resolver's argv (`--print --trust --auto-review --sandbox enabled`), 22 tool calls including file writes, test runs, and `git commit` ran with stdin `DEVNULL` and no interactive prompt. The stream's init event had `permissionMode: "default"` |
+| Model ID acceptance and `configured_effort` record | `measured` | For `--effort high` and `--model cursor-grok-4.6-high`, the init event showed the display name `"model": "Cursor Grok 4.6 High"`, so the model ID was accepted; `configured_effort` `high` in `run.json` is what the runner read from that same ID. This observes which ID the provider accepted, not the effort the model applied |
+| Session ID capture and `--resume` | `measured` | On both Cursor and Grok, passing the `session_id` captured from the real stream back through `--resume` returned an attempt reporting the same `session_id`, and the worker continued the task |
+| Timeout on a real worker | `measured` | A real worker with `--timeout 5` gave wrapper exit 124, `state: timed_out`, `exit_code: 143`, and a recorded `session_id`; the attempt left no processes |
+| Refusal before an attempt exists | `measured` | An effort and model ID that contradict each other, and `--timeout inf`, were each refused with exit 2 and a `BLOCKED:` line before the attempt directory was created |
+| Real Cursor OS isolation | `not_measured` | `--sandbox enabled` is a declaration check; the real isolation scope was not measured |
+| Effort the model actually applied | `not_measured` | Only the requested and configured effort are recorded; there is no way to see the applied value. These live runs did not create one either, and model ID acceptance is not evidence of the applied value |
+| Grok stream shape | `measured` | Two `streaming-messages-json` streams (19 and 17 lines) were observed. In both, every line parsed as a JSON object and had a `session_id` key, with no other spelling of the session key. Both first lines were `system`/`init`, spelled the same as the first line of the Cursor stream observed in the same place |
+| Grok sandbox profile round trip | `measured` | `prepare` created the `sddx-worktree` profile (`extends = "workspace"`) in `.grok/sandbox.toml`, and `cleanup` removed the `.grok` it created. In a plain checkout `read_write` was an empty list; in a linked worktree it held the real Git directory and the shared Git directory. The write-access path described in "Grok linked worktree boundary" above worked in that run, and the worker committed from inside the linked worktree. The commits held only task files; no evidence or sandbox files were committed |
+| Real isolation of the Grok sandbox | `not_measured` | Only that the profile was created and passed as an argument was checked; what it actually blocked was not measured |
+| Grok's real effort argument | `measured` | The resolver's `--reasoning-effort high` was really on the command line, and `configured_effort` in `run.json` was `high`. This observes the requested value on the command line, not the effort the model applied |
+| Grok MCP call tools removed | `measured` | After the fix, the init event's 23-tool list had no `search_tool` or `use_tool`. Checked on both new and resumed attempts. The CLI removed the tools, so this is enforced, not an instruction |
+| Whether the Grok subagent boundary is enforced | `not_measured` | The same init event still lists `spawn_subagent` after `--no-subagents`, and reports every host skill and three MCP servers (`context7`, `x-docs`, `playwright-sandboxed`) as connected. Excluding the `Agent`/`task` groups was not adopted because it also removes the tools that read and end command output. No subagent calls in the observed attempts means the model followed instructions, not that the CLI blocked them |
+| MCP server list shown | `measured` | With the tool filter in place, the init event still reports the three servers as connected. That list is not evidence of a real connection or call, and does not contradict the call tools being gone |
+| Effect of the MCP discovery environment variables | `not_measured` | The runner sets `GROK_CURSOR_MCPS_ENABLED=0` and `GROK_CLAUDE_MCPS_ENABLED=0` only for the Grok child. Offline checks confirm they are passed, but every Grok attempt observed in this repository, before and after the fix, had 0 bytes of stderr, so the effect could not be told apart. The drop from 4 handshake failures to 0 comes from a Codex cause-isolation probe record and was not reproduced here. The names are a provider-internal convention: if Grok renames them, they silently stop working with no error |
+| Required Grok tool filter options | `measured` | The resolver requires `--disallowed-tools` and `--deny` declared as taking values, and refuses with `missing_flags` otherwise. The installed `grok 1.0.30` help declares `--deny <RULE>` and `--disallowed-tools <TOOLS>`, and resolution gave `available: true`. The check matches only that help spelling, so a build that writes the same options differently is refused even though it would work |
+| Fallback key spellings in `read_session_id` | `not_measured` | Both providers gave the session ID as `session_id`, and the Grok stream had no other spelling. That key is checked first, so the `sessionId`, `chatId`, and `chat_id` branches have never run |
+| Claude Code agent definition loading | `measured` | Claude Code `2.1.258`. With the file at `agents/sddx-reviewer-xhigh.md` and no `agents` key in `plugin.json`, `claude plugin details sddx@skills-dir` reports Agents (1) `sddx-reviewer-xhigh`, listed as `sddx:sddx-reviewer-xhigh`. The bare Task name spawned 0, the registered name spawned 1. `--agent sddx-reviewer-xhigh` is a CLI alias |
+| Claude Code `disallowedTools` | `measured` | The `--agent sddx-reviewer-xhigh` session's init tool list has no Write, Edit, or NotebookEdit, and has Read. Asked to create probe.txt with Write, no file appeared and the reply was `BLOCKED Write`. permission_denials was an empty list (the tools were removed from the list) |
+| Effort applied to the Claude Code reviewer | `measured` | The parent session effort was high. The assistant events in the Task `sddx:sddx-reviewer-xhigh` child transcript record `effort: xhigh` |
+| Current Cursor/Grok `run_worker.py` smoke | `measured` | Cursor `2026.09.15-d2fe57e` with model `cursor-grok-4.6-high`, and Grok `1.0.34` prepare → run → cleanup. Both gave `state: exited`, `exit_code: 0`, `report.md` `DONE`, and a captured session_id. This smoke does not change the quality of the four host x worker pairs |
+| New-session switching and general role compliance | `not_measured` | Role compliance and session switching outside the attempts counted above were not observed. In the observed attempts, the worker ran a wrong check command from the brief, saw it fail, wrote that in the report, and then produced RED and GREEN again a valid way |
 
-## 알려진 플랫폼·증거 한계
+## Known platform and evidence limits
 
-Windows는 미지원이며 제품 CLI가 거절합니다.
+Windows is unsupported, and the product CLIs refuse it.
 
-Grok의 `--rules`는 시도 디렉터리에 보존되지 않습니다. 규칙 본문이 명령줄로만
-전달되고 스펙이 시도 디렉터리를 정확히 여섯 파일로 고정하므로,
-`skills/sddx/references/worker-prompt.md`를 고치면 과거 Grok 시도를 저장된 증거만으로
-그대로 재현할 수 없습니다. 이는 여섯 파일 계약이 강제한 결과이지 누락이 아닙니다.
+Grok's `--rules` are not kept in the attempt directory. The rule text goes only on
+the command line, and the spec fixes the attempt directory at exactly six files,
+so after `skills/sddx/references/worker-prompt.md` changes, a past Grok attempt
+cannot be reproduced exactly from the saved evidence alone. This is a result of
+the six-file contract, not an omission.
 
-## 1.0.x 관측 기록
+## 1.0.x observations
 
-아래 관측은 모두 `1.0.x` 설치 파일의 기록이며 `2.0.0`의 증거가 아닙니다. 당시
-`Codex × Grok CLI`는 1.0.3에서 실제 2회 호출, 10/8 tests, 파일명·설정 조회의 none
-보고와 경로 지정 검색을 확인했습니다. 같은 시점의 `Codex × Cursor`와
-`Claude Code × Cursor 또는 Grok`은 그때도 `not_measured`였습니다.
+Everything below records `1.0.x` installed files and is not evidence for
+`2.0.0`. At the time, `Codex × Grok CLI` in 1.0.3 was confirmed with two real
+calls, 10/8 tests, "none" reports for file name and config lookups, and
+path-scoped search. `Codex × Cursor` and `Claude Code × Cursor or Grok` were
+`not_measured` then as well.
 
-1.0.1 최초 fixture에서는 세 호출, 최종 14 tests, 역할 위반 미관측을 확인했습니다.
-이후 독립된 두 fixture에서 각각 세 호출을 다시 측정했으며 최종 15/14 tests와
-커밋·복원은 성공했지만, 새 세션의 전체 계획 읽기가 재현됐습니다. 기존 sandbox
-설정의 바이트와 0640 권한도 후속 실제 호출마다 복원됐습니다. 이전 성공 표본을
-현재의 전면 통과나 역할 준수 보장으로 해석하지 않습니다.
+The first 1.0.1 fixture confirmed three calls, 14 final tests, and no observed
+role violation. Two later independent fixtures were each measured again with
+three calls; final 15/14 tests, commits, and restore succeeded, but a new session
+reading the full plan was reproduced. The existing sandbox config's bytes and
+0640 mode were also restored after every later real call. Do not read earlier
+successful samples as a full pass today or a guarantee of role compliance.
 
-1.0.2는 brief 경계·보고·도구 기록 판정과 리뷰 모델 상속을 보완합니다.
-리뷰어는 호스트 네이티브로 현재 오케스트레이터 모델을 따르고, High/XHigh를 따로
-지정합니다. 호스트에서 해당 제어를 지원하지 않으면 한계를 보고합니다.
-최종 문구의 새 세 호출은 15 tests와 직접 커밋·재개·복원을 통과했고 계획 내용
-노출은 관측되지 않았습니다. 파일명·ignore 규칙 확인에 대한 마지막 worker의
-DONE_WITH_CONCERNS는 실제 기록과 독립 리뷰에 근거한 기존 ruling으로 수용했습니다.
-검색 노출이 있었던 초기 candidate는 별도 실패 기록으로 남습니다.
-1.0.3은 파일명 목록·작업에 필요한 설정 직접 읽기의 허용과 none 보고 기준을
-명시합니다. 새 두 세션에서 실제 해당 조회와 native/shell 내용 검색을 함께 수행하고,
-각각 10개·8개 테스트 및 설정 복원을 확인했습니다. 두 원본 보고는 허용된 조회를
-공개하고도 불필요한 scope concern 없이 DONE/none이었습니다. 이는 해당 fixture의
-관측이며 일반적인 준수율이나 강제 파일 접근 차단을 증명하지 않습니다.
-Claude Code의 모델·effort 대응과 Cursor event trace는 그때도 실제 실행
-미측정이었습니다. 재현 절차와 버전별 관측은 [테스트](testing.md)에 있습니다.
+1.0.2 tightened the brief boundary, reporting, tool-record rulings, and review
+model inheritance. Reviewers run host-native on the current controller model and
+set High/XHigh separately. When the host does not support that control, the
+limit is reported. Three new calls on the final wording passed 15 tests and
+direct commit, resume, and restore, with no plan content exposed. The last
+worker's DONE_WITH_CONCERNS about checking file names and ignore rules was
+accepted under an existing ruling based on the real record and an independent
+review. The early candidate that exposed search results stays as a separate
+failure record.
+1.0.3 spells out that listing file names and directly reading config needed for
+the task are allowed, and when to report "none". Two new sessions actually did
+those lookups together with native and shell content search, and confirmed 10 and
+8 tests and config restore. Both original reports disclosed the allowed lookups
+and still said DONE/none with no needless scope concern. This is what those
+fixtures showed; it does not prove a general compliance rate or enforced file
+access blocking.
+Claude Code's model and effort mapping and the Cursor event trace were still not
+measured in a live run then. Reproduction steps and per-version observations are
+in [Testing](testing.md).
 
-## 라이브 증거 경계
+## Live evidence boundary
 
-라이브 실행은 로컬, 명시적, 선택적이며 비용이 들 수 있습니다. CI가 요구하지
-않습니다. 페이로드 계약 통과를 라이브 호출 증거로 설명하지 마세요.
+Live runs are local, explicit, optional, and may cost money. CI does not require
+them. Do not describe a passing payload contract as evidence of a live call.
 
-## 새 호스트 지원
+## Supporting a new host
 
-새 지원을 레지스트리와 공개 안내에 넣으려면 실제 관측 증거와 별도 지원
-결정이 필요합니다. 지원 범위를 바꾸기로 결정한 경우에만 `products.toml`,
-공개 안내, 테스트를 함께 고치세요. 공유 사용자 안내는
-[호환성](../../../users/ko/compatibility.md)을 보세요.
+Adding support to the registry and public guides needs real observed evidence and
+a separate support decision. Only after deciding to change support, update
+`products.toml`, the public guides, and the tests together. The shared user
+guide is [Compatibility](../../../users/en/compatibility.md).
 
-## 2026-09-14 MCP 도구 필터를 넣게 된 경위
+## 2026-09-14: how the MCP tool filter came in
 
-위 표는 2.0.0대 측정 기록이고, 이 절은 그 기록에 이르기까지의 경위와 버린
-선택지를 남깁니다.
+The tables above are the 2.0.0-era record. This section keeps how that record came
+about and the options dropped along the way.
 
-macOS의 실제 Codex controller에서 별도 합성 저장소와 linked worktree를 사용했습니다.
-보완 전 `d7e16ca`의 Cursor 신규·재개 2회와 Grok 신규·재개 2회는 모두 구현·테스트·
-worker 직접 커밋·보고서 작성을 완료했습니다. 최종 독립 테스트는 Cursor 10개,
-Grok 11개였으며 공백 문자 29개와 잘못된 타입 6개도 추가 검사했습니다.
+The runs used a real Codex controller on macOS, with a separate synthetic
+repository and a linked worktree. Before the fix, at `d7e16ca`, two Cursor runs
+(new and resumed) and two Grok runs (new and resumed) all finished
+implementation, tests, a direct worker commit, and the report. The final
+independent tests were 10 for Cursor and 11 for Grok, plus extra checks for 29
+whitespace characters and 6 wrong types.
 
-경고 원인은 Grok이 Cursor MCP 설정을 가져와 `playwright-sandboxed` 초기화를
-시도하는 것이었습니다. 전역 설정 변경 대신 자식 환경의 compatibility 변수 두 개를
-끄는 방식을 채택했습니다. 모델 이름·인증·세션 저장소는 그대로 유지됩니다.
+The warning came from Grok importing the Cursor MCP config and trying to start
+`playwright-sandboxed`. Instead of changing global settings, the fix turns off two
+compatibility variables in the child environment. Model names, auth, and session
+stores stay as they are.
 
-`Agent`/`task` 도구 그룹 제외는 명령 결과 조회·종료 도구까지 제거해서 채택하지
-않았습니다. 실제 도구 이름 `spawn_subagent`만 제외하는 시도도 생성 도구를 없애지
-못했습니다. 최종 필터는 `search_tool,use_tool`만 제외하고 `MCPTool(*)` 거절을
-전달합니다. 하위 에이전트·예약 작업의 강제 차단은 이번 변경의 보장이 아닙니다.
+Excluding the `Agent`/`task` tool groups was not adopted because it also removed
+the tools that read and end command output. Excluding only the real tool name
+`spawn_subagent` did not remove the spawn tool either. The final filter excludes
+only `search_tool,use_tool` and passes a `MCPTool(*)` deny rule. Enforced
+blocking of subagents and scheduled jobs is not a promise of this change.
 
-최종 도구 필터로 시작한 새 Grok 세션에서 13개 테스트와 실제 background shell을
-실행했습니다. `get_command_or_subagent_output`으로 `BG_PROBE_OK` 출력,
-`completed`, exit 0을 회수했고 도구 호출·결과 9/9를 대조했습니다. 도구 목록에는
-명령 결과 조회·종료 도구가 남고 MCP 검색·호출 도구는 없었습니다. `Agent` 제외
-candidate에서 성공한 구현·재개 호출을 이 최종 필터의 증거와 혼동하지 않습니다.
+A new Grok session started with the final tool filter ran 13 tests and a real
+background shell. `get_command_or_subagent_output` returned the `BG_PROBE_OK`
+output, `completed`, and exit 0, and tool calls matched results 9/9. The tool
+list kept the tools that read and end command output and had no MCP search or
+call tools. Do not confuse the successful implementation and resume calls from
+the `Agent`-exclusion candidate with evidence for this final filter.
 
-같은 세션을 재개한 후속 요구에서도 RED exit 1 → GREEN 13 tests/exit 0,
-worker 직접 커밋과 DONE을 확인했습니다. 도구 호출·결과는 11/11이며 두 호출의
-session ID는 일치했습니다. 최종 두 Grok 호출 모두 MCP handshake 경고는 0건이었고
-sandbox 설정과 journal도 종료 후 정리했습니다. 마지막 독립 검사는 Cursor 11개,
-Grok 13개와 전체 commit diff --check를 통과했고 두 fixture는 clean이었습니다.
+A follow-up request resuming the same session also went RED exit 1 → GREEN 13
+tests/exit 0, with a direct worker commit and DONE. Tool calls and results were
+11/11, and the two calls' session IDs matched. Both final Grok calls had 0 MCP
+handshake warnings, and the sandbox config and journal were cleaned up after
+exit. The last independent checks passed 11 Cursor and 13 Grok tests and
+`diff --check` over all commits, and both fixtures were clean.
 
-수정된 runner의 Cursor 기존 세션 재개도 구현·RED exit 1·GREEN 11 tests/exit 0·
-직접 커밋으로 완료됐으며 실제 도구 호출·결과는 14/14였습니다. Cursor 환경과
-승인·sandbox 인자는 변경하지 않았습니다.
+A resume of an existing Cursor session on the fixed runner also finished
+implementation, RED exit 1, GREEN 11 tests/exit 0, and a direct commit, with 14/14
+real tool calls and results. The Cursor environment and the approval and sandbox
+arguments were not changed.
 
-Grok 자체의 managed-config 권한 경고, 플러그인 이름 충돌, 호환 hook 파싱 경고는
-남아 있습니다. 전역 설정을 삭제하거나 경고 출력을 숨기지 않았습니다. 기존 MCP
-서버 목록이 init/inspect에 표시되는 사실은 실제 연결·호출 증거가 아닙니다.
-전면적인 OS 격리, 실제 적용 effort, 대형 프로젝트 장기 안정성은
-이번 관측으로 입증하지 않습니다. 원본 공급자 기록은 로컬에만 보존합니다.
+Grok's own managed-config permission warning, plugin name clash, and compatibility
+hook parse warning remain. Global settings were not deleted and warning output
+was not hidden. The existing MCP server list shown in init/inspect is not
+evidence of a real connection or call. Full OS isolation, the effort actually
+applied, and long-run stability on large projects are not proven by these
+observations. Original provider records are kept only locally.
 
-검증한 런타임 SHA-256 (실행 전후 일치):
+Runtime SHA-256 checked (same before and after the runs):
 
 - `resolve_backend.py`: `780adfee9042bf4be6ecc0e6104adc70024c265b50827bee828182eb3971f797`
 - `run_worker.py`: `3bda36903eabfa53c9ca97f35f3b349cba52b2c8ddaa387d8090fc694001302b`
 
-### 남겨 두는 두 가지 판단
+### Two calls left open
 
-`--disallowed-tools`와 `--deny`를 값 표기까지 확인하고 없으면 거절하는 판정은,
-옵션 이름이 설명 문장에 등장하는 것만으로 통과하지 않게 하려고 좁게 잡았습니다.
-대신 같은 옵션을 다른 표기로 적는 빌드는 실행 가능한데도 거절됩니다. 이 제품은
-바로 그 형태의 결함 — 실제 CLI 출력 대신 한 가지 표기를 규칙으로 굳힌 것 —
-때문에 한 번 못 쓰게 된 적이 있습니다. 지금은 좁은 쪽을 택했습니다. 거절이
-`missing_flags`로 드러나 조용히 약한 실행으로 넘어가지 않기 때문입니다. 거절
-사례가 실제로 나오면 `_declares`로 완화하는 쪽이 맞습니다.
+The check that `--disallowed-tools` and `--deny` are declared with a value
+spelling, and refuses otherwise, is kept narrow so an option name that merely
+appears in a description sentence does not pass. The cost is that a build writing
+the same options differently is refused even though it would work. This product
+was once made unusable by exactly that kind of defect: fixing one spelling as the
+rule instead of reading real CLI output. The narrow side is the choice for now,
+because the refusal shows up as `missing_flags` instead of quietly falling back
+to a weaker run. If a real refusal case appears, loosening it with `_declares` is
+the right move.
 
-MCP discovery 환경 변수는 반대로 아무 판정도 걸려 있지 않습니다. Codex의 원인
-분리 probe에서 실제로 handshake 실패를 없앤 쪽은 이 변수였는데, 공급자가 이름을
-바꾸면 오류 없이 조용히 무력해집니다. 이름을 확인할 방법이 공급자 문서에 없어
-판정을 걸지 않았고, 대신 위 표에 `not_measured`로 남겼습니다.
+The MCP discovery environment variables, by contrast, have no check at all. In
+the Codex cause-isolation probe, these variables were what actually removed the
+handshake failures, but if the provider renames them they silently stop working
+with no error. The provider docs give no way to confirm the names, so no check was
+added; the table above records them as `not_measured` instead.

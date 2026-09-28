@@ -1,52 +1,51 @@
-# korean-writing-editor 호환성
+# korean-writing-editor compatibility
 
-지원 호스트는 제품 레지스트리(`products.toml`)에 등록된 `codex` 하나뿐입니다.
-다른 호스트를 지원한다고 적지 마세요.
+The only supported host is `codex`, as registered in the product registry
+(`products.toml`). Do not claim support for any other host.
 
-## 지원 OS
+## Supported OS
 
-지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다. CI는 Ubuntu에서
-전체 검증을 돌릴 수 있지만, 그 통과는 Linux 지원도 아니고 macOS 지원
-증거도 아닙니다.
+The supported OS is macOS only. Windows and Linux are unsupported. CI can run
+the full verification on Ubuntu, but that pass is neither Linux support nor
+evidence of macOS support.
 
-## 필요한 호스트 능력
+## Required host abilities
 
-- 로컬 Agent Skills 디렉터리에 설치하고 `SKILL.md` 파일을 읽을 수 있어야 합니다.
-- 사용자가 준 한국어 원문을 읽고, 편집 결과를 채팅으로 돌려줄 수 있어야 합니다.
-- 다른 모델에 일을 넘기는 기능(모델 위임)은 선택입니다. 호스트가 제공할 때만
-  쓰고, 위임이 실패하면 현재 모델로 계속합니다.
+- Install into a local Agent Skills directory and read `SKILL.md`.
+- Read the Korean text the user supplies and return the edit in chat.
+- Handing work to another model (model delegation) is optional. Use it only
+  when the host offers it; if delegation fails, continue on the current model.
 
-## 모델 호출 없는 증거
+## Evidence without model calls
 
-필수 증거는 `python3 scripts/verify.py --skill korean-writing-editor`입니다.
-오프라인 픽스처(모델 없이 돌리는 고정 테스트 예시)는 결정적 계약만 증명합니다.
-CI는 자격 증명, 모델 호출, 라이브 스모크(실제 호스트에서 짧게 돌려 보는 확인)를
-요구하지 않습니다.
+The required evidence is `python3 scripts/verify.py --skill korean-writing-editor`.
+Offline fixtures (fixed test examples run without a model) prove only the
+deterministic contract. CI does not need credentials, model calls, or a live
+smoke (a short check on a real host).
 
-## 라이브 증거의 경계
+## Live evidence limits
 
-라이브 실행은 로컬에서, 명시적으로, 선택으로만 하며 비용이 들 수 있습니다.
-오프라인 통과를 라이브 품질이나 다른 호스트 지원의 증거로 쓰지 마세요. 사용자
-한국어 원문, 공급자 응답, 자격 증명은 커밋하지 않습니다.
+Live runs are local, explicit, optional, and may cost money. Do not use an
+offline pass as evidence of live quality or of support on another host. Do not
+commit user Korean text, provider responses, or credentials.
 
-운영 절차는 [테스트](testing.md)와
-`tests/products/korean-writing-editor/live/README.md`를 따릅니다.
+Follow [Testing](testing.md) and
+`tests/products/korean-writing-editor/live/README.md` for the procedure.
 
-이번 보강 작업(hardening series)의 새 실행 증거는 runner 18(라이브 실행기 버전
-18)로 만듭니다. runner 10부터 17까지의 실행 기록(receipt)은 형식 버전을 올리지
-않고 계속 읽으며, 기록된 status의 원래 의미도 유지합니다. 하지만 이 과거 기록으로
-runner 18 실행을 시작하거나 재개할 수는 없습니다. 새 실행에는 새 run ID가
-필요합니다.
+Run evidence comes from runner 18 (live runner version 18). Receipts from
+older runners are rejected as malformed and cannot start or resume a run. A new
+run needs a new run ID.
 
-## 새 호스트 지원
+## Adding a host
 
-새 호스트를 레지스트리와 공개 안내에 올리려면 같은 빌드에서 다음 네 가지
-스모크가 모두 통과해야 합니다.
+To list a new host in the registry and public guides, all four smokes must
+pass on the same build:
 
-1. 스킬 발견
-2. 명시 호출
-3. 의도한 암묵 호출, 그리고 비슷하지만 대상이 아닌 요청(near-miss)의 비호출
-4. 출력 계약(편집문 또는 diagnose 소견)
+1. skill discovery
+2. explicit call
+3. intended implicit call, and no call on a near-miss (a similar request that
+   is out of scope)
+4. output contract (edited text or `diagnose` findings)
 
-기록이 없으면 그 호스트는 지원 대상이 아닙니다. 사용자용 공유 안내는
-[호환성](../../../users/ko/compatibility.md)을 보세요.
+Without a record, the host is not supported. For the shared user guide, see
+[Compatibility](../../../users/en/compatibility.md).

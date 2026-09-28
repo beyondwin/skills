@@ -53,7 +53,7 @@ class PayloadDocumentationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="image payload ") as directory:
             root = Path(directory) / "image-workbench"
             shutil.copytree(PAYLOAD, root)
-            for name in ("README.md", "README.en.md"):
+            for name in ("README.md", "README.ko.md"):
                 document = root / name
                 targets = re.findall(
                     r"\[[^\]]+\]\(([^)]+)\)",

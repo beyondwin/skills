@@ -28,7 +28,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     {
         "CHANGELOG.md",
         "LICENSE.txt",
-        "README.en.md",
+        "README.ko.md",
         "README.md",
         "SKILL.md",
         "agents/openai.yaml",
@@ -549,9 +549,9 @@ def maintainer_contract_errors(text: str) -> tuple[str, ...]:
         errors.append("risk triggers must be conditional and exact")
     verdicts = subsection(text, "### Verdicts")
     for verdict, meaning in (
-        ("READY", "남은 문제를 추측하지 않고"),
-        ("REVISE", "고칠 수 있는 중요한 문서 결함"),
-        ("BLOCKED", "필요한 입력·권위·저장소 증거가 없거나"),
+        ("READY", "no remaining problem has to be guessed"),
+        ("REVISE", "a material, repairable document defect remains"),
+        ("BLOCKED", "required input, authority, or repository evidence is missing"),
     ):
         if f"`{verdict}`" not in verdicts or meaning not in verdicts:
             errors.append(f"{verdict} definition differs")
@@ -569,7 +569,7 @@ def maintainer_contract_errors(text: str) -> tuple[str, ...]:
             errors.append("freshness contract differs")
             break
     handoff = subsection(text, "### SDD handoff")
-    if "바깥 요청이 구현을 명시하지 않으면 SDD를 시작하지 않습니다" not in handoff:
+    if "Do not start SDD unless the outer request explicitly asks for implementation" not in handoff:
         errors.append("SDD handoff differs")
     return tuple(errors)
 
@@ -598,14 +598,14 @@ def testing_document_errors(text: str) -> tuple[str, ...]:
         errors.append("fixture inventory differs")
     normalized = re.sub(r"\s+", " ", text)
     for required in (
-        "새 Codex 세션",
-        "민감하지 않은 합성 설계·계획",
-        "호스트, 클라이언트 버전, 날짜, 사례 식별자, 판정만",
-        "사용자 문서",
-        "모델 응답 전체",
-        "선택적",
-        "비용이 들 수 있습니다",
-        "CI는 요구하지 않습니다",
+        "fresh Codex session",
+        "non-sensitive synthetic design and plan",
+        "only host, client version, date, case identifier, and verdict",
+        "user documents",
+        "full model responses",
+        "optional",
+        "may cost money",
+        "CI does not require",
     ):
         if required not in normalized:
             errors.append("live-check boundary differs")
@@ -953,7 +953,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertEqual(frontmatter["metadata"]["version"], TARGET_VERSION)
         unreleased = changelog.split("## Unreleased", 1)[1].split("\n## ", 1)[0]
         self.assertIn("### Breaking", unreleased)
-        self.assertIn(f"Handshake `cli_version`은 {TARGET_VERSION}입니다", unreleased)
+        self.assertIn(f"Handshake `cli_version` is {TARGET_VERSION}", unreleased)
         self.assertIn("## 5.1.0 - 2026-09-24", changelog)
         self.assertIn("## 3.0.0 - 2026-09-08", changelog)
 
@@ -973,11 +973,11 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("before dispatching any reviewer", skill)
         self.assertIn("merge-base --is-ancestor", skill)
         self.assertIn("return `BLOCKED`", skill)
-        self.assertIn("검토자를 부르기 전에", contract)
-        self.assertIn("필수 베이스가 `HEAD`의 조상인지", contract)
-        self.assertNotIn("현재 checkout이 필수 베이스의 조상인지", contract)
+        self.assertIn("before dispatching any reviewer", contract)
+        self.assertIn("the required base is an ancestor of `HEAD`", contract)
+        self.assertNotIn("current checkout is an ancestor of the required base", contract)
         self.assertIn("merge-base --is-ancestor", contract)
-        self.assertIn("`BLOCKED`를 반환", contract)
+        self.assertIn("return `BLOCKED`", contract)
 
         self.assertLess(
             skill.index("required implementation base"),
@@ -1052,13 +1052,13 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("does not add a review role", skill)
         self.assertIn("Do not automatically start another invocation", skill)
         self.assertIn("one consolidated user checkpoint", skill)
-        self.assertIn("검토 역할은 최대 둘", contract)
-        self.assertIn("역할을 추가하거나", contract)
-        self.assertIn("자동으로 다시 호출하지 않습니다", contract)
-        self.assertIn("승인 요청 하나로 묶습니다", contract)
+        self.assertIn("at most two review roles", contract)
+        self.assertIn("never adds a role", contract)
+        self.assertIn("Never re-invoke automatically", contract)
+        self.assertIn("into one approval request", contract)
 
         self.assertIn("one discovery stage", skill)
-        self.assertIn("발견 단계 한 번", contract)
+        self.assertIn("one discovery stage", contract)
         self.assertIn("summary --repo <repo display name>", skill)
         self.assertIn("Never reuse a handoff whose `execution` is `blocked`", skill)
         self.assertNotIn("summary --last 20", skill)
@@ -1081,26 +1081,26 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("An open `BLOCKER`, including one still `partially-closed`, forces `BLOCKED`", skill)
         self.assertIn("dispatch no reviewer and make no repair", skill)
         self.assertIn("summary --repo", contract)
-        self.assertIn("`execution`이 `blocked`", re.sub(r"\s+", " ", contract))
+        self.assertIn("When `execution` is `blocked`", re.sub(r"\s+", " ", contract))
         self.assertNotIn("summary --last 20", contract)
-        self.assertIn("발견은 겹칠 수 있고 수리는 겹치지 않습니다", contract)
-        self.assertNotIn("겹치지 않고", contract)
-        self.assertIn("앞 계획의 수리", contract)
-        self.assertNotIn("나중 수리", contract)
-        self.assertIn("컨트롤러 로컬 캠페인 상태", contract)
-        self.assertIn("`Files:`에 없는 경로는 이 dirty 집합에 없습니다", contract)
-        self.assertIn("첫 검토에서 발견이 없으면", contract)
-        self.assertIn("`repair_passes`는 컨트롤러가 적용한 수리 패스를 모두 셉니다", contract)
-        self.assertIn("열린 `BLOCKER`가 있으면", contract)
+        self.assertIn("Discoveries may overlap; repairs do not", contract)
+        self.assertNotIn("do not overlap them", contract)
+        self.assertIn("a preceding plan's repair", contract)
+        self.assertNotIn("later repair", contract)
+        self.assertIn("controller-local campaign state", contract)
+        self.assertIn("Paths not in `Files:` are not in this dirty set", contract)
+        self.assertIn("If the first review has zero findings", contract)
+        self.assertIn("`repair_passes` counts every repair pass the controller applied", contract)
+        self.assertIn("An open `BLOCKER` forces `BLOCKED`", contract)
 
         for document in (skill, protocol):
             self.assertIn("unmapped material finding", document)
             self.assertIn("original finding or a direct mapped repair impact", document)
             self.assertIn("apply the existing verdict rules", document)
-        self.assertIn("원래 발견", contract)
-        self.assertIn("직접 대응된 수정 영향", contract)
-        self.assertIn("대응되지 않은 중요 발견", contract)
-        self.assertIn("기존 판정 규칙", contract)
+        self.assertIn("original finding", contract)
+        self.assertIn("direct mapped repair impact", contract)
+        self.assertIn("unmapped material finding", contract)
+        self.assertIn("apply the existing verdict rules", contract)
 
         self.assertIn("Detection still covers the final complete documents", protocol)
 
@@ -1109,7 +1109,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("Without a recorded run for this plan there is no continuation", skill)
         self.assertIn("that reason alone does not bar reuse or continuation", skill)
         self.assertIn("stand in for the verbatim records", protocol)
-        self.assertIn("이어 검토", contract)
+        self.assertIn("Continuation:", contract)
 
     def test_reviewer_is_read_only_and_controller_owns_repairs(self) -> None:
         protocol = (SKILL / "references/reviewer-protocol.md").read_text(
@@ -1225,8 +1225,8 @@ class PreSddReviewContractTests(unittest.TestCase):
                 self.assertNotIn(retired, document)
         self.assertIn("schema-unsupported", skill_text)
         self.assertIn("schema-unsupported", contract)
-        self.assertIn("`READY`, `REVISE`, `BLOCKED`를 바꾸지는 않습니다", contract)
-        self.assertIn("`false-ready`는 `READY` 판정이 있어야", contract)
+        self.assertIn("does not change\n   `READY`, `REVISE`, or `BLOCKED`", contract)
+        self.assertIn("`false-ready` requires a `READY` verdict", contract)
 
     def test_evidence_cases_cover_recorded_failure_review_only_blocked_and_handoff(self) -> None:
         data = json.loads(CASES.read_text(encoding="utf-8"))
@@ -1425,8 +1425,8 @@ class PreSddReviewContractTests(unittest.TestCase):
             encoding="utf-8"
         )
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
-        korean = (SKILL / "README.md").read_text(encoding="utf-8")
-        english = (SKILL / "README.en.md").read_text(encoding="utf-8")
+        korean = (SKILL / "README.ko.md").read_text(encoding="utf-8")
+        english = (SKILL / "README.md").read_text(encoding="utf-8")
 
         self.assertIn("## Red flags", skill)
         flags = skill[skill.index("## Red flags") :]
@@ -1491,11 +1491,11 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertNotIn("evidence.py", protocol)
 
         normalized_contract = re.sub(r"\s+", " ", contract)
-        self.assertIn("관찰 이상", normalized_contract)
-        self.assertIn("이상이 판정을 바꾸지는 않습니다", normalized_contract)
-        self.assertIn("답을 넣어 재질의", normalized_contract)
-        self.assertIn("`finish`가 돌려준 관찰 이상(`anomalies`)", normalized_contract)
-        self.assertIn("빠진 필드 이름만", normalized_contract)
+        self.assertIn("observation anomalies", normalized_contract)
+        self.assertIn("Anomalies do not change the verdict", normalized_contract)
+        self.assertIn("Never re-ask with answers filled in", normalized_contract)
+        self.assertIn("observation anomalies (`anomalies`) returned by `finish`", normalized_contract)
+        self.assertIn("naming only the missing fields", normalized_contract)
         self.assertIn("`Anomalies:`", korean)
         self.assertIn("`Anomalies:` line", re.sub(r"\s+", " ", english))
 
@@ -1507,8 +1507,8 @@ class PreSddReviewContractTests(unittest.TestCase):
 
 class PreSddReviewDocumentationTests(unittest.TestCase):
     def test_bilingual_readmes_keep_the_required_order_and_symmetric_contract(self) -> None:
-        korean = (SKILL / "README.md").read_text(encoding="utf-8")
-        english = (SKILL / "README.en.md").read_text(encoding="utf-8")
+        korean = (SKILL / "README.ko.md").read_text(encoding="utf-8")
+        english = (SKILL / "README.md").read_text(encoding="utf-8")
 
         self.assertTrue(korean.startswith("# Pre-SDD Review\n"))
         self.assertTrue(english.startswith("# Pre-SDD Review\n"))
@@ -1537,8 +1537,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             self.assertIn(fact, normalized_english)
 
     def test_bilingual_readmes_lock_primary_input_mutation_and_review_semantics(self) -> None:
-        korean = (SKILL / "README.md").read_text(encoding="utf-8")
-        english = (SKILL / "README.en.md").read_text(encoding="utf-8")
+        korean = (SKILL / "README.ko.md").read_text(encoding="utf-8")
+        english = (SKILL / "README.md").read_text(encoding="utf-8")
         default_call = (
             "$pre-sdd-review docs/history/specs/<design>.md "
             "docs/history/plans/<plan>.md"
@@ -1681,12 +1681,12 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
     def test_maintainer_contract_owns_the_complete_runtime_boundary(self) -> None:
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
         normalized = re.sub(r"\s+", " ", contract)
-        authority = section(contract, "## 권위 순서", "## 검토자 격리")
+        authority = section(contract, "## Authority\n", "## Reviewer isolation")
         self.assertEqual(
             tuple(re.findall(r"^\d+\. (.+)$", authority, re.MULTILINE)),
             AUTHORITY_ORDER,
         )
-        passes = section(contract, "## 검토 패스와 발견", "## 기본 흐름")
+        passes = section(contract, "## Review passes and findings", "## Default flow")
         self.assertEqual(
             tuple(re.findall(r"^\d+\. (.+?)[;.]+$", passes, re.MULTILINE)),
             (
@@ -1717,15 +1717,15 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         ):
             self.assertIn(fact, contract)
         self.assertIn(
-            "바깥 요청이 구현을 명시하지 않으면 SDD를 시작하지 않습니다",
+            "Do not start SDD unless the outer request explicitly asks for implementation",
             normalized,
         )
         verdicts = subsection(contract, "### Verdicts")
         freshness = subsection(contract, "### Freshness")
         for fact in (
-            "`READY`: 남은 문제를 추측하지 않고",
-            "`REVISE`: 고칠 수 있는 중요한 문서 결함",
-            "`BLOCKED`: 필요한 입력·권위·저장소 증거가 없거나",
+            "`READY`: no remaining problem has to be guessed",
+            "`REVISE`: a material, repairable document defect remains",
+            "`BLOCKED`: required input, authority, or repository evidence is missing",
         ):
             self.assertIn(fact, verdicts)
         self.assertIn("Any content change to either resolved document invalidates `READY`", freshness)
@@ -1735,64 +1735,64 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         compatibility = (MAINTAINERS / "compatibility.md").read_text(encoding="utf-8")
         release = (MAINTAINERS / "release.md").read_text(encoding="utf-8")
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
-        self.assertIn("## 함께 고칠 파일", contract)
-        self.assertIn("## 하지 않는 것", contract)
+        self.assertIn("## Files to change together", contract)
+        self.assertIn("## Not added", contract)
         for fact in (
             "closure-only input schema",
             "evidence probe cache",
         ):
             self.assertIn(fact, contract)
-        self.assertIn("컨트롤러 로컬 dirty", contract)
+        self.assertIn("controller-local dirty set", contract)
         self.assertNotIn("shared-design invalidation map", contract)
         # A shared-file ledger is now a real, contract-owned feature (the
         # pre-pass and its "### Ledger shape"), so it no longer belongs in
         # the "things not added" list.
         self.assertNotIn("program ledger", contract)
-        self.assertIn("## 선행 원장 패스", contract)
+        self.assertIn("## Ledger pre-pass", contract)
         self.assertIn("### Ledger shape", contract)
         normalized_testing = re.sub(r"\s+", " ", testing)
 
         for fact in (
             "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover",
-            "## 공급자 없는 증거",
+            "## Provider-free evidence",
             "`ready`, `missing-coverage`, `false-verification`, `runtime-removal`,",
             "`runtime-removal`",
             "`design.md`, `plan.md`,",
             "`repository.json`, `expected.json`",
-            "선택적",
-            "새 Codex 세션",
-            "민감하지 않은 합성 설계·계획",
-            "호스트, 클라이언트 버전, 날짜, 사례 식별자, 판정만",
-            "비용이 들 수 있습니다",
-            "CI는 요구하지 않습니다",
-            "사용자 문서",
-            "모델 응답 전체",
+            "optional",
+            "fresh Codex session",
+            "non-sensitive synthetic design and plan",
+            "only host, client version, date, case identifier, and verdict",
+            "may cost money",
+            "CI does not require",
+            "user documents",
+            "full model responses",
             "evidence.py",
             "PRE_SDD_REVIEW_HOME",
             "not_measured",
         ):
             self.assertIn(fact, normalized_testing)
         self.assertEqual(len(CASE_IDS), 51)
-        self.assertIn("정확히 쉰한 개", normalized_testing)
-        self.assertIn("지금은 Codex만 지원합니다", compatibility)
-        self.assertIn("다른 호스트는 모두 `not_measured`", compatibility)
-        self.assertIn("## 기록기 호환성", compatibility)
+        self.assertIn("exactly fifty-one cases", normalized_testing)
+        self.assertIn("Only Codex is supported today", compatibility)
+        self.assertIn("Every other host\nis `not_measured`", compatibility)
+        self.assertIn("## Recorder compatibility", compatibility)
         self.assertIn("| Linux / Python 3.11+ | `unsupported` |", compatibility)
         self.assertIn("| Windows / Python 3.11+ | `unsupported` |", compatibility)
-        self.assertIn("CI POSIX 검사 ≠ Linux 제품 지원", compatibility)
+        self.assertIn("a CI POSIX check is not Linux product support", compatibility)
         normalized_release = re.sub(r"\s+", " ", release).lower()
         for fact in (
-            "버전 원본은 `skills/pre-sdd-review/release.toml`",
+            "version\nsource is `skills/pre-sdd-review/release.toml`",
             "python3 scripts/release.py check --product pre-sdd-review",
             "docs/maintainers/repository/release.md",
         ):
             self.assertIn(fact, release)
-        self.assertIn("태그 또는 github release를 만들지 않습니다", normalized_release)
+        self.assertIn("do not create a tag or a github release", normalized_release)
 
     def test_v3_docs_keep_evidence_local_bounded_optional_and_agent_readable(self) -> None:
         documents = (
+            (SKILL / "README.ko.md").read_text(encoding="utf-8"),
             (SKILL / "README.md").read_text(encoding="utf-8"),
-            (SKILL / "README.en.md").read_text(encoding="utf-8"),
             (SKILL / "evidence/README.md").read_text(encoding="utf-8"),
             (MAINTAINERS / "contract.md").read_text(encoding="utf-8"),
         )
@@ -1828,8 +1828,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         self.assertIn("does not claim", changelog)
 
     def test_readme_contract_is_bounded_symmetric_and_has_one_first_call(self) -> None:
-        korean = (SKILL / "README.md").read_text(encoding="utf-8")
-        english = (SKILL / "README.en.md").read_text(encoding="utf-8")
+        korean = (SKILL / "README.ko.md").read_text(encoding="utf-8")
+        english = (SKILL / "README.md").read_text(encoding="utf-8")
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
         self.assertEqual(readme_contract_errors(korean), ())
         self.assertEqual(readme_contract_errors(english), ())
@@ -1838,8 +1838,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         self.assertNotIn("### Contract", english)
 
     def test_readme_validator_rejects_wrong_command_asymmetry_and_third_surface(self) -> None:
-        korean = (SKILL / "README.md").read_text(encoding="utf-8")
-        english = (SKILL / "README.en.md").read_text(encoding="utf-8")
+        korean = (SKILL / "README.ko.md").read_text(encoding="utf-8")
+        english = (SKILL / "README.md").read_text(encoding="utf-8")
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
         self.assertEqual(readme_contract_errors(korean), ())
         self.assertEqual(readme_contract_errors(english), ())
@@ -1872,8 +1872,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
 
     def test_maintainer_contract_states_windows_is_unsupported(self) -> None:
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
-        self.assertIn("Windows는 지원하지 않습니다", contract)
-        self.assertNotIn("native Windows 변경 지원을 주장하지 않습니다", contract)
+        self.assertIn("Windows is not supported", contract)
+        self.assertNotIn("does not claim native Windows mutation support", contract)
 
     def test_maintainer_validator_rejects_routine_second_review_stale_ready_and_third_path(self) -> None:
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")

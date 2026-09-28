@@ -5,6 +5,7 @@ import dataclasses
 import pathlib
 import re
 import tomllib
+import types
 
 
 KNOWN_HOSTS = frozenset({"codex", "claude-code", "cursor", "grok"})
@@ -25,6 +26,12 @@ class Product:
     supported_hosts: tuple[str, ...]
     owned_paths: tuple[pathlib.PurePosixPath, ...]
     verify_stages: tuple[str, ...]
+
+
+# Every product README is English-first: README.md is English, README.ko.md Korean.
+PRODUCT_README_NAMES: collections.abc.Mapping[str, str] = types.MappingProxyType(
+    {"en": "README.md", "ko": "README.ko.md"}
+)
 
 
 @dataclasses.dataclass(frozen=True)

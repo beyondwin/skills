@@ -1,22 +1,23 @@
-# 작업 지침
+# Working rules
 
-- 사용자 요청과 승인된 범위를 우선하고, 통상적인 선택은 직접 판단해 구현·검증까지 마칩니다. 이미 승인된 작업은 다시 묻지 않습니다.
-- 스킬 지침 때문에 중단이 필요하면 해당 파일과 문구, 적용 이유를 밝힙니다. 편집 대상인 `SKILL.md`의 실행 절차를 현재 작업에 자동 적용하지 않습니다.
-- 작업 전 관련 계약을 확인하고, 작업 트리에 있던 기존 변경을 보존합니다.
-- 결과는 변경 내용, 실제 검증 결과, 남은 문제 중심으로 간결하게 보고합니다.
+- Put the user's request and the approved scope first. Make routine choices yourself and finish through implementation and verification. Do not ask again about work that is already approved.
+- If a skill's instructions make you stop, name the file, the exact wording, and why it applies. Do not run the procedure of a `SKILL.md` you are editing as if it applied to the current task.
+- Check the relevant contracts before you start, and keep any changes already in the working tree.
+- Report to the user in Korean, briefly: what changed, what verification actually ran, and what is left.
+- Docs are English. Only user-facing READMEs and user guides get a Korean copy (`README.ko.md`, `docs/users/ko/`). Legacy is not supported: delete old paths, names, and shims instead of keeping them working.
 
-## 저장소
+## Repository
 
-- 트리가 어떻게 나뉘는지는 [저장소 구조](docs/maintainers/repository/architecture.md)를 보세요.
-- 제품·소유 경로는 [products.toml](products.toml), 기여 범위는 [CONTRIBUTING.md](CONTRIBUTING.md)를 따릅니다.
-- `skills/<name>/`을 수정할 때 `tests/products/<name>/`와 `docs/maintainers/products/<name>/`의 계약을 확인합니다.
-- 설치되는 제품 파일이 바뀌면 [버저닝](docs/maintainers/repository/versioning.md)에 따라 `skills/<name>/release.toml`, `SKILL.md`의 `metadata.version`, `CHANGELOG.md`의 `Unreleased`를 함께 갱신합니다.
-- 지원 호스트 변경은 제품 목록·문서·테스트에 함께 반영합니다.
-- 비공개 원문·이미지, 자격 증명, 공급자 receipt, 생성 미디어를 커밋하지 않습니다. 라이브 모델 호출은 명시적으로 승인된 범위에서만 실행합니다.
+- How the tree is split: [Architecture](docs/maintainers/repository/architecture.md).
+- Products and owned paths: [products.toml](products.toml). Contribution scope: [CONTRIBUTING.md](CONTRIBUTING.md).
+- When you edit `skills/<name>/`, check the contracts in `tests/products/<name>/` and `docs/maintainers/products/<name>/`.
+- When an installed product file changes, update `skills/<name>/release.toml`, `metadata.version` in `SKILL.md`, and the `Unreleased` section of `CHANGELOG.md` together, per [Versioning](docs/maintainers/repository/versioning.md).
+- A supported-host change goes into the product list, the docs, and the tests together.
+- Never commit private source text or images, credentials, provider receipts, or generated media. Run live model calls only within explicitly approved scope.
 
-## 검증
+## Verification
 
-- 제품 파일만 고치면 `python3 scripts/verify.py --skill <name>`을 먼저 돌립니다. 머지 전 필수 검증은 `python3 scripts/verify.py`입니다.
-- CI Ubuntu 전체 검증 통과를 macOS 지원 증거로 쓰지 않습니다. 라이브 `--execute`는 해당 제품 런타임·실행 계약이 바뀐 뒤에만, macOS에서, 명시적으로 합니다.
-- 문서만 수정하면 내용·링크·diff를 확인합니다. 변경에 맞는 검증을 하고, 통과한 검사는 새 변경이나 미해결 우려가 없으면 반복하지 않습니다.
-- 기본 검증은 자격 증명과 공급자 호출 없이 실행합니다. 오프라인 통과를 실제 모델 품질이나 다른 환경의 실행 증거로 확대하지 않습니다.
+- If you changed only product files, run `python3 scripts/verify.py --skill <name>` first. The required check before merge is `python3 scripts/verify.py`.
+- A passing full run on CI Ubuntu is not evidence of macOS support. Run live `--execute` only after that product's runtime or execution contract changed, on macOS, and only when explicitly asked.
+- For doc-only changes, check the content, links, and diff. Run the checks that fit the change, and do not repeat a passing check unless something new changed or a concern is still open.
+- Default verification runs with no credentials and no provider calls. Do not stretch an offline pass into evidence of real model quality or of runs in other environments.

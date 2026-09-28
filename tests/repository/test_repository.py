@@ -28,10 +28,6 @@ NOTICE_PATH = ROOT / "NOTICE"
 ARCHIVE_REPOSITORY = "https://github.com/beyondwin/Archive.git"
 PINNED_SOURCE_COMMIT = "76e6bf4ebbc9430aee9a04a5b780ae38330f3021"
 FORBIDDEN_PAYLOAD_NAMES = frozenset({"CHANGE_PROTOCOL.md", "evals", "tests"})
-LEGACY_IDENTIFIERS = (
-    "kws-korean-writing-editor",
-    "kws-image-workbench",
-)
 
 
 def _copy_skill(source: Path, destination: Path) -> Path:
@@ -62,7 +58,6 @@ def _tracked_test_roots(root: Path) -> set[str]:
 class SkillDirectoryTests(unittest.TestCase):
     def test_root_owns_no_plugin_manifest(self) -> None:
         self.assertFalse((ROOT / ".codex-plugin").exists())
-        self.assertFalse((ROOT / "catalog").exists())
 
     def test_skill_directories_include_unpublished_current_products(self) -> None:
         self.assertEqual(
@@ -91,7 +86,6 @@ class LicenseNoticeTests(unittest.TestCase):
         self.assertTrue(NOTICE_PATH.is_file(), "NOTICE is absent")
         text = NOTICE_PATH.read_text(encoding="utf-8")
         self.assertIn("beyondwin/skills", text)
-        self.assertNotIn("beyondwin-skills", text)
         self.assertIn(ARCHIVE_REPOSITORY, text)
         self.assertIn(PINNED_SOURCE_COMMIT, text)
         self.assertNotIn("manifest path", text)
@@ -144,8 +138,6 @@ class OpenAIMetadataTests(unittest.TestCase):
             else:
                 self.assertIn("allow_implicit_invocation: true", text)
                 self.assertNotIn("allow_implicit_invocation: false", text)
-            for identifier in LEGACY_IDENTIFIERS:
-                self.assertNotIn(identifier, text)
             lowered = text.lower()
             self.assertNotIn("translate", lowered)
             self.assertNotIn("detector", lowered)
@@ -279,7 +271,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
             source,
             lambda skill: (
                 (skill / "README.md").write_text("# Korean Writing Editor\n", encoding="utf-8"),
-                (skill / "README.en.md").write_text("# Korean Writing Editor\n", encoding="utf-8"),
+                (skill / "README.ko.md").write_text("# Korean Writing Editor\n", encoding="utf-8"),
             ),
         )
         self.assertEqual(validate_product(staged, REGISTRY), [])
@@ -334,19 +326,6 @@ class ValidateSkillRejectionTests(unittest.TestCase):
         errors = "\n".join(validate_product(skill, REGISTRY))
         self.assertIn("unlisted skill", errors)
 
-    def test_rejects_legacy_prefixed_identifier_in_payload(self) -> None:
-        source = SKILLS[0]
-        staged = self._mutated(
-            source,
-            lambda skill: (skill / "SKILL.md").write_text(
-                (skill / "SKILL.md").read_text(encoding="utf-8")
-                + "\nActivate $kws-korean-writing-editor instead.\n",
-                encoding="utf-8",
-            ),
-        )
-        errors = "\n".join(validate_product(staged, REGISTRY))
-        self.assertIn("legacy prefixed identifier", errors)
-
 
 class StageProductTests(unittest.TestCase):
     def test_stage_product_copies_a_valid_payload(self) -> None:
@@ -364,7 +343,7 @@ class StageProductTests(unittest.TestCase):
             self.assertTrue((staged / "release.toml").is_file())
             self.assertTrue((staged / "agents" / "openai.yaml").is_file())
             self.assertTrue((staged / "README.md").is_file())
-            self.assertTrue((staged / "README.en.md").is_file())
+            self.assertTrue((staged / "README.ko.md").is_file())
             self.assertFalse((staged / "evals").exists())
             self.assertEqual(validate_product(staged, REGISTRY), [])
 
@@ -382,15 +361,15 @@ class StageProductTests(unittest.TestCase):
             workspace = Path(directory)
             mutated = _copy_skill(SKILLS[0], workspace / "source")
             (mutated / "README.md").write_text("# Korean Writing Editor\n", encoding="utf-8")
-            (mutated / "README.en.md").write_text("# Korean Writing Editor\n", encoding="utf-8")
+            (mutated / "README.ko.md").write_text("# Korean Writing Editor\n", encoding="utf-8")
             staged = stage_product(mutated, workspace / "dest", REGISTRY)
             self.assertTrue((staged / "README.md").is_file())
-            self.assertTrue((staged / "README.en.md").is_file())
+            self.assertTrue((staged / "README.ko.md").is_file())
             self.assertEqual(validate_product(staged, REGISTRY), [])
 
 
 class RepositoryContractTests(unittest.TestCase):
-    def test_layout_contract_accepts_package_marker_and_untracked_roots_but_rejects_tracked_legacy_roots(self) -> None:
+    def test_layout_contract_accepts_package_marker_and_untracked_roots_but_rejects_other_tracked_roots(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             workspace = Path(directory)
             tests_root = workspace / "tests"
@@ -436,11 +415,6 @@ class RepositoryContractTests(unittest.TestCase):
         self.assertEqual(roots, {"products", "repository"})
 
     def test_reusable_tooling_lives_under_scripts_lib(self) -> None:
-        forbidden = {
-            "release_contract.py", "release_archive.py", "catalog_contract.py",
-            "catalog_lock.py", "capture_archive_manifest.py", "build_release.py",
-        }
-        self.assertTrue(forbidden.isdisjoint({path.name for path in (ROOT / "scripts").glob("*.py")}))
         for name in (
             "product_registry.py",
             "product_contract.py",
@@ -448,21 +422,8 @@ class RepositoryContractTests(unittest.TestCase):
             "change_routing.py",
             "archive.py",
             "documentation.py",
-            "stale_identifiers.py",
         ):
             self.assertTrue((ROOT / "scripts/lib" / name).is_file(), name)
-
-
-class LegacyIdentifierAllowlistTests(unittest.TestCase):
-    def test_legacy_identifiers_remain_in_near_miss_fixtures(self) -> None:
-        korean_cases = (
-            ROOT / "tests" / "products" / "korean-writing-editor" / "offline" / "cases.json"
-        ).read_text(encoding="utf-8")
-        image_cases = (ROOT / "tests" / "products" / "image-workbench" / "cases.json").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("kws-korean-writing-editor", korean_cases)
-        self.assertIn("kws-image-workbench", image_cases)
 
 
 if __name__ == "__main__":

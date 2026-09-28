@@ -1,39 +1,36 @@
 # beyondwin/skills
 
-[English](README.en.md)
+[한국어](README.ko.md)
 
 [![CI](https://github.com/beyondwin/skills/actions/workflows/verify.yml/badge.svg)](https://github.com/beyondwin/skills/actions/workflows/verify.yml)
 [![Release](https://img.shields.io/github/v/release/beyondwin/skills)](https://github.com/beyondwin/skills/releases)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-Codex, Claude Code, Cursor, Grok 같은 AI 코딩 도구에 넣어 쓰는 스킬 여섯 개를 모아 둔
-저장소입니다. 필요한 스킬만 골라 하나씩 설치합니다. 라이선스는 Apache-2.0입니다.
+Six skills for AI coding tools like Codex, Claude Code, Cursor, and Grok. Install only
+the ones you want; each one stands alone.
 
-지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다. CI Ubuntu 전체 검증
-통과는 Linux 지원이 아니고 macOS 지원 증거도 아닙니다.
+The supported OS is macOS only. Windows and Linux are unsupported. A passing Ubuntu CI
+run is not Linux support and is not macOS support evidence.
 
-## 스킬 고르기
+## Skills
 
-현재 독립 제품은 아래 여섯 가지입니다. 호스트는 스킬을 실행하는 프로그램입니다.
+These are the current standalone products. A host is the tool that runs the skill.
 
-| 스킬 | 하는 일 | 호스트 |
+| Skill | What it does | Hosts |
 | --- | --- | --- |
-| [`korean-writing-editor`](skills/korean-writing-editor/README.md) | 있는 한국어 글을 받아, 뜻은 그대로 두고 맞춤법과 문장을 고칩니다. | Codex |
-| [`image-workbench`](skills/image-workbench/README.md) | 이 프로젝트에 넣을 PNG·JPG 같은 이미지를 기획하고 만들고 고칩니다. | Codex, Grok |
-| [`how-it-works`](skills/how-it-works/README.md) | 한 기계가 어떻게 도는지, 고른 깊이로 그림과 글로 설명합니다. | Codex, Claude Code |
-| [`pre-sdd-review`](skills/pre-sdd-review/README.md) | SDD 직전에 승인된 설계와 구현 계획을 지금 저장소와 맞춰 보고, 문서를 고친 뒤 고친 곳을 다시 확인합니다. | Codex |
-| [`sddx`](skills/sddx/README.md) | Superpowers SDD는 지금 세션이 진행하고, 코드 작성만 Cursor Agent 또는 Grok Build(Grok 4.7)에 맡깁니다. | Claude Code, Codex |
-| [`waygent`](skills/waygent/README.md) | `/waygent`(Codex는 `$waygent`)로 부르면 구현 계획을 과제마다 새 서브에이전트에 맡기고, 테스트 먼저·과제별 리뷰 한 번·최종 리뷰 한 번으로 끝까지 돌립니다. | Claude Code, Codex, Cursor |
+| [`korean-writing-editor`](skills/korean-writing-editor/README.md) | Fixes spelling and sentences in Korean text you already have, keeping the meaning. | Codex |
+| [`image-workbench`](skills/image-workbench/README.md) | Plans, makes, or edits an image (PNG, JPG) that must fit your project. | Codex, Grok |
+| [`how-it-works`](skills/how-it-works/README.md) | Explains how something works, with a diagram, at the depth you pick. | Codex, Claude Code |
+| [`pre-sdd-review`](skills/pre-sdd-review/README.md) | Checks an approved spec and plan against your repo right before SDD, fixes them, and re-checks. | Codex |
+| [`sddx`](skills/sddx/README.md) | Runs Superpowers SDD in your session and hands only the coding to Cursor Agent or Grok Build. | Claude Code, Codex |
+| [`waygent`](skills/waygent/README.md) | Runs a plan task by task with a fresh subagent each: tests first, one review per task, one final review. | Claude Code, Codex, Cursor |
 
-쓰는 법과 첫 호출은 각 스킬 README에 있습니다.
+Each skill README shows how to install it and make the first call.
 
-## 설치
+## Install
 
-설치 방법은 호스트에 따라 두 가지입니다.
-
-Korean Writing Editor, Image Workbench, Pre-SDD Review는 Codex에서
-`$skill-installer`로 넣습니다. 자세한 순서는 [Codex 설치](docs/users/ko/install-codex.md)를
-보세요.
+In Codex, install Korean Writing Editor, Image Workbench, or Pre-SDD Review with
+`$skill-installer` ([Codex install](docs/users/en/install-codex.md)):
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
@@ -41,42 +38,30 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-work
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-review
 ```
 
-How It Works와 SDDx(Codex, Claude Code), Waygent(Claude Code, Codex, Cursor), 그리고
-Grok의 Image Workbench는 이 저장소를 받은 뒤 바로가기(심볼릭 링크)를 겁니다. 순서는
-[로컬 링크](docs/users/ko/install-local.md)를 보세요. 공개 경로는 다음과 같습니다.
+The other skills, and Image Workbench on Grok, link from a clone of this repo
+([Local links](docs/users/en/install-local.md)):
 
-- How It Works: https://github.com/beyondwin/skills/tree/main/skills/how-it-works
-- SDDx: https://github.com/beyondwin/skills/tree/main/skills/sddx
-- Waygent: https://github.com/beyondwin/skills/tree/main/skills/waygent
+- https://github.com/beyondwin/skills/tree/main/skills/how-it-works
+- https://github.com/beyondwin/skills/tree/main/skills/sddx
+- https://github.com/beyondwin/skills/tree/main/skills/waygent
 
-스킬별 설치 방법 표, 갱신·제거, 제3자 설치기는 [설치](docs/users/ko/installation.md)에서
-찾아갈 수 있습니다.
+Updates, removal, and every option are in [Installation](docs/users/en/installation.md).
 
-## 검증
+## Verify
 
-저장소 규칙을 자격 증명과 모델 호출 없이 검사합니다.
+Check the repo rules offline, with no credentials and no model calls
+([what a pass means](docs/users/en/verification.md)):
 
 ```bash
 python3 scripts/verify.py
 ```
 
-어떤 검사를 하는지, 통과가 무엇을 뜻하는지는 [검증](docs/users/ko/verification.md)을
-보세요.
+## Docs
 
-## 안전
+- [Documentation index](docs/README.md): user guides, maintainer docs, history, research
+- [Compatibility](docs/users/en/compatibility.md) and [Safety and privacy](docs/users/en/safety-and-privacy.md) (no telemetry)
+- [Contributing](CONTRIBUTING.md), [Security](SECURITY.md), [Code of conduct](CODE_OF_CONDUCT.md)
 
-이 저장소는 텔레메트리를 넣지 않습니다. 자세한 내용은
-[안전과 개인정보](docs/users/ko/safety-and-privacy.md)를 보세요.
+## License
 
-## 문서와 커뮤니티
-
-- [문서 색인](docs/README.md)
-- [설치](docs/users/ko/installation.md)
-- [호환성](docs/users/ko/compatibility.md)
-- [안전과 개인정보](docs/users/ko/safety-and-privacy.md)
-- [검증](docs/users/ko/verification.md)
-- [기여](CONTRIBUTING.md)
-- [보안](SECURITY.md)
-- [행동 강령](CODE_OF_CONDUCT.md)
-- [라이선스](LICENSE)
-- [English README](README.en.md)
+Apache-2.0. See [LICENSE](LICENSE).

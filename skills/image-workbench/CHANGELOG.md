@@ -9,6 +9,8 @@ All notable changes to this product are documented in this file.
 - User-facing install and support wording uses ordinary terms. Codex and
   Grok install links are labeled separately.
 - README wording is shorter and uses plain terms. Behavior is unchanged.
+- Docs are English-first: `README.md` is English and `README.ko.md` is the
+  Korean user guide. `README.en.md` is removed. Behavior is unchanged.
 
 ## 2.1.0 - 2026-09-12
 

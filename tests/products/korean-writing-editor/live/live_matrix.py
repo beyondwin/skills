@@ -235,9 +235,6 @@ SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 GIT_OBJECT_ID_RE = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
 SAFE_METADATA_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$")
 FINDING_CODE_RE = re.compile(r"^[a-z0-9]+(?:[_-][a-z0-9]+)*$")
-SUPPORTED_RECEIPT_RUNNER_VERSIONS = frozenset(
-    {"10", "11", "12", "13", "14", "15", "16", "17", RUNNER_VERSION}
-)
 RECEIPT_TIMESTAMP_RE = re.compile(
     r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$"
 )
@@ -3764,7 +3761,7 @@ def _validate_run_identity(identity: RunIdentity, *, label: str = "run") -> None
     )
     if (
         type(identity.runner_version) is not str
-        or identity.runner_version not in SUPPORTED_RECEIPT_RUNNER_VERSIONS
+        or identity.runner_version != RUNNER_VERSION
     ):
         raise LiveMatrixError(f"{label} runner version is malformed")
     if (

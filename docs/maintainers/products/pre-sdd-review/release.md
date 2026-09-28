@@ -1,16 +1,17 @@
-# pre-sdd-review 릴리스
+# pre-sdd-review release
 
-이 문서는 Pre-SDD Review를 따로 패키징하는 절차를 정합니다.
-버전 원본은 `skills/pre-sdd-review/release.toml`입니다. `SKILL.md`의
-`metadata.version`은 검증된 복사본입니다. `CHANGELOG.md`는 사람이 읽는 계약
-이력입니다.
+This document sets how Pre-SDD Review is packaged on its own. The version
+source is `skills/pre-sdd-review/release.toml`. `metadata.version` in
+`SKILL.md` is a checked copy, and `CHANGELOG.md` is the human-readable contract
+history.
 
-## 검사, 빌드, 다운로드
+## Check, build, download
 
-공급자 없는 제품 검증을 실행한 뒤 새 빈 디렉터리에 패키징합니다. 따로 받은
-디렉터리에서 바이트를 검증합니다. 공통 check / build / verify-download 명령은
-[`docs/maintainers/repository/release.md`](../../repository/release.md)를
-보세요. 제품 검사는 `python3 scripts/release.py check --product pre-sdd-review`입니다.
+Run the provider-free product verification, then package into a new empty
+directory. Verify the bytes from a separately downloaded directory. The shared
+check / build / verify-download commands are in
+[`docs/maintainers/repository/release.md`](../../repository/release.md). The
+product check is `python3 scripts/release.py check --product pre-sdd-review`.
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
@@ -19,20 +20,21 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
   -s tests/products/pre-sdd-review/evidence -p 'test_*.py' -v
 ```
 
-`check`는 추적된 제품 범위, SemVer, changelog, 필수 검증을 확인합니다.
-`build`는 새 빈 출력 디렉터리에 standalone ZIP 하나와 `SHA256SUMS`만 씁니다.
-`verify-download`는 새로 받은 바이트, checksum, ZIP 구조, 추출 payload hash,
-정확한 payload 목록, 추출한 `evidence.py --version` 정규 JSON, 제품 검증을
-확인합니다. 로컬 빌드 결과는 공개 릴리스 증거가 아닙니다.
+`check` confirms the tracked product scope, SemVer, changelog, and required
+verification. `build` writes only one standalone ZIP and `SHA256SUMS` into a
+new empty output directory. `verify-download` checks the freshly downloaded
+bytes, checksum, ZIP structure, extracted payload hashes, the exact payload
+list, the canonical JSON from the extracted `evidence.py --version`, and the
+product verification. A local build is not public release evidence.
 
-릴리스 payload의 `evidence/evidence.py`는 실행 비트가 없습니다. `python3`로
-돌리고 설치하지 않습니다. Windows는 지원하지 않습니다.
+`evidence/evidence.py` in the release payload has no executable bit. Run it
+with `python3`; do not install it. Windows is not supported.
 
-이 명령은 태그 또는 GitHub Release를 만들지 않습니다.
+These commands do not create a tag or a GitHub Release.
 
-## 실패 복구
+## Recovering from a failure
 
-제품 파일, 버전 결정, changelog, 테스트를 고치고 실패한 명령을 다시
-실행합니다. 부분 산출물을 재사용하지 마세요. 새 빈 디렉터리에서만 다시
-빌드합니다. 태그와 공개는 별도의 명시적 릴리스 작업입니다. 이 절차의 범위
-밖입니다.
+Fix the product files, version decision, changelog, or tests, then rerun the
+failed command. Never reuse partial output; rebuild only in a new empty
+directory. Tagging and publishing are a separate, explicit release task,
+outside this procedure.

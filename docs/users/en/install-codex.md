@@ -2,9 +2,9 @@
 
 [한국어](../ko/install-codex.md) · [Installation](installation.md) · [Compatibility](compatibility.md) · [Safety and privacy](safety-and-privacy.md) · [Verification](verification.md)
 
-## Primary install (Codex)
+## Install with `$skill-installer`
 
-Use `$skill-installer` for [`korean-writing-editor`](../../../skills/korean-writing-editor/README.en.md), [`image-workbench`](../../../skills/image-workbench/README.en.md), and [`pre-sdd-review`](../../../skills/pre-sdd-review/README.en.md). The installer stops if the destination already exists. The default destination for those three skills is `$CODEX_HOME/skills/<skill-name>`. If `CODEX_HOME` is unset, that is `~/.codex/skills`. How It Works and SDDx do not install here ([Local links](install-local.md)).
+In Codex, install [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), and [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md) with `$skill-installer`:
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
@@ -12,21 +12,25 @@ $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-work
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-review
 ```
 
-After install, start a new turn and use the first-call example in the product README.
+Each skill lands in `$CODEX_HOME/skills/<skill-name>` (`~/.codex/skills` when `CODEX_HOME` is unset). If that folder already exists, the installer stops.
 
-## Optional third-party installer
+Then start a new turn and try the first call in the product README.
 
-This path applies to the Korean editor only.
+How It Works, SDDx, and Waygent are not installed this way. Use [Local links](install-local.md).
+
+## Optional: third-party installer
+
+For the Korean editor only, you can also use:
 
 ```text
 npx skills add beyondwin/skills --skill korean-writing-editor
 ```
 
-That `npx` command is a third-party installer. It has its own release and telemetry policy. Use the primary install or [Local links](install-local.md) for the other skills.
+This is a third-party tool with its own release and telemetry policy.
 
-## Codex-only git clone
+## Optional: copy from a git clone
 
-If you skip `npx`, clone the repo. Then copy only a verified directory into the Codex skill folder.
+To skip both installers, clone the repo and copy one skill folder yourself:
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -37,25 +41,23 @@ ls -ld "$SKILL_SOURCE"
 ls -ld "$SKILL_TARGET"
 ```
 
-Copy only when `$SKILL_TARGET` is absent, or is a confirmed safe link to this skill. If a real directory already exists, stop. Do not copy over it. Use the same exact-folder rule for `image-workbench` and `pre-sdd-review`.
+Copy only if `$SKILL_TARGET` does not exist, or is a link you have confirmed points to this skill. If a real folder is already there, stop and do not copy over it. The same rule applies to `image-workbench` and `pre-sdd-review`.
 
 ## Update and uninstall
 
-Inspect the exact target before update or uninstall.
+First inspect the exact target:
 
 ```bash
 SKILL_TARGET="${CODEX_HOME:-$HOME/.codex}/skills/korean-writing-editor"
 ls -ld "$SKILL_TARGET"
 ```
 
-Confirm all of the following:
+Check that:
 
-- the path matches this skill name
-- whether it is a real directory, a symlink, or a different destination
-- `SKILL.md` `name` and `metadata.version` are the expected values
+- the path ends in this skill's name
+- it is the kind of entry you expect (a real folder or a link, and where a link points)
+- `name` and `metadata.version` in its `SKILL.md` are what you expect
 
-Only after that confirmation, remove that exact path. Use the host's ordinary uninstall, or clear that exact destination and reinstall with `$skill-installer`. Do not delete the parent `skills` directory or a home directory. Do not replace an existing install without that inspection.
+Only then remove that one path, and reinstall with `$skill-installer` if you are updating. Do the same for `.../skills/image-workbench` and `.../skills/pre-sdd-review`.
 
-Apply the same inspection sequence to `.../skills/image-workbench` and `.../skills/pre-sdd-review`.
-
-Install, update, and uninstall touch only an inspected exact target. Do not pipe remote scripts into a shell. Do not copy without inspecting the destination. Do not delete parent skill directories. Do not replace an existing install by default.
+Never delete the parent `skills` folder or a home folder. Never pipe a remote script into a shell, and never replace an install you have not inspected.

@@ -55,7 +55,7 @@ SDDX_PAYLOAD_FILES = frozenset(
         ".claude-plugin/plugin.json",
         "CHANGELOG.md",
         "LICENSE.txt",
-        "README.en.md",
+        "README.ko.md",
         "README.md",
         "SKILL.md",
         "agents/openai.yaml",
@@ -74,7 +74,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     {
         "CHANGELOG.md",
         "LICENSE.txt",
-        "README.en.md",
+        "README.ko.md",
         "README.md",
         "SKILL.md",
         "agents/openai.yaml",

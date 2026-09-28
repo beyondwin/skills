@@ -1,59 +1,67 @@
-# waygent 계약
+# waygent contract
 
-이 문서는 waygent가 무엇을 소유하고, 언제 켜지고, 과제를 어떻게 돌리는지 정하는
-규범입니다. 런타임 원본은 `skills/waygent/SKILL.md`이고, 이 문서는 그 가운데
-테스트가 잠그는 약속만 적습니다. 동작을 바꾸기 전에 이 문서와 맨 아래 「함께 고칠
-파일」을 확인하세요.
+This document is the normative contract for what waygent owns, when it turns on, and
+how it runs tasks. The runtime source is `skills/waygent/SKILL.md`; this document
+records only the promises that tests lock. Before changing behavior, check this
+document and "Files to change together" at the end.
 
-## 용어
+## Terms
 
-| 말 | 뜻 |
+| Term | Meaning |
 | --- | --- |
-| 호스트 | 스킬을 실행하는 프로그램입니다. `claude-code`, `codex`, `cursor`(Cursor Agent)입니다. |
-| 컨트롤러 | `/waygent` 또는 `$waygent`를 받은 호스트 세션입니다. 코드를 쓰지 않고 과제를 보내고, 확인하고, 진행 파일을 적습니다. |
-| 구현 서브에이전트 | 과제 하나를 맡는 새 서브에이전트입니다. |
-| 가이드 파일 | `guide.md`. 명령과 계획 전체 규칙을 한 번 적어 모든 구현 서브에이전트가 읽습니다. |
-| 진행 파일 | `progress.md`. 과제별 상태입니다. 커밋하지 않습니다. |
+| Host | The program that runs the skill: `claude-code`, `codex`, or `cursor` (Cursor Agent). |
+| Controller | The host session that received `/waygent` or `$waygent`. It writes no code; it dispatches tasks, checks them, and writes the progress file. |
+| Implementer subagent | A fresh subagent that owns one task. |
+| Guide file | `guide.md`. Commands and plan-wide rules, written once and read by every implementer subagent. |
+| Progress file | `progress.md`. Per-task status. Never committed. |
+| Review records | The `reviews/` files. Each reviewer writes its own findings there; they are the only extra files beyond the progress and guide files. |
 
-## 제품 정체
+## Product identity
 
-제품 ID, 스킬 `name`, 디렉터리 이름은 `waygent`입니다. 표시 이름은 `Waygent`입니다.
-호출은 `/waygent [plan-file|request]`(Codex는 `$waygent [plan-file|request]`)이며,
-메시지에 `/waygent`나 `$waygent`가 없으면 켜지지 않습니다. `agents/openai.yaml`은 `allow_implicit_invocation: false`입니다.
+The product ID, skill `name`, and directory name are `waygent`. The display name is
+`Waygent`. The call is `/waygent [plan-file|request]` (Codex: `$waygent [plan-file|request]`).
+It does not turn on unless the message contains `/waygent` or `$waygent`.
+`agents/openai.yaml` sets `allow_implicit_invocation: false`.
 
-description은 `/waygent` 또는 `$waygent`로 켜지고, 가까운 요청(`/sddx`, Superpowers
-`subagent-driven-development`, 브레인스토밍·스펙·계획 작성, 작은 수정 하나)을
-제외한다고 적어야 합니다.
+The description must say that it turns on with `/waygent` or `$waygent` and that it
+excludes nearby requests (`/sddx`, Superpowers `subagent-driven-development`,
+brainstorming, writing a spec or plan, a single small fix).
 
-## 실행 약속
+## Execution promises
 
-- 상태는 저장소 최상위 `.waygent/<plan-slug>/` 아래 `progress.md`, `guide.md`,
-  `reviews/`에 둡니다. `.waygent/.gitignore`(`*`)로 커밋되지 않게 하고, 사용자
-  `.gitignore`는 고치지 않습니다. 진행 파일이 없어도 트레일러 커밋에서 다시 만듭니다.
-- 과제마다 새 구현 서브에이전트 하나. 동시에 둘을 띄우지 않습니다.
-- 테스트를 먼저 쓰고 실패를 본 뒤 구현합니다(TDD).
-- 과제 커밋에는 `Waygent-Task: N` 트레일러가 붙습니다. 재개할 때 HEAD에서 닿는
-  트레일러 커밋이 있는 과제만 끝난 것으로 보고, 진행 파일을 그에 맞춥니다.
-- 리뷰는 과제마다 한 번, 수정은 한 번이며 다시 리뷰하지 않습니다(no re-review).
-- 마지막에 전체 리뷰를 한 번만 합니다.
-- 실패하면 원인을 먼저 적고 한 번 다시 시도합니다. 두 번째 실패에서 멈춥니다.
-- 구현 서브에이전트와 과제별 리뷰어는 컨트롤러와 같은 모델을 씁니다. 더 싼 모델이나
-  낮은 effort로 바꾸지 않습니다. 호스트가 모델을 고를 수 있으면 최종 리뷰어와 실패 뒤
-  재시도 구현자만 한 등급 위 모델을 씁니다. Codex는 모델 이름을 적지 않아 세션 모델을
-  물려받게 하고, 한 등급 위는 `reasoning_effort`만 `xhigh`로 적습니다. 2026-09-27 실측에서
-  Codex 조율자가 자기 모델을 잘못 알고 다른 모델을 적은 일이 있어서입니다.
-- `main`, `master`에 커밋하지 않습니다. push, merge, PR은 요청이 없으면 하지 않습니다.
-- `SKILL.md`는 140줄 미만입니다. 가벼움이 계약입니다.
+- State lives under `.waygent/<plan-slug>/` at the repository top level, in
+  `progress.md`, `guide.md`, and `reviews/`. `.waygent/.gitignore` (`*`) keeps it out
+  of commits, and the user's `.gitignore` is not edited. If the progress file is
+  missing, it is rebuilt from the trailer commits.
+- One fresh implementer subagent per task. Never two at once.
+- Write the test first, watch it fail, then implement (TDD).
+- Each task commit carries a `Waygent-Task: N` trailer. On resume, only tasks with a
+  trailer commit reachable from HEAD count as done, and the progress file is brought in
+  line with that.
+- One review per task and one fix, with no re-review.
+- One final review of the whole change, only once.
+- On failure, write down the cause first and retry once. Stop on the second failure.
+- Implementer subagents and per-task reviewers use the controller's model. Do not swap
+  in a cheaper model or lower effort. When the host can pick models, only the final
+  reviewer and the post-failure retry implementer use a model one tier up. On Codex, no
+  model name is written, so children inherit the session model; one tier up sets only
+  `reasoning_effort` to `xhigh`. This is because in the 2026-09-27 measurement the Codex
+  controller misidentified its own model and wrote a different one.
+- Do not commit to `main` or `master`. Do not push, merge, or open a PR unless asked.
+- `SKILL.md` stays under 140 lines. Lightness is part of the contract.
 
-## 일부러 빼는 것
+## Deliberately left out
 
-브레인스토밍·스펙·설계 단계, 과제별 브리프·diff·보고서 파일, 재리뷰 반복, 구현
-서브에이전트 병렬 실행과 worktree 풀, 과제마다 사람 확인. 이 선택의 근거는
-[`docs/research/`](../../../research/README.md)의 하네스 비교 조사와 진행 중인 평가입니다.
+Brainstorming, spec, and design stages; per-task brief, diff, and report files (the
+reviewers' own `reviews/` files are the only extra files); re-review loops; parallel
+implementer subagents and worktree pools; human confirmation on every task. The basis
+for these choices is the harness comparison in [`docs/research/`](../../../research/README.md)
+and the finished evaluation in
+[waygent design and evaluation](../../../research/2026-09-waygent-eval/README.md).
 
-## 함께 고칠 파일
+## Files to change together
 
-- `skills/waygent/SKILL.md`, `release.toml`, `CHANGELOG.md`, `README.md`, `README.en.md`
+- `skills/waygent/SKILL.md`, `release.toml`, `CHANGELOG.md`, `README.md`, `README.ko.md`
 - `tests/products/waygent/test_contract.py`
-- 이 디렉터리의 `testing.md`, `compatibility.md`, `release.md`
-- 호스트가 바뀌면 `products.toml`, 공유 호환성 문서, 저장소 테스트
+- `testing.md`, `compatibility.md`, and `release.md` in this directory
+- When hosts change: `products.toml`, the shared compatibility docs, and repository tests

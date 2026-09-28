@@ -365,13 +365,13 @@ class SddxContractTests(unittest.TestCase):
             self.assertIn("the runner was interrupted (SIGTERM or Ctrl-C)", fold(text))
         self.assertNotIn("does not kill the tree", fold(dispatch))
         self.assertNotIn("leaves the worker running", fold(dispatch))
-        self.assertNotIn("프로세스 트리는 죽이지 않습니다", fold(contract))
+        self.assertNotIn("does not kill the tree", fold(contract))
 
     def test_idle_timeout_is_on_every_face(self) -> None:
         dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
         skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         readme = (SKILL / "README.md").read_text(encoding="utf-8")
-        readme_en = (SKILL / "README.en.md").read_text(encoding="utf-8")
+        readme_ko = (SKILL / "README.ko.md").read_text(encoding="utf-8")
         contract = (
             ROOT / "docs" / "maintainers" / "products" / "sddx" / "contract.md"
         ).read_text(encoding="utf-8")
@@ -380,7 +380,7 @@ class SddxContractTests(unittest.TestCase):
             "dispatch.md": fold(dispatch),
             "SKILL.md": fold(skill),
             "README.md": fold(readme),
-            "README.en.md": fold(readme_en),
+            "README.ko.md": fold(readme_ko),
             "contract.md": fold(contract),
         }
         for name, text in faces.items():
@@ -394,20 +394,17 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("the worker wrote no output for <N> seconds", faces["contract.md"])
         self.assertIn("It defaults to 900", faces["dispatch.md"])
         self.assertIn("defaults to 0, which waits without a bound", faces["dispatch.md"])
-        self.assertIn("기본값은 900", faces["contract.md"])
-        self.assertIn("기본값은 0", faces["contract.md"])
+        self.assertIn("defaults to 900", faces["contract.md"])
+        self.assertIn("defaults to 0", faces["contract.md"])
         self.assertIn("[--idle-timeout <seconds>]", dispatch)
         # 7.0.1 live check LT4: a backgrounded wait is as silent as a
         # foreground one, so the "run it in the background" advice is gone.
-        for name in ("dispatch.md", "SKILL.md"):
+        for name in ("dispatch.md", "SKILL.md", "contract.md"):
             with self.subTest(face=name, rule="raise-above-duration"):
                 self.assertNotIn("records right away", faces[name])
                 self.assertIn("background", faces[name])
                 self.assertRegex(faces[name], r"does not keep (the|an) attempt alive")
                 self.assertIn("above that command's expected duration", faces[name])
-        self.assertNotIn("바로 기록합니다", faces["contract.md"])
-        self.assertIn("백그라운드로 돌려도 시도가 유휴 창을 넘기지 못합니다", faces["contract.md"])
-        self.assertIn("예상 시간보다 크게 올립니다", faces["contract.md"])
         for name in ("dispatch.md", "contract.md"):
             with self.subTest(face=name, process="worker-server"):
                 self.assertTrue("`worker-server`" in faces[name], f"worker-server missing from {name}")
@@ -423,7 +420,7 @@ class SddxContractTests(unittest.TestCase):
         fold = lambda value: re.sub(r"\s+", " ", value)
         self.assertIn("Grok `tool_use`", fold(dispatch))
         self.assertIn("Grok `tool_use`", fold(contract))
-        self.assertIn("Cursor·Grok 두 로그 형태의 bounded tools index", fold(testing))
+        self.assertIn("bounded tools index for both the Cursor and Grok log shapes", fold(testing))
 
     def test_runner_limits_are_on_every_face(self) -> None:
         skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -433,26 +430,20 @@ class SddxContractTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         fold = lambda value: re.sub(r"\s+", " ", value)
         faces = {"dispatch.md": fold(dispatch), "contract.md": fold(contract)}
+        shared = (
+            # G1: an interrupted record's exit can be null.
+            "could not be confirmed ended",
+            "check `pid_alive` before cleanup",
+            # G9: a foreground Grok shell is indexed only once it returns.
+            "is not in the index yet",
+            # G10: the limits the runner deliberately keeps.
+            "build daemon",
+            "end them by pid",
+        )
         expected = {
-            "dispatch.md": (
-                # G1: an interrupted record's exit can be null.
-                "could not be confirmed ended",
-                "check `pid_alive` before cleanup",
-                # G9: a foreground Grok shell is indexed only once it returns.
-                "is not in the index yet",
-                # G10: the limits the runner deliberately keeps.
-                "build daemon",
-                "end them by pid",
-            ),
-            "contract.md": (
-                "확인하지 못하면 그 `exit_code`는 `null`",
-                "정리 전에 `pid_alive`를 확인합니다",
-                "아직 인덱스에 없습니다",
-                "빌드 데몬",
-                "pid로 확인하고 끝냅니다",
-                # G6: one continuation-brief rule.
-                "이전 `report.md`와 이미 만든 커밋",
-            ),
+            "dispatch.md": shared,
+            # G6: one continuation-brief rule.
+            "contract.md": shared + ("the previous `report.md` and the commits already made",),
         }
         for name, phrases in expected.items():
             for phrase in phrases:
@@ -475,7 +466,7 @@ class SddxContractTests(unittest.TestCase):
         skill, dispatch, worker, contract = map(fold, (skill, dispatch, worker, contract))
         # R6: no implementer XHigh trigger that every fix round meets.
         self.assertNotIn("High already failed review", skill)
-        self.assertNotIn("High 리뷰가 이미 실패한 경우", contract)
+        self.assertNotIn("High already failed review", contract)
         # R5: fix briefs start from the extracted constraints section.
         for text in (dispatch, contract):
             self.assertIn('--heading "Global Constraints"', text)
@@ -484,7 +475,7 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("provider's session directories", worker)
         for text in (skill, dispatch):
             self.assertIn("before that task's review", text)
-        self.assertIn("그 과제 리뷰 전에 돌리며", contract)
+        self.assertIn("before that task's review", contract)
         # R7: attempt parent, no masking pipe, waiting and stopping.
         self.assertIn("worker-attempts/", dispatch)
         self.assertIn("`tail`", dispatch)
@@ -493,7 +484,7 @@ class SddxContractTests(unittest.TestCase):
             self.assertIn("ps -o ppid= -p", text)
         # The ppid route when the runner is already gone.
         self.assertIn("If that parent is pid 1", dispatch)
-        self.assertIn("그 부모가 pid 1이면", contract)
+        self.assertIn("If that parent is pid 1", contract)
         changelog = fold((SKILL / "CHANGELOG.md").read_text(encoding="utf-8"))
         self.assertIn("never the recorded worker pid unless its parent is pid 1", changelog)
         self.assertIn("previous attempt's `pid_alive` is true", skill)
@@ -515,16 +506,17 @@ class SddxContractTests(unittest.TestCase):
         contract = (
             ROOT / "docs" / "maintainers" / "products" / "sddx" / "contract.md"
         ).read_text(encoding="utf-8")
-        self.assertIn("사용자 메시지에 `/sddx` 또는 `$sddx`가 있을 때만", contract)
+        contract = re.sub(r"\s+", " ", contract)
+        self.assertIn("only when the user message contains `/sddx` or `$sddx`", contract)
         self.assertIn("`--global-constraints`", contract)
-        self.assertIn("한 워커가 여러 계획 과제를 묶지 않습니다", contract)
-        self.assertIn("중첩 native SDD", contract)
-        self.assertIn("워크스페이스", contract)
-        self.assertNotIn("명시적인 외부 implementer 요청이 없으면", contract)
+        self.assertIn("one worker never bundles several plan tasks", contract)
+        self.assertIn("nested native SDD", contract)
+        self.assertIn("workspace", contract)
+        self.assertNotIn("explicit external implementer request", contract)
 
     def test_readme_when_to_use_is_slash_dollar_only(self) -> None:
-        korean = (SKILL / "README.md").read_text(encoding="utf-8")
-        english = (SKILL / "README.en.md").read_text(encoding="utf-8")
+        korean = (SKILL / "README.ko.md").read_text(encoding="utf-8")
+        english = (SKILL / "README.md").read_text(encoding="utf-8")
         self.assertIn("`/sddx`", korean)
         self.assertIn("`$sddx`", korean)
         self.assertNotIn("외부 Grok 또는 Cursor implementer", korean.split("## 사용할 때와 사용하지 않을 때")[1].split("## ")[0])
@@ -618,7 +610,7 @@ class SddxContractTests(unittest.TestCase):
         unlink_claude = "unlink ~/.claude/skills/sddx"
         for relative in (
             "skills/sddx/README.md",
-            "skills/sddx/README.en.md",
+            "skills/sddx/README.ko.md",
             "docs/users/ko/install-local.md",
             "docs/users/en/install-local.md",
         ):
@@ -698,13 +690,14 @@ class SddxContractTests(unittest.TestCase):
         testing = (
             ROOT / "docs" / "maintainers" / "products" / "sddx" / "testing.md"
         ).read_text(encoding="utf-8")
-        self.assertNotIn("삭제 대상", testing)
-        self.assertIn("Win32 전송 픽스처는 삭제했습니다", testing)
+        testing = re.sub(r"\s+", " ", testing)
+        self.assertNotIn("to be deleted", testing)
+        self.assertIn("The Win32 transport fixtures were deleted", testing)
         self.assertIn(
-            'Windows `.cmd` 왕복 검사(`skipUnless(os.name == "nt")`)는 삭제했습니다.',
+            'The Windows `.cmd` round-trip check (`skipUnless(os.name == "nt")`) was deleted.',
             testing,
         )
-        self.assertIn("Windows는 지원하지 않습니다", testing)
+        self.assertIn("Windows is unsupported", testing)
 
     def test_changelog_records_windows_refusal_as_breaking(self) -> None:
         # Pinned to the entry, not to `Unreleased`: cutting a release moves the

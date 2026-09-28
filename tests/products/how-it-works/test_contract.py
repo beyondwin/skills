@@ -103,17 +103,12 @@ def _reference(name: str) -> str:
 LIVE = ROOT / "tests" / "products" / "how-it-works" / "live"
 LIVE_CASES = LIVE / "cases.json"
 LIVE_README = LIVE / "README.md"
-LIVE_RECORD = LIVE / "smoke-record.json"
 LIVE_CASE_IDS = ("explicit-dns-path", "implicit-dns-path", "near-miss-debug")
-LIVE_HOSTS = ("codex", "claude-code", "grok", "cursor")
 LIVE_CASE_FIELDS = {
     "explicit-dns-path": {"id", "prompt_codex", "prompt_slash", "expect"},
     "implicit-dns-path": {"id", "prompt", "expect"},
     "near-miss-debug": {"id", "prompt", "expect"},
 }
-HOST_RECORD_FIELDS = {"host", "client_version", "cases", "verdict"}
-CASE_VERDICTS = {"pass", "fail", "not_measured"}
-HOST_VERDICTS = {"supported", "unsupported", "not_measured"}
 FORBIDDEN_LIVE_KEYS = {
     "stdout",
     "stderr",
@@ -167,7 +162,6 @@ LIVE_CASES_PAYLOAD = {
     ],
 }
 LIVE_README_MARKERS = (
-    "historical-unbound",
     "current-bounded",
     "host_event",
     "not_measured/not_run",
@@ -176,7 +170,6 @@ LIVE_README_MARKERS = (
     "Do not commit full responses",
     "fresh session",
     "subscription/API quota",
-    "unsupported",
     "outside the repository",
     "delete them after scoring",
 )
@@ -196,8 +189,11 @@ class HowItWorksPayloadTests(unittest.TestCase):
     def test_release_and_repeatable_install_contract(self) -> None:
         from scripts.lib.product_contract import load_product_release
 
-        self.assertEqual(load_product_release(SKILL).version, "3.0.0")
-        for filename in ("README.md", "README.en.md"):
+        self.assertEqual(load_product_release(SKILL).version, "3.0.1")
+        self.assertEqual(
+            {path.name for path in SKILL.glob("README*.md")}, {"README.md", "README.ko.md"}
+        )
+        for filename in ("README.md", "README.ko.md"):
             text = (SKILL / filename).read_text(encoding="utf-8")
             self.assertIn("<!-- how-it-works-local-links -->\n```python\n", text)
             self.assertNotIn(
@@ -211,7 +207,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
         self.assertEqual(set(frontmatter), PORTABLE_FIELDS)
         self.assertEqual(frontmatter["name"], "how-it-works")
         self.assertEqual(frontmatter["license"], "Apache-2.0")
-        self.assertEqual(frontmatter["metadata"]["version"], "3.0.0")
+        self.assertEqual(frontmatter["metadata"]["version"], "3.0.1")
 
     def test_frontmatter_has_no_host_tool_requirement(self) -> None:
         frontmatter = parse_skill_frontmatter((SKILL / "SKILL.md").read_text(encoding="utf-8"))
@@ -539,7 +535,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
         self.assertIn("Explain in the same turn", text)
         self.assertIn("Announce the rung in the intent line", text)
         self.assertIn("Missing rung takes default 그림", text)
-        self.assertIn("| 바로 | slice is a cut mechanism |", text)
+        self.assertIn("| Direct | slice is a cut mechanism |", text)
         self.assertIn("- **그림** — 한 장 (default)", text)
         self.assertNotIn(
             "Do not explain until `slice`, `type`, `rung`, and `language` are filled",
@@ -565,7 +561,10 @@ class HowItWorksPayloadTests(unittest.TestCase):
         visuals = _reference("visuals.md")
         self.assertIn("Keep the baseline Mermaid and numbered hops in Map at every rung", output)
         self.assertIn("Put the failure/regime table in Body at 허점", output)
-        self.assertIn("Map의 기준 Mermaid 유지; Body의 실패/적용 범위 표", visuals)
+        self.assertIn(
+            "허점: keep the baseline Mermaid in Map; put the failure/regime table in Body",
+            visuals,
+        )
         self.assertNotIn("The 한 줄 is a **recommendation**, not a tie", output)
         self.assertNotIn("Do not fetch sources unless", stakes)
         self.assertIn("verified or explicitly unverified", stakes)
@@ -641,33 +640,13 @@ class HowItWorksPayloadTests(unittest.TestCase):
         for forbidden in HOST_TOOL_MARKERS:
             self.assertNotIn(forbidden, text)
 
-    def test_product_readmes_separate_historical_and_current_measurement(self) -> None:
-        for filename in ("README.md", "README.en.md"):
-            text = (SKILL / filename).read_text(encoding="utf-8")
-            self.assertNotRegex(
-                text,
-                r"(?is)cursor.{0,120}(did not pass|통과하지 않)",
-                filename,
-            )
-            self.assertNotRegex(
-                text,
-                r"(?is)(did not pass|통과하지 않).{0,120}cursor",
-                filename,
-            )
-            self.assertNotIn(
-                "Grok and Cursor are not supported on this build because live smoke did not pass",
-                text,
-            )
-            self.assertNotIn(
-                "Grok와 Cursor는 이 빌드의 라이브 smoke가 통과하지 않아 지원하지 않습니다",
-                text,
-            )
-        korean = (SKILL / "README.md").read_text(encoding="utf-8")
-        english = (SKILL / "README.en.md").read_text(encoding="utf-8")
-        self.assertIn("지금 설치 파일의 실제 실행은\n아직 확인하지 않았습니다(`not_measured`)", korean)
-        self.assertIn("보존된 2026-08-28 측정에서는 Grok가 실패했고 Cursor는", korean)
-        self.assertIn("Live evidence for the\ncurrent install files is `not_measured`", english)
-        self.assertIn("In the preserved 2026-08-28 measurement,\nGrok failed and Cursor was not run", english)
+    def test_product_readmes_state_current_measurement(self) -> None:
+        korean = " ".join((SKILL / "README.ko.md").read_text(encoding="utf-8").split())
+        english = " ".join((SKILL / "README.md").read_text(encoding="utf-8").split())
+        self.assertIn("지금 설치 파일의 실제 실행은 아직 확인하지 않았습니다(`not_measured`)", korean)
+        self.assertIn("Grok와 Cursor는 지원하지 않습니다", korean)
+        self.assertIn("Live runs of the current install files are `not_measured`", english)
+        self.assertIn("Grok and Cursor are not supported", english)
 
 
 class HowItWorksLiveContractTests(unittest.TestCase):
@@ -707,38 +686,8 @@ class HowItWorksLiveContractTests(unittest.TestCase):
             text,
         )
 
-    def test_live_smoke_record_test_is_not_gated_by_skipunless(self) -> None:
-        source = Path(__file__).read_text(encoding="utf-8")
-        marker = "def test_live_smoke_record_contains_only_metadata_fields"
-        start = source.index(marker)
-        prefix = source[max(0, start - 180) : start]
-        self.assertNotIn("skipUnless", prefix)
-
-    def test_live_smoke_record_contains_only_metadata_fields(self) -> None:
-        self.assertTrue(LIVE_RECORD.is_file(), "live/smoke-record.json is absent")
-        data = json.loads(LIVE_RECORD.read_text(encoding="utf-8"))
-        self.assertEqual(set(data), {"schema_version", "executed_on", "hosts"})
-        self.assertEqual(data["schema_version"], 1)
-        self.assertRegex(str(data["executed_on"]), r"^\d{4}-\d{2}-\d{2}$")
-        hosts = data["hosts"]
-        self.assertEqual([row["host"] for row in hosts], list(LIVE_HOSTS))
-        self.assertTrue(FORBIDDEN_LIVE_KEYS.isdisjoint(data))
-        for row in hosts:
-            self.assertEqual(set(row), HOST_RECORD_FIELDS, row["host"])
-            self.assertIsInstance(row["client_version"], str)
-            self.assertTrue(row["client_version"])
-            self.assertEqual(set(row["cases"]), set(LIVE_CASE_IDS))
-            for case_id, verdict in row["cases"].items():
-                self.assertIn(verdict, CASE_VERDICTS, f"{row['host']}:{case_id}")
-            self.assertIn(row["verdict"], HOST_VERDICTS, row["host"])
-            if row["verdict"] == "supported":
-                self.assertEqual(set(row["cases"].values()), {"pass"}, row["host"])
-            self.assertTrue(FORBIDDEN_LIVE_KEYS.isdisjoint(row), row["host"])
-            self.assertNotIn("prompt", row)
-            self.assertNotIn("transcript", row)
-
     def test_registry_preserves_supported_hosts_independently_of_current_measurement(self) -> None:
-        # Historical verdicts remain historical; this locks the existing support scope.
+        # Locks the existing support scope; it does not depend on a live record.
         self.assertEqual(
             {"codex", "claude-code"},
             set(load_registry(ROOT / "products.toml").require("how-it-works").supported_hosts),

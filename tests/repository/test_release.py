@@ -668,11 +668,11 @@ class ProductDownloadTests(unittest.TestCase):
             for info, data in items:
                 text = data.decode("utf-8")
                 if info.filename == "how-it-works/release.toml":
-                    text = text.replace('version = "3.0.0"', 'version = "9.9.9"')
+                    text = text.replace('version = "3.0.1"', 'version = "9.9.9"')
                     self.assertNotEqual(text.encode("utf-8"), data)
                     data = text.encode("utf-8")
                 elif info.filename == "how-it-works/SKILL.md":
-                    text = text.replace('version: "3.0.0"', 'version: "9.9.9"')
+                    text = text.replace('version: "3.0.1"', 'version: "9.9.9"')
                     self.assertNotEqual(text.encode("utf-8"), data)
                     data = text.encode("utf-8")
                 yield info, data
@@ -771,9 +771,6 @@ class SharedReleasePathTests(unittest.TestCase):
         self.assertEqual(set(release.SHARED_RELEASE_PATHS), expected)
         for relative in release.SHARED_RELEASE_PATHS:
             self.assertTrue((ROOT / relative).is_file(), relative)
-        self.assertNotIn("scripts/release_archive.py", release.SHARED_RELEASE_PATHS)
-        self.assertNotIn("scripts/catalog_contract.py", release.SHARED_RELEASE_PATHS)
-        self.assertNotIn("scripts/lib/catalog.py", release.SHARED_RELEASE_PATHS)
 
 
 if __name__ == "__main__":

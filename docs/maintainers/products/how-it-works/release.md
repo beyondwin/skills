@@ -1,47 +1,50 @@
-# how-it-works 릴리스
+# how-it-works release
 
-이 문서는 how-it-works의 버전을 올리는 기준과 릴리스 검사 방법을 정합니다. 버전
-원본은 `skills/how-it-works/release.toml`입니다. `SKILL.md`
-`metadata.version`은 검증된 복제 값입니다. 사람이 읽는 변경 이력은 같은
-디렉터리의 `CHANGELOG.md`입니다. 공통 판정표는
-[버저닝](../../repository/versioning.md)을 따릅니다.
+This document sets when to bump how-it-works' version and how to check a release. The
+version source is `skills/how-it-works/release.toml`. `SKILL.md` `metadata.version` is
+a verified copy. The human-readable change history is `CHANGELOG.md` in the same
+directory. The shared decision table is in [versioning](../../repository/versioning.md).
 
-아직 공개된 how-it-works 릴리스는 없습니다. 이 제품은 통합 `v2.0.0` GitHub
-Release에 들어 있지 않습니다. 현재 독립 버전은
-`release.toml`이 소유합니다. tag, 공개(publication), GitHub Release는 만들지
-않았습니다.
+No how-it-works release has been published yet. `release.toml` owns the current
+standalone version. No tag, publication, or GitHub Release has been made.
 
-## SemVer 예시
+## SemVer examples
 
-- PATCH: 깨진 상대 링크, 설치 README 정정, 문서화된 dump gate를 되살리는 결함 수정
-- MINOR: 기본 그림 칸을 유지하는 새 선택 별칭
-- MAJOR: 필수 결과에서 numbered hop list를 빼거나, 호스트 도구를 필수로 만들거나, `/eli5`를 활성화하거나, 기본 칸을 바꾸는 변경
-- 올리지 않음: 설치되지 않는 형태 픽스처 주석, 관리자 문서만의 변경
+- PATCH: a broken relative link, an install README fix, a defect fix that restores the
+  documented dump gate
+- MINOR: a new optional alias that keeps the default picture rung
+- MAJOR: dropping the numbered hop list from the required output, requiring a host
+  tool, activating on `/eli5`, or changing the default rung
+- No bump: fixture comments that are not installed, or maintainer-doc-only changes
 
-3.0.0은 기본 칸을 그림으로 바꾸고 깊이 질문을 없앤 MAJOR입니다.
+3.0.0 was a MAJOR: it made picture the default rung and removed the depth question.
+3.0.1 is a PATCH: English-first docs and English instruction text, same behavior.
 
-규칙은 다음과 같습니다.
+Rules:
 
-- 동작이 바뀌면 SemVer를 올립니다. 문서 문구만 바뀌고 동작이 같으면 올리지
-  않습니다.
-- 설치 파일이 바뀌면 `release.toml`과 `SKILL.md`의 버전 결정, 제품 CHANGELOG
-  항목이 같은 변경에 있어야 합니다.
+- Bump SemVer when behavior changes. Don't bump for wording-only changes outside the
+  installed files.
+- When installed files change, the `release.toml` and `SKILL.md` versions and the
+  product CHANGELOG entry must be in the same change.
 
-## 검사, 빌드, 다운로드
+## Check, build, download
 
-공통 check / build / verify-download 명령은
-[`docs/maintainers/repository/release.md`](../../repository/release.md)를
-보세요. 제품 검사는 `python3 scripts/release.py check --product how-it-works`입니다.
+For the shared check / build / verify-download commands, see
+[`docs/maintainers/repository/release.md`](../../repository/release.md). The product
+check is `python3 scripts/release.py check --product how-it-works`.
 
-제품 태그는 `how-it-works-v<version>`입니다. 태그와 Draft는 명시적인 출시
-작업이며, 로컬 빌드의 부수 효과가 아닙니다.
+The product tag is `how-it-works-v<version>`. Tags and drafts are explicit release
+work, never a side effect of a local build.
 
-## 실패 복구
+## Recovering from failure
 
-- 로컬 검증 실패: 파일, 버전, CHANGELOG 또는 테스트를 고치고 다시 검증합니다.
-- 패키징 실패: 새 출력 디렉터리에서 다시 빌드합니다. 부분 결과를 재사용하지 않습니다.
-- 태그 뒤 Draft 실패: 태그를 옮기지 않습니다. 같은 커밋의 정확한 아티팩트만 고쳐서 검증하거나, 코드 변경이 필요하면 새 버전을 준비합니다.
-- 원격 검증 실패: Draft를 비공개로 유지합니다. 로컬 성공을 공개 증거로 대신하지 않습니다.
-- 이 제품 실패: 다른 제품의 버전, 태그, Release를 바꾸지 않습니다.
+- Local verification fails: fix the files, version, CHANGELOG, or tests, then verify
+  again.
+- Packaging fails: rebuild into a fresh output directory. Don't reuse partial output.
+- The draft fails after tagging: don't move the tag. Fix and verify only the exact
+  artifact from the same commit, or prepare a new version if code must change.
+- Remote verification fails: keep the draft private. A local pass is not public
+  evidence.
+- This product fails: don't change another product's version, tag, or Release.
 
-이 명령은 태그 또는 GitHub Release를 만들지 않습니다.
+This command does not create a tag or a GitHub Release.

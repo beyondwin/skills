@@ -192,7 +192,7 @@ def strict_receipt_payload() -> dict[str, object]:
             "repository_head": "0" * 40,
             "requested_models": ["test-model"],
             "run_id": "test-run",
-            "runner_version": "10",
+            "runner_version": "18",
             "scope": "baseline",
             "selected_call_ids": ["test-producer:test-case:1"],
             "skill_hash": "1" * 64,
@@ -482,12 +482,9 @@ GUIDE_V18_RECEIPT_PARAGRAPH = (
     "stream byte/hash pairs, terminal statuses, evidence paths, call identity, and "
     "reservation relationships must be coherent before a receipt can authorize any "
     "later step. Every finding carries `certainty`, and every `partially_verified` "
-    "receipt carries at least one `not_measured` finding, whatever the runner "
-    "version. A receipt that breaks either rule fails to load. Receipts from runners "
-    "10 through 17 that follow these rules remain readable, and their statuses keep "
-    "their original meaning. They are not reusable as a runner-version-18 "
-    "execution identity; this hardening series requires runner 18 evidence and a "
-    "new run ID."
+    "receipt carries at least one `not_measured` finding. A receipt that breaks "
+    "either rule fails to load. A receipt from an older runner version also fails to "
+    "load; a run needs runner 18 evidence and a new run ID."
 )
 GUIDE_PRIVACY_PARAGRAPH = (
     "Use synthetic prompts only. Do not place private manuscripts, credentials, "
@@ -835,9 +832,6 @@ def assert_live_guide_contract(markdown: str) -> None:
     )
     assert statuses == GUIDE_STATUS_DEFINITIONS
     assert normalized_guide_sections(markdown) == GUIDE_EXPECTED_SECTIONS
-    assert "kws-editor-20260823-baseline-01" not in markdown
-    assert "kws-editor-20260823-baseline-02" not in markdown
-    assert "2026-08-23-kws-korean-writing-editor-cross-model-evaluation.md" not in markdown
     assert markdown.count("example-baseline-run") == 3
     for paragraph in (
         GUIDE_RESERVATION_PARAGRAPH,
@@ -1112,7 +1106,7 @@ class LiveDocumentationTests(unittest.TestCase):
         )
         for required in (
             "Runner version 18 validates the exact receipt and nested identity/finding schemas",
-            "Every finding carries `certainty`, and every `partially_verified` receipt carries at least one `not_measured` finding, whatever the runner version",
+            "Every finding carries `certainty`, and every `partially_verified` receipt carries at least one `not_measured` finding",
             "A receipt that breaks either rule fails to load",
             "emitted into the canonical review prompt",
             "Changing either the validated case ID or response hash changes the reviewer prompt hash",
@@ -1287,17 +1281,17 @@ class RemediationSelectionTests(unittest.TestCase):
                 self.full_plan, tuple(call.call_id for call in self.full_plan[:39])
             )
 
-    def test_identity_serialization_binds_selected_call_ids_and_rejects_legacy_shape(self) -> None:
+    def test_identity_serialization_binds_selected_call_ids_and_rejects_incomplete_shape(self) -> None:
         identity = live_matrix.RunIdentity.for_test(
             scope="remediation", selected_call_ids=(self.full_plan[1].call_id,)
         )
         self.assertEqual(
             live_matrix._identity_from_json(live_matrix.identity_json(identity), label="test"), identity
         )
-        legacy = live_matrix.identity_json(identity)
-        del legacy["selected_call_ids"]
-        with self.assertRaisesRegex(live_matrix.LiveMatrixError, "malformed legacy identity"):
-            live_matrix._identity_from_json(legacy, label="legacy")
+        incomplete = live_matrix.identity_json(identity)
+        del incomplete["selected_call_ids"]
+        with self.assertRaisesRegex(live_matrix.LiveMatrixError, "malformed incomplete identity"):
+            live_matrix._identity_from_json(incomplete, label="incomplete")
 
 
 class DeterministicEvaluationTests(unittest.TestCase):
@@ -2089,32 +2083,20 @@ class Runner18BoundaryTests(unittest.TestCase):
     def test_current_execution_identity_is_18(self) -> None:
         self.assertEqual(live_matrix.RUNNER_VERSION, "18")
 
-    def test_historical_receipts_remain_readable_without_upgrade(self) -> None:
+    def test_receipts_from_older_runners_are_rejected(self) -> None:
         for version in ("10", "17"):
             with self.subTest(version=version):
                 payload = strict_receipt_payload()
                 payload["identity"]["runner_version"] = version
-                receipt = live_matrix._receipt_from_json(payload)
-                self.assertEqual(receipt.identity.runner_version, version)
-                self.assertEqual(
-                    receipt.as_json()["identity"]["runner_version"], version
-                )
+                with self.assertRaisesRegex(
+                    live_matrix.LiveMatrixError, "malformed receipt identity"
+                ):
+                    live_matrix._receipt_from_json(payload)
 
     def test_old_identity_cannot_start_or_resume_an_execution_plan(self) -> None:
         identity = live_matrix.RunIdentity.for_test(runner_version="17")
         with self.assertRaisesRegex(live_matrix.LiveMatrixError, "new run ID"):
             live_matrix.remaining_calls((), {}, identity)
-
-    def test_runner17_receipt_cannot_skip_runner18_work(self) -> None:
-        payload = strict_receipt_payload()
-        payload["identity"]["runner_version"] = "17"
-        receipt = live_matrix._receipt_from_json(payload)
-        current = dataclasses.replace(receipt.identity, runner_version="18")
-        call = live_matrix.PlannedCall(
-            receipt.call_id, "producer", "test-producer", receipt.case_id, 1
-        )
-        with self.assertRaisesRegex(live_matrix.LiveMatrixError, "identity drift"):
-            live_matrix.remaining_calls((call,), {receipt.call_id: receipt}, current)
 
     def test_old_dispatch_identity_is_rejected_before_git_or_provider(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -3257,7 +3239,7 @@ class LiveMatrixLifecycleTests(UnixOnlyLiveTestMixin, unittest.TestCase):
             self.assertEqual(
                 marker_payload["runner_version"], live_matrix.RUNNER_VERSION
             )
-            self.assertEqual(marker_fixture["runner_version"], "17")
+            self.assertEqual(marker_fixture["runner_version"], live_matrix.RUNNER_VERSION)
             self.assertEqual(
                 marker_payload["schema_version"], marker_fixture["schema_version"]
             )
@@ -4794,11 +4776,8 @@ class LiveMatrixLifecycleTests(UnixOnlyLiveTestMixin, unittest.TestCase):
                 ):
                     live_matrix._receipt_from_json(candidate)
 
-    def test_v10_receipt_missing_band_is_malformed(self) -> None:
+    def test_receipt_missing_band_is_malformed(self) -> None:
         payload = strict_receipt_payload()
-        identity = payload["identity"]
-        self.assertIsInstance(identity, dict)
-        self.assertEqual(identity["runner_version"], "10")
         del payload["band"]
 
         with self.assertRaisesRegex(live_matrix.LiveMatrixError, "malformed receipt"):
@@ -5062,7 +5041,7 @@ class LiveMatrixLifecycleTests(UnixOnlyLiveTestMixin, unittest.TestCase):
         ):
             live_matrix._receipt_from_json(receipt.as_json())
 
-    def test_receipt_round_trips_soft_certainty_and_rejects_old_shapes(self) -> None:
+    def test_receipt_round_trips_soft_certainty_and_rejects_bad_shapes(self) -> None:
         soft = live_matrix.Finding(
             "diagnostic_semantics_not_measured",
             "semantic equivalence is not deterministically measured",
@@ -5077,18 +5056,6 @@ class LiveMatrixLifecycleTests(UnixOnlyLiveTestMixin, unittest.TestCase):
         self.assertEqual(payload["findings"][0]["certainty"], "not_measured")
         self.assertEqual(live_matrix._receipt_from_json(payload), receipt)
 
-        v10_omission = live_matrix.CallReceipt.for_test(
-            "v10-call",
-            identity=live_matrix.RunIdentity.for_test(runner_version="10"),
-            status="failed",
-            findings=(live_matrix.Finding("literal_changed", "literal changed"),),
-        ).as_json()
-        del v10_omission["findings"][0]["certainty"]
-        with self.assertRaisesRegex(
-            live_matrix.LiveMatrixError, "malformed receipt: finding must have exactly"
-        ):
-            live_matrix._receipt_from_json(v10_omission)
-
         current_omission = receipt.as_json()
         del current_omission["findings"][0]["certainty"]
         with self.assertRaisesRegex(
@@ -5096,12 +5063,12 @@ class LiveMatrixLifecycleTests(UnixOnlyLiveTestMixin, unittest.TestCase):
         ):
             live_matrix._receipt_from_json(current_omission)
 
-        v10_empty_partial = strict_receipt_payload()
-        v10_empty_partial["status"] = "partially_verified"
+        empty_partial = strict_receipt_payload()
+        empty_partial["status"] = "partially_verified"
         with self.assertRaisesRegex(
             live_matrix.LiveMatrixError, "finding certainty does not match status"
         ):
-            live_matrix._receipt_from_json(v10_empty_partial)
+            live_matrix._receipt_from_json(empty_partial)
 
     def test_current_partial_receipt_requires_a_typed_not_measured_finding(self) -> None:
         activation = live_matrix.Finding(

@@ -19,6 +19,7 @@ from scripts.lib.documentation import (  # noqa: E402
 from scripts.lib.product_registry import (  # noqa: E402
     load_registry,
     normalize_repo_path,
+    PRODUCT_README_NAMES,
     validate_registry,
 )
 from scripts.lib.verification import REGISTERED_STAGE_NAMES  # noqa: E402
@@ -185,6 +186,12 @@ class RegistryRejectionTests(unittest.TestCase):
             with self.assertRaises(ValueError) as raised:
                 load_registry(path)
             self.assertIn(fragment, str(raised.exception))
+
+    def test_readme_primary_language_is_an_unknown_field(self) -> None:
+        self._reject(
+            _registry(_product(extra='readme_primary_language = "en"')),
+            "extra field readme_primary_language",
+        )
 
     def test_malformed_registry_is_rejected(self) -> None:
         cases = (
@@ -373,8 +380,8 @@ class RegistryDocumentationTests(unittest.TestCase):
     def test_active_markdown_paths_include_registered_product_docs(self) -> None:
         paths = {path.relative_to(ROOT).as_posix() for path in active_markdown_paths(ROOT)}
         for product in self.registry.products:
-            self.assertIn(f"{product.skill_path.as_posix()}/README.md", paths)
-            self.assertIn(f"{product.skill_path.as_posix()}/README.en.md", paths)
+            for filename in PRODUCT_README_NAMES.values():
+                self.assertIn(f"{product.skill_path.as_posix()}/{filename}", paths)
             for filename in ("contract.md", "testing.md", "compatibility.md", "release.md"):
                 self.assertIn(f"{product.maintainer_docs.as_posix()}/{filename}", paths, product.name)
 
@@ -392,7 +399,7 @@ class RegistryDocumentationTests(unittest.TestCase):
         for product in self.registry.products:
             install = f"{github_root}/{product.skill_path.as_posix()}"
             maintainer = product.maintainer_docs.as_posix()
-            for filename in ("README.md", "README.en.md"):
+            for filename in PRODUCT_README_NAMES.values():
                 text = (ROOT / product.skill_path / filename).read_text(encoding="utf-8")
                 self.assertIn(product.name, text, filename)
                 self.assertIn(install, text, filename)
@@ -407,7 +414,7 @@ class RegistryDocumentationTests(unittest.TestCase):
         )
         codex_products = tuple(self.registry.require(name) for name in CODEX_PRODUCTS)
         how_it_works = self.registry.require("how-it-works")
-        for language, readme in (("ko", "README.md"), ("en", "README.en.md")):
+        for language in ("ko", "en"):
             for guide in shared_guides:
                 text = (ROOT / "docs" / "users" / language / guide).read_text(
                     encoding="utf-8"
@@ -415,6 +422,7 @@ class RegistryDocumentationTests(unittest.TestCase):
                 label = f"{language}/{guide}"
                 for product in self.registry.products:
                     self.assertIn(product.name, text, label)
+                    readme = PRODUCT_README_NAMES[language]
                     self.assertIn(f"{product.skill_path.as_posix()}/{readme}", text, label)
             codex_text = (ROOT / "docs" / "users" / language / "install-codex.md").read_text(
                 encoding="utf-8"
@@ -422,6 +430,7 @@ class RegistryDocumentationTests(unittest.TestCase):
             for product in codex_products:
                 label = f"{language}/install-codex.md"
                 self.assertIn(product.name, codex_text, label)
+                readme = PRODUCT_README_NAMES[language]
                 self.assertIn(f"{product.skill_path.as_posix()}/{readme}", codex_text, label)
             local_text = (ROOT / "docs" / "users" / language / "install-local.md").read_text(
                 encoding="utf-8"
@@ -429,7 +438,8 @@ class RegistryDocumentationTests(unittest.TestCase):
             local_label = f"{language}/install-local.md"
             self.assertIn(how_it_works.name, local_text, local_label)
             self.assertIn(
-                f"{how_it_works.skill_path.as_posix()}/{readme}",
+                f"{how_it_works.skill_path.as_posix()}/"
+                f"{PRODUCT_README_NAMES[language]}",
                 local_text,
                 local_label,
             )

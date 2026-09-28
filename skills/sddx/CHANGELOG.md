@@ -7,6 +7,9 @@ All notable changes to this product are documented in this file.
 ### Changed
 
 - README wording is shorter and uses plain terms. Behavior is unchanged.
+- The docs are English-first. `README.md` is now English and the Korean copy
+  is a separate `README.ko.md`; `README.en.md` is removed. The maintainer docs
+  are in English too. Behavior is unchanged.
 
 ## 7.0.1 - 2026-09-24
 

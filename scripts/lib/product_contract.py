@@ -9,14 +9,12 @@ import stat
 import tomllib
 from pathlib import Path
 
-from scripts.lib.product_registry import ProductRegistry
+from scripts.lib.product_registry import ProductRegistry, PRODUCT_README_NAMES
 
 
 SEMVER_RE = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
 ALLOWED_TOP_LEVEL = frozenset({
     "SKILL.md",
-    "README.md",
-    "README.en.md",
     "CHANGELOG.md",
     "release.toml",
     "LICENSE.txt",
@@ -34,10 +32,6 @@ UNRELEASED_RE = re.compile(r"^## Unreleased\s*$", re.MULTILINE)
 HOME_PREFIX = "/Users/"
 ARCHIVE_MARKERS = ("SKILLS_ARCHIVE_CHECKOUT", "source/private")
 CREDENTIAL_MARKERS = ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "CURSOR_API_KEY")
-LEGACY_IDENTIFIERS = (
-    "kws-korean-writing-editor",
-    "kws-image-workbench",
-)
 IGNORE_NAMES = frozenset({"__pycache__"})
 BYTECODE_SUFFIXES = {".pyc", ".pyo"}
 EXPLICIT_ONLY_SKILLS = frozenset({"sddx", "waygent"})
@@ -219,10 +213,10 @@ def validate_product(skill_root: Path, registry: ProductRegistry) -> list[str]:
         if UNRELEASED_RE.search(changelog_text) is None:
             errors.append("CHANGELOG.md missing ## Unreleased section")
 
-    if not (skill_root / "README.md").is_file():
-        errors.append("missing README.md")
-    if not (skill_root / "README.en.md").is_file():
-        errors.append("missing README.en.md")
+    readme_names = PRODUCT_README_NAMES
+    for readme_name in readme_names.values():
+        if not (skill_root / readme_name).is_file():
+            errors.append(f"missing {readme_name}")
 
     license_path = skill_root / "LICENSE.txt"
     if not license_path.is_file():
@@ -236,7 +230,7 @@ def validate_product(skill_root: Path, registry: ProductRegistry) -> list[str]:
     if openai_path.is_file():
         errors.extend(_validate_openai_yaml(openai_path, skill_root.name))
 
-    allowed_top_level = ALLOWED_TOP_LEVEL
+    allowed_top_level = ALLOWED_TOP_LEVEL | set(readme_names.values())
     if skill_root.name == "pre-sdd-review":
         allowed_top_level = allowed_top_level | {"evidence"}
     if skill_root.name == "sddx":
@@ -270,8 +264,6 @@ def validate_product(skill_root: Path, registry: ProductRegistry) -> list[str]:
             errors.append(f"Archive checkout assumption in {relative}")
         if any(marker in content for marker in CREDENTIAL_MARKERS):
             errors.append(f"credential-like token in {relative}")
-        if any(identifier in content for identifier in LEGACY_IDENTIFIERS):
-            errors.append(f"legacy prefixed identifier in {relative}")
         if path.suffix.lower() in {".md", ".markdown"}:
             errors.extend(_check_relative_links(skill_root, relative, content))
     return errors

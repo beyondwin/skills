@@ -6,92 +6,101 @@ All notable changes to this product are documented in this file.
 
 ### Breaking
 
-- 기록기가 schema 4만 읽습니다. 5.1.0 이하가 쓴 schema 2·3 record는 더 읽지도, 옮기지도, 닫지도 않습니다. `show`, `finish`, `abandon`, `outcome`은 그 run을 `schema-unsupported`로 거절하고 파일을 바꾸지 않습니다. `summary`는 그 파일을 건너뛰고 새 `unsupported_records`로 셉니다. 옛 record가 있어도 `start`는 막히지 않습니다.
-- 할 일: 옛 record를 치우려면 `~/.pre-sdd-review/runs/`(또는 `PRE_SDD_REVIEW_HOME/runs/`)에서 최상위 `"schema"`가 2나 3인 `<run-id>.json`을 지웁니다. 예: `grep -lE '"schema": ?[23][,}]' ~/.pre-sdd-review/runs/*.json`로 찾아 확인한 뒤 지웁니다. 진행 중이던 schema 3 pending run은 닫을 수 없으니 새 run을 시작합니다.
-- 오류 코드 `legacy-record-read-only`와 `summary`의 `binding` 필드(`runs[].binding`, `counts.binding`, `historical-unbound`, `checkout-bound`)를 없앴습니다. 옛 기록을 위한 예외(`source` 없는 발견, 자유 문자열 `degraded_reasons`)도 없어졌습니다.
+- The recorder reads schema 4 only. Schema 2 and 3 records written by 5.1.0 and earlier are no longer read, migrated, or closed. `show`, `finish`, `abandon`, and `outcome` refuse such a run with `schema-unsupported` and leave the file unchanged. `summary` skips those files and counts them in the new `unsupported_records`. Old records never block `start`.
+- To do: to clear old records, delete the `<run-id>.json` files under `~/.pre-sdd-review/runs/` (or `PRE_SDD_REVIEW_HOME/runs/`) whose top-level `"schema"` is 2 or 3. For example, find them with `grep -lE '"schema": ?[23][,}]' ~/.pre-sdd-review/runs/*.json`, check them, then delete them. A schema 3 run left pending cannot be closed; start a new run.
+- Removed the error code `legacy-record-read-only` and the `summary` `binding` field (`runs[].binding`, `counts.binding`, `historical-unbound`, `checkout-bound`). The old-record exceptions (findings without `source`, free-string `degraded_reasons`) are gone too.
 
 ### Changed
 
-- README 문장을 더 짧고 쉬운 말로 고쳤습니다. 동작은 같습니다.
-- `SKILL.md`가 없는 필드 `reviewer_count`를 더 설명하지 않습니다. 기록 필드는 `reviewers`(0–2) 하나이고, `full` 실행이면 trigger가 있을 때 2, 없을 때 1입니다.
+- README sentences are shorter and plainer. Behavior is unchanged.
+- `SKILL.md` no longer describes the nonexistent `reviewer_count` field. The one record field is `reviewers` (0-2); a `full` run records 2 with a trigger and 1 without.
+- Docs are English-first: `README.md` is the English user guide and `README.ko.md` is the separate Korean one (formerly `README.md` and `README.en.md`). `CHANGELOG.md` and the maintainer docs are in English. Behavior is unchanged.
 
 ### Notes
 
-- Handshake `cli_version`은 6.0.0입니다. Record schema는 4 그대로입니다. GitHub 태그와 Release는 만들지 않습니다.
+- Handshake `cli_version` is 6.0.0. Record schema stays 4. No GitHub tag or GitHub Release is created.
 
 ## 5.1.0 - 2026-09-24
 
 ### Changed
 
-- `REVISE`였거나, 이제 문서에 기록된 사용자 결정 때문에 `BLOCKED`였고, 그 뒤 바뀐 것이 설계·계획·원장뿐이면 새 발견 없이 닫힘부터 이어 검토합니다. 이 계획의 기록 run이 있어야 합니다. `BLOCKED` run은 사용자 결정이 기록되면 이어 검토하고, 얼려 있는 동안에는 `start`를 부르지 않고 `Evidence: not_recorded; reason=previous-decision-checkpoint`를 출력합니다.
-- 두 번째 종결 뒤 원래 기록의 `IMPORTANT` 2건 이하가 한 자리 수정으로 남으면 같은 호출에서 한 번 더 고칩니다.
-- `repair_passes`는 적용한 수리 패스를 셉니다. `repaired`는 종결 검토자가 닫은 기록에만 쓰고, 마지막 동작이 수리이면 `READY`가 아닙니다.
-- 열린 `BLOCKER`는 `BLOCKED`입니다. 답이 없는 사용자 결정 앞에서는 검토자를 다시 부르지 않고, 새 결정이 세 판 연속 나오면 설계로 돌려보냅니다.
-- 집중 위험 역할은 발견하는 호출에서만 부릅니다. `focused-role-not-obtained`만 있는 `degraded`는 재사용과 이어 검토를 막지 않습니다.
+- If the last verdict was `REVISE`, or `BLOCKED` on a user decision the documents now record, and only the design, plan, or ledger changed since, the review continues from closure with no new discovery. This needs a recorded run for the plan. A `BLOCKED` run continues once the user decision is recorded; while it is frozen, the controller does not call `start` and prints `Evidence: not_recorded; reason=previous-decision-checkpoint`.
+- After the second closure, if no more than two original `IMPORTANT` records remain, each fixable at one site, the same invocation repairs them once more.
+- `repair_passes` counts applied repair passes. `repaired` is used only for records a closure reviewer closed, and a run whose last action was a repair is not `READY`.
+- An open `BLOCKER` means `BLOCKED`. The reviewer is not dispatched again while a user decision is unanswered, and three new decisions in a row send the design back.
+- The focused risk role is dispatched only in a call that runs discovery. A `degraded` run whose only reason is `focused-role-not-obtained` does not bar reuse or continuation.
 
 ### Removed
 
-- 무비용 수리 회계와 `summary.counts.costless_repairs`.
+- Costless repair accounting and `summary.counts.costless_repairs`.
 
 ### Notes
 
-- 기록기에 `repair_after_last_review`와 `open_blocker_without_blocked_verdict` 관찰 이상이 늘었습니다. `repair_without_repaired_finding`은 수리한 기록이 하나도 없을 때만 뜹니다.
-- Record schema는 4 그대로이고 `repair_passes` 0..3, `review_passes` 1..4를 받습니다. 5.1.0이 쓴 3회 수리 record는 5.0.0 기록기가 읽지 못합니다. Handshake `cli_version`은 5.1.0입니다. GitHub 태그와 Release는 만들지 않습니다.
-- `### Contract`의 `handoff` 값 `full-execution-only`가 `reusable-execution-only`로 바뀌었고, `continuation` 키(`docs-only-diff`, `closure-first`, `recorded-run-required`)가 새로 생겼으며, `repair-passes`의 `costless-repairs-uncounted`가 `residual-pass-once`, `applied-passes-counted`로 바뀌었습니다.
+- The recorder gained the `repair_after_last_review` and `open_blocker_without_blocked_verdict` observation anomalies. `repair_without_repaired_finding` fires only when no record was repaired.
+- Record schema stays 4 and accepts `repair_passes` 0..3 and `review_passes` 1..4. A three-repair record written by 5.1.0 cannot be read by the 5.0.0 recorder. Handshake `cli_version` is 5.1.0. No GitHub tag or GitHub Release is created.
+- In `### Contract`, the `handoff` value `full-execution-only` became `reusable-execution-only`, a new `continuation` key (`docs-only-diff`, `closure-first`, `recorded-run-required`) was added, and `repair-passes` replaced `costless-repairs-uncounted` with `residual-pass-once` and `applied-passes-counted`.
 
 ## 5.0.0 - 2026-09-19
 
 ### Changed
 
-- 여러 계획의 발견은 겹칠 수 있고, 수리는 한 번에 하나만 합니다. 종결에는 수리 diff가 필요합니다.
-- 앞 수리가 뒤 계획이 읽는 파일을 바꾸면, 발견이 0건이어도 종결 재검토를 합니다.
-- 호스트가 동시에 쓸 수 있는 검토자 수만큼 발견을 나누며, 같은 검토자를 다른 계획에 재사용하지 않습니다.
-- 캠페인 시작 때 찍은 HEAD가 바뀌면 그 기준으로 `READY`를 내지 않습니다.
-- 앞 계획이 `BLOCKED`여도 뒤 계획의 발견은 이어집니다.
+- Discoveries of several plans may overlap; repairs run one at a time. Closure requires the repair diff.
+- If a preceding repair changes files a later plan reads, closure runs even with zero findings.
+- Discovery is split across as many reviewers as the host can run at once, and one reviewer is never reused for another plan.
+- If the `HEAD` recorded at the campaign start moves, no `READY` is returned against it.
+- A preceding `BLOCKED` plan does not stop later plans' discovery.
 
 ### Notes
 
-- Record schema는 4입니다. Handshake `cli_version`은 5.0.0입니다. GitHub 태그와 Release는 만들지 않습니다.
+- Record schema is 4. Handshake `cli_version` is 5.0.0. No GitHub tag or GitHub Release is created.
 
 ## 4.0.0 - 2026-09-18
 
 ### Added
 
-- 판정을 내지 않는 선행 원장 패스. 계획을 둘 이상 이름 댄 요청은 판정을 내는 첫
-  호출 앞에 공유 파일 원장과 실행 순서를 만들고 기계 점검을 한 번에 돌린다.
-- `Repository reality at this plan's turn`. freshness 에 baseline 과 ledger 가
-  들어가고, 선행 계획이 있으면 리뷰어가 기준선 재구성을 진술한다.
-- 리뷰어 지시 계약. 발견 지시와 종결 지시를 나누고, 종결 지시는 앞 회차 기록
-  원문과 아직 아무 기록도 가리키지 않은 Task 목록을 싣는다.
-- 되풀이된 결함 갈래 넷과 복합 제약의 증명 표.
-- `start`에 `--ledger`와 반복 가능한 `--prior-plan` 인자가 늘었다.
-- 관찰 이상에 `head_start_not_ancestor_of_head_end`와
-  `document_changed_without_repair_pass`가 늘었다.
+- A verdict-less ledger pre-pass. A request naming two or more plans builds the
+  shared-file ledger and execution order and runs the machine checks once,
+  before the first verdict-bearing invocation.
+- `Repository reality at this plan's turn`. Freshness gains baseline and
+  ledger, and with preceding plans the reviewer states the baseline
+  reconstruction.
+- A reviewer brief contract. Discovery and closure briefs are separate; the
+  closure brief carries the earlier round's records verbatim and the list of
+  Tasks no record points to yet.
+- Four recurring defect shapes and a proof table for compound constraints.
+- `start` gained `--ledger` and a repeatable `--prior-plan` argument.
+- Observation anomalies gained `head_start_not_ancestor_of_head_end` and
+  `document_changed_without_repair_pass`.
 
 ### Changed
 
-- 수정 허용 목록이 설계·계획·원장 셋이다. 원장은 유도된 증거이지 권위가 아니다.
-- 부분 닫힘이 일급이다. 잔여는 새 ID 가 아니라 같은 기록의 남은 자리다.
-- 영향 표가 비어 있고 종결 리뷰어가 소비자 없음을 확인한 수리는 패스를 먹지
-  않는다. `summary.counts.costless_repairs`가 이 수를 센다.
-- 원 기록과 `class` 및 갈래가 같은 발견은 위치가 달라도 unmapped 가 아니다.
-- 인계 재사용은 `full` run 만이다. 독립 1차 검토자를 구할 수 없으면 `BLOCKED`
-  이고, 한 에이전트를 계획이 다른 호출에 돌려 쓰지 않는다.
+- The editable paths are three: design, plan, and ledger. The ledger is
+  derived evidence, not authority.
+- Partial closure is first-class. A remainder is the rest of the same record,
+  not a new ID.
+- A repair with an empty impact table, whose closure reviewer confirmed no
+  consumers, does not use up a pass. `summary.counts.costless_repairs` counts
+  these.
+- A finding with the same `class` and shape as an original record is not
+  unmapped, even at a different location.
+- Only `full` runs have their handoff reused. If no independent primary
+  reviewer is available, the verdict is `BLOCKED`, and one agent is never
+  reused for an invocation on a different plan.
 
 ### Breaking
 
-- Record schema 와 handshake 가 `4` 다. 정규 줄은
-  `{"cli_version":"4.0.0","schema":4,"skill_name":"pre-sdd-review"}` 다.
-- record 에 `baseline` 과 `ledger` 가, `git` 에
-  `head_start_is_ancestor_of_head_end` 가, finding 에 `source` 가 들어간다.
-- `finding.repair_pass` 범위가 0..2 이고, `finding.status` 에 `partially-closed`
-  가 들어가며, `degraded_reasons` 는 열거다.
-- schema 2·3 은 계속 읽는다. 변경은 schema 4 만 받고, schema 3 pending 은
-  `abandon` 만 허용한다.
+- Record schema and handshake are `4`. The canonical line is
+  `{"cli_version":"4.0.0","schema":4,"skill_name":"pre-sdd-review"}`.
+- Records gain `baseline` and `ledger`, `git` gains
+  `head_start_is_ancestor_of_head_end`, and findings gain `source`.
+- `finding.repair_pass` ranges 0..2, `finding.status` gains `partially-closed`,
+  and `degraded_reasons` is an enum.
+- Schema 2 and 3 are still read. Mutations accept schema 4 only; a pending
+  schema 3 run allows only `abandon`.
 
 ### Notes
 
-- GitHub 태그와 Release 는 만들지 않는다.
+- No GitHub tag or GitHub Release is created.
 
 ## 3.0.4 - 2026-09-17
 

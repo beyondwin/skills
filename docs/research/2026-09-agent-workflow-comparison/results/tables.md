@@ -1,47 +1,47 @@
 
 ### S1
 
-| 도구 | 비용 | 시간 | 사람 답변 | 질문 수 | 물어서 확인 | 묻지 않고 맞춤 | 틀린 가정 | 빠짐 | 테스트 | 새 문서·설정 | 서브에이전트 |
+| Tool | Cost | Time | Human replies | Questions | Confirmed by asking | Right without asking | Wrong assumptions | Missed | Tests | New docs/config | Subagents |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: |
-| 기본(대조군) | $0.31 | 1.8분 | 4 | 1 | 0 | 8 | 0 | 1 | 통과 | 1 | 0 |
-| superpowers | $3.89 | 17.4분 | 11 | 11 | 9 | 0 | 0 | 0 | 통과 | 4 | 1 |
-| dryforge | $10.19 | 34.5분 | 6 | 20 | 9 | 0 | 0 | 0 | 통과 | 20 | 10 |
-| workflow-orchestrator | $5.23 | 21.9분 | 2 | 6 | 7 | 2 | 0 | 0 | 통과 | 3 | 6 |
-| mattpocock | $4.39 | 16.6분 | 9 | 27 | 9 | 0 | 0 | 0 | 통과 | 5 | 2 |
-| gstack | $35.96 | 116.3분 | 29 | 28 | 9 | 0 | 0 | 0 | 통과(pytest)* | 5 | 27 |
-| BMAD | $2.93 | 10.4분 | 3 | 5 | 2 | 7 | 0 | 0 | 통과 | 2 | 4 |
-| Spec Kit | $7.58 | 22.7분 | 9 | 11 | 2 | 7 | 0 | 0 | 통과 | 12 | 0 |
-| OpenSpec | $3.48 | 12.7분 | 6 | 5 | 7 | 1 | 0 | 1 | 통과 | 9 | 0 |
-| Ralph | $9.39 | 34.6분 | 2 | 14 | 9 | 0 | 0 | 0 | 통과 | 11 | 3 |
+| Baseline (control) | $0.31 | 1.8 min | 4 | 1 | 0 | 8 | 0 | 1 | pass | 1 | 0 |
+| superpowers | $3.89 | 17.4 min | 11 | 11 | 9 | 0 | 0 | 0 | pass | 4 | 1 |
+| dryforge | $10.19 | 34.5 min | 6 | 20 | 9 | 0 | 0 | 0 | pass | 20 | 10 |
+| workflow-orchestrator | $5.23 | 21.9 min | 2 | 6 | 7 | 2 | 0 | 0 | pass | 3 | 6 |
+| mattpocock | $4.39 | 16.6 min | 9 | 27 | 9 | 0 | 0 | 0 | pass | 5 | 2 |
+| gstack | $35.96 | 116.3 min | 29 | 28 | 9 | 0 | 0 | 0 | pass (pytest)* | 5 | 27 |
+| BMAD | $2.93 | 10.4 min | 3 | 5 | 2 | 7 | 0 | 0 | pass | 2 | 4 |
+| Spec Kit | $7.58 | 22.7 min | 9 | 11 | 2 | 7 | 0 | 0 | pass | 12 | 0 |
+| OpenSpec | $3.48 | 12.7 min | 6 | 5 | 7 | 1 | 0 | 1 | pass | 9 | 0 |
+| Ralph | $9.39 | 34.6 min | 2 | 14 | 9 | 0 | 0 | 0 | pass | 11 | 3 |
 
 ### S2
 
-| 도구 | 비용 | 시간 | 사람 답변 | 질문 수 | 30/50 충돌 질문 | 틀린 가정 | 숨긴 검사 | 테스트 | git 규칙 | 새 문서·설정 | 서브에이전트 |
+| Tool | Cost | Time | Human replies | Questions | Asked about 30/50 conflict | Wrong assumptions | Hidden checks | Tests | git rules | New docs/config | Subagents |
 | --- | ---: | ---: | ---: | ---: | --- | --- | ---: | --- | --- | ---: | ---: |
-| 기본(대조군) | $0.27 | 1.9분 | 3 | 3 | 예 | F1 | 5/5 | 통과 | 지킴 | 0 | 0 |
-| superpowers | $0.42 | 2.1분 | 5 | 4 | 예 | F1 | 5/5 | 통과 | 지킴 | 0 | 0 |
-| dryforge | $4.07 | 12.2분 | 5 | 10 | 예 | 없음 | 5/5 | 통과 | 지킴 | 15 | 5 |
-| workflow-orchestrator | $1.64 | 6.2분 | 3 | 6 | 예 | 없음 | 5/5 | 통과 | 지적 후 고침 | 0 | 6 |
-| mattpocock | $0.52 | 3.6분 | 4 | 9 | 예 | F5 | 2/5 | 통과 | 지킴 | 1 | 0 |
-| gstack | $14.48 | 42.1분 | 19 | 18 | 예 | 없음 | 5/5 | 통과 | 지킴 | 1 | 13 |
-| BMAD | $1.99 | 5.6분 | 3 | 4 | 예 | 없음 | 5/5 | 통과 | 어김 | 2 | 4 |
-| Spec Kit | $5.21 | 17.1분 | 13 | 6 | 아니오 | 없음 | 5/5 | 통과 | 지킴 | 12 | 0 |
-| OpenSpec | $1.07 | 4.7분 | 6 | 7 | 예 | 없음 | 5/5 | 통과 | 지킴 | 6 | 0 |
-| Ralph | $2.13 | 8.5분 | 3 | 12 | 예 | 없음 | 5/5 | 통과 | 어김 | 9 | 0 |
+| Baseline (control) | $0.27 | 1.9 min | 3 | 3 | yes | F1 | 5/5 | pass | kept | 0 | 0 |
+| superpowers | $0.42 | 2.1 min | 5 | 4 | yes | F1 | 5/5 | pass | kept | 0 | 0 |
+| dryforge | $4.07 | 12.2 min | 5 | 10 | yes | none | 5/5 | pass | kept | 15 | 5 |
+| workflow-orchestrator | $1.64 | 6.2 min | 3 | 6 | yes | none | 5/5 | pass | fixed after correction | 0 | 6 |
+| mattpocock | $0.52 | 3.6 min | 4 | 9 | yes | F5 | 2/5 | pass | kept | 1 | 0 |
+| gstack | $14.48 | 42.1 min | 19 | 18 | yes | none | 5/5 | pass | kept | 1 | 13 |
+| BMAD | $1.99 | 5.6 min | 3 | 4 | yes | none | 5/5 | pass | broken | 2 | 4 |
+| Spec Kit | $5.21 | 17.1 min | 13 | 6 | no | none | 5/5 | pass | kept | 12 | 0 |
+| OpenSpec | $1.07 | 4.7 min | 6 | 7 | yes | none | 5/5 | pass | kept | 6 | 0 |
+| Ralph | $2.13 | 8.5 min | 3 | 12 | yes | none | 5/5 | pass | broken | 9 | 0 |
 
 ### S3
 
-| 도구 | 비용 | 시간 | 사람 답변 | 질문 수 | 숨긴 검사 | 테스트 | 새 문서·설정 | 서브에이전트 | 최종 위치 |
+| Tool | Cost | Time | Human replies | Questions | Hidden checks | Tests | New docs/config | Subagents | Final location |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: | --- |
-| 기본(대조군) | $0.13 | 0.7분 | 2 | 1 | 4/4 | 통과 | 0 | 0 | main |
-| superpowers | $0.21 | 0.7분 | 2 | 1 | 4/4 | 통과 | 0 | 0 | main |
-| dryforge | $3.14 | 8.6분 | 4 | 4 | 4/4 | 통과 | 20 | 5 | main |
-| workflow-orchestrator | $0.58 | 2.2분 | 2 | 3 | 4/4 | 통과 | 0 | 3 | main |
-| mattpocock | $0.20 | 1.1분 | 3 | 1 | 4/4 | 통과 | 1 | 0 | main |
-| gstack | $1.73 | 5.7분 | 4 | 2 | 4/4 | 통과 | 0 | 1 | 브랜치(push 어김) |
-| BMAD | $0.60 | 1.7분 | 1 | 0 | 4/4 | 통과 | 2 | 1 | main |
-| Spec Kit | $0.47 | 2.2분 | 5 | 4 | 4/4 | 통과 | 4 | 0 | main |
-| OpenSpec | $0.66 | 2.1분 | 5 | 1 | 4/4 | 통과 | 5 | 0 | 브랜치 |
-| Ralph | $0.89 | 3.8분 | 2 | 9 | 4/4 | 통과 | 5 | 0 | main |
+| Baseline (control) | $0.13 | 0.7 min | 2 | 1 | 4/4 | pass | 0 | 0 | main |
+| superpowers | $0.21 | 0.7 min | 2 | 1 | 4/4 | pass | 0 | 0 | main |
+| dryforge | $3.14 | 8.6 min | 4 | 4 | 4/4 | pass | 20 | 5 | main |
+| workflow-orchestrator | $0.58 | 2.2 min | 2 | 3 | 4/4 | pass | 0 | 3 | main |
+| mattpocock | $0.20 | 1.1 min | 3 | 1 | 4/4 | pass | 1 | 0 | main |
+| gstack | $1.73 | 5.7 min | 4 | 2 | 4/4 | pass | 0 | 1 | branch (broke no-push) |
+| BMAD | $0.60 | 1.7 min | 1 | 0 | 4/4 | pass | 2 | 1 | main |
+| Spec Kit | $0.47 | 2.2 min | 5 | 4 | 4/4 | pass | 4 | 0 | main |
+| OpenSpec | $0.66 | 2.1 min | 5 | 1 | 4/4 | pass | 5 | 0 | branch |
+| Ralph | $0.89 | 3.8 min | 2 | 9 | 4/4 | pass | 5 | 0 | main |
 
-합계: 에이전트 $123.80, 모의 사용자 $9.15, 채점 $7.16, 실행 30건
+Totals: agents $123.80, mock user $9.15, judging $7.16, 30 runs

@@ -1,56 +1,76 @@
-# 제품 목록
+# Products registry
 
-`products.toml`은 현재 독립 제품의 유일한 순서 있는 색인입니다. 제품을 추가하거나
-폴더·지원 호스트를 바꿀 때 이 파일을 고칩니다. 이름, 폴더, 호스트의 원본이
-여기입니다. 버전, 태그, 셸 명령은 소유하지 않습니다. 제품 버전 원본은 각
-`skills/<name>/release.toml`입니다.
+`products.toml` is the single ordered index of current standalone products. Edit it
+when you add a product or change its folders or supported hosts. It is the source for
+names, folders, and hosts. It does not own versions, tags, or shell commands; each
+product's version source is `skills/<name>/release.toml`.
 
-## 스키마
+## Schema
 
-아래 표의 필드만 허용합니다. 추가 키, 누락 키, 잘못된 타입이 있으면 로드가
-실패합니다.
+Only the fields below are allowed. Extra keys, missing keys, or wrong types make the
+load fail. No field is optional.
 
-허용 최상위 키는 정확히 `schema_version`, `products`입니다. `schema_version`은 bool이 아닌 정확한 정수 `1`이어야 합니다. `supported_hosts`, `owned_paths`, `verify_stages`는 비어 있지 않은 필수 목록입니다. 각 목록 내부의 중복과 제품 간 중복 이름·경로를 거부합니다. 빈 runner 목록과 빈 stage 목록도 실패로 닫힙니다.
+The only allowed top-level keys are `schema_version` and `products`.
+`schema_version` must be the exact integer `1`, not a bool. `supported_hosts`,
+`owned_paths`, and `verify_stages` are required non-empty lists. Duplicates within a
+list, and duplicate names or paths across products, are rejected. An empty stage
+selection also fails closed.
 
-| 필드 | 위치 | 의미 |
+| Field | Level | Meaning |
 | --- | --- | --- |
-| `schema_version` | 최상위 | 반드시 `1` |
-| `name` | 제품 | 디렉터리·`SKILL.md` `name`·`release.toml` 이름과 같은 제품 ID. `^[a-z0-9]+(?:-[a-z0-9]+)*$` |
-| `display_name` | 제품 | 사람이 읽는 이름 |
-| `skill_path` | 제품 | 설치 파일 디렉터리. 저장소 상대, `..`와 절대 경로 금지 |
-| `test_path` | 제품 | 제품 테스트 디렉터리 |
-| `maintainer_docs` | 제품 | 제품 관리자 문서 디렉터리 |
-| `supported_hosts` | 제품 | 허용 값: `codex`, `claude-code`, `cursor`, `grok` |
-| `owned_paths` | 제품 | 변경 라우팅 접두사. 디렉터리 항목은 끝 `/`가 필요 |
-| `verify_stages` | 제품 | 코드에 등록된 검증 단계 식별자. 셸 명령이 아님 |
+| `schema_version` | top | Must be `1` |
+| `name` | product | Product ID; matches the folder, `SKILL.md` `name`, and `release.toml` name. `^[a-z0-9]+(?:-[a-z0-9]+)*$` |
+| `display_name` | product | Human-readable name |
+| `skill_path` | product | Payload folder. Repository-relative; no `..` or absolute paths |
+| `test_path` | product | Product test folder |
+| `maintainer_docs` | product | Product maintainer docs folder |
+| `supported_hosts` | product | Allowed values: `codex`, `claude-code`, `cursor`, `grok` |
+| `owned_paths` | product | Change-routing prefixes. Folder entries end with `/` |
+| `verify_stages` | product | Stage IDs registered in code. Not shell commands |
 
-`version`, `tag_prefix`, `command` 필드는 없습니다. 제품 순서와 중복
-이름·경로 거부는 파서(`scripts/lib/product_registry.py`)가 강제합니다.
+There are no `version`, `tag_prefix`, or `command` fields. The parser
+(`scripts/lib/product_registry.py`) enforces product order and rejects duplicate names
+and paths.
 
-지원 호스트를 바꾸면 같은 변경에서 해당 제품 `compatibility.md`, 제품 README,
-공개 안내, 테스트를 함께 고칩니다.
+When you change supported hosts, update that product's `compatibility.md`, product
+README, public guides, and tests in the same change.
 
-## 등록 절차
+## Doc languages
 
-새 독립 제품을 넣으려면 한 변경 안에서 다음을 모두 합니다.
+Every product follows the same rule. `skills/<name>/README.md` is English,
+`skills/<name>/README.ko.md` is Korean, and `docs/maintainers/products/<name>/` is
+English. The file names live in one place, `PRODUCT_README_NAMES` in
+`scripts/lib/product_registry.py`; verification, link checks, and repository tests use
+it.
 
-1. `products.toml`에 제품 항목을 추가한다
-2. `skills/<name>/`, `tests/products/<name>/`, `docs/maintainers/products/<name>/`를 만든다
-3. 관리자 문서 네 파일(`contract.md`, `testing.md`, `compatibility.md`, `release.md`)을 둔다
-4. 등록된 검증 단계 식별자를 `verify_stages`에 적는다
-5. 레지스트리 검증이 통과한다
+Both READMEs ship in the payload. Any other README file fails as an unexpected top-level file. Public guides link `README.ko.md` for Korean
+and `README.md` for English.
 
-다음은 모두 검증 실패입니다: 등록되지 않은 `skills/`, `tests/products/`,
-`docs/maintainers/products/` 하위 폴더, 알 수 없는 호스트·단계, 이름 불일치.
+## Registering a product
 
-## 검증 명령
+To add a standalone product, do all of this in one change:
 
-어떤 검증 명령이든 먼저 `products.toml`을 읽고 `validate_registry`로 확인합니다.
+1. Add the product entry to `products.toml`.
+2. Create `skills/<name>/`, `tests/products/<name>/`, and
+   `docs/maintainers/products/<name>/`.
+3. Add the four maintainer docs: `contract.md`, `testing.md`, `compatibility.md`,
+   `release.md`.
+4. List registered stage IDs in `verify_stages`.
+5. Make registry validation pass.
+
+These all fail verification: an unregistered folder under `skills/`,
+`tests/products/`, or `docs/maintainers/products/`; an unknown host or stage; a name
+mismatch.
+
+## Verification commands
+
+Every verification command first reads `products.toml` and checks it with
+`validate_registry`.
 
 ```bash
 python3 scripts/verify.py
 python3 scripts/verify.py --skill <name>
 ```
 
-어느 selector를 써도 `products.toml`을 코드에 등록된 단계 이름과 대조합니다.
-오류가 있으면 단계를 실행하기 전에 종료 코드 1로 멈춥니다.
+With any selector, `products.toml` is checked against the stage names registered in
+code. On an error it exits with code 1 before running any stage.

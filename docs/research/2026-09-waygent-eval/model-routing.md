@@ -1,60 +1,63 @@
-# 모델 배치와 기록 위치 조사
+# Model routing and record location
 
-사용자가 세 가지를 물었습니다. 리뷰 모델이 구현 모델보다 좋아야 하는지, 구현 effort를
-난이도에 따라 바꿀지, 기록을 최상위 `.waygent/`에 둘지입니다. 조사한 하네스 9개의
-원본(버전·커밋은 [도구별 특징](../2026-09-agent-workflow-comparison/tools.md)과 같음)을
-2026-09-27에 다시 읽었고, 이번 실측과 맞춰 봤습니다.
+The user asked three questions. Should the reviewer model be better than the implementer
+model? Should implementer effort change with task difficulty? Should records live in a
+top-level `.waygent/`? On 2026-09-27 we re-read the sources of the 9 harnesses we studied
+(same versions and commits as in [Tools](../2026-09-agent-workflow-comparison/tools.md)) and
+checked them against this evaluation.
 
-## 하네스별 모델 배치
+## Model routing by harness
 
-| 하네스 | 조율자 | 구현자 | 리뷰어 | 출처 |
+| Harness | Orchestrator | Implementer | Reviewer | Source |
 | --- | --- | --- | --- | --- |
-| superpowers | 세션 | 난이도별 최저 등급. 1~2파일·완전한 스펙은 싼 모델, 여러 파일은 표준, 설계 판단은 최상위. 리뷰어와 산문 계획 구현자는 중간 등급이 바닥 | Task 리뷰는 diff의 크기·위험도에 맞춤. 끝 리뷰는 최상위. 고침 4~5라운드는 한 등급 위 | `skills/subagent-driven-development/SKILL.md` "Model Selection" |
-| dryforge | 세션 | 세션 | 세션 | `go/references/orchestration.md` BLOCKED 사다리: 맥락 추가 → 더 강한 모델 → 사용자 |
-| BMAD | 세션 | 서브에이전트. 설정으로 다른 모델이나 외부 도구로 바꿀 수 있음 | "세션과 같은 성능" 명시 | `bmad-build/step-04-review.md`, `customize.toml` |
-| gstack | 세션 | 세션 | Claude 리뷰 + Codex 적대적 리뷰(`codex review`, effort high, `--xhigh`로 올림) | `review/sections/adversarial.md`, `codex/SKILL.md` |
-| Ralph | Opus | 읽기는 Sonnet 병렬, 빌드·테스트는 Sonnet 1개, 디버깅·설계는 Opus | 없음 | `files/PROMPT_build.md`, `files/loop.sh` |
-| workflow-orchestrator | 규칙 없음 | 규칙 없음 | 규칙 없음 | `workflow-orchestrator/SKILL.md` |
-| mattpocock/skills | 규칙 없음 | 규칙 없음 | 규칙 없음. 질문 단계는 "가장 좋은 모델"을 권함 | `docs/engineering/grill-me.md` |
-| Spec Kit | 규칙 없음 | 규칙 없음 | 없음 | — |
-| OpenSpec | 규칙 없음 | 고성능 추론 모델 권장 | 없음 | `README.md` "Model selection" |
+| superpowers | Session | Lowest tier that fits the difficulty. 1-2 files with a complete spec get a cheap model, multi-file work gets standard, design judgment gets the top tier. Reviewers and implementers of prose plans have a mid-tier floor | Task review matches the diff's size and risk. Final review uses the top tier. Fix rounds 4-5 go one tier up | `skills/subagent-driven-development/SKILL.md` "Model Selection" |
+| dryforge | Session | Session | Session | `go/references/orchestration.md` BLOCKED ladder: add context → stronger model → user |
+| BMAD | Session | Subagent. Config can switch it to another model or an external tool | States "same capability as the session" | `bmad-build/step-04-review.md`, `customize.toml` |
+| gstack | Session | Session | Claude review + Codex adversarial review (`codex review`, effort high, raised with `--xhigh`) | `review/sections/adversarial.md`, `codex/SKILL.md` |
+| Ralph | Opus | Parallel Sonnet for reading, one Sonnet for build and test, Opus for debugging and design | None | `files/PROMPT_build.md`, `files/loop.sh` |
+| workflow-orchestrator | No rule | No rule | No rule | `workflow-orchestrator/SKILL.md` |
+| mattpocock/skills | No rule | No rule | No rule. The questioning step recommends "the best model" | `docs/engineering/grill-me.md` |
+| Spec Kit | No rule | No rule | None | — |
+| OpenSpec | No rule | Recommends a high-capability reasoning model | None | `README.md` "Model selection" |
 
-- 구현을 싼 모델로 내리는 하네스는 superpowers와 Ralph입니다. superpowers는 같은 절에
-  "가장 싼 모델은 여러 단계 작업에서 턴이 2~3배라 오히려 비싸다"고 적었습니다.
-- 모든 리뷰를 구현보다 강한 모델로 하는 하네스는 없습니다. 끝 리뷰만 올리거나
-  (superpowers), 다른 회사 모델을 붙입니다(gstack).
+- superpowers and Ralph are the harnesses that move implementation down to a cheaper model.
+  In the same section superpowers notes that "the cheapest model takes 2-3x the turns on
+  multi-step work, so it ends up more expensive."
+- No harness runs every review on a model stronger than the implementer. They either raise
+  only the final review (superpowers) or add another vendor's model (gstack).
 
-## 이번 실측과 맞춰 본 판단
+## Decisions checked against this evaluation
 
-| 질문 | 판단 | 근거 |
+| Question | Decision | Evidence |
 | --- | --- | --- |
-| 리뷰어를 더 좋은 모델로 | 끝 리뷰만 한 등급 위 | 진행 기록을 본 6회 모두 같은 모델 Task 리뷰어가 재생성 결함을 찾음. 놓친 회차는 조율자가 기각하거나 미룬 경우. 끝 리뷰는 한 번이라 비용 상한이 분명하고, Task 사이 문제는 끝 리뷰만 잡음(v26, 이번 `waygent_fo`) |
-| 구현 effort를 난이도별로 | 낮추지 않음. 실패 뒤 재시도만 한 등급 위 | Claude Code는 호출 때 모델만 고르고 effort는 에이전트 정의 파일에서만 정함. 결함은 쉬워 보이는 저장소 Task에 있었고, v26 높음 7건도 상태·비동기였음. v26에서 싼 모델 구간이 5시간, $128을 버림 |
-| 다른 회사 모델 리뷰 | 기본에 넣지 않음 | 블라인드 채점에서 GPT-5.6 Sol이 Claude 조건이 놓친 결함 4종을 찾았지만, 루프 안의 리뷰로 잰 적이 없고 설치가 하나 더 필요함 |
+| Use a better model for the reviewer | Only the final review goes one tier up | In all 6 runs where the progress log was visible, the same-model Task reviewer found the re-creation defect. The runs that missed it were ones where the orchestrator rejected or deferred the finding. The final review runs once, so its cost ceiling is clear, and only the final review catches cross-task problems (v26, and `waygent_fo` in this evaluation) |
+| Vary implementer effort by difficulty | Do not lower it. Only a retry after failure goes one tier up | Claude Code picks only the model at call time; effort is set only in the agent definition file. The defect sat in a Task that looked like easy repository work, and all 7 high-severity v26 defects were state or async. In v26 the cheaper-model stretch wasted 5 hours and $128 |
+| Review with another vendor's model | Not in the default | In blind grading GPT-5.6 Sol found 4 defect types the Claude conditions missed, but it was never measured as an in-loop reviewer, and it needs one more install |
 
-Codex에서 "한 등급 위"는 같은 모델에 `reasoning_effort: "xhigh"`만 적는 것입니다.
-`spawn_agent`에서 모델을 비우면 자식이 세션 모델과 effort를 물려받고, effort만 적으면 같은
-모델에 그 effort가 걸리는 것을 격리 시험으로 확인했습니다(sol high 세션 → 자식 sol high,
-sol xhigh). 실측에서 Codex 조율자는 자기 모델과 effort를 몰랐습니다. 1회차는 자기를
-`gpt-6-astra / xhigh`로 적고 모든 자식을 그 모델로 띄웠고, 2회차는 자기를 "GPT-5"로 적고 끝
-리뷰어에 `high`를 줬습니다. 그래서 Codex에서는 이름을 적지 않고 `xhigh`를 고정값으로 씁니다.
+On Codex, "one tier up" means writing only `reasoning_effort: "xhigh"` on the same model.
+An isolated test confirmed that if `spawn_agent` leaves the model empty the child inherits the
+session's model and effort, and if only effort is set the same model runs at that effort
+(sol high session → child sol high, sol xhigh). In the evaluation the Codex orchestrator did
+not know its own model or effort. Run 1 wrote itself down as `gpt-6-astra / xhigh` and spawned
+every child with that model. Run 2 wrote itself down as "GPT-5" and gave the final reviewer
+`high`. So on Codex we leave the name out and use a fixed `xhigh`.
 
-## 기록 위치
+## Record location
 
-| 하네스 | 위치 | git에서 빼는 방법 |
+| Harness | Location | How it stays out of git |
 | --- | --- | --- |
-| superpowers | `.superpowers/sdd/<plan>/` | 폴더 안에 `*` 한 줄짜리 `.gitignore`를 씀 (`scripts/sdd-workspace`) |
-| dryforge | `.dryforge/` | 사용자에게 `.gitignore` 추가를 권함 |
-| gstack | `~/.gstack/projects/` | 저장소 밖 |
-| waygent 0.1.0 초안 | `.git/waygent/` | git 디렉터리 안 |
+| superpowers | `.superpowers/sdd/<plan>/` | Writes a one-line `*` `.gitignore` inside the folder (`scripts/sdd-workspace`) |
+| dryforge | `.dryforge/` | Advises the user to add it to `.gitignore` |
+| gstack | `~/.gstack/projects/` | Outside the repository |
+| waygent 0.1.0 draft | `.git/waygent/` | Inside the git directory |
 
-waygent는 superpowers 방식을 따라 `.waygent/<plan-slug>/`와 `.waygent/.gitignore`(`*`)로
-옮겼습니다. 구현자가 `git add -A`를 해도 기록이 섞이지 않고, 사용자의 `.gitignore`는
-그대로입니다. `git clean -fdx`는 이 폴더를 지우지만, 완료 판단은 커밋 트레일러로 하므로
-진행 파일을 다시 만들 수 있습니다.
+waygent followed superpowers and moved to `.waygent/<plan-slug>/` with `.waygent/.gitignore`
+(`*`). Records do not get mixed in even when an implementer runs `git add -A`, and the user's
+`.gitignore` is left alone. `git clean -fdx` deletes this folder, but completion is decided from
+commit trailers, so the progress file can be rebuilt.
 
-## 재지 않은 것
+## Not measured
 
-끝 리뷰 한 등급 위, 재시도 한 등급 위, 리뷰 원문 파일은 이 과제로 효과를 가를 수
-없습니다. 기본 opus가 이미 64개 중 63개를 맞혀 더 잡을 결함이 거의 없습니다. 16-Task 규모의
-과제가 필요합니다.
+This task cannot separate the effect of the one-tier-up final review, the one-tier-up retry, or
+raw review files. Plain opus already got 63 of 64, so there were almost no defects left to
+catch. A 16-Task-scale task is needed.

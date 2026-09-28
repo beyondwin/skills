@@ -316,10 +316,6 @@ class VerifyStageTests(unittest.TestCase):
         self.assertIn("tests/repository", stage.argv)
         self.assertEqual(stage.argv[stage.argv.index("-p") + 1], "test_*.py")
 
-    def test_retired_catalog_stages_are_not_registered(self) -> None:
-        for name in ("catalog-contract", "catalog-release-contract"):
-            self.assertNotIn(name, REGISTERED_STAGE_NAMES)
-
     def test_korean_package_runs_korean_package_module(self) -> None:
         stage = self._stage("korean-package", skill="korean-writing-editor"
         )
@@ -358,30 +354,12 @@ class VerifyStageTests(unittest.TestCase):
                 self.assertNotIn("|", joined)
                 self.assertNotIn(";", joined)
 
-    def test_cli_rejects_retired_profile_option(self) -> None:
-        verify = self._load()
-        for argv in (["--profile", "full"], ["--profile", "linux"]):
-            stderr = io.StringIO()
-            with self.subTest(argv=argv), contextlib.redirect_stderr(stderr):
-                with self.assertRaises(SystemExit) as raised:
-                    verify.main(argv)
-            self.assertEqual(raised.exception.code, 2)
-            self.assertIn("unrecognized arguments: --profile", stderr.getvalue())
-
     def test_cli_rejects_unknown_skill(self) -> None:
         verify = self._load()
         stderr = io.StringIO()
         with contextlib.redirect_stderr(stderr):
             with self.assertRaises(SystemExit) as raised:
                 verify.main(["--skill", "not-a-skill"])
-        self.assertNotEqual(raised.exception.code, 0)
-
-    def test_cli_rejects_retired_catalog_selector(self) -> None:
-        verify = self._load()
-        stderr = io.StringIO()
-        with contextlib.redirect_stderr(stderr):
-            with self.assertRaises(SystemExit) as raised:
-                verify.main(["--catalog"])
         self.assertNotEqual(raised.exception.code, 0)
 
     def test_cli_defaults_to_full_run(self) -> None:

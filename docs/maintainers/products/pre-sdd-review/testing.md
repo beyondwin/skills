@@ -1,56 +1,58 @@
-# pre-sdd-review 테스트
+# pre-sdd-review testing
 
-이 문서는 모델을 부르지 않고 도는 계약 검사, 작게 만든 합성 픽스처,
-실제 모델을 부르는 선택적 라이브 검사가 각각 어디까지 증명하는지 정합니다.
-모델의 실제 리뷰 품질을 측정했다고 주장하지 않습니다.
+This document sets how far each kind of check proves anything: contract checks
+that run without a model, small synthetic fixtures, and optional live checks
+that call a real model. It does not claim to measure real review quality.
 
-공급자 없는 테스트와 픽스처는 `tests/products/pre-sdd-review/`에 있습니다.
+Provider-free tests and fixtures live in `tests/products/pre-sdd-review/`.
 
-## 공급자 없는 증거
+## Provider-free evidence
 
-공급자 자격 증명과 모델 호출 없이 제품 계약을 실행합니다.
+Run the product contract with no provider credentials and no model calls.
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
   -s tests/products/pre-sdd-review -p 'test_c*.py' -v
 ```
 
-이 명령은 `test_contract.py`(패키지 정체, 지시문, 픽스처, 활성화 경계)와
-`test_campaign_schedule.py`(발견 웨이브, 수리 직렬 실행, dirty 전파)를 함께
-돌립니다. evidence 하위 테스트 묶음은 포함하지 않습니다. 라이브 검토, 의미 품질,
-다른 호스트의 동등 지원은 증명하지 않습니다.
+This runs `test_contract.py` (package identity, instructions, fixtures,
+activation boundary) together with `test_campaign_schedule.py` (discovery
+waves, serial repairs, dirty propagation). It does not include the evidence
+suite. It does not prove live review, semantic quality, or equal support on
+other hosts.
 
-`evidence/evidence.py` 기록기의 계약은 별도의 공급자 없는 단계로 실행합니다.
-schema 4 checkout 결속, schema 2·3 옛 기록 거절(`schema-unsupported`), 변경 lock, 손상 기록
-격리, 여섯 명령, summary 관찰 집계를 확인합니다. 기록기는
-`python3 skills/pre-sdd-review/evidence/evidence.py`로 돌리며 설치하지
-않습니다.
+The `evidence/evidence.py` recorder contract runs as a separate provider-free
+stage. It checks the schema 4 checkout binding, refusal of old schema 2 and 3
+records (`schema-unsupported`), mutation locks, quarantine of damaged records,
+the six commands, and summary observation counts. The recorder runs as
+`python3 skills/pre-sdd-review/evidence/evidence.py` and is not installed.
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
   -s tests/products/pre-sdd-review/evidence -p 'test_*.py' -v
 ```
 
-이 단계는 네트워크나 공급자를 호출하지 않습니다. DB나 index도 추가하지
-않습니다.
+This stage calls no network or provider, and adds no database or index.
 
-`test_contract.py`의 schema 4 문서 검사는 설치 지시문, 기록기 안내, 유지보수
-계약이 같은 수명 주기를 설명하는지 보는 일관성 증거일 뿐입니다. 실제 기록기
-동작의 증거는 evidence 테스트 묶음이 맡습니다. 이 승인 범위에서는 공급자나
-실제 모델을 호출하지 않으므로 실제 모델 검토 품질은 `not_measured`입니다.
+The schema 4 document checks in `test_contract.py` are only consistency
+evidence: they check that the installed instructions, the recorder guide, and
+the maintainer contract describe the same lifecycle. The evidence suite owns
+proof of real recorder behavior. This approved scope calls no provider or real
+model, so real model review quality is `not_measured`.
 
-## 픽스처 경계
+## Fixture boundary
 
-`cases.json`은 활성화, 기본 흐름, review-only, 판정, 위험, freshness,
-evidence, near-miss 사례를 정확히 쉰한 개 소유합니다. `fixtures/`는 정확히
+`cases.json` owns exactly fifty-one cases covering activation, default flow,
+review-only, verdicts, risk, freshness, evidence, and near-miss requests.
+`fixtures/` owns exactly seven synthetic repositories:
 `ready`, `missing-coverage`, `false-verification`, `runtime-removal`,
-`repair-induced-schema-consumer`, `state-machine-vacuous-pass`,
-`conditional-edit-surface` 일곱 합성 저장소를 소유합니다. 각 저장소에는
-`design.md`, `plan.md`, `repository.json`, `expected.json`만 둡니다.
+`repair-induced-schema-consumer`, `state-machine-vacuous-pass`, and
+`conditional-edit-surface`. Each holds only `design.md`, `plan.md`,
+`repository.json`, `expected.json`.
 
-픽스처는 제한된 합성 계약이지 말뭉치가 아닙니다. 사용자 문서, 비공개
-프롬프트, 자격 증명, 대화 기록, 모델 응답 전체를 픽스처,
-테스트 로그, 커밋된 live record에 저장하지 않습니다.
+Fixtures are a bounded synthetic contract, not a corpus. Never store user
+documents, private prompts, credentials, transcripts, or full model responses
+in fixtures, test logs, or committed live records.
 
 ### Case inventory
 
@@ -116,48 +118,52 @@ evidence, near-miss 사례를 정확히 쉰한 개 소유합니다. `fixtures/`�
 - `runtime-removal`: `design.md`, `expected.json`, `plan.md`, `repository.json`
 - `state-machine-vacuous-pass`: `design.md`, `expected.json`, `plan.md`, `repository.json`
 
-## 선택적 라이브 검사
+## Optional live checks
 
-라이브 검사는 로컬이고, 명시적이며, 선택적입니다. 비용이 들 수 있습니다.
-CI는 요구하지 않습니다. 새 Codex 세션과 민감하지 않은 합성 설계·계획만
-사용합니다. 기록은 호스트, 클라이언트 버전, 날짜, 사례 식별자, 판정만 남깁니다.
-공급자 없는 결과를 라이브 품질 주장으로 바꾸지 않습니다. 사용자 문서나
-모델 응답 전체를 저장하지 않습니다.
+Live checks are local, explicit, and optional. They may cost money. CI does
+not require them. They use only a fresh Codex session and a non-sensitive
+synthetic design and plan. The record keeps only host, client version, date,
+case identifier, and verdict. Never turn a provider-free result into a live
+quality claim. Never store user documents or full model responses.
 
-v1.1 전진 확인은 정답을 숨긴 채 `repair-induced-schema-consumer`,
-`state-machine-vacuous-pass`, `conditional-edit-surface`를 각각 따로 호출합니다.
-각 호출은 그 계획만의 판정을 유지합니다. 잘못된 `READY`, 관련 없는 수정,
-권위 이탈이 없어야 합니다. 기존 `ready` 픽스처는 공급자 없는 긍정 대조입니다.
-이 점검은 반복 평가나 일반 품질 측정을 대신하지 않습니다.
+The v1.1 forward check calls `repair-induced-schema-consumer`,
+`state-machine-vacuous-pass`, and `conditional-edit-surface` separately, with
+the expected answers hidden. Each call keeps a verdict for its own plan only.
+It must show no false `READY`, no unrelated edit, and no authority drift. The
+existing `ready` fixture is the provider-free positive control. This check does
+not replace repeated evaluation or general quality measurement.
 
-컨트롤러 경계 프로브는 실제 모델에 정해진 중간 상태를 주입해 SKILL.md의
-분기 하나를 확인합니다. 합성 Git 저장소와 비어 있는 evidence home을 만들고,
-모든 `evidence.py` 호출에 `PRE_SDD_REVIEW_HOME`을 그 home으로 고정합니다.
-기본 home `~/.pre-sdd-review/`에 프로브 기록을 남기지 않습니다. 컨트롤러에는
-SKILL.md와 스킬 루트만 주고 정답이나 기대 결과는 주지 않습니다. 결과는
-컨트롤러가 쓴 결정 파일이나 보고 파일로 채점합니다.
+Controller boundary probes inject a fixed intermediate state into a real model
+to check one `SKILL.md` branch. Each builds a synthetic Git repository and an
+empty evidence home, and pins `PRE_SDD_REVIEW_HOME` to that home for every
+`evidence.py` call. Probe records never land in the default home
+`~/.pre-sdd-review/`. The controller gets only `SKILL.md` and the skill root,
+never the answer or the expected result. Scoring reads the decision or report
+file the controller writes.
 
-- 변경된 저장소 근거 재검토: 계획에 required base를 적고, 그 ref가 없는
-  상태로 `execution=blocked`, `reviewers=0`인 `BLOCKED` 기록을 만든 뒤 ref를
-  `HEAD`에 만듭니다. 문서 해시는 그대로입니다. 컨트롤러가 `start`에 이르면
-  통과입니다. 이전 인계를 재사용하면 실패입니다.
-- 불완전 기록 재질의: 검토자가 요약과 판정만 돌려준 상황을 주고 다음
-  메시지를 파일로 받습니다. 빠진 필드만 요청하고 발견·경로·심볼·수정을
-  넣지 않으면 통과입니다.
-- 이상 있는 READY 보고: `reviewers=2`, trigger 없음으로 `finish`한 기록을
-  주고 최종 보고를 받습니다. `Anomalies:` 줄에
-  `full_reviewer_count_mismatch`가 있고 `READY`가 유지되면 통과입니다.
-- 윈도우 밖 run 보고: 위와 같되 그 run이 시작된 뒤 다른 저장소의 run 스무
-  개를 시작하고 끝낸 다음 그 run을 `finish`합니다. `Anomalies:` 줄이 그
-  run의 이상을 보이면 통과입니다. `finish` 출력이 아닌 `summary --last`에서
-  찾으려 하면 누락됩니다.
+- Re-review on changed repository evidence: name a required base in the plan,
+  create a `BLOCKED` record with `execution=blocked` and `reviewers=0` while
+  that ref is missing, then create the ref at `HEAD`. Document hashes do not
+  change. Pass if the controller reaches `start`; fail if it reuses the earlier
+  handoff.
+- Re-ask for incomplete records: present a reviewer that returned only a
+  summary and a verdict, and capture the next message to a file. Pass if it
+  asks only for the missing fields and names no finding, path, symbol, or fix.
+- Anomalous READY report: present a record finished with `reviewers=2` and no
+  trigger, and capture the final report. Pass if the `Anomalies:` line contains
+  `full_reviewer_count_mismatch` and `READY` stands.
+- Out-of-window run report: as above, but after that run starts, start and
+  finish twenty runs from another repository, then `finish` that run. Pass if
+  the `Anomalies:` line shows that run's anomalies. Looking it up in
+  `summary --last` instead of the `finish` output misses it.
 
-이 프로브는 선택이며 CI가 요구하지 않습니다. 사례당 한 번의 결과는 모델
-품질 측정이 아닙니다.
+These probes are optional and CI does not require them. One result per case is
+not a model quality measurement.
 
-Evidence 테스트는 임시 Git 저장소와 합성 스킬 루트만 사용합니다. 원문,
-경로 원본, 프롬프트, 대화 기록, 자격 증명을 기록에 넣지 않습니다. `outcome`
-라벨과 정상/이상 판정 분리는 관찰자 입력이며 모델 품질이나 감사급 증명이
-아닙니다. 손상 기록 수는 필터 전 전체 검사에서 확인합니다. Windows와
-Linux는 지원하지 않습니다. Claude Code, Cursor, Grok은 각 native 또는 live
-단계가 별도로 실행되기 전까지 `not_measured`입니다.
+Evidence tests use only temporary Git repositories and synthetic skill roots.
+Records never hold source text, raw paths, prompts, transcripts, or
+credentials. `outcome` labels and the normal/anomalous verdict split are
+observer input, not model quality or audit-grade proof. Damaged-record counts
+come from a full scan before filtering. Windows and Linux are not supported.
+Claude Code, Cursor, and Grok stay `not_measured` until their own native or
+live stage runs separately.

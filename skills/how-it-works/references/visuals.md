@@ -16,7 +16,7 @@ Rules:
 - 그림: hops first, then ≤7 boxes (hard cap 12; over 12 means recut the slice)
 - 길: sequenceDiagram, 4–6 actors, message numbers = hop IDs
 - 뼈대: same sequence + alt/opt; optional second flowchart of the hidden decision
-- 허점: Map의 기준 Mermaid 유지; Body의 실패/적용 범위 표
+- 허점: keep the baseline Mermaid in Map; put the failure/regime table in Body
 - 비교: keep the baseline Mermaid in Map; put the conditional tradeoff table in Body
 - 절차: boxes are states, not commands
 - 되먹임: loops, not a sequence that hides them

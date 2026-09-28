@@ -18,7 +18,7 @@ from scripts.lib.documentation import (  # noqa: E402
     markdown_links,
 )
 from scripts.lib.product_contract import validate_product  # noqa: E402
-from scripts.lib.product_registry import load_registry  # noqa: E402
+from scripts.lib.product_registry import load_registry, PRODUCT_README_NAMES  # noqa: E402
 from tests.repository.test_installation_contract import installation_block  # noqa: E402
 
 REGISTRY = load_registry(ROOT / "products.toml")
@@ -26,7 +26,7 @@ REGISTRY = load_registry(ROOT / "products.toml")
 VERSION_LITERAL_RE = re.compile(r"\b[0-9]+\.[0-9]+\.[0-9]+\b")
 
 PRODUCT_README_HEADINGS = {
-    "README.md": (
+    "ko": (
         "## 목적",
         "## 사용할 때와 사용하지 않을 때",
         "## 지원 호스트",
@@ -35,7 +35,7 @@ PRODUCT_README_HEADINGS = {
         "## 예상 결과",
         "## 더 보기",
     ),
-    "README.en.md": (
+    "en": (
         "## Purpose",
         "## When to use and not use",
         "## Supported hosts",
@@ -46,7 +46,7 @@ PRODUCT_README_HEADINGS = {
     ),
 }
 FORBIDDEN_PRODUCT_README_H2 = {
-    "README.md": (
+    "ko": (
         "## 안전과 개인정보",
         "## 검증",
         "## 업데이트와 제거",
@@ -57,7 +57,7 @@ FORBIDDEN_PRODUCT_README_H2 = {
         "## 운영과 한계",
         "## 호환성과 검증 수준",
     ),
-    "README.en.md": (
+    "en": (
         "## Safety and privacy",
         "## Verification",
         "## Update and remove",
@@ -128,8 +128,8 @@ HOW_IT_WORKS_FIXTURE_IDS = (
     "no-renderer",
     "no-fetched-source",
 )
-RELEASE_NO_PUBLICATION = (
-    "이 명령은 태그 또는 GitHub Release를 만들지 않습니다."
+HOW_IT_WORKS_RELEASE_NO_PUBLICATION = (
+    "This command does not create a tag or a GitHub Release."
 )
 OFFLINE_EVIDENCE = "Offline fixtures: deterministic contract evidence only."
 LIVE_EVIDENCE = (
@@ -143,11 +143,15 @@ PRIMARY_INSTALL_PATHS = tuple(
 OPTIONAL_NPX = "npx skills add beyondwin/skills --skill korean-writing-editor"
 GIT_CLONE = "git clone https://github.com/beyondwin/skills"
 LIVE_BUDGETS = ("119", "3", "122", "38", "160")
-README_PATHS = (ROOT / "README.md", ROOT / "README.en.md")
+# The root README is English-first like every product README: README.md is
+# English and README.ko.md is Korean.
+ROOT_README_EN = ROOT / "README.md"
+ROOT_README_KO = ROOT / "README.ko.md"
+README_PATHS = (ROOT_README_EN, ROOT_README_KO)
 PRODUCT_README_PATHS = tuple(
     ROOT / product.skill_path / filename
     for product in REGISTRY.products
-    for filename in ("README.md", "README.en.md")
+    for filename in PRODUCT_README_NAMES.values()
 )
 USER_GUIDES = (
     ROOT / "docs" / "users" / "ko" / "installation.md",
@@ -169,6 +173,7 @@ CODEX_PRODUCTS = (
     "pre-sdd-review",
 )
 DOCS_INDEX = ROOT / "docs" / "README.md"
+DOCS_INDEX_KO = ROOT / "docs" / "README.ko.md"
 HISTORY_README = ROOT / "docs" / "history" / "README.md"
 MAINTAINER_INDEX = ROOT / "docs" / "maintainers" / "README.md"
 REPOSITORY_DOCS = (
@@ -194,49 +199,10 @@ MAINTAINER_DOCS = (MAINTAINER_INDEX,) + REPOSITORY_DOCS + tuple(
     for product in REGISTRY.products
     for filename in PRODUCT_PROTOCOL_FILES
 )
-ACTIVE_USER_DOCS = README_PATHS + PRODUCT_README_PATHS + USER_GUIDES + (DOCS_INDEX,)
+ACTIVE_USER_DOCS = (
+    README_PATHS + PRODUCT_README_PATHS + USER_GUIDES + (DOCS_INDEX, DOCS_INDEX_KO)
+)
 PUBLIC_DOC_PATHS = ACTIVE_USER_DOCS + MAINTAINER_DOCS + (HISTORY_README,)
-OBSOLETE_MAINTAINER_RELATIVE = (
-    "docs/maintainers/architecture.md",
-    "docs/maintainers/release-process.md",
-    *("docs/maintainers/" + name + ".md" for name in REGISTRY.names),
-    "docs/maintainers/archive-migration.md",
-    "docs/maintainers/archive-source-manifest.json",
-    "docs/maintainers/repository/catalog.md",
-    "docs/maintainers/repository/migrations.md",
-    "docs/maintainers/repository/archive-source-manifest.json",
-    "catalog/catalog.lock.json",
-    "catalog/release.toml",
-    "catalog/plugin/.codex-plugin/plugin.json",
-)
-HISTORY_PREFIXES = ("docs/history/",)
-DEAD_RECORDER_STRINGS = (
-    "install.py",
-    "--bin-dir",
-    "record-outcome",
-    "finish-review",
-    "~/.local/bin/pre-sdd-review-evidence",
-)
-DEAD_LAUNCHER_PHRASES = (
-    "pre-sdd-review-evidence launcher",
-    "`pre-sdd-review-evidence` launcher",
-)
-ACTIVE_ROUTING_SURFACES = (
-    README_PATHS
-    + PRODUCT_README_PATHS
-    + USER_GUIDES
-    + MAINTAINER_DOCS
-    + (
-        DOCS_INDEX,
-        ROOT / "CONTRIBUTING.md",
-        ROOT / "SECURITY.md",
-        ROOT / "CODE_OF_CONDUCT.md",
-        ROOT / "NOTICE",
-        ROOT / ".github" / "ISSUE_TEMPLATE" / "bug.yml",
-        ROOT / ".github" / "ISSUE_TEMPLATE" / "documentation.yml",
-        ROOT / ".github" / "pull_request_template.md",
-    )
-)
 UNSAFE_INSTALL = (
     "curl | sh",
     "curl|sh",
@@ -265,16 +231,6 @@ def unsupported_claims(text: str, *, allow_image_disclaimer: bool = False) -> tu
     return tuple(claim for claim in FORBIDDEN_CLAIMS if claim in normalized)
 
 
-STALE_TWO_SKILL = (
-    "exactly two skills",
-    "two curated skills",
-    "two skills only",
-)
-STALE_THREE_PRODUCT = (
-    "three current standalone products",
-    "three curated products",
-    "adds a fourth skill",
-)
 PERSONAL_MARKERS = ("/Users/", "source/private", "SKILLS_ARCHIVE_CHECKOUT")
 README_ORDER_EN = (
     "# beyondwin/skills",
@@ -410,16 +366,15 @@ def _rendered_markdown_lines(text: str) -> tuple[str, ...]:
     return tuple("".join(structural).splitlines())
 
 
-def maintainer_korean_source_errors(text: str) -> tuple[str, ...]:
+def maintainer_english_source_errors(text: str) -> tuple[str, ...]:
     errors: list[str] = []
     lines = _rendered_markdown_lines(text)
     h1_index = next(
         (index for index, line in enumerate(lines) if re.match(r"^# (?!#)", line)),
         None,
     )
-    if h1_index is None or not re.search(r"[가-힣]{2,}", lines[h1_index]):
-        errors.append("maintainer H1 must include a substantive Korean label")
-
+    if h1_index is None or not re.search(r"[A-Za-z]{2,}", lines[h1_index]):
+        errors.append("maintainer H1 must include a substantive English label")
     paragraph_lines: list[str] = []
     if h1_index is not None:
         for line in lines[h1_index + 1 :]:
@@ -432,12 +387,10 @@ def maintainer_korean_source_errors(text: str) -> tuple[str, ...]:
                 break
             paragraph_lines.append(stripped)
     paragraph = " ".join(paragraph_lines)
-    has_korean_clause = bool(
-        re.search(r"[가-힣]+(?:은|는|이|가|을|를|의|에서|으로)", paragraph)
-    )
-    has_korean_ending = bool(re.search(r"[가-힣]+(?:니다|세요)\.", paragraph))
-    if not paragraph or not has_korean_clause or not has_korean_ending:
-        errors.append("maintainer first explanatory paragraph must be substantive Korean prose")
+    if not re.search(r"[A-Za-z]{3,}[^.]*\.", paragraph):
+        errors.append("maintainer first explanatory paragraph must be English prose")
+    if re.search(r"[가-힣]", text):
+        errors.append("English-first maintainer doc must not contain Korean text")
     return tuple(errors)
 
 
@@ -494,34 +447,41 @@ def pre_sdd_shared_contract_errors(
 class ProductReadmeOwnershipTests(unittest.TestCase):
     def test_every_product_owns_a_korean_english_readme_pair(self) -> None:
         for product in REGISTRY.products:
-            korean = ROOT / product.skill_path / "README.md"
-            english = ROOT / product.skill_path / "README.en.md"
-            self.assertTrue(korean.is_file(), f"{product.name} missing README.md")
-            self.assertTrue(english.is_file(), f"{product.name} missing README.en.md")
+            names = PRODUCT_README_NAMES
+            korean = ROOT / product.skill_path / names["ko"]
+            english = ROOT / product.skill_path / names["en"]
+            self.assertTrue(korean.is_file(), f"{product.name} missing {names['ko']}")
+            self.assertTrue(english.is_file(), f"{product.name} missing {names['en']}")
             self.assertRegex(_read(korean), r"[가-힣]", product.name)
+            self.assertIn(f"[English]({names['en']})", _read(korean), product.name)
             english_text = _read(english)
-            self.assertIn("[한국어](README.md)", english_text)
+            korean_link = f"[한국어]({names['ko']})"
+            self.assertIn(korean_link, english_text)
             self.assertNotRegex(
-                english_text.replace("[한국어](README.md)", ""),
+                english_text.replace(korean_link, ""),
                 r"[가-힣]",
             )
+            readmes = {path.name for path in (ROOT / product.skill_path).glob("README*.md")}
+            self.assertEqual(readmes, set(PRODUCT_README_NAMES.values()), product.name)
+        self.assertEqual(PRODUCT_README_NAMES, {"ko": "README.ko.md", "en": "README.md"})
 
     def test_validate_product_rejects_missing_half_of_readme_pair(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / "korean-writing-editor"
             shutil.copytree(ROOT / "skills" / "korean-writing-editor", root)
-            readme = root / "README.md"
-            english = root / "README.en.md"
-            if readme.is_file():
-                readme.unlink()
+            names = PRODUCT_README_NAMES
+            english = root / names["en"]
+            korean = root / names["ko"]
+            if english.is_file():
+                english.unlink()
             errors = "\n".join(validate_product(root, REGISTRY))
             self.assertIn("missing README.md", errors)
-            readme.write_text("# Korean Writing Editor\n", encoding="utf-8")
-            if not english.is_file():
-                english.write_text("# Korean Writing Editor\n", encoding="utf-8")
-            english.unlink()
+            english.write_text("# Korean Writing Editor\n", encoding="utf-8")
+            if not korean.is_file():
+                korean.write_text("# Korean Writing Editor\n", encoding="utf-8")
+            korean.unlink()
             errors = "\n".join(validate_product(root, REGISTRY))
-            self.assertIn("missing README.en.md", errors)
+            self.assertIn("missing README.ko.md", errors)
 
     def test_root_and_product_readmes_do_not_own_product_versions(self) -> None:
         for path in README_PATHS + PRODUCT_README_PATHS:
@@ -530,20 +490,21 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
             self.assertNotRegex(text, VERSION_LITERAL_RE)
 
     def test_root_readmes_do_not_own_product_versions(self) -> None:
-        for path in (ROOT / "README.md", ROOT / "README.en.md"):
+        for path in README_PATHS:
             text = path.read_text(encoding="utf-8")
             self.assertNotRegex(text, r"\b[0-9]+\.[0-9]+\.[0-9]+\b")
 
     def test_every_product_is_reachable_in_one_link_from_root(self) -> None:
-        korean = (ROOT / "README.md").read_text(encoding="utf-8")
-        english = (ROOT / "README.en.md").read_text(encoding="utf-8")
+        korean = _read(ROOT_README_KO)
+        english = _read(ROOT_README_EN)
         for product in REGISTRY.products:
-            self.assertIn(f"{product.skill_path.as_posix()}/README.md", korean)
-            self.assertIn(f"{product.skill_path.as_posix()}/README.en.md", english)
+            names = PRODUCT_README_NAMES
+            self.assertIn(f"{product.skill_path.as_posix()}/{names['ko']})", korean)
+            self.assertIn(f"{product.skill_path.as_posix()}/{names['en']})", english)
 
     def test_product_readmes_follow_common_information_order(self) -> None:
         for product in REGISTRY.products:
-            for filename in ("README.md", "README.en.md"):
+            for language, filename in PRODUCT_README_NAMES.items():
                 path = ROOT / product.skill_path / filename
                 _assert_exists(self, path)
                 text = _read(path)
@@ -551,7 +512,7 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
                     text.startswith(f"# {product.display_name}\n"),
                     f"{product.name}/{filename} title",
                 )
-                headings = PRODUCT_README_HEADINGS[filename]
+                headings = PRODUCT_README_HEADINGS[language]
                 last = -1
                 for heading in headings:
                     pos = text.find(heading)
@@ -565,7 +526,9 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
 
     def test_product_readmes_omit_shared_safety_verify_and_update_headings(self) -> None:
         for product in REGISTRY.products:
-            for filename, forbidden in FORBIDDEN_PRODUCT_README_H2.items():
+            names = PRODUCT_README_NAMES
+            for language, forbidden in FORBIDDEN_PRODUCT_README_H2.items():
+                filename = names[language]
                 text = _read(ROOT / product.skill_path / filename)
                 for heading in forbidden:
                     self.assertNotIn(heading, text, f"{product.name}/{filename} {heading}")
@@ -581,7 +544,8 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
                 self.assertNotIn(phrase, text, f"{product.name}/{filename}")
 
     def test_how_it_works_readmes_include_supported_host_install_call_and_result(self) -> None:
-        for filename in ("README.md", "README.en.md"):
+        names = PRODUCT_README_NAMES
+        for language, filename in names.items():
             path = ROOT / "skills/how-it-works" / filename
             text = _read(path)
             self.assertIn(HOW_IT_WORKS_MKDIR, text)
@@ -592,11 +556,9 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
             self.assertIn("/how-it-works", text)
             self.assertIn("$how-it-works DNS\n/how-it-works DNS\n", text)
             self.assertNotIn("@how-it-works", text)
-            if filename == "README.md":
-                self.assertIn("명시 길은 그대로입니다.", text)
+            if language == "ko":
                 self.assertIn("$how-it-works DNS 길\n/how-it-works DNS 길\n", text)
             else:
-                self.assertIn("The explicit path example is unchanged.", text)
                 self.assertIn(
                     "$how-it-works Explain DNS as a path.\n"
                     "/how-it-works Explain DNS as a path.\n",
@@ -618,7 +580,7 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
 
     def test_product_readmes_include_installer_support_and_maintainer_link(self) -> None:
         for product in REGISTRY.products:
-            for filename in ("README.md", "README.en.md"):
+            for filename in PRODUCT_README_NAMES.values():
                 path = ROOT / product.skill_path / filename
                 _assert_exists(self, path)
                 text = _read(path)
@@ -636,8 +598,8 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
 
 class RootReadmeTests(unittest.TestCase):
     def test_root_readmes_pin_macos_only_os_policy(self) -> None:
-        korean = re.sub(r"\s+", " ", _read(ROOT / "README.md"))
-        english = re.sub(r"\s+", " ", _read(ROOT / "README.en.md"))
+        korean = re.sub(r"\s+", " ", _read(ROOT_README_KO))
+        english = re.sub(r"\s+", " ", _read(ROOT_README_EN))
         self.assertIn(
             "지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다.",
             korean,
@@ -656,8 +618,8 @@ class RootReadmeTests(unittest.TestCase):
         )
 
     def test_root_readmes_do_not_treat_every_product_as_codex_only(self) -> None:
-        korean = _read(ROOT / "README.md")
-        english = _read(ROOT / "README.en.md")
+        korean = _read(ROOT_README_KO)
+        english = _read(ROOT_README_EN)
         self.assertNotIn("Codex에서 설치해 쓰는 스킬 세 개", korean)
         self.assertNotIn("three skills you can install in Codex", english)
         self.assertIn("current standalone products", english)
@@ -668,8 +630,8 @@ class RootReadmeTests(unittest.TestCase):
 
     def test_readmes_follow_section_order(self) -> None:
         cases = (
-            (ROOT / "README.md", README_ORDER_KO),
-            (ROOT / "README.en.md", README_ORDER_EN),
+            (ROOT_README_KO, README_ORDER_KO),
+            (ROOT_README_EN, README_ORDER_EN),
         )
         for document, markers in cases:
             _assert_exists(self, document)
@@ -681,25 +643,28 @@ class RootReadmeTests(unittest.TestCase):
                 self.assertGreater(pos, last, f"{document.name} out of order: {marker!r}")
                 last = pos
 
-    def test_korean_readme_is_korean_and_english_readme_is_complete(self) -> None:
-        _assert_exists(self, ROOT / "README.md")
-        _assert_exists(self, ROOT / "README.en.md")
-        korean = _read(ROOT / "README.md")
-        english = _read(ROOT / "README.en.md")
+    def test_root_readme_is_english_first_with_a_korean_copy(self) -> None:
+        _assert_exists(self, ROOT_README_EN)
+        _assert_exists(self, ROOT_README_KO)
+        self.assertEqual(
+            {path.name for path in ROOT.glob("README*.md")}, {"README.md", "README.ko.md"}
+        )
+        korean = _read(ROOT_README_KO)
+        english = _read(ROOT_README_EN)
         self.assertRegex(korean, r"[가-힣]")
-        self.assertIn("[English](README.en.md)", korean)
-        self.assertIn("[한국어](README.md)", english)
-        self.assertNotRegex(english.replace("[한국어](README.md)", ""), r"[가-힣]")
+        self.assertIn("[English](README.md)", korean)
+        self.assertIn("[한국어](README.ko.md)", english)
+        self.assertNotRegex(english.replace("[한국어](README.ko.md)", ""), r"[가-힣]")
         self.assertIn("Apache-2.0", korean)
         self.assertIn("Apache-2.0", english)
         self.assertIn("python3 scripts/verify.py", korean)
         self.assertIn("python3 scripts/verify.py", english)
 
     def test_root_readmes_link_to_shared_guides_and_community_files(self) -> None:
-        korean = _read(ROOT / "README.md")
-        english = _read(ROOT / "README.en.md")
+        korean = _read(ROOT_README_KO)
+        english = _read(ROOT_README_EN)
         for href in (
-            "docs/README.md",
+            "docs/README.ko.md",
             "docs/users/ko/installation.md",
             "docs/users/ko/install-local.md",
             "docs/users/ko/compatibility.md",
@@ -742,12 +707,12 @@ class UserGuideFactTests(unittest.TestCase):
             "install-local.md": ("how-it-works", "sddx", "waygent", "image-workbench"),
         }
         for language in ("ko", "en"):
-            readme = "README.en.md" if language == "en" else "README.md"
             for filename, names in owned.items():
                 text = _read(ROOT / "docs" / "users" / language / filename)
                 for name in names:
+                    readme = PRODUCT_README_NAMES[language]
                     self.assertIn(
-                        f"skills/{name}/{readme}",
+                        f"skills/{name}/{readme})",
                         text,
                         f"{language}/{filename} {name}",
                     )
@@ -766,7 +731,6 @@ class UserGuideFactTests(unittest.TestCase):
             self.assertIn("cowork", lowered)
             self.assertIn("skills api", lowered)
             self.assertTrue("marketplace" in lowered or "마켓플레이스" in text)
-            self.assertNotIn("beyondwin-skills", text)
             self.assertNotIn(
                 "how-it-works: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.",
                 text,
@@ -837,7 +801,7 @@ class UserGuideFactTests(unittest.TestCase):
             self.assertIn("~/.agents/skills/how-it-works", local)
             self.assertIn(HOW_IT_WORKS_UNLINK_AGENTS, local)
             self.assertIn(HOW_IT_WORKS_UNLINK_CLAUDE, local)
-        for filename in ("README.md", "README.en.md"):
+        for filename in ("README.md", "README.ko.md"):
             text = _read(ROOT / "skills/how-it-works" / filename)
             self.assertIn(installer, text)
             self.assertIn("~/.agents/skills/how-it-works", text)
@@ -940,18 +904,17 @@ class UserGuideFactTests(unittest.TestCase):
                 base = ROOT / "docs/users" / language
                 verification = _read(base / "verification.md")
                 for phrase in (
-                    "34", "normative=10", "runner 18", "32", "17",
+                    "33", "normative=10", "runner 18", "32", "17",
                     "14 cases / 17 repeats", "119 / 3 / 122 / 38 / 160",
                     "hard", "failed", "partially_verified", "fence/hop",
                     "loading", "syntax", "meaning", "schema 2", "schema 3",
                     "schema-unsupported", "unsupported_records",
-                    "historical-unbound", "checkout", "LF",
+                    "checkout", "LF",
                     '"schema":4,"skill_name":"pre-sdd-review"', "schema 4",
                 ):
                     self.assertIn(phrase, verification)
                 compatibility = _read(base / "compatibility.md")
-                for phrase in ("historical-unbound", "current-bounded"):
-                    self.assertIn(phrase, compatibility)
+                self.assertIn("current-bounded", compatibility)
                 if language == "ko":
                     self.assertIn(
                         "지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다.",
@@ -1168,45 +1131,26 @@ class DocumentationArchitectureTests(unittest.TestCase):
             )
             self.assertFalse((ROOT / "docs" / language).exists())
 
-    def test_live_docs_omit_removed_evidence_installer_names(self) -> None:
-        documents = PUBLIC_DOC_PATHS + (ROOT / "skills/pre-sdd-review/CHANGELOG.md",)
-        for document in documents:
-            relative = document.relative_to(ROOT).as_posix()
-            if relative.startswith("docs/history/"):
-                continue
-            text = _read(document)
-            if document.name == "CHANGELOG.md":
-                dated = re.search(
-                    r"^## \S+ - [0-9]{4}-[0-9]{2}-[0-9]{2}\s*$",
-                    text,
-                    re.MULTILINE,
-                )
-                if dated is not None:
-                    text = text[: dated.start()]
-            for fragment in DEAD_RECORDER_STRINGS:
-                self.assertNotIn(fragment, text, f"{relative} contains {fragment!r}")
-            for phrase in DEAD_LAUNCHER_PHRASES:
-                self.assertNotIn(phrase, text, f"{relative} contains {phrase!r}")
-
     def test_maintainer_index_owns_docs_maintenance_rules(self) -> None:
         text = _read(MAINTAINER_INDEX)
         normalized = re.sub(r"\s+", " ", text)
         for fact in (
-            "제품 README",
+            "product README",
             "docs/users/",
             "docs/maintainers/",
-            "사실 하나",
-            "한국어가 원본",
-            "문구·사실 단언",
-            "함께 고칠 파일",
-            "진행 중",
+            "One doc owns each fact",
+            "Maintainer docs are English only. There is no Korean copy.",
+            "Product `README.md` is English and `README.ko.md` is Korean.",
+            "update the test phrase and fact checks",
+            "files-to-change-together",
+            "work-in-progress",
         ):
             self.assertIn(fact, normalized)
         self.assertIn("docs/history/", text)
 
     def test_history_is_visibly_non_authoritative(self) -> None:
         text = (ROOT / "docs/history/README.md").read_text(encoding="utf-8")
-        self.assertIn("현재 계약을 정의하지", text)
+        self.assertIn("do not define the current contract", " ".join(text.split()))
         self.assertFalse((ROOT / "docs" / "superpowers").exists())
         self.assertRegex(text, r"[A-Za-z]")
         lowered = text.lower()
@@ -1219,11 +1163,17 @@ class DocumentationArchitectureTests(unittest.TestCase):
     def test_docs_index_routes_install_use_maintain_and_history(self) -> None:
         _assert_exists(self, DOCS_INDEX)
         text = _read(DOCS_INDEX)
-        self.assertRegex(text, r"[가-힣]")
+        self.assertIn("[한국어](README.ko.md)", text)
+        self.assertNotRegex(text.replace("[한국어](README.ko.md)", ""), r"[가-힣]")
+        korean = _read(DOCS_INDEX_KO)
+        self.assertIn("[English](README.md)", korean)
+        self.assertRegex(korean, r"[가-힣]")
+        for product in REGISTRY.products:
+            self.assertIn(f"{product.skill_path.as_posix()}/README.ko.md)", korean)
         self.assertIn("docs/users/", text)
         for product in REGISTRY.products:
-            self.assertIn(f"{product.skill_path.as_posix()}/README.md", text)
-            self.assertIn(f"{product.skill_path.as_posix()}/README.en.md", text)
+            for filename in PRODUCT_README_NAMES.values():
+                self.assertIn(f"{product.skill_path.as_posix()}/{filename})", text)
         self.assertIn("docs/maintainers/", text)
         self.assertIn("docs/history/", text)
         self.assertIn(
@@ -1248,48 +1198,40 @@ class DocumentationArchitectureTests(unittest.TestCase):
         release_doc = ROOT / "docs" / "maintainers" / "repository" / "release.md"
         for path in (registry_doc, release_doc):
             _assert_exists(self, path)
-            self.assertRegex(_read(path), r"[가-힣]")
-        for retired in ("catalog.md", "migrations.md", "archive-source-manifest.json"):
-            self.assertFalse(
-                (ROOT / "docs" / "maintainers" / "repository" / retired).exists(),
-                retired,
-            )
-        self.assertFalse(
-            (ROOT / "docs" / "maintainers" / "repository" / "catalog-release.md").exists()
-        )
-        self.assertFalse(
-            (ROOT / "docs" / "maintainers" / "repository" / "archive-migration.md").exists()
-        )
+            self.assertEqual(maintainer_english_source_errors(_read(path)), ())
         registry_text = _read(registry_doc)
         for field in REGISTRY_SCHEMA_FIELDS:
             self.assertIn(field, registry_text, field)
         self.assertIn("python3 scripts/verify.py", registry_text)
         for phrase in (
-            "허용 최상위 키는 정확히 `schema_version`, `products`",
-            "bool이 아닌 정확한 정수 `1`",
-            "`supported_hosts`, `owned_paths`, `verify_stages`는 비어 있지 않은 필수 목록",
-            "각 목록 내부의 중복", "제품 간 중복 이름·경로",
-            "빈 runner 목록과 빈 stage 목록도 실패",
+            "The only allowed top-level keys are `schema_version` and `products`.",
+            "`schema_version` must be the exact integer `1`, not a bool.",
+            "`supported_hosts`, `owned_paths`, and `verify_stages` are required non-empty lists.",
+            "Duplicates within a list, and duplicate names or paths across products, are rejected.",
+            "An empty stage selection also fails closed.",
+            "`PRODUCT_README_NAMES`",
         ):
-            self.assertIn(phrase, registry_text)
+            self.assertIn(phrase, re.sub(r"\s+", " ", registry_text))
         release_text = _read(release_doc)
         self.assertIn("python3 scripts/release.py check --product", release_text)
         self.assertIn("python3 scripts/release.py build --product", release_text)
         self.assertIn("python3 scripts/release.py verify-download --product", release_text)
         self.assertNotRegex(release_text, VERSION_LITERAL_RE)
+        normalized_release = re.sub(r"\s+", " ", release_text)
         self.assertIn(
-            "checksum → archive checks → extract → metadata → 신뢰 소스 hash → smoke",
-            release_text,
+            "checksum → archive checks → extract → metadata → trusted source hash → smoke",
+            normalized_release,
         )
-        self.assertIn("checksum 단독으로는 인증이 아닙니다", release_text)
-        self.assertIn("버전 기준선은 가장 최근의 `<name>-v<version>` 태그입니다", release_text)
-        self.assertNotIn("catalog", release_text)
-        self.assertNotIn("카탈로그", release_text)
+        self.assertIn("A checksum alone is not authentication.", normalized_release)
+        self.assertIn(
+            "The version baseline is the latest `<name>-v<version>` tag.",
+            normalized_release,
+        )
 
     def test_maintainer_index_links_task_routes(self) -> None:
         _assert_exists(self, MAINTAINER_INDEX)
         index = _read(MAINTAINER_INDEX)
-        self.assertRegex(index, r"[가-힣]")
+        self.assertEqual(maintainer_english_source_errors(index), ())
         for href in (
             "products/",
             "repository/products-registry.md",
@@ -1297,8 +1239,6 @@ class DocumentationArchitectureTests(unittest.TestCase):
             "../history/",
         ):
             self.assertIn(href, index)
-        for retired in ("repository/catalog.md", "repository/migrations.md", "--catalog"):
-            self.assertNotIn(retired, index)
 
 
 def _linked_path(document: Path, href: str) -> Path | None:
@@ -1316,7 +1256,7 @@ class RegistryDrivenPublicDocTests(unittest.TestCase):
         self.registry = load_registry(ROOT / "products.toml")
 
     def test_root_readmes_cover_registered_products(self) -> None:
-        for relative in ("README.md", "README.en.md"):
+        for relative in ("README.md", "README.ko.md"):
             text = (ROOT / relative).read_text(encoding="utf-8")
             for product in self.registry.products:
                 self.assertIn(product.name, text, relative)
@@ -1324,7 +1264,7 @@ class RegistryDrivenPublicDocTests(unittest.TestCase):
 
     def test_product_readmes_match_registry_hosts(self) -> None:
         for product in self.registry.products:
-            for filename in ("README.md", "README.en.md"):
+            for filename in PRODUCT_README_NAMES.values():
                 text = (ROOT / product.skill_path / filename).read_text(encoding="utf-8")
                 for host in product.supported_hosts:
                     self.assertIn(host, text.lower(), f"{product.name}/{filename}")
@@ -1415,7 +1355,7 @@ class ReachabilityTests(unittest.TestCase):
     def test_no_user_document_is_orphaned_from_the_root_index(self) -> None:
         targets = {path.resolve() for path in ACTIVE_USER_DOCS}
         reachable: set[Path] = set()
-        stack = [ROOT / "README.md", ROOT / "README.en.md"]
+        stack = list(README_PATHS)
         while stack:
             document = stack.pop()
             resolved = document.resolve()
@@ -1462,189 +1402,99 @@ class MaintainerStructureTests(unittest.TestCase):
             for filename in PRODUCT_PROTOCOL_FILES:
                 path = directory / filename
                 _assert_exists(self, path)
-                self.assertEqual(maintainer_korean_source_errors(_read(path)), ())
+                self.assertEqual(
+                    maintainer_english_source_errors(_read(path)),
+                    (),
+                    path.relative_to(ROOT).as_posix(),
+                )
 
-    def test_korean_source_validator_requires_korean_h1_and_explanatory_prose(self) -> None:
-        contract = _read(ROOT / "docs/maintainers/products/pre-sdd-review/contract.md")
+    def test_english_source_validator_requires_english_h1_and_prose(self) -> None:
+        contract = (
+            "# Example product contract\n\n"
+            "This document sets when the example product runs and which rules win.\n\n"
+            "## Scope\n\n"
+            "- One rule.\n"
+        )
+        self.assertEqual(maintainer_english_source_errors(contract), ())
         mutations = (
             (
-                contract.replace("# pre-sdd-review 계약", "# pre-sdd-review contract", 1),
-                "maintainer H1 must include a substantive Korean label",
+                contract.replace("# Example product contract", "# 예시 제품 계약", 1),
+                "maintainer H1 must include a substantive English label",
             ),
             (
                 contract.replace(
-                    "이 문서는 Pre-SDD Review가 언제 켜지는지, 어떤 문서를 먼저 따르는지,\n"
-                    "검토자를 어떻게 떼어 두는지, 문서를 어디까지 고치는지를 정합니다. 발견,\n"
-                    "신선도, 판정, SDD 인계 규칙도 여기서 정합니다.",
-                    "한.",
+                    "This document sets when the example product runs and which rules win.",
+                    "이 문서는 예시 제품이 언제 켜지는지 정합니다.",
                     1,
                 ),
-                "maintainer first explanatory paragraph must be substantive Korean prose",
+                "maintainer first explanatory paragraph must be English prose",
+            ),
+            (
+                contract.replace("- One rule.", "- 규칙 하나.", 1),
+                "English-first maintainer doc must not contain Korean text",
             ),
         )
         for mutation, expected_error in mutations:
             with self.subTest(mutation=mutation.splitlines()[:4]):
                 self.assertNotEqual(mutation, contract)
-                self.assertIn(expected_error, maintainer_korean_source_errors(mutation))
+                self.assertIn(expected_error, maintainer_english_source_errors(mutation))
 
-    def test_korean_source_validator_ignores_hidden_korean_markdown(self) -> None:
-        cases = (
-            (
-                ROOT / "docs/maintainers/products/pre-sdd-review/testing.md",
-                "# pre-sdd-review 테스트",
-                "# pre-sdd-review testing",
-                "이 문서는 모델을 부르지 않고 도는 계약 검사, 작게 만든 합성 픽스처,\n"
-                "실제 모델을 부르는 선택적 라이브 검사가 각각 어디까지 증명하는지 정합니다.\n"
-                "모델의 실제 리뷰 품질을 측정했다고 주장하지 않습니다.",
-                "This document owns provider-free evidence and optional live checks.",
-            ),
-            (
-                ROOT / "docs/maintainers/products/pre-sdd-review/compatibility.md",
-                "# pre-sdd-review 호환성",
-                "# pre-sdd-review compatibility",
-                "이 문서는 Pre-SDD Review를 어느 호스트에서 실제로 확인했는지 정합니다.",
-                "This document owns the measured-host boundary.",
-            ),
-            (
-                ROOT / "docs/maintainers/products/how-it-works/testing.md",
-                "# how-it-works 테스트",
-                "# how-it-works testing",
-                "모델 서비스 없이 확인하는 규칙과, 선택적이고 비용이 들 수 있는 실제 실행 확인을 섞지 마세요. 사용자 주제, 모델 서비스 대화, 비공개 로그를 Git 테스트 예시로 커밋하지 마세요.",
-                "Do not mix provider-free contracts with optional paid smoke checks.",
-            ),
-        )
+    def test_english_source_validator_ignores_hidden_english_markdown(self) -> None:
+        korean_doc = "# 예시 제품 계약\n\n이 문서는 예시 제품을 정합니다.\n"
         hidden_blocks = (
-            "<!--\n# 숨겨진 한국어 제목\n이 문서는 숨겨진 한국어 설명을 제공합니다.\n-->\n",
-            "<!--\n# 숨겨진 한국어 제목\n이 문서는 숨겨진 한국어 설명을 제공합니다.\n",
-            "```text\n# 숨겨진 한국어 제목\n이 문서는 숨겨진 한국어 설명을 제공합니다.\n```\n",
-            "```text\n# 숨겨진 한국어 제목\n이 문서는 숨겨진 한국어 설명을 제공합니다.\n",
-            "~~~text\n# 숨겨진 한국어 제목\n이 문서는 숨겨진 한국어 설명을 제공합니다.\n",
+            "<!--\n# Hidden English title\nThis hidden paragraph is English.\n-->\n",
+            "<!--\n# Hidden English title\nThis hidden paragraph is English.\n",
+            "```text\n# Hidden English title\nThis hidden paragraph is English.\n```\n",
+            "~~~text\n# Hidden English title\nThis hidden paragraph is English.\n",
         )
-        expected = (
-            "maintainer H1 must include a substantive Korean label",
-            "maintainer first explanatory paragraph must be substantive Korean prose",
-        )
-        for path, source_h1, english_h1, source_prose, english_prose in cases:
-            source = _read(path)
-            rendered_english = source.replace(source_h1, english_h1, 1).replace(
-                source_prose,
-                english_prose,
-                1,
-            )
-            self.assertNotEqual(rendered_english, source)
-            for hidden_block in hidden_blocks:
-                with self.subTest(path=path, hidden=hidden_block.splitlines()[0]):
-                    mutation = hidden_block + rendered_english
-                    self.assertEqual(maintainer_korean_source_errors(mutation), expected)
+        for hidden_block in hidden_blocks:
+            with self.subTest(hidden=hidden_block.splitlines()[0]):
+                errors = maintainer_english_source_errors(hidden_block + korean_doc)
+                self.assertIn("maintainer H1 must include a substantive English label", errors)
+                self.assertIn(
+                    "maintainer first explanatory paragraph must be English prose", errors
+                )
 
-    def test_korean_source_validator_accepts_korean_after_literal_comment_fences(self) -> None:
-        documents = (
-            ROOT / "docs/maintainers/products/pre-sdd-review/testing.md",
-            ROOT / "docs/maintainers/products/pre-sdd-review/compatibility.md",
-            ROOT / "docs/maintainers/products/how-it-works/testing.md",
-        )
-        fenced_examples = (
+    def test_english_source_validator_rejects_korean_even_in_code_and_comments(self) -> None:
+        source = _read(ROOT / "docs/maintainers/products/pre-sdd-review/testing.md")
+        self.assertEqual(maintainer_english_source_errors(source), ())
+        for hidden in (
+            "<!-- 숨겨진 한국어 -->\n\n",
+            "```text\n숨겨진 한국어\n```\n\n",
+            "`한국어 코드`\n\n",
+        ):
+            with self.subTest(hidden=hidden.splitlines()[0]):
+                self.assertEqual(
+                    maintainer_english_source_errors(source + "\n" + hidden),
+                    ("English-first maintainer doc must not contain Korean text",),
+                )
+
+    def test_english_source_validator_accepts_literal_comment_and_fence_markers(self) -> None:
+        source = _read(ROOT / "docs/maintainers/products/pre-sdd-review/compatibility.md")
+        prefixes = (
             "```html\n<!-- literal comment -->\n```\n\n",
-            "```text\n<!-- literal unclosed comment\n```\n\n",
-            "~~~html\n<!-- literal comment -->\n~~~\n\n",
             "~~~text\n<!-- literal unclosed comment\n~~~\n\n",
-        )
-        for path in documents:
-            source = _read(path)
-            for fenced_example in fenced_examples:
-                with self.subTest(path=path, fence=fenced_example.splitlines()[0]):
-                    self.assertEqual(
-                        maintainer_korean_source_errors(fenced_example + source),
-                        (),
-                    )
-
-    def test_korean_source_validator_accepts_inline_code_comment_literal(self) -> None:
-        documents = (
-            ROOT / "docs/maintainers/products/pre-sdd-review/testing.md",
-            ROOT / "docs/maintainers/products/pre-sdd-review/compatibility.md",
-            ROOT / "docs/maintainers/products/how-it-works/testing.md",
-        )
-        for path in documents:
-            source = _read(path)
-            h1, remainder = source.split("\n", 1)
-            _, following_sections = remainder.lstrip("\n").split("\n\n", 1)
-            mutation = (
-                f"{h1}\n\n"
-                "이 문서는 inline code의 `<!--` 리터럴을 설명하며 한국어 원문을 유지합니다.\n\n"
-                f"{following_sections}"
-            )
-            with self.subTest(path=path):
-                self.assertEqual(maintainer_korean_source_errors(mutation), ())
-
-    def test_korean_source_validator_accepts_multiline_code_comment_literal(self) -> None:
-        documents = (
-            ROOT / "docs/maintainers/products/pre-sdd-review/testing.md",
-            ROOT / "docs/maintainers/products/pre-sdd-review/compatibility.md",
-            ROOT / "docs/maintainers/products/how-it-works/testing.md",
-        )
-        code_spans = (
             "`literal\n<!-- remains literal\nspan`\n\n",
             "``literal\n<!-- remains literal\nspan``\n\n",
-            "`literal\n<!-- remains literal\nspan\\`\n\n",
-            "``literal\n<!-- remains literal\nspan\\``\n\n",
-        )
-        for path in documents:
-            source = _read(path)
-            for code_span in code_spans:
-                with self.subTest(path=path, delimiter=code_span.split("literal", 1)[0]):
-                    self.assertEqual(
-                        maintainer_korean_source_errors(code_span + source),
-                        (),
-                    )
-
-    def test_korean_source_validator_removes_comments_after_non_code_backticks(self) -> None:
-        non_code_lines = (
-            "\\`<!-- 이 문서는 숨겨진 한국어 설명을 제공합니다. -->\\`",
-            "\\``<!-- 이 문서는 숨겨진 한국어 설명을 제공합니다. -->\\``",
-            "`<!-- 이 문서는 숨겨진 한국어 설명을 제공합니다. -->",
-            "``<!-- 이 문서는 숨겨진 한국어 설명을 제공합니다. -->",
-        )
-        expected = (
-            "maintainer H1 must include a substantive Korean label",
-            "maintainer first explanatory paragraph must be substantive Korean prose",
-        )
-        for non_code_line in non_code_lines:
-            mutation = (
-                "# rendered English\n\n"
-                f"{non_code_line}\n\n"
-                "This rendered explanatory paragraph is English.\n"
-            )
-            with self.subTest(non_code_line=non_code_line):
-                self.assertEqual(maintainer_korean_source_errors(mutation), expected)
-
-    def test_korean_source_validator_accepts_korean_after_comments_with_fence_literals(self) -> None:
-        documents = (
-            ROOT / "docs/maintainers/products/pre-sdd-review/testing.md",
-            ROOT / "docs/maintainers/products/pre-sdd-review/compatibility.md",
-            ROOT / "docs/maintainers/products/how-it-works/testing.md",
-        )
-        comments = (
             "<!--\n```text\nliteral unclosed fence\n-->\n\n",
-            "<!--\n~~~text\nliteral unclosed fence\n-->\n\n",
         )
-        for path in documents:
-            source = _read(path)
-            for comment in comments:
-                with self.subTest(path=path, fence=comment.splitlines()[1]):
-                    self.assertEqual(
-                        maintainer_korean_source_errors(comment + source),
-                        (),
-                    )
+        for prefix in prefixes:
+            with self.subTest(prefix=prefix.splitlines()[0]):
+                self.assertEqual(maintainer_english_source_errors(prefix + source), ())
 
     def test_repository_docs_live_under_repository(self) -> None:
         for path in REPOSITORY_DOCS:
             _assert_exists(self, path)
-            self.assertRegex(_read(path), r"[가-힣]")
+            self.assertEqual(
+                maintainer_english_source_errors(_read(path)),
+                (),
+                path.relative_to(ROOT).as_posix(),
+            )
 
     def test_maintainer_index_reaches_every_maintainer_document(self) -> None:
         _assert_exists(self, MAINTAINER_INDEX)
         index = _read(MAINTAINER_INDEX)
-        self.assertRegex(index, r"[가-힣]")
+        self.assertEqual(maintainer_english_source_errors(index), ())
         for href in (
             "repository/architecture.md",
             "repository/versioning.md",
@@ -1675,11 +1525,6 @@ class MaintainerStructureTests(unittest.TestCase):
         )
         self.assertEqual(missing, [])
 
-    def test_obsolete_flat_maintainer_paths_are_absent(self) -> None:
-        for relative in OBSOLETE_MAINTAINER_RELATIVE:
-            path = ROOT / relative
-            self.assertFalse(path.exists(), f"{relative} must not remain after migration")
-
     def test_product_testing_docs_own_fixture_paths(self) -> None:
         expected = {
             "korean-writing-editor": "tests/products/korean-writing-editor/offline/",
@@ -1699,23 +1544,26 @@ class MaintainerProtocolTests(unittest.TestCase):
         path = ROOT / "docs" / "maintainers" / "repository" / "architecture.md"
         _assert_exists(self, path)
         text = _read(path)
-        self.assertRegex(text, r"[가-힣]")
+        self.assertEqual(maintainer_english_source_errors(text), ())
+        normalized = re.sub(r"\s+", " ", text)
         self.assertIn("skills/", text)
         self.assertIn("tests/", text)
         self.assertIn("python3 scripts/verify.py", text)
-        self.assertIn("플러그인 메타데이터는 루트가 소유하지 않습니다", text)
-        for retired in ("beyondwin-skills", "catalog/", "--catalog", "카탈로그"):
-            self.assertNotIn(retired, text)
-        self.assertIn("공통 경로, unknown 경로, 빈 diff, diff 실패", text)
-        self.assertIn("selector 없는 전체 검사", text)
-        self.assertIn("제품 전용 변경일 때만 해당 제품 selector로 좁은 검사", text)
+        self.assertIn("The root does not own plugin metadata.", normalized)
+        self.assertIn(
+            "Shared paths, unknown paths, an empty diff, or a failed diff run the full "
+            "check without a selector.",
+            normalized,
+        )
+        self.assertIn(
+            "Only a product-only change runs the narrow check with that product's selector.",
+            normalized,
+        )
         self.assertIn("README.md", text)
         self.assertIn("CHANGELOG.md", text)
         self.assertIn("release.toml", text)
         self.assertIn("docs/README.md", text)
         self.assertIn("docs/history/", text)
-        self.assertNotIn("catalog.md", text)
-        self.assertNotIn("migrations.md", text)
         for product in REGISTRY.products:
             self.assertIn(product.name, text)
             self.assertIn(f"tests/products/{product.name}/", text)
@@ -1724,16 +1572,12 @@ class MaintainerProtocolTests(unittest.TestCase):
         path = ROOT / "docs" / "maintainers" / "repository" / "versioning.md"
         _assert_exists(self, path)
         text = _read(path)
-        self.assertRegex(text, r"[가-힣]")
+        self.assertEqual(maintainer_english_source_errors(text), ())
         self.assertIn("PATCH", text)
         self.assertIn("MINOR", text)
         self.assertIn("MAJOR", text)
         self.assertIn("release.toml", text)
-        self.assertIn("기본 모드", text)
-        self.assertIn("v2.0.0", text)
-        self.assertNotIn("catalog.md", text)
-        self.assertNotIn("카탈로그 SemVer", text)
-        self.assertNotIn("beyondwin-skills-v", text)
+        self.assertIn("default mode", text)
 
     def test_korean_protocol_preserves_fixture_sync_and_live_budgets(self) -> None:
         contract = ROOT / "docs" / "maintainers" / "products" / "korean-writing-editor" / "contract.md"
@@ -1768,7 +1612,7 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("authorization", contract_text)
         self.assertIn("imagespec", contract_text)
         self.assertIn("rubric", contract_text)
-        self.assertIn("동의가 불명확하면", contract_text)
+        self.assertIn("consent is unclear", contract_text)
         self.assertIn("`hold`", _read(contract))
         self.assertIn("inspector", testing_text)
         self.assertIn("inspect_asset.py", testing_text)
@@ -1801,21 +1645,24 @@ class MaintainerProtocolTests(unittest.TestCase):
         for fixture_id in HOW_IT_WORKS_FIXTURE_IDS:
             self.assertIn(fixture_id, testing_text)
         self.assertIn("/eli5", testing_text)
-        self.assertIn("발견", testing_text)
-        self.assertIn("명시", testing_text)
-        self.assertIn("암묵", testing_text)
+        self.assertIn("discovers", testing_text)
+        self.assertIn("explicit", testing_text)
+        self.assertIn("implicit", testing_text)
         self.assertIn("near-miss", testing_text)
         self.assertIn("~/.agents/skills/how-it-works", compatibility_text)
         self.assertIn("~/.claude/skills/how-it-works", compatibility_text)
         self.assertIn("$how-it-works", compatibility_text)
         self.assertIn("/how-it-works", compatibility_text)
         self.assertNotIn("@how-it-works", compatibility_text)
-        self.assertIn("tests/products/how-it-works/live/smoke-record.json", compatibility_text)
-        self.assertIn("현재 페이로드의 실제 실행 증거는 `not_measured`", compatibility_text)
-        self.assertNotIn("2.0.0의 실제 실행 증거", compatibility_text)
+        self.assertIn("tests/products/how-it-works/live/README.md", compatibility_text)
+        self.assertIn(
+            "evidence for the current payload is `not_measured`",
+            " ".join(compatibility_text.split()),
+        )
+        self.assertNotIn("2.0.0 live evidence", compatibility_text)
         self.assertIn("release.toml", release_text)
-        self.assertIn("기본 그림 칸을 유지하는 새 선택 별칭", release_text)
-        self.assertNotIn("기본 길 칸을 유지하는 새 선택 별칭", release_text)
+        self.assertIn("a new optional alias that keeps the default picture rung", release_text)
+        self.assertNotIn("a new optional alias that keeps the default path rung", release_text)
         self.assertIn("docs/maintainers/repository/release.md", release_text)
         self.assertIn("python3 scripts/release.py check --product how-it-works", release_text)
         self.assertNotIn("python3 scripts/release.py build --product how-it-works", release_text)
@@ -1824,7 +1671,7 @@ class MaintainerProtocolTests(unittest.TestCase):
             release_text,
         )
         self.assertTrue(
-            release_text.rstrip().endswith(RELEASE_NO_PUBLICATION),
+            release_text.rstrip().endswith(HOW_IT_WORKS_RELEASE_NO_PUBLICATION),
             "release.md must end with the no-publication sentence",
         )
 
@@ -1856,7 +1703,7 @@ class PublicClaimTests(unittest.TestCase):
             self.assertEqual(
                 unsupported_claims(
                     _read(document),
-                    allow_image_disclaimer=document == ROOT / "skills/image-workbench/README.en.md",
+                    allow_image_disclaimer=document == ROOT / "skills/image-workbench/README.md",
                 ),
                 (),
                 str(document),
@@ -1879,28 +1726,6 @@ class PublicClaimTests(unittest.TestCase):
                     "rights clearance",
                     unsupported_claims(mutation, allow_image_disclaimer=True),
                 )
-
-    def test_active_user_docs_omit_stale_two_skill_claims(self) -> None:
-        for document in ACTIVE_USER_DOCS:
-            _assert_exists(self, document)
-            lowered = _read(document).lower()
-            for claim in STALE_TWO_SKILL + STALE_THREE_PRODUCT:
-                self.assertNotIn(claim, lowered)
-
-    def test_active_surfaces_omit_stale_two_skill_claims_and_obsolete_paths(self) -> None:
-        for document in ACTIVE_ROUTING_SURFACES:
-            _assert_exists(self, document)
-            text = _read(document)
-            lowered = text.lower()
-            for claim in STALE_TWO_SKILL + STALE_THREE_PRODUCT:
-                self.assertNotIn(claim, lowered)
-            for relative in OBSOLETE_MAINTAINER_RELATIVE:
-                self.assertNotIn(relative, text)
-            relative = document.relative_to(ROOT).as_posix()
-            self.assertFalse(
-                relative.startswith(HISTORY_PREFIXES),
-                f"{relative} is history and should not be in the active routing scan",
-            )
 
     def test_public_docs_omit_personal_paths(self) -> None:
         for document in PUBLIC_DOC_PATHS:

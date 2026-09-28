@@ -1,156 +1,171 @@
-# 실측 결과
+# Results
 
-2026-09-27, Claude Opus 5.5, 조건 10개 × 과제 3개 = 30회 실행. 방법은
-[조사 방법](method.md), 원자료는 [`results/summary-main.json`](results/summary-main.json)에
-있습니다.
+2026-09-27, Claude Opus 5.5, 10 conditions × 3 tasks = 30 runs. The method is in
+[Method](method.md) and the raw data in [`results/summary-main.json`](results/summary-main.json).
 
-## 먼저 알아야 할 기준선
+## The baseline first
 
-**스킬이 정답률을 바꾸지는 않았습니다.** 기본 Claude Code(스킬 없음)도 세 과제
-모두 동작하는 결과를 냈습니다.
+**Skills did not change the success rate.** Plain Claude Code (no skills) produced
+working results on all three tasks.
 
-- S1(가계부 CLI): 10개 조건 모두 요구 기능 5개가 실제로 동작했습니다. 표준
-  라이브러리만 썼고, 테스트도 통과했습니다. 채점자가 CLI를 직접 실행해 확인했습니다.
-- S3(경계값 버그): 10개 조건 모두 원인을 맞혔고 회귀 테스트를 추가했습니다.
-- S2(쿠폰 중복): 숨긴 검사 5개를 모두 통과한 조건은 10개 중 8개입니다. 나머지
-  두 조건의 사정은 아래에 따로 적었습니다.
+- S1 (household-budget CLI): in all 10 conditions the 5 required features actually
+  worked, using only the standard library, and the tests passed. The judge ran the CLI
+  to confirm.
+- S3 (boundary bug): all 10 conditions found the cause and added a regression test.
+- S2 (coupon stacking): 8 of 10 conditions passed all 5 hidden checks. The other two
+  are described below.
 
-그래서 이번 비교에서 도구가 바꾼 것은 **과정**입니다. 얼마나 묻는지, 사람이 몇 번
-답해야 하는지, 돈과 시간이 얼마나 드는지, 저장소에 무엇을 남기는지, git 지시를 지키는지가
-달랐습니다. 과제가 작고 모델이 강해서 생긴 결과일 수 있습니다. 큰 저장소에서는
-다를 수 있습니다.
+So what the tools changed in this comparison was the **process**: how much they ask,
+how many times a human has to reply, how much money and time it takes, what they leave
+in the repository, and whether they follow git instructions. This may be because the
+tasks are small and the model is strong. Large repositories may differ.
 
-## 과제별 표
+## Per-task tables
 
-비용은 Claude Code가 보고한 API 환산 비용입니다. 이어 간 세션은 누적값이 보고되므로
-마지막 값을 썼습니다. "사람 답변"은 사용자가 보낸 메시지 수(첫 요청 포함)입니다.
-"질문 수"는 모의 사용자가 센 값이라 대략적입니다.
+Cost is the API-equivalent cost Claude Code reports. Resumed sessions report a running
+total, so we took the last value. "Human replies" is the number of messages the user
+sent (first request included). "Questions" was counted by the mock user and is approximate.
 
-### S1 — 한 줄 요청으로 새 가계부 CLI
+### S1 — a new household-budget CLI from a one-line request
 
-| 도구 | 비용 | 시간 | 사람 답변 | 질문 수 | 물어서 확인 | 묻지 않고 맞춤 | 틀린 가정 | 빠짐 | 테스트 | 새 문서·설정 | 서브에이전트 |
+| Tool | Cost | Time | Human replies | Questions | Confirmed by asking | Right without asking | Wrong assumptions | Missed | Tests | New docs/config | Subagents |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: |
-| 기본(대조군) | $0.31 | 1.8분 | 4 | 1 | 0 | 8 | 0 | 1 | 통과 | 1 | 0 |
-| superpowers | $3.89 | 17.4분 | 11 | 11 | 9 | 0 | 0 | 0 | 통과 | 4 | 1 |
-| dryforge | $10.19 | 34.5분 | 6 | 20 | 9 | 0 | 0 | 0 | 통과 | 20 | 10 |
-| workflow-orchestrator | $5.23 | 21.9분 | 2 | 6 | 7 | 2 | 0 | 0 | 통과 | 3 | 6 |
-| mattpocock | $4.39 | 16.6분 | 9 | 27 | 9 | 0 | 0 | 0 | 통과 | 5 | 2 |
-| gstack | $35.96 | 116.3분 | 29 | 28 | 9 | 0 | 0 | 0 | 통과(pytest)* | 5 | 27 |
-| BMAD | $2.93 | 10.4분 | 3 | 5 | 2 | 7 | 0 | 0 | 통과 | 2 | 4 |
-| Spec Kit | $7.58 | 22.7분 | 9 | 11 | 2 | 7 | 0 | 0 | 통과 | 12 | 0 |
-| OpenSpec | $3.48 | 12.7분 | 6 | 5 | 7 | 1 | 0 | 1 | 통과 | 9 | 0 |
-| Ralph | $9.39 | 34.6분 | 2 | 14 | 9 | 0 | 0 | 0 | 통과 | 11 | 3 |
+| Baseline (control) | $0.31 | 1.8 min | 4 | 1 | 0 | 8 | 0 | 1 | pass | 1 | 0 |
+| superpowers | $3.89 | 17.4 min | 11 | 11 | 9 | 0 | 0 | 0 | pass | 4 | 1 |
+| dryforge | $10.19 | 34.5 min | 6 | 20 | 9 | 0 | 0 | 0 | pass | 20 | 10 |
+| workflow-orchestrator | $5.23 | 21.9 min | 2 | 6 | 7 | 2 | 0 | 0 | pass | 3 | 6 |
+| mattpocock | $4.39 | 16.6 min | 9 | 27 | 9 | 0 | 0 | 0 | pass | 5 | 2 |
+| gstack | $35.96 | 116.3 min | 29 | 28 | 9 | 0 | 0 | 0 | pass (pytest)* | 5 | 27 |
+| BMAD | $2.93 | 10.4 min | 3 | 5 | 2 | 7 | 0 | 0 | pass | 2 | 4 |
+| Spec Kit | $7.58 | 22.7 min | 9 | 11 | 2 | 7 | 0 | 0 | pass | 12 | 0 |
+| OpenSpec | $3.48 | 12.7 min | 6 | 5 | 7 | 1 | 0 | 1 | pass | 9 | 0 |
+| Ralph | $9.39 | 34.6 min | 2 | 14 | 9 | 0 | 0 | 0 | pass | 11 | 3 |
 
-### S2 — 기존 모듈에 쿠폰 중복 (숨은 30%/50% 충돌)
+### S2 — coupon stacking in an existing module (hidden 30%/50% conflict)
 
-| 도구 | 비용 | 시간 | 사람 답변 | 질문 수 | 30/50 충돌 질문 | 틀린 가정 | 숨긴 검사 | 테스트 | git 규칙 | 새 문서·설정 | 서브에이전트 |
+| Tool | Cost | Time | Human replies | Questions | Asked about 30/50 conflict | Wrong assumptions | Hidden checks | Tests | git rules | New docs/config | Subagents |
 | --- | ---: | ---: | ---: | ---: | --- | --- | ---: | --- | --- | ---: | ---: |
-| 기본(대조군) | $0.27 | 1.9분 | 3 | 3 | 예 | F1 | 5/5 | 통과 | 지킴 | 0 | 0 |
-| superpowers | $0.42 | 2.1분 | 5 | 4 | 예 | F1 | 5/5 | 통과 | 지킴 | 0 | 0 |
-| dryforge | $4.07 | 12.2분 | 5 | 10 | 예 | 없음 | 5/5 | 통과 | 지킴 | 15 | 5 |
-| workflow-orchestrator | $1.64 | 6.2분 | 3 | 6 | 예 | 없음 | 5/5 | 통과 | 지적 후 고침 | 0 | 6 |
-| mattpocock | $0.52 | 3.6분 | 4 | 9 | 예 | F5 | 2/5 | 통과 | 지킴 | 1 | 0 |
-| gstack | $14.48 | 42.1분 | 19 | 18 | 예 | 없음 | 5/5 | 통과 | 지킴 | 1 | 13 |
-| BMAD | $1.99 | 5.6분 | 3 | 4 | 예 | 없음 | 5/5 | 통과 | 어김 | 2 | 4 |
-| Spec Kit | $5.21 | 17.1분 | 13 | 6 | 아니오 | 없음 | 5/5 | 통과 | 지킴 | 12 | 0 |
-| OpenSpec | $1.07 | 4.7분 | 6 | 7 | 예 | 없음 | 5/5 | 통과 | 지킴 | 6 | 0 |
-| Ralph | $2.13 | 8.5분 | 3 | 12 | 예 | 없음 | 5/5 | 통과 | 어김 | 9 | 0 |
+| Baseline (control) | $0.27 | 1.9 min | 3 | 3 | yes | F1 | 5/5 | pass | kept | 0 | 0 |
+| superpowers | $0.42 | 2.1 min | 5 | 4 | yes | F1 | 5/5 | pass | kept | 0 | 0 |
+| dryforge | $4.07 | 12.2 min | 5 | 10 | yes | none | 5/5 | pass | kept | 15 | 5 |
+| workflow-orchestrator | $1.64 | 6.2 min | 3 | 6 | yes | none | 5/5 | pass | fixed after correction | 0 | 6 |
+| mattpocock | $0.52 | 3.6 min | 4 | 9 | yes | F5 | 2/5 | pass | kept | 1 | 0 |
+| gstack | $14.48 | 42.1 min | 19 | 18 | yes | none | 5/5 | pass | kept | 1 | 13 |
+| BMAD | $1.99 | 5.6 min | 3 | 4 | yes | none | 5/5 | pass | broken | 2 | 4 |
+| Spec Kit | $5.21 | 17.1 min | 13 | 6 | no | none | 5/5 | pass | kept | 12 | 0 |
+| OpenSpec | $1.07 | 4.7 min | 6 | 7 | yes | none | 5/5 | pass | kept | 6 | 0 |
+| Ralph | $2.13 | 8.5 min | 3 | 12 | yes | none | 5/5 | pass | broken | 9 | 0 |
 
-### S3 — 50,000원 경계 버그
+### S3 — the 50,000-won boundary bug
 
-| 도구 | 비용 | 시간 | 사람 답변 | 질문 수 | 숨긴 검사 | 테스트 | 새 문서·설정 | 서브에이전트 | 최종 위치 |
+| Tool | Cost | Time | Human replies | Questions | Hidden checks | Tests | New docs/config | Subagents | Final location |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: | --- |
-| 기본(대조군) | $0.13 | 0.7분 | 2 | 1 | 4/4 | 통과 | 0 | 0 | main |
-| superpowers | $0.21 | 0.7분 | 2 | 1 | 4/4 | 통과 | 0 | 0 | main |
-| dryforge | $3.14 | 8.6분 | 4 | 4 | 4/4 | 통과 | 20 | 5 | main |
-| workflow-orchestrator | $0.58 | 2.2분 | 2 | 3 | 4/4 | 통과 | 0 | 3 | main |
-| mattpocock | $0.20 | 1.1분 | 3 | 1 | 4/4 | 통과 | 1 | 0 | main |
-| gstack | $1.73 | 5.7분 | 4 | 2 | 4/4 | 통과 | 0 | 1 | 브랜치(push 어김) |
-| BMAD | $0.60 | 1.7분 | 1 | 0 | 4/4 | 통과 | 2 | 1 | main |
-| Spec Kit | $0.47 | 2.2분 | 5 | 4 | 4/4 | 통과 | 4 | 0 | main |
-| OpenSpec | $0.66 | 2.1분 | 5 | 1 | 4/4 | 통과 | 5 | 0 | 브랜치 |
-| Ralph | $0.89 | 3.8분 | 2 | 9 | 4/4 | 통과 | 5 | 0 | main |
+| Baseline (control) | $0.13 | 0.7 min | 2 | 1 | 4/4 | pass | 0 | 0 | main |
+| superpowers | $0.21 | 0.7 min | 2 | 1 | 4/4 | pass | 0 | 0 | main |
+| dryforge | $3.14 | 8.6 min | 4 | 4 | 4/4 | pass | 20 | 5 | main |
+| workflow-orchestrator | $0.58 | 2.2 min | 2 | 3 | 4/4 | pass | 0 | 3 | main |
+| mattpocock | $0.20 | 1.1 min | 3 | 1 | 4/4 | pass | 1 | 0 | main |
+| gstack | $1.73 | 5.7 min | 4 | 2 | 4/4 | pass | 0 | 1 | branch (broke no-push) |
+| BMAD | $0.60 | 1.7 min | 1 | 0 | 4/4 | pass | 2 | 1 | main |
+| Spec Kit | $0.47 | 2.2 min | 5 | 4 | 4/4 | pass | 4 | 0 | main |
+| OpenSpec | $0.66 | 2.1 min | 5 | 1 | 4/4 | pass | 5 | 0 | branch |
+| Ralph | $0.89 | 3.8 min | 2 | 9 | 4/4 | pass | 5 | 0 | main |
 
-## 반복해서 나타난 패턴
+## Recurring patterns
 
-한 번만 나온 차이는 우연일 수 있어서, 두 과제 이상에서 되풀이된 것만 적었습니다.
+A difference seen once may be chance, so only patterns that repeated across two or
+more tasks are listed.
 
-1. **작은 수정에는 기본이나 가벼운 도구가 가장 쌌습니다.** S3에서 기본,
-   superpowers, mattpocock은 $0.13~0.21, 1분 안팎이었습니다. dryforge는 $3.14,
-   8.6분이었고 문서 20개를 만들었습니다. 첫 사이클이라 `CLAUDE.md`, `AGENTS.md`,
-   `docs/` 하네스를 통째로 생성했기 때문입니다. dryforge README도 "작고 이미 분명한
-   수정에는 필요 없다"고 적고 있고, 하네스 생성은 저장소당 한 번 드는 비용입니다.
-   OpenSpec과 Spec Kit도 한 글자 수정에 명세 문서 4~5개를 남겼습니다.
-2. **dryforge는 세 과제 모두에서 문서를 가장 많이 남겼습니다(15~20개).** 대신 S2에서
-   틀린 가정이 없었고, 30%/50% 충돌을 첫 질문으로 물었으며, 기능 브랜치에 커밋하고
-   머지 전에 물었습니다. 사용자가 지적하지 않아도 세 과제 모두 git 지시를 지킨 조건은
-   기본, superpowers, dryforge, mattpocock, OpenSpec, Spec Kit입니다.
-3. **S2의 30%/50% 충돌은 거의 모두 잡았습니다.** 9개 조건이 사용자에게 물었습니다.
-   Spec Kit은 묻지 않고, 자기가 만든 헌법의 "문서가 맞다" 원칙으로 30%를 골랐습니다.
-   결과는 맞았지만 사용자가 정할 일을 도구가 정했습니다. 기본 에이전트도 물었지만
-   구현을 끝낸 뒤였습니다.
-4. **"같은 종류 2장 금지"를 묻지 않고 틀리게 가정한 조건은 기본과 superpowers
-   둘뿐입니다.** 둘 다 "같은 코드 중복 금지"로 짐작했습니다. superpowers는 이 과제를
-   bounded로 분류하고 질문을 한 번에 하나씩 했는데, 조합 규칙은 묻지 않았습니다.
-   사용자가 설계 승인 단계에서 바로잡았습니다.
-5. **물어도 추천안이 틀리는 일이 많았습니다.** S2에서 dryforge, mattpocock, OpenSpec,
-   Spec Kit이 조합이나 순서 질문을 하면서 사용자 의도와 반대인 안을 추천했습니다.
-   workflow-orchestrator는 추천안의 설명이 흐려서 채점자가 따로 지적했습니다. 모의 사용자는 사실대로 골랐지만, 실제 사용자가 "추천대로"라고만
-   답하면 짐작한 것과 결과가 같습니다. 질문 품질만큼 사람이 읽고 고르는 일이 중요합니다.
-6. **사람 손이 가장 적게 간 도구는 workflow-orchestrator와 Ralph, BMAD였습니다.**
-   S1에서 사람 답변이 2~3번이었습니다. superpowers는 설계 절마다 확인을 받아 11번,
-   mattpocock은 질문 라운드가 길어 9번, Spec Kit은 단계마다 명령을 직접 쳐야 해서
-   9번이었습니다. gstack은 결정 하나에 한 번씩 물어서 29번이었습니다.
-7. **gstack은 계획 단계가 매우 깁니다.** 아래 gstack 행은 실행마다 상태 폴더를 따로
-   두고 다시 돌린 값입니다(처음 실행은 과제끼리 기록이 섞였음, 아래 "따로 봐야 할
-   실행"). S1은 29턴, 116분, $35.96이었습니다. 사실 9개를 모두 물어서 확인했고 틀린
-   가정은 없었습니다. S2는 42분, $14.48로 office-hours → 계획 리뷰 → 구현 → `/review`를
-   거쳐 숨긴 검사 5/5를 통과했습니다. 문서와 코드의 30/50 충돌을 첫 응답에서 물었습니다.
-   대신 학습 기록 검색, 요청자, 웹 검색, Codex 검토 같은 절차 질문이 많아 사람이 18번
-   답했습니다. S1 계획 검토와 S3 `/review`에서는 설치된 Codex CLI를 외부 의견으로
-   불렀습니다.
-8. **main에 바로 커밋하는 도구가 있었습니다.** S2 지시는 "로컬 브랜치에 커밋만"이었습니다.
-   BMAD는 묻지 않고 main에 커밋했습니다. workflow-orchestrator는 main에 커밋했다가
-   사용자가 지적하자 옮겼습니다. gstack은 격리 재실행에서 S2는 지켰지만, S3에서
-   "push 금지"를 어기고 로컬 origin에 push했다가 지적받고 지웠습니다. Ralph는 루프 구조상 중간 지시를 받을
-   통로가 없어서 main에 커밋하고 태그를 만듭니다. 실수라기보다 구조적 특성입니다.
+1. **For small fixes, the baseline and light tools were cheapest.** In S3 the baseline,
+   superpowers, and mattpocock cost $0.13–0.21 and took about a minute. dryforge cost
+   $3.14, took 8.6 minutes, and created 20 documents, because on its first cycle it
+   generates the whole `CLAUDE.md`, `AGENTS.md`, and `docs/` harness. dryforge's README
+   says it is not needed for small, already-clear fixes, and the harness is a one-time
+   cost per repository. OpenSpec and Spec Kit also left 4–5 spec documents for a
+   one-character fix.
+2. **dryforge left the most documents in all three tasks (15–20).** In return it made
+   no wrong assumptions in S2, asked about the 30%/50% conflict as its first question,
+   committed to a feature branch, and asked before merging. The conditions that
+   followed the git instructions in all three tasks without being corrected were the
+   baseline, superpowers, dryforge, mattpocock, OpenSpec, and Spec Kit.
+3. **Almost every condition caught the S2 30%/50% conflict.** Nine conditions asked the
+   user. Spec Kit did not ask; it chose 30% from the "docs are right" principle in the
+   constitution it had generated. The result was correct, but the tool made a decision
+   that belonged to the user. The baseline agent asked too, but only after finishing
+   the implementation.
+4. **Only the baseline and superpowers wrongly assumed the "no two of the same type"
+   rule without asking.** Both guessed "no duplicate code". superpowers classified the
+   task as bounded and asked one question at a time, but never asked about the
+   combination rule. The user corrected it at design approval.
+5. **Even when tools asked, their recommended option was often wrong.** In S2, dryforge,
+   mattpocock, OpenSpec, and Spec Kit asked about combination or order but recommended
+   the option opposite to the user's intent. workflow-orchestrator's recommendation was
+   explained so vaguely that the judge flagged it. The mock user answered from the
+   facts, but a real user who just says "go with the recommendation" ends up where a
+   guess would. A human reading and choosing matters as much as question quality.
+6. **workflow-orchestrator, Ralph, and BMAD needed the least human effort.** In S1 they
+   took 2–3 human replies. superpowers took 11 because it confirmed each design section,
+   mattpocock 9 because of long question rounds, and Spec Kit 9 because each phase
+   needs a typed command. gstack asked once per decision and took 29.
+7. **gstack's planning phase is very long.** The gstack rows are reruns with a separate
+   state folder per run (the first runs mixed records across tasks; see "Runs to read
+   separately" below). S1 took 29 turns, 116 minutes, and $35.96. It confirmed all 9
+   facts by asking and made no wrong assumptions. S2 took 42 minutes and $14.48, going
+   office-hours → plan review → build → `/review`, and passed 5/5 hidden checks. It asked
+   about the docs-vs-code 30/50 conflict in its first reply. But it asked many process
+   questions (searching learning records, the requester, web search, Codex review), so
+   the human replied 18 times. In the S1 plan review and the S3 `/review` it called the
+   installed Codex CLI for an outside opinion.
+8. **Some tools committed straight to main.** The S2 instruction was "commit to a local
+   branch only". BMAD committed to main without asking. workflow-orchestrator committed
+   to main and moved the commit when the user pointed it out. In the isolated reruns
+   gstack kept the rule in S2, but in S3 it broke "no push", pushed to the local origin,
+   and deleted it after being corrected. Ralph's loop has no channel for mid-run
+   instructions, so it commits to main and creates tags. That is a property of its
+   structure rather than a mistake.
 
-## 따로 봐야 할 실행
+## Runs to read separately
 
-- **mattpocock S2(숨긴 검사 2/5):** 기존 `apply_coupon`을 `apply_coupons`로 바꿔 기존
-  1장 호출이 깨졌습니다. 다만 이 실행에서는 모의 사용자가 문서 순서(`/to-spec` →
-  `/implement`)를 따르지 않고 "나머지도 진행해줘"라고 답했습니다. 그래서 스펙
-  단계 없이 바로 구현됐습니다. 도구 탓으로만 보기 어렵습니다.
-- **gstack 처음 실행(오염, 표에서 뺌):** 처음 30회에서 gstack S1~S3는 과제 저장소 밖의
-  상태 폴더 하나를 같이 썼습니다. 과제 저장소 이름이 모두 `repo`여서 S1 채점자가 "다른
-  프로젝트(쿠폰 할인) 기록이 섞여 나왔다"고 적었고, S2는 앞선 계획 기록 일부를 잃은
-  채 돌아 숨긴 검사 4/5(쿠폰 중복 미구현)로 끝났습니다. 제 하네스의 격리 결함이었습니다.
-  하네스를 고쳐 실행마다 `GSTACK_HOME`을 따로 두고 S1~S3를 한 번에 하나씩 다시
-  돌렸습니다. S2는 5/5가 됐고, S1은 처음 Go를 추천하던 틀린 가정이 사라졌습니다. 처음
-  값은 `results/summary-main.json`의 `contaminated_original`에 남겼습니다.
-- **gstack S1 테스트:** pytest로 쓰여 하네스의 unittest 검사로는 돌지 않았습니다.
-  채점자가 208개 통과를 직접 재현했습니다(표의 `통과(pytest)*`).
-- **Ralph:** 루프 반복 보고가 영어였습니다. 프롬프트 원문이 영어이기 때문입니다.
-  S1 요구사항 단계는 JTBD 초안에 불필요한 토픽을 넣어 사용자가 걸러야 했습니다.
+- **mattpocock S2 (hidden checks 2/5):** it renamed the existing `apply_coupon` to
+  `apply_coupons`, which broke existing single-coupon calls. In this run, though, the
+  mock user did not follow the documented order (`/to-spec` → `/implement`) and replied
+  "나머지도 진행해줘" ("go ahead with the rest"). So implementation started without the
+  spec step. This is hard to blame on the tool alone.
+- **gstack first runs (contaminated, excluded from the tables):** in the first 30 runs,
+  gstack S1–S3 shared one state folder outside the task repository. Every task
+  repository was named `repo`, so the S1 judge noted that records from another project
+  (coupon discounts) showed up, and S2 ran after losing part of its earlier planning
+  record and ended at 4/5 hidden checks (coupon stacking not implemented). This was an
+  isolation defect in my harness. I fixed the harness to give each run its own
+  `GSTACK_HOME` and reran S1–S3 one at a time. S2 reached 5/5, and in S1 the wrong
+  assumption of recommending Go went away. The original values are kept under
+  `contaminated_original` in `results/summary-main.json`.
+- **gstack S1 tests:** written for pytest, so the harness's unittest check did not run
+  them. The judge reproduced 208 passing tests by hand (`pass (pytest)*` in the table).
+- **Ralph:** its loop iteration reports were in English because the original prompts
+  are in English. In the S1 requirements phase it put unneeded topics into the JTBD
+  draft, and the user had to filter them.
 
-## 공존 실험(S4)
+## Coexistence experiment (S4)
 
-superpowers 6.4.1과 dryforge 1.3.7을 함께 올리고 S2 저장소에서 첫 턴만 봤습니다.
-기록은 [`results/s4-coexist.json`](results/s4-coexist.json)입니다.
+superpowers 6.4.1 and dryforge 1.3.7 were loaded together and only the first turn on
+the S2 repository was observed. The log is [`results/s4-coexist.json`](results/s4-coexist.json).
 
-| 첫 메시지 | 횟수 | superpowers 훅 주입 | 실제로 켜진 스킬 | 행동 |
+| First message | Runs | superpowers hook injected | Skill that actually ran | Behavior |
 | --- | ---: | --- | --- | --- |
-| `/dryforge:ready 쿠폰 두 장까지…` | 2 | 예 | dryforge ready만 | dryforge 방식 질문(충돌, 조합, 합산) |
-| `쿠폰 두 장까지…`(명령 없음) | 2 | 예 | superpowers:brainstorming | bounded 분류 후 채팅 설계 |
+| `/dryforge:ready 쿠폰 두 장까지…` ("up to two coupons…") | 2 | yes | dryforge ready only | dryforge-style questions (conflict, combination, totals) |
+| `쿠폰 두 장까지…` ("up to two coupons…", no command) | 2 | yes | superpowers:brainstorming | classified as bounded, then a design in chat |
 
-- 명시적으로 `/dryforge:ready`를 부르면 superpowers 훅이 있어도 dryforge가 주도했습니다.
-- 명령 없이 말하면 superpowers가 켜지고, dryforge는 자동으로 켜지지 않습니다
+- Explicitly calling `/dryforge:ready` let dryforge lead even with the superpowers hook present.
+- Without a command, superpowers took over and dryforge did not start on its own
   (`disable-model-invocation: true`).
-- `go` 단계에서 superpowers의 TDD·검증 스킬이 끼어드는지는 보지 않았습니다.
+- We did not check whether superpowers' TDD and verification skills interfere in the `go` phase.
 
-## 비용 합계
+## Cost totals
 
-- 에이전트 $123.80, 모의 사용자 $9.15, 채점 $7.16, 실행 30건(gstack 3건은 격리 재실행 값)
-- 처음 gstack 오염 실행 3건($35.76)은 합계에서 뺐습니다.
-- 공존 실험 4회: $1.18. 도구별 설치 확인(haiku)과 파일럿은 따로 셌고 합계에 넣지 않았습니다.
-- 비용은 실행마다 한 번씩이라 차이가 수 배 이상일 때만 의미 있게 읽었습니다.
+- Agents $123.80, mock user $9.15, judging $7.16, 30 runs (the 3 gstack runs use the isolated rerun values)
+- The 3 contaminated first gstack runs ($35.76) are excluded from the total.
+- 4 coexistence runs: $1.18. Per-tool install checks (haiku) and the pilot were counted
+  separately and are not in the total.
+- Each cost comes from a single run, so we read differences as meaningful only when
+  they were several-fold or larger.

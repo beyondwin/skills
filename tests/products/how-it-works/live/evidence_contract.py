@@ -34,17 +34,8 @@ def record_binding(record: dict, *, current_version: str, current_hash: str) -> 
         raise ValueError("record must be a dictionary")
     if type(record.get("schema_version")) is not int:
         raise ValueError("schema_version must be an integer")
-    if record["schema_version"] == 1:
-        if set(record) != {"schema_version", "executed_on", "hosts"}:
-            raise ValueError("invalid historical record fields")
-        if not isinstance(record["executed_on"], str):
-            raise ValueError("invalid executed_on")
-        date.fromisoformat(record["executed_on"])
-        if not isinstance(record["hosts"], list):
-            raise ValueError("invalid historical hosts")
-        return "historical-unbound"
     if record["schema_version"] != 2 or set(record) != FIELDS:
-        raise ValueError("invalid current record fields")
+        raise ValueError("invalid record fields")
     if record["product"] != "how-it-works":
         raise ValueError("invalid product")
     for key in ("product_version", "host", "client_version", "runner_version", "executed_on"):

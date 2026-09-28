@@ -131,16 +131,12 @@ class TargetMappingTests(RegistryRoutingTestCase):
             ("korean-writing-editor",),
         )
 
-    def test_retired_catalog_path_fails_safe_to_every_target(self) -> None:
-        self.assertEqual(
-            targets_for_paths(["catalog/release.toml"], self.registry),
-            self.all_targets,
-        )
-
     def test_shared_public_docs_select_every_target(self) -> None:
         for path in (
             "README.md",
-            "README.en.md",
+            "README.ko.md",
+            "docs/README.md",
+            "docs/README.ko.md",
             "docs/users/en/installation.md",
             "docs/users/ko/verification.md",
             "docs/users/ko/install-codex.md",
@@ -334,16 +330,6 @@ class MatrixSerializationTests(RegistryRoutingTestCase):
             {row["selector"] for row in matrix["include"]},
             {f"--skill {name}" for name in self.registry.names},
         )
-
-    def test_retired_catalog_path_uses_full_repository_matrix(self) -> None:
-        with mock.patch(
-            "scripts.lib.change_routing.changed_paths",
-            return_value=("catalog/release.toml",),
-        ):
-            matrix = matrix_for_event(
-                "pull_request", ROOT, self.registry, "base", "head"
-            )
-        self.assertEqual(matrix, full_repository_matrix())
 
     def test_unknown_event_uses_full_repository_matrix(self) -> None:
         self.assertEqual(

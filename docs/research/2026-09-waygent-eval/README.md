@@ -1,74 +1,80 @@
-# waygent 설계와 실측 (2026-09)
+# waygent design and evaluation (2026-09)
 
-`waygent`는 모델을 감싸는 가벼운 구현 스킬입니다. 이 폴더는 그 설계가 어디서 왔고,
-실제로 돌려 보니 어땠는지를 적습니다.
+`waygent` is a light implementation skill that wraps a model. This folder records where its
+design came from and how it did when we ran it.
 
-- 스킬: [`skills/waygent/SKILL.md`](../../../skills/waygent/SKILL.md) (0.1.0, 약 140줄)
-- 설계 근거: [에이전트 워크플로 비교](../2026-09-agent-workflow-comparison/README.md)의 30회
-  실측, 사용자가 잰 v26/v27 비교, 네 모델(Opus 5.5, Fable 5.1, Grok 4.7, GPT-5.6 Sol)의
-  독립 설계안
-- 실측: 10-Task 계획 과제 하나, 조건과 모델 13칸, 22회(파일럿 2회는 따로). Claude Code 2.1.280(opus, fable)과
-  Cursor Agent 2026.09.23(grok-4.7-high), 추가로 Codex 0.154.0(gpt-5.6-sol high) 3회와 바뀐 문구 opus 1회
+- Skill: [`skills/waygent/SKILL.md`](../../../skills/waygent/SKILL.md) (0.1.0, about 140 lines)
+- Design basis: the 30 runs in the [agent workflow comparison](../2026-09-agent-workflow-comparison/README.md),
+  the user's own v26/v27 comparison, and independent designs from four models (Opus 5.5,
+  Fable 5.1, Grok 4.7, GPT-5.6 Sol)
+- Evaluation: one 10-Task plan job, 13 condition-model cells, 22 runs (plus 2 separate pilot
+  runs). Claude Code 2.1.280 (opus, fable) and Cursor Agent 2026.09.23 (grok-4.7-high), plus
+  3 runs on Codex 0.154.0 (gpt-5.6-sol high) and 1 opus run with revised wording
 
-## 결론
+## Findings
 
-1. **이 규모에서는 하네스 없이도 결과물이 거의 같았습니다.** 기본 Claude Code(opus)가
-   6.5분, $1.44에 숨긴 테스트 64개 중 63개를 통과했습니다. superpowers는 $15.38, 87분에
-   64개였습니다. 계획과 설계서가 잘 적혀 있으면 모델이 혼자서도 거의 다 맞힙니다.
-2. **차이가 난 곳은 숨은 결함 하나였습니다.** 지운 프롬프트를 다시 만들면 옛 폼이 덮어쓰는
-   결함을, 한 세션이 혼자 구현한 5회는 모두 남겼습니다. Task마다 새 구현자와 리뷰를 둔
-   실행은 14회 중 11회 고쳤습니다. 진행 파일을 본 6회에서는 리뷰가 매번 결함을 찾았고,
-   고칠지 말지는 메인의 판단이 갈랐습니다.
-3. **Task마다 리뷰는 이 규모에서 비용만 두 배였습니다.** 끝 리뷰만 둔 변형이 같은 품질을
-   절반 비용($4.02 대 $7.50), 절반 시간(17.5분 대 33.6분)에 냈고, 메인 컨텍스트도 가장
-   작았습니다(5.5만 토큰, 기본 6.9만). 큰 계획에서는 다를 수 있어, 스킬 기본값은 요청대로
-   Task마다 리뷰로 두었습니다. 4번 단계를 지우면 끝 리뷰만 하는 방식이 됩니다.
-4. **이어 하기와 공존은 됐습니다.** 세션을 강제로 끊어도 끝난 Task를 다시 하지 않았고,
-   superpowers와 함께 설치해도 `/waygent`가 주도했습니다.
-5. **Codex에서도 돌았습니다.** gpt-5.6-sol high로 10개 Task를 끝까지 했고(63/64, 62/64),
-   조율자가 자기 모델 이름을 몰라서 모델을 적지 않고 물려받게 고쳤습니다([실측 결과 11절](results.md)).
-6. **모델을 바꾸면 비쌌습니다.** fable은 같은 결과에 opus보다 2.8~3.5배 비쌌습니다.
-   Cursor grok-4.7은 스킬을 그대로 따랐지만 매우 느렸습니다.
+1. **At this scale the output was nearly the same without a harness.** Plain Claude Code
+   (opus) passed 63 of 64 hidden tests in 6.5 minutes for $1.44. superpowers passed 64 for
+   $15.38 in 87 minutes. With a well-written plan and design doc, the model gets almost
+   everything right on its own.
+2. **The difference was one hidden defect.** When a deleted prompt is re-created, the old form
+   overwrites it. All 5 runs where a single session implemented everything left this defect.
+   Runs with a fresh implementer and a review per Task fixed it in 11 of 14. In the 6 runs
+   where we could read the progress file, the review found the defect every time; whether it
+   got fixed came down to the main agent's judgment.
+3. **At this scale, review per Task only doubled the cost.** The variant with only a final
+   review gave the same quality at half the cost ($4.02 vs $7.50) and half the time (17.5 vs
+   33.6 minutes), and had the smallest main context (55k tokens, vs 69k for plain). Larger
+   plans may differ, so the skill's default stays review per Task, as requested. Removing
+   step 4 turns it into final-review-only.
+4. **Resume and coexistence worked.** After a forced session kill it did not redo finished
+   Tasks, and with superpowers also installed, `/waygent` stayed in charge.
+5. **It also ran on Codex.** gpt-5.6-sol high finished all 10 Tasks (63/64, 62/64). The
+   orchestrator did not know its own model name, so we changed the skill to leave the model
+   unset and inherit it ([results, section 11](results.md)).
+6. **Switching models was expensive.** fable cost 2.8-3.5x as much as opus for the same result.
+   Cursor grok-4.7 followed the skill as written but was very slow.
 
-## 스킬에 들어간 것과 뺀 것
+## What went into the skill and what was left out
 
-| 넣음 | 근거 |
+| Included | Evidence |
 | --- | --- |
-| Task마다 새 구현자 하나, 짧은 지시(약 1,300자) + 공통 지침 한 장 | v27이 v26보다 16% 빠르고 37% 쌌음. 네 모델 모두 권함 |
-| 테스트 먼저(실패를 본 뒤 구현) | 사용자 요구. 모든 실행이 자기 테스트를 53~195개 남김 |
-| Task마다 리뷰 한 번, 재리뷰 없음 | 사용자 요구. v26 리뷰 왕복이 2.4시간 |
-| 끝 전체 리뷰 한 번 | v26에서 Task 사이 문제는 끝 리뷰만 잡음. 이번 과제에서도 끝 리뷰만으로 같은 결함을 잡음 |
-| 고칠 때 계획의 이름·시그니처를 지키는 가장 작은 고침 먼저 | 이번 실측에서 고친 실행과 못 고친 실행을 가른 판단 |
-| High·Medium은 재현해 본 뒤에만 기각 | 이번 실측에서 메인이 맞는 지적을 기각한 1회 |
-| 진행 파일과 커밋 트레일러로 이어 하기 | 강제로 끊은 뒤 중복 없이 이어 감. 측정은 `.git/waygent/`에서 했고, 뒤에 superpowers처럼 스스로 무시되는 `.waygent/`로 옮김([모델 배치와 기록 위치](model-routing.md)) |
-| 같은 모델 고정, 한도면 멈춤 | v26에서 싼 모델로 바꾼 구간이 5시간, $128을 버림 |
-| 끝 리뷰와 실패 뒤 재시도만 한 등급 위 | 하네스 9개 조사와 이번 실측([모델 배치와 기록 위치](model-routing.md)). 효과는 재지 않음 |
-| main/master에 커밋 안 함, push·PR 안 함 | 지난 비교에서 BMAD, Ralph 등이 main에 커밋 |
+| One fresh implementer per Task, a short brief (about 1,300 characters) + one shared guide | v27 was 16% faster and 37% cheaper than v26. All four models recommended it |
+| Tests first (implement after seeing the failure) | User requirement. Every run left 53-195 of its own tests |
+| One review per Task, no re-review | User requirement. v26's review round trips took 2.4 hours |
+| One final full review | In v26 only the final review caught cross-task problems. In this task too, the final review alone caught the same defect |
+| When fixing, try the smallest fix that keeps the plan's names and signatures first | The judgment that separated fixed runs from unfixed runs in this evaluation |
+| Reject High and Medium findings only after trying to reproduce them | The 1 run in this evaluation where the main agent rejected a correct finding |
+| Resume from a progress file and commit trailers | Resumed without duplicates after a forced kill. Measured with `.git/waygent/`, then moved to a self-ignoring `.waygent/` like superpowers ([model routing and record location](model-routing.md)) |
+| Pin the same model; stop at the rate limit | In v26 the stretch on a cheaper model wasted 5 hours and $128 |
+| Only the final review and retries after failure go one tier up | The 9-harness survey and this evaluation ([model routing and record location](model-routing.md)). Effect not measured |
+| No commits on main/master, no push or PR | In the previous comparison BMAD, Ralph, and others committed to main |
 
-뺀 것: 브레인스토밍·스펙 단계, Task별 지시·보고 파일, 재리뷰 고리, 병렬 구현자, Task마다
-사람 확인, 문서 생성, `CLAUDE.md`·`AGENTS.md` 수정.
+Left out: brainstorming and spec stages, per-Task brief and report files, re-review loops,
+parallel implementers, human confirmation per Task, doc generation, and edits to `CLAUDE.md`
+or `AGENTS.md`.
 
-## 문서
+## Documents
 
-- [조사 방법](method.md): 설계 근거, 네 모델 분석, 과제, 조건, 격리, 채점, 한계
-- [실측 결과](results.md): 조건별 표, 결함, 리뷰 비용, 컨텍스트, 이어 하기, 공존, Cursor, Codex
-- [모델 배치와 기록 위치](model-routing.md): 하네스 9개의 조율자·구현자·리뷰어 모델, 기록 위치
-- [analysis/](analysis/): 네 모델의 설계안 원문과 공통 프롬프트
-- [results/](results/): 실행별 수치 JSON
-- [harness/](harness/): 과제, 숨긴 테스트, 기준 구현, 드라이버, 채점기
+- [Method](method.md): design basis, the four model analyses, task, conditions, isolation, grading, limits
+- [Results](results.md): per-condition tables, defects, review cost, context, resume, coexistence, Cursor, Codex
+- [Model routing and record location](model-routing.md): orchestrator, implementer, and reviewer models across the 9 harnesses; record location
+- [analysis/](analysis/): the four models' original design proposals and the shared prompt
+- [results/](results/): per-run numbers as JSON
+- [harness/](harness/): task, hidden tests, reference implementation, driver, grader
 
-## 다시 돌리려면
+## Re-running
 
 ```bash
 cd docs/research/2026-09-waygent-eval/harness
-BENCH_TAG=mine python3 bench.py vanilla opus 1      # 조건 모델 회차
+BENCH_TAG=mine python3 bench.py vanilla opus 1      # condition model run
 BENCH_TAG=mine python3 bench.py waygent opus 1
 BENCH_TAG=mine python3 bench.py waygent sol 1       # Codex (gpt-5.6-sol high)
-BENCH_TAG=mine ./run_batch.sh 4 jobs-main.txt        # 여러 개를 동시에
-python3 judge.py mine                                # 블라인드 결함 채점(codex 필요)
+BENCH_TAG=mine ./run_batch.sh 4 jobs-main.txt        # several at once
+python3 judge.py mine                                # blind defect grading (needs codex)
 python3 aggregate.py mine && python3 summarize.py mine
 ```
 
-- 라이브 모델을 부릅니다. `scripts/verify.py`와 CI는 이 폴더의 코드를 돌리지 않습니다.
-- superpowers 조건은 `~/.agents/plugins/superpowers`(6.4.1)를 씁니다.
-- 원시 대화(`runs/`), 로그, 채점 사본은 커밋하지 않습니다(`harness/.gitignore`).
+- This calls live models. `scripts/verify.py` and CI do not run the code in this folder.
+- The superpowers condition uses `~/.agents/plugins/superpowers` (6.4.1).
+- Raw transcripts (`runs/`), logs, and grading copies are not committed (`harness/.gitignore`).

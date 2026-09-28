@@ -23,7 +23,7 @@ RUNNER = (
 )
 CASES = RUNNER.with_name("cases.json")
 EXPECTED_SUMMARY = (
-    "34 cases: normative=10 preservation=8 noop=6 voice=4 trigger=6"
+    "33 cases: normative=10 preservation=8 noop=6 voice=4 trigger=5"
 )
 PAYLOAD_FILES = (
     "SKILL.md",
@@ -45,7 +45,7 @@ class KoreanPackageTests(unittest.TestCase):
     def test_korean_offline_runner_accepts_explicit_skill_root(self) -> None:
         result = run_offline("--scope", "full", "--skill-root", str(SKILL_ROOT))
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("34 cases:", result.stdout)
+        self.assertIn("33 cases:", result.stdout)
         self.assertIn(EXPECTED_SUMMARY, result.stdout)
         self.assertIn("mutation checks: PASS", result.stdout)
 
@@ -59,7 +59,7 @@ class KoreanPackageTests(unittest.TestCase):
             self.assertIn(EXPECTED_SUMMARY, result.stdout)
             self.assertIn("mutation checks: PASS", result.stdout)
             self.assertTrue((staged / "README.md").is_file())
-            self.assertTrue((staged / "README.en.md").is_file())
+            self.assertTrue((staged / "README.ko.md").is_file())
             self.assertFalse((staged / "CHANGE_PROTOCOL.md").exists())
             self.assertFalse((staged / "evals").exists())
 
@@ -67,7 +67,7 @@ class KoreanPackageTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="korean payload ") as directory:
             staged = Path(directory) / "korean-writing-editor"
             shutil.copytree(SKILL_ROOT, staged)
-            for name in ("README.md", "README.en.md"):
+            for name in ("README.md", "README.ko.md"):
                 text = (staged / name).read_text(encoding="utf-8")
                 for target in re.findall(r"\[[^\]]*\]\(([^)]+)\)", text):
                     if target.startswith(("https://", "http://", "#")):
@@ -77,13 +77,13 @@ class KoreanPackageTests(unittest.TestCase):
                         self.assertTrue(resolved.is_relative_to(staged.resolve()))
                         self.assertTrue(resolved.is_file())
 
-    def test_release_target_and_skill_version_are_204(self) -> None:
+    def test_release_target_and_skill_version_are_205(self) -> None:
         release = tomllib.loads(
             (SKILL_ROOT / "release.toml").read_text(encoding="utf-8")
         )
-        self.assertEqual(release["version"], "2.0.4")
+        self.assertEqual(release["version"], "2.0.5")
         self.assertIn(
-            'version: "2.0.4"',
+            'version: "2.0.5"',
             (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8"),
         )
         changelog = (SKILL_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
@@ -113,15 +113,17 @@ class KoreanPackageTests(unittest.TestCase):
         self.assertIn("name: korean-writing-editor", text)
         self.assertIn("license: Apache-2.0", text)
         self.assertIn("compatibility:", text)
-        self.assertIn('version: "2.0.4"', text)
+        self.assertIn('version: "2.0.5"', text)
         for relative in PAYLOAD_FILES:
             self.assertTrue(
                 (SKILL_ROOT / relative).is_file(),
                 f"payload missing {relative}",
             )
         payload_names = {path.name for path in SKILL_ROOT.iterdir()}
-        self.assertIn("README.md", payload_names)
-        self.assertIn("README.en.md", payload_names)
+        self.assertEqual(
+            {name for name in payload_names if name.startswith("README")},
+            {"README.md", "README.ko.md"},
+        )
         self.assertNotIn("CHANGE_PROTOCOL.md", payload_names)
         self.assertNotIn("evals", payload_names)
 
@@ -130,7 +132,7 @@ class KoreanPackageTests(unittest.TestCase):
         self.assertTrue(CASES.is_file(), "cases.json is absent")
         payload = json.loads(CASES.read_text(encoding="utf-8"))
         self.assertEqual(payload["version"], "1")
-        self.assertEqual(len(payload["cases"]), 34)
+        self.assertEqual(len(payload["cases"]), 33)
         runner_text = RUNNER.read_text(encoding="utf-8")
         self.assertIn("--skill-root", runner_text)
         self.assertIn('with_name("cases.json")', runner_text)

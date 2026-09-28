@@ -1,200 +1,214 @@
-# 실측 결과
+# Results
 
-과제, 조건, 채점 방법은 [조사 방법](method.md)에 있습니다. 숫자는
-[`results/`](results/)의 JSON에서 [`harness/summarize.py`](harness/summarize.py)로 뽑았습니다.
+The task, conditions, and scoring are in [Method](method.md). Numbers were extracted from the JSON
+in [`results/`](results/) with [`harness/summarize.py`](harness/summarize.py).
 
-## 한 표로
+## At a glance
 
-숨긴 테스트 64개 = 원래 60개 + 블라인드 채점 뒤 더한 4개. "재생성 결함"은 그 4개 중 조건을
-가장 크게 가른 하나입니다. 지운 프롬프트를 같은 id로 다시 만들면 버전이 1로 돌아가, 옛 폼이
-새 프롬프트를 조용히 덮어씁니다(설계 4장 위반).
+64 hidden tests = the original 60 + 4 added after blind scoring. The "re-create defect" is the one
+of those 4 that split the conditions most. Re-creating a deleted prompt under the same id resets
+its version to 1, so a stale form silently overwrites the new prompt (violates design section 4).
 
-| 조건 | 모델 | n | 숨긴 64 | 재생성 결함 피함 | 비용 | 시간 | 서브에이전트 | 메인 컨텍스트 최대 |
+| Condition | Model | n | Hidden 64 | Avoided re-create defect | Cost | Time | Subagents | Max main context |
 | --- | --- | ---: | --- | --- | ---: | ---: | ---: | ---: |
-| 기본 | opus | 3 | 63/63/63 | 0/3 | $1.44 | 6.5분 | 0 | 6.9만 |
-| waygent_fo (끝 리뷰만) | opus | 3 | 63/64/64 | 2/3 | $4.02 | 17.5분 | 12 | 5.5만 |
-| waygent (문구 B) | opus | 3 | 64/63/64 | 2/3 | $7.50 | 33.6분 | 22 | 8.6만 |
-| waygent rev2 (문구 C) | opus | 2 | 64/58 | 2/2 | $7.23 | 29.2분 | 22 | 8.8만 |
-| superpowers SDD | opus | 2 | 64/64 | 2/2 | $15.38 | 87.4분 | 25 | 15.1만 |
-| 공존(superpowers + waygent, 문구 C) | opus | 1 | 64 | 1/1 | $7.39 | 33.0분 | 22 | 8.9만 |
-| 기본 | fable | 1 | 63 | 0/1 | $4.08 | 9.2분 | 0 | 7.8만 |
-| waygent (문구 B) | fable | 1 | 64 | 1/1 | $25.95 | 58.2분 | 23 | 10.5만 |
-| 기본 | Cursor grok-4.7-high | 1 | 63 | 1/1 | 토큰만 | 48.5분 | 3 | - |
-| waygent (문구 B) | Cursor grok-4.7-high | 2 | 63/64 | 1/2 | 토큰만 | 290.9분 | 29 | - |
+| Plain | opus | 3 | 63/63/63 | 0/3 | $1.44 | 6.5 min | 0 | 69k |
+| waygent_fo (final review only) | opus | 3 | 63/64/64 | 2/3 | $4.02 | 17.5 min | 12 | 55k |
+| waygent (wording B) | opus | 3 | 64/63/64 | 2/3 | $7.50 | 33.6 min | 22 | 86k |
+| waygent rev2 (wording C) | opus | 2 | 64/58 | 2/2 | $7.23 | 29.2 min | 22 | 88k |
+| superpowers SDD | opus | 2 | 64/64 | 2/2 | $15.38 | 87.4 min | 25 | 151k |
+| Coexist (superpowers + waygent, wording C) | opus | 1 | 64 | 1/1 | $7.39 | 33.0 min | 22 | 89k |
+| Plain | fable | 1 | 63 | 0/1 | $4.08 | 9.2 min | 0 | 78k |
+| waygent (wording B) | fable | 1 | 64 | 1/1 | $25.95 | 58.2 min | 23 | 105k |
+| Plain | Cursor grok-4.7-high | 1 | 63 | 1/1 | tokens only | 48.5 min | 3 | - |
+| waygent (wording B) | Cursor grok-4.7-high | 2 | 63/64 | 1/2 | tokens only | 290.9 min | 29 | - |
 
-- 비용은 API 단가로 환산한 값입니다. 모든 실행이 `main`에 커밋하지 않았습니다.
-- 메인 컨텍스트는 메인 세션 호출 한 번에 들어간 토큰(입력+캐시)의 최대값입니다.
-- Cursor는 달러를 보고하지 않고, 서브에이전트 사용량을 메인과 나눠 주지 않습니다.
-- 측정 중에 스킬 문구를 고쳤기 때문에 waygent 실행마다 받은 문구가 다릅니다(실행 저장소에
-  복사된 SKILL.md의 sha256으로 확인). B: "계획 시그니처를 바꾸는 지적은 사용자에게 넘김"
-  규칙(`d57a799b`, waygent opus 3회·fable·grok 2회). C: "지키는 가장 작은 고침 먼저, 재현한
-  뒤에만 기각"(`260f7b2d`, rev2 2회·공존). D: C + "async는 async로"(`40163be6`, waygent 끊고
-  이어 하기). waygent_fo는 B에서 4번 단계를 뺀 것입니다. 지금 설치 파일(`6b8ef448`)은 D에
-  "끝 리뷰가 남은 동작 결함도 본다"를 더한 것으로, 그대로는 재지 않았습니다.
-- 기본 opus 1회차와 superpowers 1회차는 파일럿이고, 본 측정과 같은 과제와 채점입니다.
-  waygent 파일럿(초기 스킬 문구)은 표에서 뺐습니다(64 중 64, $7.17).
+- Costs are converted at API prices. No run committed to `main`.
+- Main context is the max tokens (input + cache) sent in one main-session call.
+- Cursor reports no dollars and does not split subagent usage from the main agent.
+- The skill wording changed during measurement, so waygent runs got different wordings (checked
+  by the sha256 of the SKILL.md copied into each run repo). B: the rule "hand findings that change
+  a plan signature to the user" (`d57a799b`; waygent opus 3 runs, fable, grok 2 runs). C: "first
+  the smallest fix that keeps the plan; dismiss only after reproducing" (`260f7b2d`; rev2 2 runs,
+  coexist). D: C + "async stays async" (`40163be6`; waygent kill-and-resume). waygent_fo is B with
+  step 4 removed. The current installed file (`6b8ef448`) is D plus "the final review also checks
+  remaining behavior defects" and was not measured as is.
+- Plain opus run 1 and superpowers run 1 were pilots, with the same task and scoring as the main
+  measurement. The waygent pilot (early skill wording) is left out of the table (64 of 64, $7.17).
 
-## 1. 품질: 숨긴 테스트는 거의 모두 통과
+## 1. Quality: almost every hidden test passed
 
-원래 숨긴 테스트 60개는 거의 모든 실행이 통과했습니다. 기본 Claude Code(opus)도
-3회 모두 60/60이었습니다. 과제를 한 번 키웠는데도 그랬습니다(v1에서도 36/36).
-계획과 설계서가 이만큼 적혀 있고 코드가 한 컨텍스트에 들어가면, 모델이 혼자서도 거의
-다 맞힙니다. 사용자의 v26/v27 비교에서 "결과물 차이가 크지 않았다"는 느낌과 같은
-방향입니다.
+Almost every run passed the original 60 hidden tests. Plain Claude Code (opus) scored 60/60 on all
+3 runs, even after the task was enlarged once (36/36 on v1 too). When the plan and design doc are
+written this fully and the code fits in one context, the model gets nearly everything right on its
+own. This points the same way as the user's feeling from the v26/v27 comparison that "the outputs
+were not very different".
 
-예외는 waygent rev2 2회차(58/64) 하나입니다. Task 5 리뷰에서 "두 번째 호출은 바로 `Busy`를
-내야 한다"는 지적을 받고, 계획이 `await ws.run_batch(...)`로 정한 코루틴을 "Task를 돌려주는
-일반 메서드"로 바꿨습니다. 코루틴 안에서 `await`하면 되지만 `asyncio.run(ws.run_batch(...))`는
-깨집니다. 리뷰 뒤 고침이 계획의 호출 모양을 바꾼 경우입니다. 파일럿에서도 같은 종류의
-일이 있었습니다(`save`에 인자 추가). 그래서 스킬에 "계획이 정한 이름과 시그니처(async는
-async로)를 지키는 가장 작은 고침을 먼저 찾는다"를 넣었습니다. 이 마지막 문구
-"(async는 async로)"는 측정 뒤에 넣어 아직 재지 않았습니다.
+The one exception is waygent rev2 run 2 (58/64). A Task 5 review said "the second call must raise
+`Busy` immediately", and the fix turned the coroutine the plan fixed as `await ws.run_batch(...)`
+into "a plain method that returns a Task". Awaiting it inside a coroutine works, but
+`asyncio.run(ws.run_batch(...))` breaks. This is a post-review fix changing the plan's call shape.
+The pilot had the same kind of thing (an extra argument on `save`). So the skill got "first look for
+the smallest fix that keeps the names and signatures the plan fixed (async stays async)". That last
+part, "(async stays async)", was added after measurement and has not been measured.
 
-## 2. 조건을 가른 것: 숨은 결함 하나
+## 2. What split the conditions: one hidden defect
 
-블라인드 채점자가 찾은 지적 중 설계서가 분명히 요구하고 계획의 API로 재현되는 네 가지를
-숨긴 테스트로 옮겼습니다. 재생성 결함, 멈춘 뒤 도착한 거절을 거절로 셈, 다시 만든 뒤
-사라짐 표시가 남음, 시작 전에 취소하면 작업 공간이 영영 바쁨. 이 중 재생성 결함이 조건을
-갈랐습니다. 나머지 셋은 각각 한두 실행만 놓쳤습니다(superpowers 이어 하기, grok 기본).
+Four blind-scorer findings that the design doc clearly requires and the plan's API can reproduce
+were turned into hidden tests: the re-create defect, a rejection arriving after a pause counted as
+a rejection, a deleted marker left after re-creation, and a workspace busy forever when cancelled
+before it starts. Of these, the re-create defect split the conditions. Each of the other three was
+missed by only one or two runs (superpowers resume, grok plain).
 
-| 방식 | 재생성 결함 피함 |
+| Approach | Avoided re-create defect |
 | --- | --- |
-| 한 세션이 혼자 구현(기본 opus 3회, 기본 fable 1회, 기본 끊고 이어 하기 1회) | 0/5 |
-| Task마다 새 구현자 + 리뷰(Claude Code의 waygent 전 변형, superpowers, 공존) | 11/14 |
-| Cursor grok 기본(스스로 서브에이전트 3개를 씀) | 1/1 |
+| One session implements alone (plain opus 3 runs, plain fable 1 run, plain kill-and-resume 1 run) | 0/5 |
+| Fresh implementer + review per Task (all waygent variants in Claude Code, superpowers, coexist) | 11/14 |
+| Cursor grok plain (used 3 subagents on its own) | 1/1 |
 | Cursor grok waygent | 1/2 |
 
-첫 waygent opus 6회(Task마다 리뷰 3회, 끝 리뷰만 3회)의 진행 파일을 보면, 리뷰는 6회 모두
-이 결함을 찾았습니다. 결과를 가른 것은 메인(컨트롤러)의 판단이었습니다.
+The progress files of the first 6 waygent opus runs (3 with per-Task review, 3 with final review
+only) show that the review found this defect in all 6. What decided the outcome was the main agent's
+(controller's) judgment.
 
-- 고친 실행: 삭제 뒤 다시 만들 때 버전을 이어 가는(첫 생성은 1) 작은 고침을 골랐습니다.
-- 못 고친 실행 2회: "계획이 정한 시그니처를 바꾸는 지적은 사용자에게 넘긴다"는 초기 규칙
-  때문에 사용자 확인으로 넘겼습니다. 이 규칙을 "지키는 가장 작은 고침을 먼저 찾는다"로
-  고친 rev2는 2/2 고쳤습니다.
-- 못 고친 실행 1회: 메인이 지적을 기각했습니다("같은 본문이라 잃는 것이 없다"). 그래서
-  "High·Medium 지적은 재현 코드를 돌려 본 뒤에만 기각한다"를 넣었습니다.
+- Runs that fixed it chose the small fix of continuing the version on re-create after delete (first
+  create is 1).
+- 2 runs that did not fix it handed it to the user because of the early rule "hand findings that
+  change a plan signature to the user". rev2, which changed this rule to "first look for the smallest
+  fix that keeps the plan", fixed it 2/2.
+- 1 run that did not fix it had the main agent dismiss the finding ("same body, so nothing is lost").
+  So "dismiss High and Medium findings only after running the repro code" was added.
 
-## 3. Task마다 리뷰는 이 규모에서 값을 못 했음
+## 3. Per-Task review did not pay off at this scale
 
-waygent와 waygent_fo의 차이는 Task별 리뷰 하나뿐입니다.
+The only difference between waygent and waygent_fo is the per-Task review.
 
-| | waygent (Task마다 리뷰) | waygent_fo (끝 리뷰만) |
+| | waygent (review per Task) | waygent_fo (final review only) |
 | --- | ---: | ---: |
-| 숨긴 64 | 64/63/64 | 63/64/64 |
-| 재생성 결함 피함 | 2/3 | 2/3 |
-| 비용 | $7.50 | $4.02 |
-| 시간 | 33.6분 | 17.5분 |
-| 서브에이전트 | 22 | 12 |
-| 메인 컨텍스트 최대 | 8.6만 | 5.5만 |
+| Hidden 64 | 64/63/64 | 63/64/64 |
+| Avoided re-create defect | 2/3 | 2/3 |
+| Cost | $7.50 | $4.02 |
+| Time | 33.6 min | 17.5 min |
+| Subagents | 22 | 12 |
+| Max main context | 86k | 55k |
 
-Task별 리뷰를 빼도 품질은 같았고, 비용과 시간은 약 절반이 됐습니다. 끝 리뷰에 동작
-결함(도중 취소, 옛 상태, 부분 실패, 경합)도 보라고 시키면, 이 규모에서는 끝 리뷰 한 번이
-같은 결함을 잡았습니다. 다만 사용자의 v26처럼 Task가 16개이고 UI까지 있어 끝 리뷰어 한
-명이 변경 전체를 못 읽는 규모는 이 과제로 잴 수 없습니다. 그래서 스킬 기본값은 사용자가
-요청한 "Task마다 리뷰"로 두고, 동작 없는 Task(문서, 설정, 이름 바꾸기)만 건너뜁니다.
-SKILL.md의 4번 단계를 지우면 waygent_fo와 거의 같아집니다(waygent_fo는 고침 규칙을 고치기
-전 문구 B에서 뺀 것이라, fo 1회차의 `note for user:`는 그 초기 규칙 때문입니다).
+Without per-Task review, quality was the same and cost and time roughly halved. When the final
+review is told to also check behavior defects (mid-flight cancel, stale state, partial failure,
+races), one final review caught the same defects at this scale. But this task cannot measure a scale
+like the user's v26, with 16 Tasks and a UI, where one final reviewer cannot read the whole change.
+So the skill default stays at the "review per Task" the user asked for, skipping only Tasks with no
+behavior (docs, config, renames). Deleting step 4 of SKILL.md makes it nearly the same as waygent_fo
+(waygent_fo was cut from wording B, before the fix-rule change, so the `note for user:` in fo run 1
+comes from that early rule).
 
-## 4. 메인 컨텍스트
+## 4. Main context
 
-사용자가 원한 "메인이 컨텍스트를 적게 먹는 방식"은 끝 리뷰만 둔 변형에서만 보였습니다.
+The "main agent uses little context" the user wanted showed up only in the final-review-only
+variant.
 
-- waygent_fo 5.5만 < 기본 6.9만 < waygent 8.6만 < superpowers 15.1만.
-- waygent는 Task마다 구현자 보고와 리뷰 보고를 둘 다 받아 기본보다 커졌습니다.
-- 이 과제는 기본 세션도 7만 토큰 안에서 끝납니다(창은 100만). 컨텍스트를 아끼는 효과는
-  한 세션이 한 컨텍스트에 못 담는 큰 작업에서만 의미가 있고, 이 과제로는 보여 줄 수
-  없습니다.
+- waygent_fo 55k < plain 69k < waygent 86k < superpowers 151k.
+- waygent grew past plain because it receives both an implementer report and a review report per
+  Task.
+- On this task even the plain session finishes within 70k tokens (the window is 1M). Saving
+  context matters only for large work that one session cannot hold in one context, and this task
+  cannot show it.
 
-## 5. 비용과 시간
+## 5. Cost and time
 
-- waygent(opus)는 기본의 5.2배 비용, 5.2배 시간이었습니다. superpowers의 절반 비용, 38%
-  시간입니다.
-- waygent_fo는 기본의 2.8배 비용, 2.7배 시간이었습니다.
-- superpowers SDD는 기본의 10.7배 비용, 13.4배 시간이었습니다. Task마다 구현자, 리뷰,
-  재리뷰를 돌리고 `finishing-a-development-branch`까지 불렀습니다.
-- fable은 비쌌습니다. 기본 fable $4.08(opus의 2.8배), waygent fable $25.95(opus의 3.5배).
-  숨긴 테스트는 opus와 같았습니다.
+- waygent (opus) cost 5.2x plain and took 5.2x the time. That is half of superpowers' cost and 38% of
+  its time.
+- waygent_fo cost 2.8x plain and took 2.7x the time.
+- superpowers SDD cost 10.7x plain and took 13.4x the time. It ran an implementer, review, and
+  re-review per Task and also called `finishing-a-development-branch`.
+- fable was expensive: plain fable $4.08 (2.8x opus), waygent fable $25.95 (3.5x opus). Hidden tests
+  were the same as opus.
 
-## 6. 끊고 이어 하기
+## 6. Kill and resume
 
-Task 3이 커밋되는 순간 세션을 강제로 끊고, 새 세션에서 "이어서 해줘"로 다시 시작했습니다.
+The session was force-killed the moment Task 3 was committed and restarted in a new session with
+"이어서 해줘" ("continue").
 
-| 조건 | 끊긴 시점 | 다시 한 Task | 결과 | 이어 간 세션 비용 |
+| Condition | Killed at | Tasks redone | Result | Resumed session cost |
 | --- | --- | --- | --- | ---: |
-| waygent(문구 D) | Task 3 커밋 직후, 리뷰 전 | 0 | 64/64. 진행 파일과 트레일러로 Task 3을 찾아, 빠진 리뷰부터 이어 함 | $5.42 |
-| 기본 | Task 3 커밋 직후 | 0 | 63/64. git 기록을 읽고 Task 4부터 이어 감 | $0.86 |
-| superpowers | Task 3 커밋 직후 | 0 | 62/64(재생성 결함, 멈춘 뒤 거절). Task 4부터 이어 감 | $11.60 |
+| waygent (wording D) | Right after Task 3 commit, before review | 0 | 64/64. Found Task 3 through the progress file and trailer, and resumed from the missing review | $5.42 |
+| Plain | Right after Task 3 commit | 0 | 63/64. Read git history and continued from Task 4 | $0.86 |
+| superpowers | Right after Task 3 commit | 0 | 62/64 (re-create defect, rejection after pause). Continued from Task 4 | $11.60 |
 
-끊긴 세션의 비용은 결과 줄이 없어 셀 수 없었습니다. 이 규모에서는 기본도 git 기록만 보고
-중복 없이 이어 갔습니다. waygent만의 차이는 끊기느라 빠진 단계(리뷰)를 이어서 했다는 점입니다.
+The killed sessions' cost could not be counted because they have no result line. At this scale even
+plain resumed from git history alone without duplicate work. waygent's only difference is that it
+picked up the step (review) the kill had skipped.
 
-## 7. superpowers와 함께 설치
+## 7. Installed alongside superpowers
 
-superpowers 플러그인(세션 시작 훅 포함)과 waygent를 함께 설치하고 `/waygent`로 불렀습니다.
-waygent가 처음부터 끝까지 주도했고, superpowers 스킬은 한 번도 불리지 않았습니다. 결과는
-64/64, $7.39로 waygent 단독과 같았습니다.
+The superpowers plugin (with session-start hook) and waygent were installed together and invoked
+with `/waygent`. waygent drove from start to finish, and no superpowers skill was ever called. The
+result was 64/64, $7.39, the same as waygent alone.
 
-## 8. Cursor Agent(grok-4.7-high)
+## 8. Cursor Agent (grok-4.7-high)
 
-Cursor Agent도 프로젝트 스킬(`.cursor/skills/waygent`)을 읽고 `Task` 도구로 서브에이전트를
-띄웠습니다. 서브에이전트 모델은 따로 주지 않아도 메인과 같은 `grok-4.7-high`였습니다.
+Cursor Agent also read the project skill (`.cursor/skills/waygent`) and started subagents with the
+`Task` tool. With no subagent model given, the subagents used the same `grok-4.7-high` as the main
+agent.
 
-- 느렸습니다. 서브에이전트 하나에 5~10분이 걸려 기본도 48.5분, waygent는 평균 290.9분(5시간 가까이)이었습니다.
-- 두 회차 모두 2.5시간 턴 상한에 걸려, 드라이버가 같은 대화로 "계속 진행해"를 보냈습니다.
-  깨끗한 한 번 실행이 아닙니다.
-- 1회차는 두 번째 턴도 상한에 걸려 Task 10 리뷰 도중에 끊겼습니다. 10개 Task는 모두
-  커밋했지만 끝 리뷰는 하지 못했고, 재생성 결함이 남았습니다(63/64).
-- 2회차는 끝 리뷰까지 마쳤고 64/64였습니다. 끝 리뷰가 High 2건을 고쳤습니다.
-- 스킬 규칙(진행 파일, 트레일러, Task마다 리뷰, 재리뷰 없음, main에 커밋 안 함)은 Claude
-  Code와 같게 지켰습니다. 느린 것은 모델과 호스트 쪽입니다.
+- It was slow. One subagent took 5-10 minutes, so even plain took 48.5 minutes and waygent averaged
+  290.9 minutes (close to 5 hours).
+- Both runs hit the 2.5-hour turn limit, and the driver sent "계속 진행해" ("keep going") in the same
+  conversation. These are not clean single runs.
+- Run 1 hit the limit on its second turn too and was cut off during the Task 10 review. All 10 Tasks
+  were committed, but the final review never ran and the re-create defect remained (63/64).
+- Run 2 finished the final review and scored 64/64. The final review fixed 2 High findings.
+- It followed the skill rules (progress file, trailers, review per Task, no re-review, no commit to
+  main) the same way as in Claude Code. The slowness is on the model and host side.
 
-## 9. 블라인드 채점에 대해
+## 9. About blind scoring
 
-GPT-5.6 Sol High가 결과물마다 결함을 적었지만, 원시 개수는 쓰지 않았습니다. 처음 11개
-결과물의 지적 43건 중 19건이 제가 과제용으로 미리 만든 코드(이벤트 기록, 가짜 모델, 동시 실행 도우미, 기존
-`create`)를 가리켰기 때문입니다. 설계서가 분명히 요구하고 계획의 API로 재현되는 것만
-테스트로 옮겼습니다. "멈춘 항목도 진행 이벤트를 내야 한다"는 설계서 문장이 두 가지로 읽혀
-옮기지 않았습니다.
+GPT-5.6 Sol High listed defects for each output, but raw counts are not used. Of 43 findings on the
+first 11 outputs, 19 pointed at code I prebuilt for the task (event log, fake model, concurrency
+helper, existing `create`). Only findings the design doc clearly requires and the plan's API can
+reproduce were turned into tests. The design-doc sentence "paused items must also emit progress
+events" reads two ways, so it was not turned into a test.
 
-## 10. 과제 결함
+## 10. Task defects
 
-- 과제 초기 커밋에 `__pycache__`가 들어 있었습니다. 테스트를 돌리면 .pyc가 바뀌어 일부
-  실행이 "남은 변경 있음"으로 보이지만, 남은 변경은 모두 .pyc였습니다. 저장소에 넣은
-  하네스 사본에서는 뺐습니다.
-- 숨긴 테스트 두 개의 가짜 `save`가 인자 3개만 받아, 선택 키워드를 더한 구현을 억울하게
-  떨어뜨렸습니다. 고친 뒤 모든 실행을 다시 채점했습니다.
+- The task's initial commit included `__pycache__`. Running tests changed the .pyc files, so some
+  runs looked like they had "leftover changes", but all leftover changes were .pyc. They were removed
+  from the harness copy committed to this repo.
+- The fake `save` in two hidden tests accepted only 3 arguments, unfairly failing implementations
+  that added an optional keyword. After the fix, every run was rescored.
 
-## 11. 0.1.0 마지막 문구와 Codex (2026-09-27 추가)
+## 11. Final 0.1.0 wording and Codex (added 2026-09-27)
 
-리뷰 모델, 기록 위치, Codex 지원을 넣은 뒤 다시 돌렸습니다. 문구 E는 `.waygent/`, 끝 리뷰와
-재시도만 한 등급 위, Codex 규칙 첫 판입니다. 문구 F는 E에 "Codex는 모델 이름을 적지 않고
-물려받게, 서브에이전트는 서브에이전트를 띄우지 않음"을 더한 것입니다. Codex는
-`codex-cli 0.154.0`, `gpt-5.6-sol`, `reasoning_effort=high`, 격리된 HOME(인증 파일만 복사)입니다.
-`codex exec`는 명시 호출 전용 스킬을 `$waygent`로 불러오지 않아서, 측정 사본에서만
-`agents/openai.yaml`을 뺐습니다. 수치는 [results/v2.json](results/v2.json)에 있습니다.
+After adding the review model, record location, and Codex support, runs were repeated. Wording E is
+`.waygent/`, one tier up only for the final review and retries, and the first Codex rules. Wording F
+is E plus "on Codex, inherit the model instead of naming it; subagents do not start subagents".
+Codex was `codex-cli 0.154.0`, `gpt-5.6-sol`, `reasoning_effort=high`, with an isolated HOME (only
+the auth file copied). `codex exec` does not load an explicit-invocation-only skill via `$waygent`,
+so `agents/openai.yaml` was removed from the measurement copy only. Numbers are in
+[results/v2.json](results/v2.json).
 
-| 실행 | 문구 | 숨긴 64 | 재생성 결함 | 시간 | 비용·토큰 | 비고 |
+| Run | Wording | Hidden 64 | Re-create defect | Time | Cost / tokens | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| waygent opus | E | 64 | 고침 | 44.5분 | $10.82 | 끝 리뷰어가 fable로 돎. 기록 13개 파일이 `.waygent/`에 남고 git에 안 잡힘 |
-| 기본 Codex | — | 63 | 남음 | 9.7분 | 입력 124만(캐시 119만), 출력 2.7만 | |
-| waygent Codex 1 | E | 63 | 남음 | 85.5분 | 메인 입력 411만, 출력 1.7만 | 조율자가 자기를 `gpt-6-astra / xhigh`로 적고 자식 22개를 모두 그 모델로 띄움(실제 세션은 sol high). 끝 리뷰어는 `ultra`, 그 리뷰어가 자식을 또 띄움. Task 2 리뷰가 결함을 High로 찾았지만 조율자가 `note for user:`로 미룸. 38분에 "model is at capacity"로 턴이 끊겨 드라이버가 이어 보냄 |
-| waygent Codex 2 | F | 62 | 고침 | 79.4분 | 메인 입력 349만, 출력 1.9만 | 자식 22개 모두 sol high를 물려받음. 자식의 자식 없음. 끝 리뷰어에 `high`를 줘서 한 등급 오르지 않음. 시작 전 취소 테스트 2개 실패 |
+| waygent opus | E | 64 | Fixed | 44.5 min | $10.82 | Final reviewer ran on fable. 13 record files left in `.waygent/`, not tracked by git |
+| Plain Codex | — | 63 | Remained | 9.7 min | 1.24M input (1.19M cached), 27k output | |
+| waygent Codex 1 | E | 63 | Remained | 85.5 min | Main 4.11M input, 17k output | The coordinator described itself as `gpt-6-astra / xhigh` and started all 22 children on that model (the real session was sol high). The final reviewer was `ultra`, and that reviewer started children of its own. The Task 2 review found the defect as High, but the coordinator deferred it with `note for user:`. At 38 minutes the turn was cut off with "model is at capacity" and the driver continued it |
+| waygent Codex 2 | F | 62 | Fixed | 79.4 min | Main 3.49M input, 19k output | All 22 children inherited sol high. No grandchildren. The final reviewer was given `high`, so it did not go up a tier. 2 cancel-before-start tests failed |
 
-- Claude Code에서는 끝 리뷰 한 등급 위가 문구대로 됐습니다. 비용은 문구 B의 opus 평균
-  $7.50보다 높지만 1회라 끝 리뷰 때문인지 가를 수 없습니다.
-- Codex 조율자는 자기 모델과 effort를 모릅니다. 그래서 Codex 규칙을 "모델을 적지 않고
-  물려받게"로 바꿨고(F), 한 등급 위는 `reasoning_effort: "xhigh"`를 고정값으로 적게
-  했습니다. 이 마지막 문구는 실측하지 않았고, 격리 시험에서 effort만 적으면 같은 모델에
-  그 effort가 걸리는 것만 확인했습니다.
-- Codex 토큰은 메인 세션만 셌습니다. `codex exec --json`은 자식의 사용량을 주지 않습니다.
-- Codex에서도 Task별 새 구현자와 리뷰는 결함을 찾았고, 고칠지는 조율자의 판단이 갈랐습니다
-  (Claude Code와 같은 모양).
+- In Claude Code, one tier up for the final review worked as worded. Cost was above wording B's opus
+  average of $7.50, but with 1 run it cannot be attributed to the final review.
+- The Codex coordinator does not know its own model and effort. So the Codex rule was changed to
+  "inherit the model instead of naming it" (F), and one tier up is written as the fixed value
+  `reasoning_effort: "xhigh"`. This last wording was not measured live; an isolated check only
+  confirmed that giving just an effort applies that effort to the same model.
+- Codex tokens count only the main session. `codex exec --json` does not report children's usage.
+- On Codex too, the fresh per-Task implementer and review found the defect, and the coordinator's
+  judgment decided whether it was fixed (the same shape as in Claude Code).
 
-## 비용 합계
+## Cost totals
 
-- 실측(Claude Code): $147.41. 본 측정 $124.94, 규칙 고친 뒤 재실행 $14.46, waygent 파일럿
-  $7.17, v1 파일럿 $0.84. 끊고 이어 하기 3건의 끊긴 세션 비용은 셀 수 없어 빠졌습니다.
-- 설계 분석: Claude 두 모델 $3.40. Grok과 GPT-5.6 Sol은 토큰만 보고됩니다.
-- 11절 추가 실측: Claude Code $10.82(opus 1회). Codex 3회는 토큰만 보고됩니다.
-- Cursor 실행과 블라인드 채점(codex, 결과물 22개)은 달러로 보고되지 않습니다.
-- 같은 날 지난 비교의 gstack 격리 재실행: 에이전트 $52.17, 모의 사용자 $4.36, 채점 $1.30.
+- Measurement (Claude Code): $147.41. Main measurement $124.94, reruns after the rule fix $14.46,
+  waygent pilot $7.17, v1 pilot $0.84. The killed sessions in the 3 kill-and-resume runs could not be
+  counted and are excluded.
+- Design analysis: $3.40 for the two Claude models. Grok and GPT-5.6 Sol report tokens only.
+- Section 11 extra measurement: Claude Code $10.82 (1 opus run). The 3 Codex runs report tokens only.
+- Cursor runs and blind scoring (codex, 22 outputs) are not reported in dollars.
+- Same-day isolated gstack rerun from the previous comparison: agent $52.17, simulated user $4.36,
+  scoring $1.30.

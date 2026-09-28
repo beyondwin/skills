@@ -19,14 +19,14 @@ from scripts.lib.product_contract import (  # noqa: E402
     payload_sha256,
     validate_product,
 )
-from scripts.lib.product_registry import load_registry  # noqa: E402
+from scripts.lib.product_registry import load_registry, PRODUCT_README_NAMES  # noqa: E402
 
 EXPECTED = {
-    "korean-writing-editor": "2.0.4",
+    "korean-writing-editor": "2.0.5",
     "image-workbench": "2.1.0",
-    "how-it-works": "3.0.0",
+    "how-it-works": "3.0.1",
     "pre-sdd-review": "6.0.0",
-    "sddx": "7.0.1",
+    "sddx": "7.0.2",
     "waygent": "0.1.0",
 }
 REGISTRY = load_registry(ROOT / "products.toml")
@@ -48,9 +48,9 @@ class ProductReleaseTests(unittest.TestCase):
 
     def test_how_it_works_current_archive_identity(self) -> None:
         product = load_product_release(ROOT / "skills/how-it-works")
-        self.assertEqual(product.version, "3.0.0")
-        self.assertEqual(product.tag, "how-it-works-v3.0.0")
-        self.assertEqual(product.artifact_name, "how-it-works-v3.0.0.zip")
+        self.assertEqual(product.version, "3.0.1")
+        self.assertEqual(product.tag, "how-it-works-v3.0.1")
+        self.assertEqual(product.artifact_name, "how-it-works-v3.0.1.zip")
 
     def test_pre_sdd_review_current_archive_identity(self) -> None:
         product = load_product_release(ROOT / "skills/pre-sdd-review")
@@ -75,11 +75,11 @@ class ProductReleaseTests(unittest.TestCase):
             shutil.copytree(ROOT / "skills" / "how-it-works", root)
             manifest = root / "release.toml"
             original = manifest.read_text(encoding="utf-8")
-            mutated = original.replace('version = "3.0.0"', 'version = "3.0.1"', 1)
+            mutated = original.replace('version = "3.0.1"', 'version = "3.0.2"', 1)
             self.assertNotEqual(mutated, original)
             manifest.write_text(mutated, encoding="utf-8")
             errors = validate_product(root, self.registry)
-            self.assertIn("release.toml version 3.0.1 != SKILL.md version 3.0.0", errors)
+            self.assertIn("release.toml version 3.0.2 != SKILL.md version 3.0.1", errors)
 
     def test_payload_hash_changes_with_bytes_but_is_stable_across_copies(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -121,7 +121,7 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         root = self._copy("korean-writing-editor")
         manifest = root / "release.toml"
         original = manifest.read_text(encoding="utf-8")
-        mutated = original.replace('version = "2.0.4"', 'version = "2.0"', 1)
+        mutated = original.replace('version = "2.0.5"', 'version = "2.0"', 1)
         self.assertNotEqual(mutated, original)
         manifest.write_text(mutated, encoding="utf-8")
         errors = "\n".join(validate_product(root, REGISTRY))
@@ -156,11 +156,22 @@ class ProductReleaseRejectionTests(unittest.TestCase):
 
     def test_rejects_missing_english_readme(self) -> None:
         root = self._copy("image-workbench")
-        readme = root / "README.en.md"
-        if readme.is_file():
-            readme.unlink()
+        english = PRODUCT_README_NAMES["en"]
+        (root / english).unlink()
         errors = "\n".join(validate_product(root, REGISTRY))
-        self.assertIn("missing README.en.md", errors)
+        self.assertIn(f"missing {english}", errors)
+
+    def test_english_first_product_requires_korean_copy_and_rejects_readme_en(self) -> None:
+        root = self._copy("waygent")
+        self.assertEqual(validate_product(root, REGISTRY), [])
+        (root / "README.ko.md").unlink()
+        errors = "\n".join(validate_product(root, REGISTRY))
+        self.assertIn("missing README.ko.md", errors)
+        shutil.rmtree(root)
+        root = self._copy("waygent")
+        (root / "README.fr.md").write_text("# Waygent\n", encoding="utf-8")
+        errors = "\n".join(validate_product(root, REGISTRY))
+        self.assertIn("unexpected top-level file: README.fr.md", errors)
 
     def test_rejects_missing_license(self) -> None:
         root = self._copy("korean-writing-editor")
@@ -290,19 +301,21 @@ class ProductReleaseRejectionTests(unittest.TestCase):
     def test_dated_release_validation_is_opt_in(self) -> None:
         from scripts.lib.product_contract import require_dated_changelog
 
+        # 3.0.1 is still under Unreleased, so the source itself has no dated
+        # heading for its version and validate_product must still pass.
         source = ROOT / "skills" / "how-it-works"
         self.assertEqual(validate_product(source, REGISTRY), [])
-        self.assertEqual(require_dated_changelog(source), [])
+        self.assertIn(
+            "CHANGELOG.md missing dated release heading for 3.0.1",
+            require_dated_changelog(source),
+        )
         root = self._copy("how-it-works")
         changelog = root / "CHANGELOG.md"
         original = changelog.read_text(encoding="utf-8")
-        mutated = re.sub(r"(?m)^## 3\.0\.0 - [0-9]{4}-[0-9]{2}-[0-9]{2}\n", "", original, count=1)
-        self.assertNotEqual(mutated, original)
-        changelog.write_text(mutated, encoding="utf-8")
-        self.assertIn(
-            "CHANGELOG.md missing dated release heading for 3.0.0",
-            require_dated_changelog(root),
-        )
+        dated = original.replace("## Unreleased\n", "## Unreleased\n\n## 3.0.1 - 2026-09-28\n", 1)
+        self.assertNotEqual(dated, original)
+        changelog.write_text(dated, encoding="utf-8")
+        self.assertEqual(require_dated_changelog(root), [])
         self.assertEqual(validate_product(root, REGISTRY), [])
 
 

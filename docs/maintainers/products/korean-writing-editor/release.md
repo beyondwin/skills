@@ -1,50 +1,56 @@
-# korean-writing-editor 릴리스
+# korean-writing-editor release
 
-버전의 원본은 `skills/korean-writing-editor/release.toml`입니다. `SKILL.md`의
-`metadata.version`은 검증을 거친 복제 값입니다. 사용자가 보는 변경 이력은 같은
-디렉터리의 `CHANGELOG.md`입니다. 공통 판정표는
-[버저닝](../../repository/versioning.md)을 따릅니다.
+The version source is `skills/korean-writing-editor/release.toml`. The
+`metadata.version` in `SKILL.md` is a checked copy. The user-facing history is
+`CHANGELOG.md` in the same directory. The shared decision table is in
+[Versioning](../../repository/versioning.md).
 
-## 버전 규칙
+## Version rules
 
-동작이 바뀌면 SemVer 버전을 올립니다. 문서 문구만 바뀌고 동작이 같으면 올리지
-않습니다. 라이브 하니스(실제 모델 호출 평가 도구)나 날짜가 있는 보고서만 바뀌어도
-스킬 버전을 올리지 않습니다.
+Bump the SemVer version when behavior changes. Do not bump when only doc
+wording changes and behavior stays the same. Changes to the live harness (the
+tool that evaluates with real model calls) or to dated reports alone do not
+bump the skill version.
 
-- PATCH: 깨진 상대 링크 수정, 설치 README 정정, 문서화된 `correct` 분기를 되살리는 결함 수정
-- MINOR: 기본 `polish`를 유지하는 새 선택 인자
-- MAJOR: 기본 모드를 `diagnose`로 바꾸거나, 예전에 아무 일도 하지 않던 near-miss(비슷하지만 대상이 아닌 요청)를 암묵 활성화하는 변경
-- 없음: 라이브 하니스만 바꾸는 변경, 날짜 있는 보고서 형식만 바꾸는 변경, 설치되지 않는 관리자 문서
+- PATCH: fixing a broken relative link, correcting an installed README, or a
+  defect fix that restores the documented `correct` branch
+- MINOR: a new optional argument that keeps `polish` as the default
+- MAJOR: changing the default mode to `diagnose`, or implicitly activating a
+  near-miss (a similar, out-of-scope request) that used to do nothing
+- None: live-harness-only changes, dated-report format changes, and maintainer
+  docs that are not installed
 
-설치 파일이 바뀌면 `release.toml`과 `SKILL.md`의 버전 결정, 제품 CHANGELOG
-항목이 같은 변경에 있어야 합니다.
+When installed files change, the version decision in `release.toml` and
+`SKILL.md` and the product CHANGELOG entry must be in the same change.
 
-## 릴리스 증거
+## Release evidence
 
-릴리스 증거에는 다음이 모두 있어야 합니다.
+Release evidence must include all of:
 
-- runner 18 제품 검증
-- 서른네 개 오프라인 케이스(`normative=10 preservation=8 noop=6 voice=4 trigger=6`)
-- 복사하거나 압축을 푼 독립 설치본(standalone payload)의 README 상대 링크 검사
+- runner 18 product verification
+- the thirty-three offline cases (`normative=10 preservation=8 noop=6 voice=4 trigger=5`)
+- a README relative-link check on a copied or unpacked standalone payload
 
-저장소 원본 payload 통과만으로 ZIP 검증을 대신하지 않습니다. 현재 독립 버전은
-`release.toml`이 정합니다. 로컬 준비만으로는 새 GitHub 태그나 Release가
-발행되지 않습니다.
+A pass on the repository source payload does not replace ZIP verification.
+`release.toml` sets the current standalone version. Local preparation alone
+does not publish a new GitHub tag or Release.
 
-## 검사, 빌드, 다운로드
+## Check, build, download
 
-공통 check / build / verify-download 명령은
-[`docs/maintainers/repository/release.md`](../../repository/release.md)를
-보세요. 제품 검사는 `python3 scripts/release.py check --product korean-writing-editor`입니다.
+For the shared check / build / verify-download commands, see
+[`docs/maintainers/repository/release.md`](../../repository/release.md).
+The product check is `python3 scripts/release.py check --product korean-writing-editor`.
 
-제품 태그는 `korean-writing-editor-v<version>`입니다. 옛 standalone ZIP은 통합
-태그 `v2.0.0`의 GitHub Release에 남아 있습니다. 제품 한정 태그
-`korean-writing-editor-v2.0.0`은 없습니다.
+The product tag is `korean-writing-editor-v<version>`.
 
-## 실패 복구
+## Recovering from failure
 
-- 로컬 검증 실패: 파일, 버전, CHANGELOG 또는 테스트를 고치고 다시 검증합니다.
-- 패키징 실패: 새 출력 디렉터리에서 다시 빌드합니다. 부분 결과를 재사용하지 않습니다.
-- 태그 뒤 Draft 실패: 태그를 옮기지 않습니다. 같은 커밋의 정확한 아티팩트만 고쳐서 검증하거나, 코드 변경이 필요하면 새 버전을 준비합니다.
-- 원격 검증 실패: Draft를 비공개로 유지합니다. 로컬 성공을 공개 증거로 대신하지 않습니다.
-- 이 제품의 실패: 다른 제품의 버전, 태그, Release를 바꾸지 않습니다.
+- Local verification fails: fix the files, version, CHANGELOG, or tests, then
+  verify again.
+- Packaging fails: rebuild into a fresh output directory. Do not reuse partial
+  output.
+- Draft fails after tagging: do not move the tag. Fix and verify only the exact
+  artifact from the same commit, or prepare a new version if code must change.
+- Remote verification fails: keep the Draft private. Local success does not
+  stand in for public evidence.
+- This product fails: do not change another product's version, tag, or Release.

@@ -25,7 +25,7 @@ INSTALLER = (
 )
 DOCUMENTS = (
     "skills/image-workbench/README.md",
-    "skills/image-workbench/README.en.md",
+    "skills/image-workbench/README.ko.md",
     "docs/users/ko/install-local.md",
     "docs/users/en/install-local.md",
 )
@@ -58,7 +58,7 @@ class ImageWorkbenchInstallTests(unittest.TestCase):
             self.assertNotIn(INSTALLER, text)
 
     def test_product_readme_keeps_codex_installer_command(self) -> None:
-        for name in ("README.md", "README.en.md"):
+        for name in ("README.md", "README.ko.md"):
             text = (ROOT / "skills" / "image-workbench" / name).read_text(
                 encoding="utf-8"
             )

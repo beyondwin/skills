@@ -161,11 +161,11 @@ class CommunityPolicyTests(unittest.TestCase):
         self.assertIn("private", lowered)
         self.assertTrue("prompt" in lowered and "image" in lowered)
 
-    def test_security_policy_supports_2x_and_private_github_reporting(self) -> None:
+    def test_security_policy_supports_latest_and_private_github_reporting(self) -> None:
         _assert_exists(self, SECURITY_PATH)
         text = _read(SECURITY_PATH)
         lowered = text.lower()
-        self.assertRegex(text, r"\b2\.x\b")
+        self.assertIn("latest release of each skill", lowered)
         self.assertIn("private vulnerability reporting", lowered)
         self.assertIn("github", lowered)
         self.assertNotRegex(text, EMAIL_RE)

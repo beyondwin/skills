@@ -1,48 +1,43 @@
-# 문서 / Documentation
+# Documentation
 
-어떤 문서를 보면 되는지 안내합니다. 스킬을 쓰는 법은 각 제품 README에, 바꾸는
-규칙은 관리자 문서에 있습니다. 트리가 어떻게 나뉘는지는
-[저장소 구조](maintainers/repository/architecture.md)를 보세요.
+[한국어](README.ko.md)
 
-지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다. 호스트별 지원은
-[호환성](users/ko/compatibility.md)을 보세요.
+Where to read what. The supported OS is macOS only. Windows and Linux are unsupported.
 
-This page only routes readers. How to use a skill is in that product README.
-How to change it is in the maintainer docs. The supported OS is macOS only.
-Windows and Linux are unsupported.
+## Install and choose
 
-## 설치하거나 고를 때 / Install or choose
+User guides live in [`docs/users/`](users/), in English (`en`) and Korean (`ko`).
 
-설치, 호환성, 안전, 검증은 [`docs/users/`](users/)에 있습니다.
+| Guide | English | Korean |
+| --- | --- | --- |
+| Installation | [en](users/en/installation.md) | [ko](users/ko/installation.md) |
+| Codex install | [en](users/en/install-codex.md) | [ko](users/ko/install-codex.md) |
+| Local links | [en](users/en/install-local.md) | [ko](users/ko/install-local.md) |
+| Compatibility | [en](users/en/compatibility.md) | [ko](users/ko/compatibility.md) |
+| Safety and privacy | [en](users/en/safety-and-privacy.md) | [ko](users/ko/safety-and-privacy.md) |
+| Verification | [en](users/en/verification.md) | [ko](users/ko/verification.md) |
 
-- [한국어 설치](users/ko/installation.md) · [English installation](users/en/installation.md)
-- [Codex 설치](users/ko/install-codex.md) · [Codex install](users/en/install-codex.md)
-- [로컬 링크](users/ko/install-local.md) · [Local links](users/en/install-local.md)
-- [호환성](users/ko/compatibility.md) · [Compatibility](users/en/compatibility.md)
-- [안전과 개인정보](users/ko/safety-and-privacy.md) · [Safety and privacy](users/en/safety-and-privacy.md)
-- [검증](users/ko/verification.md) · [Verification](users/en/verification.md)
+## Use a skill
 
-## 제품을 쓸 때 / Use a product
+Each skill README covers install, first call, and limits.
 
-각 스킬의 한국어·영어 README를 읽습니다.
+| Skill | English | Korean |
+| --- | --- | --- |
+| `korean-writing-editor` | [en](../skills/korean-writing-editor/README.md) | [ko](../skills/korean-writing-editor/README.ko.md) |
+| `image-workbench` | [en](../skills/image-workbench/README.md) | [ko](../skills/image-workbench/README.ko.md) |
+| `how-it-works` | [en](../skills/how-it-works/README.md) | [ko](../skills/how-it-works/README.ko.md) |
+| `pre-sdd-review` | [en](../skills/pre-sdd-review/README.md) | [ko](../skills/pre-sdd-review/README.ko.md) |
+| `sddx` | [en](../skills/sddx/README.md) | [ko](../skills/sddx/README.ko.md) |
+| `waygent` | [en](../skills/waygent/README.md) | [ko](../skills/waygent/README.ko.md) |
 
-- [`korean-writing-editor`](../skills/korean-writing-editor/README.md) · [English](../skills/korean-writing-editor/README.en.md) — Codex
-- [`image-workbench`](../skills/image-workbench/README.md) · [English](../skills/image-workbench/README.en.md) — Codex, Grok
-- [`how-it-works`](../skills/how-it-works/README.md) · [English](../skills/how-it-works/README.en.md) — Codex, Claude Code
-- [`pre-sdd-review`](../skills/pre-sdd-review/README.md) · [English](../skills/pre-sdd-review/README.en.md) — Codex, SDD 전 문서 검토
-- [`sddx`](../skills/sddx/README.md) · [English](../skills/sddx/README.en.md) — Codex, Claude Code, 외부 구현
-- [`waygent`](../skills/waygent/README.md) · [English](../skills/waygent/README.en.md) — Claude Code, Codex, Cursor, 과제별 서브에이전트 구현
+## Maintain, change, or release
 
-## 유지·변경·릴리스 / Maintain, change, or release
+Contracts, tests, and release rules are in [`docs/maintainers/`](maintainers/). How
+the tree is split is in [architecture](maintainers/repository/architecture.md).
 
-관리자 작업은 [`docs/maintainers/`](maintainers/)를 따릅니다.
+## History and research
 
-## 기록 / History
+- [`docs/history/`](history/): designs still in progress.
+- [`docs/research/`](research/README.md): hands-on runs of other repos' skills.
 
-아직 끝나지 않은 설계만 [`docs/history/`](history/)에 둡니다. 현재 계약을
-정의하지 않습니다.
-
-## 조사 / Research
-
-다른 저장소의 스킬을 직접 돌려 본 조사는 [`docs/research/`](research/README.md)에
-있습니다. 현재 계약을 정의하지 않습니다.
+Neither defines the current contract.

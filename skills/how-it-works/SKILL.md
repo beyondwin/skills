@@ -4,8 +4,8 @@ description: Use when the user wants to understand how a mechanism or flow works
 license: Apache-2.0
 compatibility: Requires an Agent Skills host that can read this directory and return Markdown text.
 metadata:
-  version: "3.0.0"
-  updated_at: "2026-09-12"
+  version: "3.0.1"
+  updated_at: "2026-09-28"
 ---
 
 # how-it-works
@@ -36,9 +36,9 @@ Paths:
 
 | Path | When | Do |
 | --- | --- | --- |
-| 바로 | slice is a cut mechanism | Fill rung by precedence. One-line plan. Explain same turn if unsurprising. |
-| 하나 | slice missing, conflicting rungs, or mixed KO/EN that would change the output | Ask one closed question. |
-| 자르기 | blob noun | Three slices + Other. No essay. |
+| Direct | slice is a cut mechanism | Fill rung by precedence. One-line plan. Explain same turn if unsurprising. |
+| Ask one | slice missing, conflicting rungs, or mixed KO/EN that would change the output | Ask one closed question. |
+| Cut | blob noun | Three slices + Other. No essay. |
 
 Do not stack two questions. Do not re-ask a filled slot. Do not survey genre, audience, or tone.
 
@@ -147,7 +147,7 @@ Read `references/output.md`, then `references/visuals.md`. If Korean → `refere
 | They said 쉽게 but jargon should win | Explicit 쉽게 selects 그림 even with rebase, TTL, or Raft. |
 | I’ll add sources from memory | Verify in this turn or mark the dependent claim unverified. Never invent a reference. |
 | Korean and English to be safe | One language. Gloss once. |
-| I’ll explain the whole internet then zoom | 자르기 first. |
+| I’ll explain the whole internet then zoom | Cut first. |
 
 ## Red flags
 

@@ -105,14 +105,7 @@ esac
 
 ## Record and payload binding
 
-Keep `smoke-record.json` byte-for-byte unchanged. It is schema 1, classified as
-`historical-unbound`: the 2026-08-28 date, client versions, and verdicts describe
-that historical run and have no payload hash or model binding. Codex `0.150.0`
-and Claude Code `2.1.247` passed then; Grok `1.0.5` was `unsupported` after measured
-failure; Cursor `3.17.21` was `not_measured` because Computer Use was unavailable.
-None of these verdicts verifies the current 2.0.0 payload.
-
-A future schema 2 record has exactly these top-level fields:
+No live record is committed. A schema 2 record has exactly these top-level fields:
 
 | Field | Contract |
 | --- | --- |
@@ -150,11 +143,9 @@ current_hash = payload_sha256(skill_root)
 `record_binding(record, current_version=..., current_hash=...)` validates declared
 metadata and returns:
 
-- `historical-unbound`: schema 1, with its historical host judgments untouched.
 - `unbound`: valid schema 2 with unknown (`null`) model, even if version/hash differ.
 - `different-payload`: known model, but version or hash differs from the current payload.
 - `current-bounded`: known model and matching version/hash; this is metadata binding,
   not execution authentication, invocation success, or an all-dimensions quality verdict.
 
-The pure module lives under product tests, outside the installed payload. Existing
-schema 1 field/host/verdict checks remain separate from this binding function.
+The pure module lives under product tests, outside the installed payload.

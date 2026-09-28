@@ -222,12 +222,9 @@ sampling. Integers reject booleans and out-of-range values; timestamps, hashes,
 stream byte/hash pairs, terminal statuses, evidence paths, call identity, and
 reservation relationships must be coherent before a receipt can authorize any
 later step. Every finding carries `certainty`, and every `partially_verified`
-receipt carries at least one `not_measured` finding, whatever the runner
-version. A receipt that breaks either rule fails to load. Receipts from runners
-10 through 17 that follow these rules remain readable, and their statuses keep
-their original meaning. They are not reusable as a runner-version-18
-execution identity; this hardening series requires runner 18 evidence and a new
-run ID.
+receipt carries at least one `not_measured` finding. A receipt that breaks
+either rule fails to load. A receipt from an older runner version also fails to
+load; a run needs runner 18 evidence and a new run ID.
 
 ## Review Packet
 

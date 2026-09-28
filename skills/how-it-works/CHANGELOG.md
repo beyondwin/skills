@@ -7,6 +7,14 @@ All notable changes to this product are documented in this file.
 ### Changed
 
 - README wording is shorter and uses plain terms. Behavior is unchanged.
+- Docs are English-first: `README.md` is English and `README.ko.md` is the
+  Korean user guide. `README.en.md` is removed.
+- Instruction text in `SKILL.md` and `references/` is English; Korean stays
+  only where it is the output or an example. The workflow path labels are now
+  Direct, Ask one, and Cut. Behavior is unchanged.
+- The READMEs drop the note about the 2026-08-28 live run. That old record is
+  removed from the repository; live runs of the current files stay
+  `not_measured`, and Grok and Cursor stay unsupported.
 
 ## 3.0.0 - 2026-09-12
 

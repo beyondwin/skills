@@ -27,3 +27,5 @@ All notable changes to this product are documented in this file.
   model, so children inherit the session's (a measured Codex controller misnamed
   its own model); one tier up sets only `reasoning_effort` to `xhigh`. No subagent starts
   subagents of its own.
+- Docs are English-first: `README.md` is English and `README.ko.md` is the
+  Korean user guide.

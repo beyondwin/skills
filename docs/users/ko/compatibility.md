@@ -2,24 +2,22 @@
 
 [English](../en/compatibility.md) · [설치](installation.md)
 
-지금 쓰는 스킬은 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md), [`sddx`](../../../skills/sddx/README.md), [`waygent`](../../../skills/waygent/README.md)입니다.
+각 스킬이 어느 호스트에서 돌아가는지 정리합니다. 호스트는 스킬을 실행하는 에이전트 앱입니다. 제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`image-workbench`](../../../skills/image-workbench/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.ko.md), [`sddx`](../../../skills/sddx/README.ko.md), [`waygent`](../../../skills/waygent/README.ko.md).
 
-| 스킬 | 지원 호스트 |
-| --- | --- |
-| Korean Writing Editor | Codex만 |
-| Pre-SDD Review | Codex만 |
-| Image Workbench | Codex, Grok |
-| How It Works | Codex, Claude Code (이 저장소를 연결해 씀) |
-| SDDx | Codex, Claude Code (이 저장소를 연결해 씀) |
-| Waygent | Claude Code, Codex, Cursor Agent (이 저장소를 연결해 씀) |
+| 스킬 | 지원 호스트 | 설치 방법 |
+| --- | --- | --- |
+| Korean Writing Editor | Codex | `$skill-installer` |
+| Pre-SDD Review | Codex | `$skill-installer` |
+| Image Workbench | Codex, Grok | Codex: `$skill-installer`. Grok: 로컬 링크 |
+| How It Works | Codex, Claude Code | 로컬 링크 |
+| SDDx | Claude Code, Codex | 로컬 링크 |
+| Waygent | Claude Code, Codex, Cursor Agent | 로컬 링크 |
 
 말 뜻:
 
-- 호스트: 스킬을 실행하는 프로그램
 - smoke: 실제로 한 번 돌려 본 기록
 - `not_measured`: 아직 확인하지 않음
-- `historical-unbound`: 예전 기록. 지금 실행 증거가 아님
-- `current-bounded`: 버전과 hash만 묶였음
+- `current-bounded`: 버전과 hash만 기록에 묶였음. 실제 실행이 아님
 
 ## 공유 지원 문장
 
@@ -35,28 +33,24 @@ sddx: Claude Code and Codex supported for local or repository-based use.
 
 waygent: Claude Code, Codex, and Cursor Agent supported for local or repository-based use.
 
-## 이식과 실제 지원
+## 무엇을 지원으로 보나
 
-폴더 모양이 같다고 그 호스트를 지원하는 것은 아닙니다. 새 호스트를 지원하려면 지금 빌드를 실제로 돌려 본 기록(smoke)과 별도 결정이 필요합니다. “예전에 지원했다”와 “지금 이 환경에서 돌렸다”는 다릅니다. 지금 실행을 확인하지 않았으면 `not_measured`(아직 확인하지 않음)로 적습니다. 그것만으로 기존 지원 범위를 바꾸지는 않습니다. 제품별 안내는 각 README를 보세요.
+다른 호스트가 스킬 폴더를 읽을 수 있다고 지원하는 것은 아닙니다. 새 호스트를 지원하려면 지금 빌드로 돌린 smoke 기록과 별도 결정이 필요합니다. 지원 범위와 측정 상태는 따로 봅니다. 지금 파일을 돌려 보지 않았으면 상태는 `not_measured`이고, 지원 범위는 그대로입니다.
 
-`how-it-works`는 로컬 또는 저장소 기준으로 Codex와 Claude Code를 지원합니다. Claude.ai, Cowork, Skills API 업로드, marketplace 게시는 지원하지 않습니다.
+이 스킬들은 Claude.ai, Cowork, Skills API 업로드로 쓰지 않으며, 마켓플레이스에 올라 있지 않습니다.
 
-`image-workbench`로 그림을 만들거나 고치려면 지금 쓰는 호스트에 자체 그림 도구가 있고, 결과를 열어 볼 수 있어야 합니다. 그렇지 않으면 그림을 만들거나 고친다고 말하지 않습니다. 다른 호스트의 비슷한 도구만으로는 지원이 아닙니다. Grok 바로가기는 `~/.agents/skills/image-workbench`입니다.
+## 스킬별 메모
 
-`pre-sdd-review`의 다른 호스트는 아직 확인하지 않았습니다(`not_measured`).
-
-`waygent`는 Claude Code, Codex, Cursor Agent를 호스트로 정했고, 셋 다 서브에이전트를 띄울 수 있어야 합니다. 2026-09-27에 0.1.0 작업본으로 10-Task 계획을 Claude Code 2.1.280(opus, fable)에서 끝까지 돌렸고, Cursor Agent 2026.09.23(grok-4.7-high)에서는 10개 Task를 모두 끝냈지만 매우 느렸습니다. 기록은 waygent 호환성 문서에 있습니다. Codex는 `~/.codex/config.toml`에서 `multi_agent = true`를 켜야 하고, Codex 측정 기록은 waygent 호환성 문서에 있습니다. Cursor Agent는 `sddx`에서는 여전히 워커이고 호스트가 아닙니다.
-
-보존된 `how-it-works` smoke는 `historical-unbound`이며 현재 설치 파일·모델 실행 증거와 별개입니다. 현재 설치 파일의 실제 실행은 `not_measured`입니다. `current-bounded`는 버전/hash와 메타데이터가 묶였는지만 보며, 실제 실행이나 설명 품질을 증명하지 않습니다.
+- `image-workbench`는 지금 호스트에 자체 그림 도구가 있고 결과를 열어 볼 수 있을 때만 그림을 만들거나 고칩니다. 다른 호스트의 비슷한 도구는 치지 않습니다. Grok에서는 `~/.agents/skills/image-workbench` 링크를 씁니다.
+- `pre-sdd-review`는 다른 호스트에서 확인하지 않았습니다(`not_measured`).
+- `how-it-works`: 현재 설치 파일의 라이브 실행은 `not_measured`입니다.
+- `sddx`: Cursor Agent와 Grok Build는 과제를 넘겨받는 워커이고 호스트가 아닙니다.
+- `waygent`: 모든 호스트가 서브에이전트를 띄울 수 있어야 합니다. Codex는 `~/.codex/config.toml`의 `[features]`에 `multi_agent = true`가 있어야 합니다. 측정 기록은 [waygent 호환성 기록](../../maintainers/products/waygent/compatibility.md)에 있습니다.
 
 ## 운영체제
 
 지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다. CI는 Ubuntu에서 전체 검증을 돌릴 수 있습니다. 그 통과는 Linux 지원이 아니고 macOS 지원 증거도 아닙니다.
 
-## 설치 경로와 호스트
+## 더 보기
 
-이 저장소의 스킬은 마켓플레이스에 올라 있지 않습니다.
-
-설치·링크·제거는 [설치](installation.md)를 보세요. 검증은 [검증](verification.md)을 보세요.
-
-라이선스는 Apache-2.0입니다.
+설치·링크·제거는 [설치](installation.md), 검사는 [검증](verification.md)을 보세요. 라이선스는 Apache-2.0입니다.

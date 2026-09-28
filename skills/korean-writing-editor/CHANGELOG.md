@@ -7,6 +7,12 @@ All notable changes to this product are documented in this file.
 ### Changed
 
 - README wording is shorter and uses plain terms. Behavior is unchanged.
+- Docs are English-first: `README.md` is English and `README.ko.md` is the
+  Korean user guide. `README.en.md` is gone. Maintainer docs are in English.
+  Skill behavior is unchanged.
+- `SKILL.md` no longer lists the former `kws-` prefixed name as a separate
+  exclusion; that old name is not supported. The matching offline trigger case
+  is removed (now 33 cases, `trigger=5`).
 
 ## 2.0.4 - 2026-09-12
 

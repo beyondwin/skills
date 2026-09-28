@@ -2,38 +2,25 @@
 
 [한국어](../ko/install-local.md) · [Installation](installation.md) · [Compatibility](compatibility.md) · [Safety and privacy](safety-and-privacy.md) · [Verification](verification.md)
 
-How It Works, SDDx, Waygent, and Image Workbench on Grok use a shortcut
-(symbolic link) from the host's skill folder to a clone of this repo. The skill folder is not
-copied.
+How It Works, SDDx, Waygent, and Image Workbench on Grok are not copied. You clone this repo once and add a link (symlink) from each host's skill folder to the skill folder in your clone. A `git pull` in the clone then updates every host at once.
 
-The steps are the same for all four skills.
+Every section below has the same three steps:
 
-1. Clone the repo and create the folders that hold the shortcuts.
-2. Run the Python block below to create a shortcut. Run it once per shortcut (target).
-3. Start a new turn and use the first-call example in the product README.
+1. Clone the repo and create the host folders.
+2. Run the Python block once per link.
+3. Start a new turn and try the first call in the product README.
 
-## What the Python block does
+## How to run the Python block
 
-The Python below is the same for how-it-works, sddx, waygent, and image-workbench. It
-creates a shortcut and will not overwrite.
+The block is the same in every section. It takes two arguments: the skill folder (source) and where the link goes (target). It checks that the source is a skill folder, treats an identical link as success, and never replaces a different link, a broken link, a file, or a folder. If something appears at the target while it runs, it stops; look at the target, then run it again.
 
-This one-shot Python block takes source (the skill folder) and target (where the
-shortcut goes) as arguments. It first validates that source is a skill directory
-and treats the same link as success. It does not replace a different link,
-dangling link, file, or directory. It also stops if the target appears after
-inspection, so inspect it before retrying.
-
-How to run it: in a terminal, type the first line given in each section
-(`python3 - ... <<'PY'`). On the following lines, paste the Python block
-unchanged. End with `PY` on its own line. This passes the block on standard
-input through a quoted here-document. Keep the source and target arguments
-quoted.
+In a terminal, type the first line given in the section (`python3 - ... <<'PY'`), paste the block unchanged on the next lines, and end with `PY` on its own line. Keep the quotes around both arguments.
 
 ## how-it-works
 
-Use this on Codex and Claude Code. The public GitHub path is https://github.com/beyondwin/skills/tree/main/skills/how-it-works. You make two shortcuts. The first link serves Codex. The second serves Claude Code. Codex looks in `~/.agents/skills/how-it-works`. Do not create a `~/.codex` or `~/.grok` duplicate.
+For Codex and Claude Code. Public path: https://github.com/beyondwin/skills/tree/main/skills/how-it-works. You make two links: Codex reads `~/.agents/skills/how-it-works`, Claude Code reads `~/.claude/skills/how-it-works`. Do not add a copy under `~/.codex` or `~/.grok`.
 
-1. Clone the repo and create the folders.
+1. Clone and create the folders.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -41,7 +28,7 @@ cd skills
 mkdir -p ~/.agents/skills ~/.claude/skills
 ```
 
-2. Run the block below once per target.
+2. Run the block once per link.
 
 <!-- how-it-works-local-links -->
 ```python
@@ -74,18 +61,16 @@ except FileExistsError:
 print("linked")
 ```
 
-The Codex invocation starts with
-`python3 - "$PWD/skills/how-it-works" "$HOME/.agents/skills/how-it-works" <<'PY'`;
-the Claude Code invocation starts with
-`python3 - "$PWD/skills/how-it-works" "$HOME/.claude/skills/how-it-works" <<'PY'`.
+- Codex: `python3 - "$PWD/skills/how-it-works" "$HOME/.agents/skills/how-it-works" <<'PY'`
+- Claude Code: `python3 - "$PWD/skills/how-it-works" "$HOME/.claude/skills/how-it-works" <<'PY'`
 
-3. First-call examples are in the [`how-it-works` README](../../../skills/how-it-works/README.en.md). Do not create host-specific copies.
+3. First calls are in the [`how-it-works` README](../../../skills/how-it-works/README.md).
 
 ## sddx
 
-Use this on Codex and Claude Code. The public GitHub path is https://github.com/beyondwin/skills/tree/main/skills/sddx. You make two shortcuts. The first link serves Codex. The second serves Claude Code. Codex looks in `~/.agents/skills/sddx`. Do not create a `~/.codex` or `~/.grok` duplicate.
+For Codex and Claude Code. Public path: https://github.com/beyondwin/skills/tree/main/skills/sddx. You make two links: Codex reads `~/.agents/skills/sddx`, Claude Code reads `~/.claude/skills/sddx`. Do not add a copy under `~/.codex` or `~/.grok`.
 
-1. Clone the repo and create the folders.
+1. Clone and create the folders.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -93,7 +78,7 @@ cd skills
 mkdir -p ~/.agents/skills ~/.claude/skills
 ```
 
-2. Run the block below once per target.
+2. Run the block once per link.
 
 <!-- sddx-local-links -->
 ```python
@@ -126,18 +111,16 @@ except FileExistsError:
 print("linked")
 ```
 
-The Codex invocation starts with
-`python3 - "$PWD/skills/sddx" "$HOME/.agents/skills/sddx" <<'PY'`;
-the Claude Code invocation starts with
-`python3 - "$PWD/skills/sddx" "$HOME/.claude/skills/sddx" <<'PY'`.
+- Codex: `python3 - "$PWD/skills/sddx" "$HOME/.agents/skills/sddx" <<'PY'`
+- Claude Code: `python3 - "$PWD/skills/sddx" "$HOME/.claude/skills/sddx" <<'PY'`
 
-3. First-call examples are in the [`sddx` README](../../../skills/sddx/README.en.md). Do not create host-specific copies.
+3. First calls are in the [`sddx` README](../../../skills/sddx/README.md).
 
 ## waygent
 
-Use this on Claude Code, Codex, and Cursor Agent. The public GitHub path is https://github.com/beyondwin/skills/tree/main/skills/waygent. You make three shortcuts. The first link serves Claude Code. The second serves Codex. The third serves Cursor Agent. Codex looks in `~/.agents/skills/waygent`; Cursor Agent looks in `~/.cursor/skills/waygent`. Do not create a `~/.codex` duplicate. Codex needs `multi_agent = true` under `[features]` in `~/.codex/config.toml`.
+For Claude Code, Codex, and Cursor Agent. Public path: https://github.com/beyondwin/skills/tree/main/skills/waygent. Make one link per host you use: Claude Code reads `~/.claude/skills/waygent`, Codex reads `~/.agents/skills/waygent`, Cursor Agent reads `~/.cursor/skills/waygent`. Do not add a copy under `~/.codex`. Codex also needs `multi_agent = true` under `[features]` in `~/.codex/config.toml`.
 
-1. Clone the repo and create the folders.
+1. Clone and create the folders.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -145,7 +128,7 @@ cd skills
 mkdir -p ~/.claude/skills ~/.agents/skills ~/.cursor/skills
 ```
 
-2. Run the block below once per target.
+2. Run the block once per link.
 
 <!-- waygent-local-links -->
 ```python
@@ -178,20 +161,17 @@ except FileExistsError:
 print("linked")
 ```
 
-The Claude Code invocation starts with
-`python3 - "$PWD/skills/waygent" "$HOME/.claude/skills/waygent" <<'PY'`;
-the Codex invocation starts with
-`python3 - "$PWD/skills/waygent" "$HOME/.agents/skills/waygent" <<'PY'`;
-the Cursor Agent invocation starts with
-`python3 - "$PWD/skills/waygent" "$HOME/.cursor/skills/waygent" <<'PY'`.
+- Claude Code: `python3 - "$PWD/skills/waygent" "$HOME/.claude/skills/waygent" <<'PY'`
+- Codex: `python3 - "$PWD/skills/waygent" "$HOME/.agents/skills/waygent" <<'PY'`
+- Cursor Agent: `python3 - "$PWD/skills/waygent" "$HOME/.cursor/skills/waygent" <<'PY'`
 
-3. First-call examples are in the [`waygent` README](../../../skills/waygent/README.en.md). Do not create host-specific copies.
+3. First calls are in the [`waygent` README](../../../skills/waygent/README.md).
 
 ## image-workbench
 
-Use this only on Grok. For Codex, follow [Codex install](install-codex.md). The public GitHub path is https://github.com/beyondwin/skills/tree/main/skills/image-workbench. You make one shortcut. Grok looks in `~/.agents/skills/image-workbench`. Do not copy the skill into `~/.grok` or `~/.codex`.
+For Grok only; on Codex use [Codex install](install-codex.md). Public path: https://github.com/beyondwin/skills/tree/main/skills/image-workbench. You make one link, which Grok reads from `~/.agents/skills`. Do not add a copy under `~/.grok` or `~/.codex`.
 
-1. Clone the repo and create the folder.
+1. Clone and create the folder.
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -199,9 +179,7 @@ cd skills
 mkdir -p ~/.agents/skills
 ```
 
-2. Run the block below once. It checks that the source is a skill folder. If the
-same shortcut already exists, it leaves it. It will not replace a different
-shortcut, file, or folder.
+2. Run the block once.
 
 <!-- image-workbench-local-links -->
 ```python
@@ -234,45 +212,34 @@ except FileExistsError:
 print("linked")
 ```
 
-The first line is
-`python3 - "$PWD/skills/image-workbench" "$HOME/.agents/skills/image-workbench" <<'PY'`.
+- Grok: `python3 - "$PWD/skills/image-workbench" "$HOME/.agents/skills/image-workbench" <<'PY'`
 
-3. First-call examples are in the [`image-workbench` README](../../../skills/image-workbench/README.en.md). Do not make extra copies per host.
+3. First calls are in the [`image-workbench` README](../../../skills/image-workbench/README.md).
 
 ## Update and uninstall
 
-To remove one, inspect it with `ls -ld` first. Then remove only that exact link.
-
-`how-it-works` links:
+To update, run `git pull` in your clone; the links pick up the change. To remove a skill, inspect each link with `ls -ld`, then remove only that link.
 
 ```bash
+# how-it-works
 ls -ld ~/.agents/skills/how-it-works ~/.claude/skills/how-it-works
 unlink ~/.agents/skills/how-it-works
 unlink ~/.claude/skills/how-it-works
-```
 
-`sddx` links:
-
-```bash
+# sddx
 ls -ld ~/.agents/skills/sddx ~/.claude/skills/sddx
 unlink ~/.agents/skills/sddx
 unlink ~/.claude/skills/sddx
-```
 
-`waygent` links:
-
-```bash
+# waygent
 ls -ld ~/.claude/skills/waygent ~/.agents/skills/waygent ~/.cursor/skills/waygent
 unlink ~/.claude/skills/waygent
 unlink ~/.agents/skills/waygent
 unlink ~/.cursor/skills/waygent
-```
 
-`image-workbench` link:
-
-```bash
+# image-workbench
 ls -ld ~/.agents/skills/image-workbench
 unlink ~/.agents/skills/image-workbench
 ```
 
-Do not delete the parent `skills` directory or a home directory. Install, update, and uninstall touch only an inspected exact target. Do not pipe remote scripts into a shell. Do not copy without inspecting the destination. Do not replace an existing install by default.
+Never delete the parent `skills` folder or a home folder. Never pipe a remote script into a shell, and never replace an install you have not inspected.
