@@ -1060,7 +1060,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("one discovery stage", skill)
         self.assertIn("one discovery stage", contract)
         self.assertIn("summary --repo <repo display name>", skill)
-        self.assertIn("A `blocked` run is never reused", skill)
+        self.assertIn("a `blocked` run is never reused", skill)
         self.assertNotIn("summary --last 20", skill)
         self.assertIn("Close any `pending` run for this plan", skill)
         self.assertIn("Discoveries of different plans may overlap", skill)
@@ -1120,14 +1120,17 @@ class PreSddReviewContractTests(unittest.TestCase):
         ))
         recorder = (SKILL / "evidence/README.md").read_text(encoding="utf-8")
         for phrase in (
-            "Call `start` once the plan path resolves, before any reviewer dispatch, even when an input gate is about to return `BLOCKED`",
+            "Unless Choose the path ended the invocation without a review (steps 2 and 3), call `start` once the plan path resolves, before any reviewer dispatch, even when an input gate is about to return `BLOCKED`",
+            "It decides between runs only; during a run, any `HEAD` move counts",
+            "Outside step 2, a `blocked` run is never reused",
+            "In `review-only`, make no edit: report the decision to record",
             "a run with no discovery records `trigger: null`",
             "it counts its passes from 1 and keeps the two-plus-residual cap",
             "It is `0` only for a `BLOCKED` run that dispatched no reviewer",
             "abandon --repo <checkout>",
             "`pattern` is a short lowercase slug",
             "An unmapped material finding ends the invocation",
-            "it is level-1 authority: record it in the resolved design",
+            "it is level-1 authority. In default mode, record it in the resolved design",
             "`<skill-root>/evidence/README.md`",
             "Verdict: READY | REVISE | BLOCKED",
             "Plan text that must change to follow the decision is a direct mapped repair impact",
@@ -1208,7 +1211,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         evidence = section(body, "## Optional local evidence", "## Select reviewers")
         normalized = re.sub(r"\s+", " ", evidence)
 
-        ordered = ("evidence.py\" --version", "summary --repo", "### Choose the path", "### Start and finish", "before any reviewer dispatch", "finish --run-id", "exactly one `Evidence:` line", "call `abandon`", "outcome")
+        ordered = ("evidence.py\" --version", "summary --repo", "### Choose the path", "### Start and finish", "before any reviewer dispatch", "finish --run-id", "exactly one `Evidence:` line", "call `abandon --run-id", "outcome")
         positions = tuple(normalized.index(item) for item in ordered)
         self.assertEqual(positions, tuple(sorted(positions)))
         for fact in (
@@ -1468,7 +1471,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         normalized_flags = re.sub(r"\s+", " ", flags)
         for phrase in (
             "Resume a reviewer by naming findings, paths, symbols, or fixes",
-            "Start a new review when documents, `HEAD`, the change list, and the request are all unchanged since a reusable run",
+            "Start a new review when documents, `HEAD`, and the request are unchanged and the change list is docs-only since a reusable run",
             "Reuse a handoff from an `execution=blocked` run, or reuse any handoff on document hashes alone",
             "Dispatch a second reviewer, or record `reviewers: 2`, with no risk trigger",
             "Return or accept a finding summary instead of complete PSDR records",

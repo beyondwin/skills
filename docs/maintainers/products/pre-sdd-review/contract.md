@@ -14,8 +14,10 @@ This is a normative document. Terms used here:
 - stale: a plan in a campaign that needs closure again because a preceding
   plan's repair changed something it reads.
 - change list: `git diff --name-only <git.head_end>` plus
-  `git ls-files --others --exclude-standard`, i.e. every committed,
-  uncommitted, or untracked change since a prior run.
+  `git ls-files --others --exclude-standard`, i.e. every path that differs
+  from the prior run's commit, committed or not. It is docs-only when it names
+  no path besides the resolved design, plan, and ledger. It decides between
+  runs; during a run any `HEAD` move counts.
 
 ## Activation and input resolution
 
@@ -204,7 +206,7 @@ repairs, one small residual pass, and a scoped re-review.
 - Closure requires the repair diff of the design, plan, and ledger.
 - The freeze is the `HEAD` recorded before the first dispatch (the campaign
   freeze in a campaign). If it moves before the verdict, no `READY` is
-  returned: abandon the run with `input-changed` and stop.
+  returned: `abandon --repo` the run with `input-changed` and stop.
 - Machine checks run before every closure dispatch and go to the reviewer as
   their own item, not inside the impact table.
 
@@ -303,8 +305,9 @@ The next invocation takes the first matching path:
 1. Pending run: `abandon --repo <checkout>` any `pending` run for this plan.
    `outside-repository` means it belongs to another checkout; leave it.
 2. Decision still pending: the last run was `BLOCKED` on a user decision.
-   A decision in the outer request is level-1 authority; record it in the
-   resolved design as the only repair. Once recorded, continue when the change
+   A decision in the outer request is level-1 authority; in default mode,
+   record it in the resolved design as the only repair (`review-only` makes no
+   edit and stops at the checkpoint). Once recorded, continue when the change
    list is docs-only, otherwise run discovery. Plan text that must change to
    follow the decision is a direct mapped repair impact. While it is unanswered,
    dispatch no reviewer, make no repair, show the same checkpoint again, do not
@@ -313,7 +316,7 @@ The next invocation takes the first matching path:
    continue.
 3. Handoff reuse: from a reusable run (`full`, or `degraded` whose only reason
    is `focused-role-not-obtained`), reuse the handoff only when documents,
-   `HEAD`, the change list, and the request are all unchanged. Handoffs of
+   `HEAD`, and the request are unchanged and the change list is docs-only. Handoffs of
    other `degraded` runs and of `blocked` runs are never reused.
 4. Continuation: if the last run was a reusable `REVISE`, the change list
    shows only the design, plan, and ledger, and the user did not ask for a full
@@ -350,10 +353,11 @@ controller uses it in this order.
    `abandon --repo`. If the plan's last completed verdict is `REVISE` or
    `BLOCKED`, `show` it.
 3. Take the path from "Next invocation" above. When `execution` is
-   `blocked`, or `degraded` with any reason besides
+   `blocked` (outside the decision path), or `degraded` with any reason besides
    `focused-role-not-obtained`, never reuse its handoff: recheck the input
    gates and call `start` for a fresh full review.
-4. Call `start` once the plan path resolves, before any reviewer dispatch,
+4. Unless the path ended without a review (decision checkpoint or reuse),
+   call `start` once the plan path resolves, before any reviewer dispatch,
    even when an input gate will return `BLOCKED`. Call `finish` once after the
    verdict and repairs are done.
 5. There is exactly one `Evidence:` line. If the recorder is missing or fails,

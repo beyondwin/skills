@@ -106,7 +106,9 @@ still follows the verdict, reviewer, finding, and repair rules in
 rules remain observed values and appear in `anomalies`; the recorder does not
 rewrite or override the semantic verdict. When a run lists `prior_plans`, a
 changed design is not reported as `document_changed_without_repair_pass`: a
-preceding plan's repair may change a shared design.
+preceding plan's repair may change a shared design. Known limit: a later
+plan's repair of a shared design during an earlier plan's pending run is
+still reported for the earlier plan.
 
 ## Reading the log
 
@@ -120,7 +122,8 @@ The log is for agents.
   `blocked` run or any other `degraded` run. Reuse it only when its document
   hashes, `git.head_end`, and the request are all unchanged and
   `git diff --name-only <git.head_end>` plus
-  `git ls-files --others --exclude-standard` is empty.
+  `git ls-files --others --exclude-standard` names no path besides the design,
+  plan, and ledger.
 - When only the design, plan, or ledger changed since a `REVISE` run, or since
   a `BLOCKED` run whose user decision the documents now record, the next
   invocation continues from closure; `show` supplies that run's findings.

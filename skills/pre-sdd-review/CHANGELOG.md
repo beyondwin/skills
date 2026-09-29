@@ -14,13 +14,13 @@ All notable changes to this product are documented in this file.
 
 ### Fixed
 
-- Two commands could hold the same run lock at once, so a `finish` and an `abandon` could both succeed. A command now deletes its lock file while still holding it, and a waiter retries on the current file.
+- Two commands could hold the same run lock at once, so a `finish` and an `abandon` could both succeed. A command now deletes its lock file while still holding it, a waiter retries on the current file, and a failed acquire never deletes the file.
 - `start` validates a record before writing it, so it can no longer leave a `pending` run that no command can close (for example, a checkout directory named with a backslash).
 - Non-UTF-8 input to `finish` and a missing `git` return a one-line JSON error instead of a traceback.
 - A `BLOCKED` run that dispatched no reviewer can be recorded with `review_passes: 0`.
 - In a campaign, a design changed by a preceding plan's repair no longer raises `document_changed_without_repair_pass`.
 - Reuse and continuation now see uncommitted and untracked changes: the change list is `git diff --name-only <git.head_end>` plus `git ls-files --others --exclude-standard`. Before, an uncommitted code edit let a stale handoff be reused.
-- `start` is called whenever the plan path resolves, even when an input gate returns `BLOCKED`, so every `BLOCKED` run is in the chain.
+- `start` is called whenever the plan path resolves, even when an input gate returns `BLOCKED`, so a gate-`BLOCKED` run is in the chain. Only a reprinted decision checkpoint and a reused result call no `start`.
 - A continuation counts its passes from 1 and keeps the usual caps, and a run with no discovery records `trigger: null`. Before, the numbering could make `finish` reject the record and a continuation of a triggered plan was always mislabeled.
 - A user decision given in the request is written into the design, then the review continues. Before, the controller could only reprint the same question.
 - The `HEAD`-moved rule now applies to a single plan, not just a campaign.

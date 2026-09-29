@@ -89,6 +89,21 @@ class LockTests(Fixture):
         newcomer.stdin.close()
 
 
+    def test_a_failed_acquire_never_deletes_the_holders_lock_file(self) -> None:
+        from unittest import mock
+
+        lock = self.home / "locks" / "run.lock"
+        holder = self.holder(lock)
+        self.assertEqual(holder.stdout.readline(), "held\n")
+        inode = lock.stat().st_ino
+        with mock.patch.object(evidence.os, "fchmod", side_effect=PermissionError("denied")):
+            with self.assertRaises(evidence.EvidenceError):
+                with evidence._file_lock(lock):
+                    self.fail("entered a lock it could not set up")
+        self.assertEqual(lock.stat().st_ino, inode)
+        holder.stdin.close()
+
+
 class AbandonBindingTests(Fixture):
     def test_abandon_requires_the_recorded_checkout(self) -> None:
         run_id = start(self.home, self.repo, self.skill)

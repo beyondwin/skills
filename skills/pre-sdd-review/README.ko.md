@@ -110,7 +110,7 @@ $pre-sdd-review review-only docs/history/specs/<design>.md docs/history/plans/<p
 | --- | --- |
 | 바뀐 것이 없고 요청도 같음 | 다시 검토하지 않고 지난 결과와 인계(남은 문제 목록)를 그대로 씁니다 |
 | `REVISE`였거나, 사용자 결정에 이제 답한 `BLOCKED`였고, 설계·계획·원장만 바뀜 | 새 발견 없이 종결부터 이어 검토합니다. 이 계획의 실행 기록(run)이 있어야 합니다 |
-| 사용자 결정을 이번 요청에서 답한 `BLOCKED` | 답을 설계에 적은 뒤 종결부터 이어 검토합니다 |
+| 사용자 결정을 이번 요청에서 답한 `BLOCKED` | 답을 설계에 적습니다. 설계·계획·원장만 바뀌었으면 종결부터 이어 검토하고, 아니면 처음부터 검토합니다 |
 | 사용자 결정에 아직 답하지 않은 `BLOCKED` | 검토자를 부르지 않고 같은 질문을 다시 보여 주며 `Evidence: not_recorded; reason=previous-decision-checkpoint`를 출력합니다 |
 | 그 밖의 경우(다른 파일도 바뀜, 전체 재검토 요청, 기록 없음) | 처음부터 새로 검토합니다 |
 

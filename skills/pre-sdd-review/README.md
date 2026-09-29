@@ -123,7 +123,7 @@ again, "changed" covers commits, uncommitted edits, and new untracked files:
 | --- | --- |
 | Nothing changed and the request is the same | No new review; the previous result and handoff (remaining-problem list) are reused |
 | It was `REVISE`, or `BLOCKED` on a user decision that is now answered, and only the design, plan, or ledger changed | Continues from closure with no new discovery. Needs a recorded run for this plan |
-| `BLOCKED` on a user decision you answer in this request | The answer is written into the design, then the review continues from closure |
+| `BLOCKED` on a user decision you answer in this request | The answer is written into the design; if only the design, plan, or ledger changed, the review continues from closure, otherwise it starts fresh |
 | `BLOCKED` on a user decision still unanswered | No reviewer; shows the same question again and prints `Evidence: not_recorded; reason=previous-decision-checkpoint` |
 | Anything else (other files changed, full re-review asked, no record) | A fresh review from the start |
 

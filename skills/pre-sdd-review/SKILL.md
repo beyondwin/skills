@@ -159,7 +159,10 @@ anything. Record only when its JSON says `skill_name=pre-sdd-review` and
 The change list since a prior run is
 `git diff --name-only <git.head_end>` plus
 `git ls-files --others --exclude-standard`. It covers commits, uncommitted
-edits, and untracked files. Work down this list and take the first match:
+edits, and untracked files. It is "docs-only" when it names no path besides
+the resolved design, plan, and ledger. It decides between runs only; during a
+run, any `HEAD` move counts (Capture freshness). Work down this list and take
+the first match:
 
 1. **Pending run.** Close any `pending` run for this plan with `abandon
    --repo <checkout> --reason input-changed` (or `other`) before anything
@@ -168,36 +171,38 @@ edits, and untracked files. Work down this list and take the first match:
    that run belongs to another checkout; leave it.
 2. **Waiting on a user decision.** The latest completed run is `BLOCKED` on a
    user decision:
-   - If the outer request gives the decision, it is level-1 authority: record
-     it in the resolved design (the only repair allowed here).
+   - If the outer request gives the decision, it is level-1 authority. In
+     default mode, record it in the resolved design (the only repair allowed
+     here). In `review-only`, make no edit: report the decision to record and
+     stop as below.
    - If it is now recorded (by that repair or in an authority document), take
-     the continuation when the change list holds only the resolved design,
-     plan, and ledger paths; otherwise run discovery. Plan text that must
-     change to follow the decision is a direct mapped repair impact.
+     the continuation when the change list is docs-only; otherwise run
+     discovery. Plan text that must change to follow the decision is a direct
+     mapped repair impact.
    - Otherwise dispatch no reviewer and make no repair: print the same
      checkpoint and stop. Call no `start`; print `Evidence: not_recorded;
-     reason=previous-decision-checkpoint`.
+     reason=previous-decision-checkpoint`. Other plans continue.
 3. **Nothing changed.** The run's `execution` is reusable, `plan.sha_end` and
    `design.sha_end` match the current documents, `git.head_end` matches
-   `HEAD`, the change list is empty, and the outer request does not ask for a
-   re-review or name changed authority or repository evidence. Reuse the
-   prior result and handoff without a new review; call no `start`.
+   `HEAD`, the change list is docs-only, and the outer request does not ask
+   for a re-review or name changed authority or repository evidence. Reuse
+   the prior result and handoff without a new review; call no `start`.
 4. **Only the documents changed.** Take the continuation (Default mode) when
    the latest completed run is `REVISE` with a reusable `execution`, the
-   change list holds only the resolved design, plan, and ledger paths, their
-   diff since the run's `sha_end` can be produced, and the outer request does
-   not ask for a full re-review.
+   change list is docs-only, the documents' diff since the run's `sha_end` can
+   be produced, and the outer request does not ask for a full re-review.
 5. **Otherwise** run discovery. Without a recorded run for this plan there is
    no reuse and no continuation.
 
 A run is reusable when its `execution` is `full`, or `degraded` with
-`focused-role-not-obtained` as its only reason. A `blocked` run is never
-reused, and neither is any other `degraded` run; for those, re-run the input
-gates and call `start` for a fresh full review.
+`focused-role-not-obtained` as its only reason. Outside step 2, a `blocked`
+run is never reused, and neither is any other `degraded` run; for those,
+re-run the input gates and call `start` for a fresh full review.
 
 ### Start and finish
 
-Call `start` once the plan path resolves, before any reviewer dispatch, even
+Unless Choose the path ended the invocation without a review (steps 2 and 3),
+call `start` once the plan path resolves, before any reviewer dispatch, even
 when an input gate is about to return `BLOCKED`:
 
 ```sh
@@ -219,8 +224,9 @@ exactly one `Evidence:` line: `Evidence: recorded; run_id=<run-id>` or
 `Evidence: not_recorded; reason=<code>`. An unavailable, malformed,
 incompatible, or permission-failing recorder must continue the review and
 never changes the semantic verdict. If the invocation ends before `finish`,
-call `abandon` with one of `user-cancelled`, `input-changed`, `scope-changed`,
-`input-format-fixed`, or `other`; never leave a run pending.
+call `abandon --run-id <id> --repo . --reason <reason>` with one of
+`user-cancelled`, `input-changed`, `scope-changed`, `input-format-fixed`, or
+`other`; never leave a run pending.
 
 `review_passes` counts reviewer dispatch rounds in this run: discovery is one,
 each closure is one. It is `0` only for a `BLOCKED` run that dispatched no
@@ -352,8 +358,8 @@ unmapped, even at a different location. It shows the original record's
 Location was incomplete: widen that Location and repair it inside the same
 pass. Only a new defect shape is unmapped. An unmapped material finding ends
 the invocation: repair nothing more, put it in the unresolved handoff, and
-apply the existing verdict rules (`BLOCKED` when new authority, input, or repository
-evidence is required; otherwise `REVISE`).
+apply the existing verdict rules (`BLOCKED` when the fix needs authority, input, or
+repository evidence that is unavailable or unresolvable; otherwise `REVISE`).
 
 An optional second repair is allowed only when that re-review finds another
 eligible repairable material defect. Before it, deduplicate remaining findings,
@@ -522,7 +528,7 @@ proofread, publish a release, or make an accepted product decision.
 ## Red flags
 
 - Resume a reviewer by naming findings, paths, symbols, or fixes
-- Start a new review when documents, `HEAD`, the change list, and the request are all unchanged since a reusable run
+- Start a new review when documents, `HEAD`, and the request are unchanged and the change list is docs-only since a reusable run
 - Reuse a handoff from an `execution=blocked` run, or reuse any handoff on document hashes alone
 - Dispatch a second reviewer, or record `reviewers: 2`, with no risk trigger
 - Return or accept a finding summary instead of complete PSDR records

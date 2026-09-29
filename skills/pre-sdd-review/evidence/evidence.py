@@ -295,6 +295,7 @@ def _file_lock(path: Path) -> Iterator[None]:
     except ImportError:
         fail("locking-unavailable", "OS file locking is unavailable for evidence mutations")
     descriptor: int | None = None
+    held = False
     try:
         path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
         os.chmod(path.parent, 0o700)
@@ -305,10 +306,11 @@ def _file_lock(path: Path) -> Iterator[None]:
             # The holder before us unlinks the file while still locked, so a lock taken
             # on a file no longer at `path` guards nothing: retry on the current file.
             try:
-                if os.stat(path).st_ino == os.fstat(descriptor).st_ino:
-                    break
+                held = os.stat(path).st_ino == os.fstat(descriptor).st_ino
             except FileNotFoundError:
-                pass
+                held = False
+            if held:
+                break
             os.close(descriptor)
             descriptor = None
         yield
@@ -318,8 +320,10 @@ def _file_lock(path: Path) -> Iterator[None]:
         ) from exc
     finally:
         if descriptor is not None:
-            with suppress(OSError):
-                path.unlink()
+            if held:
+                # Only the holder may remove the file; a failed acquire leaves it alone.
+                with suppress(OSError):
+                    path.unlink()
             os.close(descriptor)
 
 
