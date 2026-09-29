@@ -103,7 +103,7 @@
     {
       "id": "summary-before-start",
       "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md with a compatible local evidence recorder after an earlier pending run for the same plan",
-      "expect": ["summary_before_start", "abandon_same_plan_pending", "reuse_only_reusable", "reuse_requires_head_and_request_unchanged"]
+      "expect": ["summary_before_start", "abandon_same_plan_pending", "reuse_only_reusable", "reuse_requires_docs_head_and_request_unchanged"]
     },
     {
       "id": "serialize-split-plans",
@@ -176,9 +176,9 @@
       "expect": ["no_reuse", "fresh_review"]
     },
     {
-      "id": "zero-findings-but-dirty",
-      "request": "$pre-sdd-review sample-app/plan-a.md sample-app/plan-b.md after plan-a repair dirties plan-b with zero discovery findings",
-      "expect": ["dirty_requires_closure", "zero_findings_skip_only_when_not_dirty"]
+      "id": "zero-findings-but-stale",
+      "request": "$pre-sdd-review sample-app/plan-a.md sample-app/plan-b.md after plan-a repair makes plan-b stale with zero discovery findings",
+      "expect": ["stale_requires_closure", "zero_findings_skip_only_when_not_stale"]
     },
     {
       "id": "closure-requires-repair-diff",
@@ -229,7 +229,7 @@
     {"id": "continuation-after-committed-docs", "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a recorded REVISE run whose repaired plan was then committed", "expect": ["continuation", "docs_only_diff_predicate"]},
     {"id": "continuation-needs-docs-only-diff", "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a recorded REVISE run when src/app.ts also changed since", "expect": ["fresh_discovery"]},
     {"id": "continuation-needs-recorded-run", "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a REVISE run with no recorded evidence", "expect": ["fresh_discovery"]},
-    {"id": "focused-only-degraded-continues", "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a degraded REVISE run whose only reason is focused-role-not-obtained", "expect": ["continuation", "no_focused_role", "degraded_focused_role_not_obtained"]},
+    {"id": "focused-only-degraded-continues", "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a degraded REVISE run whose only reason is focused-role-not-obtained", "expect": ["continuation", "no_focused_role", "trigger_null"]},
     {"id": "continuation-after-recorded-decision", "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md after a BLOCKED run on a user decision that the design now records, with only docs changed since", "expect": ["continuation", "closure_first"]}
   ]
 }

@@ -23,7 +23,8 @@ the two instructions differ: a discovery reviewer must arrive told nothing.
   with the ordered preceding plans and their paths, plus a required
   reconstruction statement on the response's first line, when preceding
   plans exist.
-- Documents are the H0 bytes, not a live unsaved buffer.
+- Documents are the saved bytes the controller hashed, not a live unsaved
+  buffer.
 - The shared-file ledger's path and SHA-256, when one exists, as derived
   evidence, not authority.
 - An instruction to read a large plan task by task rather than whole.
@@ -57,10 +58,12 @@ It does not restrict the closure dispatch above.
 Use only these severities:
 
 - `BLOCKER`: the minimal document fix needs authority, input, or repository
-  evidence outside the two reviewed documents, or a new product decision.
-  Left unresolved, it forces `BLOCKED`.
+  evidence that is unavailable or unresolvable from the reviewed documents
+  and the repository, or a new product decision. Left unresolved, it forces
+  `BLOCKED`.
 - `IMPORTANT`: the minimal document fix is an authority-preserving edit within
-  the two reviewed documents. Left unresolved, it forces `REVISE`.
+  the reviewed documents (the design, the plan, and the ledger when one
+  exists). Left unresolved, it forces `REVISE`.
 
 Severity follows the minimal document fix, not the size of the defect.
 

@@ -21,7 +21,7 @@ def waves(order: list[str], files: dict[str, set[str]]) -> list[list[str]]:
     return out
 
 
-def dirty_after(
+def stale_after(
     repaired: str,
     order: list[str],
     files: dict[str, set[str]],
@@ -29,13 +29,13 @@ def dirty_after(
     delta_paths: set[str],
     delta_design: str | None,
 ) -> set[str]:
-    dirty: set[str] = set()
+    stale: set[str] = set()
     i = order.index(repaired)
     for later in order[i + 1 :]:
         read = set(files[later]) | {designs[later], later} | set(order[: order.index(later)])
         if delta_paths & read or (delta_design and designs[later] == delta_design):
-            dirty.add(later)
-    return dirty
+            stale.add(later)
+    return stale
 
 
 def host_k_waves(
@@ -88,25 +88,25 @@ class CampaignScheduleTests(unittest.TestCase):
 
     def test_shared_design_dirties_later_plan(self) -> None:
         self.assertEqual(
-            dirty_after("A", self.order, self.files, self.designs, set(), "spec.md"),
+            stale_after("A", self.order, self.files, self.designs, set(), "spec.md"),
             {"B"},
         )
 
     def test_file_delta_dirties_consumer(self) -> None:
         self.assertEqual(
-            dirty_after("A", self.order, self.files, self.designs, {"ui.ts"}, None),
+            stale_after("A", self.order, self.files, self.designs, {"ui.ts"}, None),
             {"C"},
         )
 
     def test_preceding_plan_path_dirties_later(self) -> None:
         self.assertEqual(
-            dirty_after("A", self.order, self.files, self.designs, {"A"}, None),
+            stale_after("A", self.order, self.files, self.designs, {"A"}, None),
             {"B", "C", "D"},
         )
 
-    def test_zero_findings_skip_closure_unless_dirty(self) -> None:
-        dirty = dirty_after("A", self.order, self.files, self.designs, {"ui.ts"}, None)
-        skip = {p for p in self.order if p not in dirty and p != "A"}
+    def test_zero_findings_skip_closure_unless_stale(self) -> None:
+        stale = stale_after("A", self.order, self.files, self.designs, {"ui.ts"}, None)
+        skip = {p for p in self.order if p not in stale and p != "A"}
         self.assertIn("B", skip)
         self.assertIn("D", skip)
         self.assertNotIn("C", skip)

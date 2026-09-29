@@ -109,18 +109,21 @@ $pre-sdd-review review-only docs/history/specs/<design>.md docs/history/plans/<p
 A run whose last action was a repair is never `READY`, and an open `BLOCKER`
 makes it `BLOCKED`. A `READY` report prints the final document paths and
 fingerprints (SHA-256), plus the observation anomalies that `finish` returned
-as an `Anomalies:` line. Anomalies do not change the verdict. Repairs that keep
+as an `Anomalies:` line (`none` when there are none, `not_recorded` without
+the recorder). Anomalies do not change the verdict. Repairs that keep
 product intent are applied without asking; only decisions that need the user
 are asked, all at once.
 
 ### Next run
 
-The skill never re-runs itself after `REVISE` or `BLOCKED`. When you call it again:
+The skill never re-runs itself after `REVISE` or `BLOCKED`. When you call it
+again, "changed" covers commits, uncommitted edits, and new untracked files:
 
 | Since the last verdict | This call |
 | --- | --- |
-| Documents, `HEAD`, and request all unchanged | No new review; the previous handoff (remaining-problem list) is reused |
-| It was `REVISE`, or `BLOCKED` on a user decision the documents now record, and only the design, plan, or ledger changed | Continues from closure with no new discovery. Needs a recorded run for this plan |
+| Nothing changed and the request is the same | No new review; the previous result and handoff (remaining-problem list) are reused |
+| It was `REVISE`, or `BLOCKED` on a user decision that is now answered, and only the design, plan, or ledger changed | Continues from closure with no new discovery. Needs a recorded run for this plan |
+| `BLOCKED` on a user decision you answer in this request | The answer is written into the design, then the review continues from closure |
 | `BLOCKED` on a user decision still unanswered | No reviewer; shows the same question again and prints `Evidence: not_recorded; reason=previous-decision-checkpoint` |
 | Anything else (other files changed, full re-review asked, no record) | A fresh review from the start |
 
@@ -134,8 +137,7 @@ decisions at once.
 ### Several plans and extra reviewers
 
 Discoveries of split plans may overlap; repairs do not. A preceding `BLOCKED`
-plan does not stop later discovery. If `HEAD` moves off the one recorded at
-the start, no `READY` is returned against it.
+plan does not stop later discovery.
 
 A focused second reviewer is added only for risky changes, and only in a call
 that runs discovery: runtime removal, schema migration or data deletion,
@@ -144,8 +146,8 @@ or external side effects such as publishing, billing, messaging, or production
 mutation. A reviewer is never reused for another plan.
 
 Changing either document invalidates its fingerprints and any earlier `READY`,
-so it needs a new review. A Git change outside the documents does the same
-when it alters evidence for a path, command, interface, or blast-radius claim.
+so it needs a new review. If `HEAD` moves during a review, no `READY` is
+returned; the run stops and needs a new request.
 
 ### Optional recorder
 
@@ -158,7 +160,8 @@ line's exact bytes.
   and prints `Evidence: recorded; run_id=<run-id>`. The `run_id` stays out of
   user documents.
 - An unfinished run for the same plan, or a call that ends early, is closed
-  with `abandon`.
+  with `abandon`. A run from another checkout of the same repository is left
+  alone.
 - If the recorder is missing, incompatible, or denied by permissions, review
   continues and prints `Evidence: not_recorded; reason=<code>`. The verdict
   does not change.

@@ -74,7 +74,7 @@ CASE_IDS = (
     "baseline-reconstruction-required",
     "partial-closure-not-a-new-finding",
     "degraded-handoff-not-reused",
-    "zero-findings-but-dirty",
+    "zero-findings-but-stale",
     "closure-requires-repair-diff",
     "host-limit-waves-not-reuse",
     "head-break-no-ready",
@@ -1060,9 +1060,9 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("one discovery stage", skill)
         self.assertIn("one discovery stage", contract)
         self.assertIn("summary --repo <repo display name>", skill)
-        self.assertIn("Never reuse a handoff whose `execution` is `blocked`", skill)
+        self.assertIn("A `blocked` run is never reused", skill)
         self.assertNotIn("summary --last 20", skill)
-        self.assertIn("same `repo` display name and plan path are `pending`", skill)
+        self.assertIn("Close any `pending` run for this plan", skill)
         self.assertIn("Discoveries of different plans may overlap", skill)
         self.assertIn("Repairs do not overlap", skill)
         self.assertNotIn("do not overlap them", skill)
@@ -1070,12 +1070,12 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertNotIn("A later repair that changes a shared design", skill)
         self.assertIn("controller-local campaign state", skill)
         self.assertIn("not a record field", skill)
-        self.assertIn("Paths not in `Files:` are not in this dirty set", skill)
+        self.assertIn("Paths not in `Files:` are not in this stale set", skill)
         self.assertIn("Do not use the controlling agent as a substitute independent primary", skill)
         self.assertIn("distinct agents obtained", skill)
         self.assertIn("If the first review has zero findings", skill)
-        self.assertIn("and the plan is not dirty, skip repair and closure", skill)
-        self.assertIn("A dirty plan still takes scoped closure", skill)
+        self.assertIn("and the plan is not stale, skip repair and closure", skill)
+        self.assertIn("A stale plan still takes scoped closure", skill)
         self.assertIn("`repair_passes` counts every repair pass the controller applied", skill)
         self.assertIn("does not copy a previous finding's `repair_pass`", skill)
         self.assertIn("An open `BLOCKER`, including one still `partially-closed`, forces `BLOCKED`", skill)
@@ -1088,7 +1088,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("a preceding plan's repair", contract)
         self.assertNotIn("later repair", contract)
         self.assertIn("controller-local campaign state", contract)
-        self.assertIn("Paths not in `Files:` are not in this dirty set", contract)
+        self.assertIn("Paths not in `Files:` are not in this stale set", contract)
         self.assertIn("If the first review has zero findings", contract)
         self.assertIn("`repair_passes` counts every repair pass the controller applied", contract)
         self.assertIn("An open `BLOCKER` forces `BLOCKED`", contract)
@@ -1105,11 +1105,44 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("Detection still covers the final complete documents", protocol)
 
         self.assertIn("A continuation replaces discovery with closure", skill)
-        self.assertIn("git diff --name-only <git.head_end> HEAD", skill)
-        self.assertIn("Without a recorded run for this plan there is no continuation", skill)
+        self.assertIn("git diff --name-only <git.head_end>`", skill)
+        self.assertNotIn("git diff --name-only <git.head_end> HEAD", skill)
+        self.assertIn("git ls-files --others --exclude-standard", skill)
+        self.assertIn("Without a recorded run for this plan there is no reuse and no continuation", skill)
         self.assertIn("that reason alone does not bar reuse or continuation", skill)
         self.assertIn("stand in for the verbatim records", protocol)
         self.assertIn("Continuation:", contract)
+
+    def test_controller_rules_have_one_reading(self) -> None:
+        skill = re.sub(r"\s+", " ", (SKILL / "SKILL.md").read_text(encoding="utf-8"))
+        freshness = re.sub(r"\s+", " ", section(
+            (SKILL / "SKILL.md").read_text(encoding="utf-8"), "## Capture freshness", "## Optional local evidence"
+        ))
+        recorder = (SKILL / "evidence/README.md").read_text(encoding="utf-8")
+        for phrase in (
+            "Call `start` once the plan path resolves, before any reviewer dispatch, even when an input gate is about to return `BLOCKED`",
+            "a run with no discovery records `trigger: null`",
+            "it counts its passes from 1 and keeps the two-plus-residual cap",
+            "It is `0` only for a `BLOCKED` run that dispatched no reviewer",
+            "abandon --repo <checkout>",
+            "`pattern` is a short lowercase slug",
+            "An unmapped material finding ends the invocation",
+            "it is level-1 authority: record it in the resolved design",
+            "`<skill-root>/evidence/README.md`",
+            "Verdict: READY | REVISE | BLOCKED",
+        ):
+            self.assertIn(phrase, skill)
+        self.assertIn("If `HEAD` moves off the freeze before the verdict", freshness)
+        for retired in (
+            "A Git change elsewhere requires a new review",
+            "H_git0",
+            "H0",
+            "Keep an unmapped material finding visible",
+            "attaching the second run's results",
+            "and call `start` if they pass",
+        ):
+            self.assertNotIn(retired, skill)
+        self.assertIn("`--run-id --repo --reason`", recorder)
 
     def test_reviewer_is_read_only_and_controller_owns_repairs(self) -> None:
         protocol = (SKILL / "references/reviewer-protocol.md").read_text(
@@ -1122,7 +1155,7 @@ class PreSddReviewContractTests(unittest.TestCase):
     def test_closure_dispatch_requires_repair_diff(self) -> None:
         protocol = (SKILL / "references/reviewer-protocol.md").read_text(encoding="utf-8")
         self.assertIn("The repair diff of the resolved design, plan, and ledger", protocol)
-        self.assertIn("H0", protocol)
+        self.assertIn("saved bytes the controller hashed", protocol)
 
     def test_accepted_authority_cannot_be_auto_edited(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -1162,30 +1195,30 @@ class PreSddReviewContractTests(unittest.TestCase):
         )
         self.assertIn("Discoveries of different plans may overlap", workflow)
         self.assertIn("skip repair and closure", workflow)
-        self.assertIn("A dirty plan still takes scoped closure", workflow)
+        self.assertIn("A stale plan still takes scoped closure", workflow)
         self.assertIn("repair diff", workflow)
         self.assertIn("A preceding plan that is `BLOCKED` does not stop later discovery", workflow)
         self.assertIn("controller-local campaign state", workflow)
-        self.assertIn("Paths not in `Files:` are not in this dirty set", workflow)
+        self.assertIn("Paths not in `Files:` are not in this stale set", workflow)
 
     def test_optional_evidence_lifecycle_is_ordered_and_non_blocking(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         evidence = section(body, "## Optional local evidence", "## Select reviewers")
         normalized = re.sub(r"\s+", " ", evidence)
 
-        ordered = ("evidence.py\" --version", "summary", "start", "semantic review", "finish", "Evidence:", "abandon", "outcome")
+        ordered = ("evidence.py\" --version", "summary --repo", "### Choose the path", "### Start and finish", "before any reviewer dispatch", "finish --run-id", "exactly one `Evidence:` line", "call `abandon`", "outcome")
         positions = tuple(normalized.index(item) for item in ordered)
         self.assertEqual(positions, tuple(sorted(positions)))
         for fact in (
             "without installing anything",
             "skill_name=pre-sdd-review",
             "schema=4",
-            "actual loaded skill root",
-            "primary plan",
+            "the directory holding this `SKILL.md`",
+            "--plan <plan>",
             "does not parse `**Spec:**`",
             "controller-local",
             "default and `review-only` mode",
-            "current repository locator",
+            "finish --run-id <id> --repo .",
             "exactly one `Evidence:` line",
             "never changes the semantic verdict",
             "never leave a run pending",
@@ -1236,7 +1269,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertEqual(cases["evidence-review-only"], ("review_only_receipt", "no_document_mutation"))
         self.assertEqual(cases["evidence-resolution-blocked"], ("BLOCKED", "design_omitted_from_start", "design_recorded_null"))
         self.assertEqual(cases["evidence-outcome-optional"], ("verdict_unchanged", "outcome_not_controller_duty", "one_label_after_sdd"))
-        self.assertEqual(cases["summary-before-start"], ("summary_before_start", "abandon_same_plan_pending", "reuse_only_reusable", "reuse_requires_head_and_request_unchanged"))
+        self.assertEqual(cases["summary-before-start"], ("summary_before_start", "abandon_same_plan_pending", "reuse_only_reusable", "reuse_requires_docs_head_and_request_unchanged"))
         self.assertEqual(
             cases["serialize-split-plans"],
             (
@@ -1247,8 +1280,8 @@ class PreSddReviewContractTests(unittest.TestCase):
             ),
         )
         self.assertEqual(
-            cases["zero-findings-but-dirty"],
-            ("dirty_requires_closure", "zero_findings_skip_only_when_not_dirty"),
+            cases["zero-findings-but-stale"],
+            ("stale_requires_closure", "zero_findings_skip_only_when_not_stale"),
         )
         self.assertEqual(
             cases["closure-requires-repair-diff"],
@@ -1289,7 +1322,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertEqual(cases["continuation-after-committed-docs"], ("continuation", "docs_only_diff_predicate"))
         self.assertEqual(cases["continuation-needs-docs-only-diff"], ("fresh_discovery",))
         self.assertEqual(cases["continuation-needs-recorded-run"], ("fresh_discovery",))
-        self.assertEqual(cases["focused-only-degraded-continues"], ("continuation", "no_focused_role", "degraded_focused_role_not_obtained"))
+        self.assertEqual(cases["focused-only-degraded-continues"], ("continuation", "no_focused_role", "trigger_null"))
         self.assertEqual(cases["continuation-after-recorded-decision"], ("continuation", "closure_first"))
 
     def test_authority_and_risk_selection_are_ordered_and_conditional(self) -> None:
@@ -1433,7 +1466,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         normalized_flags = re.sub(r"\s+", " ", flags)
         for phrase in (
             "Resume a reviewer by naming findings, paths, symbols, or fixes",
-            "Start a new review when documents, `HEAD`, and the request are all unchanged since a reusable REVISE run",
+            "Start a new review when documents, `HEAD`, the change list, and the request are all unchanged since a reusable run",
             "Reuse a handoff from an `execution=blocked` run, or reuse any handoff on document hashes alone",
             "Dispatch a second reviewer, or record `reviewers: 2`, with no risk trigger",
             "Return or accept a finding summary instead of complete PSDR records",
@@ -1449,7 +1482,8 @@ class PreSddReviewContractTests(unittest.TestCase):
             "Overlap repairs of two plans on one host",
             "Reuse a reviewer to fill a discovery wave",
             "Print READY after HEAD moved from the freeze",
-            "Skip closure for a dirty plan with zero discovery findings",
+            "Skip closure for a stale plan with zero discovery findings",
+            "Take a continuation while the change list names a file outside the design, plan, and ledger",
             "Dispatch a reviewer while the plan waits on an unanswered user decision",
             "Return `READY` when the last action was a repair",
         ):
@@ -1480,11 +1514,11 @@ class PreSddReviewContractTests(unittest.TestCase):
             normalized_protocol,
         )
         self.assertIn(
-            "`BLOCKER`: the minimal document fix needs authority, input, or repository evidence outside the two reviewed documents, or a new product decision. Left unresolved, it forces `BLOCKED`.",
+            "`BLOCKER`: the minimal document fix needs authority, input, or repository evidence that is unavailable or unresolvable from the reviewed documents and the repository, or a new product decision. Left unresolved, it forces `BLOCKED`.",
             normalized_protocol,
         )
         self.assertIn(
-            "`IMPORTANT`: the minimal document fix is an authority-preserving edit within the two reviewed documents. Left unresolved, it forces `REVISE`.",
+            "`IMPORTANT`: the minimal document fix is an authority-preserving edit within the reviewed documents (the design, the plan, and the ledger when one exists). Left unresolved, it forces `REVISE`.",
             normalized_protocol,
         )
         self.assertNotIn("materially invalid or missing", normalized_protocol)
@@ -1742,7 +1776,7 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "evidence probe cache",
         ):
             self.assertIn(fact, contract)
-        self.assertIn("controller-local dirty set", contract)
+        self.assertIn("controller-local stale set", contract)
         self.assertNotIn("shared-design invalidation map", contract)
         # A shared-file ledger is now a real, contract-owned feature (the
         # pre-pass and its "### Ledger shape"), so it no longer belongs in

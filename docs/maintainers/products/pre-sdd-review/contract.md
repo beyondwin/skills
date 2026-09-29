@@ -10,8 +10,12 @@ This is a normative document. Terms used here:
 - controller: the agent that runs the skill and edits the documents.
 - run: one execution recorded by the recorder.
 - ledger: the shared-file ledger, the list of files several plans touch.
-- dirty: a plan that needs closure again because a preceding plan's repair
-  changed something it reads.
+- campaign: one outer request that names two or more plans.
+- stale: a plan in a campaign that needs closure again because a preceding
+  plan's repair changed something it reads.
+- change list: `git diff --name-only <git.head_end>` plus
+  `git ls-files --others --exclude-standard`, i.e. every committed,
+  uncommitted, or untracked change since a prior run.
 
 ## Activation and input resolution
 
@@ -39,7 +43,7 @@ A verdict-bearing invocation reviews exactly one implementation plan.
 - Discoveries may overlap; repairs do not. A preceding `BLOCKED` plan does not
   stop later plans' discovery.
 - If a preceding plan's repair changes a shared design, mark every dependent
-  plan dirty in this campaign. That invalidation does not open a new campaign.
+  plan stale in this campaign. That invalidation does not open a new campaign.
 
 If a plan names a required implementation base (`branch`, `ref`, or
 `commit`), check before dispatching any reviewer that the required base is an
@@ -183,8 +187,9 @@ with a trigger and 1 without; anything else is observed as
 
 If no independent primary reviewer is available, return `BLOCKED`; do not
 substitute a short degraded round. The focused risk role is dispatched only in
-an invocation that runs discovery. If it is not dispatched or not obtained,
-record `degraded` with `focused-role-not-obtained`. That reason alone does not
+an invocation that runs discovery; a run with no discovery records
+`trigger: null`. If discovery triggered it but it was not obtained, record
+`degraded` with `focused-role-not-obtained`. That reason alone does not
 bar handoff reuse or continuation. A `degraded` handoff with any other reason
 is not reused. One agent is never reused for another plan's invocation.
 
@@ -194,21 +199,23 @@ An invocation is one discovery stage (none in a continuation), at most two
 repairs, one small residual pass, and a scoped re-review.
 
 - If the first review has zero findings, skip repair and closure and return
-  `READY`, but only when the plan is not dirty. A dirty plan still takes scoped
+  `READY`, but only when the plan is not stale. A stale plan still takes scoped
   closure with zero findings.
 - Closure requires the repair diff of the design, plan, and ledger.
-- If the `HEAD` frozen at the start moves, no `READY` is returned against that
-  freeze.
+- The freeze is the `HEAD` recorded before the first dispatch (the campaign
+  freeze in a campaign). If it moves before the verdict, no `READY` is
+  returned: abandon the run with `input-changed` and stop.
+- Machine checks run before every closure dispatch and go to the reviewer as
+  their own item, not inside the impact table.
 
-Dirty is controller-local campaign state. It is neither a record field nor the
+Stale is controller-local campaign state. It is neither a record field nor the
 worktree's dirty state. After repairing plan i, the change set Δ is the union
 of the changed resolved design, plan, and ledger fingerprints; the symbols,
 paths, commands, and consumers in the impact table; and the paths cited by the
 repaired findings. If i precedes plan j and Δ overlaps j's read set, or a
-shared design j depends on changed, j is dirty. j's read set is the resolved
+shared design j depends on changed, j is stale. j's read set is the resolved
 design, plan, and ledger paths and hashes, the `Files:` paths, the preceding
-plan paths, and the `evidence` paths of its finding records. Paths not in
-`Files:` are not in this dirty set; the machine check catches that gap.
+plan paths, and the `evidence` paths of its finding records. Paths not in `Files:` are not in this stale set; the machine check catches that gap.
 
 Repair accounting:
 
@@ -216,6 +223,10 @@ Repair accounting:
   invocation does not copy an earlier finding's `repair_pass`.
 - `repaired` is used only for records a closure reviewer closed.
 - If the last action was a repair, never return `READY`.
+- `review_passes` counts reviewer dispatch rounds (discovery 1, each closure
+  1). It is 0 only for a `BLOCKED` run that dispatched no reviewer.
+- A continuation is its own run: it counts passes from 1 and keeps the same
+  caps. Only the number of continuations is uncapped.
 - A finding left `partially-closed` counts as unresolved and forces `REVISE`;
   if it is a `BLOCKER`, the verdict is `BLOCKED`.
 
@@ -287,26 +298,34 @@ Authority-preserving repairs are made without asking. When user authority is
 needed, bundle the needed decisions into one approval request. Never re-invoke
 automatically after `REVISE` or `BLOCKED`. A later call follows these rules.
 
-- Handoff reuse: from a reusable run (`full`, or `degraded` whose only reason
-  is `focused-role-not-obtained`), reuse the handoff only when documents,
-  `HEAD`, and the request are all unchanged. Handoffs of other `degraded` runs
-  and of `blocked` runs are never reused.
-- Continuation: if the last run was a reusable `REVISE`, or `BLOCKED` on a user
-  decision the documents now record, and `git diff --name-only <head_end> HEAD`
-  shows only the design, plan, and ledger, and the user did not ask for a full
-  re-review, start from closure with no discovery. Without a recorded run for
-  this plan there is no continuation; run full discovery.
-  - Reading an earlier run's recorded findings as open records is not handoff
-    reuse; the continuation re-checks them.
-  - Carried records keep their `id`, `severity`, and `class`. If closure finds
-    a remainder with a different severity or class, close or keep the carried
-    record on its own terms and write the remainder as a new record with a new
-    ID.
-- Decision still pending: if the last run was `BLOCKED` on a user decision the
-  authority documents do not yet record, dispatch no reviewer, make no repair,
-  and show the same checkpoint again. Do not call `start`; print
-  `Evidence: not_recorded; reason=previous-decision-checkpoint`. Other plans
-  continue.
+The next invocation takes the first matching path:
+
+1. Pending run: `abandon --repo <checkout>` any `pending` run for this plan.
+   `outside-repository` means it belongs to another checkout; leave it.
+2. Decision still pending: the last run was `BLOCKED` on a user decision.
+   A decision in the outer request is level-1 authority; record it in the
+   resolved design as the only repair. Once recorded, continue when the change
+   list is docs-only, otherwise run discovery. While it is unanswered,
+   dispatch no reviewer, make no repair, show the same checkpoint again, do not
+   call `start`, and print
+   `Evidence: not_recorded; reason=previous-decision-checkpoint`. Other plans
+   continue.
+3. Handoff reuse: from a reusable run (`full`, or `degraded` whose only reason
+   is `focused-role-not-obtained`), reuse the handoff only when documents,
+   `HEAD`, the change list, and the request are all unchanged. Handoffs of
+   other `degraded` runs and of `blocked` runs are never reused.
+4. Continuation: if the last run was a reusable `REVISE`, the change list
+   shows only the design, plan, and ledger, and the user did not ask for a full
+   re-review, start from closure with no discovery.
+   - Reading an earlier run's recorded findings as open records is not handoff
+     reuse; the continuation re-checks them.
+   - Carried records keep their `id`, `severity`, and `class`. If closure finds
+     a remainder with a different severity or class, close or keep the carried
+     record on its own terms and write the remainder as a new record with a new
+     ID.
+5. Otherwise run full discovery. Without a recorded run for this plan there is
+   no reuse and no continuation.
+
 - Repeated blocks: if three consecutive runs of the same plan are `BLOCKED` on
   new product decisions, the handoff sends the design back to settle the
   remaining decisions at once, and says the next call waits on them. Without a
@@ -326,23 +345,16 @@ controller uses it in this order.
    `{"cli_version":"6.0.0","schema":4,"skill_name":"pre-sdd-review"}` followed
    by one LF.
 2. If compatible, run `summary --repo <display name>` before `start` and find
-   the plan in `runs` and `chains`. If the same `repo` display name and plan
-   path are `pending`, `abandon` that run. If the plan's last completed verdict
-   is `REVISE` or `BLOCKED`, `show` it.
-3. The last run's `execution` decides the next step.
-   - When `execution` is `blocked`, never reuse its handoff. If that run was
-     `BLOCKED` on a user decision the authority documents do not yet record,
-     skip the input gate recheck and follow the "Decision still pending" rule
-     above (Verdict and handoff in `SKILL.md`). Once the decision is recorded,
-     continue when the continuation conditions hold; otherwise run discovery.
-     Any other `blocked` run rechecks the input gates and then calls `start`.
-   - When `execution` is `degraded` with any reason besides
-     `focused-role-not-obtained`, do not reuse the handoff; `start` a fresh
-     full review.
-   - For a reusable run, reuse the earlier handoff only when document hashes,
-     `git.head_end`, and the request are all the same.
-4. When not reusing, call `start` before the semantic review and call `finish`
-   once after the verdict and repairs are done.
+   the plan in `runs` and `chains`. Close this plan's `pending` run with
+   `abandon --repo`. If the plan's last completed verdict is `REVISE` or
+   `BLOCKED`, `show` it.
+3. Take the path from "Next invocation" above. When `execution` is
+   `blocked`, or `degraded` with any reason besides
+   `focused-role-not-obtained`, never reuse its handoff: recheck the input
+   gates and call `start` for a fresh full review.
+4. Call `start` once the plan path resolves, before any reviewer dispatch,
+   even when an input gate will return `BLOCKED`. Call `finish` once after the
+   verdict and repairs are done.
 5. There is exactly one `Evidence:` line. If the recorder is missing or fails,
    report `Evidence: not_recorded; reason=<code>`; that failure does not change
    `READY`, `REVISE`, or `BLOCKED`.
@@ -360,15 +372,18 @@ Schema compatibility:
 
 The controller resolves the design path from the plan's `**Spec:**` and passes
 it as `--design`. If it cannot be resolved, omit `--design` and return
-`BLOCKED`. The recorder does not parse `**Spec:**`. When a run ends before
-`finish`, the `abandon` reason is one of `user-cancelled`, `input-changed`,
+`BLOCKED`. The recorder does not parse `**Spec:**`. `finish` and `abandon`
+both take `--repo` and refuse another checkout with `outside-repository`.
+When a run ends before `finish`, the `abandon` reason is one of `user-cancelled`, `input-changed`,
 `scope-changed`, `input-format-fixed`, or `other`. The `run_id` is
 controller-local and stays out of the reviewed documents.
 
 A schema 4 finding carries `source` (`reviewer`, `ledger-pass`, or
 `machine-check`) and `repair_pass`. `repair_pass` is `null` or 0..3: `0` is a
 pre-pass ledger or machine-check repair, and `null` is a finding this
-invocation did not repair. A finding without `source`, or `degraded_reasons`
+invocation did not repair. `status` is `repaired`, `partially-closed`, or
+`unresolved`. `pattern` is a controller-assigned slug for the defect shape. A
+finding without `source`, or `degraded_reasons`
 outside the fixed vocabulary, is `schema-invalid`. `finding.evidence` is a list
 of repository-relative paths, not prose.
 
@@ -383,7 +398,9 @@ salt, or identity path material. Local files are not a signed audit log.
 
 The evidence home keeps `.identity-salt` as private local 32-byte state and
 uses `.identity.lock` and `locks/<run-id>.lock` for mutations. When a command
-releases a lock, it deletes that lock file. The normalized checkout root and
+releases a lock, it deletes that lock file while still holding it, and a
+waiter that wakes on a deleted file retries on the current one, so two
+commands never hold the same lock. The normalized checkout root and
 Git directory go only into the HMAC; records keep only the derived `repo_key`
 and the `repo` display name. A moved checkout, a clone, another worktree, a lost
 salt, or a different evidence home is not the original binding. Locks need
@@ -398,7 +415,8 @@ ordered records. `counts.verdict` includes every completed verdict seen, and
 local observations, not a model quality measure or a signed audit claim.
 
 Input shape, enum and count ranges, record size, required fields, and path
-limits are always validated. The semantic review follows the existing verdict,
+limits are always validated, and `start` validates a record before writing
+it. The semantic review follows the existing verdict,
 reviewer, finding, and repair rules. A structurally valid deviation is kept as
 an observation in `anomalies`; evidence never rewrites a verdict or becomes
 authority to change anything.
@@ -429,7 +447,7 @@ These are explicitly not added:
 - closure-only input schema
 - evidence probe cache
 
-In this version, invalidation is handled by the controller-local dirty set.
+In this version, invalidation is handled by the controller-local stale set.
 
 ## Handoff
 

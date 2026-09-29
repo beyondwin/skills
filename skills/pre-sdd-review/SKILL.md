@@ -2,10 +2,10 @@
 name: pre-sdd-review
 description: Use when an approved design spec and implementation plan already exist and must be reviewed, automatically improved, and re-reviewed against repository reality immediately before SDD. Do not use for creating specs or plans, reviewing code, implementing changes, proofreading, or release readiness.
 license: Apache-2.0
-compatibility: Requires a local Git repository, readable design and plan files, and Codex subagent support for independent review.
+compatibility: Requires a local Git repository, readable design and plan files, and a host that can start a fresh read-only subagent for independent review. Measured on Codex only.
 metadata:
   version: "6.0.0"
-  updated_at: "2026-09-25"
+  updated_at: "2026-09-30"
 ---
 
 # Pre-SDD Review
@@ -27,24 +27,37 @@ Do not activate for writing an initial design or plan, code or pull-request
 review, release verification, proofreading, or general documentation
 improvement.
 
+### Single-plan path
+
+Most runs review one plan. Skip every rule marked "campaign" (a campaign is
+one outer request that names two or more plans).
+
+1. Resolve the plan, its `**Spec:**` design, and the required base.
+2. Pick the path: reuse, continuation, or discovery (Choose the path).
+3. Record freshness and call `start`.
+4. Discovery: one independent reviewer that edits nothing, plus one focused
+   reviewer only on a risk trigger.
+5. Repair the documents, then a fresh closure review. Repeat within the caps.
+6. Call `finish`, then print the final report.
+
 ## Resolve authoritative inputs
 
 One verdict-bearing invocation reviews exactly one implementation plan.
-Resolve the design path from that plan's `**Spec:**` field, then read its
-binding references: accepted ADRs, other explicit decision records, and any
+Resolve the design path from that plan's `**Spec:**` field (relative to the
+plan's directory unless it is repository-rooted), then read its binding
+references: accepted ADRs, other explicit decision records, and any
 user-approved visual or product authority. Also resolve the repository root.
 If the plan has no resolvable `**Spec:**` path, do not guess among nearby
 files: return `BLOCKED`.
 
 If the input is ambiguous between multiple plans, ask for one exact plan when
 the user is available; otherwise return `BLOCKED` instead of inventing an
-aggregate verdict. A request naming several plans is split into separate
-verdict-bearing invocations, but each verdict remains plan-local. Before the
-first of those invocations, run the pre-pass below once. That pre-pass freezes
-document hashes as H0 and Git HEAD as H_git0. Discoveries of different plans
-may overlap. Repairs do not overlap. Do not emit an aggregate `READY`. A
-preceding plan's repair that changes a shared design marks every dependent
-plan dirty in this campaign; do not open a new campaign for that
+aggregate verdict. Campaign: a request naming several plans is split into
+separate verdict-bearing invocations, each with its own plan-local verdict.
+Run the pre-pass below once before the first of them. Discoveries of
+different plans may overlap. Repairs do not overlap. Do not emit an aggregate
+`READY`. A preceding plan's repair that changes a shared design marks every
+dependent plan stale in this campaign; do not open a new campaign for that
 invalidation.
 
 Interpret conflicts in this order:
@@ -70,8 +83,9 @@ return `BLOCKED`; do not review or repair against a different checkout.
 
 ## Pre-pass: shared-file ledger
 
-Run this once, before the first verdict-bearing invocation, when the outer
-request names two or more plans or asks for it explicitly. It emits no verdict.
+Campaign only; skip it for a single plan. Run it once, before the first
+verdict-bearing invocation, when the outer request names two or more plans or
+asks for it explicitly. It emits no verdict.
 
 1. Fix the execution order. Take it from the user or derive it from the plans'
    stated prerequisites. If it cannot be fixed, stop and ask: without an order
@@ -83,6 +97,7 @@ request names two or more plans or asks for it explicitly. It emits no verdict.
 4. Run the machine checks over every plan at once.
 5. Steps 3 and 4 emit candidates, not findings. A candidate becomes a defect
    only when the repository confirms it.
+6. Record `HEAD` as the campaign freeze.
 
 The controlling agent does all of this. Dispatch no reviewer: a reviewer here
 would be a third review role outside any plan's invocation. The next
@@ -98,7 +113,8 @@ plan's `Files:`, the plan wins and the ledger is rebuilt. Its default path is
 `docs/superpowers/ledgers/YYYY-MM-DD-<campaign>.md`; a user preference wins.
 
 Under `review-only`, keep the ledger controller-local, write no file, and make
-no intake repair. Report confirmed candidates as findings only.
+no intake repair. Report confirmed candidates as findings; they count as
+unresolved findings for the verdict.
 
 This pre-pass is not a recorded run. The recorder binds one run to one plan and
 to a verdict, and this pass has neither. The ledger reaches evidence through
@@ -106,95 +122,137 @@ each plan's own `start`.
 
 ## Capture freshness
 
-Before review, compute and record the repository-relative design and plan
-paths and their SHA-256 hashes; Git `HEAD` (or `unborn`); and whether the
-worktree is clean or dirty. Record the review timestamp and final verdict in
-the final report. Also record the baseline: `HEAD` alone when no plan
-precedes this one, or `HEAD` with the ordered list of preceding plans when
-they do. Record the ledger's repository-relative path and SHA-256 when a
-ledger exists.
+Before the first reviewer dispatch, record the repository-relative design and
+plan paths and their SHA-256 hashes (`shasum -a 256`, not `git hash-object`);
+Git `HEAD` (or `unborn`); and whether the worktree is clean or dirty
+(`git status --porcelain`). Also record the baseline: `HEAD` alone when no
+plan precedes this one, or `HEAD` with the ordered list of preceding plans
+when they do. Record the ledger's repository-relative path and SHA-256 when a
+ledger exists. With the recorder, `show` returns these values for the run.
+The final report adds the review timestamp and the final verdict.
 
 Any content change to the resolved design or plan invalidates an earlier
-`READY` verdict. A Git change elsewhere requires a new review when it changes
-a path, command, interface, or blast-radius claim used as review evidence.
+`READY` verdict. Whether a Git change elsewhere forces a new review is decided
+by the change list under Optional local evidence.
 
 When preceding plans exist, carry that list and their paths in the reviewer
 instruction and require a baseline-reconstruction statement on the response's
 first line, so the reviewer does not quietly fall back to `HEAD`.
 
-The pre-pass records H_git0 with H0. If HEAD moves off H_git0 before verdicts,
-do not return READY against that freeze. Abandon in-flight runs with
-`input-changed`. A new freeze needs an outer request. Do not narrow
-`head_changed_during_review` to files the plan named.
+The freeze is the `HEAD` recorded here, or the campaign freeze in a campaign.
+If `HEAD` moves off the freeze before the verdict, do not return `READY`:
+abandon the run with `input-changed`, report the move, and stop. A new review
+needs a new outer request.
 
 ## Optional local evidence
 
-Run `python3 "<skill-root>/evidence/evidence.py" --version` from the actual
-loaded skill root without installing anything. Parse its canonical JSON and
-record only when `skill_name=pre-sdd-review` and `schema=4`. When compatible,
-run `summary --repo <repo display name>` before `start` and locate this plan in
-`runs` and `chains`. Close any `pending` run for this plan before anything
-else: a pending run can outlive the invocation that opened it and be mistaken
-for a new round. If the latest completed verdict for that plan is `REVISE` or
-`BLOCKED`, `show` that run. Never reuse a handoff whose `execution` is
-`blocked`. For a `blocked` run whose `BLOCKED` was a user decision, follow the
-previous-decision rule under Verdict and handoff while no authority document
-records it, and, once one does, take the continuation when its conditions
-hold (otherwise run discovery). Otherwise re-run the input gates
-(`**Spec:**` resolution and the required implementation base) and call
-`start` if they pass. A run is reusable when its `execution` is `full`,
-or `degraded` with `focused-role-not-obtained` as its only reason; any other
-`degraded` run's handoff is never reusable, so call `start` for a fresh full
-review. For a reusable run, reuse the prior handoff without a new review only
-when `plan.sha_end` and `design.sha_end` match the current documents,
-`git.head_end` matches the current `HEAD`, and the outer request does not ask
-for a re-review or name changed authority or repository evidence. When only
-the documents changed, take the continuation described under Default mode.
-Otherwise call `start` before semantic review with the skill root, the
-repository, the primary plan, the design path resolved from the plan's
-`**Spec:**` field, the host client id, the host-reported model string (or
-`unknown`), and the mode.
-If `**Spec:**` cannot be resolved, omit `--design` and return `BLOCKED`; the
-recorder does not parse `**Spec:**`. Keep the returned `run_id`
-controller-local and out of user documents. The same lifecycle applies to
-default and `review-only` mode.
+Run `python3 "<skill-root>/evidence/evidence.py" --version`, where
+`<skill-root>` is the directory holding this `SKILL.md`, without installing
+anything. Record only when its JSON says `skill_name=pre-sdd-review` and
+`schema=4`. The command reference, including the `finish` input keys, is in
+`<skill-root>/evidence/README.md`. When compatible, run
+`summary --repo <repo display name>` (the checkout directory's name) before
+`start` and locate this plan in `runs` and `chains`.
 
-After the verdict and any repairs are final, call `finish` once with the
-current repository locator and the review facts on stdin, then print exactly
-one `Evidence:` line: `Evidence: recorded; run_id=<run-id>` or
+### Choose the path
+
+The change list since a prior run is
+`git diff --name-only <git.head_end>` plus
+`git ls-files --others --exclude-standard`. It covers commits, uncommitted
+edits, and untracked files. Work down this list and take the first match:
+
+1. **Pending run.** Close any `pending` run for this plan with `abandon
+   --repo <checkout> --reason input-changed` (or `other`) before anything
+   else: a pending run can outlive the invocation that opened it and be
+   mistaken for a new round. If `abandon` fails with `outside-repository`,
+   that run belongs to another checkout; leave it.
+2. **Waiting on a user decision.** The latest completed run is `BLOCKED` on a
+   user decision:
+   - If the outer request gives the decision, it is level-1 authority: record
+     it in the resolved design (the only repair allowed here).
+   - If it is now recorded (by that repair or in an authority document), take
+     the continuation when the change list holds only the resolved design,
+     plan, and ledger paths; otherwise run discovery.
+   - Otherwise dispatch no reviewer and make no repair: print the same
+     checkpoint and stop. Call no `start`; print `Evidence: not_recorded;
+     reason=previous-decision-checkpoint`.
+3. **Nothing changed.** The run's `execution` is reusable, `plan.sha_end` and
+   `design.sha_end` match the current documents, `git.head_end` matches
+   `HEAD`, the change list is empty, and the outer request does not ask for a
+   re-review or name changed authority or repository evidence. Reuse the
+   prior result and handoff without a new review; call no `start`.
+4. **Only the documents changed.** Take the continuation (Default mode) when
+   the latest completed run is `REVISE` with a reusable `execution`, the
+   change list holds only the resolved design, plan, and ledger paths, their
+   diff since the run's `sha_end` can be produced, and the outer request does
+   not ask for a full re-review.
+5. **Otherwise** run discovery. Without a recorded run for this plan there is
+   no reuse and no continuation.
+
+A run is reusable when its `execution` is `full`, or `degraded` with
+`focused-role-not-obtained` as its only reason. A `blocked` run is never
+reused, and neither is any other `degraded` run; for those, re-run the input
+gates and call `start` for a fresh full review.
+
+### Start and finish
+
+Call `start` once the plan path resolves, before any reviewer dispatch, even
+when an input gate is about to return `BLOCKED`:
+
+```sh
+python3 "<skill-root>/evidence/evidence.py" start --skill-root "<skill-root>" \
+  --repo . --plan <plan> --design <design> --client <host-id> \
+  --model <host-reported-model-or-unknown> --mode default|review-only
+```
+
+If `**Spec:**` cannot be resolved, omit `--design`; the recorder does not
+parse `**Spec:**`. `--client` is one of `codex`, `claude-code`, `cursor`,
+`grok`, `other`, `unknown`. In a campaign, pass the ledger path with
+`--ledger` and each preceding plan with a repeated `--prior-plan`. Keep the
+returned `run_id` controller-local and out of user documents. The same
+lifecycle applies to default and `review-only` mode.
+
+After the verdict and any repairs are final, call `finish --run-id <id>
+--repo .` once with the review facts as one JSON object on stdin, then print
+exactly one `Evidence:` line: `Evidence: recorded; run_id=<run-id>` or
 `Evidence: not_recorded; reason=<code>`. An unavailable, malformed,
 incompatible, or permission-failing recorder must continue the review and
 never changes the semantic verdict. If the invocation ends before `finish`,
 call `abandon` with one of `user-cancelled`, `input-changed`, `scope-changed`,
-`input-format-fixed`, or `other`; never leave a run pending. If the same `repo`
-display name and plan path are `pending`, close that run with `other` or
-`input-changed` before a new `start`.
+`input-format-fixed`, or `other`; never leave a run pending.
 
-The recorder reads only schema 4. A record left by an earlier recorder
-(schema 2 or 3) fails every command with `schema-unsupported`, cannot be
-closed, and never blocks `start`; leave it and start a new run. `summary`
-skips it and counts it in `unsupported_records`.
+`review_passes` counts reviewer dispatch rounds in this run: discovery is one,
+each closure is one. It is `0` only for a `BLOCKED` run that dispatched no
+reviewer (with `reviewers: 0`).
 
-Recording an `outcome` is not a controller duty. After SDD or implementation
-ends, the user or the SDD worker may record one label (`good`, `false-ready`,
-`noisy`, `abandoned`) for the run. Never store a full reviewer response or
-source body in evidence; use bounded paraphrases only.
+A schema 2 or 3 record from an earlier recorder fails with
+`schema-unsupported` and never blocks `start`; leave it and start a new run.
+Recording an `outcome` (`good`, `false-ready`, `noisy`, `abandoned`) is not a
+controller duty; the user or the SDD worker may record one after SDD. Never
+store a full reviewer response or source body in evidence; use bounded
+paraphrases only.
 
 A finding record carries `id`, `severity`, `class`, `pattern`, `status`,
 `source`, `repair_pass`, `location` (`path`, `locator`), `evidence`,
-`consequence`, and `fix`. `evidence` is a list of repository-relative paths,
-not prose. Pass the ledger path with `--ledger` and each preceding plan with a
-repeated `--prior-plan` on `start`.
+`consequence`, and `fix`. `status` is `repaired`, `partially-closed`, or
+`unresolved`. `pattern` is a short lowercase slug the controller assigns to
+the defect shape, such as `closed-list-one-face`; keep the same slug for the
+same shape across rounds. `evidence` is a list of repository-relative paths,
+not prose.
 
 ## Select reviewers
 
 Dispatch one fresh, independent, read-only reviewer using the
-[reviewer protocol](references/reviewer-protocol.md). A second fresh reviewer
-is conditional, not routine: dispatch one focused reviewer only for framework
-or runtime removal; schema migration or data deletion; authentication,
-authorization, or security boundaries; public/private data-boundary changes;
-or external side effects such as publishing, billing, messaging, or production
-mutations. It examines only the triggered risk class.
+[reviewer protocol](references/reviewer-protocol.md). Use the host's subagent
+facility (a Codex subagent, or the Claude Code Agent tool) and state in the
+instruction that the reviewer is read-only. Only Codex is a measured host; on
+any other host, record its real id with `--client`.
+
+A second fresh reviewer is conditional, not routine: dispatch one focused reviewer only for
+framework or runtime removal; schema migration or data deletion;
+authentication, authorization, or security boundaries; public/private
+data-boundary changes; or external side effects such as publishing, billing,
+messaging, or production mutations. It examines only the triggered risk class.
 
 The controller deduplicates all findings by evidence and consequence before
 repair. Reviewers never edit files.
@@ -206,22 +264,27 @@ accept a summary as findings.
 
 Across the entire invocation, use at most two review roles: one primary role
 and, when triggered, one focused risk role. The focused risk role is required
-only in an invocation that runs discovery; closure rounds and continuations do
-not dispatch it. A fresh re-review may replace the agent in either role, but
-it does not add a review role or broaden the triggered risk class. Evidence
-`reviewers` (0–2) counts distinct agents obtained for these logical roles, not
-intended roles and not cumulative fresh agent calls; a `full` run expects 2
-when a trigger applies and 1 otherwise. If a fresh independent primary reviewer
-cannot be obtained, return `BLOCKED`. Do not use the controlling agent as a
-substitute independent primary and do not run a short degraded round in its
-place. If the host can supply only k fresh agents, run discovery in waves of
-k. Do not reuse an agent across plans to fill a wave. Do not bind a later
-`READY` to a preceding plan. Never reuse one agent across invocations that
-review different plans: that is not reuse, it is loss of independence. A
-reused role is `execution=degraded` and its handoff is never reusable. When
-the focused risk role was triggered but not dispatched or not obtained, the
-run is `execution=degraded` with `focused-role-not-obtained`; that reason
-alone does not bar reuse or continuation.
+only in an invocation that runs discovery. Closure rounds and continuations
+do not dispatch it, and a run with no discovery records `trigger: null`. A
+fresh re-review may replace the agent in either role, but it does not add a
+review role or broaden the triggered risk class. Evidence `reviewers` (0–2)
+counts distinct agents obtained for these logical roles, not intended roles
+and not cumulative fresh agent calls; a `full` run records 2 when a trigger
+applies and 1 otherwise.
+
+If a fresh independent primary reviewer cannot be obtained, return `BLOCKED`.
+Do not use the controlling agent as a substitute independent primary and do
+not run a short degraded round in its place. Reusing one agent for two
+dispatches in this invocation is `execution=degraded` with
+`agent-reused-within-invocation`, and its handoff is never reusable. When the
+focused risk role was triggered in discovery but not obtained, the run is
+`execution=degraded` with `focused-role-not-obtained`; that reason alone does
+not bar reuse or continuation.
+
+Campaign: if the host can supply only k fresh agents, run discovery in waves
+of k. Do not reuse an agent across plans to fill a wave; that is loss of
+independence (`agent-reused-across-plans`), not reuse. Do not bind a later
+`READY` to a preceding plan.
 
 ## Default mode: review -> repair documents -> scoped re-review
 
@@ -241,30 +304,10 @@ resolve plan -> resolve plan **Spec:** -> read binding references
 -> READY | REVISE | BLOCKED
 ```
 
-When the outer request names two or more plans, after the pre-pass:
-
-1. Discovery in host-sized waves of fresh agents. Discoveries of different plans may overlap. No verdict.
-2. Serial repair in execution order. Update dirty from each delta.
-3. Closure only for repaired or dirty plans, in parallel up to the host cap.
-4. At most one more serial repair + closure per plan. Then plan-local verdicts.
-
-A preceding plan that is `BLOCKED` does not stop later discovery. Do not bind
-a later `READY` to a preceding plan.
-
-Dirty is controller-local campaign state, not a record field and not worktree
-dirty. After repairing plan i, Δ is the union of changed resolved design,
-plan, and ledger fingerprints; repair-impact map symbols, paths, commands,
-and consumers; and paths cited by repaired findings. Plan j is dirty when i
-precedes j and either Δ intersects j's read set or a shared design j depends
-on changed. j's read set is the resolved design, plan, and ledger paths and
-hashes, `Files:` paths, preceding-plan paths, and discovery-record `evidence`
-paths. Paths not in `Files:` are not in this dirty set; those holes are
-machine-checked.
-
 After the first review, repair only findings that have an
 authority-preserving document correction. If the first review has zero findings
-and the plan is not dirty, skip repair and closure and return `READY`.
-A dirty plan still takes scoped closure.
+and the plan is not stale, skip repair and closure and return `READY`.
+A stale plan still takes scoped closure.
 `repair_passes` counts every repair pass the controller applied, whether or not
 its closure closed anything. Pre-pass ledger and machine-check repairs keep
 `repair_pass: 0` and are not a pass. Write `repaired` only when a closure
@@ -303,14 +346,13 @@ interfaces. This is not a new full review.
 
 During scoped re-review, a material finding is eligible for the current repair
 only when its source is an original finding or a direct mapped repair impact.
-Keep an unmapped material finding visible, but do not widen the current repair.
-A finding whose `class` and pattern match an original record is not unmapped,
-even at a different location. It shows the original record's Location was
-incomplete: widen that Location and repair it inside the same pass. Only a new
-defect shape is unmapped.
-End the invocation, include it in the unresolved handoff, and apply the existing
-verdict rules: `BLOCKED` when new authority, input, or repository evidence is
-required; otherwise `REVISE`.
+A finding whose `class` and `pattern` match an original record is not
+unmapped, even at a different location. It shows the original record's
+Location was incomplete: widen that Location and repair it inside the same
+pass. Only a new defect shape is unmapped. An unmapped material finding ends
+the invocation: repair nothing more, put it in the unresolved handoff, and
+apply the existing verdict rules (`BLOCKED` when new authority, input, or repository
+evidence is required; otherwise `REVISE`).
 
 An optional second repair is allowed only when that re-review finds another
 eligible repairable material defect. Before it, deduplicate remaining findings,
@@ -327,24 +369,9 @@ loop.
 
 ### Continuation after `REVISE` or `BLOCKED`
 
-A continuation replaces discovery with closure. Take it when all hold:
-
-- The recorder's latest completed run for this plan has verdict `REVISE` with
-  a reusable `execution`, or verdict `BLOCKED` on a user decision that the
-  changed documents now record.
-- `git diff --name-only <git.head_end> HEAD` lists only the resolved design,
-  plan, and ledger paths. This chooses between continuation and discovery; it
-  does not narrow `head_changed_during_review` during a review.
-- The diff of those documents since the run's `sha_end` can be produced, from
-  this conversation or from Git.
-- The outer request does not ask for a full re-review.
-
-Otherwise run discovery. Without a recorded run for this plan there is no
-continuation. The previous-decision rule in the verdict section still applies
-first.
-
-Call `start`, then dispatch one fresh read-only reviewer with the closure
-dispatch, whose repair diff is the document diff since the prior run's
+A continuation replaces discovery with closure; Choose the path decides when
+to take it. Call `start`, then dispatch one fresh read-only reviewer with the
+closure dispatch, whose repair diff is the document diff since the prior run's
 `sha_end`. Its open records are the prior unresolved handoff packet when this
 conversation holds it, else the prior run's recorded findings from `show`;
 their `id`, `severity`, `class`, `location`, and `evidence` are exact.
@@ -352,20 +379,44 @@ Reading a prior run's recorded findings as open records is not reusing its
 handoff: the continuation reviews them again. Keep the prior finding IDs. A
 carried record keeps its `id`, `severity`, and `class`. When closure finds a
 remainder of a different severity or class, close or keep the carried record
-on its own terms and record the remainder as a new record with a new ID. The
-flow then continues as after an original closure review: repair, closure,
-the residual pass, verdict. Continuations are not capped: text outside the
-diff already passed one discovery, and closure's bounded regression covers
-the diff.
+on its own terms and record the remainder as a new record with a new ID.
+
+The flow then continues as after an original closure review: repair, closure,
+the residual pass, verdict. A continuation is its own run: it counts its
+passes from 1 and keeps the two-plus-residual cap. Only the number of
+continuations is uncapped: text outside the diff already passed one
+discovery, and closure's bounded regression covers the diff.
+
+### Campaign schedule
+
+When the outer request names two or more plans, after the pre-pass:
+
+1. Discovery in host-sized waves of fresh agents. Discoveries of different plans may overlap. No verdict.
+2. Serial repair in execution order. Update stale plans from each delta.
+3. Closure only for repaired or stale plans, in parallel up to the host cap.
+4. At most one more serial repair + closure per plan, plus the residual pass. Then plan-local verdicts.
+
+A preceding plan that is `BLOCKED` does not stop later discovery. Do not bind
+a later `READY` to a preceding plan.
+
+Stale is controller-local campaign state, not a record field and not the
+worktree's dirty flag. After repairing plan i, Δ is the union of changed
+resolved design, plan, and ledger fingerprints; repair-impact map symbols,
+paths, commands, and consumers; and paths cited by repaired findings. Plan j
+is stale when i precedes j and either Δ intersects j's read set or a shared
+design j depends on changed. j's read set is the resolved design, plan, and
+ledger paths and hashes, `Files:` paths, preceding-plan paths, and
+discovery-record `evidence` paths.
+Paths not in `Files:` are not in this stale set; those holes are machine-checked.
 
 ## Review-only mode
 
 `review-only` is explicit. Make no file changes, use the same fresh read-only
 review and controller deduplication, and return the first review's verdict.
 
-Named multi-plan `review-only` may overlap discoveries. It still makes no
-file changes and returns each plan's first-review verdict. There is no
-repair epoch and no dirty set.
+Campaign `review-only` may overlap discoveries. It still makes no file
+changes and returns each plan's first-review verdict. There is no repair and
+no stale set.
 
 ## Repair rules
 
@@ -387,9 +438,9 @@ approval requests.
 
 ### Machine checks
 
-Run these in the pre-pass over every plan at once, and again over the
-repaired documents before dispatching the closure reviewer, attaching the
-second run's results to the `repair-impact map`.
+Run these in the pre-pass over every plan at once, and in every invocation
+over the repaired documents before dispatching a closure reviewer. Pass the
+results to the closure reviewer as their own dispatch item.
 
 1. A declared count against the counted one: a task's stated passing count
    against its actual tests, a closed list's stated membership against its
@@ -430,28 +481,13 @@ as complete.
 
 Do not automatically start another invocation after `REVISE` or `BLOCKED`.
 A later invocation requires an explicit outer request or changed document,
-authority, or repository evidence. When none changed, reuse the prior handoff
-instead of repeating the same review, subject to the reuse rule above: never
-for an `execution=blocked` run or a `degraded` run with any reason besides
-`focused-role-not-obtained`, and for a reusable run only when the documents,
-`HEAD`, and the request are all unchanged. When only the documents changed,
-take the continuation described under Default mode instead.
+authority, or repository evidence; Choose the path decides what it runs.
 
-When this plan's previous run is `BLOCKED` on a user decision that no
-authority document records yet, dispatch no reviewer and make no repair: print
-the same checkpoint and stop. Call no `start`; print `Evidence: not_recorded;
-reason=previous-decision-checkpoint`. Once the decision is recorded, take
-the continuation when its conditions hold. Other plans continue. When this
-run would end `BLOCKED` on a new product decision and the two preceding runs
-of this plan in the recorder's chain did too, the handoff sends the design
-back to be finished with all remaining decisions at once, and says the next
-invocation should wait for that. Without a chain, report the count you know
-and do not stop on it.
-
-Include a compact pass receipt in the final report: input and final document
-hashes, pass number, finding IDs/classes, triggered repair-impact categories,
-changed document hashes, and verdict. Do not persist user documents or full
-model responses merely to create the receipt.
+When this run would end `BLOCKED` on a new product decision and the two
+preceding runs of this plan in the recorder's chain did too, the handoff sends
+the design back to be finished with all remaining decisions at once, and says
+the next invocation should wait for that. Without a chain, report the count
+you know and do not stop on it. Other plans continue.
 
 For `READY`, print the exact resolved design and plan paths and their final
 fingerprints, together with the freshness record. Print the `anomalies` list
@@ -460,6 +496,19 @@ that `finish` returned for this run as `Anomalies: <names>`, or
 `finish` failed, print `Anomalies: not_recorded`. Do not look this run up in
 a windowed `summary`. Anomalies do not change the verdict. Do not start SDD unless the outer request explicitly asks for implementation. In that combined request,
 hand the SDD worker the final repaired documents, not the pre-review copies.
+
+Include a compact pass receipt in the final report. Do not persist user
+documents or full model responses merely to create it. Print the final report
+in this order:
+
+```text
+Verdict: READY | REVISE | BLOCKED
+Freshness: design <path> <sha256>; plan <path> <sha256>; HEAD <sha|unborn>; worktree clean|dirty; baseline; ledger; reviewed_at <UTC>
+Receipt: input and final document hashes; review_passes; repair_passes; finding IDs with class and status; triggered repair-impact categories
+Handoff: the unresolved handoff packet (REVISE and BLOCKED only)
+Evidence: recorded; run_id=<id> | not_recorded; reason=<code>
+Anomalies: <names> | none | not_recorded (READY only)
+```
 
 ## Do not use this skill for
 
@@ -470,7 +519,7 @@ proofread, publish a release, or make an accepted product decision.
 ## Red flags
 
 - Resume a reviewer by naming findings, paths, symbols, or fixes
-- Start a new review when documents, `HEAD`, and the request are all unchanged since a reusable REVISE run
+- Start a new review when documents, `HEAD`, the change list, and the request are all unchanged since a reusable run
 - Reuse a handoff from an `execution=blocked` run, or reuse any handoff on document hashes alone
 - Dispatch a second reviewer, or record `reviewers: 2`, with no risk trigger
 - Return or accept a finding summary instead of complete PSDR records
@@ -485,7 +534,8 @@ proofread, publish a release, or make an accepted product decision.
 - Overlap repairs of two plans on one host
 - Reuse a reviewer to fill a discovery wave
 - Print READY after HEAD moved from the freeze
-- Skip closure for a dirty plan with zero discovery findings
+- Skip closure for a stale plan with zero discovery findings
 - Dispatch a reviewer while the plan waits on an unanswered user decision
 - Return `READY` when the last action was a repair
 - Run a fresh discovery when a continuation applies
+- Take a continuation while the change list names a file outside the design, plan, and ledger

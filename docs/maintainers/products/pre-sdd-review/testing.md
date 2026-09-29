@@ -17,7 +17,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
 
 This runs `test_contract.py` (package identity, instructions, fixtures,
 activation boundary) together with `test_campaign_schedule.py` (discovery
-waves, serial repairs, dirty propagation). It does not include the evidence
+waves, serial repairs, stale propagation). It does not include the evidence
 suite. It does not prove live review, semantic quality, or equal support on
 other hosts.
 
@@ -91,7 +91,7 @@ in fixtures, test logs, or committed live records.
 - `baseline-reconstruction-required`
 - `partial-closure-not-a-new-finding`
 - `degraded-handoff-not-reused`
-- `zero-findings-but-dirty`
+- `zero-findings-but-stale`
 - `closure-requires-repair-diff`
 - `host-limit-waves-not-reuse`
 - `head-break-no-ready`
