@@ -1,0 +1,3 @@
+# production (deployed by the ops pipeline; values come from here, not from env)
+port = 8080
+allowed_callers = ["console"]

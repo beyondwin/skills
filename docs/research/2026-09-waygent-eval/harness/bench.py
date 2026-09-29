@@ -13,6 +13,11 @@ ROOT = Path(__file__).resolve().parent
 REPO_SKILLS = Path(os.environ.get("WAYGENT_REPO", Path(__file__).resolve().parents[4]))  # repo root
 SUPERPOWERS = Path.home() / ".agents/plugins/superpowers"
 TAG = os.environ.get("BENCH_TAG", "main")
+# BENCH_FIXTURE=app selects the multi-layer app task (fixture-app, hidden-app); default is the 10-Task library.
+# BENCH_FIXTURE=app2 is the same app with the traps' rules left out of the design (code, data and config only).
+FIXTURE = os.environ.get("BENCH_FIXTURE", "")
+SUFFIX = f"-{FIXTURE}" if FIXTURE else ""
+PACKAGE = "usage" if SUFFIX else "promptops"
 TURN_TIMEOUT = 150 * 60
 MAX_CONTINUES = 3
 AWAY = " 나는 자리를 비우니 중간에 묻지 말고 끝까지 진행해."
@@ -21,6 +26,7 @@ PROMPTS = {
     "superpowers": "superpowers:subagent-driven-development 로 docs/plan.md 계획을 끝까지 실행해줘." + AWAY,
     "waygent": "/waygent docs/plan.md" + AWAY,
     "both": "/waygent docs/plan.md" + AWAY,
+    "waygent_010": "/waygent docs/plan.md" + AWAY,  # bench-only variant: the 0.1.0 text, for before/after
     "waygent_fo": "/waygent docs/plan.md" + AWAY,  # bench-only variant: no per-task review  # superpowers also installed: does its hook hijack /waygent?
 }
 RESUME_PROMPTS = {
@@ -29,6 +35,7 @@ RESUME_PROMPTS = {
     "waygent": "/waygent docs/plan.md 세션이 끊겼어. 이어서 해줘." + AWAY,
     "both": "/waygent docs/plan.md 세션이 끊겼어. 이어서 해줘." + AWAY,
     "waygent_fo": "/waygent docs/plan.md 세션이 끊겼어. 이어서 해줘." + AWAY,
+    "waygent_010": "/waygent docs/plan.md 세션이 끊겼어. 이어서 해줘." + AWAY,
 }
 CONTINUE = "계속 진행해. 계획의 모든 Task를 끝까지 구현해줘."
 MODULES = ["session.py", "batch.py", "workspace.py", "candidates.py"]
@@ -42,7 +49,7 @@ def setup(run_dir, cond):
     if run_dir.exists():
         shutil.rmtree(run_dir)
     repo = run_dir / "repo"
-    shutil.copytree(ROOT / "fixture", repo)
+    shutil.copytree(ROOT / ("fixture" + SUFFIX), repo)
     for c in ["git init -q -b main", "git config user.name bench-user", "git config user.email bench@example.invalid",
               "git config commit.gpgsign false", "git add -A", "git commit -q -m initial", "git checkout -q -b work"]:
         sh(c, repo)
@@ -52,14 +59,15 @@ def setup(run_dir, cond):
         (home / ".codex").mkdir(parents=True)
         shutil.copy(Path.home() / ".codex" / "auth.json", home / ".codex" / "auth.json")
         (home / ".codex" / "config.toml").write_text("[features]\nmulti_agent = true\n")
-    if cond in ("waygent", "both", "waygent_fo"):
+    if cond in ("waygent", "both", "waygent_fo", "waygent_010"):
         if CODEX:
             # codex exec does not expand a $skill mention for an explicit-only skill, so the
             # bench copy leaves out agents/openai.yaml (the explicit-only policy) and nothing else.
             dst = run_dir / "home" / ".agents" / "skills" / "waygent"
         else:
             dst = repo / (".cursor" if CURSOR else ".claude") / "skills" / "waygent"
-        src = ROOT / "skill-variants" / "waygent-fo" if cond == "waygent_fo" else REPO_SKILLS / "skills" / "waygent"
+        variants = {"waygent_fo": "waygent-fo", "waygent_010": "waygent-0.1.0"}
+        src = ROOT / "skill-variants" / variants[cond] if cond in variants else REPO_SKILLS / "skills" / "waygent"
         shutil.copytree(src, dst,
                         ignore=shutil.ignore_patterns("README*", "CHANGELOG.md", "release.toml", "LICENSE.txt",
                                                       *(["agents"] if CODEX else [])))
@@ -109,6 +117,10 @@ def task3_done(repo):
 
 def plan_complete(repo):
     """Every task's module exists and the last task's API is present (not a judgment of quality)."""
+    if SUFFIX:
+        pk = repo / "usage"
+        return ("usage_summary" in (pk / "server.py").read_text() and "blocked_by" in (pk / "client.py").read_text()
+                and "allowed_callers" in (pk / "config.py").read_text())
     pk = repo / "promptops"
     if not all((pk / f).exists() for f in MODULES):
         return False
@@ -243,7 +255,7 @@ def score(repo, run_dir):
         shutil.rmtree(work)
     shutil.copytree(repo, work, ignore=shutil.ignore_patterns(".git", ".claude", ".cursor", ".waygent"))
     hid = work / "_hidden"
-    shutil.copytree(ROOT / "hidden", hid)
+    shutil.copytree(ROOT / ("hidden-app" if SUFFIX else "hidden"), hid)
     res = {}
     for f in sorted(hid.glob("test_*.py")):
         p = subprocess.run([sys.executable, "-m", "unittest", "-v", f"_hidden.{f.stem}"], cwd=work,
@@ -255,19 +267,20 @@ def score(repo, run_dir):
     own = subprocess.run([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-t", "."], cwd=work,
                          capture_output=True, text=True, timeout=300)
     m = re.search(r"Ran (\d+) test", own.stderr)
-    src = "\n".join(p.read_text() for p in (work / "promptops").glob("*.py") if p.name != "concurrency.py")
+    src = "\n".join(p.read_text() for p in (work / PACKAGE).glob("*.py") if p.name != "concurrency.py")
     return {
         "hidden": res,
         "hidden_pass": sum(v == "ok" for v in res.values()),
-        "hidden_total": 64,
+        "hidden_total": sum(f.read_text().count("\n    def test_") for f in hid.glob("test_*.py")),
+        "trap_pass": sum(v == "ok" for k, v in res.items() if "_trap_" in k),
         "x_pass": sum(v == "ok" for k, v in res.items() if k.startswith("test_x_")),
         "edge_pass": sum(v == "ok" for k, v in res.items() if "_edge_" in k and not k.startswith("test_x_")),
         "basic_pass": sum(v == "ok" for k, v in res.items() if "_basic_" in k),
         "own_tests": int(m.group(1)) if m else 0,
         "own_suite_ok": own.returncode == 0,
         "semaphores_outside_helper": len(re.findall(r"Semaphore\(", src)),
-        "uses_retry_async": sorted(p.name for p in (work / "promptops").glob("*.py") if "retry_async" in p.read_text() and p.name != "retry.py"),
-        "uses_gather_limited": sorted(p.name for p in (work / "promptops").glob("*.py") if "gather_limited" in p.read_text() and p.name != "concurrency.py"),
+        "uses_retry_async": sorted(p.name for p in (work / PACKAGE).glob("*.py") if "retry_async" in p.read_text() and p.name != "retry.py"),
+        "uses_gather_limited": sorted(p.name for p in (work / PACKAGE).glob("*.py") if "gather_limited" in p.read_text() and p.name != "concurrency.py"),
     }
 
 
@@ -290,7 +303,7 @@ def main():
     CURSOR = model in CURSOR_MODELS
     CODEX = model in CODEX_MODELS
     kill_after = "--kill-after-task" in sys.argv
-    name = f"{cond}-{model}-{rep}" + ("-resume" if kill_after else "")
+    name = f"{cond}-{model}-{rep}" + SUFFIX + ("-resume" if kill_after else "")
     run_dir = ROOT / "runs" / TAG / name
     repo = setup(run_dir, cond)
     meta = {"cond": cond, "model": model, "rep": rep, "resume_test": kill_after, "sessions": [], "turns": []}
@@ -330,7 +343,7 @@ def main():
     meta["score"] = score(repo, run_dir)
     (run_dir / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1))
     s = meta["score"]
-    print(f"{name}: hidden {s['hidden_pass']}/{s['hidden_total']} edge {s['edge_pass']} cost ${meta['cost_usd']} wall {meta['wall_s']}s "
+    print(f"{name}: hidden {s['hidden_pass']}/{s['hidden_total']} edge {s['edge_pass']} trap {s['trap_pass']} cost ${meta['cost_usd']} wall {meta['wall_s']}s "
           f"agents {sum(len(t['agents']) for t in meta['turns'])} main_commits {meta['git']['main_commits_after_initial']}")
 
 

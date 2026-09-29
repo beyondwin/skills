@@ -34,6 +34,11 @@ design came from and how it did when we ran it.
    unset and inherit it ([results, section 11](results.md)).
 6. **Switching models was expensive.** fable cost 2.8-3.5x as much as opus for the same result.
    Cursor grok-4.7 followed the skill as written but was very slow.
+7. **0.2.0 on a multi-layer app task (n=1-2).** When the design stated the rules, every
+   condition caught every trap. With the rules left out, a missing key in the prod config slipped
+   through in 1 of 2 vanilla and 1 of 2 0.1.0 runs, and in 0 of 2 0.2.0 runs. The 0.2.0 runs fixed
+   it during the task, so this does not show the new final-review wording as the cause
+   ([results, section 12](results.md)).
 
 ## What went into the skill and what was left out
 
@@ -71,6 +76,7 @@ BENCH_TAG=mine python3 bench.py vanilla opus 1      # condition model run
 BENCH_TAG=mine python3 bench.py waygent opus 1
 BENCH_TAG=mine python3 bench.py waygent sol 1       # Codex (gpt-5.6-sol high)
 BENCH_TAG=mine ./run_batch.sh 4 jobs-main.txt        # several at once
+BENCH_FIXTURE=app2 BENCH_TAG=mine ./run_batch.sh 4 jobs-app2.txt   # multi-layer app task
 python3 judge.py mine                                # blind defect grading (needs codex)
 python3 aggregate.py mine && python3 summarize.py mine
 ```

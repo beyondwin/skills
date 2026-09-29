@@ -202,6 +202,48 @@ so `agents/openai.yaml` was removed from the measurement copy only. Numbers are 
 - On Codex too, the fresh per-Task implementer and review found the defect, and the coordinator's
   judgment decided whether it was fixed (the same shape as in Claude Code).
 
+## 12. 0.2.0 and the multi-layer app task (added 2026-09-29)
+
+0.2.0 added final-review blind spots (contract drift between layers, money on failure
+paths, startup config and deploy order), one app check on real data, a fast check in
+`guide.md`, and the no-spawn line in every brief. The 10-Task library cannot show the first
+three, so a small app task was added: `harness/fixture-app` (server, client, mock, TOML
+config, seed data; 3 Tasks) with `harness/hidden-app` (12 tests: 5 basic, 7 traps modeled on
+the 2026-09-28 won-sec-ai defects). The traps: estimated tokens of failed attempts billed,
+per-call rounding, `""` from storage leaking into a `null` contract field, the console not
+sending the `X-Caller` the server now requires while the mock never checks it, and
+`config/prod.toml` missing the new required key. The reference passes 12/12; a plan-literal
+implementation passes its own tests and 6/12 (traps 1/7). `fixture-app2` is the same task
+with the trap rules left out of the design, so they show only in code, data and config.
+
+All runs on Claude Code 2.1.284, opus (final review fable), skill text pinned by sha256
+(0.2.0 `1e26a14a`, 0.1.0 `c64911ae` in `harness/skill-variants/waygent-0.1.0`).
+
+| Task | Condition | Runs | Hidden (of 12) | Missed | Cost each | Minutes each |
+| --- | --- | --- | --- | --- | --- | --- |
+| 10-Task library | waygent 0.2.0 | 1 | 64/64 of 64 | none | $11.38 | 47.5 |
+| app (rules in design) | vanilla | 1 | 12 | none | $0.51 | 2.5 |
+| app (rules in design) | waygent 0.1.0 | 1 | 12 | none | $4.20 | 16.8 |
+| app (rules in design) | waygent 0.2.0 | 1 | 12 | none | $4.61 | 18.2 |
+| app2 (rules left out) | vanilla | 2 | 11, 12 | prod config (1 run) | $0.45-0.48 | 2.0-2.2 |
+| app2 (rules left out) | waygent 0.1.0 | 2 | 12, 11 | prod config (1 run) | $3.61-4.94 | 14.0-17.7 |
+| app2 (rules left out) | waygent 0.2.0 | 2 | 12, 12 | none | $4.82-4.96 | 21.4-24.9 |
+
+- With the rules written in the design, every condition caught every trap at implementation
+  time; this task does not separate conditions.
+- With the rules left out, the only miss was the prod config, in 1 of 2 vanilla runs and 1 of 2
+  0.1.0 runs. In the 0.1.0 miss the controller saw the gap and left it as `note for user:`
+  because the plan scoped Task 3 to `config/dev.toml` (the "outside the task" exit in step 5).
+  Both 0.2.0 runs, and the 0.1.0 run that passed, fixed it by a ruling during Task 3, not in the
+  final review. So n=2 does not attribute the difference to the new final-review wording.
+- Every waygent run, 0.1.0 included, started the real server and console at least once,
+  because the README gives the commands. 0.2.0 wrote the final app walk into progress in 2 of 3
+  app runs. In app1 the subagents left two `usage.server` processes running; the controller
+  stopped them and left an unrelated port alone.
+- No subagent spawned a subagent in any 0.2.0 run; every brief carried the no-spawn line.
+- Time and cost: 0.2.0 took 8% longer than 0.1.0 on app (1 run each) and about 46% longer on
+  app2 (mean of 2), at about 10-15% more cost.
+
 ## Cost totals
 
 - Measurement (Claude Code): $147.41. Main measurement $124.94, reruns after the rule fix $14.46,
@@ -209,6 +251,8 @@ so `agents/openai.yaml` was removed from the measurement copy only. Numbers are 
   counted and are excluded.
 - Design analysis: $3.40 for the two Claude models. Grok and GPT-5.6 Sol report tokens only.
 - Section 11 extra measurement: Claude Code $10.82 (1 opus run). The 3 Codex runs report tokens only.
+- Section 12 (2026-09-29): Claude Code $39.95 (library 1 run $11.38; app 3 runs $9.32; app2 6
+  runs $19.25).
 - Cursor runs and blind scoring (codex, 22 outputs) are not reported in dollars.
 - Same-day isolated gstack rerun from the previous comparison: agent $52.17, simulated user $4.36,
   scoring $1.30.

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Waygent"
+  short_description: "Run a plan with one fresh implementer subagent per task"
+  default_prompt: "Use $waygent to execute this implementation plan task by task."
+policy:
+  allow_implicit_invocation: false

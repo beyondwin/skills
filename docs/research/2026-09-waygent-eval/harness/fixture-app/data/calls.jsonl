@@ -1,0 +1,10 @@
+{"id": "c01", "model": "sol", "started_at": "2026-09-28T10:00:00+00:00", "finished_at": "2026-09-28T10:00:04+00:00", "status": "ok", "input_tokens": 1200, "output_tokens": 300, "estimated": false, "blocked_by": ""}
+{"id": "c02", "model": "sol", "started_at": "2026-09-28T10:01:00+00:00", "finished_at": "2026-09-28T10:01:30+00:00", "status": "failed", "input_tokens": 1200, "output_tokens": 4096, "estimated": true, "blocked_by": ""}
+{"id": "c03", "model": "sol", "started_at": "2026-09-28T10:01:31+00:00", "finished_at": "2026-09-28T10:01:35+00:00", "status": "ok", "input_tokens": 1200, "output_tokens": 310, "estimated": false, "blocked_by": ""}
+{"id": "c04", "model": "nova", "started_at": "2026-09-28T10:02:00+00:00", "finished_at": "2026-09-28T10:02:01+00:00", "status": "ok", "input_tokens": 800, "output_tokens": 120, "estimated": false, "blocked_by": "p-7"}
+{"id": "c05", "model": "nova", "started_at": "2026-09-28T10:03:00+00:00", "finished_at": "2026-09-28T10:03:02+00:00", "status": "ok", "input_tokens": 900, "output_tokens": 150, "estimated": false, "blocked_by": ""}
+{"id": "c06", "model": "sol", "started_at": "2026-09-28T10:04:00+00:00", "finished_at": "2026-09-28T10:04:45+00:00", "status": "failed", "input_tokens": 1500, "output_tokens": 4096, "estimated": true, "blocked_by": ""}
+{"id": "c07", "model": "nova", "started_at": "2026-09-28T10:05:00+00:00", "finished_at": "2026-09-28T10:05:20+00:00", "status": "failed", "input_tokens": 700, "output_tokens": 4096, "estimated": true, "blocked_by": ""}
+{"id": "c08", "model": "sol", "started_at": "2026-09-28T10:06:00+00:00", "finished_at": "2026-09-28T10:06:03+00:00", "status": "ok", "input_tokens": 1000, "output_tokens": 280, "estimated": false, "blocked_by": "p-2"}
+{"id": "c09", "model": "nova", "started_at": "2026-09-28T10:07:00+00:00", "finished_at": "2026-09-28T10:07:01+00:00", "status": "ok", "input_tokens": 650, "output_tokens": 90, "estimated": false, "blocked_by": ""}
+{"id": "c10", "model": "sol", "started_at": "2026-09-28T10:08:00+00:00", "finished_at": "2026-09-28T10:08:02+00:00", "status": "failed", "input_tokens": 1100, "output_tokens": 0, "estimated": false, "blocked_by": ""}
