@@ -175,11 +175,13 @@ requirement. L2 and L4 seed the prior run with `start` and `finish`.
 | L2b | Prior `REVISE`, only the plan changed: continuation keeps IDs | `READY` | `READY` |
 | L3 | Missing required base: `BLOCKED`, `start` called, `review_passes` 0 | `BLOCKED` | `BLOCKED` |
 | L4 | Prior `BLOCKED` decision answered in the request: record it, continue | `READY` | `READY` |
+| L5 | L1 again with nothing changed and the repaired plan uncommitted: reuse, no `start` | `READY` (reused) | `READY` (reused) |
 
 Every run edited only the design or plan, finished with no anomalies, and
 printed the report lines in the specified order. The first L4 run exposed a
 gap (a remainder split off under a new ID was treated as unmapped), which was
-fixed before the recorded L4 runs. n=1 per cell. This is not a quality
+fixed before the recorded L4 runs. L5 ran on the text after the whole-branch
+review fixes. n=1 per cell. This is not a quality
 measurement and does not change the host matrix in
 [Compatibility](compatibility.md).
 
