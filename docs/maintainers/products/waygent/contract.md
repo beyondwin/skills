@@ -47,6 +47,8 @@ brainstorming, writing a spec or plan, a single small fix).
 - `guide.md` splits a fast check from slow suites; the controller reruns only the fast
   check after each task, and the full suite once at the end.
 - A task may take several commits; only its last carries the trailer.
+- A gap that keeps the changed code from starting or deploying is fixed inside the
+  task, never left as a note for the user. The app check stops what it started.
 - No subagent spawns subagents; every brief, reviewers' included, says so.
 - On failure, write down the cause first and retry once. Stop on the second failure.
 - Implementer subagents and per-task reviewers use the controller's model. Do not swap

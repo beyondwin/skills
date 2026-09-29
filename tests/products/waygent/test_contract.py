@@ -78,6 +78,9 @@ class WaygentContractTests(unittest.TestCase):
         self.assertIn("fast check", self.lowered)
         self.assertIn("say so in every brief, reviewers' included", self.lowered)
         self.assertIn("only the task's last one carries the trailer", self.lowered)
+        self.assertIn("starting or deploying", self.lowered)
+        self.assertIn("is never outside the task", self.lowered)
+        self.assertIn("stops what it started", self.lowered)
 
     def test_branch_and_model_contract(self) -> None:
         self.assertIn("never commit to `main` or `master`", self.lowered)

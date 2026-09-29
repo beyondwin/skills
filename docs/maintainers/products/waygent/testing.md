@@ -23,7 +23,8 @@ The required evidence is `python3 scripts/verify.py --skill waygent`. Its stages
 - the Codex rules: `$waygent` in the description, `fork_turns: "none"`, "do not guess
   your model name", and "no subagent spawns subagents of its own"
 - the final-review blind spots (contract drift, failure paths, startup config), the
-  app check on real data, the fast check, and the no-spawn line in every brief
+  app check on real data (stopping what it started), the fast check, the no-spawn line
+  in every brief, and that a start or deploy gap is never outside the task
 - `SKILL.md` under 140 lines
 
 The checks look at a few phrases only. `SKILL.md` is still changing, so no digest or

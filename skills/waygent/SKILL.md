@@ -82,7 +82,8 @@ Otherwise start:
    or signature the plan fixed (async stays async), send the smallest fix that keeps
    them (internal state, an optional keyword, a continuing counter). Only when none
    exists, or the finding is outside the task, write `note for user:` in progress and
-   the report. Put Low findings in progress for the final review. Check as in step 3.
+   the report; a gap that keeps the changed code from starting or deploying is never
+   outside the task. Low findings go in progress for the final review. Check as step 3.
 6. Append `task N: done <sha7> review=<clean|fixed K|skipped> tests=<summary>`.
 
 ## When a task fails
@@ -108,9 +109,9 @@ types, API schema, client types, mocks), money and counts on failure paths, conf
 needed at startup and deploy order, queries at real scale (N+1, missing index), dead
 code, tests that assert nothing. Send in-scope High and Medium to one implementer in
 one batch, test-first, with the same overrule and plan-name rules as step 5. Then, if
-guide.md says how to start the app, that implementer (a fresh one if nothing needed a
-fix) starts it, walks the changed flows on real data, not fixtures, and fixes what it
-finds test-first in the same batch. No second review. Run the full suite once more.
+guide.md says how to start the app, that implementer (or a fresh one) starts it, walks
+the changed flows on real data, not fixtures, fixes what it finds test-first in the
+same batch, and stops what it started. No second review. Run the full suite once more.
 
 ## Models
 
