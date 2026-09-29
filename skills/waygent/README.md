@@ -163,16 +163,34 @@ $waygent docs/plan.md
     reviews/final.md
 ```
 
+**What `progress.md` looks like**: one line per step, including who did the work
+(`model/effort`; `inherit` means the subagent took the session's value).
+
+```text
+task 1: start base=3f2a1c0
+task 1: low: usage/store.py:41 loop reads each row twice
+task 1: done 8c1d2e4 impl=opus/inherit review=fixed 2 reviewer=opus/inherit tests=43 passed
+final: done 9e0f3a1 reviewer=fable/inherit fixed=1 walk=ok tests=47 passed
+```
+
 **When done**: a report of at most 15 lines: tasks and commits, findings fixed or
 overruled, the final test result, and anything not verified.
 
 **When something goes wrong**
 - A failed task gets one written cause and one retry. A second failure stops the run
-  with the reason.
+  with the reason. A red test run after the final fixes is handled the same way.
 - On a usage limit it writes `paused: limit` and stops. Call it again to continue.
-- Uncommitted work is never discarded; the same implementer, or a fresh one if it
-  is gone, continues it. If
-  `.waygent/` is deleted, progress is rebuilt from the `Waygent-Task` commits.
+- If a run is cut off, call it again. Committed tasks are not redone; a task cut off
+  before its review picks up at the review. Uncommitted work is never thrown away.
+  If `.waygent/` is deleted, progress is rebuilt from the `Waygent-Task` commits.
+
+**Reviews**
+- A reviewer's High or Medium is fixed once. The main session may reject one only
+  after running the reviewer's reproduction and seeing the code work.
+- A finding that only questions a decision already recorded (for example, a billing
+  rule) does not change code; it goes to you as a note.
+- Low findings are only written down; the final review sees them, but they are not
+  fixed automatically.
 
 **Models**
 - Implementers and per-task reviewers use this session's model, never a cheaper one.
@@ -180,11 +198,13 @@ overruled, the final test result, and anything not verified.
   goes sonnet → opus → fable; Codex keeps the model and sets `reasoning_effort` to
   `xhigh`. Cursor and Grok Build cannot pick, so they use the same model.
 
-**Not done**: brainstorming or spec phases, re-review loops, parallel implementers,
-a human checkpoint per task, generated docs, edits to `CLAUDE.md` or `AGENTS.md`.
+**App check**: implementers stick to tests and start the app only when their task
+changes how it starts. At the end, if `guide.md` says how to start the app, the final
+fixer starts it once, walks the changed flows on real data, fixes what it finds, and
+stops it.
 
-**App check**: if `guide.md` says how to start the app, the final fixer starts it
-once, walks the changed flows on real data, and fixes what it finds.
+**Not done**: brainstorming or spec phases, re-review loops, parallel implementers,
+a human checkpoint per task, edits to `CLAUDE.md` or `AGENTS.md`.
 
 **Limits**: fixed code is seen again only by the final review. Results depend on the
 model and the plan.

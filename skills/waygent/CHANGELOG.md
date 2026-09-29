@@ -4,6 +4,35 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+### Changed (0.3.0)
+
+Fixes from a three-model review (Fable, Opus, Sonnet) and from reading the 0.2.0 run
+logs:
+
+- `progress.md` records who did the work: `impl=` and `reviewer=` on each task line and
+  `reviewer=` on the final line, as `model/effort`. A value the controller did not set
+  is written `inherit`, never guessed. Low, done, and final lines have fixed formats.
+- A "ruling" can no longer cancel a High or Medium. The controller must run the
+  reviewer's reproduction first, so per-task reviewers now include a one-line
+  reproduction. In a measured 0.2.0 run a correct High was dropped by a ruling.
+- The other way round: a finding that only disputes a recorded ruling, without showing
+  it breaks the plan or design, changes no code and becomes a note for the user. In a
+  0.3.0 test run the final reviewer questioned a correct billing ruling, the controller
+  changed the code, and nothing reviewed it again.
+- Resume: a task that has its commit but no `done` line picks up at its review or fix
+  instead of being marked done. After `git clean -fdx`, `start` is the merge-base and
+  guide.md is written again. `/waygent` alone resumes.
+- Checks: after each task the tree must be clean and the trailer found with
+  `git log --grep`. A red check at step 3 or 5, or a red full suite after the final
+  fixes, goes through the failure path (one retry, then stop).
+- Implementers run the full suite before the trailer commit only, and start the app
+  only when their task changes how it starts (0.2.0 implementers started it 3-5 times
+  per task and left it running). The brief and the reviewer ask now say not to leave
+  a process running.
+- Lows go in the report instead of the final fix batch.
+- Cursor Agent has its own Models line (`Task` with no model). The retry after a
+  failure is always a fresh implementer.
+
 ### Added
 
 - First version. `/waygent [plan-file|request]` runs a plan one task at a

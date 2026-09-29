@@ -69,6 +69,23 @@ class WaygentContractTests(unittest.TestCase):
     def test_review_contract(self) -> None:
         self.assertIn("no re-review", self.lowered)
         self.assertIn("final review, once", self.lowered)
+        self.assertIn("a ruling never cancels a high or medium", self.lowered)
+        self.assertIn("one-line reproduction", self.lowered)
+        self.assertIn("lows go in the report", self.lowered)
+        # The final batch has no re-review, so a disputed ruling must not flip code.
+        self.assertIn("only disputes a recorded ruling", self.lowered)
+
+    def test_resume_and_check_contract(self) -> None:
+        # A cut-off task resumes at its review or fix, not as done.
+        self.assertIn("trailer commit with no `done` line", self.lowered)
+        self.assertIn("the tree is clean", self.lowered)
+        self.assertIn("a failed check at step 3 or 5", self.lowered)
+        self.assertIn("red: retry once, then stop", self.lowered)
+
+    def test_progress_records_model_and_effort(self) -> None:
+        self.assertIn("impl=<m/e>", self.text)
+        self.assertIn("reviewer=<m/e>", self.text)
+        self.assertIn("else `inherit`; never guess", self.text)
 
     def test_final_review_and_check_contract(self) -> None:
         self.assertIn("contract drift between layers", self.lowered)
@@ -77,6 +94,7 @@ class WaygentContractTests(unittest.TestCase):
         self.assertIn("real data, not fixtures", self.lowered)
         self.assertIn("fast check", self.lowered)
         self.assertIn("or leaves a process running", self.lowered)
+        self.assertIn("leave a process running, push", self.lowered)
         self.assertIn("say so in every brief, reviewers' included", self.lowered)
         self.assertIn("only the task's last one carries the trailer", self.lowered)
         self.assertIn("starting or deploying", self.lowered)
@@ -103,6 +121,15 @@ class WaygentContractTests(unittest.TestCase):
         registry = load_registry(ROOT / "products.toml")
         product = next(p for p in registry.products if p.name == "waygent")
         self.assertIn("grok", product.supported_hosts)
+
+    def test_every_registry_host_has_a_models_line(self) -> None:
+        registry = load_registry(ROOT / "products.toml")
+        product = next(p for p in registry.products if p.name == "waygent")
+        labels = {"claude-code": "- Claude Code:", "codex": "- Codex:",
+                  "cursor": "- Cursor Agent:", "grok": "- Grok Build:"}
+        self.assertEqual(set(product.supported_hosts), set(labels))
+        for host in product.supported_hosts:
+            self.assertIn(labels[host], self.raw)
 
     def test_skill_stays_light(self) -> None:
         self.assertLess(len(self.raw.splitlines()), MAX_SKILL_LINES)

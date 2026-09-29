@@ -36,9 +36,20 @@ brainstorming, writing a spec or plan, a single small fix).
 - One fresh implementer subagent per task. Never two at once.
 - Write the test first, watch it fail, then implement (TDD).
 - The last commit of each task carries a `Waygent-Task: N` trailer. On resume, only
-  tasks with a trailer commit reachable from HEAD count as done, and the progress file
-  is brought in line with that.
-- One review per task and one fix, with no re-review.
+  tasks with a trailer commit reachable from HEAD count as done. A task with its
+  commit but no `done` line resumes at its review or fix, not as done.
+- After each task the controller checks that the trailer commit exists, the tree is
+  clean, and the fast check passes. A failed check goes through the failure path.
+- One review per task and one fix, with no re-review. Each finding comes with a
+  one-line reproduction. A ruling never cancels a High or Medium: the controller may
+  overrule one only after running its reproduction. A finding that only disputes a
+  recorded ruling, without showing it breaks the plan or design, changes no code and
+  goes to the user as a note.
+- Low findings are recorded and passed to the final review; they are not fixed in the
+  final batch.
+- `progress.md` records who did each step as `model/effort` (`impl=`, `reviewer=`):
+  the values the controller set in the dispatch, `inherit` for any it left unset.
+  Values are never guessed.
 - One final review of the whole change, only once. It also asks for contract drift
   between layers, money and counts on failure paths, startup config and deploy order,
   and queries at real scale. After its fixes, when `guide.md` says how to start the
@@ -48,7 +59,9 @@ brainstorming, writing a spec or plan, a single small fix).
   check after each task, and the full suite once at the end.
 - A task may take several commits; only its last carries the trailer.
 - A gap that keeps the changed code from starting or deploying is fixed inside the
-  task, never left as a note for the user. The app check stops what it started.
+  task, never left as a note for the user. Implementers start the app only when their
+  task changes how it starts. The app check stops what it started.
+- A red full suite after the final fixes goes through the failure path too.
 - No subagent spawns subagents or leaves a process it started running; every brief,
   reviewers' included, says so.
 - On failure, write down the cause first and retry once. Stop on the second failure.
@@ -57,7 +70,9 @@ brainstorming, writing a spec or plan, a single small fix).
   reviewer and the post-failure retry implementer use a model one tier up. On Codex, no
   model name is written, so children inherit the session model; one tier up sets only
   `reasoning_effort` to `xhigh`. This is because in the 2026-09-27 measurement the Codex
-  controller misidentified its own model and wrote a different one.
+  controller misidentified its own model and wrote a different one. On Grok Build
+  (`spawn_subagent`) and Cursor Agent (`Task`) no model is named, so children use the
+  session model. Every registry host has its own line in the Models section.
 - Do not commit to `main` or `master`. Do not push, merge, or open a PR unless asked.
 - `SKILL.md` stays under 140 lines. Lightness is part of the contract.
 

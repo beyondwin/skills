@@ -25,7 +25,18 @@ The required evidence is `python3 scripts/verify.py --skill waygent`. Its stages
 - the final-review blind spots (contract drift, failure paths, startup config), the
   app check on real data (stopping what it started), the fast check, the no-spawn line
   in every brief, and that a start or deploy gap is never outside the task
+- the Grok rule (`spawn_subagent` with `run_in_background: false`, no `model`) and a
+  Models line for every host in the registry
+- the review rules: a ruling never cancels a High or Medium, a finding that only
+  disputes a ruling changes nothing, a one-line reproduction per finding, and Lows go
+  in the report
+- resume and checks: a trailer commit with no `done` line, a clean tree, a failed check
+  at step 3 or 5, and a red final suite handled as a failure
+- the progress lines record `impl=<m/e>` and `reviewer=<m/e>`, `inherit` when unset
 - `SKILL.md` under 140 lines
+
+`validate_product` also checks that `agents/openai.yaml` sets
+`allow_implicit_invocation: false`.
 
 The checks look at a few phrases only. `SKILL.md` is still changing, so no digest or
 full sentence is pinned.
