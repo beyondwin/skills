@@ -160,6 +160,29 @@ file the controller writes.
 These probes are optional and CI does not require them. One result per case is
 not a model quality measurement.
 
+### Live record, 2026-09-30
+
+Each run used a fresh synthetic Git repository, an empty `PRE_SDD_REVIEW_HOME`,
+and a pinned copy of the skill passed by path (not a native install). Claude
+Code 2.1.284 (`claude -p`, Opus 5.5) and Codex CLI 0.157.1 (`codex exec`). The
+fixture plan names a missing `npm run verify` script and omits an empty-name
+requirement. L2 and L4 seed the prior run with `start` and `finish`.
+
+| Case | What it checks | Claude Code | Codex |
+| --- | --- | --- | --- |
+| L1 | Default flow: find both defects, repair, fresh closure | `READY` | `READY` |
+| L2a | Prior `REVISE`, plan and uncommitted code changed: fresh discovery | `READY` | not run |
+| L2b | Prior `REVISE`, only the plan changed: continuation keeps IDs | `READY` | `READY` |
+| L3 | Missing required base: `BLOCKED`, `start` called, `review_passes` 0 | `BLOCKED` | `BLOCKED` |
+| L4 | Prior `BLOCKED` decision answered in the request: record it, continue | `READY` | `READY` |
+
+Every run edited only the design or plan, finished with no anomalies, and
+printed the report lines in the specified order. The first L4 run exposed a
+gap (a remainder split off under a new ID was treated as unmapped), which was
+fixed before the recorded L4 runs. n=1 per cell. This is not a quality
+measurement and does not change the host matrix in
+[Compatibility](compatibility.md).
+
 Evidence tests use only temporary Git repositories and synthetic skill roots.
 Records never hold source text, raw paths, prompts, transcripts, or
 credentials. `outcome` labels and the normal/anomalous verdict split are

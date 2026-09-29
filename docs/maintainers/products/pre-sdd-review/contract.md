@@ -305,7 +305,8 @@ The next invocation takes the first matching path:
 2. Decision still pending: the last run was `BLOCKED` on a user decision.
    A decision in the outer request is level-1 authority; record it in the
    resolved design as the only repair. Once recorded, continue when the change
-   list is docs-only, otherwise run discovery. While it is unanswered,
+   list is docs-only, otherwise run discovery. Plan text that must change to
+   follow the decision is a direct mapped repair impact. While it is unanswered,
    dispatch no reviewer, make no repair, show the same checkpoint again, do not
    call `start`, and print
    `Evidence: not_recorded; reason=previous-decision-checkpoint`. Other plans
@@ -322,7 +323,7 @@ The next invocation takes the first matching path:
    - Carried records keep their `id`, `severity`, and `class`. If closure finds
      a remainder with a different severity or class, close or keep the carried
      record on its own terms and write the remainder as a new record with a new
-     ID.
+     ID. That remainder is not unmapped; it is eligible for repair.
 5. Otherwise run full discovery. Without a recorded run for this plan there is
    no reuse and no continuation.
 

@@ -172,7 +172,8 @@ edits, and untracked files. Work down this list and take the first match:
      it in the resolved design (the only repair allowed here).
    - If it is now recorded (by that repair or in an authority document), take
      the continuation when the change list holds only the resolved design,
-     plan, and ledger paths; otherwise run discovery.
+     plan, and ledger paths; otherwise run discovery. Plan text that must
+     change to follow the decision is a direct mapped repair impact.
    - Otherwise dispatch no reviewer and make no repair: print the same
      checkpoint and stop. Call no `start`; print `Evidence: not_recorded;
      reason=previous-decision-checkpoint`.
@@ -380,6 +381,8 @@ handoff: the continuation reviews them again. Keep the prior finding IDs. A
 carried record keeps its `id`, `severity`, and `class`. When closure finds a
 remainder of a different severity or class, close or keep the carried record
 on its own terms and record the remainder as a new record with a new ID.
+That remainder's source is the carried record, so it is not unmapped and is
+eligible for repair.
 
 The flow then continues as after an original closure review: repair, closure,
 the residual pass, verdict. A continuation is its own run: it counts its
