@@ -186,7 +186,9 @@ the first match:
    `design.sha_end` match the current documents, `git.head_end` matches
    `HEAD`, the change list is docs-only, and the outer request does not ask
    for a re-review or name changed authority or repository evidence. Reuse
-   the prior result and handoff without a new review; call no `start`.
+   the prior result and handoff without a new review; call no `start`, and
+   print `Evidence: not_recorded; reason=reused-prior-run` and
+   `Anomalies: not_recorded`.
 4. **Only the documents changed.** Take the continuation (Default mode) when
    the latest completed run is `REVISE` with a reusable `execution`, the
    change list is docs-only, the documents' diff since the run's `sha_end` can

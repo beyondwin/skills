@@ -317,7 +317,8 @@ The next invocation takes the first matching path:
 3. Handoff reuse: from a reusable run (`full`, or `degraded` whose only reason
    is `focused-role-not-obtained`), reuse the handoff only when documents,
    `HEAD`, and the request are unchanged and the change list is docs-only. Handoffs of
-   other `degraded` runs and of `blocked` runs are never reused.
+   other `degraded` runs and of `blocked` runs are never reused. A reuse calls no
+   `start` and prints `Evidence: not_recorded; reason=reused-prior-run`.
 4. Continuation: if the last run was a reusable `REVISE`, the change list
    shows only the design, plan, and ledger, and the user did not ask for a full
    re-review, start from closure with no discovery.

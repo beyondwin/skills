@@ -168,6 +168,10 @@ Code 2.1.284 (`claude -p`, Opus 5.5) and Codex CLI 0.157.1 (`codex exec`). The
 fixture plan names a missing `npm run verify` script and omits an empty-name
 requirement. L2 and L4 seed the prior run with `start` and `finish`.
 
+SKILL.md SHA-256 per run: L1-L3 `7311bcca3ed6`, L4 `b1fa0e835e7d` (after the L4
+gap fix below), L5 `d1f9e17280a9` (after the whole-branch review fixes). The
+merged text adds only the reuse `Evidence:` wording on top of L5's.
+
 | Case | What it checks | Claude Code | Codex |
 | --- | --- | --- | --- |
 | L1 | Default flow: find both defects, repair, fresh closure | `READY` | `READY` |
@@ -177,11 +181,12 @@ requirement. L2 and L4 seed the prior run with `start` and `finish`.
 | L4 | Prior `BLOCKED` decision answered in the request: record it, continue | `READY` | `READY` |
 | L5 | L1 again with nothing changed and the repaired plan uncommitted: reuse, no `start` | `READY` (reused) | `READY` (reused) |
 
-Every run edited only the design or plan, finished with no anomalies, and
-printed the report lines in the specified order. The first L4 run exposed a
+Every run edited nothing outside the design and plan, every recorded run
+finished with no anomalies, and every report printed its lines in the
+specified order. The L5 hosts printed different reuse `Evidence:` reasons, so
+the reuse line is now fixed as `reason=reused-prior-run`. The first L4 run exposed a
 gap (a remainder split off under a new ID was treated as unmapped), which was
-fixed before the recorded L4 runs. L5 ran on the text after the whole-branch
-review fixes. n=1 per cell. This is not a quality
+fixed before the recorded L4 runs. n=1 per cell. This is not a quality
 measurement and does not change the host matrix in
 [Compatibility](compatibility.md).
 

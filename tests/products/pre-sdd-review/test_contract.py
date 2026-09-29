@@ -1133,6 +1133,7 @@ class PreSddReviewContractTests(unittest.TestCase):
             "it is level-1 authority. In default mode, record it in the resolved design",
             "`<skill-root>/evidence/README.md`",
             "Verdict: READY | REVISE | BLOCKED",
+            "print `Evidence: not_recorded; reason=reused-prior-run`",
             "Plan text that must change to follow the decision is a direct mapped repair impact",
             "That remainder's source is the carried record, so it is not unmapped",
         ):

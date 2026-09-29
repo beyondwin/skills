@@ -123,7 +123,8 @@ The log is for agents.
   hashes, `git.head_end`, and the request are all unchanged and
   `git diff --name-only <git.head_end>` plus
   `git ls-files --others --exclude-standard` names no path besides the design,
-  plan, and ledger.
+  plan, and ledger. A reuse records nothing and prints
+  `Evidence: not_recorded; reason=reused-prior-run`.
 - When only the design, plan, or ledger changed since a `REVISE` run, or since
   a `BLOCKED` run whose user decision the documents now record, the next
   invocation continues from closure; `show` supplies that run's findings.
