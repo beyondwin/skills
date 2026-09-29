@@ -49,7 +49,7 @@ DEGRADED_REASONS = (
 OUTCOME_LABELS = ("good", "false-ready", "noisy", "abandoned")
 SEVERITIES = ("BLOCKER", "IMPORTANT")
 CLASSES = ("authority-drift", "repo-reality", "coverage", "ordering", "verification-gap")
-FINDING_STATUSES = ("repaired", "partially-closed", "unresolved", "blocked-by-authority", "accepted-as-is")
+FINDING_STATUSES = ("repaired", "partially-closed", "unresolved")
 FINDING_SOURCES = ("reviewer", "ledger-pass", "machine-check")
 FINISH_KEYS = frozenset(
     {
@@ -137,7 +137,11 @@ def read_bounded_bytes(path: Path, limit: int) -> bytes:
 
 
 def read_stdin(stream: TextIO, limit: int) -> object:
-    text = stream.read(limit + 1)
+    try:
+        text = stream.read(limit + 1)
+        text.encode("utf-8")
+    except UnicodeError:
+        fail("schema-invalid", "stdin must be UTF-8 JSON")
     if len(text.encode("utf-8")) > limit:
         fail("schema-invalid", f"stdin exceeds {limit} bytes")
     return parse_json(text.encode("utf-8"), "stdin")
@@ -278,7 +282,10 @@ def scan_records(home: Path) -> tuple[list[dict[str, object]], int, int]:
 
 
 def git(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(["git", "-C", str(root), *args], check=False, capture_output=True, text=True)
+    try:
+        return subprocess.run(["git", "-C", str(root), *args], check=False, capture_output=True, text=True)
+    except OSError:
+        fail("not-git-repository", "git is unavailable")
 
 
 @contextmanager
@@ -291,9 +298,19 @@ def _file_lock(path: Path) -> Iterator[None]:
     try:
         path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
         os.chmod(path.parent, 0o700)
-        descriptor = os.open(path, os.O_RDWR | os.O_CREAT, 0o600)
-        os.fchmod(descriptor, 0o600)
-        fcntl.flock(descriptor, fcntl.LOCK_EX)
+        while True:
+            descriptor = os.open(path, os.O_RDWR | os.O_CREAT, 0o600)
+            os.fchmod(descriptor, 0o600)
+            fcntl.flock(descriptor, fcntl.LOCK_EX)
+            # The holder before us unlinks the file while still locked, so a lock taken
+            # on a file no longer at `path` guards nothing: retry on the current file.
+            try:
+                if os.stat(path).st_ino == os.fstat(descriptor).st_ino:
+                    break
+            except FileNotFoundError:
+                pass
+            os.close(descriptor)
+            descriptor = None
         yield
     except OSError as exc:
         raise EvidenceError(
@@ -301,9 +318,9 @@ def _file_lock(path: Path) -> Iterator[None]:
         ) from exc
     finally:
         if descriptor is not None:
-            os.close(descriptor)
             with suppress(OSError):
                 path.unlink()
+            os.close(descriptor)
 
 
 def _identity_salt(home: Path, *, create: bool) -> bytes:
@@ -463,7 +480,7 @@ def _relative_argument(value: str, name: str) -> str:
     return str(value)
 
 
-def validate_finding(item: object, repair_passes: int) -> dict[str, object]:
+def validate_finding(item: object) -> dict[str, object]:
     if not isinstance(item, dict) or set(item) != FINDING_KEYS:
         fail("schema-invalid", "finding must contain exactly the finding keys")
     identifier = _string(item["id"], "finding.id", 20)
@@ -479,8 +496,6 @@ def validate_finding(item: object, repair_passes: int) -> dict[str, object]:
     repair_pass = item["repair_pass"]
     if repair_pass is not None:
         _integer(repair_pass, "finding.repair_pass", 0, 3)
-        if repair_pass > repair_passes:
-            fail("schema-invalid", "finding.repair_pass exceeds repair_passes")
     location = item["location"]
     if not isinstance(location, dict) or set(location) != {"path", "locator"}:
         fail("schema-invalid", "finding.location must contain path and locator")
@@ -511,11 +526,13 @@ def validate_finish_shape(payload: object) -> dict[str, object]:
     reasons = [str(_enum(item, "degraded_reasons[]", DEGRADED_REASONS)) for item in payload["degraded_reasons"]]
     verdict = _enum(payload["verdict"], "verdict", VERDICTS)
     block_reason = _string(payload["block_reason"], "block_reason", 100, nullable=True)
-    review_passes = _integer(payload["review_passes"], "review_passes", 1, 4)
+    review_passes = _integer(payload["review_passes"], "review_passes", 0, 4)
+    if review_passes == 0 and (execution != "blocked" or reviewers != 0):
+        fail("schema-invalid", "review_passes 0 requires execution blocked with no reviewer")
     repair_passes = _integer(payload["repair_passes"], "repair_passes", 0, 3)
     if not isinstance(payload["findings"], list):
         fail("schema-invalid", "findings must be a list")
-    findings = [validate_finding(item, 3) for item in payload["findings"]]
+    findings = [validate_finding(item) for item in payload["findings"]]
     identifiers = [str(item["id"]) for item in findings]
     if len(set(identifiers)) != len(identifiers):
         fail("schema-invalid", "finding ids must be unique")
@@ -532,16 +549,35 @@ def validate_finish_shape(payload: object) -> dict[str, object]:
     }
 
 
-def validate_finish(payload: object, mode: str) -> dict[str, object]:
-    return validate_finish_shape(payload)
-
-
 def _documents_changed(record: dict[str, object]) -> bool:
-    for name in ("plan", "design"):
+    # A preceding plan's repair may change a shared design; only this plan's own edits count.
+    names = ("plan",) if record["baseline"]["prior_plans"] else ("plan", "design")
+    for name in names:
         document = record[name]
         if isinstance(document, dict) and document["sha_start"] != document["sha_end"]:
             return True
     return False
+
+
+ANOMALY_NAMES = (
+    "blocked_execution_with_nonblocked_verdict",
+    "ready_with_unresolved_findings",
+    "revise_without_unresolved_finding",
+    "blocked_without_reason",
+    "review_only_with_repair",
+    "full_reviewer_count_mismatch",
+    "full_with_degraded_reasons",
+    "degraded_without_reason",
+    "finding_repair_pass_exceeds_total",
+    "repair_without_repaired_finding",
+    "repair_after_last_review",
+    "open_blocker_without_blocked_verdict",
+    "head_changed_during_review",
+    "design_unresolved_but_full_execution",
+    "head_start_not_ancestor_of_head_end",
+    "document_changed_without_repair_pass",
+    "repo_reality_citing_documents_only",
+)
 
 
 def observation_anomalies(record: dict[str, object]) -> list[str]:
@@ -801,6 +837,7 @@ def cmd_start(args: argparse.Namespace, home: Path, cwd: Path) -> dict[str, obje
         "findings": [],
         "outcome": None,
     }
+    validate_record(record, run_id)
     write_record(run_path(home, run_id), record)
     return {"run_id": run_id, "status": "pending"}
 
@@ -812,16 +849,19 @@ def _require_pending(home: Path, run_id: str) -> dict[str, object]:
     return record
 
 
+def _require_checkout(record: dict[str, object], home: Path, cwd: Path, repo: str) -> Path:
+    root = git_root(locator(cwd, repo))
+    if not hmac.compare_digest(checkout_key(root, home, create=False), str(record["repo_key"])):
+        fail("outside-repository", "repository does not match the recorded run")
+    return root
+
+
 def cmd_finish(args: argparse.Namespace, home: Path, cwd: Path, stdin: TextIO) -> dict[str, object]:
     lock = home / "locks" / f"{validate_run_id(args.run_id)}.lock"
     with _file_lock(lock):
         record = _require_pending(home, args.run_id)
-        root = git_root(locator(cwd, args.repo))
-        if not hmac.compare_digest(
-            checkout_key(root, home, create=False), str(record["repo_key"])
-        ):
-            fail("outside-repository", "repository does not match the recorded run")
-        semantic = validate_finish(read_stdin(stdin, RECORD_LIMIT), str(record["mode"]))
+        root = _require_checkout(record, home, cwd, args.repo)
+        semantic = validate_finish_shape(read_stdin(stdin, RECORD_LIMIT))
         head, dirty = git_state(root)
         plan = record["plan"]
         design = record["design"]
@@ -850,10 +890,11 @@ def cmd_finish(args: argparse.Namespace, home: Path, cwd: Path, stdin: TextIO) -
         }
 
 
-def cmd_abandon(args: argparse.Namespace, home: Path) -> dict[str, object]:
+def cmd_abandon(args: argparse.Namespace, home: Path, cwd: Path) -> dict[str, object]:
     lock = home / "locks" / f"{validate_run_id(args.run_id)}.lock"
     with _file_lock(lock):
         record = _require_pending(home, args.run_id)
+        _require_checkout(record, home, cwd, args.repo)
         completed_at = utc_now()
         record["status"] = "abandoned"
         record["abandon_reason"] = args.reason
@@ -898,29 +939,10 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
     statuses: list[str] = []
     classes: list[str] = []
     anomalous_run_ids: set[str] = set()
-    anomalies: dict[str, list[object]] = {
-        "blocked_execution_with_nonblocked_verdict": [],
-        "ready_with_unresolved_findings": [],
-        "revise_without_unresolved_finding": [],
-        "blocked_without_reason": [],
-        "review_only_with_repair": [],
-        "full_reviewer_count_mismatch": [],
-        "full_with_degraded_reasons": [],
-        "degraded_without_reason": [],
-        "finding_repair_pass_exceeds_total": [],
-        "repair_without_repaired_finding": [],
-        "repair_after_last_review": [],
-        "open_blocker_without_blocked_verdict": [],
-        "head_changed_during_review": [],
-        "design_unresolved_but_full_execution": [],
-        "head_start_not_ancestor_of_head_end": [],
-        "document_changed_without_repair_pass": [],
-        "repo_reality_citing_documents_only": [],
-    }
+    anomalies: dict[str, list[object]] = {name: [] for name in ANOMALY_NAMES}
     for record in records:
         run_id = str(record["run_id"])
         plan = record["plan"]
-        design = record["design"]
         assert isinstance(plan, dict)
         findings = record["findings"]
         assert isinstance(findings, list)
@@ -1065,6 +1087,7 @@ def build_parser() -> _Parser:
     finish.add_argument("--repo", required=True)
     abandon = commands.add_parser("abandon", add_help=False)
     abandon.add_argument("--run-id", required=True)
+    abandon.add_argument("--repo", required=True)
     abandon.add_argument("--reason", required=True, choices=ABANDON_REASONS)
     outcome = commands.add_parser("outcome", add_help=False)
     outcome.add_argument("--run-id", required=True)
@@ -1109,7 +1132,7 @@ def main(
         elif args.command == "finish":
             result = cmd_finish(args, home, cwd, stdin)
         elif args.command == "abandon":
-            result = cmd_abandon(args, home)
+            result = cmd_abandon(args, home, cwd)
         elif args.command == "outcome":
             result = cmd_outcome(args, home)
         elif args.command == "show":

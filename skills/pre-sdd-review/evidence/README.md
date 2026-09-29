@@ -51,20 +51,26 @@ such a run fail with `schema-unsupported` and leave the file unchanged.
 ## Locks and commands
 
 Mutations serialize identity creation with `.identity.lock` and a run change
-with `locks/<run-id>.lock`. After the command releases the lock, it removes
-that lock file. These locks require supported OS file locking. Read-only
+with `locks/<run-id>.lock`. A command deletes its lock file while still
+holding the lock; a waiter that then wakes on the deleted file retries on the
+current one, so two commands never hold the same lock. These locks require supported OS file locking. Read-only
 `show`, `summary`, and `--version` do not require locking. Windows is not a
 supported OS; this uses POSIX `fcntl.flock`.
 
 | Command | Arguments | Effect |
 | --- | --- | --- |
 | `--version` | none | Print the canonical schema 4 handshake |
-| `start` | `--skill-root --repo --plan [--design] [--ledger] [--prior-plan ...] --client --model --mode` | Create the identity if needed, hash documents, read Git state, write a checkout-bound `pending` record, print `run_id` |
-| `finish` | `--run-id --repo` and one JSON object on stdin | Require the original checkout binding, recompute end hashes and Git state, validate, write `completed`, print `run_id`, `verdict`, and this run's `anomalies` |
-| `abandon` | `--run-id --reason` | Close a pending run; reason is `user-cancelled`, `input-changed`, `scope-changed`, `input-format-fixed`, or `other` |
+| `start` | `--skill-root --repo --plan [--design] [--ledger] [--prior-plan ...] --client [--model] --mode` | Create the identity if needed, hash documents, read Git state, validate and write a checkout-bound `pending` record, print `run_id` and `status` |
+| `finish` | `--run-id --repo` and one JSON object on stdin | Require the original checkout binding, recompute end hashes and Git state, validate, write `completed`, print `run_id`, `status`, `verdict`, and this run's `anomalies` |
+| `abandon` | `--run-id --repo --reason` | Require the original checkout binding, then close a pending run; reason is `user-cancelled`, `input-changed`, `scope-changed`, `input-format-fixed`, or `other` |
 | `outcome` | `--run-id --label [--note]` | Record `good`, `false-ready`, `noisy`, or `abandoned` on a completed run; may be re-recorded |
 | `show` | `--run-id` | Validate the record, then return its original bytes unchanged |
 | `summary` | `[--repo NAME] [--last N]` | Scan and validate records, then print the aggregate JSON below |
+
+`--client` is `codex`, `claude-code`, `cursor`, `grok`, `other`, or `unknown`.
+`--mode` is `default` or `review-only`. `--model` defaults to `unknown`.
+`--repo` on `start`, `finish`, and `abandon` is a path into the checkout;
+`summary --repo` is the checkout directory's name.
 
 `finish` reads exactly these keys: `execution` (`full`, `degraded`,
 `blocked`), `reviewers` (0–2), `trigger` (`runtime-removal`,
@@ -72,9 +78,16 @@ supported OS; this uses POSIX `fcntl.flock`.
 or null), `degraded_reasons` (list of `primary-role-not-obtained`,
 `focused-role-not-obtained`, `agent-reused-within-invocation`,
 `agent-reused-across-plans`, or `other`), `verdict`, `block_reason`,
-`review_passes` (1–4), `repair_passes` (0–3), and `findings`.
+`review_passes` (0–4; 0 only for `execution` `blocked` with `reviewers` 0),
+`repair_passes` (0–3), and `findings`. Example:
 
-Each finding has `id` (`PSDR-001`), `severity`, `class`, `pattern`, `status`,
+```json
+{"execution":"full","reviewers":1,"trigger":null,"degraded_reasons":[],"verdict":"READY","block_reason":null,"review_passes":1,"repair_passes":0,"findings":[]}
+```
+
+Each finding has `id` (`PSDR-001`), `severity`, `class`, `pattern` (a
+lowercase slug for the defect shape), `status` (`repaired`,
+`partially-closed`, `unresolved`),
 `source` (`reviewer`, `ledger-pass`, `machine-check`), `repair_pass` (null or
 0–3, where `0` marks a pre-pass ledger or machine-check repair), `location`
 (`path`, `locator`), `evidence` (relative paths), `consequence`, and `fix`.
@@ -91,18 +104,23 @@ paths, and required fields are rejected input when invalid. Semantic review
 still follows the verdict, reviewer, finding, and repair rules in
 `references/reviewer-protocol.md`. Structurally valid deviations from those
 rules remain observed values and appear in `anomalies`; the recorder does not
-rewrite or override the semantic verdict.
+rewrite or override the semantic verdict. When a run lists `prior_plans`, a
+changed design is not reported as `document_changed_without_repair_pass`: a
+preceding plan's repair may change a shared design.
 
 ## Reading the log
 
 The log is for agents.
 
 - Before `start`, run `summary --repo <display name>` and find the plan in
-  `runs` and `chains`. Close a same-plan `pending` run.
+  `runs` and `chains`. Close a same-plan `pending` run with `abandon --repo`;
+  `outside-repository` means it belongs to another checkout.
 - A handoff is reusable only from a run whose `execution` is `full`, or
   `degraded` with `focused-role-not-obtained` as its only reason; never from a
   `blocked` run or any other `degraded` run. Reuse it only when its document
-  hashes, `git.head_end`, and the request are all unchanged.
+  hashes, `git.head_end`, and the request are all unchanged and
+  `git diff --name-only <git.head_end>` plus
+  `git ls-files --others --exclude-standard` is empty.
 - When only the design, plan, or ledger changed since a `REVISE` run, or since
   a `BLOCKED` run whose user decision the documents now record, the next
   invocation continues from closure; `show` supplies that run's findings.

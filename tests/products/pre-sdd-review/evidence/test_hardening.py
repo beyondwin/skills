@@ -233,7 +233,7 @@ class TransitionTests(RecorderFixture):
                     for command in ("finish", second_command):
                         arguments = [command, "--run-id", run_id]
                         arguments += (["--repo", str(self.repo)] if command == "finish"
-                                      else ["--reason", "other"])
+                                      else ["--repo", str(self.repo), "--reason", "other"])
                         processes.append(self.child(
                             arguments, json.dumps(finish_payload()) if command == "finish" else ""
                         ))
@@ -347,7 +347,7 @@ class UnsupportedSchemaTests(RecorderFixture):
                     ["finish", "--run-id", run_id, "--repo", str(self.repo)],
                     stdin=finish_payload(),
                 )
-                self.assert_unsupported(["abandon", "--run-id", run_id, "--reason", "other"])
+                self.assert_unsupported(["abandon", "--run-id", run_id, "--repo", str(self.repo), "--reason", "other"])
                 self.assertEqual(path.read_bytes(), before)
 
     def test_every_run_command_refuses_a_retired_completed_record_without_mutation(self) -> None:
@@ -363,7 +363,7 @@ class UnsupportedSchemaTests(RecorderFixture):
                     ["finish", "--run-id", run_id, "--repo", str(self.repo)],
                     stdin=finish_payload(),
                 )
-                self.assert_unsupported(["abandon", "--run-id", run_id, "--reason", "other"])
+                self.assert_unsupported(["abandon", "--run-id", run_id, "--repo", str(self.repo), "--reason", "other"])
                 self.assertEqual(path.read_bytes(), before)
 
     def test_retired_records_do_not_block_a_new_run(self) -> None:
@@ -498,7 +498,7 @@ class ReaderTests(RecorderFixture):
                         self.assertEqual(finish(self.home, self.repo, run_id, finish_payload())[0], 0)
                         self.assertEqual(run(["outcome", "--run-id", run_id, "--label", "good"], home=self.home, cwd=self.repo)[0], 0)
                     elif status == "abandoned":
-                        self.assertEqual(run(["abandon", "--run-id", run_id, "--reason", "other"], home=self.home, cwd=self.repo)[0], 0)
+                        self.assertEqual(run(["abandon", "--run-id", run_id, "--repo", str(self.repo), "--reason", "other"], home=self.home, cwd=self.repo)[0], 0)
                     record = load(self.home, run_id)
                     raw = (json.dumps(record, indent=2) + "\n\n").encode()
                     path = self.home / "runs" / f"{run_id}.json"
@@ -650,7 +650,7 @@ class ReaderTests(RecorderFixture):
         ]
         for payload in payloads:
             with self.subTest(payload=payload):
-                self.assertEqual(evidence.validate_finish(payload, "default"), payload)
+                self.assertEqual(evidence.validate_finish_shape(payload), payload)
                 path = self.put(run_id, {**original, **payload})
                 before = path.read_bytes()
                 code, out, err = run(["show", "--run-id", run_id], home=self.home, cwd=self.repo)

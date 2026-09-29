@@ -330,7 +330,7 @@ class FinishTests(unittest.TestCase):
             "repair-last": (finish_payload(verdict="REVISE", review_passes=1, repair_passes=1, findings=[finding(status="unresolved", repair_pass=1)]), ["repair_after_last_review"]),
             "open-blocker-revise": (finish_payload(verdict="REVISE", review_passes=2, repair_passes=1, findings=[finding(severity="BLOCKER", status="unresolved", repair_pass=1)]), ["open_blocker_without_blocked_verdict"]),
             "partial-blocker-revise": (finish_payload(verdict="REVISE", review_passes=2, repair_passes=1, findings=[finding(severity="BLOCKER", status="partially-closed", repair_pass=1)]), ["open_blocker_without_blocked_verdict"]),
-            "blocker-by-authority": (finish_payload(verdict="BLOCKED", block_reason="decision", findings=[finding(severity="BLOCKER", status="blocked-by-authority", repair_pass=None)]), []),
+            "open-blocker-blocked": (finish_payload(verdict="BLOCKED", block_reason="decision", findings=[finding(severity="BLOCKER", status="unresolved", repair_pass=None)]), []),
             "blocker-repaired-ready": (finish_payload(review_passes=2, repair_passes=1, findings=[finding(severity="BLOCKER")]), []),
             "zero-repair": (finish_payload(), []),
             "v5-0-shape": (finish_payload(review_passes=3, repair_passes=2, findings=[finding(id="PSDR-001", repair_pass=1), finding(id="PSDR-002", repair_pass=2)]), []),
@@ -612,7 +612,7 @@ class AbandonOutcomeShowTests(unittest.TestCase):
 
         abandoned = start(self.home, self.repo, self.skill)
         code, _, err = run(
-            ["abandon", "--run-id", abandoned, "--reason", "other"],
+            ["abandon", "--run-id", abandoned, "--repo", str(self.repo), "--reason", "other"],
             home=self.home,
             cwd=self.repo,
         )
@@ -624,7 +624,7 @@ class AbandonOutcomeShowTests(unittest.TestCase):
         for reason in ("user-cancelled", "input-changed", "scope-changed", "input-format-fixed", "other"):
             with self.subTest(reason=reason):
                 run_id = start(self.home, self.repo, self.skill)
-                code, out, err = run(["abandon", "--run-id", run_id, "--reason", reason], home=self.home, cwd=self.repo)
+                code, out, err = run(["abandon", "--run-id", run_id, "--repo", str(self.repo), "--reason", reason], home=self.home, cwd=self.repo)
                 self.assertEqual(code, 0, err)
                 self.assertEqual(json.loads(out), {"run_id": run_id, "status": "abandoned"})
                 record = load(self.home, run_id)
@@ -633,10 +633,10 @@ class AbandonOutcomeShowTests(unittest.TestCase):
                 self.assertIsNone(record["verdict"])
 
     def test_abandon_rejects_invalid_reason_and_finished_runs(self) -> None:
-        code, _, err = run(["abandon", "--run-id", self.run_id, "--reason", "bored"], home=self.home, cwd=self.repo)
+        code, _, err = run(["abandon", "--run-id", self.run_id, "--repo", str(self.repo), "--reason", "bored"], home=self.home, cwd=self.repo)
         self.assertEqual((code, error_code(err)), (2, "invalid-arguments"))
         self.assertEqual(finish(self.home, self.repo, self.run_id, finish_payload())[0], 0)
-        code, _, err = run(["abandon", "--run-id", self.run_id, "--reason", "other"], home=self.home, cwd=self.repo)
+        code, _, err = run(["abandon", "--run-id", self.run_id, "--repo", str(self.repo), "--reason", "other"], home=self.home, cwd=self.repo)
         self.assertEqual((code, error_code(err)), (2, "already-finished"))
 
     def test_outcome_records_and_overwrites_a_label(self) -> None:
@@ -735,7 +735,7 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(finish(self.home, self.repo, second, finish_payload(verdict="READY", review_passes=2, repair_passes=1, findings=[repaired]))[0], 0)
         self.assertEqual(run(["outcome", "--run-id", second, "--label", "good"], home=self.home, cwd=self.repo)[0], 0)
         abandoned = start(self.home, self.repo, self.skill)
-        self.assertEqual(run(["abandon", "--run-id", abandoned, "--reason", "input-changed"], home=self.home, cwd=self.repo)[0], 0)
+        self.assertEqual(run(["abandon", "--run-id", abandoned, "--repo", str(self.repo), "--reason", "input-changed"], home=self.home, cwd=self.repo)[0], 0)
         pending = start(self.home, self.other, self.skill)
         unresolved_design = start(self.home, self.other, self.skill, design=False)
         self.assertEqual(finish(self.home, self.other, unresolved_design, finish_payload())[0], 0)
