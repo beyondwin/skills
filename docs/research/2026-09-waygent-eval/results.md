@@ -241,6 +241,22 @@ All runs on Claude Code 2.1.284, opus (final review fable), skill text pinned by
   app runs. In app1 the subagents left two `usage.server` processes running; the controller
   stopped them and left an unrelated port alone.
 - No subagent spawned a subagent in any 0.2.0 run; every brief carried the no-spawn line.
+- Rerun with 4 more runs per condition on app2 (0.2.0 text `61367283`, which adds "a start or
+  deploy gap is never outside the task" and "stop what it started"):
+
+  | Condition | Runs | Missed | Mean cost | Mean minutes |
+  | --- | --- | --- | --- | --- |
+  | vanilla | 4 | estimated tokens billed (1), prod config (1) | $0.43 | 1.9 |
+  | waygent 0.1.0 | 4 | none | $3.45 | 13.6 |
+  | waygent 0.2.0 | 4 | none | $5.05 | 22.4 |
+
+  Across both app2 batches (6 runs each): vanilla missed a trap in 3 of 6, 0.1.0 in 1 of 6,
+  0.2.0 in 0 of 6. Both waygent versions run the per-task review; the one 0.1.0 miss came from
+  the "note for user" exit that 0.2.0 closed. 0 vs 1 of 6 is too few to separate. Means of 6:
+  0.1.0 $3.73 and 14.4 minutes, 0.2.0 $4.99 and 22.6 minutes (about 34% more cost, 58% more time).
+- Leftover processes: after the rerun, `usage.server` processes were still running from two
+  0.2.0 runs and two vanilla runs. In the 0.2.0 runs a Task 2 implementer and a Task 3 reviewer
+  started them, not the final app check, so the rule was widened to every subagent.
 - Time and cost: 0.2.0 took 8% longer than 0.1.0 on app (1 run each) and about 46% longer on
   app2 (mean of 2), at about 10-15% more cost.
 
@@ -252,7 +268,7 @@ All runs on Claude Code 2.1.284, opus (final review fable), skill text pinned by
 - Design analysis: $3.40 for the two Claude models. Grok and GPT-5.6 Sol report tokens only.
 - Section 11 extra measurement: Claude Code $10.82 (1 opus run). The 3 Codex runs report tokens only.
 - Section 12 (2026-09-29): Claude Code $39.95 (library 1 run $11.38; app 3 runs $9.32; app2 6
-  runs $19.25).
+  runs $19.25); rerun 12 runs $35.70; effort-inheritance probes about $1.
 - Cursor runs and blind scoring (codex, 22 outputs) are not reported in dollars.
 - Same-day isolated gstack rerun from the previous comparison: agent $52.17, simulated user $4.36,
   scoring $1.30.

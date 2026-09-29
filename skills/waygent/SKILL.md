@@ -118,8 +118,8 @@ same batch, and stops what it started. No second review. Run the full suite once
 Implementers and per-task reviewers run on the same model and effort as this session.
 Never switch to a cheaper model or lower effort. Go one tier up in exactly two places:
 the final reviewer, and the retry after a failure. At the top tier, or when the host
-cannot pick, use your own. No subagent spawns subagents of its own; say so in every
-brief, reviewers' included.
+cannot pick, use your own. No subagent spawns subagents of its own or leaves a process
+running; say so in every brief, reviewers' included.
 
 - Claude Code: name the model in every dispatch; tiers are sonnet, opus, fable.
 - Codex: spawn with `fork_turns: "none"`, `model` and `reasoning_effort` unset so the

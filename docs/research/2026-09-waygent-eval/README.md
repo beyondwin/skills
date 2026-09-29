@@ -34,11 +34,11 @@ design came from and how it did when we ran it.
    unset and inherit it ([results, section 11](results.md)).
 6. **Switching models was expensive.** fable cost 2.8-3.5x as much as opus for the same result.
    Cursor grok-4.7 followed the skill as written but was very slow.
-7. **0.2.0 on a multi-layer app task (n=1-2).** When the design stated the rules, every
-   condition caught every trap. With the rules left out, a missing key in the prod config slipped
-   through in 1 of 2 vanilla and 1 of 2 0.1.0 runs, and in 0 of 2 0.2.0 runs. The 0.2.0 runs fixed
-   it during the task, so this does not show the new final-review wording as the cause
-   ([results, section 12](results.md)).
+7. **0.2.0 on a multi-layer app task (n=6 per condition).** When the design stated the rules,
+   every condition caught every trap. With the rules left out, vanilla missed a trap in 3 of 6
+   runs, waygent 0.1.0 in 1 of 6, and 0.2.0 in 0 of 6. Against 0.1.0, 0.2.0 cost about a third
+   more and took about 60% longer (means of 6). The one 0.1.0 miss came from the "note for user"
+   exit that 0.2.0 closed; 0 vs 1 of 6 is too close to call ([results, section 12](results.md)).
 
 ## What went into the skill and what was left out
 

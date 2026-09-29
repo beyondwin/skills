@@ -76,6 +76,7 @@ class WaygentContractTests(unittest.TestCase):
         self.assertIn("config needed at startup", self.lowered)
         self.assertIn("real data, not fixtures", self.lowered)
         self.assertIn("fast check", self.lowered)
+        self.assertIn("or leaves a process running", self.lowered)
         self.assertIn("say so in every brief, reviewers' included", self.lowered)
         self.assertIn("only the task's last one carries the trailer", self.lowered)
         self.assertIn("starting or deploying", self.lowered)

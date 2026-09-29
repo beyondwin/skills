@@ -49,7 +49,8 @@ brainstorming, writing a spec or plan, a single small fix).
 - A task may take several commits; only its last carries the trailer.
 - A gap that keeps the changed code from starting or deploying is fixed inside the
   task, never left as a note for the user. The app check stops what it started.
-- No subagent spawns subagents; every brief, reviewers' included, says so.
+- No subagent spawns subagents or leaves a process it started running; every brief,
+  reviewers' included, says so.
 - On failure, write down the cause first and retry once. Stop on the second failure.
 - Implementer subagents and per-task reviewers use the controller's model. Do not swap
   in a cheaper model or lower effort. When the host can pick models, only the final

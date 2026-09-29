@@ -46,6 +46,7 @@ All notable changes to this product are documented in this file.
 - A gap that keeps the changed code from starting or deploying, such as a config
   file the plan did not list, is fixed inside the task instead of left as
   `note for user:` (a measured 0.1.0 run shipped a prod config that could not
-  start). The app check stops the processes it started.
+  start). No subagent leaves a process it started running; every brief says so
+  (implementers and reviewers left test servers running in measured runs).
 - Docs are English-first: `README.md` is English and `README.ko.md` is the
   Korean user guide.
