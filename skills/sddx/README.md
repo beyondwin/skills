@@ -4,35 +4,35 @@
 
 ## Purpose
 
-Run an implementation plan with Superpowers SDD, but hand the coding to an
-outside CLI. Your Claude Code or Codex session splits the plan into tasks,
-checks each result, and runs the reviews. Cursor Agent or Grok Build writes and
-commits the code, one task at a time. Both workers use Grok 4.7 only, never a
-`-fast` variant.
+Run an implementation plan with [waygent](https://github.com/beyondwin/skills/blob/main/skills/waygent/README.md), but hand the
+coding to an outside CLI. Your Claude Code or Codex session splits the plan into
+tasks, checks each result, and runs the reviews. Cursor Agent or Grok Build
+writes and commits the code, one task at a time. Both workers use Grok 4.7 only,
+never a `-fast` variant.
 
 ```text
 /sddx docs/plan.md grok
   │
-  ├─ Task 1 ─ worker (fresh CLI run): brief → code → tests → commit → report
-  │           host: check report, tests, commits → review (High or XHigh)
+  ├─ Task 1 ─ worker: brief → test first → code → commit → report
+  │           host: check report, tests, commit → one review → one fix
   ├─ Task 2 ─ …
   │
-  └─ end ──── whole-branch review on the host
+  └─ end ──── one final review on the host → fixes → report
 ```
 
 | Term | Meaning |
 | --- | --- |
 | Host | Claude Code or Codex, the program that runs the skill. The session that got `/sddx` or `$sddx` hands out tasks, checks results, and runs reviews. |
 | Worker | The outside CLI that codes and commits one task. |
-| Brief | The one-task sheet a worker gets, plus the plan's run-wide constraints. |
+| Brief | The one-task sheet a worker gets, plus the plan's run-wide rules. |
 | Runner | `run_worker.py`, which starts the worker and records the attempt. |
-| High / XHigh | Reasoning effort. XHigh thinks harder. |
+| High / XHigh | How hard the model thinks. XHigh thinks harder. |
 
 ## When to use and not use
 
 - Use it when an implementation plan file exists and your message contains
   `/sddx` (Claude Code) or `$sddx` (Codex). Nothing else turns it on.
-- Do not use it to write a spec or plan, or for `writing-plans`,
+- Do not use it to write a spec or plan, or for `/waygent`, `writing-plans`,
   `executing-plans` (including Native), `pre-sdd-review`, plain SDD, coding in
   this session, or "implement this with Grok" without `/sddx` or `$sddx`.
 
@@ -42,22 +42,22 @@ sddx: Claude Code and Codex supported for local or repository-based use.
 
 - Hosts are `claude-code` and `codex`. Cursor Agent and Grok Build are workers,
   not hosts.
+- The waygent skill must be installed next to this one (the same links, below).
+  Without it SDDx stops.
 - macOS only. Windows and Linux are unsupported, and the product CLIs refuse
   Windows.
-- A Grok worker needs Python 3.11+ in a linked worktree (one added with
-  `git worktree`). It turns off MCP call tools and will not run on a Grok CLI
-  without `--disallowed-tools` and `--deny`.
+- A Grok worker needs Python 3.11+ for its sandbox setup. It turns off MCP call
+  tools and will not run on a Grok CLI without `--disallowed-tools` and `--deny`.
 - Claude.ai, Cowork, Skills API upload, and marketplace publication are not
   supported.
-- All four host/worker pairs have been run for real on macOS. What was checked
-  is in
+- What has been run for real is in
   [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/sddx/compatibility.md);
   shared limits are in the [compatibility guide](https://github.com/beyondwin/skills/blob/main/docs/users/en/compatibility.md).
 
 ## Install
 
 Clone the repo, then make two links (symlinks): one for Codex, one for Claude
-Code.
+Code. Link waygent the same way (see its README).
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -140,23 +140,28 @@ $sddx docs/history/plans/example.md grok
 1. Worker choice: if you named none, it asks once per plan, even when only one
    is available. If the chosen worker is missing, it stops; it never switches on
    its own.
-2. Each task gets a fresh worker and a brief. The worker never reads the whole
-   plan.
-3. Exit code 0 does not mean done. The host checks the report, the real test
-   results, the commits, and the tool record (what the worker read and ran).
-   Then a reviewer on the host's own model reviews: High, or XHigh for
-   concurrency, permission, secret, or sandbox changes and for round 4-5
-   re-reviews.
-4. Fix rounds 1-3 resume the same worker session if effort is unchanged; rounds
-   4-5 use a fresh XHigh worker.
-5. Work outside the plan is asked about first. A needed push or publish stops as
+2. It works on a `waygent/<plan>` branch and keeps its notes in
+   `.waygent/<plan>/` (never committed): `progress.md`, `guide.md`, `reviews/`,
+   and one `attempts/` folder per worker run.
+3. Each task gets a fresh worker and a brief. The worker never reads the whole
+   plan. It writes a failing test first, then the code, and ends with a commit
+   marked `Waygent-Task: N`.
+4. Exit code 0 does not mean done. The host checks the report, the real test
+   results, the commit, and the tool record (what the worker read and ran).
+   Then one reviewer on the host reviews it, and the same worker fixes High and
+   Medium findings once.
+5. A task that still fails gets one retry with a fresh XHigh worker. A second
+   failure stops the run with the cause.
+6. `progress.md` records, per task, the model and effort that actually wrote
+   and reviewed it, for example
+   `impl=grok:grok-4.7/high reviewer=claude-opus-5-5/high`. A value nothing
+   confirmed is marked `(requested)`.
+7. Work outside the plan is asked about first. A needed push or publish stops as
    `BLOCKED`.
 
-Each attempt leaves `run.json`, `report.md`, and the log in a folder under
-`.superpowers/sdd/<plan>/` in the worktree. Watch progress with
-`run_worker.py status`: it shows the session ID, whether the worker is alive
-(`pid_alive`), and a short list of reads, searches, and shells. Do not paste the
-whole log.
+Watch a worker with `run_worker.py status`: it shows the session ID, whether the
+worker is alive (`pid_alive`), and a short list of reads, searches, and shells.
+Do not paste the whole log.
 
 | Situation | Result | What to do next |
 | --- | --- | --- |

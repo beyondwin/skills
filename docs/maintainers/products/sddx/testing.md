@@ -10,7 +10,7 @@ general provider quality or run guarantees on other hosts.
 
 - The checks that run now and what each test file locks: "Provider-free evidence"
 - The check commands: "Commands"
-- The manual XHigh reviewer check done every release: "Reviewer effort evidence"
+- The live run to repeat before a release: "Live check"
 - Measurements by version, newest first: "Measurement log". These are
   observations from that time and do not change the current contract.
 
@@ -48,16 +48,21 @@ What each test file locks:
   resume; stdout or stderr growth counts as activity; `--idle-timeout 0` turns it
   off; bad values are refused; a shorter `--timeout` wins), the defaults
   (`--timeout` 0, `--idle-timeout` 900), the wrapper exit rules, closed stdin,
-  and attempt path refusal.
+  attempt path refusal (only under `.waygent/`; `.superpowers/` is refused), and
+  `reported_model` from the stream's `system`/`init` event, copied once.
 - `tests/products/sddx/test_worker_status.py`: checks `stale` (true only when
   running and the pid is gone), `session_id_in_log` (filled only when the record
   has no ID), read-only responses, `pid_alive`, a bounded tools index for both the
   Cursor and Grok log shapes, that the default response has no log body, skipping
   JSON lines that are too deep, `--stream` default 2048 and max 8192 bytes, the
   64 KiB response cap, and offset handling.
-- `tests/products/sddx/test_contract.py`: checks doc and instruction wording and
-  the plugin payload. The reviewer definition items are in "Reviewer effort
-  evidence".
+- `tests/products/sddx/test_observed_model.py`: builds fake Claude Code and
+  Codex transcripts and checks the model and effort counts, `<synthetic>` turns
+  skipped, `not_found`, `ambiguous`, `no_model_turns`, refused ids that could
+  widen the file search, and that no transcript text reaches the output.
+- `tests/products/sddx/test_contract.py`: checks doc and instruction wording,
+  that the waygent sections SDDx relies on exist, and that no Claude plugin or
+  agent definition ships.
 
 The generated `sddx-worktree` profile's `read_write` allows the linked worktree's
 Git directory and the shared `.git` directory. That also grants write access to
@@ -143,44 +148,24 @@ release code are clean in the working tree, so run it after committing.
 Live runs are local, explicit, optional, and may cost money. CI does not require
 them. Do not describe an offline pass as host quality.
 
-## Reviewer effort evidence
+## Live check
 
-How to confirm that the XHigh reviewer definition (`agents/sddx-reviewer-xhigh.md`)
-actually loads. There are two parts: an offline check and a live check every
-release.
+Run by hand on macOS, with the owner's approval, when the loop or runner
+contract changes and before a public tag. It calls real providers.
 
-The provider-free evidence is the contract check in
-`tests/products/sddx/test_contract.py`. It confirms:
-
-- The `.claude-plugin` payload is allowed only for sddx and refused for other
-  products.
-- `plugin.json` names the product, its version equals the `release.toml` version,
-  and it has no `agents` key.
-- `agents/` has exactly one markdown definition, `sddx-reviewer-xhigh.md`; its
-  `name` equals the file name, `effort` is `xhigh`, it has no `model` key, and
-  `disallowedTools` names Edit, Write, and NotebookEdit.
-
-This check only confirms the declared fields. It does not confirm that the host
-actually blocks those tools.
-
-The live check is done with the shipped product files linked.
-
-- `claude plugin details sddx@skills-dir` must show Agents (1)
-  `sddx-reviewer-xhigh`.
-- Task starts with `subagent_type: sddx:sddx-reviewer-xhigh` and is not found by
-  the bare name.
-- Also check that `effort` in the child transcript's assistant events is `xhigh`.
-- The skill invocation name is `sddx`.
-
-Confirmed in `4.0.3`: `plugin details` showed Agents (1). The Task child record
-had `effort: xhigh` (the parent session was high). Worker smokes with Cursor
-`2026.09.15-d2fe57e` and Grok `1.0.34` both ended `state: exited` with report
-`DONE`.
-
-The contract check proves only that the file exists. It cannot prove that Claude
-Code keeps loading agents from a skills-dir plugin, so repeat the live check above
-every release. If it fails, the definition has silently disappeared, so stop the
-release.
+1. Make a fresh local repository with no remote and a two-task plan that has a
+   `Global Constraints` section.
+2. Put copies of the working `skills/sddx` and `skills/waygent` under the
+   fixture's `.claude/skills/`, and record the `SKILL.md` sha256 of both.
+3. From the fixture, run
+   `claude -p "/sddx <plan> grok" --setting-sources project --strict-mcp-config --permission-mode bypassPermissions`.
+   Name the backend: AskUserQuestion cannot be answered under `-p`.
+4. Check: branch `waygent/<slug>`, `.waygent/.gitignore`, `progress.md` with the
+   SDDx block and `impl=`/`reviewer=` values, one `Waygent-Task:` commit per
+   task, `reviews/task-N.md` and `reviews/final.md`, `attempts/*/run.json` with
+   `reported_model`, Grok `cleanup` with `cleaned: true`, and no leftover
+   `grok`, `worker-server`, or `sleep` process.
+5. Record the result, cost, and CLI versions in the measurement log below.
 
 ## Measurement log
 

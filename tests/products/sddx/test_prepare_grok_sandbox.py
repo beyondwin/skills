@@ -55,7 +55,7 @@ class SandboxTests(unittest.TestCase):
         )
         self.wt = self.base / "linked worktree"
         git(self.repo, "worktree", "add", "-b", "codex/smoke", str(self.wt))
-        evidence = self.wt / ".superpowers/sdd/probe"
+        evidence = self.wt / ".waygent/probe"
         evidence.mkdir(parents=True)
         self.state = evidence / "grok-sandbox.json"
         self.config = self.wt / ".grok/sandbox.toml"
@@ -121,7 +121,7 @@ class SandboxTests(unittest.TestCase):
                 self.assertFalse(self.state.exists())
 
     def test_regular_checkout_needs_no_extra_git_write_paths(self):
-        evidence = self.repo / ".superpowers/sdd/probe"
+        evidence = self.repo / ".waygent/probe"
         evidence.mkdir(parents=True)
         state = evidence / "grok-sandbox.json"
         config = self.repo / ".grok/sandbox.toml"
@@ -216,7 +216,7 @@ class SandboxTests(unittest.TestCase):
         sentinel = outside / "sentinel"
         before = b"sentinel bytes\n"
         sentinel.write_bytes(before)
-        linked_parent = self.wt / ".superpowers/sdd/linked"
+        linked_parent = self.wt / ".waygent/linked"
         linked_parent.symlink_to(outside, target_is_directory=True)
         state = linked_parent / "grok-sandbox.json"
 
@@ -381,16 +381,23 @@ class SandboxTests(unittest.TestCase):
         self.assertEqual(self.config.read_bytes(), before)
         self.assertFalse(self.state.exists())
 
-    def test_state_parent_must_exist_inside_worktree_superpowers(self):
+    def test_state_parent_must_exist_inside_worktree_waygent(self):
         outside = self.base / "outside"
         outside.mkdir()
         cases = (
             outside / "grok-sandbox.json",
-            self.wt / ".superpowers/sdd/missing/grok-sandbox.json",
+            self.wt / ".waygent/missing/grok-sandbox.json",
         )
         for state in cases:
             with self.subTest(state=state), self.assertRaises(ValueError):
                 self.module.prepare(self.wt, state)
+        self.assertFalse(self.config.exists())
+
+    def test_old_superpowers_evidence_directory_is_refused(self):
+        legacy = self.wt / ".superpowers/sdd/probe"
+        legacy.mkdir(parents=True)
+        with self.assertRaises(ValueError):
+            self.module.prepare(self.wt, legacy / "grok-sandbox.json")
         self.assertFalse(self.config.exists())
 
     def test_main_refuses_windows_before_argparse(self):

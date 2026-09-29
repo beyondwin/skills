@@ -18,7 +18,7 @@ How It Works, SDDx, Waygent, 그리고 Grok에서 쓰는 Image Workbench는 복�
 
 ## how-it-works
 
-Codex와 Claude Code용입니다. 공개 경로: https://github.com/beyondwin/skills/tree/main/skills/how-it-works. 링크는 두 개입니다. Codex는 `~/.agents/skills/how-it-works`, Claude Code는 `~/.claude/skills/how-it-works`를 읽습니다. `~/.codex`나 `~/.grok`에 복사본을 만들지 마세요.
+Codex와 Claude Code용입니다. 공개 경로: https://github.com/beyondwin/skills/tree/main/skills/how-it-works. 링크는 두 개입니다. Codex는 `~/.agents/skills/how-it-works`, Claude Code는 `~/.claude/skills/how-it-works`를 읽습니다. `~/.codex`나 `~/.grok`에 복사본을 만들지 마세요. SDDx는 waygent 위에서 돌아가므로 `waygent`도 같은 방식으로 링크하세요(해당 절 참고).
 
 1. 클론하고 폴더를 만듭니다.
 
@@ -68,7 +68,7 @@ print("linked")
 
 ## sddx
 
-Codex와 Claude Code용입니다. 공개 경로: https://github.com/beyondwin/skills/tree/main/skills/sddx. 링크는 두 개입니다. Codex는 `~/.agents/skills/sddx`, Claude Code는 `~/.claude/skills/sddx`를 읽습니다. `~/.codex`나 `~/.grok`에 복사본을 만들지 마세요.
+Codex와 Claude Code용입니다. 공개 경로: https://github.com/beyondwin/skills/tree/main/skills/sddx. 링크는 두 개입니다. Codex는 `~/.agents/skills/sddx`, Claude Code는 `~/.claude/skills/sddx`를 읽습니다. `~/.codex`나 `~/.grok`에 복사본을 만들지 마세요. SDDx는 waygent 위에서 돌아가므로 `waygent`도 같은 방식으로 링크하세요(해당 절 참고).
 
 1. 클론하고 폴더를 만듭니다.
 

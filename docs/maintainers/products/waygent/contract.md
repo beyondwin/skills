@@ -72,6 +72,10 @@ and the finished evaluation in
 
 ## Files to change together
 
+- `sddx` reads `skills/waygent/SKILL.md` as its base loop and names its sections
+  `Start or resume`, `Per task`, `When a task fails`, `Final review, once`, and
+  `Models`, plus `.waygent/`, `guide.md`, and the `Waygent-Task:` trailer. Renaming
+  any of them breaks sddx; `tests/products/sddx/test_contract.py` checks they exist.
 - `skills/waygent/SKILL.md`, `release.toml`, `CHANGELOG.md`, `README.md`, `README.ko.md`
 - `tests/products/waygent/test_contract.py`
 - `testing.md`, `compatibility.md`, and `release.md` in this directory

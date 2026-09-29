@@ -22,7 +22,7 @@ These are the current standalone products. A host is the tool that runs the skil
 | [`image-workbench`](skills/image-workbench/README.md) | Plans, makes, or edits an image (PNG, JPG) that must fit your project. | Codex, Grok |
 | [`how-it-works`](skills/how-it-works/README.md) | Explains how something works, with a diagram, at the depth you pick. | Codex, Claude Code |
 | [`pre-sdd-review`](skills/pre-sdd-review/README.md) | Checks an approved spec and plan against your repo right before SDD, fixes them, and re-checks. | Codex |
-| [`sddx`](skills/sddx/README.md) | Runs Superpowers SDD in your session and hands only the coding to Cursor Agent or Grok Build. | Claude Code, Codex |
+| [`sddx`](skills/sddx/README.md) | Runs a plan the waygent way in your session and hands only the coding to Cursor Agent or Grok Build. Needs `waygent` installed too. | Claude Code, Codex |
 | [`waygent`](skills/waygent/README.md) | Runs a plan task by task with a fresh subagent each: tests first, one review per task, one final review. | Claude Code, Codex, Cursor |
 
 Each skill README shows how to install it and make the first call.

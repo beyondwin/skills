@@ -4,6 +4,37 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+### Breaking
+
+- The base loop is now waygent, not Superpowers SDD. SDDx reads the installed
+  waygent skill (`<skill-root>/../waygent/SKILL.md`) and changes only who writes
+  the code (a Cursor or Grok worker) and what is checked and recorded. It stops
+  as BLOCKED when waygent is missing. Superpowers is no longer used.
+- State moves from the Superpowers ledger to waygent's `.waygent/<plan-slug>/`:
+  `progress.md` (with the SDDx current-state block under its header lines),
+  `guide.md`, `reviews/`, and `attempts/` for worker runs. The branch is
+  `waygent/<plan-slug>` and each task ends with a `Waygent-Task: N` commit.
+- `run_worker.py` and `prepare_grok_sandbox.py` accept only paths under the
+  repository's `.waygent/` directory; `.superpowers/` is refused.
+- One review and one fix per task, no re-review loop, one final review, and one
+  retry after a failure (a fresh XHigh worker), as in waygent. The five-round
+  fix loop is gone.
+- Reviewers follow waygent's Models section. The reviewer effort table, the
+  `sddx-reviewer-xhigh` agent definition, and `.claude-plugin/plugin.json` are
+  removed.
+- `/waygent` is a near-miss: it does not turn SDDx on.
+
+### Added
+
+- `run.json` records `reported_model`, the model the worker's own
+  `system`/`init` event named, beside the requested `model`.
+- `scripts/observed_model.py` reads the host's own transcript (Claude Code
+  subagent or session, Codex thread) and prints the models and efforts a
+  reviewer or the controller actually ran on. It prints no transcript text.
+- Progress lines record `impl=<backend>:<model>/<effort>` and
+  `reviewer=<model>/<effort>`, with `(requested)` on a value nothing confirmed.
+- The worker must stop any process it started before it reports.
+
 ### Changed
 
 - README wording is shorter and uses plain terms. Behavior is unchanged.

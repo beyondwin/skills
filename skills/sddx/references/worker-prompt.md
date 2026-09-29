@@ -28,16 +28,19 @@ Read a background command's result through the provider's own output tool.
 Never open the provider's session directories with file reads or searches. If
 you do not know an exit code, say so in the report instead of reconstructing it.
 
-Do not read or invoke external skills, including Superpowers. Do not spawn subagents or
-reviewers, call MCP tools, or create another worktree.
+Do not read or invoke external skills, including Superpowers and waygent. Do not
+spawn subagents or reviewers, call MCP tools, or create another worktree. Do not
+leave a process you started running when you finish: stop servers, watchers,
+and background commands before you write the final report.
 
 Run the brief's `Worker checks` yourself. The brief's `Host checks` are the
 controller's; do not claim them, simulate them, or report them as passing.
 
-Implement, test, and commit only this task. Write the report right after that
+Implement, test, and commit only this task, test first as the brief says. The
+task's last commit carries the trailer the brief names (`Waygent-Task: N`). Write the report right after that
 commit, before any extra check, and update it once the checks finish. Write it to
 the report path in the dispatch yourself; nothing else writes it for you. Stage
-explicit task paths only. Do not stage `.grok/sandbox.toml` or SDD evidence.
+explicit task paths only. Do not stage `.grok/sandbox.toml` or anything under `.waygent/`.
 Report these fields:
 - Status and files changed.
 - Exact test commands and actual test exit codes for the `Worker checks`,

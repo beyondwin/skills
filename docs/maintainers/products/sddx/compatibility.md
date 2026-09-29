@@ -13,15 +13,12 @@ Skills API upload, marketplace publication, and cloud sync are not supported.
 
 - Supported OS and install links: "Supported OS", "Discovery paths", "Invocation"
 - What the offline checks prove: "Evidence without a provider"
-- What access a Grok worker gets and its limits: "Grok linked worktree boundary"
-- The four host x worker pairs and per-item measurement state (`measured` means
-  observed for real, `not_measured` means not observed): "2.0.0 measurement state"
-- Known limits and older observations: "Known platform and evidence limits",
-  "1.0.x observations"
+- What access a Grok worker gets: "Grok worker boundary"
+- What 8.0.0 has been run on: "8.0.0 measurement state"
+- Older measurements, kept as history: "2.0.0 measurement state",
+  "1.0.x observations", "2026-09-14: how the MCP tool filter came in"
 - How far live runs count as evidence: "Live evidence boundary"
 - Adding a host: "Supporting a new host"
-- Why the MCP tool filter was added and the calls left open: "2026-09-14: how the
-  MCP tool filter came in"
 
 ## Supported OS
 
@@ -32,13 +29,17 @@ evidence.
 ## Discovery paths
 
 ```text
-skills/sddx/              repository source
-├─ ~/.agents/skills/sddx ─→ Codex
-└─ ~/.claude/skills/sddx ─→ Claude Code
+skills/sddx/                 repository source
+├─ ~/.agents/skills/sddx    ─→ Codex
+└─ ~/.claude/skills/sddx    ─→ Claude Code
+skills/waygent/              required base loop, linked the same way
+├─ ~/.agents/skills/waygent
+└─ ~/.claude/skills/waygent
 ```
 
-Do not create copies in `~/.codex` or `~/.grok`. Do not add Cursor or Grok to
-`supported_hosts`.
+SDDx reads `<skill-root>/../waygent/SKILL.md`, so waygent must sit next to sddx
+in the same skills folder. Do not create copies in `~/.codex` or `~/.grok`. Do
+not add Cursor or Grok to `supported_hosts`.
 
 ## Invocation
 
@@ -48,17 +49,7 @@ Do not create copies in `~/.codex` or `~/.grok`. Do not add Cursor or Grok to
 | Claude Code | `/sddx` | `~/.claude/skills/sddx` |
 
 `agents/openai.yaml` is optional Codex display metadata, not a required runtime
-file.
-`agents/sddx-reviewer-xhigh.md` is different. It is a Claude Code runtime
-definition, picked up by the default `agents/*.md` scan. Do not add an `agents`
-key to `plugin.json`: with it, `plugin details` reports Agents (0). The Task name
-is `sddx:sddx-reviewer-xhigh`. `--agent sddx-reviewer-xhigh` loads it as a CLI
-alias. A Task call with the bare name finds nothing.
-`disallowedTools` (Edit, Write, NotebookEdit) are removed from the loaded
-session's tool list. The Task child transcript records `effort: xhigh`.
-
-A definition with the same name in the user project's `.claude/agents/` wins.
-The product-prefixed name is the only defense.
+file. Since 8.0.0 there is no Claude Code agent definition or plugin file.
 
 ## Evidence without a provider
 
@@ -66,14 +57,13 @@ The required evidence is `python3 scripts/verify.py --skill sddx`. It checks
 package identity, resolver fixtures, and sandbox prepare and restore. It does not
 prove live model quality or runtime parity across the supported hosts.
 
-## Grok linked worktree boundary
+## Grok worker boundary
 
-A Grok run in a linked worktree (one added with `git worktree`) needs Python
-3.11+. The temporary profile inherits `workspace` and adds write access to the
-current worktree's real Git directory and the shared Git directory. The worker
-needs that access to commit, which also means it can write the repository's
-shared Git metadata. The settings and restore state the prepare tool creates are
-not committed and are cleaned up after the worker ends.
+Grok's sandbox setup needs Python 3.11+. The temporary profile inherits
+`workspace` and adds write access to the Git directory (and, in a linked
+worktree, the shared Git directory) so the worker can commit. That also means it
+can write the repository's Git metadata. The settings and restore state are not
+committed and are cleaned up after the worker ends.
 
 Keeping the worker away from outside skills and the full plan is an instruction
 in the worker prompt. Grok also drops the MCP call tools at the CLI and passes an
@@ -81,10 +71,23 @@ MCP permission deny rule. This is not isolation that blocks every
 initialization, shell, or file access, and it does not guarantee the worker
 cannot leave its role.
 
+## 8.0.0 measurement state
+
+8.0.0 changed the base loop, so earlier end-to-end results do not carry over.
+The runner, resolver, and sandbox helpers are unchanged apart from the
+`.waygent/` path and `reported_model`.
+
+| Host | Worker | State |
+| --- | --- | --- |
+| Claude Code | Grok CLI | see "8.0.0 live check" in [Testing](testing.md) |
+| Claude Code | Cursor Agent | `not_measured` |
+| Codex | Grok CLI | `not_measured` |
+| Codex | Cursor Agent | `not_measured` |
+
 ## 2.0.0 measurement state
 
-The current product version is `7.0.2`. The worker columns below were measured
-with `2.0.0`-era CLIs and have not been refilled since.
+History: these rows were measured on the Superpowers-based loop with
+`2.0.0`-era CLIs. They are not evidence for 8.0.0.
 
 - 7.0.2, 7.0.1, 7.0.0, and 6.0.0 do not change the worker model contract.
 - 5.0.0 pinned workers to Grok 4.7 and dropped the `-fast` variants, but did not
@@ -125,7 +128,7 @@ observed in the pair that row names, and nothing more.
 | Real Cursor OS isolation | `not_measured` | `--sandbox enabled` is a declaration check; the real isolation scope was not measured |
 | Effort the model actually applied | `not_measured` | Only the requested and configured effort are recorded; there is no way to see the applied value. These live runs did not create one either, and model ID acceptance is not evidence of the applied value |
 | Grok stream shape | `measured` | Two `streaming-messages-json` streams (19 and 17 lines) were observed. In both, every line parsed as a JSON object and had a `session_id` key, with no other spelling of the session key. Both first lines were `system`/`init`, spelled the same as the first line of the Cursor stream observed in the same place |
-| Grok sandbox profile round trip | `measured` | `prepare` created the `sddx-worktree` profile (`extends = "workspace"`) in `.grok/sandbox.toml`, and `cleanup` removed the `.grok` it created. In a plain checkout `read_write` was an empty list; in a linked worktree it held the real Git directory and the shared Git directory. The write-access path described in "Grok linked worktree boundary" above worked in that run, and the worker committed from inside the linked worktree. The commits held only task files; no evidence or sandbox files were committed |
+| Grok sandbox profile round trip | `measured` | `prepare` created the `sddx-worktree` profile (`extends = "workspace"`) in `.grok/sandbox.toml`, and `cleanup` removed the `.grok` it created. In a plain checkout `read_write` was an empty list; in a linked worktree it held the real Git directory and the shared Git directory. The write-access path described in "Grok worker boundary" above worked in that run, and the worker committed from inside the linked worktree. The commits held only task files; no evidence or sandbox files were committed |
 | Real isolation of the Grok sandbox | `not_measured` | Only that the profile was created and passed as an argument was checked; what it actually blocked was not measured |
 | Grok's real effort argument | `measured` | The resolver's `--reasoning-effort high` was really on the command line, and `configured_effort` in `run.json` was `high`. This observes the requested value on the command line, not the effort the model applied |
 | Grok MCP call tools removed | `measured` | After the fix, the init event's 23-tool list had no `search_tool` or `use_tool`. Checked on both new and resumed attempts. The CLI removed the tools, so this is enforced, not an instruction |

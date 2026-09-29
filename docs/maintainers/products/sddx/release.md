@@ -14,15 +14,20 @@ human-facing history is `CHANGELOG.md` in the same directory.
 ## Current state
 
 There is no public sddx release yet. The standalone version in development is
-`7.0.2`, and `release.toml` is the source. There are no tags or artifacts.
+`8.0.0`, and `release.toml` is the source. There are no tags or artifacts.
 
-`release.toml`, `SKILL.md` `metadata.version`, and the `version` in
-`.claude-plugin/plugin.json` must always hold the same value.
+`release.toml` and `SKILL.md` `metadata.version` must always hold the same value.
 
 ## Version history
 
 Newest first. Details are in each CHANGELOG section.
 
+- `8.0.0`: a breaking change to the base loop. SDDx runs on waygent instead of
+  Superpowers SDD: state in `.waygent/<plan-slug>/`, one review and one fix per
+  task, reviewers per waygent's Models section, and the XHigh reviewer agent and
+  Claude plugin file removed. It also records the models and efforts that
+  actually ran. The change is in the CHANGELOG `## Unreleased` section until
+  release.
 - `7.0.2`: docs only, no behavior change. The docs are English-first:
   `README.md` is English and the Korean copy moves to `README.ko.md`. The change is in the CHANGELOG `## Unreleased`
   section until release.
@@ -67,16 +72,10 @@ product check is `python3 scripts/release.py check --product sddx`. It passes on
 when the product's owned paths and the shared release code are clean in the
 worktree, so run it after committing.
 
-`python3 scripts/release.py check --product sddx` is offline, so it cannot confirm
-that Claude Code still loads `agents/sddx-reviewer-xhigh.md`. Whether the XHigh
-reviewer definition really loads in Claude Code is a step to confirm before a
-public tag.
-
-- For every release, run the live check in the "Reviewer effort evidence" section
-  of [`testing.md`](testing.md) by hand, and stop the release if it fails.
-- Do not declare a public release done without that check.
-- `4.0.3` confirmed `plugin details` Agents (1), the Task name
-  `sddx:sddx-reviewer-xhigh`, and `effort: xhigh` in the child transcript.
+`python3 scripts/release.py check --product sddx` is offline, so it cannot
+confirm a real run. Before a public tag, run the live check in
+[`testing.md`](testing.md) ("Live check") on macOS and stop the release if it
+fails.
 
 The product tag is `sddx-v<version>`. Tags and Drafts are explicit release work,
 not a side effect of a local build.

@@ -34,17 +34,17 @@ CASE_IDS = (
     "agent-binary-is-not-cursor",
     "worker-no-nested-worktree",
     "ambiguity-is-ruling-not-xhigh",
-    "reviewer-stays-native",
     "near-miss-native-sdd",
+    "near-miss-waygent",
     "near-miss-pre-sdd-review",
     "near-miss-executing-plans",
     "near-miss-writing-plans",
     "near-miss-stay-orchestrator",
     "near-miss-grok-implementer-without-slash",
     "near-miss-named-sddx-without-slash",
-    "no-task-brief",
-    "no-batch-same-shape",
-    "no-nested-native-sdd",
+    "waygent-is-the-base",
+    "missing-waygent-blocks",
+    "no-plan-asks-once",
     "unplanned-work-ask-once",
     "orchestrator-is-this-session",
     "picker-grok-cli-vs-cursor-agent",
@@ -52,6 +52,9 @@ CASE_IDS = (
     "implementer-effort-per-task-xhigh",
     "implementer-effort-not-session",
     "effort-increase-fresh-worker",
+    "fix-resumes-same-session",
+    "retry-is-fresh-xhigh-worker",
+    "reviewer-follows-waygent-models",
     "one-available-backend-still-confirms",
     "worker-no-host-outside-side-effects",
     "no-credentials-in-worker-prompt",
@@ -59,8 +62,6 @@ CASE_IDS = (
     "exit-zero-blocked-is-not-done",
     "missing-report-is-not-done",
     "worker-brief-only-no-skills",
-    "reviewer-inherits-orchestrator",
-    "reviewer-risk-xhigh",
     "successful-prohibited-read",
     "missing-tool-evidence",
     "worker-plan-link",
@@ -69,13 +70,10 @@ CASE_IDS = (
     "worker-filename-inspection",
     "worker-task-configuration-read",
     "inspection-does-not-permit-plan-content",
-    "reviewer-large-mechanical-rename-high",
-    "reviewer-small-lock-order-xhigh",
-    "reviewer-worker-xhigh-does-not-escalate",
-    "reviewer-input-validation-is-not-security-boundary",
-    "reviewer-final-review-is-not-a-trigger",
-    "reviewer-round-four-re-review-xhigh",
-    "reviewer-session-already-xhigh-no-escalation",
+    "worker-commits-with-trailer",
+    "worker-stops-its-processes",
+    "record-observed-models",
+    "unconfirmed-model-marked-requested",
 )
 DESCRIPTION_FORBIDDEN = (
     "fresh implementer",
@@ -92,31 +90,24 @@ EXPECT_LOCK = {
         "skill_must": ("Activate only when the user message contains /sddx or $sddx",),
     },
     "do_not_activate": {
-        "description_must": ("writing-plans", "executing-plans", "pre-sdd-review"),
+        "description_must": ("writing-plans", "executing-plans", "pre-sdd-review", "/waygent"),
         "description_must_not": ("stay orchestrator", "grok as implementer"),
-        "skill_must": ("Activate only when the user message contains /sddx or $sddx",),
+        "skill_must": ("Do not activate on /waygent",),
         "skill_must_not": ("explicit external implementer request",),
     },
-    "no_task_brief": {
-        "skill_must": ("Do not run Superpowers `task-brief` or `task-start`.",),
-        "dispatch_must": ("Do not run Superpowers `task-brief` or `task-start`.",),
-        "dispatch_must_not": ("use SDD's task-brief output",),
+    "waygent_base": {
+        "skill_must": ("Follow the installed waygent skill at `<skill-root>/../waygent/SKILL.md` as the base loop",),
     },
-    "no_batch_same_shape": {
-        "skill_must": ("Do not batch same-shape plan tasks into one worker.",),
+    "no_copy_waygent": {"skill_must": ("Do not copy waygent into this skill.",)},
+    "waygent_missing_blocked": {
+        "skill_must": ("If `<skill-root>/../waygent/SKILL.md` is missing, stop as BLOCKED",),
     },
-    "no_nested_native_sdd": {
-        "skill_must": (
-            "Do not dispatch a nested controller that runs subagent-driven-development",
-        ),
-    },
+    "plan_required": {"skill_must": ("SDDx always needs a plan file",)},
     "unplanned_work_ask_once": {
-        "skill_must": (
-            "Ask once before dispatching the first task the plan does not name.",
-        ),
+        "skill_must": ("Ask once before dispatching the first task the plan does not name",),
     },
     "orchestrator_is_this_session": {
-        "skill_must": ("The session that received `/sddx` or `$sddx` is the orchestrator.",),
+        "skill_must": ("The session that received `/sddx` or `$sddx` is the orchestrator",),
     },
     "picker_grok_cli_vs_cursor_agent": {
         "skill_must": (
@@ -136,18 +127,18 @@ EXPECT_LOCK = {
     "effort_increase_fresh_worker": {
         "skill_must": ("When implementer effort increases, dispatch a fresh worker.",),
     },
+    "fix_resumes_session": {"skill_must": ("`--resume <session_id>` at the same effort",)},
+    "retry_fresh_xhigh": {"skill_must": ("a fresh worker at XHigh (the worker model stays Grok 4.7)",)},
+    "reviewer_waygent_models": {"skill_must": ("native, as waygent's Models section says",)},
     "backend_cursor": {"skill_must": ("`c` means `cursor`.",)},
     "skip_picker": {"skill_must": ("An explicit choice needs no re-approval on later tasks.",)},
     "backend_grok": {"skill_must": ("`g` means `grok`.",)},
     "picker_once": {"skill_must": ("Ask once",)},
-    "ledger_backend": {"skill_must": ("`Backend: cursor|grok",)},
+    "backend_recorded": {"current_state_must": ("Backend: grok — argument",)},
     "no_failover": {"skill_must": ("Do not automatically switch backends.",)},
     "agent_not_cursor": {"skill_must": ("PATH `agent` as Cursor",)},
     "no_worktree_flag": {"skill_must": ("Do not pass `--worktree` to the worker.",)},
     "ruling_not_xhigh": {"skill_must": ("Architecture ambiguity is a ruling, not XHigh.",)},
-    "native_reviewer": {
-        "skill_must": ("Task reviewers, scoped re-reviewers, and the final reviewer stay native",)
-    },
     "confirm_even_if_one": {"skill_must": ("Do not auto-select the only CLI.",)},
     "stop_no_push_publish": {"skill_must": ("stop and return BLOCKED",)},
     "no_host_secrets": {"skill_must": ("Do not copy host credentials",)},
@@ -156,23 +147,20 @@ EXPECT_LOCK = {
     "cleanup_after_worker_exit": {"dispatch_must": ("cleanup",)},
     "not_done": {"skill_must": ("Process exit 0 is not task completion.",)},
     "inspect_blocker": {
-        "skill_must": ("BLOCKED, NEEDS_CONTEXT, a missing report, or an unclear result must not become",)
+        "skill_must": ("BLOCKED, NEEDS_CONTEXT, a missing report, or an unclear result is not DONE.",)
     },
     "no_external_skills": {
-        "worker_must": ("Do not read or invoke external skills, including Superpowers.",)
+        "worker_must": ("Do not read or invoke external skills, including Superpowers and waygent.",)
     },
     "no_full_plan": {"skill_must": ("The worker cannot read the plan",)},
     "no_mcp_tools": {"dispatch_must": ("search_tool,use_tool",)},
-    "same_orchestrator_model": {"skill_must": ("use the active orchestrator's",)},
-    "review_effort_high": {"skill_must": ("Task N review: sddx default — high",)},
-    "review_effort_xhigh": {"skill_must": ("subagent_type: sddx:sddx-reviewer-xhigh",)},
-    "role_fail": {"skill_must": ("prohibited read is FAIL",)},
+    "role_fail": {"skill_must": ("prohibited read (the plan, credentials, secrets) is FAIL",)},
     "report_discrepancy": {"skill_must": ("any discrepancy with the worker report",)},
-    "not_clean_done": {"skill_must": ("permits a clean DONE.",)},
+    "not_clean_done": {"skill_must": ("Neither permits a clean DONE.",)},
     "role_unverified": {
         "skill_must": ("Missing or incomplete tool evidence is UNVERIFIED, never PASS.",)
     },
-    "use_brief": {"skill_must": ("Every brief carries the plan's run-wide constraints",)},
+    "use_brief": {"skill_must": ("every brief carries the plan's run-wide constraints",)},
     "no_plan_link_following": {"worker_must": ("Do not open the full implementation plan",)},
     "no_shell_search_bypass": {
         "worker_must": ("Do not retrieve its contents through shell",)
@@ -185,19 +173,15 @@ EXPECT_LOCK = {
     "wrapper_exit_separate": {
         "worker_must": ("distinguish its exit\nfrom the test exit",)
     },
-    "allowed_inspection": {"skill_must": ("Filename-only listings inside the",)},
+    "allowed_inspection": {"skill_must": ("Filename-only listings inside the worktree",)},
     "scope_deviations_none": {"skill_must": ("Scope deviations: none",)},
-    "no_size_based_escalation": {"skill_must": ("File count, line count",)},
-    "ledger_trigger_and_path": {"skill_must": ("XHigh must name a trigger and a",)},
-    "worker_effort_not_cited": {
-        "skill_must": ("Reviewer XHigh because the worker ran XHigh",)
+    "worker_trailer": {"worker_must": ("(`Waygent-Task: N`)",)},
+    "worker_stops_processes": {"worker_must": ("Do not\nleave a process you started running",)},
+    "progress_models": {
+        "skill_must": ("impl=<backend>:<reported_model>/<effort>", "reviewer=<model>/<effort>"),
     },
-    "no_security_boundary_claim": {
-        "skill_must": ("an auth, permission, secret, or sandbox boundary",)
-    },
-    "fresh_xhigh_worker": {"skill_must": ("Rounds 4-5 use a fresh worker at XHigh.",)},
-    "no_escalation_agent": {"skill_must": ("do not use the escalation",)},
-    "session_effort_not_lowered": {"skill_must": ("do not lower the session",)},
+    "observed_reviewer": {"skill_must": ("observed_model.py",), "dispatch_must": ("--agent-id <agentId>",)},
+    "requested_marker": {"skill_must": ("Add `(requested)` after a value that no transcript or stream confirmed.",)},
 }
 
 
@@ -225,10 +209,12 @@ class SddxContractTests(unittest.TestCase):
         skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
         worker = (SKILL / "references" / "worker-prompt.md").read_text(encoding="utf-8")
+        current_state = (SKILL / "references" / "current-state.md").read_text(encoding="utf-8")
         description = str(
             parse_skill_frontmatter(skill).get("description", "")
         )
         sources = {
+            "current_state": current_state,
             "skill": skill,
             "dispatch": dispatch,
             "worker": worker,
@@ -249,21 +235,48 @@ class SddxContractTests(unittest.TestCase):
                 else:
                     self.fail(key)
 
-    def test_skill_does_not_copy_sdd_and_overrides_dispatch(self) -> None:
-        text = "\n".join(path.read_text(encoding="utf-8") for path in SKILL.rglob("*.md"))
-        self.assertIn("subagent-driven-development", text)
-        self.assertIn("resolve_backend.py", text)
-        self.assertIn("/sddx", text)
-        self.assertIn("$sddx", text)
-        self.assertIn("AskUserQuestion", text)
-        self.assertIn("Backend:", text)
-        self.assertIn("XHigh", text)
-        self.assertIn("NEEDS_CONTEXT", text)
-        self.assertIn("do not copy", text.lower())
-        self.assertIn("do not automatically switch", text.lower())
-        self.assertIn("--disable-web-search", text)
-        self.assertIn("agent", text.lower())
-        self.assertNotIn("plugins/superpowers/skills/subagent-driven-development/SKILL.md", text)
+    def test_waygent_is_the_base_and_superpowers_is_gone(self) -> None:
+        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("<skill-root>/../waygent/SKILL.md", skill)
+        self.assertIn("resolve_backend.py", skill)
+        self.assertIn("AskUserQuestion", skill)
+        self.assertIn("Backend", skill)
+        self.assertIn("NEEDS_CONTEXT", skill)
+        self.assertIn("do not automatically switch", skill.lower())
+        body = skill.split("\n---\n", 1)[1]
+        for path in (
+            SKILL / "references" / "dispatch.md",
+            SKILL / "references" / "current-state.md",
+        ):
+            body += path.read_text(encoding="utf-8")
+        for removed in (
+            "Superpowers",
+            "subagent-driven-development",
+            "sdd-workspace",
+            "review-package",
+            "ledger",
+            "fix round",
+            "sddx-reviewer-xhigh",
+            ".superpowers",
+            "task-brief",
+        ):
+            self.assertNotIn(removed, body, removed)
+        dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
+        self.assertIn("--disable-web-search", dispatch)
+
+    def test_waygent_sections_sddx_relies_on_exist(self) -> None:
+        waygent = (ROOT / "skills" / "waygent" / "SKILL.md").read_text(encoding="utf-8")
+        for needed in (
+            "## Start or resume",
+            "## Per task",
+            "## When a task fails",
+            "## Final review, once",
+            "## Models",
+            "Waygent-Task:",
+            ".waygent/",
+            "guide.md",
+        ):
+            self.assertIn(needed, waygent, needed)
 
     def test_worker_prompt_forbids_nested_orchestration(self) -> None:
         text = (SKILL / "references" / "worker-prompt.md").read_text(encoding="utf-8")
@@ -287,42 +300,38 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("cleanup", text)
         self.assertIn("--rules", text)
 
-    def test_current_state_block_is_the_single_controller_record(self) -> None:
+    def test_current_state_block_lives_in_waygent_progress(self) -> None:
         reference = SKILL / "references" / "current-state.md"
-        self.assertTrue(reference.is_file())
         text = reference.read_text(encoding="utf-8")
         skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         self.assertIn("references/current-state.md", skill)
         for marker in ("<!-- sddx:current:start -->", "<!-- sddx:current:end -->"):
             self.assertIn(marker, text)
             self.assertIn(marker, skill)
-        self.assertIn("# SDD ledger — plan:", text)
-        self.assertIn("# SDD ledger — plan:", skill)
-        self.assertIn("Task <ID>: complete", skill)
+        self.assertIn("progress.md", skill)
+        self.assertIn("progress.md", text)
         for field in (
-            "Next plan",
             "Backend",
-            "Worker session",
             "Orchestrator",
+            "Task",
+            "Worker session",
             "Worker effort",
-            "Review host",
             "Open findings",
             "Authorized scope",
             "Host checks pending",
+            "Next plan",
             "Next action",
-            "Evidence",
         ):
-            self.assertIn(field, text, field)
+            self.assertIn(f"{field}:", text, field)
+        self.assertIn("impl=grok:grok-4.7/high", text)
+        self.assertIn("reviewer=claude-opus-5-5/high", text)
 
     def test_no_parallel_controller_state_file(self) -> None:
         skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
-        for name in ("controller-current-state.md", "controller-recovery.md"):
-            self.assertFalse((SKILL / "references" / name).exists(), name)
-            self.assertIn(f"`{name}`", skill, name)
-        self.assertIn(
-            "Do not create `controller-current-state.md`, "
-            "`controller-recovery.md`, or any",
-            skill,
+        self.assertIn("Do not create any other state file.", skill)
+        self.assertEqual(
+            sorted(path.name for path in (SKILL / "references").iterdir()),
+            ["current-state.md", "dispatch.md", "worker-prompt.md"],
         )
 
     def test_helper_scripts_are_named_where_they_are_used(self) -> None:
@@ -330,6 +339,7 @@ class SddxContractTests(unittest.TestCase):
         skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         for name in (
             "extract_task.py",
+            "observed_model.py",
             "resolve_backend.py",
             "prepare_grok_sandbox.py",
             "run_worker.py",
@@ -338,6 +348,7 @@ class SddxContractTests(unittest.TestCase):
             self.assertIn(name, dispatch, name)
         self.assertIn("run_worker.py", skill)
         self.assertIn("resolve_backend.py", skill)
+        self.assertIn("observed_model.py", skill)
 
     def test_dispatch_runs_the_worker_through_the_runner(self) -> None:
         text = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
@@ -354,6 +365,7 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("report.md", text)
         self.assertIn("pid_alive", text)
         self.assertIn("bounded tools index", text)
+        self.assertIn("reported_model", text)
 
     def test_interrupt_ends_the_worker_on_every_face(self) -> None:
         dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
@@ -477,7 +489,7 @@ class SddxContractTests(unittest.TestCase):
             self.assertIn("before that task's review", text)
         self.assertIn("before that task's review", contract)
         # R7: attempt parent, no masking pipe, waiting and stopping.
-        self.assertIn("worker-attempts/", dispatch)
+        self.assertIn("$P/attempts/", dispatch)
         self.assertIn("`tail`", dispatch)
         for text in (dispatch, contract):
             self.assertIn("pkill -f", text)
@@ -493,7 +505,7 @@ class SddxContractTests(unittest.TestCase):
     def test_dispatch_opens_with_controller_procedure(self) -> None:
         text = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
         self.assertIn("## Controller procedure", text)
-        self.assertIn("bash scripts/sdd-workspace", text)
+        self.assertIn("<repo root>/.waygent/<plan-slug>/", text)
         self.assertIn("--global-constraints", text)
         self.assertIn("## Runner already does this", text)
         procedure, _, rest = text.partition("## Runner already does this")
@@ -502,7 +514,7 @@ class SddxContractTests(unittest.TestCase):
         for key in ("session_id", "timed_out", "pending_bytes", "pid_alive", "launch_failed"):
             self.assertIn(key, rest, key)
 
-    def test_contract_owns_extraction_not_task_brief(self) -> None:
+    def test_contract_owns_extraction_and_the_split_with_waygent(self) -> None:
         contract = (
             ROOT / "docs" / "maintainers" / "products" / "sddx" / "contract.md"
         ).read_text(encoding="utf-8")
@@ -510,8 +522,9 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("only when the user message contains `/sddx` or `$sddx`", contract)
         self.assertIn("`--global-constraints`", contract)
         self.assertIn("one worker never bundles several plan tasks", contract)
-        self.assertIn("nested native SDD", contract)
-        self.assertIn("workspace", contract)
+        self.assertIn("waygent owns", contract)
+        self.assertIn("`reported_model`", contract)
+        self.assertIn("observed_model.py", contract)
         self.assertNotIn("explicit external implementer request", contract)
 
     def test_readme_when_to_use_is_slash_dollar_only(self) -> None:
@@ -530,10 +543,8 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("An explicit choice in this request", text)
         self.assertIn("The current state of this same run", text)
         self.assertIn("Ask once", text)
-        self.assertIn("one active plan and one ledger at a time", text)
-        self.assertIn("Never pass the previous provider's session ID", text)
-        lowered = text.lower()
-        self.assertIn("does not reset the fix-round count", lowered)
+        self.assertIn("Keep one active plan at a time", text)
+        self.assertIn("never pass the previous provider's session ID", text)
 
     def test_host_checks_use_the_existing_statuses(self) -> None:
         worker = (SKILL / "references" / "worker-prompt.md").read_text(encoding="utf-8")
@@ -627,64 +638,21 @@ class SddxContractTests(unittest.TestCase):
                 relative,
             )
 
-    def test_claude_plugin_directory_is_allowed_for_sddx(self) -> None:
+    def test_no_claude_plugin_or_agent_definition_ships(self) -> None:
+        self.assertFalse((SKILL / ".claude-plugin").exists())
+        self.assertEqual(
+            sorted(path.name for path in (SKILL / "agents").iterdir()),
+            ["openai.yaml"],
+        )
         registry = load_registry(ROOT / "products.toml")
         with tempfile.TemporaryDirectory() as directory:
             copied = Path(directory) / "sddx"
             shutil.copytree(SKILL, copied, ignore=shutil.ignore_patterns("__pycache__"))
             plugin_dir = copied / ".claude-plugin"
-            plugin_dir.mkdir(exist_ok=True)
-            (plugin_dir / "plugin.json").write_text('{"name": "sddx"}\n', encoding="utf-8")
-            self.assertEqual(validate_product(copied, registry), [])
-
-    def test_claude_plugin_directory_is_allowed_only_for_sddx(self) -> None:
-        registry = load_registry(ROOT / "products.toml")
-        with tempfile.TemporaryDirectory() as directory:
-            copied = Path(directory) / "how-it-works"
-            shutil.copytree(ROOT / "skills" / "how-it-works", copied,
-                            ignore=shutil.ignore_patterns("__pycache__"))
-            plugin_dir = copied / ".claude-plugin"
             plugin_dir.mkdir()
-            (plugin_dir / "plugin.json").write_text('{"name": "how-it-works"}\n', encoding="utf-8")
+            (plugin_dir / "plugin.json").write_text('{"name": "sddx"}\n', encoding="utf-8")
             self.assertIn("unexpected top-level file: .claude-plugin",
                           validate_product(copied, registry))
-
-    def test_plugin_manifest_names_the_product(self) -> None:
-        manifest = json.loads((SKILL / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
-        self.assertEqual(manifest["name"], "sddx")
-        self.assertIn("description", manifest)
-        self.assertIn("version", manifest)
-
-    def test_plugin_manifest_registers_the_xhigh_agent_file(self) -> None:
-        manifest = json.loads((SKILL / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
-        self.assertNotIn("agents", manifest)
-        skill = (SKILL / "SKILL.md").read_text(encoding="utf-8")
-        self.assertIn("subagent_type: sddx:sddx-reviewer-xhigh", skill)
-        self.assertNotIn("subagent_type: sddx-reviewer-xhigh`", skill)
-        self.assertNotIn("subagent_type: sddx:claude-code:sddx-reviewer-xhigh", skill)
-
-    def test_claude_code_agents_are_closed_and_escalation_only(self) -> None:
-        directory = SKILL / "agents"
-        self.assertFalse((directory / "claude-code").exists())
-        definitions = sorted(
-            path.relative_to(directory).as_posix()
-            for path in directory.rglob("*.md")
-        )
-        self.assertEqual(definitions, ["sddx-reviewer-xhigh.md"])
-        frontmatter = parse_skill_frontmatter(
-            (directory / "sddx-reviewer-xhigh.md").read_text(encoding="utf-8")
-        )
-        self.assertEqual(frontmatter.get("name"), "sddx-reviewer-xhigh")
-        self.assertEqual(frontmatter.get("effort"), "xhigh")
-        self.assertNotIn("model", frontmatter)
-        disallowed = str(frontmatter.get("disallowedTools", ""))
-        for tool in ("Edit", "Write", "NotebookEdit"):
-            self.assertIn(tool, disallowed)
-
-    def test_plugin_manifest_version_matches_the_release(self) -> None:
-        manifest = json.loads((SKILL / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
-        release = load_product_release(SKILL)
-        self.assertEqual(manifest["version"], release.version)
 
     def test_testing_doc_records_win32_fixtures_as_deleted(self) -> None:
         testing = (

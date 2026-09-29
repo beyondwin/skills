@@ -2,29 +2,19 @@
 
 ## Controller procedure
 
+`P` is waygent's `<repo root>/.waygent/<plan-slug>/`. Every path below lives
+under it, and `.waygent/.gitignore` keeps all of it out of commits.
+
 1. `python3 "<skill-root>/scripts/resolve_backend.py" --backend <id> --json`.
    If `available` is false, stop and report `reason`. Do not switch backends.
-2. Run Superpowers `bash scripts/sdd-workspace PLAN_FILE` and keep that
-   directory. Write extract outputs and attempt dirs under it with new names.
-   Do not reimplement `sdd-workspace`.
-3. Do not run Superpowers `task-brief` or `task-start`. Extract with:
-
-       python3 "<skill-root>/scripts/extract_task.py" <plan-file> --heading "<heading>" --global-constraints --output <new-path>
-
-   Then add `Search paths`, `Worker checks`, `Host checks`, and task
-   decisions. If extract exits 3 because Global Constraints are missing,
-   duplicated, or empty, record that in the ledger and do not dispatch.
-   A brief with no plan heading of its own (a fix round, a continuation)
-   starts from the constraints section alone:
-   `extract_task.py <plan-file> --heading "Global Constraints" --output <new-path>`.
-   If the plan points at another plan's constraints, extract from that plan.
-   Do not copy constraints by hand or from a cached `/tmp` file.
-4. Grok: `prepare` → `run_worker.py run` → wait on the host job → the
+2. Build the brief (below) at a new path under `$P/briefs/`.
+3. Grok: `prepare` → `run_worker.py run` → wait on the host job → the
    `status` windows you need → confirm the worker and its descendants have
    exited → `cleanup`. Cursor: the same run/status path without
    prepare/cleanup.
-5. Process exit 0 is not DONE. Judge from the report, actual test exits,
-   commits, the tools index, and native review. Do not paste the log.
+4. Process exit 0 is not DONE. Judge from the report, actual test exits,
+   the trailer commit, the tools index, and the native review. Do not paste
+   the log.
 
 ## Resolve the backend
 
@@ -101,45 +91,50 @@ Cursor keeps its environment and existing approval/sandbox policy.
 
 ## Build the brief
 
-Do not run Superpowers `task-brief` or `task-start`. Extract the task
-section from the plan in the controller:
+Do not use waygent's brief template as is: its worker could read the plan, and
+this one cannot. Extract the task section in the controller:
 
-    python3 "<skill-root>/scripts/extract_task.py" <plan-file> --heading "Task P1: Save state" --global-constraints --output <section-file>
+    python3 "<skill-root>/scripts/extract_task.py" <plan-file> --heading "Task 1: Save state" --global-constraints --output "$P/briefs/task-1.md"
 
 `--heading` is the complete heading text without the leading `#` marks. Exit 0
 is success, 2 is a file or argument error, and 3 is a section-selection error:
 the heading is absent, duplicated, or has an empty body. Missing, duplicate, or
 empty `Global Constraints` / `Global constraints` is also exit 3, and the
-controller must not dispatch. The command never
-overwrites an existing output file, so write each extraction to a new path.
-The output path is a new file under the Superpowers `sdd-workspace` plan
-directory.
+controller must not dispatch. The command never overwrites an existing output
+file, so write each extraction to a new path.
 
-`extract_task.py --global-constraints` prepends the plan's `Global Constraints`
-or `Global constraints` section. The controller does not shrink it. Do not
-hand-copy those constraints. A worker cannot read the plan, so a constraint
-left out of the brief does not exist for it, and the review finds it afterwards
-as a defect the worker had no way to avoid. Task-specific constraints go with
-the task; do not send the plan itself as a reference. Source and test
-inspection remains available. When the brief lacks a required decision,
-complete it in the controller rather than ask the worker to recover it from
-the plan. Add `Search paths:` with concrete
-source/test file or directory paths to the brief. Keep planning documents out
-of that list. The worker starts with direct reads of named files and targets
-content searches at these paths; a glob without a target path can still search
-the whole repository.
+A brief with no plan heading of its own (a fix, a retry, the final batch)
+starts from the constraints section alone:
+`extract_task.py <plan-file> --heading "Global Constraints" --output <new-path>`.
+If the plan points at another plan's constraints, extract from that plan. Do not
+copy constraints by hand or from a cached `/tmp` file.
+
+Then append, in this order, and nothing from the plan beyond it:
+
+- `Task N of M: <title>.` and `Read <P>/guide.md first.` guide.md is an
+  explicitly listed task reference.
+- `Depends on:` names and signatures from earlier tasks, nothing else.
+- waygent's test-first paragraph and trailer rule, verbatim from its brief:
+  the task's last commit carries `Waygent-Task: N` in its last paragraph.
+- `Search paths:` concrete source/test files or directories. Keep planning
+  documents out of it; a glob without a target path can still search the whole
+  repository.
+- `Worker checks:` the local commands the worker runs and reports with actual
+  exit codes. `Host checks:` the ones only this host can run; the worker names
+  outstanding ones in `NEEDS_CONTEXT` or `BLOCKED` instead of claiming them.
+  Run a task's Host checks before that task's review, not batched at the end.
+- Any ruling the task needs. Complete a missing decision here rather than ask
+  the worker to recover it from the plan.
+
+A fix brief adds the High and Medium findings verbatim. A continuation brief
+names the previous `report.md` and the commits already made. waygent's
+~1,500-character brief limit does not apply to these briefs.
+
 `Search paths` limits content searches. Filename-only listings inside the
 current worktree, including its root, and direct reads of repository
 ignore/build/test configuration needed for this task are allowed inspection.
 These actions alone are not scope deviations. They never permit reading
 full-plan content, credentials, or secrets.
-
-Split verification in the brief under two headings. `Worker checks` are the
-local commands the worker runs and reports with actual exit codes.
-`Host checks` are the ones only this host can run; the worker names the
-outstanding ones in `NEEDS_CONTEXT` or `BLOCKED` instead of claiming them.
-Run a task's Host checks before that task's review, not batched at the end of
-the plan.
 
 The runner writes this reading boundary into every dispatch, new or resumed,
 alongside the brief and report paths (it also remains in the worker rules):
@@ -166,10 +161,11 @@ journal path.
 For Grok, immediately before starting the worker, prepare its worktree
 profile:
 
-    python3 "<skill-root>/scripts/prepare_grok_sandbox.py" prepare --worktree "<worktree>" --state "<evidence-dir>/grok-sandbox.json"
+    python3 "<skill-root>/scripts/prepare_grok_sandbox.py" prepare --worktree "<repo root>" --state "$P/grok-sandbox.json"
 
-`<skill-root>`, `<worktree>`, and `<evidence-dir>` are absolute paths already
-established by SDD, not requests for more user input. If preparation fails, do
+`<skill-root>`, `<repo root>`, and `$P` are absolute paths the run already
+knows, not requests for more user input. The state file must be under
+`.waygent/`. If preparation fails, do
 not start the worker. Read `profile` out of the successful JSON and pass it to
 the runner as `--sandbox-profile`; the runner substitutes it for the resolved
 prefix's sandbox value itself. `run_worker.py` never prepares or cleans up.
@@ -181,12 +177,11 @@ prefix's sandbox value itself. `run_worker.py` never prepares or cleans up.
         [--model <confirmed-grok-id>] [--resume <known-id>] [--sandbox-profile <prepared-profile>] \
         [--idle-timeout <seconds>] [--timeout <seconds>]
 
-`--attempt-dir` must be a new directory under the plan directory from Superpowers
-`sdd-workspace` (already inside the worktree `.superpowers/sdd/<plan>/` tree),
-never a shared flat `.superpowers/` name.
-Create its parent (for example `<plan-dir>/worker-attempts/`) before the first
-run; the runner refuses a missing parent. Do not pipe `run` or `status` through
-`tail` or another filter that hides the exit code.
+`--attempt-dir` must be a new directory under `$P/attempts/` (for example
+`task-3`, `task-3-fix`, `task-3-retry`, `final`). The runner refuses a path
+outside the repository's `.waygent/` directory. Create `$P/attempts/` before the
+first run; the runner refuses a missing parent. Do not pipe `run` or `status`
+through `tail` or another filter that hides the exit code.
 The runner writes six files there: `brief.md`, `dispatch.md`, `worker.jsonl`
 (raw stdout), `stderr.log`, `run.json`, and `report.md`, which the worker
 writes itself — the runner never writes the report. Grok receives the worker
@@ -206,9 +201,9 @@ runner copies the first reported id from the worker's own stream into
 `running`, and never replaces it. Read that id from `status` — not by dumping
 the log. `status` still mirrors the record; it does not invent an id from the
 log when the record is missing. It is null when the provider's stream reported
-none. If a fix round has no reported session ID — `session_id` null, `Worker
-session: none` in the current-state block — use the SDD fallback: a fresh
-worker plus the previous attempt's `report.md` named in the brief. Never guess
+none. If a fix has no reported session ID — `session_id` null, `Worker
+session: none` in the current-state block — dispatch a fresh worker with a
+continuation brief that names the previous attempt's `report.md`. Never guess
 an ID.
 
 `--idle-timeout <seconds>` ends an attempt when neither `worker.jsonl` nor
@@ -287,12 +282,12 @@ the same offset in a short loop.
 For Grok, confirm the worker and any work it started have exited, then clean
 up after every success or failure:
 
-    python3 "<skill-root>/scripts/prepare_grok_sandbox.py" cleanup --worktree "<worktree>" --state "<evidence-dir>/grok-sandbox.json"
+    python3 "<skill-root>/scripts/prepare_grok_sandbox.py" cleanup --worktree "<repo root>" --state "$P/grok-sandbox.json"
 
 Do not clean up while a process is still running or overlap it with a new
-worker. New tasks and resumed fix rounds use the same prepare, launch, exit,
+worker. New tasks, resumed fixes, and retries use the same prepare, launch, exit,
 and cleanup order. If cleanup fails, do not overwrite other files to repair
-it; record the remaining difference and state path in the ledger.
+it; record the remaining difference and state path in `progress.md`.
 
 ## Evidence
 
@@ -304,8 +299,22 @@ compliance as UNVERIFIED. A final message alone is not a tool trace.
 Record the attempt path and the confirmed session ID in the current-state
 block described by `references/current-state.md`. Take the id from `status`
 while the attempt is still running; do not wait for exit and do not parse
-the log for it. `run.json` stays the attempt's process record; the ledger
-stays the run's record.
+the log for it. `run.json` stays the attempt's process record; `progress.md`
+stays the run's record. The progress line's `impl=` value comes from this
+record: `reported_model` when the stream named one, else `model (requested)`,
+and `configured_effort`, else `unknown`.
+
+Read what a native reviewer actually ran on from the host's own transcript,
+not from the dispatch and not from the reviewer's own words:
+
+    python3 "<skill-root>/scripts/observed_model.py" claude-code --agent-id <agentId>
+    python3 "<skill-root>/scripts/observed_model.py" claude-code --session-id <this session>
+    python3 "<skill-root>/scripts/observed_model.py" codex --thread-id <thread id>
+
+It prints one JSON line: `found`, `source`, `models` and `efforts` with counts,
+and `reason` (`not_found`, `ambiguous`, `no_model_turns`, or null). It reads
+only those fields and prints no transcript text. When `found` is false, write
+the dispatched value followed by `(requested)`.
 
 Do not pass `--plugin-dir`. Do not approve extra MCP servers.
 
@@ -313,7 +322,7 @@ Do not pass `--plugin-dir`. Do not approve extra MCP servers.
 
 `run.json` holds process facts only: `schema_version` 2, `backend`,
 `identity`, `model`, `worktree`, `attempt_dir`, `brief_sha256`, `resume_id`,
-`session_id`, `requested_effort`, `configured_effort`, `skill_version`, `state`,
+`session_id`, `reported_model`, `requested_effort`, `configured_effort`, `skill_version`, `state`,
 `pid`, `exit_code`, `started_at`, `ended_at`, `error`. `skill_version` is the
 installed skill's `release.toml` version, written once at start. A missing or
 unreadable version refuses the launch before the attempt directory is created.
@@ -349,6 +358,11 @@ log body. Role compliance is still the controller's.
 
 - `session_id` is the first id already copied into `run.json`, including while
   `state` is `running`. Status does not put one there from the log.
+- `metadata.reported_model` is the model the worker's own `system`/`init`
+  event named (Grok `grok-4.7`, Cursor for example `Cursor Grok 4.7 High`),
+  copied once and never replaced. `model` stays the requested id. Grok reports
+  no effort, so `configured_effort` (the flag value) is the only effort fact
+  there.
 - `session_id_in_log` is the id the log reports, offered only when the record
   holds none, and `null` otherwise. Resume from it instead of re-running a task
   whose runner was killed before it could record the session.

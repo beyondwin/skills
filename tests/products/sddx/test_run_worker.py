@@ -211,6 +211,7 @@ METADATA_FIELDS = {
     "identity",
     "model",
     "session_id",
+    "reported_model",
     "worktree",
     "attempt_dir",
     "brief_sha256",
@@ -278,7 +279,7 @@ class RunnerFixture(unittest.TestCase):
             check=False,
             capture_output=True,
         )
-        self.evidence = self.worktree / ".superpowers"
+        self.evidence = self.worktree / ".waygent"
         self.evidence.mkdir()
         self.attempt = self.evidence / "attempt-1"
         self.brief = self.base / "task-brief.md"
@@ -727,10 +728,10 @@ class AttemptDirectoryTests(RunnerFixture):
         self.assert_no_worker_invocation()
         self.assertFalse((outside / "attempt-1").exists())
 
-    def test_attempt_directory_beside_superpowers_is_refused(self) -> None:
+    def test_attempt_directory_beside_waygent_is_refused(self) -> None:
         module = self.load()
         self.write_grok()
-        target = self.worktree / "not-superpowers"
+        target = self.worktree / "not-waygent"
         target.mkdir()
         code = self.invoke(module, self.options(module, attempt_dir=target / "attempt-1"))
         self.assertEqual(code, 2)
@@ -781,7 +782,7 @@ class AttemptDirectoryTests(RunnerFixture):
     def test_relative_attempt_directory_is_refused(self) -> None:
         module = self.load()
         self.write_grok()
-        relative = Path(".superpowers") / "attempt-relative"
+        relative = Path(".waygent") / "attempt-relative"
         self.assertFalse(relative.is_absolute())
         # Resolved against the caller's working directory, which is not this
         # worktree, so it lands outside the evidence tree and is rejected.
@@ -799,7 +800,17 @@ class AttemptDirectoryTests(RunnerFixture):
         self.assert_no_worker_invocation()
         self.assertFalse(missing.parent.exists())
 
-    def test_superpowers_root_itself_is_not_an_attempt_directory(self) -> None:
+    def test_old_superpowers_evidence_directory_is_refused(self) -> None:
+        module = self.load()
+        self.write_grok()
+        legacy = self.worktree / ".superpowers"
+        legacy.mkdir()
+        code = self.invoke(module, self.options(module, attempt_dir=legacy / "attempt-1"))
+        self.assertEqual(code, 2)
+        self.assert_no_worker_invocation()
+        self.assertFalse((legacy / "attempt-1").exists())
+
+    def test_waygent_root_itself_is_not_an_attempt_directory(self) -> None:
         module = self.load()
         self.write_grok()
         code = self.invoke(module, self.options(module, attempt_dir=self.evidence))
@@ -1950,6 +1961,59 @@ class SessionIdReadingTests(RunnerFixture):
             + b"\n"
         )
         self.assertEqual(module.read_session_id(path), "synthetic-session-0004")
+
+
+class ReportedModelTests(RunnerFixture):
+    """The attempt record carries the model the worker's own stream named."""
+
+    def stream(self, *events: object) -> Path:
+        path = self.base / "stream.jsonl"
+        path.write_text(
+            "".join(
+                (event if isinstance(event, str) else json.dumps(event)) + "\n"
+                for event in events
+            ),
+            encoding="utf-8",
+        )
+        return path
+
+    def test_init_model_reaches_the_metadata(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SESSION_INIT)
+        self.assertEqual(self.invoke(module, self.options(module)), 0)
+        metadata = self.metadata()
+        self.assertEqual(metadata["reported_model"], "Synthetic Model")
+        # The requested model stays its own field.
+        self.assertEqual(metadata["model"], "grok-4.7")
+
+    def test_a_stream_without_an_init_model_records_null(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_OK)
+        self.assertEqual(self.invoke(module, self.options(module)), 0)
+        self.assertIsNone(self.metadata()["reported_model"])
+
+    def test_only_the_init_event_names_the_model(self) -> None:
+        module = self.load()
+        path = self.stream(
+            "not json",
+            {"type": "assistant", "model": "synthetic-not-init"},
+            {"type": "system", "subtype": "init", "model": ""},
+            {"type": "system", "subtype": "init", "model": 7},
+            {"type": "system", "subtype": "init", "model": "synthetic-first"},
+            {"type": "system", "subtype": "init", "model": "synthetic-second"},
+        )
+        self.assertEqual(module.read_reported_model(path), "synthetic-first")
+
+    def test_a_missing_stream_reads_as_none(self) -> None:
+        module = self.load()
+        self.assertIsNone(module.read_reported_model(self.base / "absent.jsonl"))
+
+    def test_a_recorded_model_is_never_replaced(self) -> None:
+        module = self.load()
+        path = self.stream({"type": "system", "subtype": "init", "model": "synthetic-later"})
+        metadata = {"session_id": None, "reported_model": "synthetic-kept"}
+        module.remember_stream_facts(metadata, path)
+        self.assertEqual(metadata["reported_model"], "synthetic-kept")
 
 
 class SessionIdRecordingTests(RunnerFixture):

@@ -75,11 +75,11 @@ def _validated_paths(worktree: Path, state: Path) -> tuple[Path, Path, Path, dic
     worktree = worktree.resolve()
     expected = profile_values(worktree)
     state = Path(os.path.abspath(state))
-    superpowers = worktree / ".superpowers"
+    evidence = worktree / ".waygent"
     try:
-        relative_state = state.relative_to(superpowers)
+        relative_state = state.relative_to(evidence)
     except ValueError as error:
-        raise ValueError("state must be inside the worktree .superpowers directory") from error
+        raise ValueError("state must be inside the worktree .waygent directory") from error
     if len(relative_state.parts) < 2 or not state.parent.is_dir():
         raise ValueError("state parent must be an existing evidence directory")
 

@@ -4,36 +4,37 @@
 
 ## 목적
 
-구현 계획을 Superpowers SDD로 끝까지 돌리되, 코드 작성만 외부 CLI에 맡깁니다.
-지금 쓰는 Claude Code 또는 Codex 세션이 계획을 과제로 나누고, 결과를 확인하고,
-리뷰를 돌립니다. 코드 작성과 커밋은 Cursor Agent 또는 Grok Build가 과제 하나씩
-맡습니다. 두 워커 모두 Grok 4.7만 쓰고 `-fast` 변형은 쓰지 않습니다.
+구현 계획을 [waygent](https://github.com/beyondwin/skills/blob/main/skills/waygent/README.ko.md)
+방식으로 끝까지 돌리되, 코드 작성만 외부 CLI에 맡깁니다. 지금 쓰는 Claude Code
+또는 Codex 세션이 계획을 과제로 나누고, 결과를 확인하고, 리뷰를 돌립니다. 코드
+작성과 커밋은 Cursor Agent 또는 Grok Build가 과제 하나씩 맡습니다. 두 워커 모두
+Grok 4.7만 쓰고 `-fast` 변형은 쓰지 않습니다.
 
 ```text
 /sddx docs/plan.md grok
   │
-  ├─ 과제 1 ─ 워커(새 CLI 실행): 브리프 → 코드 → 테스트 → 커밋 → 보고서
-  │           호스트: 보고서·테스트·커밋 확인 → 리뷰(High 또는 XHigh)
+  ├─ 과제 1 ─ 워커: 브리프 → 테스트 먼저 → 코드 → 커밋 → 보고서
+  │           호스트: 보고서·테스트·커밋 확인 → 리뷰 한 번 → 수정 한 번
   ├─ 과제 2 ─ …
   │
-  └─ 끝 ──── 호스트에서 브랜치 전체 리뷰
+  └─ 끝 ──── 호스트에서 최종 리뷰 한 번 → 수정 → 보고
 ```
 
 | 말 | 뜻 |
 | --- | --- |
-| 호스트 | 스킬을 실행하는 Claude Code 또는 Codex입니다. `/sddx`나 `$sddx`를 받은 그 세션(계약의 오케스트레이터)이 과제를 나눠 주고, 결과를 확인하고, 리뷰를 돌립니다. |
+| 호스트 | 스킬을 실행하는 Claude Code 또는 Codex입니다. `/sddx`나 `$sddx`를 받은 그 세션이 과제를 나눠 주고, 결과를 확인하고, 리뷰를 돌립니다. |
 | 워커(worker) | 과제 하나를 코딩하고 커밋하는 외부 CLI입니다. |
-| 브리프(brief) | 워커가 받는 과제 한 건의 설명서입니다. 계획 전체에 걸린 제약도 담습니다. |
+| 브리프(brief) | 워커가 받는 과제 한 건의 설명서입니다. 계획 전체에 걸린 규칙도 담습니다. |
 | 러너(runner) | 워커를 띄우고 시도를 기록하는 `run_worker.py`입니다. |
-| High / XHigh | 추론 강도입니다. XHigh가 더 깊게 생각합니다. |
+| High / XHigh | 모델이 얼마나 깊게 생각하는지입니다. XHigh가 더 깊게 생각합니다. |
 
 ## 사용할 때와 사용하지 않을 때
 
 - 쓸 때: 구현 계획 파일이 있고, 메시지에 `/sddx`(Claude Code) 또는
   `$sddx`(Codex)를 적었을 때만 씁니다.
-- 쓰지 않을 때: 설계·계획 작성, `writing-plans`, `executing-plans`(Native
-  포함), `pre-sdd-review`, 일반 SDD, 이 세션에서 직접 코딩, `/sddx`나 `$sddx`
-  없는 “Grok으로 구현해 줘”.
+- 쓰지 않을 때: 설계·계획 작성, `/waygent`, `writing-plans`,
+  `executing-plans`(Native 포함), `pre-sdd-review`, 일반 SDD, 이 세션에서 직접
+  코딩, `/sddx`나 `$sddx` 없는 “Grok으로 구현해 줘”.
 
 ## 지원 호스트
 
@@ -42,13 +43,14 @@ sddx: Claude Code and Codex supported for local or repository-based use.
 
 - 호스트는 `claude-code`, `codex`입니다. Cursor Agent와 Grok Build는 워커이고
   호스트가 아닙니다.
+- waygent 스킬이 이 스킬 옆에 설치되어 있어야 합니다(아래와 같은 방식의 링크).
+  없으면 SDDx는 멈춥니다.
 - OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않고, Windows에서는 제품 CLI가
   거절합니다.
-- Grok 워커는 linked worktree(`git worktree`로 추가한 작업 트리)에서 Python
-  3.11+가 필요합니다. MCP 호출 도구를 끄며, `--disallowed-tools`와 `--deny`를
-  지원하지 않는 Grok CLI로는 실행하지 않습니다.
+- Grok 워커는 샌드박스 준비에 Python 3.11+가 필요합니다. MCP 호출 도구를 끄며,
+  `--disallowed-tools`와 `--deny`를 지원하지 않는 Grok CLI로는 실행하지 않습니다.
 - Claude.ai, Cowork, Skills API 업로드, marketplace 게시는 지원하지 않습니다.
-- 호스트·워커 네 조합을 macOS에서 실제로 돌려 보았습니다. 확인 범위는
+- 실제로 돌려 본 범위는
   [호환성](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/sddx/compatibility.md),
   공통 한계는 [호환성 안내](https://github.com/beyondwin/skills/blob/main/docs/users/ko/compatibility.md)를
   보세요.
@@ -56,7 +58,7 @@ sddx: Claude Code and Codex supported for local or repository-based use.
 ## 설치
 
 저장소를 받은 뒤 바로가기(심볼릭 링크) 두 개를 만듭니다. 하나는 Codex용,
-하나는 Claude Code용입니다.
+하나는 Claude Code용입니다. waygent도 같은 방식으로 링크합니다(waygent README 참고).
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -136,18 +138,23 @@ $sddx docs/history/plans/example.md grok
 
 1. 워커: 적지 않았으면 계획마다 한 번 묻고, 하나만 쓸 수 있어도 확인받습니다.
    고른 쪽이 없으면 멈추며, 스스로 다른 쪽으로 바꾸지 않습니다.
-2. 과제마다 새 워커와 브리프를 씁니다. 워커는 전체 계획을 읽지 않습니다.
-3. 종료 코드 0은 완료가 아닙니다. 호스트가 보고서, 실제 테스트 결과, 커밋, 도구
-   기록(무엇을 읽고 실행했는지)을 확인한 뒤 호스트와 같은 모델로 리뷰합니다. 보통
-   High이고, 동시성·권한·비밀·샌드박스 변경과 4~5회차 재리뷰는 XHigh입니다.
-4. 수정 1~3회차는 강도가 같으면 같은 워커 세션을 이어서(resume), 4~5회차는 새
-   XHigh 워커가 합니다.
-5. 계획 밖 작업은 먼저 묻습니다. push나 게시가 필요하면 `BLOCKED`로 멈춥니다.
+2. `waygent/<계획>` 브랜치에서 일하고, 기록은 `.waygent/<계획>/`에 둡니다(커밋하지
+   않음): `progress.md`, `guide.md`, `reviews/`, 워커 실행마다 `attempts/` 폴더 하나.
+3. 과제마다 새 워커와 브리프를 씁니다. 워커는 전체 계획을 읽지 않습니다. 실패하는
+   테스트를 먼저 쓰고, 코드를 쓰고, `Waygent-Task: N`이 붙은 커밋으로 끝냅니다.
+4. 종료 코드 0은 완료가 아닙니다. 호스트가 보고서, 실제 테스트 결과, 커밋, 도구
+   기록(무엇을 읽고 실행했는지)을 확인한 뒤 호스트의 리뷰어가 한 번 리뷰하고, 같은
+   워커가 High·Medium 지적을 한 번 고칩니다.
+5. 그래도 실패한 과제는 새 XHigh 워커로 한 번 다시 합니다. 두 번째 실패면 원인을
+   적고 멈춥니다.
+6. `progress.md`에 과제마다 실제로 코드를 쓴 모델과 리뷰한 모델, 그 강도가 남습니다.
+   예: `impl=grok:grok-4.7/high reviewer=claude-opus-5-5/high`. 무엇으로도 확인하지
+   못한 값에는 `(requested)`가 붙습니다.
+7. 계획 밖 작업은 먼저 묻습니다. push나 게시가 필요하면 `BLOCKED`로 멈춥니다.
 
-시도마다 작업 트리 `.superpowers/sdd/<계획이름>/` 아래 폴더에 `run.json`,
-`report.md`, 로그가 남습니다. 진행 상황은 `run_worker.py status`로 봅니다. 세션
-ID, 워커 생존 여부(`pid_alive`), 읽은 파일·검색·셸 목록만 짧게 보여 주며, 로그
-전체는 붙여 넣지 않습니다.
+워커 진행 상황은 `run_worker.py status`로 봅니다. 세션 ID, 워커 생존
+여부(`pid_alive`), 읽은 파일·검색·셸 목록만 짧게 보여 주며, 로그 전체는 붙여
+넣지 않습니다.
 
 | 상황 | 결과 | 다음 할 일 |
 | --- | --- | --- |

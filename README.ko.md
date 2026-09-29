@@ -22,7 +22,7 @@ Codex, Claude Code, Cursor, Grok 같은 AI 코딩 도구에 넣어 쓰는 스킬
 | [`image-workbench`](skills/image-workbench/README.ko.md) | 프로젝트에 맞아야 하는 이미지(PNG, JPG)를 기획하고 만들고 고칩니다. | Codex, Grok |
 | [`how-it-works`](skills/how-it-works/README.ko.md) | 무언가가 어떻게 도는지 고른 깊이로 그림과 함께 설명합니다. | Codex, Claude Code |
 | [`pre-sdd-review`](skills/pre-sdd-review/README.ko.md) | SDD 직전에 승인된 설계와 계획을 저장소와 맞춰 보고, 고친 뒤 다시 확인합니다. | Codex |
-| [`sddx`](skills/sddx/README.ko.md) | Superpowers SDD는 지금 세션이 진행하고, 코드 작성만 Cursor Agent나 Grok Build에 맡깁니다. | Claude Code, Codex |
+| [`sddx`](skills/sddx/README.ko.md) | 계획을 waygent 방식으로 지금 세션이 진행하고, 코드 작성만 Cursor Agent나 Grok Build에 맡깁니다. `waygent`도 함께 설치해야 합니다. | Claude Code, Codex |
 | [`waygent`](skills/waygent/README.ko.md) | 계획을 과제마다 새 서브에이전트로 돌립니다. 테스트 먼저, 과제별 리뷰 한 번, 최종 리뷰 한 번. | Claude Code, Codex, Cursor |
 
 설치 방법과 첫 호출은 각 스킬 README에 있습니다.

@@ -44,7 +44,7 @@ waygent: Claude Code, Codex, Cursor Agent, and Grok Build supported for local or
 - `image-workbench`는 지금 호스트에 자체 그림 도구가 있고 결과를 열어 볼 수 있을 때만 그림을 만들거나 고칩니다. 다른 호스트의 비슷한 도구는 치지 않습니다. Grok에서는 `~/.agents/skills/image-workbench` 링크를 씁니다.
 - `pre-sdd-review`는 다른 호스트에서 확인하지 않았습니다(`not_measured`).
 - `how-it-works`: 현재 설치 파일의 라이브 실행은 `not_measured`입니다.
-- `sddx`: Cursor Agent와 Grok Build는 과제를 넘겨받는 워커이고 호스트가 아닙니다.
+- `sddx`: Cursor Agent와 Grok Build는 과제를 넘겨받는 워커이고 호스트가 아닙니다. 같은 호스트에 `waygent`도 옆에 링크되어 있어야 합니다.
 - `waygent`: 모든 호스트가 서브에이전트를 띄울 수 있어야 합니다. Codex는 `~/.codex/config.toml`의 `[features]`에 `multi_agent = true`가 있어야 합니다. 측정 기록은 [waygent 호환성 기록](../../maintainers/products/waygent/compatibility.md)에 있습니다.
 
 ## 운영체제

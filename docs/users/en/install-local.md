@@ -18,7 +18,7 @@ In a terminal, type the first line given in the section (`python3 - ... <<'PY'`)
 
 ## how-it-works
 
-For Codex and Claude Code. Public path: https://github.com/beyondwin/skills/tree/main/skills/how-it-works. You make two links: Codex reads `~/.agents/skills/how-it-works`, Claude Code reads `~/.claude/skills/how-it-works`. Do not add a copy under `~/.codex` or `~/.grok`.
+For Codex and Claude Code. Public path: https://github.com/beyondwin/skills/tree/main/skills/how-it-works. You make two links: Codex reads `~/.agents/skills/how-it-works`, Claude Code reads `~/.claude/skills/how-it-works`. Do not add a copy under `~/.codex` or `~/.grok`. SDDx runs on waygent, so link `waygent` the same way (see its section).
 
 1. Clone and create the folders.
 
@@ -68,7 +68,7 @@ print("linked")
 
 ## sddx
 
-For Codex and Claude Code. Public path: https://github.com/beyondwin/skills/tree/main/skills/sddx. You make two links: Codex reads `~/.agents/skills/sddx`, Claude Code reads `~/.claude/skills/sddx`. Do not add a copy under `~/.codex` or `~/.grok`.
+For Codex and Claude Code. Public path: https://github.com/beyondwin/skills/tree/main/skills/sddx. You make two links: Codex reads `~/.agents/skills/sddx`, Claude Code reads `~/.claude/skills/sddx`. Do not add a copy under `~/.codex` or `~/.grok`. SDDx runs on waygent, so link `waygent` the same way (see its section).
 
 1. Clone and create the folders.
 

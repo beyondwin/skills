@@ -52,19 +52,18 @@ SHARED_RELEASE_PATHS = (
 )
 SDDX_PAYLOAD_FILES = frozenset(
     {
-        ".claude-plugin/plugin.json",
         "CHANGELOG.md",
         "LICENSE.txt",
         "README.ko.md",
         "README.md",
         "SKILL.md",
         "agents/openai.yaml",
-        "agents/sddx-reviewer-xhigh.md",
         "references/current-state.md",
         "references/dispatch.md",
         "references/worker-prompt.md",
         "release.toml",
         "scripts/extract_task.py",
+        "scripts/observed_model.py",
         "scripts/prepare_grok_sandbox.py",
         "scripts/resolve_backend.py",
         "scripts/run_worker.py",

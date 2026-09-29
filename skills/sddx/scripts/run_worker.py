@@ -52,7 +52,7 @@ from resolve_backend import ALIASES, _subprocess_args, refuse_windows, resolve  
 WORKER_RULES_PATH = SCRIPT_DIR.parent / "references" / "worker-prompt.md"
 
 SCHEMA_VERSION = 2
-EVIDENCE_DIR_NAME = ".superpowers"
+EVIDENCE_DIR_NAME = ".waygent"
 BRIEF_NAME = "brief.md"
 DISPATCH_NAME = "dispatch.md"
 STDOUT_NAME = "worker.jsonl"
@@ -379,15 +379,53 @@ def read_session_id(path: Path) -> str | None:
     return None
 
 
-def remember_session_id(metadata: dict[str, Any], path: Path) -> bool:
-    """Copy the first stream session id into the record. Never replace one."""
-    if isinstance(metadata.get("session_id"), str) and metadata["session_id"]:
-        return False
-    found = read_session_id(path)
-    if not found:
-        return False
-    metadata["session_id"] = found
-    return True
+def read_reported_model(path: Path) -> str | None:
+    """The model the worker's own `system`/`init` event named, or `None`.
+
+    Both measured providers open their stream with that event and put the model
+    they actually run on it (Grok `grok-4.7`, Cursor `Cursor Grok 4.6 High`).
+    It is the provider's word for the model, not the requested `--model`, so it
+    is kept apart from `model`. The scan bounds and the tolerance for lines that
+    are not JSON are the same as for the session ID.
+    """
+    try:
+        with path.open("rb") as handle:
+            head = handle.read(SESSION_SCAN_BYTES)
+    except OSError:
+        return None
+    lines = head.decode("utf-8", errors="replace").splitlines()[:SESSION_SCAN_LINES]
+    for line in lines:
+        try:
+            event = json.loads(line)
+        except (ValueError, RecursionError):
+            continue
+        if not isinstance(event, dict):
+            continue
+        if event.get("type") != "system" or event.get("subtype") != "init":
+            continue
+        value = event.get("model")
+        if isinstance(value, str) and value:
+            return value
+    return None
+
+
+def remember_stream_facts(metadata: dict[str, Any], path: Path) -> bool:
+    """Copy the first stream session id and init model into the record.
+
+    Neither is ever replaced once written. Returns whether anything changed.
+    """
+    changed = False
+    if not (isinstance(metadata.get("session_id"), str) and metadata["session_id"]):
+        found = read_session_id(path)
+        if found:
+            metadata["session_id"] = found
+            changed = True
+    if not (isinstance(metadata.get("reported_model"), str) and metadata["reported_model"]):
+        model = read_reported_model(path)
+        if model:
+            metadata["reported_model"] = model
+            changed = True
+    return changed
 
 
 def run_worker(options: RunOptions) -> int:
@@ -421,6 +459,7 @@ def run_worker(options: RunOptions) -> int:
         "brief_sha256": hashlib.sha256(brief_bytes).hexdigest(),
         "resume_id": options.resume_id,
         "session_id": None,
+        "reported_model": None,
         "requested_effort": options.effort,
         "configured_effort": None,
         "state": "starting",
@@ -515,7 +554,7 @@ def run_worker(options: RunOptions) -> int:
                         signal.pthread_sigmask(signal.SIG_BLOCK, stop_signals)
                     except KeyboardInterrupt:
                         held = True
-                remember_session_id(metadata, stdout_path)
+                remember_stream_facts(metadata, stdout_path)
                 metadata.update(
                     state="interrupted",
                     exit_code=process.poll(),
@@ -555,7 +594,7 @@ def run_worker(options: RunOptions) -> int:
                 # group on purpose, so there is no group signal to send and
                 # anything the worker started is left exactly where it is.
                 _end_process(process)
-                remember_session_id(metadata, stdout_path)
+                remember_stream_facts(metadata, stdout_path)
                 metadata.update(
                     state="timed_out",
                     exit_code=process.poll(),
@@ -595,7 +634,7 @@ def run_worker(options: RunOptions) -> int:
 
             metadata.update(state="running", pid=process.pid)
             write_metadata(metadata_path, metadata)
-            if remember_session_id(metadata, stdout_path):
+            if remember_stream_facts(metadata, stdout_path):
                 write_metadata(metadata_path, metadata)
 
             # `wait(timeout=0)` expires immediately, so a zero timeout must not
@@ -616,7 +655,7 @@ def run_worker(options: RunOptions) -> int:
                     code = process.wait(timeout=slice_timeout)
                     break
                 except subprocess.TimeoutExpired:
-                    if remember_session_id(metadata, stdout_path):
+                    if remember_stream_facts(metadata, stdout_path):
                         write_metadata(metadata_path, metadata)
                     now = time.monotonic()
                     if deadline is not None and now >= deadline:
@@ -626,7 +665,7 @@ def run_worker(options: RunOptions) -> int:
                         last_sizes, last_activity = sizes, now
                     elif options.idle_timeout and now - last_activity >= options.idle_timeout:
                         return timed_out(idle_error(options.idle_timeout))
-            remember_session_id(metadata, stdout_path)
+            remember_stream_facts(metadata, stdout_path)
             metadata.update(
                 state="exited",
                 exit_code=code,
