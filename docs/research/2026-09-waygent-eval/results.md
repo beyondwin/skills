@@ -260,6 +260,47 @@ All runs on Claude Code 2.1.284, opus (final review fable), skill text pinned by
 - Time and cost: 0.2.0 took 8% longer than 0.1.0 on app (1 run each) and about 46% longer on
   app2 (mean of 2), at about 10-15% more cost.
 
+## 13. 0.3.0 (added 2026-09-30)
+
+0.3.0 came from a three-model review of 0.2.0 (Fable: control flow, Opus: the 0.2.0 run
+logs, Sonnet: consistency across docs). The changes: `progress.md` records who did each step
+(`impl=` and `reviewer=` as `model/effort`); a ruling cannot cancel a High or Medium without
+running its reproduction; a task with its commit but no `done` line resumes at its review;
+Lows are not fixed in the final batch; implementers start the app only when their task
+changes how it starts.
+
+Claude Code 2.1.284, opus (final review fable). Text A is SKILL.md sha256 `ba2adb39`. Text B
+(`89299286`) adds one rule after run A2: a finding that only disputes a recorded ruling
+changes no code.
+
+| Task | Text | Runs | Hidden | Missed | Mean cost | Mean minutes |
+| --- | --- | --- | --- | --- | --- | --- |
+| app2 | A | 4 | 12, 11, 12, 12 | estimated tokens billed (1) | $4.12 | 17.0 |
+| app2 | B | 4 | 12, 12, 12, 12 | none | $3.99 | 16.4 |
+| app2 | 0.2.0 (section 12) | 6 | all 12 | none | $4.99 | 22.6 |
+| library | A | 1 | 63/64 | one edge test | $11.73 | 48.0 |
+| library, killed after Task 3 | A | 1 | 64/64 | none | $8.34 and more | 39 |
+
+- The one app2 miss (A2) came from the final review. Task 3 had passed all 12. The final
+  reviewer questioned the recorded billing ruling ("confirm with billing") and the
+  controller changed the code, which no one reviewed again. Text B keeps the ruling in that
+  case; in B1 the controller wrote the same question as `note for user:` and left the code alone.
+- Resume: the kill came right after the Task 3 commit, before its review. The new session
+  wrote "no review found -> step 4", ran the review, and fixed 2 Mediums. A session limit
+  then cut off the final review three times; one manual resume of the same session finished
+  it. The first session's cost was not reported, so the cost is a lower bound.
+- The library run A hit a session limit during a Task 8 fix, wrote `paused: limit`, and
+  picked up again.
+- Every task and final line recorded `impl=opus/inherit` and `reviewer=opus/inherit`, or
+  `reviewer=fable/inherit` on the final line. Low lines used the fixed format.
+- App starts by subagents did not drop (a mean of 8.5 per app2 run in 0.2.0, 8.4 in 0.3.0).
+  The per-task rule allows starts in Task 3, which changes startup.
+- Leftover processes: none after any run. In B4 the final reviewer left a server running
+  and the controller stopped it.
+- Against 0.2.0 on app2, mean cost fell about 19% and time about 26% (8 runs vs 6). Which
+  change caused it was not measured.
+- Not measured on 0.3.0: Codex, Cursor Agent, Grok Build.
+
 ## Cost totals
 
 - Measurement (Claude Code): $147.41. Main measurement $124.94, reruns after the rule fix $14.46,
@@ -269,6 +310,8 @@ All runs on Claude Code 2.1.284, opus (final review fable), skill text pinned by
 - Section 11 extra measurement: Claude Code $10.82 (1 opus run). The 3 Codex runs report tokens only.
 - Section 12 (2026-09-29): Claude Code $39.95 (library 1 run $11.38; app 3 runs $9.32; app2 6
   runs $19.25); rerun 12 runs $35.70; effort-inheritance probes about $1.
+- Section 13 (2026-09-30): Claude Code about $52.5 (app2 8 runs $32.45; library 2 runs $20.07,
+  with the killed session not counted).
 - Cursor runs and blind scoring (codex, 22 outputs) are not reported in dollars.
 - Same-day isolated gstack rerun from the previous comparison: agent $52.17, simulated user $4.36,
   scoring $1.30.

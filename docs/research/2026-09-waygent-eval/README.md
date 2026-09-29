@@ -3,7 +3,7 @@
 `waygent` is a light implementation skill that wraps a model. This folder records where its
 design came from and how it did when we ran it.
 
-- Skill: [`skills/waygent/SKILL.md`](../../../skills/waygent/SKILL.md) (0.1.0, about 140 lines)
+- Skill: [`skills/waygent/SKILL.md`](../../../skills/waygent/SKILL.md) (measured as 0.1.0, 0.2.0, and 0.3.0; under 140 lines)
 - Design basis: the 30 runs in the [agent workflow comparison](../2026-09-agent-workflow-comparison/README.md),
   the user's own v26/v27 comparison, and independent designs from four models (Opus 5.5,
   Fable 5.1, Grok 4.7, GPT-5.6 Sol)
@@ -40,11 +40,17 @@ design came from and how it did when we ran it.
    more and took about 60% longer (means of 6). The one 0.1.0 miss came from the "note for user"
    exit that 0.2.0 closed; 0 vs 1 of 6 is too close to call ([results, section 12](results.md)).
 
+8. **0.3.0 (n=8 on app2, 2 on the library).** Across the 8 app2 runs one trap was missed,
+   in the run before the ruling rule was added; with it, 4 of 4 were clean. Cost and time
+   were about 19% and 26% below 0.2.0. A resume right after a commit, before its review, ran
+   the review instead of skipping it. `progress.md` now shows each step's model and effort
+   ([results, section 13](results.md)).
+
 ## What went into the skill and what was left out
 
 | Included | Evidence |
 | --- | --- |
-| One fresh implementer per Task, a short brief (about 1,300 characters) + one shared guide | v27 was 16% faster and 37% cheaper than v26. All four models recommended it |
+| One fresh implementer per Task, a short brief (about 1,300 characters in 0.1.0, at most ~1,500 now) + one shared guide | v27 was 16% faster and 37% cheaper than v26. All four models recommended it |
 | Tests first (implement after seeing the failure) | User requirement. Every run left 53-195 of its own tests |
 | One review per Task, no re-review | User requirement. v26's review round trips took 2.4 hours |
 | One final full review | In v26 only the final review caught cross-task problems. In this task too, the final review alone caught the same defect |
