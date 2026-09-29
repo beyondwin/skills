@@ -175,6 +175,29 @@ Observations by version, newest first. Each entry is what was seen in that
 environment and CLI version; numbers and verdicts are the values from that time.
 Within a version, offline checks come first and live checks after.
 
+### 8.0.0 offline checks
+
+`python3 scripts/verify.py --skill sddx` passes with 370 `sddx-contract` tests
+(new: `test_observed_model` 10, `reported_model` 5, `.superpowers/` refusal 2,
+`wait` 8). `python3 scripts/verify.py` passes all 15 stages.
+
+### 8.0.0 live check
+
+2026-09-30, macOS, Claude Code 2.1.284 (`--model opus`; session effort medium, inherited from the calling environment's `CLAUDE_EFFORT=medium`, not an SDDx default)
+as host, Grok CLI `1.0.44 (5b807183dd79)` as worker with `grok-4.7` High. A new
+local repository with no remote and a two-task plan (`word_count`, then a CLI).
+Skill copies under the fixture's `.claude/skills/`, run with
+`--setting-sources project --strict-mcp-config`. SKILL.md sha256: sddx
+`7c1a3d01…`, waygent `c13cfeec…` (0.2.0). Logs were not committed.
+
+| # | What happened | Verdict |
+| --- | --- | --- |
+| P1 | Pilot on the first 8.0.0 text. The controller started `run` as a background job and ended its turn; headless `claude -p` then ended the session, and the runner got SIGTERM. `run.json` recorded `interrupted`, the worker was gone, and `reported_model: grok-4.7` was already there. Cleanup never ran, so `.grok/sandbox.toml` stayed until cleaned by hand. It also read a session id off a file path instead of `$CLAUDE_CODE_SESSION_ID`. | Fail → fixed: `run_worker.py wait`, the rule "never end your turn while a worker runs", and the variable name |
+| L1 | Rerun on the fixed text. Branch `waygent/textstats`, `.waygent/.gitignore` `*`, two commits with `Waygent-Task: 1` and `2`, `reviews/task-1.md`, `task-2.md`, `final.md`, clean tree, 21 tests pass. Each attempt `exited` 0 with `reported_model: grok-4.7`, `configured_effort: high`, a session id, a report, and a tools index (7 reads each, 9 and 7 shells). The controller waited with `wait` both times, ran `prepare`/`cleanup` around each attempt (`cleaned: true` twice), and left no worker process. Progress lines: `impl=grok:grok-4.7/high`, `reviewer=claude-opus-5-5/medium` for both tasks, `reviewer=claude-fable-5-1/high` for the final review (one tier up, per waygent), `role=PASS`. All three reviewer values were read with `observed_model.py --agent-id`; re-reading the same transcripts gave the same counts. No High or Medium findings, so no fix attempt ran. 14.0 minutes, 24 turns, $1.89 on the Claude side; Grok cost was not shown. | Pass |
+
+Not covered: a fix or retry attempt (`--resume`), Cursor as worker, and Codex as
+host. Those stay `not_measured`.
+
 ### 7.0.0 offline checks
 
 The required evidence for 7.0.0 is `python3 scripts/verify.py --skill sddx`. With

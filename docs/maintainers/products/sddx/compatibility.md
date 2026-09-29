@@ -79,7 +79,7 @@ The runner, resolver, and sandbox helpers are unchanged apart from the
 
 | Host | Worker | State |
 | --- | --- | --- |
-| Claude Code | Grok CLI | see "8.0.0 live check" in [Testing](testing.md) |
+| Claude Code | Grok CLI | `measured` once, 2026-09-30: two tasks, final review, pass ("8.0.0 live check" in [Testing](testing.md)); fix and retry paths not exercised |
 | Claude Code | Cursor Agent | `not_measured` |
 | Codex | Grok CLI | `not_measured` |
 | Codex | Cursor Agent | `not_measured` |
