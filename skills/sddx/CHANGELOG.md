@@ -34,6 +34,11 @@ All notable changes to this product are documented in this file.
 - Progress lines record `impl=<backend>:<model>/<effort>` and
   `reviewer=<model>/<effort>`, with `(requested)` on a value nothing confirmed.
 - The worker must stop any process it started before it reports.
+- `run_worker.py wait --attempt-dir <dir> [--max-seconds 540]` blocks until the
+  attempt is over (exit 0) or the bound passes (exit 3). The controller waits
+  with it instead of ending its turn: in the live check a headless `claude -p`
+  session ended while the worker ran in the background, and the runner was
+  killed with it.
 
 ### Changed
 

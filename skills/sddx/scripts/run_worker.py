@@ -1162,6 +1162,59 @@ def status_command(attempt_dir: Path, stream: str | None, offset: int, max_bytes
     return 0
 
 
+# One `wait` call must fit inside one host tool call (Claude Code Bash allows
+# 600 seconds), so the controller never has to end its turn while a worker runs.
+DEFAULT_WAIT_SECONDS = 540.0
+MAX_WAIT_SECONDS = 3600.0
+WAIT_POLL_SECONDS = 2.0
+
+
+def _wait_summary(attempt: Path) -> dict[str, Any]:
+    metadata = read_metadata(attempt / METADATA_NAME)
+    alive = pid_alive(metadata.get("pid") if metadata else None)
+    state = metadata.get("state") if metadata else None
+    stale = state == "running" and not alive
+    # Over only when the record has left `running`/`starting` and the worker is
+    # gone: a worker can still be writing `report.md` after its record changed.
+    over = metadata is not None and not alive and (
+        stale or state not in ("running", "starting")
+    )
+    return {
+        "attempt_dir": str(attempt),
+        "over": over,
+        "state": state,
+        "exit_code": metadata.get("exit_code") if metadata else None,
+        "error": metadata.get("error") if metadata else None,
+        "pid_alive": alive,
+        "stale": stale,
+        "session_id": metadata.get("session_id") if metadata else None,
+        "reported_model": metadata.get("reported_model") if metadata else None,
+        "report_exists": (attempt / REPORT_NAME).is_file(),
+    }
+
+
+def wait_command(attempt_dir: Path, max_seconds: float) -> int:
+    """Block until the attempt is over (exit 0) or `max_seconds` pass (exit 3).
+
+    Read-only, like `status`. A headless host ends its session, and the
+    runner with it, when the controller ends its turn; waiting here in the
+    foreground keeps the turn open. Call it again after exit 3.
+    """
+    if not math.isfinite(max_seconds) or not 0 < max_seconds <= MAX_WAIT_SECONDS:
+        return _blocked(f"max-seconds must be above 0 and at most {MAX_WAIT_SECONDS:g}")
+    attempt = Path(os.path.abspath(attempt_dir))
+    if not attempt.is_dir():
+        return _blocked("attempt directory does not exist")
+    deadline = time.monotonic() + max_seconds
+    while True:
+        summary = _wait_summary(attempt)
+        if summary["over"] or time.monotonic() >= deadline:
+            break
+        time.sleep(min(WAIT_POLL_SECONDS, max(0.0, deadline - time.monotonic())))
+    print(json.dumps(summary, ensure_ascii=False, sort_keys=True))
+    return 0 if summary["over"] else 3
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="run_worker.py", description=__doc__)
     subcommands = parser.add_subparsers(dest="command", required=True)
@@ -1193,6 +1246,11 @@ def build_parser() -> argparse.ArgumentParser:
     status.add_argument("--stream", help="stdout or stderr; omit for facts and sizes only")
     status.add_argument("--offset", type=int, default=0)
     status.add_argument("--max-bytes", type=int, default=DEFAULT_WINDOW_BYTES)
+    wait = subcommands.add_parser(
+        "wait", help="block until the attempt is over (0) or --max-seconds pass (3)"
+    )
+    wait.add_argument("--attempt-dir", required=True, type=Path)
+    wait.add_argument("--max-seconds", type=float, default=DEFAULT_WAIT_SECONDS)
     return parser
 
 
@@ -1203,6 +1261,8 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "status":
         return status_command(args.attempt_dir, args.stream, args.offset, args.max_bytes)
+    if args.command == "wait":
+        return wait_command(args.attempt_dir, args.max_seconds)
     options = RunOptions(
         backend=args.backend,
         worktree=args.worktree,

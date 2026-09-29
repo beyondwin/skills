@@ -421,6 +421,20 @@ class SddxContractTests(unittest.TestCase):
             with self.subTest(face=name, process="worker-server"):
                 self.assertTrue("`worker-server`" in faces[name], f"worker-server missing from {name}")
 
+    def test_foreground_wait_is_on_every_face(self) -> None:
+        fold = lambda value: re.sub(r"\s+", " ", value)
+        skill = fold((SKILL / "SKILL.md").read_text(encoding="utf-8"))
+        dispatch = fold((SKILL / "references" / "dispatch.md").read_text(encoding="utf-8"))
+        contract = fold((
+            ROOT / "docs" / "maintainers" / "products" / "sddx" / "contract.md"
+        ).read_text(encoding="utf-8"))
+        self.assertIn("Never end your turn while a worker runs", skill)
+        self.assertIn("run_worker.py wait", skill)
+        self.assertIn("Never end your turn while an attempt runs.", dispatch)
+        self.assertIn('run_worker.py" wait --attempt-dir', dispatch)
+        self.assertIn("never ends its turn while a worker runs", contract)
+        self.assertIn("$CLAUDE_CODE_SESSION_ID", skill)
+
     def test_grok_tools_index_is_on_every_face(self) -> None:
         dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
         contract = (

@@ -55,7 +55,9 @@ What each test file locks:
   has no ID), read-only responses, `pid_alive`, a bounded tools index for both the
   Cursor and Grok log shapes, that the default response has no log body, skipping
   JSON lines that are too deep, `--stream` default 2048 and max 8192 bytes, the
-  64 KiB response cap, and offset handling.
+  64 KiB response cap, offset handling, and `wait` (returns 0 once the record
+  has ended and the worker is gone, keeps waiting while a worker is still
+  writing its report, exit 3 at `--max-seconds`, read-only, bad bounds refused).
 - `tests/products/sddx/test_observed_model.py`: builds fake Claude Code and
   Codex transcripts and checks the model and effort counts, `<synthetic>` turns
   skipped, `not_found`, `ambiguous`, `no_model_turns`, refused ids that could

@@ -97,7 +97,8 @@ constraints: `extract_task.py --global-constraints` prepends them. A
 constraint that is not in the brief does not exist for the worker.
 `references/dispatch.md` holds the brief, launch, watch, and cleanup steps.
 Launch only through `run_worker.py`; never hand-compose a provider command, and
-never dump a whole worker log into this session. Do not pass `--worktree` to the
+never dump a whole worker log into this session. Never end your turn while a
+worker runs: block on `run_worker.py wait`, and call it again on exit 3. Do not pass `--worktree` to the
 worker.
 
 ## Implementer effort
@@ -163,8 +164,9 @@ received `/sddx` or `$sddx` is the orchestrator; do not switch its model.
 - Worker: `run.json` has `model` (requested), `reported_model` (what the
   worker's own stream said), and `configured_effort`.
 - Native reviewer or orchestrator: `python3 "<skill-root>/scripts/observed_model.py"
-  claude-code --agent-id <agentId>` (or `--session-id` for this session; Codex:
-  `codex --thread-id <id>`) reads the host's own transcript.
+  claude-code --agent-id <agentId>` (this session: `--session-id
+  "$CLAUDE_CODE_SESSION_ID"`; Codex: `codex --thread-id <id>`) reads the
+  host's own transcript. A session id taken from a file path is not yours.
 
 Write them into waygent's progress lines:
 
@@ -203,6 +205,7 @@ The supported OS is macOS. Do not add Windows transport. Refuse Windows at the p
 - Launching Grok CLI or Cursor Agent on any model other than Grok 4.7, or on a `-fast` variant
 - Treating PATH `agent` as Cursor, or auto-failover when a backend is missing
 - Auto-selecting the only available backend without confirmation
+- Ending the turn while a worker runs
 - Starting an attempt while the previous attempt's `pid_alive` is true, or stopping one with `pkill -f` or by signalling `run.json.pid` while its runner is alive
 - Resuming a session whose attempt wrote no output
 - Retrying after a confirmed 402 without a changed condition

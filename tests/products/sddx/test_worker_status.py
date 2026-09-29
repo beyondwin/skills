@@ -982,3 +982,102 @@ class SessionIdRecoveryTests(StatusFixture):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class WaitCommandTests(StatusFixture):
+    """`wait` blocks in the foreground until the attempt is over, or a bound."""
+
+    def wait(self, module, *extra: str) -> tuple[int, dict | None, str]:
+        with mock.patch.object(module, "WAIT_POLL_SECONDS", 0.02):
+            code, out, err = self.cli(
+                module, ["wait", "--attempt-dir", str(self.attempt), *extra]
+            )
+        return code, (json.loads(out) if out else None), err
+
+    def test_a_finished_attempt_returns_at_once(self) -> None:
+        module = self.load()
+        self.write_metadata(state="exited", exit_code=0, reported_model="synthetic-model",
+                            session_id="synthetic-session")
+        (self.attempt / "report.md").write_text("DONE\n", encoding="utf-8")
+        with mock.patch.object(module, "pid_alive", return_value=False), self.no_subprocess(module):
+            code, payload, err = self.wait(module, "--max-seconds", "5")
+        self.assertEqual(code, 0)
+        self.assertEqual(err, "")
+        self.assertEqual(payload["state"], "exited")
+        self.assertEqual(payload["exit_code"], 0)
+        self.assertFalse(payload["pid_alive"])
+        self.assertTrue(payload["report_exists"])
+        self.assertEqual(payload["session_id"], "synthetic-session")
+        self.assertEqual(payload["reported_model"], "synthetic-model")
+        self.assertTrue(payload["over"])
+
+    def test_a_running_attempt_hits_the_bound_with_exit_three(self) -> None:
+        module = self.load()
+        self.write_metadata(state="running")
+        with mock.patch.object(module, "pid_alive", return_value=True):
+            code, payload, _ = self.wait(module, "--max-seconds", "0.2")
+        self.assertEqual(code, 3)
+        self.assertEqual(payload["state"], "running")
+        self.assertFalse(payload["over"])
+
+    def test_an_ended_record_with_a_live_worker_keeps_waiting(self) -> None:
+        # The worker can still be writing report.md after its record changed.
+        module = self.load()
+        self.write_metadata(state="exited", exit_code=0)
+        with mock.patch.object(module, "pid_alive", return_value=True):
+            code, payload, _ = self.wait(module, "--max-seconds", "0.2")
+        self.assertEqual(code, 3)
+        self.assertFalse(payload["over"])
+
+    def test_a_stale_record_is_over(self) -> None:
+        module = self.load()
+        self.write_metadata(state="running")
+        with mock.patch.object(module, "pid_alive", return_value=False):
+            code, payload, _ = self.wait(module, "--max-seconds", "5")
+        self.assertEqual(code, 0)
+        self.assertTrue(payload["stale"])
+        self.assertTrue(payload["over"])
+
+    def test_the_wait_returns_when_the_worker_ends(self) -> None:
+        module = self.load()
+        self.write_metadata(state="running")
+        answers = iter([True, True, False])
+        states = {"n": 0}
+
+        def alive(_pid):
+            states["n"] += 1
+            if states["n"] == 2:
+                self.write_metadata(state="exited", exit_code=0)
+            return next(answers, False)
+
+        with mock.patch.object(module, "pid_alive", side_effect=alive):
+            code, payload, _ = self.wait(module, "--max-seconds", "5")
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["state"], "exited")
+
+    def test_the_wait_writes_nothing(self) -> None:
+        module = self.load()
+        self.write_metadata(state="running")
+        self.write_stdout(b'{"type": "assistant"}\n')
+        before = self.snapshot()
+        with mock.patch.object(module, "pid_alive", return_value=True), self.no_subprocess(module):
+            self.wait(module, "--max-seconds", "0.1")
+        self.assertEqual(self.snapshot(), before)
+
+    def test_bad_input_exits_two(self) -> None:
+        module = self.load()
+        self.write_metadata(state="running")
+        for bound in ("0", "-1", "nan", "inf", "3601"):
+            with self.subTest(bound=bound):
+                code, payload, err = self.wait(module, "--max-seconds", bound)
+                self.assertEqual(code, 2)
+                self.assertIsNone(payload)
+                self.assertIn("BLOCKED:", err)
+        code, payload, err = self.cli(
+            module, ["wait", "--attempt-dir", str(self.base / "absent")]
+        )
+        self.assertEqual(code, 2)
+
+    def test_the_default_bound_fits_one_host_tool_call(self) -> None:
+        module = self.load()
+        self.assertLessEqual(module.DEFAULT_WAIT_SECONDS, 540)

@@ -110,7 +110,10 @@ other state file.
 ## Runner and status
 
 Launch only through `run_worker.py run`; read attempts only through
-`run_worker.py status`. Attempt folders live under `$P/attempts/`, and the runner
+`run_worker.py status` and `run_worker.py wait`. The controller never ends its
+turn while a worker runs, because a headless host kills the runner with the
+session; it blocks on `wait` (exit 0 when over, exit 3 after `--max-seconds`,
+default 540). Attempt folders live under `$P/attempts/`, and the runner
 refuses any path outside the repository's `.waygent/` directory. The Grok sandbox
 state file also lives under `.waygent/`.
 

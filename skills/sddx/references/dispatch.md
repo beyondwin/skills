@@ -254,8 +254,19 @@ a live transport.
 
 ## Watch
 
-Wait on the host's shell job without short polls. Codex `wait_agent` is only
-for native reviewers.
+Never end your turn while an attempt runs. A headless host (`claude -p`,
+`codex exec`) ends the session when the turn ends, and the runner is killed
+with it: the 8.0.0 live check lost its first attempt that way. Start `run` as a
+background job, then block in the foreground:
+
+    python3 "<skill-root>/scripts/run_worker.py" wait --attempt-dir <attempt-dir>
+
+`wait` is read-only. It returns exit 0 with a one-line summary (`over`,
+`state`, `exit_code`, `error`, `pid_alive`, `stale`, `session_id`,
+`reported_model`, `report_exists`) once the attempt is over, or exit 3 after
+`--max-seconds` (default 540, so one call fits a host tool call) while it is
+still running; then call it again. Codex `wait_agent` is only for native
+reviewers.
 
     python3 "<skill-root>/scripts/run_worker.py" status --attempt-dir <attempt-dir>
     python3 "<skill-root>/scripts/run_worker.py" status --attempt-dir <attempt-dir> --stream stdout|stderr --offset N --max-bytes N
