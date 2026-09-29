@@ -22,6 +22,8 @@ The required evidence is `python3 scripts/verify.py --skill waygent`. Its stages
   no cheaper model, and one tier up (`one tier up`) only for the final review and the retry
 - the Codex rules: `$waygent` in the description, `fork_turns: "none"`, "do not guess
   your model name", and "no subagent spawns subagents of its own"
+- the final-review blind spots (contract drift, failure paths, startup config), the
+  app check on real data, the fast check, and the no-spawn line in every brief
 - `SKILL.md` under 140 lines
 
 The checks look at a few phrases only. `SKILL.md` is still changing, so no digest or

@@ -70,6 +70,15 @@ class WaygentContractTests(unittest.TestCase):
         self.assertIn("no re-review", self.lowered)
         self.assertIn("final review, once", self.lowered)
 
+    def test_final_review_and_check_contract(self) -> None:
+        self.assertIn("contract drift between layers", self.lowered)
+        self.assertIn("failure paths", self.lowered)
+        self.assertIn("config needed at startup", self.lowered)
+        self.assertIn("real data, not fixtures", self.lowered)
+        self.assertIn("fast check", self.lowered)
+        self.assertIn("say so in every brief, reviewers' included", self.lowered)
+        self.assertIn("only the task's last one carries the trailer", self.lowered)
+
     def test_branch_and_model_contract(self) -> None:
         self.assertIn("never commit to `main` or `master`", self.lowered)
         self.assertIn("same model", self.lowered)

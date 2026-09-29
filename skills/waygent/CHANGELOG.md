@@ -29,5 +29,19 @@ All notable changes to this product are documented in this file.
   model, so children inherit the session's (a measured Codex controller misnamed
   its own model); one tier up sets only `reasoning_effort` to `xhigh`. No subagent starts
   subagents of its own.
+- Changes from the 2026-09-28 won-sec-ai run (13 tasks, about 14 hours), whose
+  final review missed two Highs and live defects that later checks found:
+  the final review now also asks for contract drift between layers, money and
+  counts on failure paths, startup config and deploy order, and queries at real
+  scale, each with a checked failure scenario; after the final fixes, when
+  `guide.md` says how to start the app, one implementer walks the changed flows
+  on real data and fixes what it finds in the same batch.
+- Every brief, reviewers' included, says not to spawn subagents (the final
+  reviewer had forked five).
+- `guide.md` splits a fast check from slow suites; the controller reruns only
+  the fast check per task (it spent about 47 minutes rerunning slow e2e).
+- A task may take several commits in the repository's message format; only the
+  last carries `Waygent-Task: N`. Cut-off work goes back to the same implementer
+  when it can still be reached.
 - Docs are English-first: `README.md` is English and `README.ko.md` is the
   Korean user guide.

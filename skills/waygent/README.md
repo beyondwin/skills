@@ -16,7 +16,7 @@ out work and checks results, so its context stays small.
   │           reviewer: one look; High and Medium fixed once (no re-review)
   ├─ Task 2 ─ …
   │
-  └─ end ──── one full review (one model tier up) → fixes → tests → 15-line report
+  └─ end ──── one full review (one model tier up) → fixes → app check → tests → 15-line report
 ```
 
 The design comes from measurement: a 10-task plan run in isolation with no skill,
@@ -147,7 +147,8 @@ $waygent docs/plan.md
 
 **git**
 - On `main` or `master` it first creates a `waygent/<plan-slug>` branch.
-- One commit per task, each ending with a `Waygent-Task: N` trailer.
+- One or more commits per task in the repository's message format; the last one
+  ends with a `Waygent-Task: N` trailer.
 - No push, merge, or PR.
 
 **Records** (not tracked by git)
@@ -169,7 +170,8 @@ overruled, the final test result, and anything not verified.
 - A failed task gets one written cause and one retry. A second failure stops the run
   with the reason.
 - On a usage limit it writes `paused: limit` and stops. Call it again to continue.
-- Uncommitted work is never discarded; a fresh implementer continues it. If
+- Uncommitted work is never discarded; the same implementer, or a fresh one if it
+  is gone, continues it. If
   `.waygent/` is deleted, progress is rebuilt from the `Waygent-Task` commits.
 
 **Models**
@@ -180,6 +182,9 @@ overruled, the final test result, and anything not verified.
 
 **Not done**: brainstorming or spec phases, re-review loops, parallel implementers,
 a human checkpoint per task, generated docs, edits to `CLAUDE.md` or `AGENTS.md`.
+
+**App check**: if `guide.md` says how to start the app, the final fixer starts it
+once, walks the changed flows on real data, and fixes what it finds.
 
 **Limits**: fixed code is seen again only by the final review. Results depend on the
 model and the plan.

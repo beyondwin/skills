@@ -35,11 +35,19 @@ brainstorming, writing a spec or plan, a single small fix).
   missing, it is rebuilt from the trailer commits.
 - One fresh implementer subagent per task. Never two at once.
 - Write the test first, watch it fail, then implement (TDD).
-- Each task commit carries a `Waygent-Task: N` trailer. On resume, only tasks with a
-  trailer commit reachable from HEAD count as done, and the progress file is brought in
-  line with that.
+- The last commit of each task carries a `Waygent-Task: N` trailer. On resume, only
+  tasks with a trailer commit reachable from HEAD count as done, and the progress file
+  is brought in line with that.
 - One review per task and one fix, with no re-review.
-- One final review of the whole change, only once.
+- One final review of the whole change, only once. It also asks for contract drift
+  between layers, money and counts on failure paths, startup config and deploy order,
+  and queries at real scale. After its fixes, when `guide.md` says how to start the
+  app, one implementer walks the changed flows on real data and fixes what it finds in
+  the same batch, with no second review.
+- `guide.md` splits a fast check from slow suites; the controller reruns only the fast
+  check after each task, and the full suite once at the end.
+- A task may take several commits; only its last carries the trailer.
+- No subagent spawns subagents; every brief, reviewers' included, says so.
 - On failure, write down the cause first and retry once. Stop on the second failure.
 - Implementer subagents and per-task reviewers use the controller's model. Do not swap
   in a cheaper model or lower effort. When the host can pick models, only the final
