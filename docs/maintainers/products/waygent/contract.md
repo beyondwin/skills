@@ -42,9 +42,7 @@ brainstorming, writing a spec or plan, a single small fix).
   clean, and the fast check passes. A failed check goes through the failure path.
 - One review per task and one fix, with no re-review. Each finding comes with a
   one-line reproduction. A ruling never cancels a High or Medium: the controller may
-  overrule one only after running its reproduction. A finding that only disputes a
-  recorded ruling, without showing it breaks the plan or design, changes no code and
-  goes to the user as a note.
+  overrule one only after running its reproduction.
 - Low findings are recorded and passed to the final review; they are not fixed in the
   final batch.
 - `progress.md` records who did each step as `model/effort` (`impl=`, `reviewer=`):

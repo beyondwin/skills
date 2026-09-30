@@ -72,8 +72,6 @@ class WaygentContractTests(unittest.TestCase):
         self.assertIn("a ruling never cancels a high or medium", self.lowered)
         self.assertIn("one-line reproduction", self.lowered)
         self.assertIn("lows go in the report", self.lowered)
-        # The final batch has no re-review, so a disputed ruling must not flip code.
-        self.assertIn("only disputes a recorded ruling", self.lowered)
 
     def test_resume_and_check_contract(self) -> None:
         # A cut-off task resumes at its review or fix, not as done.

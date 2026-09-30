@@ -80,14 +80,13 @@ Otherwise start:
 5. Fix once, no re-review. Send High and Medium verbatim to the same implementer if
    reachable, else a fresh one. Each fix starts from a test that fails first. A ruling
    never cancels a High or Medium: overrule one only after running its reproduction and
-   seeing the code behave correctly; write one line why. A finding that only disputes a
-   recorded ruling, without showing it breaks the plan or design, changes nothing and
-   goes to `note for user:`. If a fix seems to need a name or signature the plan fixed
-   (async stays async), send the smallest fix that keeps them (internal state, an
-   optional keyword, a continuing counter). Only when none exists, or the finding is
-   outside the task, write `note for user:`; a gap that keeps the changed code from
-   starting or deploying is never outside the task. The fix commit also carries the
-   trailer. Check as step 3. Append each Low as `task N: low: <file:line> <gist>`.
+   seeing the code behave correctly; write one line why. If a fix seems to need a name
+   or signature the plan fixed (async stays async), send the smallest fix that keeps
+   them (internal state, an optional keyword, a continuing counter). Only when none
+   exists, or the finding is outside the task, write `note for user:`; a gap that keeps
+   the changed code from starting or deploying is never outside the task. The fix commit
+   also carries the trailer. Check as step 3. Append each Low as
+   `task N: low: <file:line> <gist>`.
 6. Append `task N: done <sha7> impl=<m/e> review=<clean|fixed K|skipped> reviewer=<m/e>
    tests=<summary>`. `<m/e>`: `<model>/<effort>`, each as set, else `inherit`; never guess.
 

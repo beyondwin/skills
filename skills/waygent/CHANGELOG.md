@@ -15,10 +15,6 @@ logs:
 - A "ruling" can no longer cancel a High or Medium. The controller must run the
   reviewer's reproduction first, so per-task reviewers now include a one-line
   reproduction. In a measured 0.2.0 run a correct High was dropped by a ruling.
-- The other way round: a finding that only disputes a recorded ruling, without showing
-  it breaks the plan or design, changes no code and becomes a note for the user. In a
-  0.3.0 test run the final reviewer questioned a correct billing ruling, the controller
-  changed the code, and nothing reviewed it again.
 - Resume: a task that has its commit but no `done` line picks up at its review or fix
   instead of being marked done. After `git clean -fdx`, `start` is the merge-base and
   guide.md is written again. `/waygent` alone resumes.

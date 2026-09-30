@@ -187,8 +187,6 @@ overruled, the final test result, and anything not verified.
 **Reviews**
 - A reviewer's High or Medium is fixed once. The main session may reject one only
   after running the reviewer's reproduction and seeing the code work.
-- A finding that only questions a decision already recorded (for example, a billing
-  rule) does not change code; it goes to you as a note.
 - Low findings are only written down; the final review sees them, but they are not
   fixed automatically.
 
