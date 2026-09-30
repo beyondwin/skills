@@ -6,7 +6,9 @@ context that shows no earlier answer and no expected wording, then read the whol
 reply. A string-contains check never counts as a pass. Native probes use model
 reasoning, so they are separate from the credential-free offline suite.
 
-Rows marked (8.0.0) are new with the waygent base loop and are `not_measured`.
+Rows marked (8.0.0) are new with the waygent base loop. The live runs in
+[maintainer testing](../../../docs/maintainers/products/sddx/testing.md) exercised the fix, retry, and
+stopped-runner rows; the native probes themselves are `not_measured`.
 
 ## Done-judgement and role boundary
 
@@ -32,6 +34,7 @@ Rows marked (8.0.0) are new with the waygent base loop and are `not_measured`.
 | `/sddx plan.md grok` with waygent missing next to sddx | Stop as BLOCKED and name the missing path. Do not run SDD or an improvised loop. |
 | `/waygent plan.md` | SDDx does not turn on. |
 | Review found a High; the worker session ID is known; effort unchanged | Resume that session with the finding verbatim, test first. No re-review after the fix. |
+| The runner was stopped mid-task (`interrupted` or `stale`); the session ID is known | Resume that session at the same effort; log `interrupted:`, not a failure; the retry is still unused. Seen live 2026-09-30 before the rule existed. |
 | The fix still fails the check | One retry: a fresh worker at XHigh with a continuation brief. A second failure stops the run. |
 | Task done; the reviewer transcript is found | The progress line has `impl=<backend>:<reported_model>/<effort>` and `reviewer=<model>/<effort>` from the transcript. |
 | The reviewer transcript is not found | Write the dispatched value followed by `(requested)`; never present it as observed. |

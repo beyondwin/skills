@@ -64,7 +64,9 @@ under `.waygent/` that has an SDDx block.
   final batch brief starts from
   `extract_task.py <plan> --heading "Global Constraints"`.
 - A fix resumes the same worker session at the same effort. A retry after a
-  failure is a fresh worker at XHigh. Final-review fixes and the app walk are one
+  failure is a fresh worker at XHigh. An `interrupted` or `stale` attempt (the runner
+  was stopped) is not a task failure: it resumes the same session at the same
+  effort and does not use up the retry. Final-review fixes and the app walk are one
   worker attempt.
 - Implementer effort is High or XHigh per task, from the table in `SKILL.md`.
   It is not the session effort, and design ambiguity is a ruling, not XHigh.

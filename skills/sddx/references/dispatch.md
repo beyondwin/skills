@@ -374,6 +374,10 @@ log body. Role compliance is still the controller's.
   copied once and never replaced. `model` stays the requested id. Grok reports
   no effort, so `configured_effort` (the flag value) is the only effort fact
   there.
+- An `interrupted` or `stale` attempt is a stopped runner, not a failed task:
+  resume its session at the same effort (SKILL.md "Timeouts and errors").
+  An `exited` attempt with no trailer commit is a task failure, whatever its
+  exit code.
 - `session_id_in_log` is the id the log reports, offered only when the record
   holds none, and `null` otherwise. Resume from it instead of re-running a task
   whose runner was killed before it could record the session.

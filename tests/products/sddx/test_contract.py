@@ -435,6 +435,19 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("never ends its turn while a worker runs", contract)
         self.assertIn("$CLAUDE_CODE_SESSION_ID", skill)
 
+    def test_stopped_runner_is_not_a_task_failure_on_every_face(self) -> None:
+        fold = lambda value: re.sub(r"\s+", " ", value)
+        skill = fold((SKILL / "SKILL.md").read_text(encoding="utf-8"))
+        dispatch = fold((SKILL / "references" / "dispatch.md").read_text(encoding="utf-8"))
+        contract = fold((
+            ROOT / "docs" / "maintainers" / "products" / "sddx" / "contract.md"
+        ).read_text(encoding="utf-8"))
+        self.assertIn("Tell a stopped runner from a failed task.", skill)
+        self.assertIn("it does not use up waygent's one retry", skill)
+        self.assertIn("`task N: interrupted:`", skill)
+        self.assertIn("is a stopped runner, not a failed task", dispatch)
+        self.assertIn("does not use up the retry", contract)
+
     def test_grok_tools_index_is_on_every_face(self) -> None:
         dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
         contract = (

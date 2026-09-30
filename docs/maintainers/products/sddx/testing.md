@@ -195,8 +195,25 @@ Skill copies under the fixture's `.claude/skills/`, run with
 | P1 | Pilot on the first 8.0.0 text. The controller started `run` as a background job and ended its turn; headless `claude -p` then ended the session, and the runner got SIGTERM. `run.json` recorded `interrupted`, the worker was gone, and `reported_model: grok-4.7` was already there. Cleanup never ran, so `.grok/sandbox.toml` stayed until cleaned by hand. It also read a session id off a file path instead of `$CLAUDE_CODE_SESSION_ID`. | Fail → fixed: `run_worker.py wait`, the rule "never end your turn while a worker runs", and the variable name |
 | L1 | Rerun on the fixed text. Branch `waygent/textstats`, `.waygent/.gitignore` `*`, two commits with `Waygent-Task: 1` and `2`, `reviews/task-1.md`, `task-2.md`, `final.md`, clean tree, 21 tests pass. Each attempt `exited` 0 with `reported_model: grok-4.7`, `configured_effort: high`, a session id, a report, and a tools index (7 reads each, 9 and 7 shells). The controller waited with `wait` both times, ran `prepare`/`cleanup` around each attempt (`cleaned: true` twice), and left no worker process. Progress lines: `impl=grok:grok-4.7/high`, `reviewer=claude-opus-5-5/medium` for both tasks, `reviewer=claude-fable-5-1/high` for the final review (one tier up, per waygent), `role=PASS`. All three reviewer values were read with `observed_model.py --agent-id`; re-reading the same transcripts gave the same counts. No High or Medium findings, so no fix attempt ran. 14.0 minutes, 24 turns, $1.89 on the Claude side; Grok cost was not shown. | Pass |
 
-Not covered: a fix or retry attempt (`--resume`), Cursor as worker, and Codex as
-host. Those stay `not_measured`.
+### 8.0.0 live check, round 2
+
+2026-09-30, macOS. A new two-task plan written to draw review findings
+(`sentence_split` with abbreviation, decimal, and closing-quote rules, then a CLI
+that must turn every unreadable path into one `error: ` line). Skill text from
+`main` `0716203`: sddx SKILL.md `7c1a3d01…`, waygent 0.3.0 SKILL.md `89299286…`.
+Two runs in parallel, each in its own new repository with no remote. To force the
+failure paths, one process was killed from outside the run while it worked; the
+controllers were not told. Logs were not committed.
+
+| # | Host · worker | What happened | Verdict |
+| --- | --- | --- | --- |
+| R1 | Claude Code 2.1.284 (`opus`, effort medium) · Cursor Agent `2026.09.26-dd393fe`, `grok-4.7-high` | The runner of task 1's first attempt was sent SIGTERM after 60 s. It recorded `interrupted`, exit 143, with the session already copied. The controller logged it and resumed that session (`resume_id` = `session_id`) at the same effort; there was no rule for this case yet, and it guessed at the cause. Task 2's review found a Medium (path display vs "one line"); the fix resumed task 2's own session at High and added the trailer commit. Final review by `claude-fable-5-1/high`, no High or Medium. 3 trailer commits, 32 tests, clean tree, no Cursor process left from this run. Every attempt recorded `reported_model: Grok 4.7 256K High`. Progress lines: `impl=cursor:Grok 4.7 256K High/high`, `reviewer=claude-opus-5-5/medium` (matches the controller's own transcript: medium; `CLAUDE_EFFORT=high` in the launch environment had no effect). 29.8 minutes, $3.08 on the Claude side. | Pass; the interrupt rule was added after this run |
+| R2 | Codex 0.157.1 (`gpt-6-astra`, `model_reasoning_effort="high"`, real config with `multi_agent`) · Grok CLI `1.0.44`, `grok-4.7` | Skill copies in the repo's `.agents/skills/` without `agents/openai.yaml`, because `codex exec` does not load an explicit-only skill. `$sddx` loaded, and the controller used `run_worker.py wait`. Task 2's worker process itself was sent SIGTERM after 60 s: `exited` 143, no report, no commit. The controller logged `failure` with its cause, confirmed the exit, cleaned up, and ran the retry as a fresh worker at XHigh (new session, no `resume_id`). Its review found a Medium (a line break `splitlines` sees but the escape missed); the fix resumed the retry's session at XHigh. Final review one tier up (`gpt-6-astra/xhigh`), clean; the app walk ran as a worker attempt. 3 trailer commits, 42 tests, clean tree, Grok cleanup done. Every reviewer value was read with `observed_model.py codex --thread-id`; re-reading gave `gpt-6-astra` high, high, xhigh. About 43 minutes; Codex reported 12.3M input tokens (12.1M cached) and 20.8k output; no dollar figure. | Pass |
+
+Covered by the two rounds: Claude Code and Codex as host, Grok CLI and Cursor
+Agent as worker, the fix resuming the same session, the fresh XHigh retry after a
+worker failure, resume after a stopped runner, and the one-tier-up final review
+on both hosts. Codex × Cursor was not run as a pair.
 
 ### 7.0.0 offline checks
 

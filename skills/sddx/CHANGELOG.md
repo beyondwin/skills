@@ -42,6 +42,11 @@ All notable changes to this product are documented in this file.
 
 ### Changed
 
+- An `interrupted` or `stale` attempt (the runner was stopped) resumes the same
+  worker session at the same effort and does not count as waygent's one
+  retry; a worker that ends with no trailer commit is a task failure and gets
+  the fresh XHigh retry. A live check showed a controller facing the first
+  case with no rule for it.
 - README wording is shorter and uses plain terms. Behavior is unchanged.
 - The docs are English-first. `README.md` is now English and the Korean copy
   is a separate `README.ko.md`; `README.en.md` is removed. The maintainer docs

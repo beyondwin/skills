@@ -140,6 +140,15 @@ and no code change is needed, run it here instead of calling the worker again.
 
 ## Timeouts and errors
 
+Tell a stopped runner from a failed task. An attempt whose `state` is
+`interrupted`, or whose record is `stale`, means the runner was stopped, not
+that the worker failed. Resume its session (`session_id`, else
+`session_id_in_log`) at the same effort, and record `task N: interrupted:`
+rather than a failure; it does not use up waygent's one retry. With no session
+ID, start a fresh worker told what is already done. A worker that exits by
+itself, or is killed, with no trailer commit or a failed check is a task
+failure: waygent's retry, a fresh worker at XHigh.
+
 An attempt whose `error` is `the worker wrote no output for <N> seconds` hit
 the idle timeout (`--idle-timeout`, default 900). Check the worktree for partial
 changes, do not resume that session, and dispatch a fresh worker with a

@@ -79,10 +79,15 @@ The runner, resolver, and sandbox helpers are unchanged apart from the
 
 | Host | Worker | State |
 | --- | --- | --- |
-| Claude Code | Grok CLI | `measured` once, 2026-09-30: two tasks, final review, pass ("8.0.0 live check" in [Testing](testing.md)); fix and retry paths not exercised |
-| Claude Code | Cursor Agent | `not_measured` |
-| Codex | Grok CLI | `not_measured` |
-| Codex | Cursor Agent | `not_measured` |
+| Claude Code | Grok CLI | `measured` 2026-09-30: two tasks and final review, pass |
+| Claude Code | Cursor Agent | `measured` 2026-09-30: stopped-runner resume, a review fix via `--resume`, final review, pass |
+| Codex | Grok CLI | `measured` 2026-09-30: fresh XHigh retry after a worker failure, a review fix, final review at `xhigh`, pass |
+| Codex | Cursor Agent | `not_measured` as a pair; each side was run with the other partner |
+
+Details are in "8.0.0 live check" and "round 2" in [Testing](testing.md). Under
+`codex exec`, an explicit-only skill is not loaded, so the Codex run used a copy
+without `agents/openai.yaml`; an interactive Codex session loads it through
+`~/.agents/skills/sddx`.
 
 ## 2.0.0 measurement state
 
