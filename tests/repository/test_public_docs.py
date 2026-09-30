@@ -910,7 +910,7 @@ class UserGuideFactTests(unittest.TestCase):
                     "loading", "syntax", "meaning", "schema 2", "schema 3",
                     "schema-unsupported", "unsupported_records",
                     "checkout", "LF",
-                    '"schema":4,"skill_name":"pre-sdd-review"', "schema 4",
+                    '"schema":5,"skill_name":"pre-sdd-review"', "schema 4", "schema 5",
                 ):
                     self.assertIn(phrase, verification)
                 compatibility = _read(base / "compatibility.md")
