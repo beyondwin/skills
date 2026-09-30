@@ -216,7 +216,8 @@ class StartTests(unittest.TestCase):
             {"head": record["git"]["head_start"], "prior_plans": ["docs/plan-a.md", "docs/plan-b.md"]},
         )
         self.assertEqual(record["ledger"]["path"], "docs/ledger.md")
-        self.assertEqual(len(record["ledger"]["sha"]), 64)
+        self.assertEqual(len(record["ledger"]["sha_start"]), 64)
+        self.assertIsNone(record["ledger"]["sha_end"])
         self.assertIsNone(record["git"]["head_start_is_ancestor_of_head_end"])
 
     def test_start_without_ledger_or_prior_plans_uses_empty_defaults(self) -> None:
@@ -695,8 +696,9 @@ class SummaryTests(unittest.TestCase):
 
     def test_summary_on_empty_home_has_exact_keys(self) -> None:
         summary = self._summary()
-        self.assertEqual(set(summary), {"schema", "runs", "counts", "cost", "chains", "findings", "anomalies", "invalid_records", "unsupported_records"})
+        self.assertEqual(set(summary), {"schema", "runs", "runs_total", "counts", "cost", "chains", "findings", "anomalies", "invalid_records", "unsupported_records"})
         self.assertEqual(summary["runs"], [])
+        self.assertEqual(summary["runs_total"], 0)
         self.assertEqual(summary["invalid_records"], 0)
         self.assertEqual(summary["unsupported_records"], 0)
         self.assertEqual(summary["counts"]["status"], {"completed": 0, "abandoned": 0, "pending": 0})

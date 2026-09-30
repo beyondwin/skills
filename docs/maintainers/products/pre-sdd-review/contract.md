@@ -11,8 +11,9 @@ This is a normative document. Terms used here:
 - run: one execution recorded by the recorder.
 - ledger: the shared-file ledger, the list of files several plans touch.
 - campaign: one outer request that names two or more plans.
-- stale: a plan in a campaign that needs closure again because a preceding
-  plan's repair changed something it reads.
+- stale: a plan in a campaign that needs closure again because another plan's
+  repair changed something it reads: a preceding plan's change to its read
+  set, or any plan's change to a design they share.
 - change list: `git diff --name-only <git.head_end>` plus
   `git ls-files --others --exclude-standard`, i.e. every path that differs
   from the prior run's commit, committed or not. It is docs-only when it names
@@ -44,8 +45,9 @@ A verdict-bearing invocation reviews exactly one implementation plan.
   plan's `READY` is not tied to an earlier plan.
 - Discoveries may overlap; repairs do not. A preceding `BLOCKED` plan does not
   stop later plans' discovery.
-- If a preceding plan's repair changes a shared design, mark every dependent
-  plan stale in this campaign. That invalidation does not open a new campaign.
+- If a plan's repair changes a shared design, mark every other plan that
+  depends on it stale in this campaign, before or after it in the order. That
+  invalidation does not open a new campaign.
 
 If a plan names a required implementation base (`branch`, `ref`, or
 `commit`), check before dispatching any reviewer that the required base is an
@@ -214,8 +216,11 @@ Stale is controller-local campaign state. It is neither a record field nor the
 worktree's dirty state. After repairing plan i, the change set Δ is the union
 of the changed resolved design, plan, and ledger fingerprints; the symbols,
 paths, commands, and consumers in the impact table; and the paths cited by the
-repaired findings. If i precedes plan j and Δ overlaps j's read set, or a
-shared design j depends on changed, j is stale. j's read set is the resolved
+repaired findings. If i precedes plan j and Δ overlaps j's read set, j is
+stale. If a shared design j depends on changed, j is stale whichever plan
+comes first, because that design is j's authority. A stale plan takes its
+scoped closure after the repair that made it stale and before its verdict.
+j's read set is the resolved
 design, plan, and ledger paths and hashes, the `Files:` paths, the preceding
 plan paths, and the `evidence` paths of its finding records. Paths not in `Files:` are not in this stale set; the machine check catches that gap.
 
@@ -275,7 +280,8 @@ written.
 - review timestamp
 - final verdict
 - baseline: `HEAD`, or `HEAD` plus the list of preceding plans
-- ledger: repository-relative path and SHA-256 (omitted when there is none)
+- ledger: repository-relative path and SHA-256 at start and at the verdict
+  (omitted when there is none)
 - Any content change to either resolved document invalidates `READY`.
 
 The final report also carries a short pass summary: input and final document
@@ -315,8 +321,8 @@ The next invocation takes the first matching path:
    `Evidence: not_recorded; reason=previous-decision-checkpoint`. Other plans
    continue.
 3. Handoff reuse: from a reusable run (`full`, or `degraded` whose only reason
-   is `focused-role-not-obtained`), reuse the handoff only when documents,
-   `HEAD`, and the request are unchanged and the change list is docs-only. Handoffs of
+   is `focused-role-not-obtained`), reuse the handoff only when the design,
+   plan, and ledger hashes, `HEAD`, and the request are unchanged and the change list is docs-only. Handoffs of
    other `degraded` runs and of `blocked` runs are never reused. A reuse calls no
    `start` and prints `Evidence: not_recorded; reason=reused-prior-run`.
 4. Continuation: if the last run was a reusable `REVISE`, the change list
@@ -349,8 +355,8 @@ controller uses it in this order.
    canonical line is
    `{"cli_version":"6.0.0","schema":4,"skill_name":"pre-sdd-review"}` followed
    by one LF.
-2. If compatible, run `summary --repo <display name>` before `start` and find
-   the plan in `runs` and `chains`. Close this plan's `pending` run with
+2. If compatible, run `summary --repo <display name> --plan <plan>` before
+   `start`; its `runs` are this plan's runs. Close this plan's `pending` run with
    `abandon --repo`. If the plan's last completed verdict is `REVISE` or
    `BLOCKED`, `show` it.
 3. Take the path from "Next invocation" above. When `execution` is
@@ -415,8 +421,10 @@ locking. Windows is not supported.
 
 `show` validates a record and returns its original bytes. `summary` reports
 `invalid_records` and `unsupported_records` from a full scan before filtering.
-`--repo` filters only on the `repo` display name, and `--last` picks valid
-ordered records. `counts.verdict` includes every completed verdict seen, and
+`--repo` filters only on the `repo` display name, `--plan` on the plan's
+repository-relative path, and `--last` picks valid ordered records. `runs`
+lists at most the newest 50 of the filtered records; `runs_total` counts them
+all, and the other sections always cover every filtered record. `counts.verdict` includes every completed verdict seen, and
 `normal_verdict` and `anomalous_verdict` split them by observation. These are
 local observations, not a model quality measure or a signed audit claim.
 

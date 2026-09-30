@@ -75,6 +75,8 @@ GIT_KEYS = {"head_start", "head_end", "dirty_start", "dirty_end", "head_start_is
 # Schemas written by earlier recorders. They are refused, never read or migrated.
 UNSUPPORTED_SCHEMAS = (2, 3)
 MAX_PRIOR_PLANS = 40
+# `summary` lists at most this many runs, newest last; `runs_total` gives the full count.
+SUMMARY_RUNS_LIMIT = 50
 FINDING_KEYS = frozenset(
     {
         "id",
@@ -554,8 +556,10 @@ def validate_finish_shape(payload: object) -> dict[str, object]:
 
 
 def _documents_changed(record: dict[str, object]) -> bool:
-    # A preceding plan's repair may change a shared design; only this plan's own edits count.
-    names = ("plan",) if record["baseline"]["prior_plans"] else ("plan", "design")
+    # In a campaign (a ledger or preceding plans) another plan's repair may change the
+    # shared design, and the ledger is always shared: only this plan's own edits count.
+    campaign = record["ledger"] is not None or bool(record["baseline"]["prior_plans"])
+    names = ("plan",) if campaign else ("plan", "design")
     for name in names:
         document = record[name]
         if isinstance(document, dict) and document["sha_start"] != document["sha_end"]:
@@ -625,12 +629,10 @@ def finding_anomalies(record: dict[str, object]) -> list[dict[str, object]]:
     """Per-finding observations for a completed record; never rejudges the verdict."""
     if record["status"] != "completed":
         return []
-    plan = record["plan"]
-    design = record["design"]
-    assert isinstance(plan, dict)
-    documents = {str(plan["path"])}
-    if isinstance(design, dict):
-        documents.add(str(design["path"]))
+    # The ledger is derived evidence, so citing it alone is not repository evidence.
+    documents = {
+        str(record[name]["path"]) for name in ("plan", "design", "ledger") if isinstance(record[name], dict)
+    }
     entries: list[dict[str, object]] = []
     for item in record["findings"]:
         assert isinstance(item, dict)
@@ -720,8 +722,8 @@ def validate_record(record: object, expected_run_id: str) -> dict[str, object]:
     client = _object(value["client"], "client", {"id", "model"})
     _enum(client["id"], "client.id", CLIENTS)
     _string(client["model"], "client.model", 100)
-    for name in ("plan", "design"):
-        if name == "design" and value[name] is None:
+    for name in ("plan", "design", "ledger"):
+        if name != "plan" and value[name] is None:
             continue
         document = _object(value[name], name, {"path", "sha_start", "sha_end"})
         _relative(document["path"], name + ".path")
@@ -769,10 +771,6 @@ def validate_record(record: object, expected_run_id: str) -> dict[str, object]:
         fail("schema-invalid", f"baseline.prior_plans exceeds {MAX_PRIOR_PLANS} entries")
     for prior in baseline["prior_plans"]:
         _relative(prior, "baseline.prior_plans[]")
-    if value["ledger"] is not None:
-        ledger = _object(value["ledger"], "ledger", {"path", "sha"})
-        _relative(ledger["path"], "ledger.path")
-        _digest(ledger["sha"], "ledger.sha")
     if value["outcome"] is not None:
         if status != "completed":
             fail("schema-invalid", "outcome requires a completed record")
@@ -820,7 +818,8 @@ def cmd_start(args: argparse.Namespace, home: Path, cwd: Path) -> dict[str, obje
         "baseline": {"head": head, "prior_plans": prior_plans},
         "ledger": None if ledger_path is None else {
             "path": ledger_path,
-            "sha": document_hash(root, ledger_path),
+            "sha_start": document_hash(root, ledger_path),
+            "sha_end": None,
         },
         "git": {
             "head_start": head,
@@ -867,12 +866,10 @@ def cmd_finish(args: argparse.Namespace, home: Path, cwd: Path, stdin: TextIO) -
         root = _require_checkout(record, home, cwd, args.repo)
         semantic = validate_finish_shape(read_stdin(stdin, RECORD_LIMIT))
         head, dirty = git_state(root)
-        plan = record["plan"]
-        design = record["design"]
-        assert isinstance(plan, dict)
-        plan["sha_end"] = document_hash(root, str(plan["path"]))
-        if isinstance(design, dict):
-            design["sha_end"] = document_hash(root, str(design["path"]))
+        for name in ("plan", "design", "ledger"):
+            document = record[name]
+            if isinstance(document, dict):
+                document["sha_end"] = document_hash(root, str(document["path"]))
         git_facts = record["git"]
         assert isinstance(git_facts, dict)
         git_facts["head_end"] = head
@@ -1010,7 +1007,8 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
     }
     return {
         "schema": SCHEMA,
-        "runs": runs_index,
+        "runs": runs_index[-SUMMARY_RUNS_LIMIT:],
+        "runs_total": len(runs_index),
         "counts": counts,
         "cost": {
             "elapsed_s": {
@@ -1051,9 +1049,12 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
 def cmd_summary(args: argparse.Namespace, home: Path) -> dict[str, object]:
     if args.last is not None and args.last < 1:
         fail("invalid-arguments", "--last must be a positive integer")
+    plan = None if args.plan is None else _relative_argument(args.plan, "--plan")
     records, invalid, unsupported = scan_records(home)
     if args.repo is not None:
         records = [record for record in records if record["repo"] == args.repo]
+    if plan is not None:
+        records = [record for record in records if record["plan"]["path"] == plan]
     if args.last is not None:
         records = records[-args.last :]
     result = summarize(records)
@@ -1101,6 +1102,7 @@ def build_parser() -> _Parser:
     show.add_argument("--run-id", required=True)
     summary = commands.add_parser("summary", add_help=False)
     summary.add_argument("--repo")
+    summary.add_argument("--plan")
     summary.add_argument("--last", type=int)
     return parser
 

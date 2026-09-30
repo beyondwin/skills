@@ -11,6 +11,7 @@ All notable changes to this product are documented in this file.
 - Removed the error code `legacy-record-read-only` and the `summary` `binding` field (`runs[].binding`, `counts.binding`, `historical-unbound`, `checkout-bound`). The old-record exceptions (findings without `source`, free-string `degraded_reasons`) are gone too.
 - `abandon` now requires `--repo` and refuses a run from another checkout with `outside-repository`, the same check `finish` makes. Before, one clone could close another clone's live run.
 - Finding `status` is `repaired`, `partially-closed`, or `unresolved`. The undocumented `blocked-by-authority` and `accepted-as-is` are rejected.
+- The record's `ledger` is `{path, sha_start, sha_end}`, like `plan` and `design`; `finish` records the end hash. The old `ledger.sha` is rejected. Reuse now also requires an unchanged ledger.
 
 ### Fixed
 
@@ -18,7 +19,10 @@ All notable changes to this product are documented in this file.
 - `start` validates a record before writing it, so it can no longer leave a `pending` run that no command can close (for example, a checkout directory named with a backslash).
 - Non-UTF-8 input to `finish` and a missing `git` return a one-line JSON error instead of a traceback.
 - A `BLOCKED` run that dispatched no reviewer can be recorded with `review_passes: 0`.
-- In a campaign, a design changed by a preceding plan's repair no longer raises `document_changed_without_repair_pass`.
+- In a campaign, a design changed by another plan's repair no longer raises `document_changed_without_repair_pass`, including for the first plan (a run with a `ledger` counts as a campaign run).
+- A repair that changes a shared design now marks every other plan that depends on it stale, whether that plan comes before or after it. Before, an earlier plan could keep a `READY` reviewed against a design that a later plan's repair had changed. A stale plan gets its closure after the repair that made it stale.
+- `repo_reality_citing_documents_only` now counts the ledger as a document, as the reviewer protocol already said.
+- `cases.json` grades a missing command (`nonexistent-command`) and a consumer-before-producer order (`task-interface-order`) as `IMPORTANT`: both are fixed by a plan edit. Every live run so far graded the missing command `IMPORTANT`. `extension-collision` stays `BLOCKER`, and its request now says no authority decides which feature keeps the extension point.
 - Reuse and continuation now see uncommitted and untracked changes: the change list is `git diff --name-only <git.head_end>` plus `git ls-files --others --exclude-standard`. Before, an uncommitted code edit let a stale handoff be reused.
 - `start` is called whenever the plan path resolves, even when an input gate returns `BLOCKED`, so a gate-`BLOCKED` run is in the chain. Only a reprinted decision checkpoint and a reused result call no `start`.
 - A continuation counts its passes from 1 and keeps the usual caps, and a run with no discovery records `trigger: null`. Before, the numbering could make `finish` reject the record and a continuation of a triggered plan was always mislabeled.
@@ -33,6 +37,8 @@ All notable changes to this product are documented in this file.
 - `SKILL.md` shows the literal `start` command, the `finish` example lives in `evidence/README.md`, `pattern` and `review_passes` are defined, and the final report has a fixed order.
 - "Dirty plan" is renamed "stale plan" so it is not confused with a dirty worktree. The `H0` and `H_git0` labels are gone.
 - README sentences are shorter and plainer. Behavior is unchanged.
+- `summary --plan <path>` limits the output to one plan, and `SKILL.md` uses it before `start`. `runs` lists at most the newest 50 records; the new `runs_total` counts them all.
+- Two fixtures: `missing-command` (`IMPORTANT` `repo-reality`, `REVISE`) and `open-product-decision` (`BLOCKER`, `BLOCKED`).
 - `SKILL.md` no longer describes the nonexistent `reviewer_count` field. The one record field is `reviewers` (0-2); a `full` run records 2 with a trigger and 1 without.
 - Docs are English-first: `README.md` is the English user guide and `README.ko.md` is the separate Korean one (formerly `README.md` and `README.en.md`). `CHANGELOG.md` and the maintainer docs are in English. Behavior is unchanged.
 

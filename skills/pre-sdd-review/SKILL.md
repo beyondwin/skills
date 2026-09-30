@@ -56,9 +56,9 @@ aggregate verdict. Campaign: a request naming several plans is split into
 separate verdict-bearing invocations, each with its own plan-local verdict.
 Run the pre-pass below once before the first of them. Discoveries of
 different plans may overlap. Repairs do not overlap. Do not emit an aggregate
-`READY`. A preceding plan's repair that changes a shared design marks every
-dependent plan stale in this campaign; do not open a new campaign for that
-invalidation.
+`READY`. A repair that changes a shared design marks every other plan that
+depends on it stale in this campaign, before or after it in the order; do not
+open a new campaign for that invalidation.
 
 Interpret conflicts in this order:
 
@@ -151,8 +151,9 @@ Run `python3 "<skill-root>/evidence/evidence.py" --version`, where
 anything. Record only when its JSON says `skill_name=pre-sdd-review` and
 `schema=4`. The command reference, including the `finish` input keys, is in
 `<skill-root>/evidence/README.md`. When compatible, run
-`summary --repo <repo display name>` (the checkout directory's name) before
-`start` and locate this plan in `runs` and `chains`.
+`summary --repo <repo display name> --plan <plan>` (the checkout
+directory's name and the plan's repository-relative path) before `start`. Its
+`runs` are this plan's runs, oldest first.
 
 ### Choose the path
 
@@ -182,8 +183,9 @@ the first match:
    - Otherwise dispatch no reviewer and make no repair: print the same
      checkpoint and stop. Call no `start`; print `Evidence: not_recorded;
      reason=previous-decision-checkpoint`. Other plans continue.
-3. **Nothing changed.** The run's `execution` is reusable, `plan.sha_end` and
-   `design.sha_end` match the current documents, `git.head_end` matches
+3. **Nothing changed.** The run's `execution` is reusable, `plan.sha_end`,
+   `design.sha_end`, and `ledger.sha_end` (when recorded) match the current
+   documents, `git.head_end` matches
    `HEAD`, the change list is docs-only, and the outer request does not ask
    for a re-review or name changed authority or repository evidence. Reuse
    the prior result and handoff without a new review; call no `start`, and
@@ -414,10 +416,13 @@ Stale is controller-local campaign state, not a record field and not the
 worktree's dirty flag. After repairing plan i, Δ is the union of changed
 resolved design, plan, and ledger fingerprints; repair-impact map symbols,
 paths, commands, and consumers; and paths cited by repaired findings. Plan j
-is stale when i precedes j and either Δ intersects j's read set or a shared
-design j depends on changed. j's read set is the resolved design, plan, and
-ledger paths and hashes, `Files:` paths, preceding-plan paths, and
-discovery-record `evidence` paths.
+is stale when i precedes j and Δ intersects j's read set. Plan j is also
+stale when a shared design j depends on changed, whichever of i and j comes
+first: that design is j's authority, so the change voids j's earlier review.
+j's read set is the resolved design, plan, and ledger paths and hashes,
+`Files:` paths, preceding-plan paths, and discovery-record `evidence` paths.
+A stale plan takes its scoped closure after the repair that made it stale and
+before its verdict.
 Paths not in `Files:` are not in this stale set; those holes are machine-checked.
 
 ## Review-only mode

@@ -75,6 +75,7 @@ CASE_IDS = (
     "partial-closure-not-a-new-finding",
     "degraded-handoff-not-reused",
     "zero-findings-but-stale",
+    "later-design-repair-stales-earlier-plan",
     "closure-requires-repair-diff",
     "host-limit-waves-not-reuse",
     "head-break-no-ready",
@@ -99,6 +100,8 @@ FIXTURE_NAMES = (
     "false-verification",
     "runtime-removal",
     "state-machine-vacuous-pass",
+    "missing-command",
+    "open-product-decision",
 )
 FIXTURE_FILES = (
     "design.md",
@@ -1066,8 +1069,11 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("Discoveries of different plans may overlap", skill)
         self.assertIn("Repairs do not overlap", skill)
         self.assertNotIn("do not overlap them", skill)
-        self.assertIn("A preceding plan's repair", skill)
-        self.assertNotIn("A later repair that changes a shared design", skill)
+        self.assertIn("marks every other plan that depends on it stale", skill)
+        self.assertIn("whichever of i and j comes first", skill)
+        self.assertIn("A stale plan takes its scoped closure after the repair that made it stale", skill)
+        self.assertIn("summary --repo <repo display name> --plan <plan>", skill)
+        self.assertIn("`ledger.sha_end` (when recorded)", skill)
         self.assertIn("controller-local campaign state", skill)
         self.assertIn("not a record field", skill)
         self.assertIn("Paths not in `Files:` are not in this stale set", skill)
@@ -1085,8 +1091,9 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertNotIn("summary --last 20", contract)
         self.assertIn("Discoveries may overlap; repairs do not", contract)
         self.assertNotIn("do not overlap them", contract)
-        self.assertIn("a preceding plan's repair", contract)
-        self.assertNotIn("later repair", contract)
+        self.assertIn("mark every other plan that depends on it stale", contract)
+        self.assertIn("j is stale whichever plan comes first", contract)
+        self.assertIn("summary --repo <display name> --plan <plan>", contract)
         self.assertIn("controller-local campaign state", contract)
         self.assertIn("Paths not in `Files:` are not in this stale set", contract)
         self.assertIn("If the first review has zero findings", contract)
@@ -1812,8 +1819,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "not_measured",
         ):
             self.assertIn(fact, normalized_testing)
-        self.assertEqual(len(CASE_IDS), 51)
-        self.assertIn("exactly fifty-one cases", normalized_testing)
+        self.assertEqual(len(CASE_IDS), 52)
+        self.assertIn("exactly fifty-two cases", normalized_testing)
         self.assertIn("Only Codex is supported today", compatibility)
         self.assertIn("Every other host\nis `not_measured`", compatibility)
         self.assertIn("## Recorder compatibility", compatibility)
@@ -2124,6 +2131,29 @@ class PreSddReviewFixtureTests(unittest.TestCase):
                 "risk_trigger": "framework-or-runtime-removal",
             },
         )
+
+    def test_repo_reality_and_blocked_fixtures_are_graded_by_the_minimal_fix(self) -> None:
+        graded = {
+            "missing-command": ("REVISE", "IMPORTANT", "repo-reality"),
+            "open-product-decision": ("BLOCKED", "BLOCKER", "authority-drift"),
+        }
+        for name, (verdict, severity, finding_class) in graded.items():
+            with self.subTest(fixture=name):
+                expected = json.loads((FIXTURES / name / "expected.json").read_text(encoding="utf-8"))
+                self.assertEqual(expected["verdict"], verdict)
+                self.assertEqual(len(expected["findings"]), 1)
+                finding = expected["findings"][0]
+                self.assertEqual((finding["severity"], finding["class"]), (severity, finding_class))
+                self.assertTrue(finding["evidence"])
+                self.assertTrue(finding["consequence"])
+        # The named command is absent from the repository; the fix is a plan edit.
+        plan = (FIXTURES / "missing-command/plan.md").read_text(encoding="utf-8")
+        self.assertIn("`npm run verify`", plan)
+        self.assertNotIn("npm run verify", REPOSITORY_MANIFEST["commands"])
+        # The design leaves the choice open; the fix needs a product decision.
+        design = (FIXTURES / "open-product-decision/design.md").read_text(encoding="utf-8")
+        self.assertIn("## Open decision", design)
+        self.assertIn("Not decided.", design)
 
     def test_v1_1_regression_fixtures_have_a_scorable_material_consequence(self) -> None:
         for name, expected_digest in V1_1_FIXTURE_SHA256.items():

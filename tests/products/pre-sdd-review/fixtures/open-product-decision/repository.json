@@ -1,0 +1,6 @@
+{
+  "head": "0123456789abcdef0123456789abcdef01234567",
+  "dirty": false,
+  "paths": ["package.json", "src/app.ts", "tests/app.test.ts"],
+  "commands": ["npm test", "npm run build"]
+}

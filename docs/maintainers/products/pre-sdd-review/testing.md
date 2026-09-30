@@ -42,12 +42,14 @@ model, so real model review quality is `not_measured`.
 
 ## Fixture boundary
 
-`cases.json` owns exactly fifty-one cases covering activation, default flow,
+`cases.json` owns exactly fifty-two cases covering activation, default flow,
 review-only, verdicts, risk, freshness, evidence, and near-miss requests.
-`fixtures/` owns exactly seven synthetic repositories:
+`fixtures/` owns exactly nine synthetic repositories:
 `ready`, `missing-coverage`, `false-verification`, `runtime-removal`,
-`repair-induced-schema-consumer`, `state-machine-vacuous-pass`, and
-`conditional-edit-surface`. Each holds only `design.md`, `plan.md`,
+`repair-induced-schema-consumer`, `state-machine-vacuous-pass`,
+`conditional-edit-surface`, `missing-command` (a `repo-reality` finding
+fixed by a plan edit, so `IMPORTANT`), and `open-product-decision` (a choice
+the design leaves open, so `BLOCKER` and `BLOCKED`). Each holds only `design.md`, `plan.md`,
 `repository.json`, `expected.json`.
 
 Fixtures are a bounded synthetic contract, not a corpus. Never store user
@@ -92,6 +94,7 @@ in fixtures, test logs, or committed live records.
 - `partial-closure-not-a-new-finding`
 - `degraded-handoff-not-reused`
 - `zero-findings-but-stale`
+- `later-design-repair-stales-earlier-plan`
 - `closure-requires-repair-diff`
 - `host-limit-waves-not-reuse`
 - `head-break-no-ready`
@@ -112,7 +115,9 @@ in fixtures, test logs, or committed live records.
 
 - `conditional-edit-surface`: `design.md`, `expected.json`, `plan.md`, `repository.json`
 - `false-verification`: `design.md`, `expected.json`, `plan.md`, `repository.json`
+- `missing-command`: `design.md`, `expected.json`, `plan.md`, `repository.json`
 - `missing-coverage`: `design.md`, `expected.json`, `plan.md`, `repository.json`
+- `open-product-decision`: `design.md`, `expected.json`, `plan.md`, `repository.json`
 - `ready`: `design.md`, `expected.json`, `plan.md`, `repository.json`
 - `repair-induced-schema-consumer`: `design.md`, `expected.json`, `plan.md`, `repository.json`
 - `runtime-removal`: `design.md`, `expected.json`, `plan.md`, `repository.json`

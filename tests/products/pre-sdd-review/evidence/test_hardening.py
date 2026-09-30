@@ -595,7 +595,8 @@ class ReaderTests(RecorderFixture):
             (("baseline", "prior_plans"), ["../escape.md"]),
             (("ledger",), {"path": original["ledger"]["path"]}),
             (("ledger", "path"), "../escape.md"),
-            (("ledger", "sha"), "not-a-digest"),
+            (("ledger", "sha_start"), "not-a-digest"),
+            (("ledger", "sha_end"), "0" * 64),
         ]
         for location, replacement in changes:
             with self.subTest(location=location, replacement=replacement):

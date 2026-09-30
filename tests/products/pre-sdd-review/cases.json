@@ -23,11 +23,11 @@
     {
       "id": "nonexistent-command",
       "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md that names npm run verify",
-      "expect": ["PSDR-001", "BLOCKER", "repo-reality"]
+      "expect": ["PSDR-001", "IMPORTANT", "repo-reality"]
     },
     {
       "id": "extension-collision",
-      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md that adds an occupied extension point",
+      "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md that adds an extension point another feature occupies, with no authority on which one keeps it",
       "expect": ["PSDR-001", "BLOCKER", "repo-reality"]
     },
     {
@@ -38,7 +38,7 @@
     {
       "id": "task-interface-order",
       "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md with a consumer before its producer",
-      "expect": ["PSDR-001", "BLOCKER", "ordering"]
+      "expect": ["PSDR-001", "IMPORTANT", "ordering"]
     },
     {
       "id": "runtime-removal-risk-review",
@@ -179,6 +179,11 @@
       "id": "zero-findings-but-stale",
       "request": "$pre-sdd-review sample-app/plan-a.md sample-app/plan-b.md after plan-a repair makes plan-b stale with zero discovery findings",
       "expect": ["stale_requires_closure", "zero_findings_skip_only_when_not_stale"]
+    },
+    {
+      "id": "later-design-repair-stales-earlier-plan",
+      "request": "$pre-sdd-review sample-app/plan-a.md sample-app/plan-b.md after plan-b's repair changes the design both plans share",
+      "expect": ["plan_a_stale", "closure_before_plan_a_verdict"]
     },
     {
       "id": "closure-requires-repair-diff",

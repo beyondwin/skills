@@ -180,12 +180,81 @@ class CampaignAnomalyTests(Fixture):
         self.assertEqual((code, err), (0, ""))
         self.assertEqual(json.loads(out)["anomalies"], [])
 
+    def test_the_first_campaign_plan_ignores_a_design_changed_by_a_later_plan(self) -> None:
+        write(self.repo / "docs/ledger.md", "| path | plans |\n")
+        run_id = start(self.home, self.repo, self.skill, ledger="docs/ledger.md")
+        write(self.repo / "docs/design.md", "# Design\n\nChanged by a later plan's repair.\n")
+        code, out, err = finish(self.home, self.repo, run_id, finish_payload(review_passes=2))
+        self.assertEqual((code, err), (0, ""))
+        self.assertEqual(json.loads(out)["anomalies"], [])
+
+    def test_a_changed_design_outside_a_campaign_is_still_an_anomaly(self) -> None:
+        run_id = start(self.home, self.repo, self.skill)
+        write(self.repo / "docs/design.md", "# Design\n\nEdited.\n")
+        code, out, err = finish(self.home, self.repo, run_id, finish_payload())
+        self.assertEqual((code, err), (0, ""))
+        self.assertEqual(json.loads(out)["anomalies"], ["document_changed_without_repair_pass"])
+
     def test_a_changed_plan_is_still_an_anomaly_in_a_campaign(self) -> None:
         run_id = start(self.home, self.repo, self.skill, prior_plans=["docs/first-plan.md"])
         write(self.repo / "docs/plan.md", "# Plan\n\n**Spec:** docs/design.md\n\nEdited.\n")
         code, out, err = finish(self.home, self.repo, run_id, finish_payload())
         self.assertEqual((code, err), (0, ""))
         self.assertEqual(json.loads(out)["anomalies"], ["document_changed_without_repair_pass"])
+
+
+class LedgerTests(Fixture):
+    def test_finish_records_the_ledger_end_hash(self) -> None:
+        write(self.repo / "docs/ledger.md", "| path | plans |\n")
+        run_id = start(self.home, self.repo, self.skill, ledger="docs/ledger.md")
+        write(self.repo / "docs/ledger.md", "| path | plans |\n| src/app.ts | a, b |\n")
+        code, out, err = finish(self.home, self.repo, run_id, finish_payload())
+        self.assertEqual((code, err), (0, ""))
+        ledger = load(self.home, run_id)["ledger"]
+        self.assertEqual(ledger["sha_start"], evidence.sha256(b"| path | plans |\n"))
+        self.assertEqual(ledger["sha_end"], evidence.sha256(b"| path | plans |\n| src/app.ts | a, b |\n"))
+        # A ledger change is shared campaign state, never this plan's unrecorded repair.
+        self.assertEqual(json.loads(out)["anomalies"], [])
+
+    def test_repo_reality_citing_only_the_ledger_is_an_anomaly(self) -> None:
+        write(self.repo / "docs/ledger.md", "| path | plans |\n")
+        run_id = start(self.home, self.repo, self.skill, ledger="docs/ledger.md")
+        payload = finish_payload(
+            verdict="REVISE",
+            findings=[finding(**{"class": "repo-reality", "status": "unresolved", "evidence": ["docs/ledger.md"]})],
+        )
+        code, out, err = finish(self.home, self.repo, run_id, payload)
+        self.assertEqual((code, err), (0, ""))
+        self.assertIn("repo_reality_citing_documents_only", json.loads(out)["anomalies"])
+
+
+class SummaryLookupTests(Fixture):
+    def test_plan_filter_returns_only_that_plans_runs(self) -> None:
+        write(self.repo / "docs/other-plan.md", "# Other plan\n")
+        mine = start(self.home, self.repo, self.skill)
+        argv = ["start", "--skill-root", str(self.skill), "--repo", str(self.repo),
+                "--plan", str(self.repo / "docs/other-plan.md"), "--client", "codex", "--mode", "default"]
+        code, out, err = run(argv, home=self.home, cwd=self.repo)
+        self.assertEqual((code, err), (0, ""))
+        code, out, err = run(["summary", "--repo", "app", "--plan", "docs/plan.md"], home=self.home, cwd=self.repo)
+        self.assertEqual((code, err), (0, ""))
+        summary = json.loads(out)
+        self.assertEqual([row["run_id"] for row in summary["runs"]], [mine])
+        self.assertEqual(summary["runs_total"], 1)
+        code, _, err = run(["summary", "--plan", "../escape.md"], home=self.home, cwd=self.repo)
+        self.assertEqual((code, error_code(err)), (2, "invalid-arguments"))
+
+    def test_runs_list_keeps_the_newest_and_reports_the_total(self) -> None:
+        run_ids = [start(self.home, self.repo, self.skill) for _ in range(evidence.SUMMARY_RUNS_LIMIT + 2)]
+        code, out, err = run(["summary"], home=self.home, cwd=self.repo)
+        self.assertEqual((code, err), (0, ""))
+        summary = json.loads(out)
+        listed = [row["run_id"] for row in summary["runs"]]
+        self.assertEqual(len(listed), evidence.SUMMARY_RUNS_LIMIT)
+        records = sorted((load(self.home, run_id) for run_id in run_ids), key=lambda r: (r["started_at"], r["run_id"]))
+        self.assertEqual(listed, [record["run_id"] for record in records][-evidence.SUMMARY_RUNS_LIMIT:])
+        self.assertEqual(summary["runs_total"], evidence.SUMMARY_RUNS_LIMIT + 2)
+        self.assertEqual(summary["counts"]["status"]["pending"], evidence.SUMMARY_RUNS_LIMIT + 2)
 
 
 class AnomalyNameTests(unittest.TestCase):

@@ -61,16 +61,17 @@ supported OS; this uses POSIX `fcntl.flock`.
 | --- | --- | --- |
 | `--version` | none | Print the canonical schema 4 handshake |
 | `start` | `--skill-root --repo --plan [--design] [--ledger] [--prior-plan ...] --client [--model] --mode` | Create the identity if needed, hash documents, read Git state, validate and write a checkout-bound `pending` record, print `run_id` and `status` |
-| `finish` | `--run-id --repo` and one JSON object on stdin | Require the original checkout binding, recompute end hashes and Git state, validate, write `completed`, print `run_id`, `status`, `verdict`, and this run's `anomalies` |
+| `finish` | `--run-id --repo` and one JSON object on stdin | Require the original checkout binding, recompute the design, plan, and ledger end hashes and Git state, validate, write `completed`, print `run_id`, `status`, `verdict`, and this run's `anomalies` |
 | `abandon` | `--run-id --repo --reason` | Require the original checkout binding, then close a pending run; reason is `user-cancelled`, `input-changed`, `scope-changed`, `input-format-fixed`, or `other` |
 | `outcome` | `--run-id --label [--note]` | Record `good`, `false-ready`, `noisy`, or `abandoned` on a completed run; may be re-recorded |
 | `show` | `--run-id` | Validate the record, then return its original bytes unchanged |
-| `summary` | `[--repo NAME] [--last N]` | Scan and validate records, then print the aggregate JSON below |
+| `summary` | `[--repo NAME] [--plan PATH] [--last N]` | Scan and validate records, then print the aggregate JSON below |
 
 `--client` is `codex`, `claude-code`, `cursor`, `grok`, `other`, or `unknown`.
 `--mode` is `default` or `review-only`. `--model` defaults to `unknown`.
 `--repo` on `start`, `finish`, and `abandon` is a path into the checkout;
-`summary --repo` is the checkout directory's name.
+`summary --repo` is the checkout directory's name and `summary --plan` is the
+plan's repository-relative path.
 
 `finish` reads exactly these keys: `execution` (`full`, `degraded`,
 `blocked`), `reviewers` (0–2), `trigger` (`runtime-removal`,
@@ -93,8 +94,9 @@ lowercase slug for the defect shape), `status` (`repaired`,
 (`path`, `locator`), `evidence` (relative paths), `consequence`, and `fix`.
 
 A record also carries `baseline` (`head` plus the ordered `prior_plans` this
-plan's turn assumes) and `ledger` (the shared-file ledger's `path` and `sha`, or
-null). `git` carries `head_start_is_ancestor_of_head_end`: true when the
+plan's turn assumes) and `ledger` (the shared-file ledger's `path`,
+`sha_start`, and `sha_end`, like `plan` and `design`; null when there is no
+ledger). `git` carries `head_start_is_ancestor_of_head_end`: true when the
 checkout moved forward, false when it did not, null when the question is moot.
 Every stored finding must carry `source`, and every stored `degraded_reasons`
 entry must come from the list above.
@@ -104,23 +106,24 @@ paths, and required fields are rejected input when invalid. Semantic review
 still follows the verdict, reviewer, finding, and repair rules in
 `references/reviewer-protocol.md`. Structurally valid deviations from those
 rules remain observed values and appear in `anomalies`; the recorder does not
-rewrite or override the semantic verdict. When a run lists `prior_plans`, a
-changed design is not reported as `document_changed_without_repair_pass`: a
-preceding plan's repair may change a shared design. Known limit: a later
-plan's repair of a shared design during an earlier plan's pending run is
-still reported for the earlier plan.
+rewrite or override the semantic verdict. A campaign run (one with a
+`ledger` or `prior_plans`) reports `document_changed_without_repair_pass` only
+for its own plan: another plan's repair may change the shared design, and the
+ledger is always shared. `repo_reality_citing_documents_only` counts the
+ledger as a document, since it is derived evidence.
 
 ## Reading the log
 
 The log is for agents.
 
-- Before `start`, run `summary --repo <display name>` and find the plan in
-  `runs` and `chains`. Close a same-plan `pending` run with `abandon --repo`;
+- Before `start`, run `summary --repo <display name> --plan <plan>`; its
+  `runs` are this plan's runs. Close a `pending` one with `abandon --repo`;
   `outside-repository` means it belongs to another checkout.
 - A handoff is reusable only from a run whose `execution` is `full`, or
   `degraded` with `focused-role-not-obtained` as its only reason; never from a
   `blocked` run or any other `degraded` run. Reuse it only when its document
-  hashes, `git.head_end`, and the request are all unchanged and
+  hashes (design, plan, and ledger), `git.head_end`, and the request are all
+  unchanged and
   `git diff --name-only <git.head_end>` plus
   `git ls-files --others --exclude-standard` names no path besides the design,
   plan, and ledger. A reuse records nothing and prints
@@ -131,10 +134,12 @@ The log is for agents.
 - After `finish`, print the `anomalies` it returned; do not look the run up in
   a windowed `summary`.
 
-`summary` returns `runs`, `counts`, `cost`, `chains` (plans reviewed more
-than once in the same checkout), `findings` (with `repeated_patterns`), and
-`anomalies`; every drill-down entry carries `run_id` values for `show`. Start
-from `anomalies` and `chains`.
+`summary` returns `runs`, `runs_total`, `counts`, `cost`, `chains` (plans
+reviewed more than once in the same checkout), `findings` (with
+`repeated_patterns`), and `anomalies`; every drill-down entry carries `run_id`
+values for `show`. Start from `anomalies` and `chains`. `runs` lists at most
+the newest 50 of the filtered records, oldest first; `runs_total` counts all of
+them, and every other section covers them all.
 
 `invalid_records` is the number of invalid files found across the entire scan
 before any filters. `unsupported_records` counts, the same way, the schema 2

@@ -33,8 +33,12 @@ def stale_after(
     i = order.index(repaired)
     for later in order[i + 1 :]:
         read = set(files[later]) | {designs[later], later} | set(order[: order.index(later)])
-        if delta_paths & read or (delta_design and designs[later] == delta_design):
+        if delta_paths & read:
             stale.add(later)
+    # A shared design is every dependent plan's authority, whichever comes first.
+    for other in order:
+        if other != repaired and delta_design and designs[other] == delta_design:
+            stale.add(other)
     return stale
 
 
@@ -90,6 +94,18 @@ class CampaignScheduleTests(unittest.TestCase):
         self.assertEqual(
             stale_after("A", self.order, self.files, self.designs, set(), "spec.md"),
             {"B"},
+        )
+
+    def test_later_plans_shared_design_repair_stales_the_earlier_plan(self) -> None:
+        self.assertEqual(
+            stale_after("B", self.order, self.files, self.designs, set(), "spec.md"),
+            {"A"},
+        )
+
+    def test_later_plans_file_delta_does_not_stale_the_earlier_plan(self) -> None:
+        self.assertEqual(
+            stale_after("C", self.order, self.files, self.designs, {"ui.ts"}, None),
+            set(),
         )
 
     def test_file_delta_dirties_consumer(self) -> None:

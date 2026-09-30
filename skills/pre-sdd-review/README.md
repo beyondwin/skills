@@ -83,8 +83,9 @@ repair; the example is under Expected result.
    them once more and re-checks only those.
 
 If the first review finds nothing, the skill skips repair and returns `READY`.
-But if an earlier plan's repair changed files this plan reads, closure still
-runs even with zero findings.
+But closure still runs with zero findings when an earlier plan's repair
+changed files this plan reads, or any plan's repair changed the design they
+share.
 
 The ledger is derived evidence, not authority: when it disagrees with a plan's
 `Files:`, the plan wins and the ledger is rebuilt. A repair that changes a
