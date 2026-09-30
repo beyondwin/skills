@@ -1225,7 +1225,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         for fact in (
             "without installing anything",
             "skill_name=pre-sdd-review",
-            "schema=4",
+            "schema=5",
             "the directory holding this `SKILL.md`",
             "--plan <plan>",
             "does not parse `**Spec:**`",
@@ -1255,7 +1255,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         recorder = (SKILL / "evidence/README.md").read_text(encoding="utf-8")
         contract = (MAINTAINERS / "contract.md").read_text(encoding="utf-8")
 
-        self.assertIn("schema=4", skill_text)
+        self.assertIn("schema=5", skill_text)
         for token in (
             "repo_key",
             "schema-unsupported",
@@ -1674,7 +1674,7 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             normalized_english,
         )
 
-        # The handshake keeps a bare `schema=4` (no dots, so it does not trip
+        # The handshake keeps a bare `schema=5` (no dots, so it does not trip
         # the product-README version-literal ban) and points readers at
         # evidence/README.md for the canonical line's exact bytes; product
         # READMEs never own a version literal (see
@@ -1687,8 +1687,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "See the [evidence README](evidence/README.md) for the canonical line's exact bytes.",
             normalized_english,
         )
-        self.assertIn("`schema=4`", normalized_korean)
-        self.assertIn("`schema=4`", normalized_english)
+        self.assertIn("`schema=5`", normalized_korean)
+        self.assertIn("`schema=5`", normalized_english)
         version_literal = re.compile(r"\b[0-9]+\.[0-9]+\.[0-9]+\b")
         for text in (normalized_korean, normalized_english):
             self.assertNotIn("schema=3", text)

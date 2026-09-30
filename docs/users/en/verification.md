@@ -57,7 +57,7 @@ Offline tests prove the fixed contract only. Each product's fixture paths are in
 
 The `pre-sdd-review-evidence` stage tests `evidence.py` under `tests/products/pre-sdd-review/evidence/`. It makes no network, model, provider, or telemetry call.
 
-The Pre-SDD recorder reads and writes schema 4 only, and commands that change records need its checkout binding. Records in schema 2 and schema 3, written by recorders before 6.0.0, fail every command with `schema-unsupported`; `summary` counts them in `unsupported_records`. They never block a new run; delete them to clear them. `--version` prints one canonical JSON line containing `"schema":4,"skill_name":"pre-sdd-review"`, then one LF, and creates no evidence home. The exact bytes are in the [recorder README](../../../skills/pre-sdd-review/evidence/README.md).
+The Pre-SDD recorder reads and writes schema 5 only, and commands that change records need its checkout binding. Records in schema 2, 3, or 4, written by recorders before 6.0.0, fail every command with `schema-unsupported`; `summary` counts them in `unsupported_records`. They never block a new run; delete them to clear them. `--version` prints one canonical JSON line containing `"schema":5,"skill_name":"pre-sdd-review"`, then one LF, and creates no evidence home. The exact bytes are in the [recorder README](../../../skills/pre-sdd-review/evidence/README.md).
 
 A pass does not prove general quality.
 

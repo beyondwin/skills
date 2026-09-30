@@ -6,12 +6,12 @@ All notable changes to this product are documented in this file.
 
 ### Breaking
 
-- The recorder reads schema 4 only. Schema 2 and 3 records written by 5.1.0 and earlier are no longer read, migrated, or closed. `show`, `finish`, `abandon`, and `outcome` refuse such a run with `schema-unsupported` and leave the file unchanged. `summary` skips those files and counts them in the new `unsupported_records`. Old records never block `start`.
-- To do: to clear old records, delete the `<run-id>.json` files under `~/.pre-sdd-review/runs/` (or `PRE_SDD_REVIEW_HOME/runs/`) whose top-level `"schema"` is 2 or 3. For example, find them with `grep -lE '"schema": ?[23][,}]' ~/.pre-sdd-review/runs/*.json`, check them, then delete them. A schema 3 run left pending cannot be closed; start a new run.
+- The recorder reads schema 5 only. Schema 2, 3, and 4 records written by 5.1.0 and earlier are no longer read, migrated, or closed. `show`, `finish`, `abandon`, and `outcome` refuse such a run with `schema-unsupported` and leave the file unchanged. `summary` skips those files and counts them in the new `unsupported_records`. Old records never block `start`.
+- To do: to clear old records, delete the `<run-id>.json` files under `~/.pre-sdd-review/runs/` (or `PRE_SDD_REVIEW_HOME/runs/`) whose top-level `"schema"` is 2, 3, or 4. For example, find them with `grep -lE '"schema": ?[234][,}]' ~/.pre-sdd-review/runs/*.json`, check them, then delete them. A schema 3 or 4 run left pending cannot be closed; start a new run.
 - Removed the error code `legacy-record-read-only` and the `summary` `binding` field (`runs[].binding`, `counts.binding`, `historical-unbound`, `checkout-bound`). The old-record exceptions (findings without `source`, free-string `degraded_reasons`) are gone too.
 - `abandon` now requires `--repo` and refuses a run from another checkout with `outside-repository`, the same check `finish` makes. Before, one clone could close another clone's live run.
 - Finding `status` is `repaired`, `partially-closed`, or `unresolved`. The undocumented `blocked-by-authority` and `accepted-as-is` are rejected.
-- The record's `ledger` is `{path, sha_start, sha_end}`, like `plan` and `design`; `finish` records the end hash. The old `ledger.sha` is rejected. Reuse now also requires an unchanged ledger.
+- Schema 5: the record's `ledger` is `{path, sha_start, sha_end}`, like `plan` and `design`, and `finish` records the end hash. Schema 4 records (written by 4.0.0 to 5.1.0) are refused like schema 2 and 3. Reuse now also requires an unchanged ledger.
 
 ### Fixed
 

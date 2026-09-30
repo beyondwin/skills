@@ -216,6 +216,16 @@ class LedgerTests(Fixture):
         # A ledger change is shared campaign state, never this plan's unrecorded repair.
         self.assertEqual(json.loads(out)["anomalies"], [])
 
+    def test_a_completed_record_needs_a_ledger_end_hash(self) -> None:
+        write(self.repo / "docs/ledger.md", "| path | plans |\n")
+        run_id = start(self.home, self.repo, self.skill, ledger="docs/ledger.md")
+        self.assertEqual(finish(self.home, self.repo, run_id, finish_payload())[0], 0)
+        record = load(self.home, run_id)
+        record["ledger"]["sha_end"] = None
+        with self.assertRaises(evidence.EvidenceError) as caught:
+            evidence.validate_record(record, run_id)
+        self.assertEqual(caught.exception.code, "schema-invalid")
+
     def test_repo_reality_citing_only_the_ledger_is_an_anomaly(self) -> None:
         write(self.repo / "docs/ledger.md", "| path | plans |\n")
         run_id = start(self.home, self.repo, self.skill, ledger="docs/ledger.md")

@@ -121,15 +121,21 @@ def start(
 
 
 def downgrade(record: dict[str, object], schema: int) -> dict[str, object]:
-    """Reshape a schema 4 record to look like one a pre-6.0.0 recorder wrote.
+    """Reshape a current record to look like one a pre-6.0.0 recorder wrote.
 
     The current recorder refuses these retired schemas; tests use this helper to
     prove the refusal. Schema 3 predates baseline/ledger/git ancestry; schema 2
     additionally predates repo_key. Both predate the "source" key on findings.
-    Callers must only pass schema in (2, 3).
+    Schema 4 differs only in its ledger, `{path, sha}`. Callers must only pass
+    schema in (2, 3, 4).
     """
     record = dict(record)
     record["schema"] = schema
+    if schema == 4:
+        ledger = record.get("ledger")
+        if isinstance(ledger, dict):
+            record["ledger"] = {"path": ledger["path"], "sha": ledger["sha_start"]}
+        return record
     record.pop("baseline", None)
     record.pop("ledger", None)
     git_facts = record.get("git")

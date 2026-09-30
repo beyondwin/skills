@@ -57,7 +57,7 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 `pre-sdd-review-evidence` 단계는 `tests/products/pre-sdd-review/evidence/`에서 `evidence.py`를 검사합니다. 네트워크, 모델, provider, telemetry를 부르지 않습니다.
 
-Pre-SDD 기록기는 schema 4만 읽고 쓰며, 기록을 바꾸는 명령은 그 checkout 결속이 필요합니다. 6.0.0 전 기록기가 쓴 schema 2·schema 3 record는 모든 명령에서 `schema-unsupported`로 거절되고, `summary`는 `unsupported_records`로 셉니다. 새 run을 막지 않으며, 치우려면 그 파일을 지웁니다. `--version`은 `"schema":4,"skill_name":"pre-sdd-review"`가 든 canonical JSON 한 줄과 LF 하나를 출력하고 evidence home을 만들지 않습니다. 정확한 바이트는 [기록기 README](../../../skills/pre-sdd-review/evidence/README.md)를 보세요.
+Pre-SDD 기록기는 schema 5만 읽고 쓰며, 기록을 바꾸는 명령은 그 checkout 결속이 필요합니다. 6.0.0 전 기록기가 쓴 schema 2·3·4 record는 모든 명령에서 `schema-unsupported`로 거절되고, `summary`는 `unsupported_records`로 셉니다. 새 run을 막지 않으며, 치우려면 그 파일을 지웁니다. `--version`은 `"schema":5,"skill_name":"pre-sdd-review"`가 든 canonical JSON 한 줄과 LF 하나를 출력하고 evidence home을 만들지 않습니다. 정확한 바이트는 [기록기 README](../../../skills/pre-sdd-review/evidence/README.md)를 보세요.
 
 통과는 일반 품질을 증명하지 않습니다.
 

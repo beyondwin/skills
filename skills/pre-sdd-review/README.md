@@ -152,7 +152,7 @@ returned; the run stops and needs a new request.
 
 ### Optional recorder
 
-Compatibility is a handshake match: `skill_name=pre-sdd-review` and `schema=4`,
+Compatibility is a handshake match: `skill_name=pre-sdd-review` and `schema=5`,
 exactly. See the [evidence README](evidence/README.md) for the canonical
 line's exact bytes.
 

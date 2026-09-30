@@ -351,9 +351,9 @@ controller uses it in this order.
 
 1. From the loaded skill root, run
    `python3 "<skill-root>/evidence/evidence.py" --version`. Record only when
-   the handshake is exactly `skill_name=pre-sdd-review` and `schema=4`. The
+   the handshake is exactly `skill_name=pre-sdd-review` and `schema=5`. The
    canonical line is
-   `{"cli_version":"6.0.0","schema":4,"skill_name":"pre-sdd-review"}` followed
+   `{"cli_version":"6.0.0","schema":5,"skill_name":"pre-sdd-review"}` followed
    by one LF.
 2. If compatible, run `summary --repo <display name> --plan <plan>` before
    `start`; its `runs` are this plan's runs. Close this plan's `pending` run with
@@ -373,14 +373,14 @@ controller uses it in this order.
 
 Schema compatibility:
 
-- The recorder reads and writes schema 4 only. `start` always creates a
-  checkout-bound schema 4 run.
-- Schema 2 and 3 files written by recorders before 6.0.0 are not read,
+- The recorder reads and writes schema 5 only. `start` always creates a
+  checkout-bound schema 5 run.
+- Schema 2, 3, and 4 files written by recorders before 6.0.0 are not read,
   migrated, or closed. `show`, `finish`, `abandon`, and `outcome` refuse them
   with `schema-unsupported` and leave the file unchanged. `summary` skips them
   and counts them in `unsupported_records`.
 - Old files never block `start`. To clear them, delete the
-  `runs/<run-id>.json` files whose top-level `schema` is 2 or 3.
+  `runs/<run-id>.json` files whose top-level `schema` is 2, 3, or 4.
 
 The controller resolves the design path from the plan's `**Spec:**` and passes
 it as `--design`. If it cannot be resolved, omit `--design` and return
@@ -390,7 +390,7 @@ When a run ends before `finish`, the `abandon` reason is one of `user-cancelled`
 `scope-changed`, `input-format-fixed`, or `other`. The `run_id` is
 controller-local and stays out of the reviewed documents.
 
-A schema 4 finding carries `source` (`reviewer`, `ledger-pass`, or
+A schema 5 finding carries `source` (`reviewer`, `ledger-pass`, or
 `machine-check`) and `repair_pass`. `repair_pass` is `null` or 0..3: `0` is a
 pre-pass ledger or machine-check repair, and `null` is a finding this
 invocation did not repair. `status` is `repaired`, `partially-closed`, or
@@ -449,7 +449,7 @@ Never put a behavior change in only one file.
 - Authority order, verdicts, repair limits, reviewer roles:
   `skills/pre-sdd-review/SKILL.md`, `references/reviewer-protocol.md`, this
   contract, `tests/products/pre-sdd-review/cases.json`, and the product READMEs.
-- Recorder commands and schema 4: `skills/pre-sdd-review/evidence/evidence.py`,
+- Recorder commands and schema 5: `skills/pre-sdd-review/evidence/evidence.py`,
   `evidence/README.md`, `tests/products/pre-sdd-review/evidence/`.
 - Host support: `products.toml`, `compatibility.md`, the public guides, and the
   matching tests. This work does not widen host support.

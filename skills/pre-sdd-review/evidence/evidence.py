@@ -1,4 +1,4 @@
-"""Local evidence recorder for pre-sdd-review (schema 4). Standard library only."""
+"""Local evidence recorder for pre-sdd-review (schema 5). Standard library only."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import TextIO
 
 CLI_VERSION = "6.0.0"
-SCHEMA = 4
+SCHEMA = 5
 SKILL_NAME = "pre-sdd-review"
 RECORD_LIMIT = 64 * 1024
 DOCUMENT_LIMIT = 8 * 1024 * 1024
@@ -73,7 +73,7 @@ RECORD_KEYS = {
 }
 GIT_KEYS = {"head_start", "head_end", "dirty_start", "dirty_end", "head_start_is_ancestor_of_head_end"}
 # Schemas written by earlier recorders. They are refused, never read or migrated.
-UNSUPPORTED_SCHEMAS = (2, 3)
+UNSUPPORTED_SCHEMAS = (2, 3, 4)
 MAX_PRIOR_PLANS = 40
 # `summary` lists at most this many runs, newest last; `runs_total` gives the full count.
 SUMMARY_RUNS_LIMIT = 50

@@ -136,7 +136,7 @@ $pre-sdd-review review-only docs/history/specs/<design>.md docs/history/plans/<p
 
 ### 선택 기록기
 
-handshake가 정확히 `skill_name=pre-sdd-review`와 `schema=4`일 때만 호환입니다.
+handshake가 정확히 `skill_name=pre-sdd-review`와 `schema=5`일 때만 호환입니다.
 정규 handshake 줄의 정확한 바이트는 [evidence README](evidence/README.md)를 보세요.
 
 - 호환되는 기록기가 있으면 먼저 `summary`로 이 계획의 지난 run을 보고, 검토 전

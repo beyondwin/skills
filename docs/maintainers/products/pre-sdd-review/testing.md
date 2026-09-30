@@ -22,7 +22,7 @@ suite. It does not prove live review, semantic quality, or equal support on
 other hosts.
 
 The `evidence/evidence.py` recorder contract runs as a separate provider-free
-stage. It checks the schema 4 checkout binding, refusal of old schema 2 and 3
+stage. It checks the schema 5 checkout binding, refusal of old schema 2, 3, and 4
 records (`schema-unsupported`), mutation locks, quarantine of damaged records,
 the six commands, and summary observation counts. The recorder runs as
 `python3 skills/pre-sdd-review/evidence/evidence.py` and is not installed.
@@ -34,7 +34,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
 
 This stage calls no network or provider, and adds no database or index.
 
-The schema 4 document checks in `test_contract.py` are only consistency
+The schema 5 document checks in `test_contract.py` are only consistency
 evidence: they check that the installed instructions, the recorder guide, and
 the maintainer contract describe the same lifecycle. The evidence suite owns
 proof of real recorder behavior. This approved scope calls no provider or real

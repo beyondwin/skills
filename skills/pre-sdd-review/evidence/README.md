@@ -15,10 +15,10 @@ python3 skills/pre-sdd-review/evidence/evidence.py --version
 ```
 
 The compatibility handshake is exactly `skill_name=pre-sdd-review` and
-`schema=4`. The canonical version output is one JSON line followed by one LF:
+`schema=5`. The canonical version output is one JSON line followed by one LF:
 
 ```json
-{"cli_version":"6.0.0","schema":4,"skill_name":"pre-sdd-review"}
+{"cli_version":"6.0.0","schema":5,"skill_name":"pre-sdd-review"}
 ```
 
 ## Data and checkout identity
@@ -26,7 +26,7 @@ The compatibility handshake is exactly `skill_name=pre-sdd-review` and
 Each run is one file, `~/.pre-sdd-review/runs/<run-id>.json`. The only
 override for the evidence home is a non-empty absolute
 `PRE_SDD_REVIEW_HOME`. Records are at most 64 KiB. Every command reads and
-writes schema 4 only.
+writes schema 5 only.
 
 The recorder creates `.identity-salt` as private local state containing
 exactly 32 random bytes. It never prints or records the salt. The normalized
@@ -41,12 +41,13 @@ the display name.
 
 ## Records from earlier recorders
 
-Recorders before 6.0.0 wrote schema 2 and schema 3 files. This recorder does
+Recorders before 6.0.0 wrote schema 2, 3, or 4 files (schema 5 came from
+4.0.0 through 5.1.0). This recorder does
 not read, migrate, or close them. `show`, `finish`, `abandon`, and `outcome` on
 such a run fail with `schema-unsupported` and leave the file unchanged.
 `summary` skips it and counts it in `unsupported_records`. They never block
-`start`: a new run is always schema 4. To clear them, delete each
-`~/.pre-sdd-review/runs/<run-id>.json` whose top-level `schema` is 2 or 3.
+`start`: a new run is always schema 5. To clear them, delete each
+`~/.pre-sdd-review/runs/<run-id>.json` whose top-level `schema` is 2, 3, or 4.
 
 ## Locks and commands
 
@@ -59,7 +60,7 @@ supported OS; this uses POSIX `fcntl.flock`.
 
 | Command | Arguments | Effect |
 | --- | --- | --- |
-| `--version` | none | Print the canonical schema 4 handshake |
+| `--version` | none | Print the canonical schema 5 handshake |
 | `start` | `--skill-root --repo --plan [--design] [--ledger] [--prior-plan ...] --client [--model] --mode` | Create the identity if needed, hash documents, read Git state, validate and write a checkout-bound `pending` record, print `run_id` and `status` |
 | `finish` | `--run-id --repo` and one JSON object on stdin | Require the original checkout binding, recompute the design, plan, and ledger end hashes and Git state, validate, write `completed`, print `run_id`, `status`, `verdict`, and this run's `anomalies` |
 | `abandon` | `--run-id --repo --reason` | Require the original checkout binding, then close a pending run; reason is `user-cancelled`, `input-changed`, `scope-changed`, `input-format-fixed`, or `other` |

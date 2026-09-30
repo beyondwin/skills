@@ -28,7 +28,7 @@ from support import (
 import evidence
 
 
-VERSION_LINE = b'{"cli_version":"6.0.0","schema":4,"skill_name":"pre-sdd-review"}\n'
+VERSION_LINE = b'{"cli_version":"6.0.0","schema":5,"skill_name":"pre-sdd-review"}\n'
 
 
 class VersionTests(unittest.TestCase):
@@ -99,7 +99,7 @@ class StartTests(unittest.TestCase):
         run_id = start(self.home, self.repo, self.skill)
         record = load(self.home, run_id)
         head = subprocess.run(["git", "-C", str(self.repo), "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
-        self.assertEqual(record["schema"], 4)
+        self.assertEqual(record["schema"], 5)
         self.assertEqual(record["status"], "pending")
         self.assertEqual(record["repo"], "repo")
         self.assertEqual(record["client"], {"id": "codex", "model": "gpt-test"})
@@ -210,7 +210,7 @@ class StartTests(unittest.TestCase):
             prior_plans=["docs/plan-a.md", "docs/plan-b.md"],
         )
         record = load(self.home, run_id)
-        self.assertEqual(record["schema"], 4)
+        self.assertEqual(record["schema"], 5)
         self.assertEqual(
             record["baseline"],
             {"head": record["git"]["head_start"], "prior_plans": ["docs/plan-a.md", "docs/plan-b.md"]},

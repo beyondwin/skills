@@ -64,7 +64,7 @@ class IdentityTests(RecorderFixture):
         first = start(self.home, self.repo, self.skill)
         second = start(self.home, self.repo, self.skill)
         record = load(self.home, first)
-        self.assertEqual(record["schema"], 4)
+        self.assertEqual(record["schema"], 5)
         self.assertRegex(record["repo_key"], r"^[0-9a-f]{64}$")
         self.assertEqual(record["repo_key"], load(self.home, second)["repo_key"])
         encoded = evidence.canonical(record)
@@ -321,7 +321,7 @@ class UnsupportedLockingTests(RecorderFixture):
 
 
 class UnsupportedSchemaTests(RecorderFixture):
-    """Schema 2 and 3 records from earlier recorders are refused, never read."""
+    """Schema 2, 3, and 4 records from earlier recorders are refused, never read."""
 
     def retire(self, run_id: str, schema: int) -> Path:
         return self.put(run_id, downgrade(load(self.home, run_id), schema))
@@ -396,7 +396,7 @@ class UnsupportedSchemaTests(RecorderFixture):
         retired = start(self.home, self.repo, self.skill)
         self.retire(retired, 2)
         damaged = start(self.home, self.repo, self.skill)
-        self.put(damaged, {**load(self.home, damaged), "schema": 5})
+        self.put(damaged, {**load(self.home, damaged), "schema": 6})
         # A retired schema that is also malformed is still reported as retired:
         # the schema decides first, so the user is told to delete it, not repair it.
         malformed = start(self.home, self.repo, self.skill)
@@ -412,7 +412,7 @@ class UnsupportedSchemaTests(RecorderFixture):
         self.assertEqual((code, out), (2, ""))
         self.assertEqual(error_code(err), "schema-invalid")
 
-    def test_a_retired_finding_shape_is_not_accepted_under_schema_four(self) -> None:
+    def test_a_retired_finding_shape_is_not_accepted_under_schema_five(self) -> None:
         run_id = start(self.home, self.repo, self.skill)
         payload = finish_payload(review_passes=2, repair_passes=1, findings=[finding()])
         self.assertEqual(finish(self.home, self.repo, run_id, payload)[0], 0)
@@ -545,7 +545,7 @@ class ReaderTests(RecorderFixture):
         self.assertEqual(finish(self.home, self.repo, bad_id, finish_payload(review_passes=2, repair_passes=1, findings=[finding()]))[0], 0)
         original = load(self.home, bad_id)
         changes = [
-            (("schema",), 1), (("schema",), 5), (("schema",), 3.0), (("schema",), 4.0),
+            (("schema",), 1), (("schema",), 6), (("schema",), 3.0), (("schema",), 5.0),
             (("run_id",), bad_id.upper()), (("run_id",), "bad-uuid"), (("run_id",), 12),
             (("started_at",), "2026-02-30T00:00:00.000000Z"),
             (("started_at",), "2026-01-01T00:00:00Z"),

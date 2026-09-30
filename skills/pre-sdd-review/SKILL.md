@@ -149,11 +149,12 @@ needs a new outer request.
 Run `python3 "<skill-root>/evidence/evidence.py" --version`, where
 `<skill-root>` is the directory holding this `SKILL.md`, without installing
 anything. Record only when its JSON says `skill_name=pre-sdd-review` and
-`schema=4`. The command reference, including the `finish` input keys, is in
+`schema=5`. The command reference, including the `finish` input keys, is in
 `<skill-root>/evidence/README.md`. When compatible, run
 `summary --repo <repo display name> --plan <plan>` (the checkout
 directory's name and the plan's repository-relative path) before `start`. Its
-`runs` are this plan's runs, oldest first.
+`runs` are this plan's newest 50 runs, oldest first; `runs_total` counts all
+of them.
 
 ### Choose the path
 
