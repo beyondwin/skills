@@ -270,21 +270,22 @@ Lows are not fixed in the final batch; implementers start the app only when thei
 changes how it starts.
 
 Claude Code 2.1.284, opus (final review fable). Text A is SKILL.md sha256 `ba2adb39`. Text B
-(`89299286`) adds one rule after run A2: a finding that only disputes a recorded ruling
-changes no code.
+(`89299286`) added one rule after run A2: a finding that only disputes a recorded ruling
+changes no code. The decision probe below showed B had no effect, so it was removed; the
+shipped text D (`58b68889`) behaves as A.
 
 | Task | Text | Runs | Hidden | Missed | Mean cost | Mean minutes |
 | --- | --- | --- | --- | --- | --- | --- |
 | app2 | A | 4 | 12, 11, 12, 12 | estimated tokens billed (1) | $4.12 | 17.0 |
 | app2 | B | 4 | 12, 12, 12, 12 | none | $3.99 | 16.4 |
+| app2 | D | 2 | 12, 12 | none | $3.88 | 17.8 |
 | app2 | 0.2.0 (section 12) | 6 | all 12 | none | $4.99 | 22.6 |
 | library | A | 1 | 63/64 | one edge test | $11.73 | 48.0 |
 | library, killed after Task 3 | A | 1 | 64/64 | none | $8.34 and more | 39 |
 
 - The one app2 miss (A2) came from the final review. Task 3 had passed all 12. The final
   reviewer questioned the recorded billing ruling ("confirm with billing") and the
-  controller changed the code, which no one reviewed again. Text B keeps the ruling in that
-  case; in B1 the controller wrote the same question as `note for user:` and left the code alone.
+  controller changed the code, which no one reviewed again.
 - Resume: the kill came right after the Task 3 commit, before its review. The new session
   wrote "no review found -> step 4", ran the review, and fixed 2 Mediums. A session limit
   then cut off the final review three times; one manual resume of the same session finished
@@ -293,13 +294,64 @@ changes no code.
   picked up again.
 - Every task and final line recorded `impl=opus/inherit` and `reviewer=opus/inherit`, or
   `reviewer=fable/inherit` on the final line. Low lines used the fixed format.
-- App starts by subagents did not drop (a mean of 8.5 per app2 run in 0.2.0, 8.4 in 0.3.0).
-  The per-task rule allows starts in Task 3, which changes startup.
 - Leftover processes: none after any run. In B4 the final reviewer left a server running
   and the controller stopped it.
-- Against 0.2.0 on app2, mean cost fell about 19% and time about 26% (8 runs vs 6). Which
-  change caused it was not measured.
 - Not measured on 0.3.0: Codex, Cursor Agent, Grok Build.
+
+### Decision probe: can a rule stop a final finding from flipping a ruling?
+
+A rule for A2's case only fires when a final reviewer disputes a ruling, which happened in
+1 or 2 of 8 full runs, so full runs cannot measure it. Instead each probe call gave opus
+the SKILL.md text, the design, the plan, the real `progress.md` up to that point, and a
+real reviewer reply, and asked for a decision on each High and Medium (no tools, JSON
+answer, 10 or 20 calls per cell, fresh empty directory each call, about $0.10 a call).
+
+- s0: Task 1's reviewer in 0.2.0 run app3/2 raised a High (estimated rows costed at the
+  collector reserve; "needs a ruling"). Fixing is right; that run's controller had
+  instead ruled "keep".
+- s1: run A2's final reviewer disputed the correct "estimated rows add 0" ruling.
+  Keeping the code is right.
+- s2: app3/2's final reviewer disputed the wrong "keep" ruling from s0. Fixing is right.
+
+| Text | s0: fix (right) | s1: keep code (right) | s2: fix (right) |
+| --- | --- | --- | --- |
+| 0.2.0 | 10/10 | - | - |
+| A (0.3.0, no rule) | 10/10 | 0/10 | 10/10 |
+| B (only disputes, without showing it breaks the plan) | 10/10 | 1/10 | 9/10 |
+| C (reverses a ruling on a question the repo cannot settle) | - | 10/10 | 0/10 |
+| C wording in step 5, final layout | 14/20 | 5/5 | 0/5 |
+| C wording in the final review only | 15/20 | 10/10 | 0/10 |
+| D (shipped, no rule) | 10/10 | 0/10 | - |
+
+- No wording separated s1 from s2. Both are one question the repo cannot settle (what gets
+  billed); the hidden tests pick one answer.
+- Any C wording also leaked into the per-task review: 11 of 40 s0 calls parked the Task 1
+  High as `note for user:` instead of fixing it, against 0 of 40 without it. That is the
+  path to the billing trap, and s0-type Highs are more common than s1-type disputes.
+- So the shipped text has no rule for this. A final finding can still flip a correct
+  ruling without re-review (A2's miss); that is a known limit.
+- Limits: no tools in the probe, so the controller could not run a reproduction; three
+  constructed scenarios from one task; opus only.
+
+### Where the cost went (app2, per-agent cost estimated from token share)
+
+| Phase | 0.2.0 (6 runs) | 0.3.0 (8 runs) | Change |
+| --- | --- | --- | --- |
+| Final review (fable) | $1.88, 5.6 min | $1.52, 3.7 min | -$0.36 |
+| Final fix and app walk | $0.56, 2.7 min | $0.29, 1.5 min | -$0.27 |
+| Implementers (with fixes) | $1.08, 5.0 min | $0.93, 4.5 min | -$0.15 |
+| Per-task review | $0.59, 3.3 min | $0.53, 2.8 min | -$0.06 |
+| Controller | $0.88 | $0.78 | -$0.10 |
+
+- 68% of the saving is in the final phase. The final-fix drop matches the Lows rule: 0.2.0
+  batches included Lows ("M1 M2 + L2 L8 L10", "fixed 6"); 0.3.0 fixed only High and
+  Medium, 1 to 3 per run (mean 2.0).
+- The final-review drop has no clear cause. Fable's run-to-run spread at n=6 and n=8 may
+  explain it.
+- App starts by subagents did not drop (a mean of 8.5 per app2 run in 0.2.0, 8.4 in 0.3.0),
+  so the implementer saving is not attributed to the app-start rule.
+- No ablation was run. A 0.3.0-without-the-Lows-rule arm at n=4 would cost about $17 with a
+  standard error near $0.15 on a $0.27 effect, too small to settle it.
 
 ## Cost totals
 
@@ -311,7 +363,7 @@ changes no code.
 - Section 12 (2026-09-29): Claude Code $39.95 (library 1 run $11.38; app 3 runs $9.32; app2 6
   runs $19.25); rerun 12 runs $35.70; effort-inheritance probes about $1.
 - Section 13 (2026-09-30): Claude Code about $52.5 (app2 8 runs $32.45; library 2 runs $20.07,
-  with the killed session not counted).
+  with the killed session not counted); decision probe $18.08 (180 calls); app2 smoke on D $7.77 (2 runs; two runs on text F were stopped early and are not counted).
 - Cursor runs and blind scoring (codex, 22 outputs) are not reported in dollars.
 - Same-day isolated gstack rerun from the previous comparison: agent $52.17, simulated user $4.36,
   scoring $1.30.

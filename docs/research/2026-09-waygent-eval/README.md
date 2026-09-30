@@ -40,11 +40,13 @@ design came from and how it did when we ran it.
    more and took about 60% longer (means of 6). The one 0.1.0 miss came from the "note for user"
    exit that 0.2.0 closed; 0 vs 1 of 6 is too close to call ([results, section 12](results.md)).
 
-8. **0.3.0 (n=8 on app2, 2 on the library).** Across the 8 app2 runs one trap was missed,
-   in the run before the ruling rule was added; with it, 4 of 4 were clean. Cost and time
-   were about 19% and 26% below 0.2.0. A resume right after a commit, before its review, ran
-   the review instead of skipping it. `progress.md` now shows each step's model and effort
-   ([results, section 13](results.md)).
+8. **0.3.0 (10 app2 runs, 2 library runs, 180 decision-probe calls).** One trap was missed:
+   a final reviewer questioned a correct billing ruling, and the fix went in without
+   re-review. Rules written to stop that did nothing (B) or stopped it but also parked a
+   correct Task 1 High 25-30% of the time (C), so none shipped. Cost and time were about 19%
+   and 26% below 0.2.0, two thirds of it in the final phase, where Lows are no longer fixed.
+   A resume right after a commit ran the missed review. `progress.md` now shows each step's
+   model and effort ([results, section 13](results.md)).
 
 ## What went into the skill and what was left out
 
