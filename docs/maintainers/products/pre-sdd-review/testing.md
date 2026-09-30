@@ -195,6 +195,30 @@ fixed before the recorded L4 runs. n=1 per cell. This is not a quality
 measurement and does not change the host matrix in
 [Compatibility](compatibility.md).
 
+### Live record, 2026-09-30 (schema 5)
+
+Same harness and hosts. L6 and L7 build a Git repository from the
+`missing-command` and `open-product-decision` fixtures and run `review-only`.
+L8 and L9 are two-plan campaigns sharing one design, in the order greeting
+then farewell. In L9 the only fix for farewell is a wrong path in the shared
+design. SKILL.md SHA-256: first L6/L7 runs `24d729c89c94`, then `6d740effd87e`
+for L6b, L7b, L8, and L9.
+
+| Case | What it checks | Claude Code | Codex |
+| --- | --- | --- | --- |
+| L6b | Missing command: `IMPORTANT` `repo-reality` | `REVISE` | `REVISE` |
+| L7b | Open product decision: `BLOCKER` `authority-drift` | `BLOCKED` | `BLOCKED` |
+| L8 | Campaign, plan-only repair: ledger start and end hashes recorded | `READY`, `READY` | `READY`, `READY` |
+| L9 | Campaign, farewell's repair changes the shared design: greeting gets a closure before its verdict, no anomaly | `READY`, `REVISE` | `READY`, `READY` |
+
+In the first L6/L7 runs, both hosts also flagged the two sample strings as a
+weak proof of "returned unchanged", so both fixture plans gained a test with
+spaces and mixed case. In L9, greeting recorded `review_passes` 2 with
+`repair_passes` 0 on both hosts. Claude's farewell ended `REVISE` on a new
+test-isolation finding from its last closure. The extra toolchain findings
+(no installed `tsc` or Node types) come from the harness repository, not the
+fixtures. n=1 per cell; not a quality measurement.
+
 Evidence tests use only temporary Git repositories and synthetic skill roots.
 Records never hold source text, raw paths, prompts, transcripts, or
 credentials. `outcome` labels and the normal/anomalous verdict split are
