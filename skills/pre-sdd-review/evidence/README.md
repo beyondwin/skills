@@ -111,7 +111,9 @@ rewrite or override the semantic verdict. A campaign run (one with a
 `ledger` or `prior_plans`) reports `document_changed_without_repair_pass` only
 for its own plan: another plan's repair may change the shared design, and the
 ledger is always shared. `repo_reality_citing_documents_only` counts the
-ledger as a document, since it is derived evidence.
+ledger as a document, since it is derived evidence. A campaign plan made
+stale after its last permitted closure ends `REVISE` with no open finding, so
+its run is expected to show `revise_without_unresolved_finding`.
 
 ## Reading the log
 

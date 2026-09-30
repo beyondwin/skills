@@ -221,7 +221,8 @@ stale. If a shared design j depends on changed, j is stale whichever plan
 comes first, because that design is j's authority. A stale plan takes its
 scoped closure after the repair that made it stale and before its verdict. A
 plan made stale after its last permitted closure returns `REVISE`, and its
-handoff names the changed document.
+handoff names the changed document; its run is expected to show the
+`revise_without_unresolved_finding` observation.
 j's read set is the resolved
 design, plan, and ledger paths and hashes, the `Files:` paths, the preceding
 plan paths, and the `evidence` paths of its finding records. Paths not in `Files:` are not in this stale set; the machine check catches that gap.
