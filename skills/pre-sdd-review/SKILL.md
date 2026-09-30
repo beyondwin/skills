@@ -128,7 +128,8 @@ Git `HEAD` (or `unborn`); and whether the worktree is clean or dirty
 (`git status --porcelain`). Also record the baseline: `HEAD` alone when no
 plan precedes this one, or `HEAD` with the ordered list of preceding plans
 when they do. Record the ledger's repository-relative path and SHA-256 when a
-ledger exists. With the recorder, `show` returns these values for the run.
+ledger exists, at start and again at the verdict. With the recorder, `show`
+returns these values for the run.
 The final report adds the review timestamp and the final verdict.
 
 Any content change to the resolved design or plan invalidates an earlier
@@ -423,7 +424,8 @@ first: that design is j's authority, so the change voids j's earlier review.
 j's read set is the resolved design, plan, and ledger paths and hashes,
 `Files:` paths, preceding-plan paths, and discovery-record `evidence` paths.
 A stale plan takes its scoped closure after the repair that made it stale and
-before its verdict.
+before its verdict. A plan made stale after its last permitted closure returns
+`REVISE`, and its handoff names the changed document.
 Paths not in `Files:` are not in this stale set; those holes are machine-checked.
 
 ## Review-only mode
@@ -520,7 +522,7 @@ in this order:
 
 ```text
 Verdict: READY | REVISE | BLOCKED
-Freshness: design <path> <sha256>; plan <path> <sha256>; HEAD <sha|unborn>; worktree clean|dirty; baseline; ledger; reviewed_at <UTC>
+Freshness: design <path> <sha256>; plan <path> <sha256>; HEAD <sha|unborn>; worktree clean|dirty; baseline; ledger <path> <sha256>|none; reviewed_at <UTC>
 Receipt: input and final document hashes; review_passes; repair_passes; finding IDs with class and status; triggered repair-impact categories
 Handoff: the unresolved handoff packet (REVISE and BLOCKED only)
 Evidence: recorded; run_id=<id> | not_recorded; reason=<code>

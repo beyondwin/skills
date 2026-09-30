@@ -176,4 +176,6 @@ Failures print one line to stderr, `{"error":{"code":"…","message":"…"}}`,
 and exit 2. Codes: `invalid-arguments`, `schema-invalid`, `run-not-found`,
 `not-git-repository`, `outside-repository`, `already-finished`,
 `evidence-home-unwritable`, `identity-unavailable`, `schema-unsupported`,
-and `locking-unavailable`.
+and `locking-unavailable`. `finish` needs every recorded document (design,
+plan, ledger) still at its path; a missing one fails with
+`outside-repository` and leaves the run `pending`, so close it with `abandon`.

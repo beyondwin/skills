@@ -261,6 +261,10 @@ V1_1_FIXTURE_SHA256 = {
     "repair-induced-schema-consumer": "f96f0462b738542a14ce27db28be219884440613d0c24262a34036d262685e0c",
     "state-machine-vacuous-pass": "dd490c6a092c1ff180e599076372e2006661b22ffbebacfccccf48b44f71d8c0",
 }
+GRADED_FIXTURE_SHA256 = {
+    "missing-command": "f944f0ea6a0cb6feb0e75974e1901cc2039c6b4dc09cdce103c8aa643a264551",
+    "open-product-decision": "24d66b754656c48d4538112bd60ab3b6e19c9e20cdbf801ce1978fed4e6b6a84",
+}
 REQUIRED_SECTIONS = (
     "# Pre-SDD Review",
     "## Hard gate",
@@ -2146,6 +2150,13 @@ class PreSddReviewFixtureTests(unittest.TestCase):
                 self.assertEqual((finding["severity"], finding["class"]), (severity, finding_class))
                 self.assertTrue(finding["evidence"])
                 self.assertTrue(finding["consequence"])
+        for name, expected_digest in GRADED_FIXTURE_SHA256.items():
+            digest = hashlib.sha256()
+            for path in sorted((FIXTURES / name).iterdir()):
+                digest.update(path.name.encode("utf-8"))
+                digest.update(b"\0")
+                digest.update(path.read_bytes())
+            self.assertEqual(digest.hexdigest(), expected_digest, name)
         # The named command is absent from the repository; the fix is a plan edit.
         plan = (FIXTURES / "missing-command/plan.md").read_text(encoding="utf-8")
         self.assertIn("`npm run verify`", plan)
