@@ -3,6 +3,7 @@
   "installed_manifest_sha256": "",
   "previous_manifest_sha256": "",
   "previous_path": "",
+  "previous_symlink_target": "",
   "run_id": "",
   "source_manifest_sha256": "",
   "source_path": "",

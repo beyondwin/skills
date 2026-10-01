@@ -530,9 +530,13 @@ GUIDE_BOOTSTRAP_COMMAND_PARAGRAPH = (
     "target is `${CODEX_HOME:-~/.codex}/skills/korean-writing-editor`; pass "
     "`--installed-skill-root` for another location. Preflight rejects a symlinked "
     "install, so a symlinked target is backed up as a copy of the tree it named and "
-    "replaced by a real directory; a missing target leaves an empty backup. To roll "
-    "back, move `install-previous` back to the target or recreate the original "
-    "symlink."
+    "replaced by a real directory, and `install-state.json` records the link text as "
+    "`previous_symlink_target`; a missing target leaves an empty backup. A target "
+    "equal to or inside the checkout is refused. To roll back, move "
+    "`install-previous` back to the target or recreate the original symlink from "
+    "`previous_symlink_target`. A second install of this skill under "
+    "`~/.agents/skills` can load instead of the swapped copy, so rename it before "
+    "the run and restore it afterwards."
 )
 GUIDE_MANIFEST_CACHE_PARAGRAPH = (
     "Package manifests omit only validated runtime Python cache directories. "
@@ -3244,6 +3248,9 @@ class LiveMatrixLifecycleTests(UnixOnlyLiveTestMixin, unittest.TestCase):
     unix_only_test_names = frozenset({
         "test_bootstrap_install_swaps_each_target_kind_into_a_preflightable_run",
         "test_bootstrap_install_refuses_an_existing_run_root_without_mutation",
+        "test_bootstrap_install_records_the_original_symlink_target",
+        "test_bootstrap_install_refuses_a_target_inside_the_checkout",
+        "test_bootstrap_install_failed_copy_leaves_no_run_root",
         "test_first_preflight_requires_an_existing_install_bootstrap_without_mutation",
         "test_first_preflight_reuses_only_the_complete_install_bootstrap",
         "test_first_preflight_rejects_bootstrap_binding_changes_before_publication",
@@ -3386,6 +3393,80 @@ class LiveMatrixLifecycleTests(UnixOnlyLiveTestMixin, unittest.TestCase):
                 )
             self.assertEqual(live_matrix.recursive_manifest_hash(installed), before)
             self.assertEqual(list((evidence_root / "taken-1").iterdir()), [])
+
+    def test_bootstrap_install_records_the_original_symlink_target(self) -> None:
+        # Break: the README's "recreate the original symlink" rollback needs a
+        # link target that nothing on disk recorded.
+        for kind in ("symlink", "directory", "missing"):
+            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as directory:
+                root, source, installed, evidence_root = temporary_git_install_fixture(directory)
+                previous_content = pathlib.Path(directory) / "previous-content"
+                if kind == "symlink":
+                    shutil.rmtree(installed)
+                    shutil.copytree(source, previous_content)
+                    installed.symlink_to(previous_content, target_is_directory=True)
+                elif kind == "missing":
+                    shutil.rmtree(installed)
+                run_root = live_matrix.bootstrap_install(
+                    source_skill_root=source,
+                    installed_skill_root=installed,
+                    repository_root=root,
+                    evidence_root=evidence_root,
+                    run_id=f"link-{kind}-1",
+                )
+                state = json.loads((run_root / "install-state.json").read_text(encoding="utf-8"))
+                expected = str(previous_content) if kind == "symlink" else ""
+                self.assertEqual(state["previous_symlink_target"], expected)
+
+    def test_bootstrap_install_refuses_a_target_inside_the_checkout(self) -> None:
+        # Break: a target inside the checkout is moved into the run's backup,
+        # taking checkout files with it.
+        with tempfile.TemporaryDirectory() as directory:
+            root, source, installed, evidence_root = temporary_git_install_fixture(directory)
+            before = live_matrix.recursive_manifest_hash(source)
+            for target in (root, source, root / "other" / "korean-writing-editor"):
+                with self.subTest(target=str(target)):
+                    with self.assertRaisesRegex(live_matrix.LiveMatrixError, "inside the checkout"):
+                        live_matrix.bootstrap_install(
+                            source_skill_root=source,
+                            installed_skill_root=target,
+                            repository_root=root,
+                            evidence_root=evidence_root,
+                            run_id="inside-1",
+                        )
+            self.assertEqual(live_matrix.recursive_manifest_hash(source), before)
+            self.assertFalse((evidence_root / "inside-1").exists())
+            self.assertFalse((root / "other").exists())
+
+    def test_bootstrap_install_failed_copy_leaves_no_run_root(self) -> None:
+        # Break: the run root is made before the stage copy, so a failed copy
+        # burns the run ID and leaves an empty run root behind.
+        with tempfile.TemporaryDirectory() as directory:
+            root, source, installed, evidence_root = temporary_git_install_fixture(directory)
+            (installed / "SKILL.md").write_text("old install\n", encoding="utf-8")
+            before = live_matrix.recursive_manifest_hash(installed)
+            with mock.patch("live_matrix.shutil.copytree", side_effect=OSError("disk full")):
+                with self.assertRaisesRegex(live_matrix.LiveMatrixError, "nothing was installed"):
+                    live_matrix.bootstrap_install(
+                        source_skill_root=source,
+                        installed_skill_root=installed,
+                        repository_root=root,
+                        evidence_root=evidence_root,
+                        run_id="copy-fails-1",
+                    )
+            self.assertFalse((evidence_root / "copy-fails-1").exists())
+            self.assertFalse(
+                (installed.parent / ".korean-writing-editor-copy-fails-1-stage").exists()
+            )
+            self.assertEqual(live_matrix.recursive_manifest_hash(installed), before)
+            run_root = live_matrix.bootstrap_install(
+                source_skill_root=source,
+                installed_skill_root=installed,
+                repository_root=root,
+                evidence_root=evidence_root,
+                run_id="copy-fails-1",
+            )
+            self.assertTrue((run_root / "install-state.json").is_file())
 
     def test_first_preflight_requires_an_existing_install_bootstrap_without_mutation(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -4715,6 +4796,7 @@ class LiveMatrixLifecycleTests(UnixOnlyLiveTestMixin, unittest.TestCase):
                         "installed_manifest_sha256",
                         "previous_manifest_sha256",
                         "previous_path",
+                        "previous_symlink_target",
                         "run_id",
                         "source_manifest_sha256",
                         "source_path",

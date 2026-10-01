@@ -166,6 +166,7 @@ INSTALL_STATE_FIELDS = frozenset(
         "installed_manifest_sha256",
         "previous_manifest_sha256",
         "previous_path",
+        "previous_symlink_target",
         "run_id",
         "source_manifest_sha256",
         "source_path",
@@ -2355,6 +2356,8 @@ def _validate_install_bootstrap(
             "installed_manifest_sha256": expectation.installed_manifest_sha256,
             "previous_manifest_sha256": previous_hash,
             "previous_path": str(previous),
+            # The original link text, kept for the rollback; any string.
+            "previous_symlink_target": state["previous_symlink_target"],
             "run_id": run_id,
             "source_manifest_sha256": expectation.source_manifest_sha256,
             "source_path": str(expectation.source_root),
@@ -2421,7 +2424,10 @@ def bootstrap_install(
 
     The previous install moves into ``<run>/install-previous``. A symlinked
     target is backed up as a copy of the tree it pointed to and replaced by a
-    real directory; a missing target leaves an empty backup. The run directory
+    real directory, and its link text is recorded as
+    ``previous_symlink_target`` (empty for any other target); a missing target
+    leaves an empty backup. A target equal to or inside the checkout is
+    refused. The run directory is made only after the stage copy succeeds, and
     then holds exactly what the first preflight requires.
     """
     if not RUN_ID_RE.fullmatch(run_id):
@@ -2431,6 +2437,11 @@ def bootstrap_install(
     repo_root = _checked_directory(repository_root, "repository root")
     safe_evidence_root = validate_evidence_root(evidence_root, repo_root)
     target = pathlib.Path(os.path.abspath(installed_skill_root.expanduser()))
+    real_target = pathlib.Path(os.path.realpath(target.parent)) / target.name
+    real_repo = repo_root.resolve(strict=True)
+    if real_target == real_repo or real_repo in real_target.parents:
+        raise LiveMatrixError("installed skill root is inside the checkout")
+    symlink_target = ""
     try:
         target_stat = target.lstat()
     except FileNotFoundError:
@@ -2442,6 +2453,10 @@ def bootstrap_install(
             target_kind = "symlink"
             if not target.is_dir():
                 raise LiveMatrixError("installed skill symlink does not name a directory")
+            try:
+                symlink_target = os.readlink(target)
+            except OSError as exc:
+                raise LiveMatrixError("cannot read the installed skill symlink") from exc
         elif stat.S_ISDIR(target_stat.st_mode):
             target_kind = "directory"
         else:
@@ -2452,16 +2467,27 @@ def bootstrap_install(
     if stage.exists() or stage.is_symlink():
         raise LiveMatrixError("install stage already exists")
     run_root = safe_evidence_root / run_id
-    safe_evidence_root.mkdir(parents=True, exist_ok=True)
-    try:
-        os.mkdir(run_root, 0o700)
-    except FileExistsError as exc:
-        raise LiveMatrixError("run root already exists; use a new run ID") from exc
-    os.chmod(run_root, 0o700)
-    previous = run_root / INSTALL_PREVIOUS_DIRECTORY_NAME
+    if run_root.exists() or run_root.is_symlink():
+        raise LiveMatrixError("run root already exists; use a new run ID")
     ignore_cache = shutil.ignore_patterns("__pycache__")
     try:
         shutil.copytree(source_root, stage, ignore=ignore_cache)
+    except OSError as exc:
+        shutil.rmtree(stage, ignore_errors=True)
+        raise LiveMatrixError(
+            "could not stage the reviewed source; nothing was installed"
+        ) from exc
+    try:
+        safe_evidence_root.mkdir(parents=True, exist_ok=True)
+        os.mkdir(run_root, 0o700)
+    except OSError as exc:
+        shutil.rmtree(stage, ignore_errors=True)
+        if isinstance(exc, FileExistsError):
+            raise LiveMatrixError("run root already exists; use a new run ID") from exc
+        raise LiveMatrixError("cannot create the run root; nothing was installed") from exc
+    os.chmod(run_root, 0o700)
+    previous = run_root / INSTALL_PREVIOUS_DIRECTORY_NAME
+    try:
         if target_kind == "symlink":
             shutil.copytree(target, previous, ignore=ignore_cache)
             os.unlink(target)
@@ -2472,7 +2498,7 @@ def bootstrap_install(
         os.rename(stage, target)
     except OSError as exc:
         raise LiveMatrixError(
-            "install swap failed; any previous install is in the run's install-previous"
+            "install swap failed; check the install target and the run's install-previous"
         ) from exc
     installed_root = target.resolve(strict=True)
     source_hash = recursive_manifest_hash(source_root)
@@ -2484,6 +2510,7 @@ def bootstrap_install(
         "installed_manifest_sha256": installed_hash,
         "previous_manifest_sha256": recursive_manifest_hash(previous),
         "previous_path": str(previous),
+        "previous_symlink_target": symlink_target,
         "run_id": run_id,
         "source_manifest_sha256": source_hash,
         "source_path": str(source_root),

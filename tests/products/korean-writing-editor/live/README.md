@@ -98,9 +98,13 @@ onto the target, and writes a mode-`0600` `install-state.json`. The default
 target is `${CODEX_HOME:-~/.codex}/skills/korean-writing-editor`; pass
 `--installed-skill-root` for another location. Preflight rejects a symlinked
 install, so a symlinked target is backed up as a copy of the tree it named and
-replaced by a real directory; a missing target leaves an empty backup. To roll
-back, move `install-previous` back to the target or recreate the original
-symlink.
+replaced by a real directory, and `install-state.json` records the link text as
+`previous_symlink_target`; a missing target leaves an empty backup. A target
+equal to or inside the checkout is refused. To roll back, move
+`install-previous` back to the target or recreate the original symlink from
+`previous_symlink_target`. A second install of this skill under
+`~/.agents/skills` can load instead of the swapped copy, so rename it before
+the run and restore it afterwards.
 
 ```bash
 RUN_ID="example-baseline-run"
