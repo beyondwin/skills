@@ -130,7 +130,7 @@ RECEIPT_DIRECTORY_NAME = "receipts"
 ATTEMPT_RESERVATION_DIRECTORY_NAME = "attempt-reservations"
 REPORT_STATE_FILENAME = "report-state.json"
 INSTALL_PREVIOUS_DIRECTORY_NAME = "install-previous"
-INSTALL_STATE_FILENAME = "task-7-install-state.json"
+INSTALL_STATE_FILENAME = "install-state.json"
 PREFLIGHT_FILENAME = "preflight.json"
 PREFLIGHT_COMMIT_FILENAME = "preflight-commit.json"
 INSTALL_BOOTSTRAP_ENTRIES = frozenset(
@@ -298,6 +298,13 @@ def default_live_cases_path() -> pathlib.Path:
 
 def default_evidence_root(repository_root: pathlib.Path) -> pathlib.Path:
     return repository_root / ".evidence" / "korean-writing-editor" / "live"
+
+
+def default_installed_skill_root() -> pathlib.Path:
+    """Return the documented Codex install target, ``${CODEX_HOME:-~/.codex}/skills``."""
+    codex_home = os.environ.get("CODEX_HOME")
+    base = pathlib.Path(codex_home) if codex_home else pathlib.Path.home() / ".codex"
+    return base / "skills" / "korean-writing-editor"
 
 
 def validate_report_path(report: pathlib.Path, evidence_root: pathlib.Path) -> pathlib.Path:
@@ -2262,7 +2269,7 @@ def _validate_install_bootstrap(
     run_id: str,
     expectation: _InstallBootstrapExpectation,
 ) -> _InstallBootstrapBinding:
-    """Accept only the complete recoverable install state created by Task 7 step 2."""
+    """Accept only the complete recoverable install state that bootstrap_install writes."""
     directory_descriptor: int | None = None
     previous_descriptor: int | None = None
     try:
@@ -2400,6 +2407,103 @@ def _validate_install_bootstrap(
             os.close(previous_descriptor)
         if directory_descriptor is not None:
             os.close(directory_descriptor)
+
+
+def bootstrap_install(
+    *,
+    source_skill_root: pathlib.Path,
+    installed_skill_root: pathlib.Path,
+    repository_root: pathlib.Path,
+    evidence_root: pathlib.Path,
+    run_id: str,
+) -> pathlib.Path:
+    """Swap the reviewed source into the install target and record the state.
+
+    The previous install moves into ``<run>/install-previous``. A symlinked
+    target is backed up as a copy of the tree it pointed to and replaced by a
+    real directory; a missing target leaves an empty backup. The run directory
+    then holds exactly what the first preflight requires.
+    """
+    if not RUN_ID_RE.fullmatch(run_id):
+        raise LiveMatrixError("invalid run ID")
+    source_root = _checked_directory(source_skill_root, "source skill root")
+    _validate_skill_identity(source_root, "source skill root")
+    repo_root = _checked_directory(repository_root, "repository root")
+    safe_evidence_root = validate_evidence_root(evidence_root, repo_root)
+    target = pathlib.Path(os.path.abspath(installed_skill_root.expanduser()))
+    try:
+        target_stat = target.lstat()
+    except FileNotFoundError:
+        target_kind = "missing"
+    except OSError as exc:
+        raise LiveMatrixError("cannot inspect installed skill root") from exc
+    else:
+        if stat.S_ISLNK(target_stat.st_mode):
+            target_kind = "symlink"
+            if not target.is_dir():
+                raise LiveMatrixError("installed skill symlink does not name a directory")
+        elif stat.S_ISDIR(target_stat.st_mode):
+            target_kind = "directory"
+        else:
+            raise LiveMatrixError("installed skill root must be a directory")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target_parent = target.parent.resolve(strict=True)
+    stage = target_parent / f".korean-writing-editor-{run_id}-stage"
+    if stage.exists() or stage.is_symlink():
+        raise LiveMatrixError("install stage already exists")
+    run_root = safe_evidence_root / run_id
+    safe_evidence_root.mkdir(parents=True, exist_ok=True)
+    try:
+        os.mkdir(run_root, 0o700)
+    except FileExistsError as exc:
+        raise LiveMatrixError("run root already exists; use a new run ID") from exc
+    os.chmod(run_root, 0o700)
+    previous = run_root / INSTALL_PREVIOUS_DIRECTORY_NAME
+    ignore_cache = shutil.ignore_patterns("__pycache__")
+    try:
+        shutil.copytree(source_root, stage, ignore=ignore_cache)
+        if target_kind == "symlink":
+            shutil.copytree(target, previous, ignore=ignore_cache)
+            os.unlink(target)
+        elif target_kind == "directory":
+            shutil.move(str(target), str(previous))
+        else:
+            os.mkdir(previous)
+        os.rename(stage, target)
+    except OSError as exc:
+        raise LiveMatrixError(
+            "install swap failed; any previous install is in the run's install-previous"
+        ) from exc
+    installed_root = target.resolve(strict=True)
+    source_hash = recursive_manifest_hash(source_root)
+    installed_hash = recursive_manifest_hash(installed_root)
+    if installed_hash != source_hash:
+        raise LiveMatrixError("installed skill does not match the reviewed source")
+    state = {
+        "install_state": FINAL_INSTALL_STATE,
+        "installed_manifest_sha256": installed_hash,
+        "previous_manifest_sha256": recursive_manifest_hash(previous),
+        "previous_path": str(previous),
+        "run_id": run_id,
+        "source_manifest_sha256": source_hash,
+        "source_path": str(source_root),
+        "stage_manifest_sha256": source_hash,
+        "stage_path": str(stage),
+        "stage_path_exists_after_swap": False,
+        "target_path": str(installed_root),
+        "target_swap_completed": True,
+    }
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    descriptor = os.open(run_root / INSTALL_STATE_FILENAME, flags, 0o600)
+    try:
+        _fchmod(descriptor, 0o600)
+        _write_bytes(descriptor, (json.dumps(state, indent=2, sort_keys=True) + "\n").encode("utf-8"))
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+    return run_root
 
 
 def _validate_install_bootstrap_directory_fd(
@@ -3184,7 +3288,9 @@ def _run_root(
             raise LiveMatrixError("preflight receipt is required before execution")
     else:
         if not run_root_exists:
-            raise LiveMatrixError("installation bootstrap is required before preflight")
+            raise LiveMatrixError(
+                "installation bootstrap is required before preflight; run --bootstrap-install"
+            )
         if install_bootstrap is None:
             raise LiveMatrixError("run root already exists; use a new run ID")
         bootstrap_binding = _validate_install_bootstrap(
@@ -6688,7 +6794,34 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--installed-skill-root", type=pathlib.Path)
     parser.add_argument("--repository-root", type=pathlib.Path)
     parser.add_argument("--compare-skill-roots", nargs=2, metavar=("ROOT_A", "ROOT_B"))
+    parser.add_argument(
+        "--bootstrap-install",
+        action="store_true",
+        help="swap the reviewed source into the install target for a new run ID",
+    )
     args = parser.parse_args(argv)
+
+    if args.bootstrap_install:
+        if any((args.dry_run, args.preflight, args.execute, args.resume, args.compare_skill_roots)):
+            parser.error("--bootstrap-install cannot combine with other run modes")
+        if args.run_id is None:
+            parser.error("--run-id is required for --bootstrap-install")
+        repository_root = args.repository_root or default_repository_root()
+        try:
+            run_root = bootstrap_install(
+                source_skill_root=args.source_skill_root
+                or default_source_skill_root(repository_root),
+                installed_skill_root=args.installed_skill_root
+                or default_installed_skill_root(),
+                repository_root=repository_root,
+                evidence_root=args.evidence_root or default_evidence_root(repository_root),
+                run_id=args.run_id,
+            )
+        except LiveMatrixError as exc:
+            print(json.dumps({"error": str(exc)}, sort_keys=True), file=sys.stderr)
+            return 1
+        print(json.dumps({"run_id": args.run_id, "run_root": str(run_root)}, sort_keys=True))
+        return 0
 
     if args.compare_skill_roots is not None:
         if any((args.dry_run, args.preflight, args.execute, args.resume)):
@@ -6750,9 +6883,7 @@ def main(argv: list[str] | None = None) -> int:
 
     repository_root = args.repository_root or default_repository_root()
     source_root = args.source_skill_root or default_source_skill_root(repository_root)
-    installed_root = args.installed_skill_root or (
-        pathlib.Path.home() / ".agents" / "skills" / "korean-writing-editor"
-    )
+    installed_root = args.installed_skill_root or default_installed_skill_root()
     evidence_root = args.evidence_root or default_evidence_root(repository_root)
     report_lease: ReportLease | None = None
     preflight_lease: PreflightLease | None = None

@@ -86,16 +86,33 @@ calls, plus 38 remediation calls and `approved_total_ceiling` equal to 160.
 ## Baseline Preflight
 
 Before execution, ensure that source and installed skill manifests match, the
-relevant checkout is clean, and the approved run ID has only the complete Task
-7 install bootstrap described below and no preflight or provider evidence.
+relevant checkout is clean, and the approved run ID has only the complete
+install bootstrap described below and no preflight or provider evidence.
 Preflight writes the immutable identity to the ignored evidence root and makes
 no provider call.
 
-After Task 7's exact-target swap, the first non-resume preflight requires an
-already-existing mode-`0700` real run directory whose complete contents are
-exactly a real `install-previous` directory and a real mode-`0600`
-`task-7-install-state.json` file; it never creates or accepts an absent, empty,
-or partial run directory. Both `preflight.json` and `preflight-commit.json` must
+`--bootstrap-install` creates that bootstrap for a new run ID. It copies the
+reviewed source to a stage directory beside the install target, moves the
+previous install into the run's `install-previous` directory, renames the stage
+onto the target, and writes a mode-`0600` `install-state.json`. The default
+target is `${CODEX_HOME:-~/.codex}/skills/korean-writing-editor`; pass
+`--installed-skill-root` for another location. Preflight rejects a symlinked
+install, so a symlinked target is backed up as a copy of the tree it named and
+replaced by a real directory; a missing target leaves an empty backup. To roll
+back, move `install-previous` back to the target or recreate the original
+symlink.
+
+```bash
+RUN_ID="example-baseline-run"
+python3 tests/products/korean-writing-editor/live/live_matrix.py \
+  --bootstrap-install --run-id "$RUN_ID" \
+  --evidence-root .evidence/korean-writing-editor/live
+```
+
+The first non-resume preflight requires an already-existing mode-`0700` real
+run directory whose complete contents are exactly a real `install-previous`
+directory and a real mode-`0600` `install-state.json` file; it never creates or
+accepts an absent, empty, or partial run directory. Both `preflight.json` and `preflight-commit.json` must
 be absent. The record's run ID, exact source/target/previous/stage paths, final
 swap state, equal source/install hashes, and current source/install hashes must
 match, while the complete previous tree is bounded and hashed recursively

@@ -73,6 +73,11 @@ A `live_cases.json` change also updates `APPROVED_CASES_SHA256` in
 Near-miss live cases forbid markers of the excluded task's output, and edit
 cases fail on skill or mode narration (`process_narration`).
 
+Before the first preflight of a run ID, `live_matrix.py --bootstrap-install`
+swaps the reviewed source into the install target (default
+`${CODEX_HOME:-~/.codex}/skills/korean-writing-editor`) and keeps the previous
+install in the run directory.
+
 Product evidence must be made fresh with runner 18 (live runner version 18).
 Records from older runners are rejected and cannot resume or skip a run.
 
