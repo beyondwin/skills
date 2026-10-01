@@ -4,6 +4,17 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 6.1.1 - 2026-10-02
+
+### Fixed
+
+- A prior result is reused when the documents and the request are unchanged and the change list since the run is docs-only, even if `HEAD` moved: the change list already covers commits. Before, step 3 also required `git.head_end` to equal `HEAD`, so a commit that changed no file (an empty commit, say) forced a new review.
+- A run abandoned because `HEAD` moved during the review reports the findings found so far along with the move, so they are not lost with the run.
+
+### Notes
+
+- Handshake `cli_version` is 6.1.1. Record schema stays 5.
+
 ## 6.1.0 - 2026-10-01
 
 ### Fixed

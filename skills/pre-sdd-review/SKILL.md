@@ -4,8 +4,8 @@ description: Use when an approved design spec and implementation plan already ex
 license: Apache-2.0
 compatibility: Requires a local Git repository, readable design and plan files, and a host that can start a fresh read-only subagent for independent review. Supported host: Codex only.
 metadata:
-  version: "6.1.0"
-  updated_at: "2026-10-01"
+  version: "6.1.1"
+  updated_at: "2026-10-02"
 ---
 
 # Pre-SDD Review
@@ -139,7 +139,7 @@ first line, so the reviewer does not quietly fall back to `HEAD`.
 
 The freeze is the `HEAD` recorded here, or the campaign freeze in a campaign.
 If `HEAD` moves off the freeze before the verdict, do not return `READY`:
-abandon the run with `input-changed`, report the move, and stop. A new review
+abandon the run with `input-changed`, report the move and the findings so far, and stop. A new review
 needs a new outer request.
 
 ## Optional local evidence
@@ -184,9 +184,9 @@ the first match:
      reason=previous-decision-checkpoint`. Other plans continue.
 3. **Nothing changed.** The run's `execution` is reusable, `plan.sha_end`,
    `design.sha_end`, and `ledger.sha_end` (when recorded) match the current
-   documents, `git.head_end` matches `HEAD`, the change list is docs-only,
-   and the outer request does not ask for a re-review, ask to fix the
-   handoff, or name changed authority or repository evidence. Reuse the prior
+   documents, the change list is docs-only (a moved `HEAD` with no code
+   change still is), and the outer request does not ask for a re-review, ask
+   to fix the handoff, or name changed authority or repository evidence. Reuse the prior
    result and handoff without a new review; call no `start`, and print
    `Evidence: not_recorded; reason=reused-prior-run` and
    `Anomalies: not_recorded`.
@@ -576,7 +576,7 @@ proofread, publish a release, or make an accepted product decision.
 ## Red flags
 
 - Resume a reviewer by naming findings, paths, symbols, or fixes
-- Start a new review when documents, `HEAD`, and the request are unchanged and the change list is docs-only since a reusable run
+- Start a new review when documents and the request are unchanged and the change list is docs-only since a reusable run
 - Reuse a handoff from a `BLOCKED` run outside step 2, or reuse any handoff on document hashes alone
 - Dispatch a second reviewer, or record `reviewers: 2`, with no risk trigger
 - Return or accept a finding summary instead of complete PSDR records

@@ -221,7 +221,8 @@ repairs, one small residual pass, and a scoped re-review.
 - Closure requires the repair diff of the design, plan, and ledger.
 - The freeze is the `HEAD` recorded before the first dispatch (the campaign
   freeze in a campaign). If it moves before the verdict, no `READY` is
-  returned: `abandon --repo` the run with `input-changed` and stop.
+  returned: `abandon --repo` the run with `input-changed`, report the move and
+  the findings so far, and stop.
 - Machine checks run before every closure dispatch and go to the reviewer as
   their own item, not inside the impact table.
 
@@ -348,11 +349,11 @@ The next invocation takes the first matching path:
    continue.
 3. Handoff reuse: from a reusable run (`full`, or `degraded` whose only reason
    is `focused-role-not-obtained`), reuse the handoff only when the design,
-   plan, and ledger hashes, `HEAD`, and the request are unchanged, the request
+   plan, and ledger hashes and the request are unchanged, the request
    does not ask to fix the handoff, and the change list is docs-only. Handoffs of
    other `degraded` runs and of `BLOCKED` runs are never reused. Reuse and
    continuation compare the `repo` display name, plan path, document hashes,
-   `git.head_end`, and the change list; `finish` and `abandon` enforce the
+   and the change list since `git.head_end`; `finish` and `abandon` enforce the
    checkout binding, so the controller does not recompute it. A reuse calls no
    `start` and prints `Evidence: not_recorded; reason=reused-prior-run`.
 4. Fix what is left: if the last run was a reusable `REVISE`, nothing changed
