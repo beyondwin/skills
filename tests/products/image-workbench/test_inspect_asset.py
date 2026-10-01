@@ -522,6 +522,7 @@ class AssetInspectorTests(unittest.TestCase):
                 self.assertEqual(len(stderr.value.splitlines()), 1)
                 error = json.loads(stderr.value)
                 self.assertEqual(error["path"], str(source))
+                self.assertEqual(error["output"], target)
                 self.assertTrue(error["error"])
 
     def test_output_symlink_alias_preserves_both_directions(self):
@@ -578,6 +579,7 @@ class AssetInspectorTests(unittest.TestCase):
             })
             self.assertEqual(stdout.value, "")
             self.assertEqual(stderr.value, "")
+            self.assertEqual(sorted(p.name for p in Path(directory).iterdir()), ["asset.png", "facts.json"])
 
     def test_output_write_error_cli_exits_one_with_error_json(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -590,8 +592,65 @@ class AssetInspectorTests(unittest.TestCase):
         self.assertEqual(stdout.value, "")
         payload = json.loads(stderr.value)
         self.assertEqual(payload["path"], str(input_path))
-        # Unix EISDIR vs Windows EACCES when --output is a directory.
-        self.assertIn(payload["error"], {"Is a directory", "Permission denied", "Access is denied"})
+        self.assertEqual(payload["output"], directory)
+        self.assertEqual(payload["error"], "Is a directory")
+
+    def test_output_missing_parent_reports_output_path(self):
+        with tempfile.TemporaryDirectory() as directory:
+            input_path = Path(directory) / "asset.png"
+            input_path.write_bytes(make_png(3, 2, color_type=6))
+            output = Path(directory) / "missing" / "facts.json"
+            stdout, stderr = StringSink(), StringSink()
+            result = main([str(input_path), "--output", str(output)], stdout, stderr)
+        self.assertEqual(result, 1)
+        self.assertEqual(stdout.value, "")
+        self.assertEqual(
+            json.loads(stderr.value),
+            {"error": "No such file or directory", "output": str(output), "path": str(input_path)},
+        )
+
+    def test_output_refuses_existing_image_or_non_json_file(self):
+        data = make_png(3, 2, color_type=6)
+        others = {
+            "other.png": make_png(4, 4, color_type=2),
+            "other.jpg": make_jpeg(1, 1),
+            "other.webp": make_webp_vp8(1, 1),
+            "image.json": make_png(1, 1, color_type=6),
+            "notes.json": b"plain notes, not JSON\n",
+            "binary.json": b"\xff\xfe\x00garbage",
+        }
+        for name, content in others.items():
+            with self.subTest(name=name), tempfile.TemporaryDirectory(prefix="image facts ") as directory:
+                source = Path(directory) / "asset.png"
+                target = Path(directory) / name
+                source.write_bytes(data)
+                target.write_bytes(content)
+                stdout, stderr = StringSink(), StringSink()
+                self.assertEqual(main([str(source), "--output", str(target)], stdout, stderr), 1)
+                self.assertEqual(target.read_bytes(), content)
+                self.assertEqual(source.read_bytes(), data)
+                self.assertEqual(sorted(p.name for p in Path(directory).iterdir()), sorted({"asset.png", name}))
+                error = json.loads(stderr.value)
+                self.assertEqual(error["output"], str(target))
+                self.assertEqual(error["path"], str(source))
+                self.assertTrue(error["error"])
+
+    def test_output_through_symlink_updates_linked_json_report(self):
+        data = make_png(3, 2, color_type=6)
+        with tempfile.TemporaryDirectory(prefix="image facts ") as directory:
+            source = Path(directory) / "asset.png"
+            report = Path(directory) / "report.json"
+            link = Path(directory) / "link.json"
+            source.write_bytes(data)
+            report.write_text('{"old": true}\n', encoding="utf-8")
+            try:
+                link.symlink_to(report)
+            except (OSError, NotImplementedError) as error:
+                self.skipTest(f"symlink unavailable on this host: {error}")
+            self.assertEqual(main([str(source), "--output", str(link)], StringSink(), StringSink()), 0)
+            self.assertTrue(link.is_symlink())
+            self.assertEqual(json.loads(report.read_text(encoding="utf-8"))["sha256"], hashlib.sha256(data).hexdigest())
+            self.assertEqual(sorted(p.name for p in Path(directory).iterdir()), ["asset.png", "link.json", "report.json"])
 
 
 class PublicInspectorContractTests(unittest.TestCase):

@@ -4,11 +4,15 @@
 import argparse
 from collections.abc import Iterable, Iterator
 import dataclasses
+import errno
 import hashlib
 import json
+import os
 from pathlib import Path
+import stat
 import struct
 import sys
+import tempfile
 from typing import Optional
 import zlib
 
@@ -409,6 +413,52 @@ def _require_distinct_output(input_path: Path, output_path: Path) -> None:
         raise ValueError("output path refers to the input asset")
 
 
+IMAGE_SIGNATURES = (b"\x89PNG\r\n\x1a\n", b"\xff\xd8")
+
+
+def _require_json_report_target(target: Path) -> None:
+    try:
+        status = target.stat()
+    except FileNotFoundError:
+        return
+    if stat.S_ISDIR(status.st_mode):
+        raise OSError(errno.EISDIR, os.strerror(errno.EISDIR))
+    if not stat.S_ISREG(status.st_mode):
+        raise ValueError("output path is not a regular file")
+    data = target.read_bytes()
+    if data.startswith(IMAGE_SIGNATURES) or (data[:4] == b"RIFF" and data[8:12] == b"WEBP"):
+        raise ValueError("output path is an image file")
+    try:
+        json.loads(data.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as error:
+        raise ValueError("output path is an existing non-JSON file") from error
+
+
+def _write_report(output_path: Path, rendered: str) -> None:
+    target = output_path.resolve()
+    _require_json_report_target(target)
+    try:
+        mode = stat.S_IMODE(target.stat().st_mode)
+    except FileNotFoundError:
+        umask = os.umask(0)
+        os.umask(umask)
+        mode = 0o666 & ~umask
+    handle = tempfile.NamedTemporaryFile(
+        "w", encoding="utf-8", dir=target.parent, prefix=f".{target.name}.", suffix=".tmp", delete=False
+    )
+    try:
+        with handle:
+            handle.write(rendered)
+        os.chmod(handle.name, mode)
+        os.replace(handle.name, target)
+    except BaseException:
+        try:
+            os.unlink(handle.name)
+        except FileNotFoundError:
+            pass
+        raise
+
+
 def main(argv=None, output_stream=None, error_stream=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("path", nargs="?")
@@ -428,10 +478,10 @@ def main(argv=None, output_stream=None, error_stream=None):
     if args.output:
         try:
             _require_distinct_output(Path(args.path), Path(args.output))
-            Path(args.output).write_text(rendered)
+            _write_report(Path(args.output), rendered)
         except (OSError, ValueError) as error:
             message = error.strerror if isinstance(error, OSError) and error.strerror else str(error)
-            _write_json({"error": message, "path": args.path}, error_stream)
+            _write_json({"error": message, "output": args.output, "path": args.path}, error_stream)
             return 1
     else:
         output_stream.write(rendered)
