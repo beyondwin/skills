@@ -2,7 +2,7 @@
 name: korean-writing-editor
 description: Use only when the user asks to proofread, correct, or polish Korean text they provide. Do not use for translation, drafting, summarization, general writing or Korean-learning advice, code review, casual Korean conversation, AI-authorship detection, detector evasion, or named-author imitation.
 license: Apache-2.0
-compatibility: Requires Korean source text and local Agent Skills file access. Model delegation is optional and host-dependent.
+compatibility: Requires Korean source text and local Agent Skills file access. Uses the active model.
 metadata:
   version: "2.0.5"
   updated_at: "2026-09-28"
@@ -114,28 +114,11 @@ Never:
 - call unofficial web spelling services or browse for factual support unless
   the user separately requests research
 
-## Model Tier
+## Model
 
-Select a capability tier. Do not hard-code provider model names.
-
-| Tier | Typical work |
-| --- | --- |
-| `fast` | Short local spelling, spacing, punctuation, or obvious grammar |
-| `balanced` | Ordinary non-trivial polishing of email, comment, review, or prose |
-| `frontier` | Material ambiguity, dense technical or academic attribution, or high-risk structural editing |
-
-Constraints:
-
-- Length alone never escalates to `frontier`.
-- High-stakes content may be held or diagnosed instead of escalated.
-- Do not call a classifier model, run a panel, or chain rewrites.
-- Make at most one host-supported delegated editing-model call per request.
-- If the host cannot switch models, use the active model. When the user asks
-  about routing, say `routing unavailable`.
-- Failure to route is not a reason to launch an external provider CLI.
-
-The user does not see the tier by default. On request, report the selected
-tier, a short reason, and whether delegation actually occurred.
+Use the active model. Do not chain rewrites, run a panel, call a classifier
+model, or launch an external provider CLI. When the user asks about model
+routing, say `routing unavailable`.
 
 ## Output Contract
 
@@ -168,7 +151,6 @@ source only when the user asks why. A why-request may include:
 | Proposed edit breaks an invariant | Revert; if material, add `확인 필요` |
 | Structured content cannot be edited safely | Preserve it; edit surrounding prose only |
 | Normative source is uncertain or allows alternatives | Treat as permitted-alternative or `hold`; do not assert an error |
-| Preferred tier cannot be delegated | Use the active model; on request say `routing unavailable` |
 
 ## References
 

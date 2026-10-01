@@ -30,8 +30,9 @@ The real trigger phrases are Korean; `SKILL.md` holds them.
 - A grammar fix that needs a guess about the subject, register, or meaning is
   not applied; the hold rule applies instead.
 
-Model tiers are `fast`, `balanced`, and `frontier`. Do not hard-code provider
-model names. Do not call a classifier model.
+There is no model tier routing. The skill uses the active model; it does not
+chain rewrites, run a panel, call a classifier model, or launch an external
+provider CLI, and it answers `routing unavailable` when asked about routing.
 
 ## Output
 
@@ -93,10 +94,10 @@ Do not put a behavior change in one file only.
   output, hold marking): `SKILL.md`,
   `skills/korean-writing-editor/references/editorial-guide.md`, offline
   fixtures, `live/live_cases.json`, and public guides.
-- Model tier change (`fast`, `balanced`, `frontier`, routing, delegation):
-  routing fixtures in `tests/products/korean-writing-editor/offline/cases.json`
-  and public guides. Do not hard-code provider model names or call a
-  classifier model.
+- Model or routing change: the `## Model` section in `SKILL.md`, the
+  `routing unavailable` check in
+  `tests/products/korean-writing-editor/offline/run.py`, and public guides. Do
+  not hard-code provider model names or call a classifier model.
 - Normative claim change: the authoritative source entry in
   `skills/korean-writing-editor/references/sources.md` and fixtures that hold
   its boundary.

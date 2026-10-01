@@ -13,8 +13,7 @@ evidence of macOS support.
 
 - Install into a local Agent Skills directory and read `SKILL.md`.
 - Read the Korean text the user supplies and return the edit in chat.
-- Handing work to another model (model delegation) is optional. Use it only
-  when the host offers it; if delegation fails, continue on the current model.
+- Run on the active model. The skill does not delegate to another model.
 
 ## Evidence without model calls
 

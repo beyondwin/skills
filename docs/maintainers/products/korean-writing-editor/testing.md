@@ -23,8 +23,8 @@ dated CHANGELOG entry, and rejection of a broken README link together.
 
 - Trigger work needs both a positive record and a near-miss (a similar,
   out-of-scope request) record.
-- Mode, output, preservation, and tier work need matching `expected_mode`,
-  `expected_tier`, and `expected_noop` records.
+- Mode, output, and preservation work need matching `expected_mode` and
+  `expected_noop` records.
 - A triggered record's `request` contains its `source`, so a reference
   candidate never relies on text the request did not supply.
 - `expected_noop: true` means the candidate equals the source;

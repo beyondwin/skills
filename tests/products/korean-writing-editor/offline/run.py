@@ -19,10 +19,8 @@ REQUIRED_CASE_FIELDS = (
     "candidate",
     "candidate_trigger",
     "candidate_mode",
-    "candidate_tier",
     "expected_trigger",
     "expected_mode",
-    "expected_tier",
     "expected_noop",
     "must_preserve",
     "required_substrings",
@@ -31,7 +29,6 @@ REQUIRED_CASE_FIELDS = (
 )
 ALLOWED_CATEGORIES = {"normative", "preservation", "noop", "voice", "trigger"}
 ALLOWED_MODES = {"diagnose", "correct", "polish", "none"}
-ALLOWED_TIERS = {"fast", "balanced", "frontier", "none"}
 EXPECTED_CATEGORY_COUNTS = {
     "normative": 10,
     "preservation": 8,
@@ -56,7 +53,7 @@ DESCRIPTION_REQUIRED_TERMS = (
     "casual",
 )
 MODE_TERMS = ("diagnose", "correct", "polish")
-TIER_TERMS = ("fast", "balanced", "frontier")
+ROUTING_TERM = "routing unavailable"
 OUTPUT_RECIPE_TERMS = ("work product", "first non-whitespace", "excluded task", "고칠 부분 없음")
 REQUIRED_HEADINGS = {
     "SKILL.md": (
@@ -66,7 +63,7 @@ REQUIRED_HEADINGS = {
         "## Default Interaction",
         "## Editing Pass",
         "## Preservation Gate",
-        "## Model Tier",
+        "## Model",
         "## Output Contract",
         "## Refuse Or Hold",
         "## References",
@@ -119,10 +116,6 @@ def validate_case(case: dict[str, object]) -> list[str]:
         if mode_field in case and case.get(mode_field) not in ALLOWED_MODES:
             errors.append(f"{prefix}: invalid {mode_field}")
 
-    for tier_field in ("candidate_tier", "expected_tier"):
-        if tier_field in case and case.get(tier_field) not in ALLOWED_TIERS:
-            errors.append(f"{prefix}: invalid {tier_field}")
-
     for field in BOOLEAN_FIELDS:
         if field in case and not isinstance(case.get(field), bool):
             errors.append(f"{prefix}: {field} must be boolean")
@@ -169,11 +162,6 @@ def evaluate_candidate(case: dict[str, object]) -> list[str]:
         errors.append(
             f"{case_id}: mode mismatch: "
             f"{case.get('candidate_mode')!r} != {case.get('expected_mode')!r}"
-        )
-    if case.get("candidate_tier") != case.get("expected_tier"):
-        errors.append(
-            f"{case_id}: tier mismatch: "
-            f"{case.get('candidate_tier')!r} != {case.get('expected_tier')!r}"
         )
 
     if case.get("expected_noop") is True and candidate != source:
@@ -346,6 +334,8 @@ def validate_skill_tree(skill_root: pathlib.Path, scope: str) -> list[str]:
                 errors.append(
                     f"skill tree: SKILL.md missing output-recipe term {term!r}"
                 )
+        if ROUTING_TERM not in skill_text:
+            errors.append(f"skill tree: SKILL.md missing {ROUTING_TERM!r}")
 
     for relative in ("SKILL.md", "references/editorial-guide.md"):
         text = present.get(relative)
@@ -354,9 +344,6 @@ def validate_skill_tree(skill_root: pathlib.Path, scope: str) -> list[str]:
         for term in MODE_TERMS:
             if not _contains_term(text, term):
                 errors.append(f"skill tree: {relative} missing mode term {term!r}")
-        for term in TIER_TERMS:
-            if not _contains_term(text, term):
-                errors.append(f"skill tree: {relative} missing tier term {term!r}")
 
     heading_targets = ["SKILL.md", "references/editorial-guide.md"]
     for relative in heading_targets:
@@ -587,10 +574,8 @@ class EvaluatorTests(unittest.TestCase):
             "candidate": "출시하지 않을 수 있다.",
             "candidate_trigger": True,
             "candidate_mode": "polish",
-            "candidate_tier": "balanced",
             "expected_trigger": True,
             "expected_mode": "polish",
-            "expected_tier": "balanced",
             "expected_noop": True,
             "must_preserve": ["출시하지 않을 수 있다"],
             "required_substrings": ["출시하지 않을 수 있다"],
@@ -613,10 +598,8 @@ class EvaluatorTests(unittest.TestCase):
             "candidate": "7명이 동의했다.",
             "candidate_trigger": True,
             "candidate_mode": "polish",
-            "candidate_tier": "balanced",
             "expected_trigger": True,
             "expected_mode": "polish",
-            "expected_tier": "balanced",
             "expected_noop": False,
             "must_preserve": ["7"],
             "required_substrings": [],
@@ -654,10 +637,8 @@ class EvaluatorTests(unittest.TestCase):
             "candidate": "이 기능은 사용할 수 있지만 반드시 켤 필요는 없습니다.",
             "candidate_trigger": True,
             "candidate_mode": "correct",
-            "candidate_tier": "fast",
             "expected_trigger": True,
             "expected_mode": "correct",
-            "expected_tier": "fast",
             "expected_noop": False,
             "must_preserve": ["반드시 켤 필요는 없습니다"],
             "required_substrings": ["사용할 수"],
@@ -758,8 +739,6 @@ class EvaluatorTests(unittest.TestCase):
             candidate_trigger=False,
             expected_mode="none",
             candidate_mode="none",
-            expected_tier="none",
-            candidate_tier="none",
             must_preserve=[],
             required_substrings=[],
         )
@@ -767,6 +746,26 @@ class EvaluatorTests(unittest.TestCase):
             "case-01: near-miss candidate echoes the source instead of a handoff",
             evaluate_candidate(case),
         )
+
+    def test_full_scope_requires_routing_unavailable_reply(self):
+        source = pathlib.Path(__file__).resolve().parents[4] / "skills" / SKILL_NAME
+        with tempfile.TemporaryDirectory() as directory:
+            root = pathlib.Path(directory) / SKILL_NAME
+            root.mkdir()
+            for relative in ("SKILL.md", "references/editorial-guide.md", "references/sources.md"):
+                target = root / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text((source / relative).read_text(encoding="utf-8"), encoding="utf-8")
+            self.assertEqual(validate_skill_tree(root, "core"), [])
+            skill = root / "SKILL.md"
+            skill.write_text(
+                skill.read_text(encoding="utf-8").replace("routing unavailable", "no routing"),
+                encoding="utf-8",
+            )
+            self.assertIn(
+                "skill tree: SKILL.md missing 'routing unavailable'",
+                validate_skill_tree(root, "core"),
+            )
 
     def test_mode_term_does_not_match_correction(self):
         self.assertFalse(_contains_term("local corrections only", "correct"))
