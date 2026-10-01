@@ -300,18 +300,18 @@
       "category": "preservation",
       "request": "문장만 정리해줘: 이서연은 “보류하겠습니다”라고 말했다.",
       "source": "이서연은 “보류하겠습니다”라고 말했다.",
-      "candidate": "이서연은 “보류하겠습니다”라고 밝혔다.",
+      "candidate": "이서연은 “보류하겠습니다”라고 말했다.",
       "candidate_trigger": true,
       "candidate_mode": "polish",
       "candidate_tier": "balanced",
       "expected_trigger": true,
       "expected_mode": "polish",
       "expected_tier": "balanced",
-      "expected_noop": false,
-      "must_preserve": ["이서연", "“보류하겠습니다”"],
-      "required_substrings": ["이서연", "“보류하겠습니다”"],
-      "forbidden_substrings": ["승인하겠습니다", "김민수는 “보류하겠습니다”"],
-      "rationale": "Quoted wording and speaker attribution are material."
+      "expected_noop": true,
+      "must_preserve": ["이서연", "“보류하겠습니다”", "말했다"],
+      "required_substrings": ["이서연", "“보류하겠습니다”", "말했다"],
+      "forbidden_substrings": ["승인하겠습니다", "김민수는 “보류하겠습니다”", "밝혔다", "전했다"],
+      "rationale": "Speaker, quoted words, and reporting verb are attribution; the sentence needs no polish."
     },
     {
       "id": "meaning-causality-08",
@@ -600,11 +600,48 @@
       "required_substrings": ["배포할수"],
       "forbidden_substrings": [
         "지금 상태에선 배포할 수 있다.",
+        "지금 상태에선 배포할수 있다.",
         "Using the",
         "Using korean-writing-editor",
         "한국어 교정 스킬"
       ],
-      "rationale": "Diagnose names the spacing issue without a rewritten draft or process preamble."
+      "rationale": "Diagnose names the spacing issue without a rewritten draft, the unchanged source, or a process preamble."
+    },
+    {
+      "id": "trigger-explicit-no-text-06",
+      "category": "trigger",
+      "request": "$korean-writing-editor 이 글을 자연스럽게 다듬어줘.",
+      "source": "",
+      "candidate": "다듬을 글을 보내 주세요.",
+      "candidate_trigger": true,
+      "candidate_mode": "none",
+      "candidate_tier": "none",
+      "expected_trigger": true,
+      "expected_mode": "none",
+      "expected_tier": "none",
+      "expected_noop": false,
+      "must_preserve": [],
+      "required_substrings": ["글을 보내"],
+      "forbidden_substrings": ["적용되지 않", "Using the", "korean-writing-editor"],
+      "rationale": "An explicit call with no source text asks once for the text instead of a no-op handoff."
+    },
+    {
+      "id": "trigger-diagnose-clean-07",
+      "category": "trigger",
+      "request": "고치지 말고 문제만 알려줘: 오늘은 조금 늦을 것 같아요.",
+      "source": "오늘은 조금 늦을 것 같아요.",
+      "candidate": "고칠 부분 없음",
+      "candidate_trigger": true,
+      "candidate_mode": "diagnose",
+      "candidate_tier": "fast",
+      "expected_trigger": true,
+      "expected_mode": "diagnose",
+      "expected_tier": "fast",
+      "expected_noop": false,
+      "must_preserve": [],
+      "required_substrings": ["고칠 부분 없음"],
+      "forbidden_substrings": ["오늘은 조금 늦을 것 같아요.", "Using the", "한국어 교정 스킬"],
+      "rationale": "Diagnose on clean text returns one line, never the unchanged source."
     }
   ]
 }

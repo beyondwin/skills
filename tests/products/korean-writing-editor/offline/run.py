@@ -37,7 +37,7 @@ EXPECTED_CATEGORY_COUNTS = {
     "preservation": 8,
     "noop": 6,
     "voice": 4,
-    "trigger": 5,
+    "trigger": 7,
 }
 CASE_ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 STRING_LIST_FIELDS = ("must_preserve", "required_substrings", "forbidden_substrings")
@@ -57,7 +57,7 @@ DESCRIPTION_REQUIRED_TERMS = (
 )
 MODE_TERMS = ("diagnose", "correct", "polish")
 TIER_TERMS = ("fast", "balanced", "frontier")
-OUTPUT_RECIPE_TERMS = ("first non-whitespace", "excluded task", "correct` or `polish")
+OUTPUT_RECIPE_TERMS = ("work product", "first non-whitespace", "excluded task", "고칠 부분 없음")
 REQUIRED_HEADINGS = {
     "SKILL.md": (
         "# Korean Writing Editor",
@@ -436,6 +436,10 @@ def run_mutation_checks(cases: list[dict[str, object]]) -> list[str]:
         mutated["candidate"] = str(quote["candidate"]).replace("이서연", "김민수")
         if not evaluate_candidate(mutated):
             errors.append("mutation: changing quote speaker produced no error")
+        verb = dict(quote)
+        verb["candidate"] = str(quote["candidate"]).replace("말했다", "밝혔다")
+        if not evaluate_candidate(verb):
+            errors.append("mutation: changing the reporting verb produced no error")
 
     spacing = by_id.get("norm-spacing-can-01")
     if spacing is None:
@@ -496,6 +500,24 @@ def run_mutation_checks(cases: list[dict[str, object]]) -> list[str]:
                 errors.append(
                     f"mutation: grammar or voice corruption escaped {case_id}"
                 )
+
+    for case_id in ("trigger-diagnose-05", "trigger-diagnose-clean-07"):
+        case = by_id.get(case_id)
+        if case is None:
+            errors.append(f"mutation: missing {case_id}")
+            continue
+        if not evaluate_candidate(dict(case, candidate=case["source"])):
+            errors.append(
+                f"mutation: returning the unchanged source escaped {case_id}"
+            )
+
+    no_text = by_id.get("trigger-explicit-no-text-06")
+    if no_text is None:
+        errors.append("mutation: missing trigger-explicit-no-text-06")
+    elif not evaluate_candidate(
+        dict(no_text, candidate="이 편집기는 적용되지 않습니다.")
+    ):
+        errors.append("mutation: a no-op handoff without asking for text produced no error")
 
     translation = by_id.get("trigger-translation-03")
     if translation is None:

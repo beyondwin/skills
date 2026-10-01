@@ -1,8 +1,8 @@
 # korean-writing-editor testing
 
 Offline fixtures (fixed examples that lock the rules without a model) live in
-`tests/products/korean-writing-editor/offline/`. Keep the thirty-three property
-cases (`normative=10 preservation=8 noop=6 voice=4 trigger=5`) and the mutation
+`tests/products/korean-writing-editor/offline/`. Keep the thirty-five property
+cases (`normative=10 preservation=8 noop=6 voice=4 trigger=7`) and the mutation
 checks in its `cases.json` and `run.py`. A mutation check confirms that a
 deliberately broken candidate fails.
 
@@ -42,7 +42,13 @@ dated CHANGELOG entry, and rejection of a broken README link together.
   ambivalent final clause into certainty, must each fail their own mutation
   check.
 - `trigger-diagnose-05` is `diagnose` findings. It fails if it has a rewritten
-  draft or a process preamble.
+  draft, the unchanged source, or a process preamble.
+- `trigger-diagnose-clean-07` is `diagnose` on clean text: one line such as
+  `고칠 부분 없음`. Returning the unchanged source fails.
+- `trigger-explicit-no-text-06` is an explicit call with no source text. The
+  reply asks once for the text; a no-op handoff fails.
+- `meaning-quote-07` keeps the speaker, the quoted words, and the reporting
+  verb `말했다`. Changing the verb to `밝혔다` fails its mutation check.
 - Each of these mutations must also fail: the English and Korean skill-usage
   preambles on `norm-spacing-can-01`, the possibility-to-maybe substitution on
   `meaning-negation-01`, and refuse-then-translate on

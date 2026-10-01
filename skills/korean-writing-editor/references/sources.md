@@ -15,7 +15,6 @@ their corpora, datasets, or rule lists. Checked dates are `2026-08-22`.
 | [StyleKQC](https://aclanthology.org/2022.lrec-1.771.pdf) | Empirical | separate style and content-preservation axes | all Korean genres | 2026-08-22 | LREC paper; cite only. Dataset not copied. |
 | [NIST AI 600-1](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf) | Risk guidance | fabrication, homogenization, non-English variance, automation bias | Korean grammar rules | 2026-08-22 | Cite and link; not a Korean grammar source. |
 | [KatFishNet](https://aclanthology.org/2025.acl-long.1030/) | Detector research | why detector signals are diagnostic only | better writing or human authorship | 2026-08-22 | Cite only. Do not reverse detector signals or copy models or data. |
-| [Shared report](https://chatgpt.com/share/6a89a698-c790-83ee-8d20-7fe092d2badc) | Design input | source-first and minimal-edit framing | live generalization | 2026-08-22 | Design framing only. Attached package, fixtures, and acceptance counts were not copied. |
 
 ## Related Projects
 
