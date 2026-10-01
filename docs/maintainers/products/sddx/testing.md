@@ -257,7 +257,9 @@ Unexpected:
   (`Grok sandbox preparation requires Python 3.11+`) until the controller
   switched to `python3.14` and recorded a ruling.
 
-Proposed minimal fixes (not applied here):
+Fixes, applied in 8.1.0 before release (the live runs above used the text
+before them; the Codex wait recipe and `--agent-path` were then checked against
+real Codex 0.157.1 rollouts, not by a new full run):
 
 1. Codex waiting row (SKILL.md Hosts, dispatch.md Watch): run `wait` through
    `exec_command`; while it is still running, poll that same session with
