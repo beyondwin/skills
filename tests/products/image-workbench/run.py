@@ -837,10 +837,10 @@ REQUIRED_SOURCE_ROWS = {
     },
 }
 EXPECTED_CATEGORY_COUNTS = {
-    "routing": 9,
+    "routing": 10,
     "authorization": 5,
     "spec": 5,
-    "hybrid": 4,
+    "hybrid": 3,
     "handoff": 6,
     "trust": 3,
 }

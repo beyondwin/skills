@@ -66,7 +66,10 @@ Inspector rules:
 - Never write the result to the same file as the input image, including
   through a symlink or hard link.
 - Leave input images untouched. An existing `--output` target must be a
-  regular JSON file; refuse images and other files, and write atomically.
+  regular JSON file or empty; refuse images and other files, an empty
+  `--output`, and any path with an image suffix (`.png`, `.jpg`, `.jpeg`,
+  `.webp`, `.gif`), judge an existing file from a bounded prefix, and write
+  atomically.
 - An `--output` failure reports the output path in an `output` key.
 - Accept bytes after the PNG IEND, JPEG EOI, or RIFF end and count them in
   `trailing_bytes`.

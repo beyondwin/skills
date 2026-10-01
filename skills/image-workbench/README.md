@@ -138,8 +138,8 @@ That check reads only basic PNG, JPEG, or WebP structure. A pass does not mean
 the picture looks good, that the whole file was decoded, or that you have the
 right to use it. Open every final candidate yourself. `--output` takes an
 absolute report path outside the skill folder. It updates only an existing
-JSON report, refuses to overwrite the input image, another image, or any other
-file, and names the output path when it fails.
+JSON report or an empty file, refuses an image file name, the input image,
+another image, or any other file, and names the output path when it fails.
 
 ## See also
 

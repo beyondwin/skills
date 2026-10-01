@@ -1,6 +1,6 @@
 ---
 name: image-workbench
-description: Use when a raster image must fit this project, keep given constraints, or be saved; plan, generate, edit, compare, or audit it. Do not use for casual one-off pictures, SVG or code-native assets, frontend implementation, or copying prompt galleries.
+description: Use when a raster image must fit this project, keep given constraints, or be saved; plan, generate, edit, compare, or audit it. Do not use for casual one-off pictures, SVG/code-native assets, data charts, frontend implementation, or prompt galleries.
 license: Apache-2.0
 compatibility: Requires Codex or Grok built-in image generation and local image viewing for generate or edit mode. Brief and audit modes can run read-only.
 metadata:
