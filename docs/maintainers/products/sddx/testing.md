@@ -187,6 +187,91 @@ Observations by version, newest first. Each entry is what was seen in that
 environment and CLI version; numbers and verdicts are the values from that time.
 Within a version, offline checks come first and live checks after.
 
+### Live check, 2026-10-01 (8.1.0)
+
+2026-10-01, macOS 26.5.2 arm64, Python 3.14.7. Skill text from branch
+`skill-review-2026-10` at `7737d23` (the runner, `wait`, and instruction fixes;
+`release.toml` and the `SKILL.md` metadata still read 8.0.0): sddx SKILL.md
+`085ea77f…`, waygent SKILL.md `496dabdb…`, `run_worker.py` `feff0b5f…`. CLIs:
+Claude Code 2.1.284, Codex 0.157.1, Grok CLI `1.0.46 (2765805b9442)` (PATH
+`grok` is the cmux wrapper), Cursor Agent `2026.09.28-64d2043`. Each full run
+had its own new repository with no remote at a fixed path, a two-task plan
+(`top_words`, then a CLI) whose run-wide rules sit under `## 전역 규칙`, and
+pinned skill copies. Logs, rollouts, and receipts were not committed.
+
+Runner probes. No model tokens: the worker never started.
+
+| # | Check | Result |
+| --- | --- | --- |
+| V1a | SIGTERM to the runner 1 s after `run`, while the backend resolves (Cursor once; Grok twice, with a prepared profile) | Wrapper 130 every time. `run.json` `interrupted`, `pid` null, `runner_pid` set, the interrupt error. One `wait` returned exit 0 `over: true`; a `wait` started together with `run`, with no sleep, returned over too. No process left. Old runner (`6d185c5`), same Cursor case: exit 143, record stuck at `starting`, `wait --max-seconds 5` exit 3 `over: false` (the audit repro, reproduced) |
+| V1b | `wait` started with no sleep right after a background `run` (an unknown model id, so the runner refuses after the resolve and no worker starts) | 3 of 3: exit 0, `over: true`, `launch_failed`; never exit 2. A `wait` started 3 s before `run` returned exit 0 once the record closed. A directory that never appears: exit 2 `BLOCKED:` after `--start-grace 3`; a missing parent: exit 2 at once. Old runner: 3 of 3 immediate waits exited 2, `attempt directory does not exist` |
+| V1c | Unreadable `run.json` (truncated JSON; mode 000) | `wait` and `status`: exit 2 with one `BLOCKED:` line, no traceback. Old `wait`: exit 1 with a `ValueError` or `PermissionError` traceback (old `status` already printed `BLOCKED:`) |
+
+Edges seen: on a refused launch, a `wait --max-seconds` shorter than
+`--start-grace` returns exit 3 with the not-started summary instead of exit 2
+(seen with `--max-seconds 10`); the default 540 is not affected. A record the
+old runner left at `starting` (no `runner_pid`) still never reads as over, as
+documented.
+
+Full runs:
+
+| # | Host · worker | What happened | Verdict |
+| --- | --- | --- | --- |
+| V2 | Codex 0.157.1 (`-m gpt-6-astra`, `model_reasoning_effort="high"`; rollout `turn_context`: `gpt-6-astra` high) · Grok CLI 1.0.46, `grok-4.7` | Isolated HOME (only `auth.json` and `multi_agent = true`), skill copies in `$HOME/.agents/skills` without `agents/openai.yaml`, `GROK_HOME` set to the real Grok state. Recorded `전역 규칙` as a ruling and passed `--constraints-heading`; every brief carried the rules and guide.md named no plan path. `observed_model.py codex --thread-id "$CODEX_THREAD_ID"` found `gpt-6-astra` high. Three attempts (task 1, task 2, the task 2 fix resuming the same session), `prepare`/`cleanup` around each. Task 2's review found a Medium, fixed. The final review had only a Low, so the host walked the CLI itself (`walk=ok`), as the new rule says. 3 trailer commits, 44 tests, clean tree, no `.grok`, no process left. Worker test commands ran bare; the shells index shows RED exit 1 before GREEN exit 0. Waiting: no `write_stdin` and no `status` between waits (3 `status` calls, each after its attempt ended), but every `wait` ran with `--max-seconds 20` under `yield_time_ms: 30000`, the largest it used: 45 `wait` calls plus 16 code-mode cell waits, 61 of 89 tool calls (12, 26 + 13, and 7 + 3 for attempts of 353, 1039, and 278 s). R2 had 108 of 154. Reviewer values stayed `(requested)` (see below). About 40 minutes; 5.41M input tokens (5.26M cached) and 25.6k output across the controller and three reviewers; no dollar figure | Loop pass; the Codex waiting row cannot be met as written (fix 1) |
+| V3 | Claude Code 2.1.284 (`--model opus --effort high`; transcript: `claude-opus-5-5`, high on all 69 turns) · Cursor Agent, `grok-4.7-high` | Recorded `전역 규칙` as a ruling and passed `--constraints-heading`; every brief carried the rules and guide.md named no plan path. Four attempts (task 1, task 2, the task 2 fix via `--resume` of the same session, the final batch). Every launch was `exec python3 … run_worker.py run …` as a background Bash command with no trailing `&`. Every `wait` was a foreground call with `timeout: 600000` and no `sleep` before it: 6 waits for 4 attempts (attempts past 540 s took exit 3, then 0). `session_id` came from the `wait` output; `status` ran only after an attempt was over. Worker test commands ran bare; each attempt's shells index shows RED exit 1, then GREEN exit 0, and no `; echo $?`. `reported_model: Grok 4.7 256K High`, written `impl=cursor:Grok_4.7_256K_High/high`. Task 2's review found 2 Medium, fixed. The final review by `claude-fable-5-1/high` found 2 Medium, fixed in one worker attempt that also walked the CLI. Lines: `final: start`, then `final: done 9a663b1 impl=cursor:Grok_4.7_256K_High/high reviewer=claude-fable-5-1/high fixed=2 walk=ok tests=48 passed role=PASS`. Reviewer values were read with `observed_model.py --agent-id`. 4 trailer commits (`1`, `2`, `2`, `final`), 48 tests, clean tree, no process left. 46.4 minutes, 39 turns, $3.90 on the Claude side | Pass, with one leak (fix 3) |
+
+What the Codex numbers rest on: in Codex 0.157.1's own tool schema,
+`exec_command` `yield_time_ms` has an "effective range is 250-30000 ms", and
+`write_stdin` with empty `chars` waits 5000-300000 ms. A direct probe matched:
+`exec_command` with `yield_time_ms: 60000` came back after 30.0 s with no error,
+and an empty `write_stdin` with `yield_time_ms: 300000` blocked 96 s until the
+command exited. So "the largest `yield_time_ms` it accepts, at least
+(`--max-seconds` + 10) × 1000" forces `--max-seconds` to 20 or less, and the
+controller did exactly that.
+
+Unexpected:
+
+- Codex multi-agent v2 `spawn_agent` returns only
+  `{"task_name": "/root/review_task1"}`. `observed_model.py codex --thread-id
+  /root/review_task1` refuses that id (exit 2), so the controller wrote the
+  reviewer values as `(requested)`. Each child rollout's `session_meta` holds
+  `agent_path` and `parent_thread_id`. Read afterwards by their thread ids, the
+  reviewers ran on `gpt-6-astra` high, high, and xhigh (final), the values
+  requested. R2 could read them; the v2 return shape is what changed.
+- `observed_model.py` reads `~/.codex/sessions` and ignores `CODEX_HOME`: with
+  only `CODEX_HOME` pointing at the run's state, it reports `not_found`.
+- Codex progress lines drifted from waygent's format:
+  `outcome=completed-with-concerns`, `review=2_historical_findings`,
+  `review=fixed_1`, `tests=44_passed` (the `_` rule for `reported_model`
+  applied to every value), and `final: done … fixed=1` although the final batch
+  fixed nothing. It also recorded task 1 `role=FAIL` for a `README.md` read.
+  README is not one of the prohibited reads (the plan, credentials, secrets), so
+  a scope deviation was counted as a FAIL.
+- The Claude controller checked for leftover workers with
+  `ps aux | grep -iE '[w]orker-server|[c]ursor-agent'`. That printed the full
+  command lines of unrelated Cursor background workers on this Mac, which carry
+  a Cursor API key, into the session transcript. The controller flagged it in
+  its report. Its later checks used `pgrep -fl "$PWD" | cut -c1-80`.
+- Harness, not SDDx: under the fake HOME, the Codex login shell put
+  `/usr/bin/python3` (3.9) first, so the helpers refused
+  (`Grok sandbox preparation requires Python 3.11+`) until the controller
+  switched to `python3.14` and recorded a ruling.
+
+Proposed minimal fixes (not applied here):
+
+1. Codex waiting row (SKILL.md Hosts, dispatch.md Watch): run `wait` through
+   `exec_command`; while it is still running, poll that same session with
+   `write_stdin` (empty `chars`, `yield_time_ms` 300000) until it exits; no
+   `status` between waits. That is about ceil(worker seconds / 300) + 1 calls
+   per attempt.
+2. `observed_model.py codex`: accept `--agent-path /root/<name>` and resolve
+   it through `session_meta.agent_path` with `parent_thread_id` equal to
+   `$CODEX_THREAD_ID`; read `$CODEX_HOME/sessions` before `~/.codex/sessions`.
+3. dispatch.md process check: look for leftovers with
+   `pgrep -f <worktree path>`; never print `ps aux` command lines.
+4. SKILL.md "Recording models": the `_` replacement applies to
+   `reported_model` only; every other token keeps waygent's values.
+
 ### 8.0.0 offline checks
 
 `python3 scripts/verify.py --skill sddx` passes with 370 `sddx-contract` tests
