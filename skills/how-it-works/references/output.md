@@ -18,9 +18,9 @@ Every rung fills the same slots. Empty slots are allowed. Contradictory fillings
 
 **No-retraction test:** later rungs may say “그림 left out X.” They may not say “그림 was wrong,” unless 그림 was labeled a toy that remains a special case.
 
-**Hop IDs stay stable.** 그림 hop 1 is 허점 hop 1. “3번만 더 깊게” must work. Hop identifiers in Mermaid labels and the numbered list must agree and survive rung changes.
+**Hop IDs stay stable.** 그림 hop 1 is 허점 hop 1. “3번만 더 깊게” must work. Hop identifiers in Mermaid labels and the numbered list must agree and survive rung changes. The baseline is the 그림 hop list: deeper rungs may redraw the diagram type but keep the same H ids. Each hop's Mermaid label starts with its hop id (`H1: …`). An `alt`/`opt` branch reuses its parent hop id with a letter suffix (`H3a`); the numbered list keeps the parent ids only.
 
-Keep the baseline Mermaid and numbered hops in Map at every rung. Put the failure/regime table in Body at 허점. Keep hop identifiers stable when changing depth; explain added detail against the same hops.
+Keep the baseline Mermaid and numbered hops in Map at every rung. Put the failure/regime table in Body at 허점. Explain added detail against the same hops.
 
 **Ontology lock:** if 허점 is an emergent process, 그림 may not be an agent with a goal.
 
@@ -31,7 +31,7 @@ Chrome order is authoritative. Length is a budget, not a target. Restating the s
 Use only the selected language for headings, intent lines, body, banner, and next move. The slash-separated Korean/English labels in the template below are alternatives: choose the label for the current language and do not emit both.
 
 ````markdown
-# {slice} · {그림|길|뼈대|허점}
+# {slice} · {그림|길|뼈대|허점 / picture|path|skeleton|fracture}
 
 {high-stakes banner or omit}
 
@@ -57,16 +57,15 @@ Use only the selected language for headings, intent lines, body, banner, and nex
 - 지도: numbered hop list, then mermaid source; caption is the diagram’s claim
 - 본문: type-specific; see recipes below
 - 지금 다루지 않은 것: 2–5 adjacent slices as prose links, not a second essay
-- Every rung includes the baseline Mermaid and numbered hop list. At 허점, the failure/regime table belongs in Body, not Map
 - If a metaphor was used, include **이 그림이 깨지는 지점** as a short section. At 허점 that *is* the body; do not duplicate a cute “breaks at” box.
 
 ## Rung overlay
 
 | Rung | Map | Body | Forbidden |
 | --- | --- | --- | --- |
-| **그림** | Numbered hops first, then a happy-path pipeline, 4–6 boxes | Identity, use, ≤2-joint backbone. 그림 hops are the map; Body does not walk the hops again. Analogy, if used, comes after the hops, then the break line. | Baby talk, second metaphor, formulas, `여러분`, `답니다`, hop restatement |
-| **길** | `sequenceDiagram`, 4–6 actors, same path, message numbers = hop IDs | Numbered hops: who holds it, what they hand off, where it stops on failure | New metaphor, architecture hairball |
-| **뼈대** | Same sequence + `alt`/`opt` (cache, error) | Terms as labels on hops already seen. What happens if you change one part. Common mistakes. Optional second flowchart of the hidden decision | Restarting from 그림, pizza |
+| **그림** | Numbered hops first, then a happy-path pipeline of 4–6 boxes, one per hop; more than 6 means recut the slice | Identity, use, ≤2-joint backbone. 그림 hops are the map; Body does not walk the hops again. Analogy, if used, comes after the hops, then the break line. | Baby talk, second metaphor, formulas, `여러분`, `답니다`, hop restatement |
+| **길** | `sequenceDiagram`, 4–6 actors, same hops; each message label starts with its hop id (`H1: …`) | Numbered hops: who holds it, what they hand off, where it stops on failure | New metaphor, architecture hairball |
+| **뼈대** | Same sequence + `alt`/`opt` (cache, error); a branch reuses its parent hop id (`H3a`) | Terms as labels on hops already seen. What happens if you change one part. Common mistakes. Optional second flowchart of the hidden decision | Restarting from 그림, pizza |
 | **허점** | Same baseline Mermaid and numbered hops | Failure/regime table: where the picture fails, where it applies, rivals mapped onto the same slots, and how to inspect. Collapse to the one-liner | Table-only map, re-teaching 그림, name-dropping without a one-line “what they showed” |
 
 ## Type recipes (body only; chrome stays)
@@ -75,7 +74,7 @@ Use only the selected language for headings, intent lines, body, banner, and nex
 | --- | --- |
 | **개념** | One relation → popular wrong picture → correction |
 | **흐름** | 그림: Map hops only; Body is identity and use. 길 walks the hops on a sequence diagram |
-| **비교** | Required GFM table: what it optimizes / what it gives up / failure shape / how to undo. State the tradeoff under the user's conditions. Do not require a personalized action recommendation for medical, legal, or financial topics. 그림 uses 3 axes; 길 uses 5 |
+| **비교** | Required GFM table with these four columns at every rung: what it optimizes / what it gives up / failure shape / how to undo. Rows are the options compared. State the tradeoff under the user's conditions. Do not require a personalized action recommendation for medical, legal, or financial topics |
 | **절차** | Start state → end state. Each step is one state change. Recover from failure. “What is rebase” is not a command list |
 
 `리베이스가 뭐야` is concept/flow. `conflict 난 다음` is procedure. Classify from the **job**, not the noun.

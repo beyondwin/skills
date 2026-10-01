@@ -54,6 +54,10 @@ What these checks prove and don't prove:
   forbidden strings only.
 - They also reject exact returns of the old high-stakes banner and the old DNS jargon
   wording. That proves static agreement between docs and fixtures only.
+- `test_skill_skeleton_mirrors_output_chrome` keeps the reply skeleton in `SKILL.md`
+  equal to the one in `references/output.md`, and other pins keep the picture box rule
+  and the hop id label rules the same in `output.md` and `visuals.md`. That proves the
+  files agree, not that a model emits the skeleton or reads the references.
 - Whether a real model follows the depth precedence is `not_measured`. So are the
   truth of the explanation, real Korean register, English output quality, the model
   producing all six parts, and Mermaid parser/renderer results.

@@ -47,7 +47,7 @@ REQUIRED_DELIVERABLE_PHRASES = (
     "one next move",
 )
 OUTPUT_CHROME = (
-    "# {slice} · {그림|길|뼈대|허점}",
+    "# {slice} · {그림|길|뼈대|허점 / picture|path|skeleton|fracture}",
     "{high-stakes banner or omit}",
     "## 한 줄 / One sentence",
     "## 지도 / Map",
@@ -226,12 +226,73 @@ class HowItWorksPayloadTests(unittest.TestCase):
         self.assertNotIn("Cursor", body)
         self.assertNotIn("@how-it-works", body)
 
-    def test_runtime_emits_complete_output_without_reference_reads(self) -> None:
+    def test_runtime_reads_references_unless_the_host_cannot_read_files(self) -> None:
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        runtime = section(text, "## Runtime", "## After EXPLAIN")
         self.assertIn(
-            "Emit the complete required deliverable in the current reply even if you cannot read focused references this turn.",
+            "When the host can read files, read `references/output.md` (and `references/korean.md` for a Korean reply) before replying.",
+            runtime,
+        )
+        self.assertIn(
+            "Only when the host cannot read files this turn, emit the complete required deliverable from the skeleton in Required deliverable.",
+            runtime,
+        )
+        self.assertNotIn("even if you cannot read focused references", text)
+        self.assertNotIn("I'll read the references first", text)
+
+    def test_skill_skeleton_mirrors_output_chrome(self) -> None:
+        def skeleton(markdown: str) -> str:
+            start = markdown.index("````markdown\n")
+            return markdown[start : markdown.index("\n````\n", start)]
+
+        text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        required = section(text, "## Required deliverable", "## Optional preview")
+        self.assertEqual(skeleton(required), skeleton(_reference("output.md")))
+        self.assertIn("mirrored from `references/output.md`", required)
+        self.assertIn("Korean replies use 해요체.", required)
+        self.assertLess(required.index("2. numbered hop list"), required.index("3. Mermaid source"))
+        self.assertIn("a branch reuses its parent id, `H3a`", required)
+
+    def test_red_flags_catch_hop_ids_missing_from_the_list(self) -> None:
+        text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        flags = text.split("## Red flags", 1)[1]
+        self.assertIn(
+            "A Mermaid hop id with no matching `**Hk**` list item (a branch `H3a` matches `**H3**`), or hop list items without `**Hk**`",
+            flags,
+        )
+
+    def test_classify_states_slice_rules_and_high_stakes_still_explain(self) -> None:
+        text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        classify = section(text, "## Classify", "## Slots")
+        self.assertIn("the slice is the one mechanism that answer rests on", classify)
+        self.assertIn("answer it after the next move as a short separate list", classify)
+        self.assertIn("More than one mechanism in the request: Ask one, or Cut.", classify)
+        self.assertIn("so the user can redirect on the next turn", classify)
+        self.assertNotIn("so the user can override", text)
+        self.assertNotIn("surprising", text)
+        self.assertNotIn("Pause when", text)
+        self.assertIn(
+            "Medical, legal, or financial topic: read `references/stakes.md`, add its banner, and still explain in the same turn.",
             text,
         )
+
+    def test_intent_line_and_next_moves_have_clear_labels(self) -> None:
+        text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("> {slice}을/를 **{rung}** 깊이로 설명할게요. {moving_thing}이/가 이동하는 순서를 따라가요.", text)
+        self.assertNotIn("{particle}", _skill_markdown())
+        self.assertNotIn("Intent line:", _reference("korean.md"))
+        after = section(text, "## After EXPLAIN", "## Required deliverable")
+        for label in (
+            "- 다음 칸 / Next rung (그림→길→뼈대→허점 / picture→path→skeleton→fracture)",
+            "- 흐린 홉 하나 / One blurry hop",
+            "- 다른 각도 / Another angle",
+            "- 한 줄로 되말하기 / Say it back in one line",
+        ):
+            self.assertIn(label, after)
+        self.assertIn("다른 각도 recuts the type (개념, 흐름, 비교, or 절차)", after)
+        self.assertNotIn("실패)", after)
+        for leftover in ("Age does not go down", "Rung picker", "rung picker"):
+            self.assertNotIn(leftover, text)
 
     def test_changelog_records_one_turn_emit_instruction(self) -> None:
         text = (SKILL / "CHANGELOG.md").read_text(encoding="utf-8")
@@ -584,7 +645,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
         description = str(frontmatter["description"])
         self.assertIn("debugging", description.lower())
         self.assertIn("Do not activate on eli5", text)
-        self.assertIn("Do not use the rung picker", text)
+        self.assertIn("Do not use this explanation flow on debugging", text)
 
     def test_explicit_easy_alias_precedes_jargon(self) -> None:
         # Design section 5.3 intentionally changes the former jargon-first contract.
@@ -604,8 +665,30 @@ class HowItWorksPayloadTests(unittest.TestCase):
             "Walk the hops. 길 gets the sequence diagram. 그림 gets boxes only",
             output,
         )
-        self.assertIn("4–6 boxes", output)
-        self.assertNotIn("5–7 boxes", output)
+        visuals = _reference("visuals.md")
+        box_rule = "4–6 boxes, one per hop; more than 6 means recut the slice"
+        self.assertIn(box_rule, output)
+        self.assertIn(box_rule, visuals)
+        for stale in ("5–7 boxes", "≤7 boxes", "hard cap 12"):
+            self.assertNotIn(stale, output)
+            self.assertNotIn(stale, visuals)
+
+    def test_hop_ids_are_labels_and_branches_reuse_the_parent(self) -> None:
+        output = _reference("output.md")
+        visuals = _reference("visuals.md")
+        for text in (output, visuals):
+            self.assertNotIn("message numbers = hop IDs", text)
+            self.assertIn("each message label starts with its hop id (`H1: …`)", text)
+            self.assertIn("`H3a`", text)
+        self.assertIn(
+            "The baseline is the 그림 hop list: deeper rungs may redraw the diagram type but keep the same H ids.",
+            output,
+        )
+
+    def test_comparison_columns_are_fixed(self) -> None:
+        output = _reference("output.md")
+        self.assertIn("these four columns at every rung", output)
+        self.assertNotIn("그림 uses 3 axes", output)
 
     def test_korean_picture_target_keeps_cache_in_the_same_movie(self) -> None:
         korean = _reference("korean.md")
@@ -635,7 +718,9 @@ class HowItWorksPayloadTests(unittest.TestCase):
     def test_korean_keeps_one_language_and_register(self) -> None:
         text = _reference("korean.md")
         self.assertIn("One language per reply", text)
-        self.assertIn("해요체", text)
+        self.assertIn("해요체, even when earlier turns used 합니다체", text)
+        self.assertIn("No 우리 / 여러분 / 당신 / 너 / 네가.", text)
+        self.assertIn("In Body, after the one-line claim, open with a lived snag", text)
         self.assertIn("complete chat output", text)
         for forbidden in HOST_TOOL_MARKERS:
             self.assertNotIn(forbidden, text)
@@ -647,6 +732,8 @@ class HowItWorksPayloadTests(unittest.TestCase):
         self.assertIn("Grok와 Cursor는 지원하지 않습니다", korean)
         self.assertIn("Live runs of the current install files are `not_measured`", english)
         self.assertIn("Grok and Cursor are not supported", english)
+        self.assertIn("If the topic is already technical jargon and you name no depth, it starts at skeleton.", english)
+        self.assertIn("주제가 이미 기술 용어이고 깊이를 고르지 않으면 뼈대로 시작합니다.", korean)
 
 
 class HowItWorksLiveContractTests(unittest.TestCase):
