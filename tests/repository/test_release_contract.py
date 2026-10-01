@@ -22,12 +22,12 @@ from scripts.lib.product_contract import (  # noqa: E402
 from scripts.lib.product_registry import load_registry, PRODUCT_README_NAMES  # noqa: E402
 
 EXPECTED = {
-    "korean-writing-editor": "2.0.5",
-    "image-workbench": "2.1.0",
-    "how-it-works": "3.0.1",
-    "pre-sdd-review": "6.0.0",
-    "sddx": "8.0.0",
-    "waygent": "0.3.0",
+    "korean-writing-editor": "2.0.6",
+    "image-workbench": "2.1.1",
+    "how-it-works": "3.0.2",
+    "pre-sdd-review": "6.1.0",
+    "sddx": "8.1.0",
+    "waygent": "0.3.1",
 }
 REGISTRY = load_registry(ROOT / "products.toml")
 
@@ -48,15 +48,15 @@ class ProductReleaseTests(unittest.TestCase):
 
     def test_how_it_works_current_archive_identity(self) -> None:
         product = load_product_release(ROOT / "skills/how-it-works")
-        self.assertEqual(product.version, "3.0.1")
-        self.assertEqual(product.tag, "how-it-works-v3.0.1")
-        self.assertEqual(product.artifact_name, "how-it-works-v3.0.1.zip")
+        self.assertEqual(product.version, "3.0.2")
+        self.assertEqual(product.tag, "how-it-works-v3.0.2")
+        self.assertEqual(product.artifact_name, "how-it-works-v3.0.2.zip")
 
     def test_pre_sdd_review_current_archive_identity(self) -> None:
         product = load_product_release(ROOT / "skills/pre-sdd-review")
-        self.assertEqual(product.version, "6.0.0")
-        self.assertEqual(product.tag, "pre-sdd-review-v6.0.0")
-        self.assertEqual(product.artifact_name, "pre-sdd-review-v6.0.0.zip")
+        self.assertEqual(product.version, "6.1.0")
+        self.assertEqual(product.tag, "pre-sdd-review-v6.1.0")
+        self.assertEqual(product.artifact_name, "pre-sdd-review-v6.1.0.zip")
 
     def test_each_product_owns_an_independent_release_manifest(self) -> None:
         self.assertEqual(set(self.registry.names), set(EXPECTED))
@@ -75,11 +75,11 @@ class ProductReleaseTests(unittest.TestCase):
             shutil.copytree(ROOT / "skills" / "how-it-works", root)
             manifest = root / "release.toml"
             original = manifest.read_text(encoding="utf-8")
-            mutated = original.replace('version = "3.0.1"', 'version = "3.0.2"', 1)
+            mutated = original.replace('version = "3.0.2"', 'version = "3.0.3"', 1)
             self.assertNotEqual(mutated, original)
             manifest.write_text(mutated, encoding="utf-8")
             errors = validate_product(root, self.registry)
-            self.assertIn("release.toml version 3.0.2 != SKILL.md version 3.0.1", errors)
+            self.assertIn("release.toml version 3.0.3 != SKILL.md version 3.0.2", errors)
 
     def test_payload_hash_changes_with_bytes_but_is_stable_across_copies(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -121,7 +121,7 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         root = self._copy("korean-writing-editor")
         manifest = root / "release.toml"
         original = manifest.read_text(encoding="utf-8")
-        mutated = original.replace('version = "2.0.5"', 'version = "2.0"', 1)
+        mutated = original.replace('version = "2.0.6"', 'version = "2.0"', 1)
         self.assertNotEqual(mutated, original)
         manifest.write_text(mutated, encoding="utf-8")
         errors = "\n".join(validate_product(root, REGISTRY))
@@ -301,19 +301,21 @@ class ProductReleaseRejectionTests(unittest.TestCase):
     def test_dated_release_validation_is_opt_in(self) -> None:
         from scripts.lib.product_contract import require_dated_changelog
 
-        # 3.0.1 is still under Unreleased, so the source itself has no dated
-        # heading for its version and validate_product must still pass.
-        source = ROOT / "skills" / "how-it-works"
-        self.assertEqual(validate_product(source, REGISTRY), [])
-        self.assertIn(
-            "CHANGELOG.md missing dated release heading for 3.0.1",
-            require_dated_changelog(source),
-        )
+        # A version still under Unreleased has no dated heading, and
+        # validate_product must still pass; dating it satisfies the release check.
         root = self._copy("how-it-works")
+        version = load_product_release(root).version
         changelog = root / "CHANGELOG.md"
-        original = changelog.read_text(encoding="utf-8")
-        dated = original.replace("## Unreleased\n", "## Unreleased\n\n## 3.0.1 - 2026-09-28\n", 1)
-        self.assertNotEqual(dated, original)
+        dated = changelog.read_text(encoding="utf-8")
+        heading = f"## {version} - "
+        self.assertIn(heading, dated)
+        undated = dated.replace(heading, "## Previously ", 1)
+        changelog.write_text(undated, encoding="utf-8")
+        self.assertEqual(validate_product(root, REGISTRY), [])
+        self.assertIn(
+            f"CHANGELOG.md missing dated release heading for {version}",
+            require_dated_changelog(root),
+        )
         changelog.write_text(dated, encoding="utf-8")
         self.assertEqual(require_dated_changelog(root), [])
         self.assertEqual(validate_product(root, REGISTRY), [])

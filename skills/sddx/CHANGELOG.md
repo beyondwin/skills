@@ -4,6 +4,80 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 8.1.0 - 2026-10-01
+
+### Fixed
+
+- A SIGTERM or Ctrl-C while the runner resolves the backend is now recorded:
+  `run.json` says `interrupted` with `pid` null and the runner exits 130.
+  Before, the runner died 143 and left `starting` behind, and `wait` returned
+  exit 3 forever.
+- `run.json` records `runner_pid`, the runner's own pid, at `starting`.
+  `status` and `wait` call a `starting` or `running` record stale once its
+  runner and worker are both gone, and a live runner whose worker just exited
+  is no longer called stale while it records the exit. Older records without
+  the field keep the old rule.
+- `wait` on an unreadable `run.json` prints a `BLOCKED:` line and exits 2
+  instead of a traceback.
+- `extract_task.py` and `observed_model.py` refuse Windows with the same
+  message as the other product CLIs.
+- A Cursor shell call with no integer exit now appears in the tools index with
+  `exit_code` null, as a Grok one already did.
+- The worker runs test commands bare; the allowance for `; echo $?` wrappers is
+  gone, and the controller does not count a shell ending in `; echo …$?` as
+  RED or GREEN evidence, because the index holds the echo's exit.
+- A stopped runner (`interrupted` or `stale`) whose task already has its
+  trailer commit and `report.md` is judged as a finished attempt instead of
+  being resumed.
+- The docs say a worker that gets SIGTERM may record `-15` or `143` (Cursor
+  2026.09.26 and Grok 1.0.44 both recorded 143).
+- The progress line writes `reported_model` with whitespace replaced by `_`
+  (`Grok_4.7_256K_High`), so it stays `key=value` tokens.
+- Stale wording: the Cursor model example is `Grok 4.7 256K High`, the
+  compatibility page lists what the offline check covers and names the `wait`
+  subcommand, and waygent's brief-length limit is no longer quoted as a
+  number.
+
+### Changed
+
+- Waiting is spelled out per host. Claude Code launches
+  `exec python3 … run_worker.py run …` as the Bash tool's background command
+  and runs each `wait` with `timeout: 600000` (the 120-second default killed a
+  540-second wait). Codex runs `wait` through `exec_command` with a
+  `yield_time_ms` of at least (`--max-seconds` + 10) × 1000 and does not poll
+  with `write_stdin` or `status` between waits; the session id comes from the
+  `wait` output.
+- To stop an attempt on Claude Code, stop the background task that runs the
+  runner; the advice to use `$!` is gone.
+- With no High or Medium in the final review, the host walks the app itself;
+  only a fix the walk needs goes to a worker attempt.
+- guide.md under SDDx names no plan path and copies the plan's global rules in
+  full.
+- The Grok worker runs with `CMUX_GROK_HOOKS_DISABLED=1`, so the cmux `grok`
+  wrapper does not install its hooks before starting the real CLI.
+- A JSON filter on `status` is allowed after `set -o pipefail`.
+- The progress-line `review=` values follow waygent:
+  `clean|fixed K|overruled K|skipped (<why>)|unknown`, and final-batch commits
+  carry `Waygent-Task: final`.
+- The READMEs state that the plan needs a section of run-wide rules, that the
+  host waits with `run_worker.py wait` and never ends its turn while a worker
+  runs, that a stopped runner resumes the worker's session, and that
+  `codex exec` does not load `$sddx`. SKILL.md names `$CODEX_THREAD_ID` for the
+  Codex orchestrator.
+
+### Added
+
+- `extract_task.py --constraints-heading "<exact title>"` takes the plan's own
+  title for its run-wide rules (for example `전역 규칙`). The default stays
+  `Global Constraints` / `Global constraints`. The controller names that
+  heading as a recorded ruling, and asks once when no section holds the rules.
+- `run_worker.py wait --start-grace <seconds>` (default 15): an attempt
+  directory the runner has not made yet counts as not started (exit 3) for that
+  long, so no `sleep` is needed before the first `wait`; still absent after it,
+  or with a missing parent, is a refused launch (exit 2).
+
+## 8.0.0 - 2026-09-30
+
 ### Breaking
 
 - The base loop is now waygent, not Superpowers SDD. SDDx reads the installed

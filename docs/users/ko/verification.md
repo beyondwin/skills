@@ -48,7 +48,7 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 오프라인 검사는 고정된 계약만 증명합니다. 제품별 픽스처 경로는 각 제품 관리자 `testing.md`에 있습니다.
 
-- Korean Writing Editor: 오프라인 33개(`normative=10 preservation=8 noop=6 voice=4 trigger=5`). 새 라이브 증거는 runner 18을 쓰며, 예전 runner 영수증은 거절됩니다.
+- Korean Writing Editor: 오프라인 35개(`normative=10 preservation=8 noop=6 voice=4 trigger=7`). 새 라이브 증거는 runner 18을 쓰며, 예전 runner 영수증은 거절됩니다.
 - Image Workbench: 픽스처 32개와 mutation(일부러 망가뜨린 변형) 17개.
 - 한국어 후보: hard 검사(필수 검사)가 하나라도 실패하면 `failed`입니다. hard 검사를 통과해도 의미·귀속·요청한 편집이 관측되지 않으면 `partially_verified`입니다. 오프라인 통과만으로 라이브 상태가 되지 않습니다.
 - How It Works: fence/hop 유효성, loading, syntax, meaning은 각각 따로 증거가 필요합니다. 메타데이터가 맞는 것만으로 모델 실행을 증명하지 않습니다.

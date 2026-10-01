@@ -169,7 +169,7 @@ print("linked")
 
 ## image-workbench
 
-Grok에서만 이 방법을 씁니다. Codex는 [Codex 설치](install-codex.md)를 따르세요. 공개 경로: https://github.com/beyondwin/skills/tree/main/skills/image-workbench. 링크는 하나이고, Grok은 `~/.agents/skills`에서 읽습니다. `~/.grok`나 `~/.codex`에 복사본을 만들지 마세요.
+Grok용입니다. 공개 경로: https://github.com/beyondwin/skills/tree/main/skills/image-workbench. `~/.agents/skills`에 링크 하나를 겁니다. Codex도 이 폴더를 읽으므로 두 호스트를 다 쓰면 이 링크 하나로 충분하고, `$skill-installer`로 Codex 사본을 또 설치하지 마세요. Codex만 쓴다면 대신 [Codex 설치](install-codex.md)를 따르세요. `~/.grok`나 `~/.codex`에 복사본을 만들지 마세요.
 
 1. 클론하고 폴더를 만듭니다.
 

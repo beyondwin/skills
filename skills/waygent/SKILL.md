@@ -4,8 +4,8 @@ description: Use only when the user message contains /waygent or $waygent. Runs 
 license: Apache-2.0
 compatibility: Requires a Git repository and a host with a subagent tool (Claude Code Agent tool, Codex spawn_agent with multi_agent enabled, Cursor Agent Task tool, or Grok Build spawn_subagent). Works with or without a plan file.
 metadata:
-  version: "0.3.0"
-  updated_at: "2026-09-30"
+  version: "0.3.1"
+  updated_at: "2026-10-01"
 ---
 
 # waygent

@@ -4,6 +4,30 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 2.0.6 - 2026-10-01
+
+### Fixed
+
+- `polish` can make ordinary readability swaps again. The no-rewording rule now covers only already-correct negation, modality, obligation, possibility, quantity, and attribution wording. Attribution includes the speaker, the quoted words, and the reporting verb, so `말했다` stays `말했다`, not `밝혔다`.
+- An explicit call with no Korean text asks once for the text in one short Korean line instead of replying that the editor does not apply.
+- `diagnose` returns findings only, never the unchanged source. Clean text gets one line such as `고칠 부분 없음`.
+- Legal, medical, or financial text with no stated mode gets `correct` plus a `확인 필요` line on the claim. An explicit `polish` may change wording but keeps each claim verbatim. The impossible "separate source verification" requirement is gone.
+- A `확인 필요` line comes after the edited text, on its own line.
+
+### Changed
+
+- The description and both READMEs list the same excluded tasks as `SKILL.md`, including general writing or Korean-learning advice and named-author imitation.
+- `SKILL.md` says when to read each reference: the editorial guide for `diagnose` decision classes or an unclear normative case, and the evidence register only when the user asks for sources.
+- The Codex picker prompt says "polish", which matches the default mode.
+- `SKILL.md` states the near-miss refusal and the output contract once each.
+- Model Tier is now a short Model section. The skill uses the active model, never chains rewrites, runs a panel, or launches another CLI, and still answers `routing unavailable` when asked about routing. The tier table, the single delegated call, and the on-request tier report are gone.
+
+### Removed
+
+- The evidence register no longer ships a `chatgpt.com/share` link.
+
+## 2.0.5 - 2026-09-28
+
 ### Changed
 
 - README wording is shorter and uses plain terms. Behavior is unchanged.

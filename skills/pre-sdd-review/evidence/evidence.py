@@ -20,7 +20,7 @@ from contextlib import contextmanager, suppress
 from pathlib import Path
 from typing import TextIO
 
-CLI_VERSION = "6.0.0"
+CLI_VERSION = "6.1.0"
 SCHEMA = 5
 SKILL_NAME = "pre-sdd-review"
 RECORD_LIMIT = 64 * 1024

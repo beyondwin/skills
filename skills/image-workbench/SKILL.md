@@ -4,8 +4,8 @@ description: Use when a raster image must fit this project, keep given constrain
 license: Apache-2.0
 compatibility: Requires Codex or Grok built-in image generation and local image viewing for generate or edit mode. Brief and audit modes can run read-only.
 metadata:
-  version: "2.1.0"
-  updated_at: "2026-09-12"
+  version: "2.1.1"
+  updated_at: "2026-10-01"
 ---
 
 # Image Workbench

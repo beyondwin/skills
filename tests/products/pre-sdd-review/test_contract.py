@@ -23,7 +23,7 @@ from scripts.lib.product_registry import load_registry  # noqa: E402
 SKILL = ROOT / "skills" / "pre-sdd-review"
 CASES = ROOT / "tests" / "products" / "pre-sdd-review" / "cases.json"
 FIXTURES = ROOT / "tests" / "products" / "pre-sdd-review" / "fixtures"
-TARGET_VERSION = "6.0.0"
+TARGET_VERSION = "6.1.0"
 PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
     {
         "CHANGELOG.md",
@@ -960,9 +960,9 @@ class PreSddReviewContractTests(unittest.TestCase):
         changelog = (SKILL / "CHANGELOG.md").read_text(encoding="utf-8")
         self.assertEqual(release["version"], TARGET_VERSION)
         self.assertEqual(frontmatter["metadata"]["version"], TARGET_VERSION)
-        unreleased = changelog.split("## Unreleased", 1)[1].split("\n## ", 1)[0]
-        self.assertIn("### Breaking", unreleased)
-        self.assertIn(f"Handshake `cli_version` is {TARGET_VERSION}", unreleased)
+        target = changelog.split(f"## {TARGET_VERSION} - ", 1)[1].split("\n## ", 1)[0]
+        self.assertIn(f"Handshake `cli_version` is {TARGET_VERSION}", target)
+        self.assertIn("### Breaking", changelog.split("## 6.0.0 - 2026-09-30", 1)[1].split("\n## ", 1)[0])
         self.assertIn("## 5.1.0 - 2026-09-24", changelog)
         self.assertIn("## 3.0.0 - 2026-09-08", changelog)
 

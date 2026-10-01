@@ -904,7 +904,7 @@ class UserGuideFactTests(unittest.TestCase):
                 base = ROOT / "docs/users" / language
                 verification = _read(base / "verification.md")
                 for phrase in (
-                    "33", "normative=10", "runner 18", "32", "17",
+                    "35", "normative=10", "runner 18", "32", "17",
                     "14 cases / 17 repeats", "119 / 3 / 122 / 38 / 160",
                     "hard", "failed", "partially_verified", "fence/hop",
                     "loading", "syntax", "meaning", "schema 2", "schema 3",

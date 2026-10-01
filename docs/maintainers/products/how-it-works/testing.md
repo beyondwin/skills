@@ -132,17 +132,17 @@ and `claude -p --setting-sources project --strict-mcp-config` (a pilot with a ma
 confirmed that only the project copy loads). Before = the 3.0.1 text (`SKILL.md`
 `e00d4e05`); after = the 3.0.2 text (`e589d7bb`; an intermediate after text `be952cba`
 printed bilingual labels on Haiku and was replaced). Scoring: `observe_text` (fence,
-hop ids), the `# … · <rung>` title, the four section headings, the `다음:`/`Next:` line,
+hop ids), the `# … · <rung>` title, the four section headings, the next-move line,
 reference reads from the stream, and sentence endings.
 
 | Set | Model | Prompt | Before | After |
 | --- | --- | --- | --- | --- |
-| P1 | opus, effort high | `/how-it-works DNS가 어떻게 돌아가는지 알려줘` ×3, English path-depth rebase ×2 | 5/5 all checks | 5/5 all checks |
-| P2 | opus, effort high | long technical answer, then "무슨 말인지 하나도 모르겠어 … 쉽게 다시 설명해줘" (`--resume`) ×3 | 3/3 | 3/3 |
+| P1 | opus, effort high | Korean "how does DNS work" ×3, English path-depth rebase ×2 | 5/5 all checks | 5/5 all checks |
+| P2 | opus, effort high | a long technical answer, then a Korean "I don't get it, explain it simply with how-it-works" turn (`--resume`) ×3 | 3/3 | 3/3 |
 | P3 | sonnet | Korean DNS ×3 (after: + English ×1) | hop ids 2/3 (the run that skipped the references failed) | hop ids 4/4; references read 3/3 Korean |
-| P3 | haiku | Korean DNS ×3 (after: + English ×1) | title 1/3, headings 1/3, `다음:` 2/3, hop ids 0/3 | title 4/4, headings 4/4, `다음:` 4/4, hop ids 2/4 |
+| P3 | haiku | Korean DNS ×3 (after: + English ×1) | title 1/3, headings 1/3, next line 2/3, hop ids 0/3 | title 4/4, headings 4/4, next line 4/4, hop ids 2/4 |
 
-All Korean replies in both arms were 해요체. Claude Code cost per call was $0.16-0.21
+All Korean replies in both arms used the polite-informal register the skill asks for. Claude Code cost per call was $0.16-0.21
 (opus), $0.42-0.55 (two-turn opus), about $0.08 (sonnet), and about $0.03 (haiku).
 
 Limits: n is small (3-5 per cell). Opus 5.5 kept the format with the old text too, so

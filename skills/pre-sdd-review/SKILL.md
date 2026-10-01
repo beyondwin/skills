@@ -4,8 +4,8 @@ description: Use when an approved design spec and implementation plan already ex
 license: Apache-2.0
 compatibility: Requires a local Git repository, readable design and plan files, and a host that can start a fresh read-only subagent for independent review. Supported host: Codex only.
 metadata:
-  version: "6.0.0"
-  updated_at: "2026-09-30"
+  version: "6.1.0"
+  updated_at: "2026-10-01"
 ---
 
 # Pre-SDD Review

@@ -4,6 +4,28 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 3.0.2 - 2026-10-01
+
+### Fixed
+
+- Replies keep the title, headings, `**H1**` hop list, and `다음:` / `Next:` line even when the model skips the references: `SKILL.md` now carries the reply skeleton, mirrored from `references/output.md`, with the hop list before Mermaid. A host that can read files reads `output.md` (and `korean.md` for Korean) first; only a host that cannot read files replies from the skeleton alone.
+- A new red flag catches a Mermaid hop id with no matching `**Hk**` list item.
+- The picture box rule is the same in `output.md` and `visuals.md`: 4–6 boxes, one per hop; more than 6 means recut the slice.
+- Hop ids stay the same across rungs: each hop's Mermaid label starts with its id (`H1: …`), a skeleton branch reuses its parent id (`H3a`), and the picture hop list is the baseline.
+- Medical, legal, and financial topics get the stakes banner and are still explained in the same turn, never paused for confirmation.
+- Comparison tables use the same four columns at every rung.
+- The other-angle next move offers only the four real types.
+
+### Changed
+
+- English replies get English labels for the rung in the title and for the next move.
+- Classify says how to handle re-explaining an earlier answer, a bundled non-mechanism ask, and more than one mechanism, using the existing Direct, Ask one, and Cut paths.
+- Korean replies stay in 해요체 even after 합니다체 turns, never use 너 or 네가, and open the Body (not the reply) with a lived snag. The Korean intent line picks 을/를 and 이/가 and lives only in `SKILL.md`.
+- Both READMEs say that a technical-jargon topic with no depth starts at skeleton, and list the hop list before Mermaid.
+- The description drops the "invokes the skill explicitly" clause; explicit calls work as before. Stale lines (age motto, rung picker name, duplicated rules) are removed.
+
+## 3.0.1 - 2026-09-28
+
 ### Changed
 
 - README wording is shorter and uses plain terms. Behavior is unchanged.

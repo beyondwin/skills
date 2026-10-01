@@ -169,7 +169,7 @@ print("linked")
 
 ## image-workbench
 
-For Grok only; on Codex use [Codex install](install-codex.md). Public path: https://github.com/beyondwin/skills/tree/main/skills/image-workbench. You make one link, which Grok reads from `~/.agents/skills`. Do not add a copy under `~/.grok` or `~/.codex`.
+For Grok. Public path: https://github.com/beyondwin/skills/tree/main/skills/image-workbench. You make one link in `~/.agents/skills`. Codex reads that folder too, so if you use both hosts, this one link serves both; do not also install a Codex copy with `$skill-installer`. On Codex alone, use [Codex install](install-codex.md) instead. Do not add a copy under `~/.grok` or `~/.codex`.
 
 1. Clone and create the folder.
 

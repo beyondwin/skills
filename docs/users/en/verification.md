@@ -48,7 +48,7 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 Offline tests prove the fixed contract only. Each product's fixture paths are in its maintainer `testing.md`.
 
-- Korean Writing Editor: 33 offline cases (`normative=10 preservation=8 noop=6 voice=4 trigger=5`). New live evidence uses runner 18; older runner receipts are rejected.
+- Korean Writing Editor: 35 offline cases (`normative=10 preservation=8 noop=6 voice=4 trigger=7`). New live evidence uses runner 18; older runner receipts are rejected.
 - Image Workbench: 32 fixtures and 17 mutations (deliberately broken variants).
 - Korean candidates: any hard failure makes the result `failed`. If hard checks pass but meaning, attribution, or the requested edit was not observed, the result is `partially_verified`. An offline pass alone is never a live status.
 - How It Works: fence/hop validity, loading, syntax, and meaning each need their own evidence. Matching metadata alone proves no model run.

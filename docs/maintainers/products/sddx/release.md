@@ -13,8 +13,8 @@ human-facing history is `CHANGELOG.md` in the same directory.
 
 ## Current state
 
-There is no public sddx release yet. The standalone version in development is
-`8.0.0`, and `release.toml` is the source. There are no tags or artifacts.
+There is no public sddx release yet. The current standalone version is
+`8.1.0`, and `release.toml` is the source. There are no tags or artifacts.
 
 `release.toml` and `SKILL.md` `metadata.version` must always hold the same value.
 
@@ -22,15 +22,19 @@ There is no public sddx release yet. The standalone version in development is
 
 Newest first. Details are in each CHANGELOG section.
 
+- `8.1.0`: fixes from the 2026-10-01 log audit. An interrupt while the backend
+  resolves is recorded, and `wait` sees a dead runner (`runner_pid`); per-host
+  waiting; `wait --start-grace`; `extract_task.py --constraints-heading` for plans
+  whose run-wide rules have their own title; bare worker test commands; the
+  stopped-runner check. CHANGELOG `## 8.1.0 - 2026-10-01`.
 - `8.0.0`: a breaking change to the base loop. SDDx runs on waygent instead of
   Superpowers SDD: state in `.waygent/<plan-slug>/`, one review and one fix per
   task, reviewers per waygent's Models section, and the XHigh reviewer agent and
   Claude plugin file removed. It also records the models and efforts that
-  actually ran. The change is in the CHANGELOG `## Unreleased` section until
-  release.
+  actually ran. CHANGELOG `## 8.0.0 - 2026-09-30`.
 - `7.0.2`: docs only, no behavior change. The docs are English-first:
-  `README.md` is English and the Korean copy moves to `README.ko.md`. The change is in the CHANGELOG `## Unreleased`
-  section until release.
+  `README.md` is English and the Korean copy moves to `README.ko.md`. It was never
+  tagged; the change is listed under CHANGELOG `## 8.0.0 - 2026-09-30`.
 - `7.0.1`: a doc fix with no behavior change. In the 7.0.0 live check, Grok wrote
   nothing while it waited on a backgrounded command and hit the idle timeout, so
   the background advice was removed and replaced by one rule: when a long command

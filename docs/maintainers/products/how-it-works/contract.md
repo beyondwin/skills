@@ -116,7 +116,7 @@ English banners. The skill does not call `korean-writing-editor`.
 
 ## Version and install
 
-The current product version is `3.0.1`. The source of truth is
+The current product version is `3.0.2`. The source of truth is
 `skills/how-it-works/release.toml`; `SKILL.md` `metadata.version` copies it.
 `metadata.updated_at` is the date of the latest installed-file change. None of this
 metadata means a tag, publication, or GitHub Release exists.

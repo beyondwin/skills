@@ -19,6 +19,8 @@ standalone version. No tag, publication, or GitHub Release has been made.
 
 3.0.0 was a MAJOR: it made picture the default rung and removed the depth question.
 3.0.1 is a PATCH: English-first docs and English instruction text, same behavior.
+3.0.2 is a PATCH: the reply skeleton is inlined in `SKILL.md`, references are read
+whenever the host can, and the rung rules contradicting each other are aligned.
 
 Rules:
 

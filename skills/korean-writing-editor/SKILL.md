@@ -4,8 +4,8 @@ description: Use only when the user asks to proofread, correct, or polish Korean
 license: Apache-2.0
 compatibility: Requires Korean source text and local Agent Skills file access. Uses the active model.
 metadata:
-  version: "2.0.5"
-  updated_at: "2026-09-28"
+  version: "2.0.6"
+  updated_at: "2026-10-01"
 ---
 
 # Korean Writing Editor

@@ -104,9 +104,9 @@ Payload folder rules:
 - `README.md`, `README.ko.md`, `CHANGELOG.md`, and `release.toml` are allowed and
   required.
 - The `image-workbench` inspector `skills/image-workbench/scripts/inspect_asset.py` is
-  runtime code; its tests live in `tests/products/image-workbench/`. Call it from the
-  skill root as `python3 scripts/inspect_asset.py`, never by a repository-relative
-  `skills/` path.
+  runtime code; its tests live in `tests/products/image-workbench/`. Call it by its
+  path under the skill root, `python3 <skill-root>/scripts/inspect_asset.py
+  <absolute-asset-path>`, never by a repository-relative `skills/` path.
 
 Each product's `testing.md` owns its fixture path details.
 

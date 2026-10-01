@@ -4,14 +4,48 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 6.1.0 - 2026-10-01
+
+### Fixed
+
+- Reviewers start with no inherited conversation (Codex: `fork_turns: "none"`); the dispatch instruction is their only input. The controller sends a running reviewer nothing except the one missing-fields re-ask, and closes each reviewer once its records are in (Codex: `close_agent`). On Claude Code it prefers an agent type without edit tools. Before, some Codex runs forked the controller's conversation into the reviewer, so the reviewer was not independent.
+- `execution` has one reading: it describes the review, not the verdict. It is `blocked` only when no independent primary review ran (an input gate, the required base, an unresolved `**Spec:**`, or no primary reviewer; `reviewers` 0, `review_passes` 0). A `BLOCKED` verdict reached after a review keeps `full` or `degraded`. Reuse now keys on the verdict: outside the decision path a `BLOCKED` result is never reused. Before, the same text produced both labels and a `BLOCKED` run labeled `full` could be reused.
+- After a repair, the controller always runs one more closure review; it returns `REVISE` without that closure only when no fresh closure reviewer can be obtained. Before, `SKILL.md` allowed skipping the closure, which `repair_after_last_review` then flagged.
+- After printing the final report, the controller stops: no code edit, branch, stash, commit, or new invocation without a new user turn that asks for it. A change the controller made does not count as a changed document. The SDD sentence now stands alone.
+- `SKILL.md` and `evidence/README.md` say schema 2, 3, or 4 records are unsupported, and the recorder README says schema 4 (not 5) came from 4.0.0 through 5.1.0.
+- `start --model ""` (or a multi-line or over-long model) fails with `invalid-arguments` like every other argument error, not `schema-invalid`.
+- `summary --repo` refuses `.`, `..`, or a value with a slash, with a message that it is the checkout's display name; before, such a value silently matched nothing. `summary --plan` drops a leading `./`.
+
+### Changed
+
+- The host claim reads "Supported host: Codex only" (support, not measurement). The README pair no longer says other hosts were never checked.
+- The four recurring defect shapes in the reviewer protocol's Pass 3 have fixed `pattern` slugs: `addendum-half-folded`, `prose-only-verification`, `line-number-location`, and `closed-list-one-side`. Other slugs stay free.
+- `block_reason` starts with `decision:`, `input:`, `evidence:`, or `reviewer:` by convention (not an enum), and `primary-role-not-obtained` is documented as recorded only on an `execution=blocked` run.
+- `Evidence: not_recorded; reason=<code>` takes the failing recorder command's error code, `recorder-unavailable`, `recorder-incompatible`, `reused-prior-run`, or `previous-decision-checkpoint`.
+- `--plan`, `--design`, and `--ledger` must be inside the `--repo` checkout; otherwise the review continues and prints `Evidence: not_recorded; reason=outside-repository`.
+- Reuse and continuation compare the display name, plan path, document hashes, `git.head_end`, and the change list; `finish` and `abandon` enforce the checkout binding, so the controller does not recompute it. With a compatible recorder, `start` records the hashes and Git state; the controller hashes by hand only without it.
+- `SKILL.md` names the recorder slug for each risk trigger, defines the finding ID format (`PSDR-` plus three or more digits; a record first raised in a closure takes the next number), and drops the Hard gate paragraph that repeated "Do not use this skill for". The continuation rows in the READMEs and the recorder README say "from a reusable run", and the recorder README says campaign `elapsed_s` is campaign wall time.
+
+### Added
+
+- `--help` and `-h`, on their own or after any command, print the recorder's command table on stdout and exit 0.
+- `show` accepts `--repo` and ignores it, so it takes the same arguments as `finish` and `abandon`.
+- A reusable `REVISE` with nothing changed and a request to fix what is left takes the continuation: `start`, the handoff's fixes as repair pass 1, then closure. Nothing reviewed is edited before `start` except the step-2 decision record and campaign pre-pass repairs.
+
+### Notes
+
+- Handshake `cli_version` is 6.1.0. Record schema stays 5, so 6.0.0 records stay readable.
+
+## 6.0.0 - 2026-09-30
+
 ### Breaking
 
 - The recorder reads schema 5 only. Schema 2, 3, and 4 records written by 5.1.0 and earlier are no longer read, migrated, or closed. `show`, `finish`, `abandon`, and `outcome` refuse such a run with `schema-unsupported` and leave the file unchanged. `summary` skips those files and counts them in the new `unsupported_records`. Old records never block `start`.
-- To do: to clear old records, delete the `<run-id>.json` files under `~/.pre-sdd-review/runs/` (or `PRE_SDD_REVIEW_HOME/runs/`) whose top-level `"schema"` is 2, 3, or 4. For example, find them with `grep -lE '"schema": ?[234][,}]' ~/.pre-sdd-review/runs/*.json`, check them, then delete them. A schema 3 or 4 run left pending cannot be closed; start a new run.
+- To clear old records, delete the `<run-id>.json` files under `~/.pre-sdd-review/runs/` (or `PRE_SDD_REVIEW_HOME/runs/`) whose top-level `"schema"` is 2, 3, or 4. For example, find them with `grep -lE '"schema": ?[234][,}]' ~/.pre-sdd-review/runs/*.json`, check them, then delete them. A schema 3 or 4 run left pending cannot be closed; start a new run.
 - Removed the error code `legacy-record-read-only` and the `summary` `binding` field (`runs[].binding`, `counts.binding`, `historical-unbound`, `checkout-bound`). The old-record exceptions (findings without `source`, free-string `degraded_reasons`) are gone too.
 - `abandon` now requires `--repo` and refuses a run from another checkout with `outside-repository`, the same check `finish` makes. Before, one clone could close another clone's live run.
 - Finding `status` is `repaired`, `partially-closed`, or `unresolved`. The undocumented `blocked-by-authority` and `accepted-as-is` are rejected.
-- Schema 5: the record's `ledger` is `{path, sha_start, sha_end}`, like `plan` and `design`, and `finish` records the end hash. Schema 4 records (written by 4.0.0 to 5.1.0) are refused like schema 2 and 3. Reuse now also requires an unchanged ledger.
+- Schema 5: the record's `ledger` is `{path, sha_start, sha_end}`, like `plan` and `design`, and `finish` records the end hash. Schema 4 records (written before the schema-5 recorder) are refused like schema 2 and 3. Reuse now also requires an unchanged ledger.
 
 ### Fixed
 
@@ -44,7 +78,7 @@ All notable changes to this product are documented in this file.
 
 ### Notes
 
-- Handshake `cli_version` is 6.0.0. Record schema stays 4. No GitHub tag or GitHub Release is created.
+- Handshake `cli_version` is 6.0.0. Record schema is 5. No GitHub tag or GitHub Release is created.
 
 ## 5.1.0 - 2026-09-24
 
