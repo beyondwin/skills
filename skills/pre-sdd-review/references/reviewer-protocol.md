@@ -14,8 +14,10 @@ path plus a heading or line.
 
 ## Dispatch contract
 
-The controlling agent writes the instruction. These items are not optional, and
-the two instructions differ: a discovery reviewer must arrive told nothing.
+The controlling agent writes the instruction, and it is the reviewer's only
+input: the reviewer starts with no inherited conversation. These items are not
+optional, and the two instructions differ: a discovery reviewer must arrive
+told nothing.
 
 ### Discovery dispatch
 

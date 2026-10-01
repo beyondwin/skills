@@ -42,7 +42,7 @@ model, so real model review quality is `not_measured`.
 
 ## Fixture boundary
 
-`cases.json` owns exactly fifty-two cases covering activation, default flow,
+`cases.json` owns exactly fifty-four cases covering activation, default flow,
 review-only, verdicts, risk, freshness, evidence, and near-miss requests.
 `fixtures/` owns exactly nine synthetic repositories:
 `ready`, `missing-coverage`, `false-verification`, `runtime-removal`,
@@ -110,6 +110,8 @@ in fixtures, test logs, or committed live records.
 - `continuation-needs-recorded-run`
 - `focused-only-degraded-continues`
 - `continuation-after-recorded-decision`
+- `reviewer-starts-without-context`
+- `fix-handoff-continues`
 
 ### Fixture inventory
 
@@ -179,11 +181,11 @@ merged text adds only the reuse `Evidence:` wording on top of L5's.
 
 | Case | What it checks | Claude Code | Codex |
 | --- | --- | --- | --- |
-| L1 | Default flow: find both defects, repair, fresh closure | `READY` | `READY` |
+| L1 | Default flow: find both defects, repair, fresh closure | `READY` | `READY` (forked) |
 | L2a | Prior `REVISE`, plan and uncommitted code changed: fresh discovery | `READY` | not run |
 | L2b | Prior `REVISE`, only the plan changed: continuation keeps IDs | `READY` | `READY` |
 | L3 | Missing required base: `BLOCKED`, `start` called, `review_passes` 0 | `BLOCKED` | `BLOCKED` |
-| L4 | Prior `BLOCKED` decision answered in the request: record it, continue | `READY` | `READY` |
+| L4 | Prior `BLOCKED` decision answered in the request: record it, continue | `READY` | `READY` (forked) |
 | L5 | L1 again with nothing changed and the repaired plan uncommitted: reuse, no `start` | `READY` (reused) | `READY` (reused) |
 
 Every run edited nothing outside the design and plan, every recorded run
@@ -194,6 +196,12 @@ gap (a remainder split off under a new ID was treated as unmapped), which was
 fixed before the recorded L4 runs. n=1 per cell. This is not a quality
 measurement and does not change the host matrix in
 [Compatibility](compatibility.md).
+
+A cell marked forked means the Codex controller started its reviewers with its
+own conversation (`fork_turns` left at the default or set to `all`), so each
+reviewer saw the user request and SKILL.md. The L9 controller also messaged a
+running closure reviewer. Those cells are not evidence of reviewer
+independence. SKILL.md now requires `fork_turns: "none"` and `close_agent`.
 
 ### Live record, 2026-09-30 (schema 5)
 
@@ -209,7 +217,7 @@ for L6b, L7b, L8, and L9.
 | L6b | Missing command: `IMPORTANT` `repo-reality` | `REVISE` | `REVISE` |
 | L7b | Open product decision: `BLOCKER` `authority-drift` | `BLOCKED` | `BLOCKED` |
 | L8 | Campaign, plan-only repair: ledger start and end hashes recorded | `READY`, `READY` | `READY`, `READY` |
-| L9 | Campaign, farewell's repair changes the shared design: greeting gets a closure before its verdict, no anomaly | `READY`, `REVISE` | `READY`, `READY` |
+| L9 | Campaign, farewell's repair changes the shared design: greeting gets a closure before its verdict, no anomaly | `READY`, `REVISE` | `READY`, `READY` (forked) |
 
 In the first L6/L7 runs, both hosts also flagged the two sample strings as a
 weak proof of "returned unchanged", so both fixture plans gained a test with

@@ -189,15 +189,20 @@ the first match:
    `design.sha_end`, and `ledger.sha_end` (when recorded) match the current
    documents, `git.head_end` matches
    `HEAD`, the change list is docs-only, and the outer request does not ask
-   for a re-review or name changed authority or repository evidence. Reuse
+   for a re-review, ask to fix the handoff, or name changed authority or
+   repository evidence. Reuse
    the prior result and handoff without a new review; call no `start`, and
    print `Evidence: not_recorded; reason=reused-prior-run` and
    `Anomalies: not_recorded`.
-4. **Only the documents changed.** Take the continuation (Default mode) when
+4. **Fix what is left.** The latest completed run is a reusable `REVISE`,
+   nothing changed as step 3 defines it, and the outer request asks to fix the
+   handoff. Take the continuation: call `start`, apply the handoff's minimal
+   fixes as repair pass 1, then run closure.
+5. **Only the documents changed.** Take the continuation (Default mode) when
    the latest completed run is `REVISE` with a reusable `execution`, the
    change list is docs-only, the documents' diff since the run's `sha_end` can
    be produced, and the outer request does not ask for a full re-review.
-5. **Otherwise** run discovery. Without a recorded run for this plan there is
+6. **Otherwise** run discovery. Without a recorded run for this plan there is
    no reuse and no continuation.
 
 A run is reusable when its `execution` is `full`, or `degraded` with
@@ -209,7 +214,9 @@ re-run the input gates and call `start` for a fresh full review.
 
 Unless Choose the path ended the invocation without a review (steps 2 and 3),
 call `start` once the plan path resolves, before any reviewer dispatch, even
-when an input gate is about to return `BLOCKED`:
+when an input gate is about to return `BLOCKED`. Edit no reviewed document
+before `start`, except the step-2 decision record and campaign pre-pass
+repairs.
 
 ```sh
 python3 "<skill-root>/evidence/evidence.py" start --skill-root "<skill-root>" \
@@ -264,10 +271,15 @@ not prose.
 ## Select reviewers
 
 Dispatch one fresh, independent, read-only reviewer using the
-[reviewer protocol](references/reviewer-protocol.md). Use the host's subagent
-facility (a Codex subagent, or the Claude Code Agent tool) and state in the
-instruction that the reviewer is read-only. Only Codex is a measured host; on
-any other host, record its real id with `--client`.
+[reviewer protocol](references/reviewer-protocol.md), through the host's
+subagent facility (a Codex subagent, or the Claude Code Agent tool with an
+agent type that has no edit tools when one exists), and state in the
+instruction that the reviewer is read-only. Start each reviewer with no
+inherited conversation (Codex: `fork_turns: "none"`); its only input is the
+dispatch instruction. Send nothing to a running reviewer except the one
+missing-fields re-ask below, and close each reviewer once its records are in
+(Codex: `close_agent`). Supported host: Codex only; on any other host, record
+its real id with `--client`.
 
 A second fresh reviewer is conditional, not routine: dispatch one focused reviewer only for
 framework or runtime removal; schema migration or data deletion;

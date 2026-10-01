@@ -139,7 +139,8 @@ The log is for agents.
   `git ls-files --others --exclude-standard` names no path besides the design,
   plan, and ledger. A reuse records nothing and prints
   `Evidence: not_recorded; reason=reused-prior-run`.
-- When only the design, plan, or ledger changed since a `REVISE` run, or since
+- When only the design, plan, or ledger changed since a `REVISE` from a
+  reusable run, or since
   a `BLOCKED` run whose user decision the documents now record, the next
   invocation continues from closure; `show` supplies that run's findings.
 - After `finish`, print the `anomalies` it returned; do not look the run up in

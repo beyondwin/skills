@@ -81,6 +81,12 @@ reviewer. Reviewers report evidence and the smallest authority-preserving fix;
 only the controller edits documents. Only the paths below may be edited, and
 no feature, dependency, host claim, or product decision may be added.
 
+Each reviewer starts with no inherited conversation (Codex:
+`fork_turns: "none"`); its only input is the dispatch instruction. The
+controller sends a running reviewer nothing except the one missing-fields
+re-ask and closes it when its records are in (Codex: `close_agent`). On Claude
+Code, prefer an agent type without edit tools.
+
 If no independent fresh reviewer is available, the controller does not stand
 in for the independent primary reviewer. Evidence `reviewers` counts the agents
 actually obtained for logical roles, not the number of roles intended.
@@ -333,10 +339,15 @@ The next invocation takes the first matching path:
    continue.
 3. Handoff reuse: from a reusable run (`full`, or `degraded` whose only reason
    is `focused-role-not-obtained`), reuse the handoff only when the design,
-   plan, and ledger hashes, `HEAD`, and the request are unchanged and the change list is docs-only. Handoffs of
+   plan, and ledger hashes, `HEAD`, and the request are unchanged, the request
+   does not ask to fix the handoff, and the change list is docs-only. Handoffs of
    other `degraded` runs and of `BLOCKED` runs are never reused. A reuse calls no
    `start` and prints `Evidence: not_recorded; reason=reused-prior-run`.
-4. Continuation: if the last run was a reusable `REVISE`, the change list
+4. Fix what is left: if the last run was a reusable `REVISE`, nothing changed
+   as in step 3, and the request asks to fix the handoff, take the
+   continuation: `start`, apply the handoff's minimal fixes as repair pass 1,
+   then closure.
+5. Continuation: if the last run was a reusable `REVISE`, the change list
    shows only the design, plan, and ledger, and the user did not ask for a full
    re-review, start from closure with no discovery.
    - Reading an earlier run's recorded findings as open records is not handoff
@@ -345,7 +356,7 @@ The next invocation takes the first matching path:
      a remainder with a different severity or class, close or keep the carried
      record on its own terms and write the remainder as a new record with a new
      ID. That remainder is not unmapped; it is eligible for repair.
-5. Otherwise run full discovery. Without a recorded run for this plan there is
+6. Otherwise run full discovery. Without a recorded run for this plan there is
    no reuse and no continuation.
 
 - Repeated blocks: if three consecutive runs of the same plan are `BLOCKED` on
@@ -376,7 +387,9 @@ controller uses it in this order.
    gates and call `start` for a fresh full review.
 4. Unless the path ended without a review (decision checkpoint or reuse),
    call `start` once the plan path resolves, before any reviewer dispatch,
-   even when an input gate will return `BLOCKED`. Call `finish` once after the
+   even when an input gate will return `BLOCKED`. No reviewed document is
+   edited before `start`, except the step-2 decision record and campaign
+   pre-pass repairs. Call `finish` once after the
    verdict and repairs are done.
 5. There is exactly one `Evidence:` line. If the recorder is missing or fails,
    report `Evidence: not_recorded; reason=<code>`; that failure does not change

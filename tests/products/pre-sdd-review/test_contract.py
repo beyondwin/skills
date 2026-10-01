@@ -91,6 +91,8 @@ CASE_IDS = (
     "continuation-needs-recorded-run",
     "focused-only-degraded-continues",
     "continuation-after-recorded-decision",
+    "reviewer-starts-without-context",
+    "fix-handoff-continues",
 )
 FIXTURE_NAMES = (
     "conditional-edit-surface",
@@ -1149,6 +1151,11 @@ class PreSddReviewContractTests(unittest.TestCase):
             "print `Evidence: not_recorded; reason=reused-prior-run`",
             "Plan text that must change to follow the decision is a direct mapped repair impact",
             "That remainder's source is the carried record, so it is not unmapped",
+            "Start each reviewer with no inherited conversation (Codex: `fork_turns: \"none\"`); its only input is the dispatch instruction",
+            "Send nothing to a running reviewer except the one missing-fields re-ask",
+            "close each reviewer once its records are in (Codex: `close_agent`)",
+            "Edit no reviewed document before `start`, except the step-2 decision record and campaign pre-pass repairs",
+            "Take the continuation: call `start`, apply the handoff's minimal fixes as repair pass 1, then run closure",
         ):
             self.assertIn(phrase, skill)
         self.assertIn("If `HEAD` moves off the freeze before the verdict", freshness)
@@ -1343,6 +1350,8 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertEqual(cases["continuation-needs-recorded-run"], ("fresh_discovery",))
         self.assertEqual(cases["focused-only-degraded-continues"], ("continuation", "no_focused_role", "trigger_null"))
         self.assertEqual(cases["continuation-after-recorded-decision"], ("continuation", "closure_first"))
+        self.assertEqual(cases["reviewer-starts-without-context"], ("no_inherited_context", "dispatch_instruction_only", "no_message_but_reask", "close_after_records"))
+        self.assertEqual(cases["fix-handoff-continues"], ("continuation", "start_before_edit", "handoff_fixes_are_repair_pass_1", "closure"))
 
     def test_authority_and_risk_selection_are_ordered_and_conditional(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -1826,8 +1835,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "not_measured",
         ):
             self.assertIn(fact, normalized_testing)
-        self.assertEqual(len(CASE_IDS), 52)
-        self.assertIn("exactly fifty-two cases", normalized_testing)
+        self.assertEqual(len(CASE_IDS), 54)
+        self.assertIn("exactly fifty-four cases", normalized_testing)
         self.assertIn("Only Codex is supported today", compatibility)
         self.assertIn("Every other host\nis `not_measured`", compatibility)
         self.assertIn("## Recorder compatibility", compatibility)
