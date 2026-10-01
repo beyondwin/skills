@@ -3,7 +3,7 @@
 `waygent` is a light implementation skill that wraps a model. This folder records where its
 design came from and how it did when we ran it.
 
-- Skill: [`skills/waygent/SKILL.md`](../../../skills/waygent/SKILL.md) (measured as 0.1.0, 0.2.0, and 0.3.0; under 140 lines)
+- Skill: [`skills/waygent/SKILL.md`](../../../skills/waygent/SKILL.md) (measured as 0.1.0, 0.2.0, and 0.3.0; each measured copy was under 140 lines)
 - Design basis: the 30 runs in the [agent workflow comparison](../2026-09-agent-workflow-comparison/README.md),
   the user's own v26/v27 comparison, and independent designs from four models (Opus 5.5,
   Fable 5.1, Grok 4.7, GPT-5.6 Sol)
