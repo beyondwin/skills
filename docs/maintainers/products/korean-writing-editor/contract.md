@@ -87,11 +87,12 @@ Do not put a behavior change in one file only.
 - Trigger or near-miss change (a similar request that must not activate):
   activation text in `skills/korean-writing-editor/SKILL.md`, positive and
   near-miss fixtures in `tests/products/korean-writing-editor/offline/cases.json`,
+  live cases in `tests/products/korean-writing-editor/live/live_cases.json`,
   the product READMEs, and shared public guides.
 - Mode or output change (`diagnose`, `correct`, `polish`, edited-text-only
   output, hold marking): `SKILL.md`,
-  `skills/korean-writing-editor/references/editorial-guide.md`, fixtures, and
-  public guides.
+  `skills/korean-writing-editor/references/editorial-guide.md`, offline
+  fixtures, `live/live_cases.json`, and public guides.
 - Model tier change (`fast`, `balanced`, `frontier`, routing, delegation):
   routing fixtures in `tests/products/korean-writing-editor/offline/cases.json`
   and public guides. Do not hard-code provider model names or call a

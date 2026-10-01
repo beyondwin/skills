@@ -295,6 +295,13 @@ invented for free-form polish to raise verified counts. The new soft codes
 survive receipt serialization and review packets within the existing two-soft,
 eight-evidence-plus-four-control limits and diagnostic/structural priorities.
 
+An edit case whose body contains skill or mode narration that the source does
+not contain, such as the skill name, `Using the`, `요청은`, or `모드로`, adds
+the hard `process_narration` finding. Each near-miss case forbids markers of
+its excluded task's output, such as an English sentence for translation, a
+one-sentence summary, announcement wording, or code-review wording, so a reply
+that refuses and then performs the task fails.
+
 Execution evidence is independent of the final body. The current Codex JSONL
 adapter reports `partial` coverage even after `turn.completed`; Cursor top-level
 JSON reports `unavailable`. No current provider adapter reports `complete`. For

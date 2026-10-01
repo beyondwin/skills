@@ -77,8 +77,17 @@ EXPECTED_REPEAT_IDS = {
     "structure-embedded-instruction",
     "near-detector-author",
 }
-APPROVED_CASES_SHA256 = "ba7e1df65ce63e9d110cc4cecb4eb14d291295d376b06dfc0cb22b90e07bc951"
+APPROVED_CASES_SHA256 = "922670cf2e23f24b5f1cf9e9b0a5524b005561ea2dff82c1ad246f50e3195898"
 ANSI_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+EDIT_NARRATION_MARKERS = (
+    "korean-writing-editor",
+    "Using the",
+    "using the",
+    "한국어 교정 스킬",
+    "요청은",
+    "모드로",
+    "모드입니다",
+)
 
 
 def _fchmod(descriptor: int, mode: int) -> None:
@@ -1206,6 +1215,14 @@ def evaluate_response(
             findings.append(
                 Finding("forbidden_substring", "response contains forbidden substring", substring)
             )
+    if case.expected_behavior == "edit":
+        canonical_source = _canonical_literal_text(case.source)
+        for marker in EDIT_NARRATION_MARKERS:
+            canonical_marker = _canonical_literal_text(marker)
+            if canonical_marker in canonical_candidate and canonical_marker not in canonical_source:
+                findings.append(
+                    Finding("process_narration", "edited body contains skill or mode narration", marker)
+                )
     for fact in _diagnostic_hard_drifts(case, candidate):
         findings.append(
             Finding(

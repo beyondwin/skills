@@ -67,6 +67,11 @@ calls), update `tests/products/korean-writing-editor/live/live_cases.json`,
 `live_matrix.py`, `test_live_matrix.py`, and
 `tests/products/korean-writing-editor/live/README.md` together. Live cases are
 synthetic. Do not put private manuscripts or full transcripts in these files.
+A `live_cases.json` change also updates `APPROVED_CASES_SHA256` in
+`live_matrix.py`.
+
+Near-miss live cases forbid markers of the excluded task's output, and edit
+cases fail on skill or mode narration (`process_narration`).
 
 Product evidence must be made fresh with runner 18 (live runner version 18).
 Records from older runners are rejected and cannot resume or skip a run.

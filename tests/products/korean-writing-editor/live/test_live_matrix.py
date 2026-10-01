@@ -631,6 +631,14 @@ GUIDE_EDIT_SEMANTICS_PARAGRAPH = (
     "survive receipt serialization and review packets within the existing two-soft, "
     "eight-evidence-plus-four-control limits and diagnostic/structural priorities."
 )
+GUIDE_NARRATION_PARAGRAPH = (
+    "An edit case whose body contains skill or mode narration that the source does "
+    "not contain, such as the skill name, `Using the`, `요청은`, or `모드로`, adds "
+    "the hard `process_narration` finding. Each near-miss case forbids markers of "
+    "its excluded task's output, such as an English sentence for translation, a "
+    "one-sentence summary, announcement wording, or code-review wording, so a reply "
+    "that refuses and then performs the task fails."
+)
 GUIDE_EXECUTION_PARAGRAPH = (
     'Execution evidence is independent of the final body. The current Codex JSONL adapter '
     'reports `partial` coverage even after `turn.completed`; Cursor top-level JSON reports '
@@ -756,6 +764,7 @@ GUIDE_EXPECTED_SECTIONS = (
             GUIDE_JUDGE_PARAGRAPH,
             GUIDE_DIAGNOSTIC_DRIFT_PARAGRAPH,
             GUIDE_EDIT_SEMANTICS_PARAGRAPH,
+            GUIDE_NARRATION_PARAGRAPH,
             GUIDE_EXECUTION_PARAGRAPH,
             "No aggregate average erases a severe failure. Every report states the level at which a status applies.",
         ),
@@ -1729,6 +1738,42 @@ class DeterministicEvaluationTests(unittest.TestCase):
                     "partially_verified",
                 )
 
+    def test_near_miss_performing_the_excluded_task_fails(self) -> None:
+        responses = {
+            "near-translation": "번역은 하지 않습니다. There is a meeting tomorrow morning.",
+            "near-summarization": "팀은 검토가 끝나지 않아 배포를 미뤘다.",
+            "near-drafting": "빠른 설정과 오프라인 지원을 갖춘 신제품을 출시합니다.",
+            "near-code-review": "a - b가 아니라 a + b를 반환해야 하는 버그입니다.",
+        }
+        for case_id, response in responses.items():
+            with self.subTest(case_id=case_id):
+                case = case_by_id(case_id)
+                findings = live_matrix.evaluate_response(case, response)
+                self.assertEqual(live_matrix.case_status(case, findings), "failed")
+                self.assertIn("forbidden_substring", {f.code for f in findings})
+
+    def test_edit_case_with_skill_or_mode_narration_fails(self) -> None:
+        case = case_by_id("preserve-negation-modality")
+        for preamble in (
+            "Using the korean-writing-editor skill.",
+            "요청은 자연스럽게 다듬기입니다.",
+            "polish 모드로 다듬었습니다.",
+        ):
+            with self.subTest(preamble=preamble):
+                findings = live_matrix.evaluate_response(
+                    case, f"{preamble}\n{case.source}"
+                )
+                self.assertEqual(live_matrix.case_status(case, findings), "failed")
+                self.assertIn("process_narration", {f.code for f in findings})
+        clean = live_matrix.evaluate_response(case, case.source)
+        self.assertNotIn("process_narration", {f.code for f in clean})
+
+    def test_diagnose_returning_the_unchanged_source_fails(self) -> None:
+        case = case_by_id("diagnose-no-rewrite")
+        findings = live_matrix.evaluate_response(case, case.source)
+        self.assertEqual(live_matrix.case_status(case, findings), "failed")
+        self.assertIn("forbidden_exact_output", {f.code for f in findings})
+
     def test_near_miss_hard_failure_is_not_hidden_by_activation_limit(self) -> None:
         case = case_by_id("near-casual")
         findings = live_matrix.evaluate_response(case, "수정본입니다")
@@ -1743,7 +1788,7 @@ class DeterministicEvaluationTests(unittest.TestCase):
         case = dataclasses.replace(
             case_by_id("diagnose-no-rewrite"), observable_activation=False
         )
-        findings = live_matrix.evaluate_response(case, case.source)
+        findings = live_matrix.evaluate_response(case, "배포할수는 띄어써야 합니다.")
 
         self.assertEqual(live_matrix.case_status(case, findings), "partially_verified")
         self.assertEqual(
