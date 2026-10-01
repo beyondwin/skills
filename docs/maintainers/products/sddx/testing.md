@@ -187,6 +187,34 @@ Observations by version, newest first. Each entry is what was seen in that
 environment and CLI version; numbers and verdicts are the values from that time.
 Within a version, offline checks come first and live checks after.
 
+### Live check, 2026-10-02 (8.1.0 text, 8.1.1 fix)
+
+Same fixture and CLIs as the 2026-10-01 check (new repository per run, the
+two-task `wordfreq` plan with its Korean rules heading, pinned skill copies).
+This time the skill text was the shipped 8.1.0 one, with all of its fixes: sddx
+SKILL.md `cf4cb86e…`, waygent SKILL.md `bac260d3…` (0.3.2 before its
+reviewer-tree line).
+
+| # | Host · worker | What happened | Verdict |
+| --- | --- | --- | --- |
+| W1 | Codex 0.157.1 (`gpt-6-astra` high, isolated HOME) · Grok CLI 1.0.46, `grok-4.7` high | Two attempts, `prepare`/`cleanup` around each, 2 trailer commits, 28 tests, clean tree, no process left. Waiting: each `wait` started once with `exec_command`, then the same session was polled with `write_stdin` (empty `chars`) until it exited: 7 and 15 polls for the two attempts, 22 in all, with no `status` call between waits (one `status` after each attempt). The controller asked for `yield_time_ms` 50000 rather than 300000. The 2026-10-01 run needed 45 `wait` calls and 16 cell waits. Reviewers were read with `observed_model.py codex --agent-path /root/<name>` from the run's own `CODEX_HOME`: `gpt-6-astra` high, high, and xhigh (final), no `(requested)`. Progress values kept waygent's format (`tests=28 passed`, no `_`). Task 2's worker read `README.md`, and the controller recorded `role=FAIL` and ended `DONE_WITH_CONCERNS` on a correct result, as on 2026-10-01 (fixed in 8.1.1, below). 27 minutes; 3.56M input tokens (3.50M cached), 11.6k output on the controller. The weekly Codex limit reached 100% during this run | Loop pass; the role call was too strict |
+| W2 | Claude Code 2.1.284 (`--model opus --effort high`) · Cursor Agent, `grok-4.7-high` | Four attempts (task 1, its fix, task 2, final batch), 4 trailer commits, 45 tests, clean tree. Leftover checks used `pgrep -f`; no `ps aux`. Lines `task 1: done … review=fixed 1 reviewer=claude-opus-5-5/high … role=PASS`, `final: done 187eb27 impl=cursor:Grok_4.7_256K_High/high reviewer=claude-fable-5-1/high fixed=1 walk=ok tests=45 passed`. The task 1 reviewer left a test mutant uncommitted in `wordfreq/core.py` although its ask said not to edit; the controller did not see it, and the fix worker found it in `git status` and restored it (waygent 0.3.2 now has reviewers leave the tree as found and the controller restore a dirty tree). One reviewer ran `pgrep -fl 'wordfreq'`; it matched nothing. 33.6 minutes, 38 turns, $4.44 | Pass |
+
+8.1.1 role decision probe: Codex 0.157.1, `gpt-6-astra` high, told to read a
+pinned SDDx SKILL.md and judge one finished task whose worker read `README.md`
+(disclosed as a scope deviation; no plan, credential, or secret read). 8.1.0
+text (`cf4cb86e…`): `role=FAIL`, no clean DONE, 3 of 3. 8.1.1 text
+(`910ddf39…`): `role=PASS`, the read goes to the reviewer, 3 of 3.
+
+`observed_model.py codex --agent-path` reads only each rollout's first line:
+0.18 s over 254 real rollouts (205 MB) in `~/.codex/sessions`.
+
+Not changed, by decision: a worker ended from outside (exit 143, no report,
+session known) still counts as a task failure and spends the one retry. There
+has been one such exit (a deliberate kill in the 8.0.0 round 2 check); the runner
+cannot tell who sent the signal, and resuming would also resume a worker that
+ended itself. Revisit if unexplained 143 exits recur.
+
 ### Live check, 2026-10-01 (8.1.0)
 
 2026-10-01, macOS 26.5.2 arm64, Python 3.14.7. Skill text from branch

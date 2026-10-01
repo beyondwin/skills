@@ -91,7 +91,8 @@ the fast check, and the `run_worker.py status` tools index, and records role
 compliance as PASS, FAIL, or UNVERIFIED.
 
 - A successful read of the plan, credentials, or secrets is FAIL, even when tests
-  pass. A missing or partial tool record is UNVERIFIED. Neither is a clean DONE.
+  pass. Any other read outside the brief is a scope deviation for the reviewer, not
+  FAIL. A missing or partial tool record is UNVERIFIED. Neither is a clean DONE.
 - Filename listings and reading repository ignore/build/test settings are
   allowed and are not scope deviations.
 - The worker runs test commands bare. A shell ending in `; echo …$?` proves

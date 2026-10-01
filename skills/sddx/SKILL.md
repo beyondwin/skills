@@ -4,8 +4,8 @@ description: Use when the user runs /sddx or $sddx. Do not use for writing a spe
 license: Apache-2.0
 compatibility: Requires a local Git repository, an implementation plan file, the waygent skill installed next to this one, and Claude Code or Codex as the orchestrator host. Implementer CLIs are optional and resolved at runtime.
 metadata:
-  version: "8.1.0"
-  updated_at: "2026-10-01"
+  version: "8.1.1"
+  updated_at: "2026-10-02"
 ---
 
 # SDDx
@@ -128,7 +128,9 @@ Process exit 0 is not task completion. On top of waygent's check (trailer
 commit, clean tree, fast check), read `report.md` and `run_worker.py status`
 (the tools index), and record role compliance as PASS, FAIL, or UNVERIFIED.
 A successful prohibited read (the plan, credentials, secrets) is FAIL even when
-tests pass. Missing or incomplete tool evidence is UNVERIFIED, never PASS.
+tests pass. Any other read outside the brief (a README, a neighbouring module) is
+a scope deviation: give it to the reviewer; it is not FAIL. Missing or
+incomplete tool evidence is UNVERIFIED, never PASS.
 Neither permits a clean DONE. Give the reviewer the evidence and any
 discrepancy with the worker report. A shell whose command ends in
 `; echo …$?` proves nothing about the test exit; the index holds the echo's.

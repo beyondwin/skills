@@ -83,13 +83,14 @@ The runner, resolver, and sandbox helpers are unchanged apart from the
 `.waygent/` path, `reported_model`, and the `wait` subcommand. The later runner
 changes (`runner_pid`, an interrupt while the backend is resolved, the `wait`
 start grace, the cmux hook switch) were exercised by the live check in
-[testing](testing.md), "Live check, 2026-10-01 (8.1.0)".
+[testing](testing.md), "Live check, 2026-10-01 (8.1.0)", and the shipped 8.1.0 text by
+"Live check, 2026-10-02 (8.1.0 text, 8.1.1 fix)".
 
 | Host | Worker | State |
 | --- | --- | --- |
 | Claude Code | Grok CLI | `measured` 2026-09-30: two tasks and final review, pass |
-| Claude Code | Cursor Agent | `measured` 2026-09-30: stopped-runner resume, a review fix via `--resume`, final review, pass |
-| Codex | Grok CLI | `measured` 2026-09-30: fresh XHigh retry after a worker failure, a review fix, final review at `xhigh`, pass |
+| Claude Code | Cursor Agent | `measured` 2026-10-02 on the shipped 8.1.0 text: a review fix, final review with a fix and walk, pass. Earlier: 2026-09-30, stopped-runner resume, a review fix via `--resume`, final review, pass |
+| Codex | Grok CLI | `measured` 2026-10-02 on the shipped 8.1.0 text: `write_stdin` waiting, reviewer models read by `--agent-path`, final review at `xhigh`, pass (role call fixed in 8.1.1). Earlier: 2026-09-30, fresh XHigh retry after a worker failure, a review fix, final review at `xhigh`, pass |
 | Codex | Cursor Agent | `not_measured` as a pair; each side was run with the other partner |
 
 Details are in "8.0.0 live check" and "round 2" in [Testing](testing.md). Under

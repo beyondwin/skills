@@ -14,7 +14,7 @@ human-facing history is `CHANGELOG.md` in the same directory.
 ## Current state
 
 There is no public sddx release yet. The current standalone version is
-`8.1.0`, and `release.toml` is the source. There are no tags or artifacts.
+`8.1.1`, and `release.toml` is the source. There are no tags or artifacts.
 
 `release.toml` and `SKILL.md` `metadata.version` must always hold the same value.
 
@@ -22,6 +22,9 @@ There is no public sddx release yet. The current standalone version is
 
 Newest first. Details are in each CHANGELOG section.
 
+- `8.1.1`: only a prohibited read (the plan, credentials, secrets) makes role
+  compliance FAIL; any other read outside the brief is a scope deviation for the
+  reviewer. CHANGELOG `## 8.1.1 - 2026-10-02`.
 - `8.1.0`: fixes from the 2026-10-01 log audit. An interrupt while the backend
   resolves is recorded, and `wait` sees a dead runner (`runner_pid`); per-host
   waiting; `wait --start-grace`; `extract_task.py --constraints-heading` for plans

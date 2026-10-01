@@ -157,7 +157,7 @@ EXPECT_LOCK = {
     },
     "no_full_plan": {"skill_must": ("The worker cannot read the plan",)},
     "no_mcp_tools": {"dispatch_must": ("search_tool,use_tool",)},
-    "role_fail": {"skill_must": ("prohibited read (the plan, credentials, secrets) is FAIL",)},
+    "role_fail": {"skill_must": ("prohibited read (the plan, credentials, secrets) is FAIL", "a scope deviation: give it to the reviewer; it is not FAIL")},
     "report_discrepancy": {"skill_must": ("any discrepancy with the worker report",)},
     "not_clean_done": {"skill_must": ("Neither permits a clean DONE.",)},
     "role_unverified": {

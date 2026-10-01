@@ -4,6 +4,16 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 8.1.1 - 2026-10-02
+
+### Fixed
+
+- Only a prohibited read (the plan, credentials, secrets) makes role compliance FAIL.
+  Any other read outside the brief, such as a README, is a scope deviation that goes to
+  the reviewer. In both Codex-hosted live runs (2026-10-01 and 2026-10-02) the
+  controller marked a README read `role=FAIL` and withheld a clean DONE from a correct
+  result.
+
 ## 8.1.0 - 2026-10-01
 
 ### Fixed
