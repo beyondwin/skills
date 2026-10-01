@@ -28,16 +28,18 @@ Keep the baseline Mermaid and numbered hops in Map at every rung. Put the failur
 
 Chrome order is authoritative. Length is a budget, not a target. Restating the same sentence to fill space is a failure. Mermaid rendering is enhancement only; source plus hop list is the fallback.
 
-Use only the selected language for headings, intent lines, body, banner, and next move. The slash-separated Korean/English labels in the template below are alternatives: choose the label for the current language and do not emit both.
+Use only the selected language for headings, intent lines, body, banner, and next move.
 
 ````markdown
-# {slice} · {그림|길|뼈대|허점 / picture|path|skeleton|fracture}
+{intent line}
+
+# {slice} · {그림|길|뼈대|허점}
 
 {high-stakes banner or omit}
 
-## 한 줄 / One sentence
+## 한 줄
 
-## 지도 / Map
+## 지도
 
 1. **H1** — {what moves or changes}
 2. **H2** — {what moves or changes}
@@ -46,12 +48,14 @@ Use only the selected language for headings, intent lines, body, banner, and nex
 {diagram source}
 ```
 
-## 본문 / Body
+## 본문
 
-## 지금 다루지 않은 것 / Adjacent slices
+## 지금 다루지 않은 것
 
-다음 / Next: {exactly one move}
+다음: {exactly one move}
 ````
+
+English replies use the same skeleton with these labels: `# {slice} · {picture|path|skeleton|fracture}`, `## One sentence`, `## Map`, `## Body`, `## Adjacent slices`, `Next:`.
 
 - 한 줄: one sentence that remains true at 허점
 - 지도: numbered hop list, then mermaid source; caption is the diagram’s claim

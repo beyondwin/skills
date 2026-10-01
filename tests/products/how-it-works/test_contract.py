@@ -47,17 +47,18 @@ REQUIRED_DELIVERABLE_PHRASES = (
     "one next move",
 )
 OUTPUT_CHROME = (
-    "# {slice} · {그림|길|뼈대|허점 / picture|path|skeleton|fracture}",
+    "{intent line}",
+    "# {slice} · {그림|길|뼈대|허점}",
     "{high-stakes banner or omit}",
-    "## 한 줄 / One sentence",
-    "## 지도 / Map",
+    "## 한 줄",
+    "## 지도",
     "1. **H1** — {what moves or changes}",
     "2. **H2** — {what moves or changes}",
     "```mermaid",
     "{diagram source}",
-    "## 본문 / Body",
-    "## 지금 다루지 않은 것 / Adjacent slices",
-    "다음 / Next: {exactly one move}",
+    "## 본문",
+    "## 지금 다루지 않은 것",
+    "다음: {exactly one move}",
 )
 RUNTIME_FLOW = (
     "fill slice, type, rung, language",

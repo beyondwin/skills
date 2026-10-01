@@ -118,18 +118,19 @@ The explanation is complete in this chat reply. Do not wait for a renderer. Incl
 5. adjacent slices this reply does not cover
 6. one next move
 
-Skeleton, mirrored from `references/output.md`, which owns it. Each label is
-Korean / English: print only the one for the reply language. Headings, intent line,
-body, banner, and next move all use that one language.
+Skeleton, mirrored from `references/output.md`, which owns it. Headings, intent line,
+body, banner, and next move all use the reply language.
 
 ````markdown
-# {slice} · {그림|길|뼈대|허점 / picture|path|skeleton|fracture}
+{intent line}
+
+# {slice} · {그림|길|뼈대|허점}
 
 {high-stakes banner or omit}
 
-## 한 줄 / One sentence
+## 한 줄
 
-## 지도 / Map
+## 지도
 
 1. **H1** — {what moves or changes}
 2. **H2** — {what moves or changes}
@@ -138,12 +139,14 @@ body, banner, and next move all use that one language.
 {diagram source}
 ```
 
-## 본문 / Body
+## 본문
 
-## 지금 다루지 않은 것 / Adjacent slices
+## 지금 다루지 않은 것
 
-다음 / Next: {exactly one move}
+다음: {exactly one move}
 ````
+
+English replies use the same skeleton with these labels: `# {slice} · {picture|path|skeleton|fracture}`, `## One sentence`, `## Map`, `## Body`, `## Adjacent slices`, `Next:`.
 
 Korean replies use 해요체. At 그림, Body does not walk the hops again.
 
