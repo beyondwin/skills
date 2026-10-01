@@ -91,7 +91,7 @@ request
   -> offer one next move
 ```
 
-When the host can read files, read the references EXPLAIN lists, starting with `references/output.md`, before replying.
+When the host can read files, read the references the EXPLAIN section lists, starting with `references/output.md`, before replying.
 Only when the host cannot read files this turn, emit the complete required deliverable from the skeleton in Required deliverable.
 
 ## After EXPLAIN
