@@ -69,7 +69,8 @@ topics, provider transcripts, or private logs.
 ### Records
 
 A schema 2 record separates the observed version, payload hash, model, host,
-client, runner, and date, plus per-case invocation and five observed dimensions.
+client, runner, and date, plus per-case invocation and five observed dimensions. The
+record accepts only the supported hosts, `codex` and `claude-code`.
 
 - `lexical` checks of `fence` and `hop_ids` can't promote `skill_loading`,
   `mermaid_syntax`, or `meaning` to a pass.

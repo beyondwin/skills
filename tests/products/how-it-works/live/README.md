@@ -1,8 +1,8 @@
 # how-it-works live smoke
 
 This optional operator procedure records separate observations in a fresh session.
-It is not CI. Calls may consume subscription/API quota. No live calls were made
-for the 2.0.0 hardening work: current execution evidence is `not_measured`.
+It is not CI. Calls may consume subscription/API quota. No live run of the current
+payload is recorded: current execution evidence is `not_measured`.
 
 Do not use private or user prompts. Use only the three synthetic cases in
 `cases.json`. Do not commit full responses, screenshots, generated media,
@@ -36,7 +36,7 @@ or `not_measured`. A missing observation must be `not_measured/not_run`.
 | Dimension | Method allowed for pass/fail | What it can establish |
 | --- | --- | --- |
 | `fence` | `lexical` | A nonempty, closed canonical Mermaid fence is present |
-| `hop_ids` | `lexical` | H1/H2 IDs in Mermaid source match unique `1. **H1**` prose entries |
+| `hop_ids` | `lexical` | H1/H2 IDs in Mermaid source match unique `1. **H1**` prose entries; a branch id such as `H3a` counts as `H3` |
 | `skill_loading` | `host_event` | A separately observed host loading event |
 | `mermaid_syntax` | `parser` or `renderer` | The result of an actually executed Mermaid parser/renderer |
 | `meaning` | `semantic_review` | A separate review of causal and explanatory correctness |
@@ -53,40 +53,45 @@ are declarations: `record_binding` does not authenticate execution.
 
 ## Commands
 
-Provider-free check, then capture client versions:
+Run every command from the repository root. Provider-free check, then capture
+client versions:
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 scripts/verify.py --skill how-it-works
 codex --version
 claude --version
-grok --version
-/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' /Applications/Cursor.app/Contents/Info.plist
 ```
 
-Fresh ephemeral Codex, non-persistent Claude Code, and single-turn Grok
-processes. Save output only under a `mktemp` directory:
+Fresh ephemeral Codex and non-persistent Claude Code processes, with JSON event
+output. Save output only under a `mktemp` directory:
 
 ```bash
 how_it_works_smoke_tmp="$(mktemp -d)"
-codex exec --ephemeral --sandbox read-only --cd /Users/kws/source/private/skills '$how-it-works DNS가 브라우저 요청에서 IP 주소가 되는 길을 보여줘' | tee "$how_it_works_smoke_tmp/codex-explicit.txt"
-codex exec --ephemeral --sandbox read-only --cd /Users/kws/source/private/skills 'DNS 요청이 브라우저에서 어디를 거쳐 IP 주소가 되는지 길로 보여줘' | tee "$how_it_works_smoke_tmp/codex-implicit.txt"
-codex exec --ephemeral --sandbox read-only --cd /Users/kws/source/private/skills 'DNS resolver 테스트 실패를 고쳐줘. 동작 설명은 하지 마.' | tee "$how_it_works_smoke_tmp/codex-near-miss.txt"
-claude --print --no-session-persistence --permission-mode plan '/how-it-works DNS가 브라우저 요청에서 IP 주소가 되는 길을 보여줘' | tee "$how_it_works_smoke_tmp/claude-explicit.txt"
-claude --print --no-session-persistence --permission-mode plan 'DNS 요청이 브라우저에서 어디를 거쳐 IP 주소가 되는지 길로 보여줘' | tee "$how_it_works_smoke_tmp/claude-implicit.txt"
-claude --print --no-session-persistence --permission-mode plan 'DNS resolver 테스트 실패를 고쳐줘. 동작 설명은 하지 마.' | tee "$how_it_works_smoke_tmp/claude-near-miss.txt"
-grok inspect --json
-grok --single '/how-it-works DNS가 브라우저 요청에서 IP 주소가 되는 길을 보여줘' --permission-mode plan --max-turns 1 | tee "$how_it_works_smoke_tmp/grok-explicit.txt"
-grok --single 'DNS 요청이 브라우저에서 어디를 거쳐 IP 주소가 되는지 길로 보여줘' --permission-mode plan --max-turns 1 | tee "$how_it_works_smoke_tmp/grok-implicit.txt"
-grok --single 'DNS resolver 테스트 실패를 고쳐줘. 동작 설명은 하지 마.' --permission-mode plan --max-turns 1 | tee "$how_it_works_smoke_tmp/grok-near-miss.txt"
+codex exec --json --ephemeral --sandbox read-only --cd "$PWD" -o "$how_it_works_smoke_tmp/codex-explicit.md" '$how-it-works DNS가 브라우저 요청에서 IP 주소가 되는 길을 보여줘' > "$how_it_works_smoke_tmp/codex-explicit.jsonl"
+codex exec --json --ephemeral --sandbox read-only --cd "$PWD" -o "$how_it_works_smoke_tmp/codex-implicit.md" 'DNS 요청이 브라우저에서 어디를 거쳐 IP 주소가 되는지 길로 보여줘' > "$how_it_works_smoke_tmp/codex-implicit.jsonl"
+codex exec --json --ephemeral --sandbox read-only --cd "$PWD" -o "$how_it_works_smoke_tmp/codex-near-miss.md" 'DNS resolver 테스트 실패를 고쳐줘. 동작 설명은 하지 마.' > "$how_it_works_smoke_tmp/codex-near-miss.jsonl"
+claude --print --output-format stream-json --verbose --no-session-persistence --permission-mode plan '/how-it-works DNS가 브라우저 요청에서 IP 주소가 되는 길을 보여줘' > "$how_it_works_smoke_tmp/claude-explicit.jsonl"
+claude --print --output-format stream-json --verbose --no-session-persistence --permission-mode plan 'DNS 요청이 브라우저에서 어디를 거쳐 IP 주소가 되는지 길로 보여줘' > "$how_it_works_smoke_tmp/claude-implicit.jsonl"
+claude --print --output-format stream-json --verbose --no-session-persistence --permission-mode plan 'DNS resolver 테스트 실패를 고쳐줘. 동작 설명은 하지 마.' > "$how_it_works_smoke_tmp/claude-near-miss.jsonl"
 ```
 
-Cursor uses the installed desktop application. In a fresh Cursor window or
-session, verify the skill through `/how-it-works` or `@how-it-works`, then run
-explicit, implicit, and near-miss cases in separate new chats. Do not drive
-Cursor with AppleScript, osascript, or CGEvent. Prefer Computer Use
-(`node_repl` / `@oai/sky`) when that harness is available. If Computer Use is
-absent in this run, record Cursor as `not_measured` and do not mark it
-`supported`; that is this-run status, not a standing skip of desktop smoke.
+Reading the event streams:
+
+- Reply text for `observe_text`: Codex writes the final message to the `-o` file.
+  For Claude Code, take the `result` field of the final `"type":"result"` line:
+  `jq -r 'select(.type=="result") | .result' claude-implicit.jsonl`.
+- Claude Code `skill_loading`: a `tool_use` block named `Skill` whose input names
+  `how-it-works`, inside an `assistant` event:
+  `jq -c 'select(.type=="assistant") | .message.content[]? | select(.type=="tool_use" and .name=="Skill") | .input' claude-implicit.jsonl`.
+  An explicit `/how-it-works` may be expanded by the client before the model runs;
+  then the evidence is a `user` event that carries the skill body (it starts with
+  `Base directory for this skill:` and names `how-it-works`).
+- Codex `skill_loading`: an event for a command or file read that opens
+  `how-it-works/SKILL.md`. A mention of the path in the reply text is not a loading
+  event.
+- If the stream shows none of these, record `skill_loading` as `not_measured/not_run`.
+  For a near-miss case, the same events showing the skill was not loaded support an
+  invocation `pass`.
 
 After scoring, delete the temporary directory only when it matches a `mktemp`
 path:
@@ -97,7 +102,7 @@ case "$how_it_works_smoke_tmp" in
     rm -rf -- "$how_it_works_smoke_tmp"
     ;;
   *)
-    print -u2 -r -- "refusing unexpected temporary path: $how_it_works_smoke_tmp"
+    printf 'refusing unexpected temporary path: %s\n' "$how_it_works_smoke_tmp" >&2
     exit 1
     ;;
 esac
@@ -114,16 +119,18 @@ No live record is committed. A schema 2 record has exactly these top-level field
 | `product_version` | Nonempty actual release version from `load_product_release(Path).version` |
 | `payload_sha256` | 64 lowercase hex digits from the existing `payload_sha256(Path)` |
 | `model` | Actual nonempty observed model name, or `null` if unknown |
-| `host` | `codex`, `claude-code`, `grok`, or `cursor`; acceptance is not product support |
+| `host` | `codex` or `claude-code`; acceptance is not product support |
 | `client_version` | Nonempty observed client version |
 | `runner_version` | Nonempty version of the procedure/runner actually used |
 | `executed_on` | Actual execution date, accepted by Python `date.fromisoformat` |
-| `cases` | Nonempty object keyed by case ID |
+| `cases` | Nonempty object keyed by case IDs from `cases.json` |
 
 Each case has exactly `invocation` and `dimensions`. Invocation has one of the
 three statuses above; dimensions has exactly `fence`, `hop_ids`, `skill_loading`,
 `mermaid_syntax`, and `meaning`, each with the exact status/method shape above.
-Extra fields, missing dimensions, and invalid evidence methods are rejected.
+Extra fields, missing dimensions, invalid evidence methods, case IDs not in
+`cases.json`, and a near-miss case (`not_activated`) with any output dimension other
+than `not_measured` are rejected.
 Do not invent dates, models, client/runner versions, or successful observations.
 No new actual record is created by this implementation; synthetic unit fixtures
 are not execution records.

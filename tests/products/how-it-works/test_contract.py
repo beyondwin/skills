@@ -674,17 +674,16 @@ class HowItWorksLiveContractTests(unittest.TestCase):
             self.assertIn(case_id, text)
         self.assertNotIn("sk-", text)
 
-    def test_live_readme_keeps_desktop_cursor_smoke_as_required_path(self) -> None:
+    def test_live_readme_covers_only_supported_hosts_with_event_output(self) -> None:
         text = LIVE_README.read_text(encoding="utf-8")
-        self.assertIn("installed desktop", text)
-        self.assertIn("@how-it-works", text)
-        self.assertIn("separate new chats", text)
-        self.assertIn("not_measured", text)
-        self.assertIn("this-run", text)
-        self.assertNotIn(
-            "If Computer Use is unavailable, record Cursor as not executed",
-            text,
-        )
+        for retired in ("Grok", "grok", "Cursor", "@how-it-works", "/Users/kws", "print -u2", "2.0.0"):
+            self.assertNotIn(retired, text, retired)
+        self.assertIn("`codex` or `claude-code`", text)
+        self.assertIn('--cd "$PWD"', text)
+        self.assertIn("codex exec --json", text)
+        self.assertIn("claude --print --output-format stream-json --verbose", text)
+        self.assertIn('.name=="Skill"', text)
+        self.assertIn("how-it-works/SKILL.md", text)
 
     def test_registry_preserves_supported_hosts_independently_of_current_measurement(self) -> None:
         # Locks the existing support scope; it does not depend on a live record.

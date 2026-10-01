@@ -1,7 +1,9 @@
 """Pure lexical observations and declared metadata binding, not execution proof."""
 
+import json
 import re
 from datetime import date
+from pathlib import Path
 
 DIMENSIONS = ("fence", "hop_ids", "skill_loading", "mermaid_syntax", "meaning")
 METHODS = {
@@ -12,6 +14,11 @@ METHODS = {
 }
 FIELDS = {"schema_version", "product", "product_version", "payload_sha256", "model",
           "host", "client_version", "runner_version", "executed_on", "cases"}
+HOSTS = {"codex", "claude-code"}
+# Case ids and near-miss cases come from the sibling cases.json, so there is one list.
+_LIVE_CASES = json.loads((Path(__file__).resolve().parent / "cases.json").read_text(encoding="utf-8"))["cases"]
+CASE_IDS = {case["id"] for case in _LIVE_CASES}
+NEAR_MISS_IDS = {case["id"] for case in _LIVE_CASES if case["expect"]["invocation"] == "not_activated"}
 
 
 def observe_text(text: str) -> dict[str, dict[str, str]]:
@@ -21,7 +28,8 @@ def observe_text(text: str) -> dict[str, dict[str, str]]:
     result["fence"] = {"status": "pass" if blocks and all(b.strip() for b in blocks) else "fail",
                        "method": "lexical"}
     if result["fence"]["status"] == "pass":
-        source_ids = set(re.findall(r"\bH[1-9][0-9]*\b", "\n".join(blocks)))
+        # A branch id such as H3a counts as its parent hop H3; the list carries parent ids only.
+        source_ids = set(re.findall(r"\b(H[1-9][0-9]*)[a-z]?\b", "\n".join(blocks)))
         prose = re.sub(r"(?ms)^```.*?^```[ \t]*$", "", text)
         list_ids = re.findall(r"(?m)^\s*[0-9]+\.\s+\*\*(H[1-9][0-9]*)\*\*", prose)
         match = bool(source_ids) and source_ids == set(list_ids) and len(list_ids) == len(set(list_ids))
@@ -42,7 +50,7 @@ def record_binding(record: dict, *, current_version: str, current_hash: str) -> 
         if not isinstance(record[key], str) or not record[key].strip():
             raise ValueError(f"invalid {key}")
     date.fromisoformat(record["executed_on"])
-    if record["host"] not in {"codex", "claude-code", "grok", "cursor"}:
+    if record["host"] not in HOSTS:
         raise ValueError("invalid host")
     if not isinstance(record["payload_sha256"], str) or not re.fullmatch(r"[0-9a-f]{64}", record["payload_sha256"]):
         raise ValueError("invalid payload hash")
@@ -53,6 +61,8 @@ def record_binding(record: dict, *, current_version: str, current_hash: str) -> 
     for case_id, case in record["cases"].items():
         if not isinstance(case_id, str) or not case_id or not isinstance(case, dict):
             raise ValueError("invalid case")
+        if case_id not in CASE_IDS:
+            raise ValueError(f"unknown case id: {case_id}")
         if set(case) != {"invocation", "dimensions"} or not isinstance(case["invocation"], str) or case["invocation"] not in {"pass", "fail", "not_measured"}:
             raise ValueError("invalid invocation")
         if not isinstance(case["dimensions"], dict) or set(case["dimensions"]) != set(DIMENSIONS):
@@ -65,6 +75,8 @@ def record_binding(record: dict, *, current_version: str, current_hash: str) -> 
             allowed = {"not_run"} if item["status"] == "not_measured" else METHODS[name]
             if not isinstance(item["method"], str) or item["method"] not in allowed:
                 raise ValueError("invalid evidence method")
+        if case_id in NEAR_MISS_IDS and any(item["status"] != "not_measured" for item in case["dimensions"].values()):
+            raise ValueError("near-miss case must keep every output dimension not_measured")
     # A valid declaration binds metadata only, even when every dimension is unmeasured.
     if record["model"] is None:
         return "unbound"

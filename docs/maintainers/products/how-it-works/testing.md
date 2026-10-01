@@ -84,14 +84,16 @@ installed payload. Inputs in `test_evidence_contract.py` are synthetic unit-test
 not real run records. No real new record file is created.
 
 - `observe_text` observes only these as `lexical` (string level): a closed, non-empty
-  Mermaid fence; the same H1/H2 hop ids in source and body; and duplicates in the
-  numbered list.
+  Mermaid fence; the same H1/H2 hop ids in source and body, where a branch id such as
+  `H3a` in the source counts as `H3`; and duplicates in the numbered list.
 - `skill_loading` needs a separate `host_event`, `mermaid_syntax` needs a real
   `parser` or `renderer` run, and `meaning` needs a `semantic_review`. Loading is never
   inferred from the skill name being mentioned or from output chrome.
 - Every dimension has a `status` and a `method`; with no source it is
   `not_measured/not_run`. A near-miss judges invocation only and leaves the five output
-  dimensions unmeasured.
+  dimensions unmeasured; `record_binding` rejects a near-miss case with any other
+  status. Case ids must come from `live/cases.json`, and `host` must be `codex` or
+  `claude-code`.
 - Schema 2 records the real product version, the hash from the existing
   `payload_sha256(Path)`, model, host, client/runner version, run date, and per-case
   invocation plus five dimensions. An unknown model is `null` and the result is
@@ -103,7 +105,8 @@ not real run records. No real new record file is created.
   declared method is true.
 
 Direct unit checks cover: broken Mermaid is never promoted to a pass; hop mismatch,
-duplicates, and absence; null model; version/hash
+duplicates, and absence; branch ids counted as their parent hop; unknown case ids,
+retired hosts, and a measured near-miss dimension; null model; version/hash
 mismatch; a real shared-hash change after a temporary reference edit; extra keys, bad
 dates, missing dimensions, and boolean schema; and bad method declarations. Shape
 alone never proves syntax, causality, rung changes, or accessibility. A parser or
@@ -111,7 +114,10 @@ renderer result is recorded only when one could already run; this work never req
 installing one.
 
 The three existing synthetic prompts and the detailed schema and observation steps are
-in `tests/products/how-it-works/live/README.md`. Never commit full responses, private
+in `tests/products/how-it-works/live/README.md`. Its commands run only Codex and Claude
+Code with JSON event output (`codex exec --json`, `claude --print --output-format
+stream-json --verbose`), because `skill_loading` passes only on a host event read from
+that stream. Never commit full responses, private
 prompts, or credentials.
 
 ## Commands
