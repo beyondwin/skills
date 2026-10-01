@@ -146,7 +146,7 @@ source only when the user asks why. A why-request may include:
 
 | Condition | Behavior |
 | --- | --- |
-| Original already suitable | Return it unchanged |
+| Original already suitable | In `correct` or `polish`, return it unchanged; in `diagnose`, reply with one line |
 | Ambiguity would change meaning or register | Ask one short question, or keep the original wording |
 | Proposed edit breaks an invariant | Revert; if material, add `확인 필요` |
 | Structured content cannot be edited safely | Preserve it; edit surrounding prose only |
