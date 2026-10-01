@@ -74,6 +74,8 @@ CASE_IDS = (
     "worker-stops-its-processes",
     "record-observed-models",
     "unconfirmed-model-marked-requested",
+    "stopped-runner-resumes",
+    "constraints-under-another-heading",
 )
 DESCRIPTION_FORBIDDEN = (
     "fresh implementer",
@@ -168,10 +170,14 @@ EXPECT_LOCK = {
     "scope_deviations_reported": {
         "dispatch_must": ("Report actual scope deviations even if tests pass",)
     },
-    "full_command": {"worker_must": ("include the full wrapper command",)},
+    "bare_test_command": {
+        "worker_must": ("Run test commands bare",),
+        "worker_must_not": ("include the full wrapper command", "distinguish its exit"),
+    },
     "actual_test_exit": {"worker_must": ("actual test exit codes",)},
-    "wrapper_exit_separate": {
-        "worker_must": ("distinguish its exit\nfrom the test exit",)
+    "wrapped_exit_proves_nothing": {
+        "skill_must": ("proves nothing about the test exit",),
+        "dispatch_must": ("proves nothing about the test exit",),
     },
     "allowed_inspection": {"skill_must": ("Filename-only listings inside the worktree",)},
     "scope_deviations_none": {"skill_must": ("Scope deviations: none",)},
@@ -182,6 +188,17 @@ EXPECT_LOCK = {
     },
     "observed_reviewer": {"skill_must": ("observed_model.py",), "dispatch_must": ("--agent-id <agentId>",)},
     "requested_marker": {"skill_must": ("Add `(requested)` after a value that no transcript or stream confirmed.",)},
+    "stopped_runner_resumes": {
+        "skill_must": ("Tell a stopped runner from a failed task.", "it does not use up waygent's one retry"),
+    },
+    "finished_before_resume": {
+        "skill_must": ("judge it as a finished attempt",),
+        "dispatch_must": ("judge it as a finished attempt",),
+    },
+    "constraints_heading_ruling": {
+        "skill_must": ("name that heading as a recorded ruling and pass it with `--constraints-heading`",),
+        "dispatch_must": ('`--constraints-heading "<exact title>"`',),
+    },
 }
 
 
@@ -366,6 +383,7 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("pid_alive", text)
         self.assertIn("bounded tools index", text)
         self.assertIn("reported_model", text)
+        self.assertIn("runner_pid", text)
 
     def test_interrupt_ends_the_worker_on_every_face(self) -> None:
         dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
@@ -434,6 +452,27 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn('run_worker.py" wait --attempt-dir', dispatch)
         self.assertIn("never ends its turn while a worker runs", contract)
         self.assertIn("$CLAUDE_CODE_SESSION_ID", skill)
+        self.assertIn("$CODEX_THREAD_ID", skill)
+        # The per-host recipe: a 540 s wait outlives Claude Code's 120 s Bash
+        # default, and the Codex controller polled every 45 s without one.
+        for name, text in (("SKILL.md", skill), ("dispatch.md", dispatch), ("contract.md", contract)):
+            with self.subTest(face=name):
+                self.assertIn("timeout: 600000", text)
+                self.assertIn("yield_time_ms", text)
+                self.assertIn("(`--max-seconds` + 10) × 1000", text)
+                self.assertIn("write_stdin", text)
+                self.assertNotIn("$!", text)
+        self.assertIn("no trailing `&`", dispatch)
+        self.assertIn("--start-grace", dispatch)
+        self.assertIn("absent after the start grace", dispatch)
+        self.assertIn("--start-grace", contract)
+        readme = fold((SKILL / "README.md").read_text(encoding="utf-8"))
+        readme_ko = fold((SKILL / "README.ko.md").read_text(encoding="utf-8"))
+        for name, text in (("README.md", readme), ("README.ko.md", readme_ko)):
+            with self.subTest(face=name):
+                self.assertIn("run_worker.py wait", text)
+        self.assertIn("never ends its turn while a worker runs", readme)
+        self.assertIn("턴을 끝내지 않습니다", readme_ko)
 
     def test_stopped_runner_is_not_a_task_failure_on_every_face(self) -> None:
         fold = lambda value: re.sub(r"\s+", " ", value)
@@ -447,6 +486,59 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("`task N: interrupted:`", skill)
         self.assertIn("is a stopped runner, not a failed task", dispatch)
         self.assertIn("does not use up the retry", contract)
+        # A stopped runner can sit beside a worker that already finished.
+        for text in (skill, dispatch):
+            self.assertIn("judge it as a finished attempt", text)
+        self.assertIn("judged as a finished attempt", contract)
+        readme = fold((SKILL / "README.md").read_text(encoding="utf-8"))
+        readme_ko = fold((SKILL / "README.ko.md").read_text(encoding="utf-8"))
+        self.assertIn("a stopped runner is not a task failure", readme)
+        self.assertIn("러너가 멈춘 것은 과제 실패가 아닙니다", readme_ko)
+
+    def test_audit_fixes_are_on_every_face(self) -> None:
+        fold = lambda value: re.sub(r"\s+", " ", value)
+        read = lambda path: fold(path.read_text(encoding="utf-8"))
+        maintainers = ROOT / "docs" / "maintainers" / "products" / "sddx"
+        skill = read(SKILL / "SKILL.md")
+        dispatch = read(SKILL / "references" / "dispatch.md")
+        contract = read(maintainers / "contract.md")
+        compatibility = read(maintainers / "compatibility.md")
+        readme = read(SKILL / "README.md")
+        readme_ko = read(SKILL / "README.ko.md")
+        runner = (SKILL / "scripts" / "run_worker.py").read_text(encoding="utf-8")
+        # A SIGTERM'd worker records 143 as often as -15.
+        for text in (dispatch, contract):
+            self.assertIn("Cursor 2026.09.26 and Grok 1.0.44", text)
+            self.assertIn("143", text)
+        # `stale` covers a dead runner at `starting`.
+        for text in (dispatch, contract):
+            self.assertIn("`starting` or `running` record whose runner", text)
+        # `codex exec` does not load an explicit-only skill.
+        for text in (readme, compatibility):
+            self.assertIn("`codex exec` does not load explicit-only skills", text)
+        self.assertIn("`codex exec`는 명시 호출 전용 스킬을 읽지", readme_ko)
+        # The plan's run-wide rules section is a stated requirement.
+        self.assertIn("`## Global Constraints`", readme)
+        self.assertIn("`## Global Constraints`", readme_ko)
+        self.assertIn("--constraints-heading", contract)
+        self.assertIn("no plan section holds the run-wide rules", skill)
+        # The final walk, guide.md, and the progress-line token.
+        self.assertIn("the host walks the app itself", skill)
+        self.assertIn("the host walks the app itself", contract)
+        self.assertIn("guide.md names no plan path", skill)
+        self.assertIn("guide.md names no plan path", contract)
+        self.assertIn("`Grok_4.7_256K_High`", skill)
+        self.assertIn("review=<clean|fixed K|overruled K|skipped (<why>)|unknown>", skill)
+        # One allowed filter, said once.
+        self.assertEqual(dispatch.count("set -o pipefail"), 1)
+        # The cmux wrapper's hook switch.
+        self.assertIn("CMUX_GROK_HOOKS_DISABLED=1", dispatch)
+        # Stale literals.
+        self.assertNotIn("Cursor Grok 4.7 High", dispatch)
+        self.assertNotIn("Grok 4.6 High", runner)
+        self.assertNotIn("1,500", dispatch)
+        self.assertIn("the `wait` subcommand", compatibility)
+        self.assertIn("`Waygent-Task: final`", dispatch)
 
     def test_grok_tools_index_is_on_every_face(self) -> None:
         dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")

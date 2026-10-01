@@ -6,7 +6,7 @@ run's state. This file owns the SDDx block template and nothing else.
 ## Placement
 
 `progress.md` opens with waygent's header lines (`plan:`, `branch:`, `start:`,
-`model:`). Directly beneath them, keep one block delimited by
+`model:`), as waygent writes them. Directly beneath them, keep one block delimited by
 `<!-- sddx:current:start -->` and `<!-- sddx:current:end -->`. Replace the
 contents of that block on each update; never add a second block. Everything
 below it — waygent's `task N: ...` lines, `final:`, rulings — is history and
@@ -42,7 +42,8 @@ The values above are a synthetic example. Fill in the real ones.
 - `Backend` — `cursor` or `grok`, and why (argument, current state, answered
   question, or explicit user change).
 - `Orchestrator` — this session's host, model, and effort, read with
-  `observed_model.py --session-id` where the host allows; otherwise the value
+  `observed_model.py claude-code --session-id "$CLAUDE_CODE_SESSION_ID"` or
+  `observed_model.py codex --thread-id "$CODEX_THREAD_ID"`; otherwise the value
   you know, marked `(requested)` or `inherited-unknown`. Written at the start.
 - `Task`, `step`, `attempt` — the task number, where it is (`implement`,
   `review`, `fix`, `retry`, `final`), and the latest attempt directory under

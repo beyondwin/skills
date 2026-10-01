@@ -37,31 +37,43 @@ What each test file locks:
   comparison. It uses the standard `tomllib`, so it needs Python 3.11 or later.
 - `tests/products/sddx/test_extract_task.py`: locks heading match, body
   boundaries, exit 3 for duplicate, missing, or empty bodies, exit 2 for argument
-  and file errors, and not overwriting an existing output file.
+  and file errors, not overwriting an existing output file,
+  `--constraints-heading` on a plan whose rules sit under `## 전역 규칙` (and
+  exit 2 without `--global-constraints`), and the Windows refusal.
 - `tests/products/sddx/test_run_worker.py`: checks the six files in the attempt
   directory, argv construction, the per-backend exclusivity of
-  `--model`/`--sandbox-profile`, `run.json` fields (including `skill_version`) and
-  states, recording `session_id` while running, wrapper SIGTERM → `interrupted`,
+  `--model`/`--sandbox-profile`, `run.json` fields (including `skill_version`
+  and `runner_pid`) and states, recording `session_id` while running, wrapper
+  SIGTERM → `interrupted`, a real SIGTERM to a runner process while the backend
+  is resolved (and a Ctrl-C there) → `interrupted` with `pid` null and exit 130,
   ending the worker when the runner is interrupted and the kill on a second
   interrupt, installing the SIGTERM handler before launch, the idle timeout (a
   worker silent from the start, a worker that stops after output, including
   resume; stdout or stderr growth counts as activity; `--idle-timeout 0` turns it
   off; bad values are refused; a shorter `--timeout` wins), the defaults
   (`--timeout` 0, `--idle-timeout` 900), the wrapper exit rules, closed stdin,
-  attempt path refusal (only under `.waygent/`; `.superpowers/` is refused), and
-  `reported_model` from the stream's `system`/`init` event, copied once.
-- `tests/products/sddx/test_worker_status.py`: checks `stale` (true only when
-  running and the pid is gone), `session_id_in_log` (filled only when the record
+  attempt path refusal (only under `.waygent/`; `.superpowers/` is refused),
+  `reported_model` from the stream's `system`/`init` event, copied once, and the
+  Grok child's `CMUX_GROK_HOOKS_DISABLED=1`.
+- `tests/products/sddx/test_worker_status.py`: checks `stale` (a `starting` or
+  `running` record whose runner and worker are gone; a live runner with a dead
+  worker is not stale; records without `runner_pid` keep the older
+  `running`-only rule), `session_id_in_log` (filled only when the record
   has no ID), read-only responses, `pid_alive`, a bounded tools index for both the
-  Cursor and Grok log shapes, that the default response has no log body, skipping
+  Cursor and Grok log shapes (a shell with no integer exit indexed with `null`),
+  that the default response has no log body, skipping
   JSON lines that are too deep, `--stream` default 2048 and max 8192 bytes, the
   64 KiB response cap, offset handling, and `wait` (returns 0 once the record
   has ended and the worker is gone, keeps waiting while a worker is still
-  writing its report, exit 3 at `--max-seconds`, read-only, bad bounds refused).
+  writing its report, exit 3 at `--max-seconds`, read-only, bad bounds refused,
+  a missing attempt folder waited for during `--start-grace` and refused after
+  it or at once when its parent is missing, and an unreadable `run.json` as a
+  `BLOCKED:` line rather than a traceback).
 - `tests/products/sddx/test_observed_model.py`: builds fake Claude Code and
   Codex transcripts and checks the model and effort counts, `<synthetic>` turns
   skipped, `not_found`, `ambiguous`, `no_model_turns`, refused ids that could
-  widen the file search, and that no transcript text reaches the output.
+  widen the file search, that no transcript text reaches the output, and the
+  shared Windows refusal.
 - `tests/products/sddx/test_contract.py`: checks doc and instruction wording,
   that the waygent sections SDDx relies on exist, and that no Claude plugin or
   agent definition ships.

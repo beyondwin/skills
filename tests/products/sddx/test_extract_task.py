@@ -278,6 +278,88 @@ class ExtractTaskGlobalConstraintsTests(_ExtractTaskCase):
             extract_task(plan, "Task 1: 저장", global_constraints=True)
 
 
+class ExtractTaskConstraintsHeadingTests(_ExtractTaskCase):
+    """A plan whose run-wide rules sit under its own title, named as a ruling."""
+
+    CONSTRAINTS = "## 전역 규칙\n- 외부 네트워크 금지\n\n".encode("utf-8")
+    SECTION = "## Task 1: 저장\n본문\n".encode("utf-8")
+
+    def plan(self) -> bytes:
+        return b"# Plan\n" + self.CONSTRAINTS + self.SECTION + "## Task 2: 다음\n다음\n".encode("utf-8")
+
+    def test_default_titles_do_not_match_a_korean_heading(self) -> None:
+        with self.assertRaises(ValueError):
+            extract_task(self.plan(), "Task 1: 저장", global_constraints=True)
+
+    def test_the_named_heading_is_prepended_byte_for_byte(self) -> None:
+        self.assertEqual(
+            extract_task(
+                self.plan(), "Task 1: 저장",
+                global_constraints=True, constraints_heading="전역 규칙",
+            ),
+            self.CONSTRAINTS + self.SECTION,
+        )
+
+    def test_a_named_heading_replaces_the_default_titles(self) -> None:
+        plan = "## Global Constraints\n- english\n".encode("utf-8") + self.plan()
+        self.assertEqual(
+            extract_task(
+                plan, "Task 1: 저장",
+                global_constraints=True, constraints_heading="전역 규칙",
+            ),
+            self.CONSTRAINTS + self.SECTION,
+        )
+
+    def test_a_missing_named_heading_names_it(self) -> None:
+        with self.assertRaisesRegex(ValueError, "공통 규칙"):
+            extract_task(
+                self.plan(), "Task 1: 저장",
+                global_constraints=True, constraints_heading="공통 규칙",
+            )
+
+    def cli(self, *extra: str) -> tuple[int, Path]:
+        base = Path(self.enterContext(tempfile.TemporaryDirectory()))
+        plan_path = base / "plan.md"
+        plan_path.write_bytes(self.plan())
+        output = base / "brief.md"
+        code = main([str(plan_path), "--heading", "Task 1: 저장", *extra, "--output", str(output)])
+        return code, output
+
+    def test_cli_default_exits_3_on_a_korean_heading(self) -> None:
+        with mock.patch("sys.stderr"):
+            code, output = self.cli("--global-constraints")
+        self.assertEqual(code, 3)
+        self.assertFalse(output.exists())
+
+    def test_cli_named_heading_exits_0_with_exact_bytes(self) -> None:
+        code, output = self.cli("--global-constraints", "--constraints-heading", "전역 규칙")
+        self.assertEqual(code, 0)
+        self.assertEqual(output.read_bytes(), self.CONSTRAINTS + self.SECTION)
+
+    def test_cli_named_heading_without_the_flag_is_an_argument_error(self) -> None:
+        with mock.patch("sys.stderr"):
+            code, output = self.cli("--constraints-heading", "전역 규칙")
+        self.assertEqual(code, 2)
+        self.assertFalse(output.exists())
+
+    def test_cli_missing_named_heading_exits_3(self) -> None:
+        with mock.patch("sys.stderr"):
+            code, output = self.cli("--global-constraints", "--constraints-heading", "공통 규칙")
+        self.assertEqual(code, 3)
+        self.assertFalse(output.exists())
+
+    def test_cli_refuses_windows(self) -> None:
+        import contextlib
+        import io
+        import os
+
+        stderr = io.StringIO()
+        with mock.patch.object(os, "name", "nt"), contextlib.redirect_stderr(stderr):
+            code = main([])
+        self.assertEqual(code, 2)
+        self.assertEqual(stderr.getvalue(), "BLOCKED: Windows is not a supported OS\n")
+
+
 class ExtractTaskCliTests(_ExtractTaskCase):
     def setUp(self) -> None:
         super().setUp()

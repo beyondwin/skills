@@ -20,12 +20,17 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import re
 import sys
 from collections import Counter
 from pathlib import Path
 from typing import Any
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from resolve_backend import refuse_windows  # noqa: E402
 
 # Claude Code writes this for turns no model produced (an API error, a notice).
 SYNTHETIC_MODEL = "<synthetic>"
@@ -129,9 +134,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-    if os.name == "nt":
-        print("BLOCKED: Windows is unsupported", file=sys.stderr)
-        return 2
+    refused = refuse_windows()
+    if refused is not None:
+        return refused
     args = build_parser().parse_args(argv)
     root = args.root if args.root is not None else default_root(args.host)
     try:

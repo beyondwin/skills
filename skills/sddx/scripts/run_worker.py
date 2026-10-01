@@ -2,17 +2,18 @@
 
 This is not an orchestrator. It has no scheduler, no retry, no backend failover,
 and no process-tree management. The provider events it reads are the session ID
-the worker reports in its own stream, and on `status` a bounded tools index
-copied from `tool_call` JSON objects. It still does not judge DONE, 402, or role
+the worker reports in its own stream, the model its init event names, and on
+`status` a bounded tools index copied from Cursor `tool_call` objects and Grok
+`tool_use` items. It still does not judge DONE, 402, or role
 compliance, and it still does not put log bodies in the default status payload.
 It never decides whether a task succeeded: a process exit of 0 is not task
 completion, and the files written here prove only what was handed to the CLI,
 never that OS isolation held or that the model obeyed its instructions.
 
-The `status` subcommand is the read-only half of the same file: it reports what
-an attempt directory holds, a bounded tools index, and, on request, one
-explicitly bounded byte window of a raw log. It launches nothing and writes
-nothing.
+The `status` and `wait` subcommands are the read-only half of the same file:
+`status` reports what an attempt directory holds, a bounded tools index, and,
+on request, one explicitly bounded byte window of a raw log; `wait` blocks until
+the attempt is over or a bound passes. They launch nothing and write nothing.
 
 The controller prepares the Grok sandbox profile before calling this runner and
 cleans it up afterwards, once it has confirmed the worker and anything it
@@ -383,7 +384,7 @@ def read_reported_model(path: Path) -> str | None:
     """The model the worker's own `system`/`init` event named, or `None`.
 
     Both measured providers open their stream with that event and put the model
-    they actually run on it (Grok `grok-4.7`, Cursor `Cursor Grok 4.6 High`).
+    they actually run on it (Grok `grok-4.7`, Cursor `Grok 4.7 256K High`).
     It is the provider's word for the model, not the requested `--model`, so it
     is kept apart from `model`. The scan bounds and the tolerance for lines that
     are not JSON are the same as for the session ID.
@@ -448,9 +449,14 @@ def run_worker(options: RunOptions) -> int:
         return _blocked(str(error))
 
     metadata_path = attempt_dir / METADATA_NAME
+    stdout_path = attempt_dir / STDOUT_NAME
+    stderr_path = attempt_dir / STDERR_NAME
     metadata: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "skill_version": skill_version,
+        # This process, so a reader can tell a runner still resolving the
+        # backend or about to record the worker's exit from one that is gone.
+        "runner_pid": os.getpid(),
         "backend": backend,
         "identity": None,
         "model": None,
@@ -469,7 +475,53 @@ def run_worker(options: RunOptions) -> int:
         "ended_at": None,
         "error": None,
     }
-    write_metadata(metadata_path, metadata)
+
+    def _raise_keyboard_interrupt(signum, frame):
+        raise KeyboardInterrupt
+
+    # SIGTERM to this runner is the same request as Ctrl-C: record
+    # `interrupted` and end the child if there is one. Installed before the
+    # first record, so no SIGTERM from here on (during the backend probes, or
+    # between `Popen` and the wait) takes the default action and leaves a
+    # record no reader can call over; restored on every way out.
+    previous = signal.signal(signal.SIGTERM, _raise_keyboard_interrupt)
+    try:
+        try:
+            write_metadata(metadata_path, metadata)
+            return _launch(
+                options, backend, worktree, attempt_dir, rules, metadata,
+                metadata_path, stdout_path, stderr_path,
+            )
+        except KeyboardInterrupt:
+            # Only an interrupt that `_launch` did not handle reaches here, and
+            # it handles every one after the worker exists, so there is no
+            # child to end. Recorded with the same error as a handled one.
+            with contextlib.suppress(KeyboardInterrupt):
+                metadata.update(
+                    state="interrupted",
+                    pid=None,
+                    exit_code=None,
+                    ended_at=utc_now(),
+                    error=INTERRUPTED_ERROR,
+                )
+                write_metadata(metadata_path, metadata)
+            return 130
+    finally:
+        signal.signal(signal.SIGTERM, previous)
+
+
+def _launch(
+    options: RunOptions,
+    backend: str,
+    worktree: Path,
+    attempt_dir: Path,
+    rules: str,
+    metadata: dict[str, Any],
+    metadata_path: Path,
+    stdout_path: Path,
+    stderr_path: Path,
+) -> int:
+    """Resolve, start, and await the worker for a recorded `starting` attempt."""
 
     def fail(message: str) -> int:
         # `message` is a short reason only: never the environment, the dispatch,
@@ -518,11 +570,15 @@ def run_worker(options: RunOptions) -> int:
     worker_env = None
     if backend == "grok":
         worker_env = dict(os.environ)
-        worker_env.update(GROK_CURSOR_MCPS_ENABLED="0", GROK_CLAUDE_MCPS_ENABLED="0")
+        # The cmux `grok` wrapper otherwise installs its hooks before it execs
+        # the real CLI; this asks it not to. Hooks already installed stay.
+        worker_env.update(
+            GROK_CURSOR_MCPS_ENABLED="0",
+            GROK_CLAUDE_MCPS_ENABLED="0",
+            CMUX_GROK_HOOKS_DISABLED="1",
+        )
     command = _subprocess_args(argv[0], argv[1:])
 
-    stdout_path = attempt_dir / STDOUT_NAME
-    stderr_path = attempt_dir / STDERR_NAME
     with contextlib.ExitStack() as stack:
         try:
             out = stack.enter_context(stdout_path.open("xb"))
@@ -610,15 +666,6 @@ def run_worker(options: RunOptions) -> int:
                 return interrupted(already_signalled=True)
             return TIMEOUT_EXIT
 
-        def _raise_keyboard_interrupt(signum, frame):
-            raise KeyboardInterrupt
-
-        # SIGTERM to this runner is the same request as Ctrl-C: record
-        # interrupted and end the child. Installed just before the launch, so
-        # no SIGTERM can land between `Popen` and the handler and leave the
-        # worker running unrecorded; restored on every way out, a launch
-        # failure included.
-        previous = signal.signal(signal.SIGTERM, _raise_keyboard_interrupt)
         try:
             try:
                 process = subprocess.Popen(
@@ -673,12 +720,11 @@ def run_worker(options: RunOptions) -> int:
             )
             write_metadata(metadata_path, metadata)
         except KeyboardInterrupt:
-            # One raised inside `Popen` itself has no child handle to end yet.
+            # One raised inside `Popen` itself has no child handle to end yet;
+            # `run_worker` records it with `pid: null`.
             if process is None:
                 raise
             return interrupted()
-        finally:
-            signal.signal(signal.SIGTERM, previous)
     return code if code >= 0 else 128 - code
 
 
@@ -1016,9 +1062,8 @@ def read_tools_index(path: Path) -> dict[str, Any]:
                         index,
                     )
                 elif subtype == "completed" and "shell" in lowered:
+                    # `None` when no integer exit came back, as for Grok.
                     exit_code = _shell_exit_code(payload.get("result"))
-                    if exit_code is None:
-                        continue
                     command = args.get("command")
                     if not isinstance(command, str):
                         command = ""
@@ -1052,6 +1097,25 @@ def pid_alive(pid: int | None) -> bool | None:
     return True
 
 
+def is_stale(metadata: dict[str, Any] | None, worker_alive: bool | None) -> bool:
+    """Whether a record still open (`starting`/`running`) has nobody left to close it.
+
+    A record that names its runner (`runner_pid`) is stale when that runner and
+    the worker are both gone. A live runner with a dead worker is about to write
+    the exit, and a live worker whose runner is gone is still working. A record
+    written before `runner_pid` existed keeps the older rule: stale only at
+    `running` with no live worker.
+    """
+    if not metadata or metadata.get("state") not in ("starting", "running"):
+        return False
+    if worker_alive:
+        return False
+    runner = metadata.get("runner_pid")
+    if not isinstance(runner, int) or isinstance(runner, bool):
+        return metadata.get("state") == "running"
+    return pid_alive(runner) is False
+
+
 def _recoverable_session_id(metadata: dict[str, Any] | None, path: Path) -> str | None:
     """The log's session ID, only when the record does not already hold one.
 
@@ -1078,7 +1142,8 @@ def read_status(
     """Read-only facts about one attempt, plus one bounded log window on request.
 
     Nothing here launches, writes, retries, or checks a billing state. The
-    default payload copies a bounded tools index from `tool_call` objects; it
+    default payload copies a bounded tools index from Cursor `tool_call`
+    objects and Grok `tool_use` items; it
     does not judge DONE, 402, or role compliance, and it never carries a log
     body, because a controller asking how an attempt is doing must not pay for
     the transcript to find out.
@@ -1114,9 +1179,9 @@ def read_status(
         "session_id_in_log": _recoverable_session_id(metadata, attempt / STDOUT_NAME),
         "pid_alive": alive,
         # The rule SKILL.md states for a controller, answered here instead of
-        # remembered there: a record left at `running` by a runner that could not
-        # write a terminal state is stale, not a live worker.
-        "stale": bool(metadata) and metadata.get("state") == "running" and not alive,
+        # remembered there: a record left open by a runner that could not write
+        # a terminal state is stale, not a live worker.
+        "stale": is_stale(metadata, alive),
         "tools": read_tools_index(attempt / STDOUT_NAME),
         "stdout_bytes": _log_size(attempt / STDOUT_NAME),
         "stderr_bytes": _log_size(attempt / STDERR_NAME),
@@ -1163,17 +1228,22 @@ def status_command(attempt_dir: Path, stream: str | None, offset: int, max_bytes
 
 
 # One `wait` call must fit inside one host tool call (Claude Code Bash allows
-# 600 seconds), so the controller never has to end its turn while a worker runs.
+# 600 seconds when the call passes `timeout: 600000`; its default is 120), so
+# the controller never has to end its turn while a worker runs.
 DEFAULT_WAIT_SECONDS = 540.0
 MAX_WAIT_SECONDS = 3600.0
 WAIT_POLL_SECONDS = 2.0
+# A `wait` started right after a background `run` can beat the runner's mkdir,
+# which follows validation and the brief read. A missing attempt directory is
+# a launch still on its way for this long, and a refused launch after it.
+DEFAULT_START_GRACE_SECONDS = 15.0
 
 
 def _wait_summary(attempt: Path) -> dict[str, Any]:
     metadata = read_metadata(attempt / METADATA_NAME)
     alive = pid_alive(metadata.get("pid") if metadata else None)
     state = metadata.get("state") if metadata else None
-    stale = state == "running" and not alive
+    stale = is_stale(metadata, alive)
     # Over only when the record has left `running`/`starting` and the worker is
     # gone: a worker can still be writing `report.md` after its record changed.
     over = metadata is not None and not alive and (
@@ -1193,22 +1263,58 @@ def _wait_summary(attempt: Path) -> dict[str, Any]:
     }
 
 
-def wait_command(attempt_dir: Path, max_seconds: float) -> int:
+def _not_started_summary(attempt: Path) -> dict[str, Any]:
+    """The summary of an attempt whose directory the runner has not made yet."""
+    return {
+        "attempt_dir": str(attempt),
+        "over": False,
+        "state": None,
+        "exit_code": None,
+        "error": None,
+        "pid_alive": None,
+        "stale": False,
+        "session_id": None,
+        "reported_model": None,
+        "report_exists": False,
+    }
+
+
+def wait_command(
+    attempt_dir: Path,
+    max_seconds: float,
+    start_grace: float = DEFAULT_START_GRACE_SECONDS,
+) -> int:
     """Block until the attempt is over (exit 0) or `max_seconds` pass (exit 3).
 
     Read-only, like `status`. A headless host ends its session, and the
     runner with it, when the controller ends its turn; waiting here in the
     foreground keeps the turn open. Call it again after exit 3.
+
+    An attempt directory that does not exist yet, under a parent that does, is
+    waited for until `start_grace` seconds have passed in this call; then it is
+    a refused launch (exit 2). A missing parent is refused at once.
     """
     if not math.isfinite(max_seconds) or not 0 < max_seconds <= MAX_WAIT_SECONDS:
         return _blocked(f"max-seconds must be above 0 and at most {MAX_WAIT_SECONDS:g}")
+    if not math.isfinite(start_grace) or not 0 <= start_grace <= MAX_WAIT_SECONDS:
+        return _blocked(f"start-grace must be from 0 to {MAX_WAIT_SECONDS:g}")
     attempt = Path(os.path.abspath(attempt_dir))
-    if not attempt.is_dir():
-        return _blocked("attempt directory does not exist")
-    deadline = time.monotonic() + max_seconds
+    started = time.monotonic()
+    deadline = started + max_seconds
     while True:
-        summary = _wait_summary(attempt)
-        if summary["over"] or time.monotonic() >= deadline:
+        now = time.monotonic()
+        if not attempt.is_dir():
+            if not attempt.parent.is_dir() or now - started >= start_grace:
+                return _blocked("attempt directory does not exist")
+            summary = _not_started_summary(attempt)
+        else:
+            try:
+                summary = _wait_summary(attempt)
+            except (OSError, ValueError) as error:
+                return _blocked(str(error))
+            if summary["over"]:
+                break
+        if now >= deadline:
             break
         time.sleep(min(WAIT_POLL_SECONDS, max(0.0, deadline - time.monotonic())))
     print(json.dumps(summary, ensure_ascii=False, sort_keys=True))
@@ -1251,6 +1357,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     wait.add_argument("--attempt-dir", required=True, type=Path)
     wait.add_argument("--max-seconds", type=float, default=DEFAULT_WAIT_SECONDS)
+    wait.add_argument(
+        "--start-grace",
+        type=float,
+        default=DEFAULT_START_GRACE_SECONDS,
+        help="seconds a missing attempt directory counts as not started yet; 0 refuses at once",
+    )
     return parser
 
 
@@ -1262,7 +1374,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "status":
         return status_command(args.attempt_dir, args.stream, args.offset, args.max_bytes)
     if args.command == "wait":
-        return wait_command(args.attempt_dir, args.max_seconds)
+        return wait_command(args.attempt_dir, args.max_seconds, args.start_grace)
     options = RunOptions(
         backend=args.backend,
         worktree=args.worktree,

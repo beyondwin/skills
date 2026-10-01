@@ -8,9 +8,9 @@ under it, and `.waygent/.gitignore` keeps all of it out of commits.
 1. `python3 "<skill-root>/scripts/resolve_backend.py" --backend <id> --json`.
    If `available` is false, stop and report `reason`. Do not switch backends.
 2. Build the brief (below) at a new path under `$P/briefs/`.
-3. Grok: `prepare` → `run_worker.py run` → wait on the host job → the
+3. Grok: `prepare` → `run_worker.py run` in the background → `wait` → the
    `status` windows you need → confirm the worker and its descendants have
-   exited → `cleanup`. Cursor: the same run/status path without
+   exited → `cleanup`. Cursor: the same run/wait/status path without
    prepare/cleanup.
 4. Process exit 0 is not DONE. Judge from the report, actual test exits,
    the trailer commit, the tools index, and the native review. Do not paste
@@ -52,7 +52,7 @@ When `available` is true:
   `--auto-review`, `--sandbox`, `enabled]`. `launch` gives `cwd_flag`
   `--workspace` or `--cwd`, `prompt_flag` null, `effort_flag` null, and
   `output_format` `stream-json`. `model_ids` holds confirmed Grok 4.7 ids
-  with no trailing `-fast` (`grok-4.7-high`, `grok-4.7-xhigh`). Cursor Grok
+  with no trailing `-fast` (for example `grok-4.7-high`, `grok-4.7-xhigh`). Cursor Grok
   4.6, 4.5, and every `-fast` id are already dropped. Pass one of those ids
   to the runner as `--model`.
 
@@ -79,9 +79,11 @@ background shell output/termination tools with that group. `--no-subagents`
 and the worker rule remain, but toolset-level subagent exclusion is not
 claimed. MCP filters do not claim shell or filesystem isolation.
 
-The runner sets `GROK_CURSOR_MCPS_ENABLED=0` and
-`GROK_CLAUDE_MCPS_ENABLED=0` only in the Grok child's environment, on both new
-and resumed attempts. This prevents imported Cursor/Claude MCP startup from
+The runner sets `GROK_CURSOR_MCPS_ENABLED=0`,
+`GROK_CLAUDE_MCPS_ENABLED=0`, and `CMUX_GROK_HOOKS_DISABLED=1` only in the Grok
+child's environment, on both new and resumed attempts. The last one matters
+when `grok` on PATH is the cmux wrapper: it stops the wrapper from installing
+its hooks before it starts the real CLI, and hooks already installed stay. This prevents imported Cursor/Claude MCP startup from
 adding unrelated handshake failures. It does not modify user configuration,
 credentials, or session storage. Native Grok and plugin MCP initialization may
 still happen. Init/inspect server listings can still include configured
@@ -100,12 +102,16 @@ this one cannot. Extract the task section in the controller:
 is success, 2 is a file or argument error, and 3 is a section-selection error:
 the heading is absent, duplicated, or has an empty body. Missing, duplicate, or
 empty `Global Constraints` / `Global constraints` is also exit 3, and the
-controller must not dispatch. The command never overwrites an existing output
-file, so write each extraction to a new path.
+controller must not dispatch. A plan whose run-wide rules sit under another
+title gets `--constraints-heading "<exact title>"` beside
+`--global-constraints`, once that title is a recorded ruling; the flag replaces
+the two default titles. The command never overwrites an existing output file,
+so write each extraction to a new path.
 
 A brief with no plan heading of its own (a fix, a retry, the final batch)
 starts from the constraints section alone:
-`extract_task.py <plan-file> --heading "Global Constraints" --output <new-path>`.
+`extract_task.py <plan-file> --heading "Global Constraints" --output <new-path>`,
+or the ruled title in place of `Global Constraints`.
 If the plan points at another plan's constraints, extract from that plan. Do not
 copy constraints by hand or from a cached `/tmp` file.
 
@@ -115,7 +121,8 @@ Then append, in this order, and nothing from the plan beyond it:
   explicitly listed task reference.
 - `Depends on:` names and signatures from earlier tasks, nothing else.
 - waygent's test-first paragraph and trailer rule, verbatim from its brief:
-  the task's last commit carries `Waygent-Task: N` in its last paragraph.
+  the task's last commit carries `Waygent-Task: N` (`Waygent-Task: final` for
+  the final batch) in its last paragraph.
 - `Search paths:` concrete source/test files or directories. Keep planning
   documents out of it; a glob without a target path can still search the whole
   repository.
@@ -127,8 +134,8 @@ Then append, in this order, and nothing from the plan beyond it:
   the worker to recover it from the plan.
 
 A fix brief adds the High and Medium findings verbatim. A continuation brief
-names the previous `report.md` and the commits already made. waygent's
-~1,500-character brief limit does not apply to these briefs.
+names the previous `report.md` and the commits already made. waygent's brief
+length limit does not apply to these briefs.
 
 `Search paths` limits content searches. Filename-only listings inside the
 current worktree, including its root, and direct reads of repository
@@ -151,7 +158,7 @@ alongside the brief and report paths (it also remains in the worker rules):
 
 ## Order of one attempt
 
-Complete brief → Grok profile prepare → run → wait on the host's job → the
+Complete brief → Grok profile prepare → run → `wait` → the
 status windows you need → confirm the worker and anything it started have
 exited → Grok cleanup → the existing native review.
 
@@ -180,8 +187,9 @@ prefix's sandbox value itself. `run_worker.py` never prepares or cleans up.
 `--attempt-dir` must be a new directory under `$P/attempts/` (for example
 `task-3`, `task-3-fix`, `task-3-retry`, `final`). The runner refuses a path
 outside the repository's `.waygent/` directory. Create `$P/attempts/` before the
-first run; the runner refuses a missing parent. Do not pipe `run` or `status`
-through `tail` or another filter that hides the exit code.
+first run; the runner refuses a missing parent. Do not pipe `run`, `status`, or
+`wait` through `tail` or another filter that hides the exit code; a JSON filter
+on `status` is fine after `set -o pipefail`.
 The runner writes six files there: `brief.md`, `dispatch.md`, `worker.jsonl`
 (raw stdout), `stderr.log`, `run.json`, and `report.md`, which the worker
 writes itself — the runner never writes the report. Grok receives the worker
@@ -256,17 +264,28 @@ a live transport.
 
 Never end your turn while an attempt runs. A headless host (`claude -p`,
 `codex exec`) ends the session when the turn ends, and the runner is killed
-with it: the 8.0.0 live check lost its first attempt that way. Start `run` as a
-background job, then block in the foreground:
+with it: the 8.0.0 live check lost its first attempt that way. Start `run` in
+the background, then block in the foreground:
 
     python3 "<skill-root>/scripts/run_worker.py" wait --attempt-dir <attempt-dir>
+
+- Claude Code: start `exec python3 "<skill-root>/scripts/run_worker.py" run …`
+  as the Bash tool's background command, with no trailing `&`, so the
+  background task is the runner itself. Run each `wait` in a foreground Bash
+  call with `timeout: 600000`; the default of 120000 ms kills a 540-second wait.
+- Codex: start `run` in its own `exec_command`. Run each `wait` through
+  `exec_command` with the largest `yield_time_ms` the tool accepts, at least
+  (`--max-seconds` + 10) × 1000. Do not poll with `write_stdin` or `status`
+  between waits.
 
 `wait` is read-only. It returns exit 0 with a one-line summary (`over`,
 `state`, `exit_code`, `error`, `pid_alive`, `stale`, `session_id`,
 `reported_model`, `report_exists`) once the attempt is over, or exit 3 after
-`--max-seconds` (default 540, so one call fits a host tool call) while it is
-still running; then call it again. Codex `wait_agent` is only for native
-reviewers.
+`--max-seconds` (default 540) while it is still running; then call it again.
+An attempt directory the runner has not made yet counts as not started for the
+first `--start-grace` seconds (default 15) of each call, so the first `wait`
+needs no `sleep` before it; still absent after that, the launch was refused
+(exit 2). Codex `wait_agent` is only for native reviewers.
 
     python3 "<skill-root>/scripts/run_worker.py" status --attempt-dir <attempt-dir>
     python3 "<skill-root>/scripts/run_worker.py" status --attempt-dir <attempt-dir> --stream stdout|stderr --offset N --max-bytes N
@@ -277,12 +296,13 @@ An attempt is over when `state` is not `running` and `pid_alive` is false; a
 worker can still be writing `report.md` after its record changed. Do not start
 the next attempt while the previous attempt's `pid_alive` is true.
 `run.json.pid` and `pid_alive` are the worker's. To stop an attempt, send
-SIGTERM to the runner: the host job's own pid (for example `$!` of the
-backgrounded `run` command), or the parent of the recorded pid (`ps -o ppid=
--p <pid>`). Do not signal `run.json.pid` itself, and never `pkill -f`, which
-can miss the worker or hit another run. If that parent is pid 1, the runner is
-already gone and the worker is an orphan; only then stop the worker by
-`run.json.pid` (SIGTERM, then SIGKILL if it stays).
+SIGTERM to the runner: on Claude Code, stop the background task that runs it
+with the host's own stop (the `exec` launch makes that task the runner);
+otherwise signal the parent of the recorded pid (`ps -o ppid= -p <pid>`). Do
+not signal `run.json.pid` itself, and never `pkill -f`, which can miss the
+worker or hit another run. If that parent is pid 1, the runner is already gone
+and the worker is an orphan; only then stop the worker by `run.json.pid`
+(SIGTERM, then SIGKILL if it stays).
 
 Read the bounded windows you need. Do not print a raw log wholesale into this
 session, and do not write a new execution script for a run. Do not re-query
@@ -304,13 +324,15 @@ it; record the remaining difference and state path in `progress.md`.
 
 `worker.jsonl` is the CLI's tool-call/results stream and stays local and
 uncommitted with the rest of the attempt directory. Preserve test commands and
-their actual exits. If the trace is unavailable or incomplete, record role
+their actual exits. A shell whose command ends in `; echo …$?` proves nothing
+about the test exit: the index records the echo's exit, so do not count it as
+RED or GREEN evidence. If the trace is unavailable or incomplete, record role
 compliance as UNVERIFIED. A final message alone is not a tool trace.
 
 Record the attempt path and the confirmed session ID in the current-state
-block described by `references/current-state.md`. Take the id from `status`
-while the attempt is still running; do not wait for exit and do not parse
-the log for it. `run.json` stays the attempt's process record; `progress.md`
+block described by `references/current-state.md`. Take the id from the first
+`wait` output that shows it, exit 3 or 0; do not call `status` for it between
+waits and do not parse the log for it. `run.json` stays the attempt's process record; `progress.md`
 stays the run's record. The progress line's `impl=` value comes from this
 record: `reported_model` when the stream named one, else `model (requested)`,
 and `configured_effort`, else `unknown`.
@@ -333,18 +355,20 @@ Do not pass `--plugin-dir`. Do not approve extra MCP servers.
 
 `run.json` holds process facts only: `schema_version` 2, `backend`,
 `identity`, `model`, `worktree`, `attempt_dir`, `brief_sha256`, `resume_id`,
-`session_id`, `reported_model`, `requested_effort`, `configured_effort`, `skill_version`, `state`,
-`pid`, `exit_code`, `started_at`, `ended_at`, `error`. `skill_version` is the
-installed skill's `release.toml` version, written once at start. A missing or
-unreadable version refuses the launch before the attempt directory is created.
-Older schema 2 records without the field stay readable. `state` is one of
+`session_id`, `reported_model`, `requested_effort`, `configured_effort`, `skill_version`,
+`runner_pid`, `state`, `pid`, `exit_code`, `started_at`, `ended_at`, `error`.
+`skill_version` is the installed skill's `release.toml` version, written once
+at start. A missing or unreadable version refuses the launch before the
+attempt directory is created. `runner_pid` is the runner's own pid, written
+at `starting`. Older schema 2 records without either field stay readable. `state` is one of
 `starting`, `running`, `exited`, `launch_failed`, `timed_out`, or `interrupted`.
 That is process state, not task state; process exit 0 is not a clean DONE.
 
 The wrapper exit follows the worker's exit. A POSIX signal returns
 `128 + signal` while `run.json.exit_code` keeps the real negative returncode.
 A launch failure is 2, a handled runner interrupt is 130, and an attempt
-ended by its wall-clock or idle timeout is 124. On SIGTERM or Ctrl-C the runner records
+ended by its wall-clock or idle timeout is 124. On SIGTERM or Ctrl-C, from its
+first record onward, the runner records
 `interrupted` at once, then ends the worker process itself the way a timeout
 does (SIGTERM, ten seconds, SIGKILL) and records the exit it recovered; a
 second interrupt during that wait, or an interrupt during a timeout's own wait,
@@ -352,16 +376,19 @@ goes straight to SIGKILL. That `exit_code` is `null` when the worker could not
 be confirmed ended, so check `pid_alive` before cleanup. The `error` is
 `the runner was interrupted (SIGTERM or Ctrl-C)`: the runner cannot know who
 sent the signal, so it does not say. SIGTERM to the worker remains
-`exited` (or `timed_out` when the runner sent it) with the negative returncode.
-SIGKILL still cannot write a terminal state. An interrupt that lands while the
-worker process is being started can leave `run.json` at `starting` with no
-pid; then check the host for a stray worker before starting another attempt.
+`exited` (or `timed_out` when the runner sent it) with the worker's own exit:
+`-15` when the signal ended it, or `143` when the CLI caught it and exited
+(Cursor 2026.09.26 and Grok 1.0.44 recorded 143). SIGKILL still cannot write a
+terminal state. An interrupt before the worker started (while the backend is
+resolved) records `interrupted` with `pid` null; one that lands inside the
+process start can still leave a stray worker, so check the host for one before
+starting another attempt.
 Confirm the worker and anything it started have exited yourself either way,
 before Grok cleanup. Exit 2 is ambiguous between a launch failure and a worker
 that legitimately exited 2, so read `run.json.state` to tell them apart; if
-the attempt directory is absent, or present without `run.json`, the launch
-was refused before the attempt was created and the `BLOCKED:` line on stderr
-is the reason.
+the attempt directory is absent after the start grace, or present without
+`run.json`, the launch was refused before the attempt was created and the
+`BLOCKED:` line on stderr is the reason.
 
 The default answer is metadata, log sizes, whether `report.md` exists,
 `pid_alive`, `stale`, `session_id_in_log`, and a bounded tools index — never a
@@ -370,28 +397,33 @@ log body. Role compliance is still the controller's.
 - `session_id` is the first id already copied into `run.json`, including while
   `state` is `running`. Status does not put one there from the log.
 - `metadata.reported_model` is the model the worker's own `system`/`init`
-  event named (Grok `grok-4.7`, Cursor for example `Cursor Grok 4.7 High`),
+  event named (Grok `grok-4.7`, Cursor for example `Grok 4.7 256K High`),
   copied once and never replaced. `model` stays the requested id. Grok reports
   no effort, so `configured_effort` (the flag value) is the only effort fact
   there.
-- An `interrupted` or `stale` attempt is a stopped runner, not a failed task:
-  resume its session at the same effort (SKILL.md "Timeouts and errors").
+- An `interrupted` or `stale` attempt is a stopped runner, not a failed task.
+  When the task's trailer commit and `report.md` are there, judge it as a
+  finished attempt; otherwise resume its session at the same effort (SKILL.md
+  "Timeouts and errors").
   An `exited` attempt with no trailer commit is a task failure, whatever its
   exit code.
 - `session_id_in_log` is the id the log reports, offered only when the record
   holds none, and `null` otherwise. Resume from it instead of re-running a task
   whose runner was killed before it could record the session.
-- `pid_alive` is whether the recorded pid is still alive. `state: running` and
-  `pid_alive: false` means the record is stale; status does not rewrite it.
-- `stale` is that judgement, already made: true only for `running` with no live
-  process. It is not written to `run.json` either.
+- `pid_alive` is whether the recorded worker pid is still alive.
+- `stale` is the judgement that nobody is left to close the record: a
+  `starting` or `running` record whose runner (`runner_pid`) and worker are
+  both gone. A live runner with a dead worker is about to record the exit, so
+  it is not stale. A record without `runner_pid` is stale only at `running`
+  with no live worker. Status does not write it to `run.json` or rewrite the
+  record.
 - `tools` holds `reads` (paths), `searches` (`pattern` / `path`), `shells`
   (`exit_code` / `command`), and `truncated`. Caps are 64 / 32 / 32 / 200
   command characters. It reads Cursor `tool_call` events and Grok `tool_use`
-  items; a Grok `list_dir` is a search with `pattern` null, and a Grok shell's
+  items; a Grok `list_dir` is a search with `pattern` null. A shell's
   `exit_code` is null when no integer exit came back (a background task, or a
-  worker stopped first). Grok writes a shell call only once it returns or
-  moves to the background, so a Grok shell still running in the foreground is
+  worker stopped first), on both backends. A shell is indexed once it returns
+  or moves to the background, so a shell still running in the foreground is
   not in the index yet; do not read its absence as "no command ran". Unknown
   tool shapes are empty lists, not an error. File contents, stdout, stderr,
   and thinking stay out.
@@ -399,5 +431,5 @@ log body. Role compliance is still the controller's.
 A window needs `--stream`; it defaults to 2048 bytes with a maximum of 8192,
 and the whole JSON answer is capped at 64 KiB.
 
-`pending_bytes > 0` means a UTF-8 character is only half written. Wait on the
-host's job for new bytes; do not re-query the same offset in a short loop.
+`pending_bytes > 0` means a UTF-8 character is only half written. Wait for
+new bytes; do not re-query the same offset in a short loop.

@@ -48,14 +48,19 @@ not add Cursor or Grok to `supported_hosts`.
 | Codex | `$sddx` | `~/.agents/skills/sddx` |
 | Claude Code | `/sddx` | `~/.claude/skills/sddx` |
 
+Codex loads `$sddx` in interactive sessions. `codex exec` does not load
+explicit-only skills, so `$sddx` does nothing there.
+
 `agents/openai.yaml` is optional Codex display metadata, not a required runtime
 file. Since 8.0.0 there is no Claude Code agent definition or plugin file.
 
 ## Evidence without a provider
 
 The required evidence is `python3 scripts/verify.py --skill sddx`. It checks
-package identity, resolver fixtures, and sandbox prepare and restore. It does not
-prove live model quality or runtime parity across the supported hosts.
+package identity, resolver fixtures, sandbox prepare and restore, the runner
+with `status` and `wait`, task extraction, `observed_model.py`, and the
+instruction wording. It does not prove live model quality or runtime parity
+across the supported hosts.
 
 ## Grok worker boundary
 
@@ -75,7 +80,9 @@ cannot leave its role.
 
 8.0.0 changed the base loop, so earlier end-to-end results do not carry over.
 The runner, resolver, and sandbox helpers are unchanged apart from the
-`.waygent/` path and `reported_model`.
+`.waygent/` path, `reported_model`, and the `wait` subcommand. The later runner
+changes (`runner_pid`, an interrupt while the backend is resolved, the `wait`
+start grace, the cmux hook switch) are covered by the offline checks only.
 
 | Host | Worker | State |
 | --- | --- | --- |

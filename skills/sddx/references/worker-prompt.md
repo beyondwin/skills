@@ -44,9 +44,8 @@ explicit task paths only. Do not stage `.grok/sandbox.toml` or anything under `.
 Report these fields:
 - Status and files changed.
 - Exact test commands and actual test exit codes for the `Worker checks`,
-  including RED and GREEN. Prefer separate synchronous test commands. If a
-  wrapper is used, include the full wrapper command and distinguish its exit
-  from the test exit.
+  including RED and GREEN. Run test commands bare, with no `; echo $?` or
+  other wrapper: the tool reports the exit code.
 - Any `Host checks` left outstanding, named individually.
 - Commit SHA, or why no commit was needed or possible.
 - Scope deviations: `none`, or the attempted/performed action, target, result,
