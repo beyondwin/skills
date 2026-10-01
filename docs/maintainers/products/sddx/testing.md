@@ -38,7 +38,7 @@ What each test file locks:
 - `tests/products/sddx/test_extract_task.py`: locks heading match, body
   boundaries, exit 3 for duplicate, missing, or empty bodies, exit 2 for argument
   and file errors, not overwriting an existing output file,
-  `--constraints-heading` on a plan whose rules sit under `## 전역 규칙` (and
+  `--constraints-heading` on a plan whose rules sit under a Korean title (and
   exit 2 without `--global-constraints`), and the Windows refusal.
 - `tests/products/sddx/test_run_worker.py`: checks the six files in the attempt
   directory, argv construction, the per-backend exclusivity of

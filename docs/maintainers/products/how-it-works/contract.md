@@ -73,7 +73,7 @@ Mermaid source. At picture, the Body does not walk the hops again.
   keeps the two equal. When the host can read files, the skill reads `output.md` (and
   `korean.md` for a Korean reply) before replying; only a host that cannot read files
   emits from the mirror alone.
-- The title names the rung in the reply language: 그림/길/뼈대/허점 or
+- The title names the rung in the reply language: the Korean rung name or
   picture/path/skeleton/fracture. The next-move labels have Korean and English forms
   in `SKILL.md`.
 - The visual channel is mermaid. Hand-drawn HTML boxes are not a diagram. Picture
@@ -94,8 +94,9 @@ what it gives up, failure shape, how to undo) and explain the tradeoff under the
 user's stated conditions. Medical, legal, and financial comparisons do not have to end
 in a personal action recommendation.
 
-Korean replies use 해요체 even when earlier turns used 합니다체, and never address the
-user as 우리, 여러분, 당신, 너, or 네가.
+Korean replies use the polite informal ending even when earlier turns used the formal
+one, and never address the user with first-person plural, collective, or second-person
+forms (the list is in `references/korean.md`).
 
 ## Safety
 
