@@ -45,8 +45,10 @@ or an outside-implementation request without the slash or dollar call.
 ## Arguments and backend
 
 `sddx <plan-file> [cursor|grok|c|g]`. `c` is `cursor`, `g` is `grok`. A plan file
-is required; ask once if it is missing. `/sddx` alone resumes the one folder
-under `.waygent/` that has an SDDx block.
+is required; ask once if it is missing. `/sddx` alone follows waygent's
+`/waygent` alone rule (the one unfinished folder; several: ask once; no folder:
+rebuild from this branch's trailer commits), then rebuilds the SDDx block from
+that progress and the attempt directories.
 
 - A backend argument means no question. Without one, ask once per plan and keep
   the answer.
@@ -67,7 +69,8 @@ under `.waygent/` that has an SDDx block.
   recorded ruling, passed with `--constraints-heading` (and as `--heading` for
   a fix, retry, or final batch brief). A plan with no such section is asked
   about once.
-- guide.md names no plan path and copies the plan's global rules in full.
+- guide.md names no plan path and copies the plan's global rules in full;
+  waygent's ~60-line guide.md cap does not apply to that copied block.
 - A fix resumes the same worker session at the same effort. A retry after a
   failure is a fresh worker at XHigh. An `interrupted` or `stale` attempt (the runner
   was stopped) is not a task failure: when its trailer commit and `report.md`
@@ -92,7 +95,9 @@ compliance as PASS, FAIL, or UNVERIFIED.
 - Filename listings and reading repository ignore/build/test settings are
   allowed and are not scope deviations.
 - The worker runs test commands bare. A shell ending in `; echo …$?` proves
-  nothing about the test exit, because the index holds the echo's exit.
+  nothing about the test exit, because the index holds the echo's exit. The
+  index keeps the first 200 characters of a command; a command cut there is
+  not evidence either.
 - BLOCKED, NEEDS_CONTEXT, a missing report, or an unclear result is not DONE.
 
 ## Recording models
@@ -127,8 +132,9 @@ Launch only through `run_worker.py run`; read attempts only through
 `run_worker.py status` and `run_worker.py wait`. The controller never ends its
 turn while a worker runs, because a headless host kills the runner with the
 session; it blocks on `wait` (exit 0 when over, exit 3 after `--max-seconds`,
-default 540). A missing attempt folder counts as not started for
-`--start-grace` (default 15 seconds) and as a refused launch after it. Claude
+default 540). A missing attempt folder, or one with no `run.json`, counts as
+not started for `--start-grace` (default 15 seconds) and as a refused launch
+after it. Claude
 Code launches `run` with `exec` as the Bash tool's background command and runs
 `wait` with `timeout: 600000`; Codex runs `wait` through `exec_command` with a
 `yield_time_ms` of at least (`--max-seconds` + 10) × 1000 and does not poll
@@ -155,7 +161,8 @@ with `write_stdin` or `status` between waits. Attempt folders live under
   records `interrupted` with `the runner was interrupted (SIGTERM or Ctrl-C)`
   and ends the worker, exiting 130; with no worker yet, `pid` stays null. If
   the worker could not be confirmed ended, `exit_code` is null, so check
-  `pid_alive` before cleanup.
+  `pid_alive` before cleanup. An interrupt after a terminal record (`exited`,
+  `launch_failed`) keeps that record and still exits 130.
 - A worker that gets SIGTERM records `-15`, or `143` when the CLI catches it
   and exits (Cursor 2026.09.26 and Grok 1.0.44 both record 143).
 - The runner signals only the worker process. Anything the worker started (a

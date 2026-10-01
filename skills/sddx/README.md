@@ -175,7 +175,7 @@ reads, searches, and shells. Do not paste the whole log.
 | --- | --- | --- |
 | Worker prints nothing for `--idle-timeout` (default 900 seconds; `0` = off) | Worker stopped, `timed_out`, exit 124, `the worker wrote no output for 900 seconds` | Check the worktree for leftover changes. Do not resume that session; start a fresh worker with a brief naming the last report and commits. |
 | Past `--timeout` (default `0` = no limit) | Worker stopped, `timed_out`, exit 124 | Check `status` and the report. |
-| Ctrl-C or SIGTERM to the runner | `interrupted`; the worker is stopped too (SIGTERM, then SIGKILL after ten seconds), exit 130 | Check for leftover background processes the worker started. The run then resumes that worker's session; a stopped runner is not a task failure. |
+| Ctrl-C or SIGTERM to the runner | `interrupted`; the worker is stopped too (SIGTERM, then SIGKILL after ten seconds), exit 130 | Check for leftover background processes the worker started. The run then resumes that worker's session, unless the task's trailer commit and `report.md` are already there; a stopped runner is not a task failure. |
 | Out of balance (402), or an auth or permission failure | Attempt ends | Fix the cause first; nothing retries automatically. |
 
 To stop an attempt, stop the runner. Do not signal the recorded worker pid or use

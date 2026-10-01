@@ -37,8 +37,10 @@ activation. They do not stop you from reading it here. If
     sddx <plan-file> [cursor|grok|c|g]
 
 A file link or a plain-language reference to the plan is the plan path. `/sddx`
-alone resumes the one folder under `.waygent/` whose `progress.md` has the SDDx
-block. SDDx always needs a plan file: waygent's no-plan mode is not used here.
+alone follows waygent's `/waygent` alone rule (the one unfinished folder; several:
+ask once; no folder: rebuild from this branch's trailer commits), then rebuilds
+the SDDx block from that progress and the attempt directories. SDDx always needs
+a plan file: waygent's no-plan mode is not used here.
 Keep one active plan at a time. Follow an order a parent plan states; never
 guess one from file names or dates.
 
@@ -99,7 +101,8 @@ plan keeps them under a heading other than `Global Constraints`, name that
 heading as a recorded ruling and pass it with `--constraints-heading`. A
 constraint that is not in the brief does not exist for the worker. guide.md
 names no plan path and copies the plan's global rules in full, never "see
-plan". `references/dispatch.md` holds the brief, launch, watch, and cleanup
+plan"; waygent's ~60-line guide.md cap does not apply to that copied block.
+`references/dispatch.md` holds the brief, launch, watch, and cleanup
 steps. Launch only through `run_worker.py`; never hand-compose a provider
 command, and never dump a whole worker log into this session. Never end your
 turn while a worker runs: block on `run_worker.py wait` as the Hosts table

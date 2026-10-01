@@ -282,10 +282,10 @@ the background, then block in the foreground:
 `state`, `exit_code`, `error`, `pid_alive`, `stale`, `session_id`,
 `reported_model`, `report_exists`) once the attempt is over, or exit 3 after
 `--max-seconds` (default 540) while it is still running; then call it again.
-An attempt directory the runner has not made yet counts as not started for the
-first `--start-grace` seconds (default 15) of each call, so the first `wait`
-needs no `sleep` before it; still absent after that, the launch was refused
-(exit 2). Codex `wait_agent` is only for native reviewers.
+An attempt directory the runner has not made yet, or one with no `run.json`
+yet, counts as not started for the first `--start-grace` seconds (default 15)
+of each call, so the first `wait` needs no `sleep` before it; still absent
+after that, the launch was refused (exit 2). Codex `wait_agent` is only for native reviewers.
 
     python3 "<skill-root>/scripts/run_worker.py" status --attempt-dir <attempt-dir>
     python3 "<skill-root>/scripts/run_worker.py" status --attempt-dir <attempt-dir> --stream stdout|stderr --offset N --max-bytes N
@@ -326,7 +326,8 @@ it; record the remaining difference and state path in `progress.md`.
 uncommitted with the rest of the attempt directory. Preserve test commands and
 their actual exits. A shell whose command ends in `; echo …$?` proves nothing
 about the test exit: the index records the echo's exit, so do not count it as
-RED or GREEN evidence. If the trace is unavailable or incomplete, record role
+RED or GREEN evidence. The index keeps only the first 200 characters of a
+command; a command cut there hides its end, so its exit is not evidence either. If the trace is unavailable or incomplete, record role
 compliance as UNVERIFIED. A final message alone is not a tool trace.
 
 Record the attempt path and the confirmed session ID in the current-state
@@ -380,9 +381,11 @@ sent the signal, so it does not say. SIGTERM to the worker remains
 `-15` when the signal ended it, or `143` when the CLI caught it and exited
 (Cursor 2026.09.26 and Grok 1.0.44 recorded 143). SIGKILL still cannot write a
 terminal state. An interrupt before the worker started (while the backend is
-resolved) records `interrupted` with `pid` null; one that lands inside the
-process start can still leave a stray worker, so check the host for one before
-starting another attempt.
+resolved) records `interrupted` with `pid` null, and one after the worker
+started records its `pid`; one that lands inside the process start can still
+leave a stray worker, so check the host for one before
+starting another attempt. An interrupt after a terminal record (`exited`,
+`launch_failed`) keeps that record and still exits 130.
 Confirm the worker and anything it started have exited yourself either way,
 before Grok cleanup. Exit 2 is ambiguous between a launch failure and a worker
 that legitimately exited 2, so read `run.json.state` to tell them apart; if

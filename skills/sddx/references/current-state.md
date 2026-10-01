@@ -48,7 +48,8 @@ The values above are a synthetic example. Fill in the real ones.
 - `Task`, `step`, `attempt` — the task number, where it is (`implement`,
   `review`, `fix`, `retry`, `final`), and the latest attempt directory under
   `$P`.
-- `Worker session` — the confirmed `session_id` from `status`, or `none`.
+- `Worker session` — the confirmed `session_id` from the `wait` output (or
+  `run.json`), or `none`.
   Never an unconfirmed ID, and never one carried across a backend change.
 - `Worker effort` — `high` or `xhigh` for the current attempt, with the reason.
 - `Open findings` — a link to unresolved review findings, or `none`.

@@ -29,6 +29,19 @@ All notable changes to this product are documented in this file.
 - A stopped runner (`interrupted` or `stale`) whose task already has its
   trailer commit and `report.md` is judged as a finished attempt instead of
   being resumed.
+- An interrupt that reaches the runner after `run.json` already says `exited`
+  or `launch_failed` keeps that record and still exits 130. Before, it
+  rewrote the record as `interrupted` with `pid` and `exit_code` null.
+- An interrupt between the worker's start and its `running` record now
+  records the worker's `pid` instead of null.
+- `wait` treats an attempt directory with no `run.json` after `--start-grace`
+  as a refused launch (exit 2) instead of returning exit 3 forever.
+- `extract_task.py` refuses a blank `--constraints-heading` and one that names
+  the same section as `--heading`, which emitted that section twice.
+- The current-state template takes the worker session id from the `wait`
+  output (or `run.json`), not from `status`.
+- The docs say a command cut at the tools index's 200-character limit is not
+  test-exit evidence either.
 - The docs say a worker that gets SIGTERM may record `-15` or `143` (Cursor
   2026.09.26 and Grok 1.0.44 both recorded 143).
 - The progress line writes `reported_model` with whitespace replaced by `_`
@@ -52,7 +65,10 @@ All notable changes to this product are documented in this file.
 - With no High or Medium in the final review, the host walks the app itself;
   only a fix the walk needs goes to a worker attempt.
 - guide.md under SDDx names no plan path and copies the plan's global rules in
-  full.
+  full; waygent's ~60-line guide.md cap does not apply to that copied block.
+- `/sddx` alone follows waygent's `/waygent` alone rule (the one unfinished
+  folder, ask when several, rebuild from this branch's trailer commits when
+  there is none), then rebuilds the SDDx block.
 - The Grok worker runs with `CMUX_GROK_HOOKS_DISABLED=1`, so the cmux `grok`
   wrapper does not install its hooks before starting the real CLI.
 - A JSON filter on `status` is allowed after `set -o pipefail`.

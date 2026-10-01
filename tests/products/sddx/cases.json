@@ -52,6 +52,7 @@
     {"id": "record-observed-models", "request": "task done; record implementer and reviewer", "expect": ["progress_models", "observed_reviewer"]},
     {"id": "unconfirmed-model-marked-requested", "request": "reviewer transcript not found", "expect": ["requested_marker"]},
     {"id": "stopped-runner-resumes", "request": "runner was sent SIGTERM mid-task; run.json says interrupted; session known", "expect": ["stopped_runner_resumes", "finished_before_resume"]},
-    {"id": "constraints-under-another-heading", "request": "/sddx plan.md whose run-wide rules sit under ## 전역 규칙", "expect": ["constraints_heading_ruling"]}
+    {"id": "constraints-under-another-heading", "request": "/sddx plan.md whose run-wide rules sit under ## 전역 규칙", "expect": ["constraints_heading_ruling", "guide_copies_rules_past_cap"]},
+    {"id": "alone-follows-waygent-resume", "request": "/sddx alone after .waygent/ was deleted; tasks 1-3 have trailer commits", "expect": ["alone_follows_waygent"]}
   ]
 }

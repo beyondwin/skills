@@ -76,6 +76,7 @@ CASE_IDS = (
     "unconfirmed-model-marked-requested",
     "stopped-runner-resumes",
     "constraints-under-another-heading",
+    "alone-follows-waygent-resume",
 )
 DESCRIPTION_FORBIDDEN = (
     "fresh implementer",
@@ -198,6 +199,15 @@ EXPECT_LOCK = {
     "constraints_heading_ruling": {
         "skill_must": ("name that heading as a recorded ruling and pass it with `--constraints-heading`",),
         "dispatch_must": ('`--constraints-heading "<exact title>"`',),
+    },
+    "guide_copies_rules_past_cap": {
+        "skill_must": ("waygent's ~60-line guide.md cap does not apply to that copied block",),
+    },
+    "alone_follows_waygent": {
+        "skill_must": (
+            "alone follows waygent's `/waygent` alone rule (the one unfinished folder; several: ask once; no folder: rebuild from this branch's trailer commits), then rebuilds the SDDx block",
+        ),
+        "skill_must_not": ("whose `progress.md` has the SDDx block",),
     },
 }
 
@@ -527,6 +537,21 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("the host walks the app itself", contract)
         self.assertIn("guide.md names no plan path", skill)
         self.assertIn("guide.md names no plan path", contract)
+        self.assertIn("waygent's ~60-line guide.md cap does not apply to that copied block", contract)
+        self.assertIn(
+            "alone follows waygent's `/waygent` alone rule (the one unfinished folder; several: ask once; no folder: rebuild from this branch's trailer commits), then rebuilds the SDDx block",
+            contract,
+        )
+        # Whole-branch review L-1, L-14, L-17, M-5.
+        self.assertIn("unless the task's trailer commit and `report.md` are already there", readme)
+        self.assertIn("트레일러 커밋과 `report.md`가 이미 있지 않으면", readme_ko)
+        for text in (dispatch, contract):
+            self.assertIn("or one with no `run.json`", text)
+            self.assertIn("not evidence either", text)
+            self.assertIn("keeps that record and still exits 130", text)
+        current_state = read(SKILL / "references" / "current-state.md")
+        self.assertIn("the confirmed `session_id` from the `wait` output (or `run.json`)", current_state)
+        self.assertNotIn("`session_id` from `status`", current_state)
         self.assertIn("`Grok_4.7_256K_High`", skill)
         self.assertIn("review=<clean|fixed K|overruled K|skipped (<why>)|unknown>", skill)
         # One allowed filter, said once.
