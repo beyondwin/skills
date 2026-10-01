@@ -192,12 +192,12 @@ the first match:
    `Anomalies: not_recorded`.
 4. **Fix what is left.** The latest completed run is a reusable `REVISE`,
    nothing changed as step 3 defines it, and the outer request asks to fix the
-   handoff. Take the continuation (Default mode): call `start`, apply the
-   handoff's minimal fixes as repair pass 1, then run closure. Its record has
+   handoff. In default mode only, take the continuation: call `start`, apply
+   the handoff's minimal fixes as repair pass 1, then run closure. Its record has
    one repair and one review, so `finish` reports `repair_after_last_review`;
    that anomaly is expected here.
-5. **Only the documents changed.** Take the continuation (Default mode) when
-   the latest completed run is `REVISE` with a reusable `execution`, the
+5. **Only the documents changed.** In default mode only, take the
+   continuation when the latest completed run is `REVISE` with a reusable `execution`, the
    change list is docs-only, the documents' diff since the run's `sha_end` can
    be produced, and the outer request does not ask for a full re-review.
 6. **Otherwise** run discovery. Without a recorded run for this plan there is
@@ -292,7 +292,9 @@ authentication, authorization, or security boundaries; public/private
 data-boundary changes; or external side effects such as publishing, billing,
 messaging, or production mutations. It examines only the triggered risk class.
 Record the trigger as `runtime-removal`, `schema-migration`, `auth-boundary`,
-`data-boundary`, or `external-side-effect`, in that order.
+`data-boundary`, or `external-side-effect`, respectively, matching the list
+above. When more than one class applies, the focused reviewer examines each of
+them and the record names the first in that list.
 
 The controller deduplicates all findings by evidence and consequence before
 repair. Reviewers never edit files.

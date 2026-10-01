@@ -1158,7 +1158,9 @@ class PreSddReviewContractTests(unittest.TestCase):
             "Send nothing to a running reviewer except the one missing-fields re-ask",
             "close each reviewer once its records are in (Codex: `close_agent` when the host offers it; a reviewer that returned its final answer is left alone)",
             "Edit no reviewed document before `start`, except the step-2 decision record and campaign pre-pass repairs",
-            "Take the continuation (Default mode): call `start`, apply the handoff's minimal fixes as repair pass 1, then run closure",
+            "In default mode only, take the continuation: call `start`, apply the handoff's minimal fixes as repair pass 1, then run closure",
+            "**Only the documents changed.** In default mode only, take the continuation when",
+            "When more than one class applies, the focused reviewer examines each of them and the record names the first in that list.",
         ):
             self.assertIn(phrase, skill)
         self.assertIn("If `HEAD` moves off the freeze before the verdict", freshness)
@@ -1369,7 +1371,10 @@ class PreSddReviewContractTests(unittest.TestCase):
         )
         self.assertEqual(second_review_risk_triggers(reviewers), RISK_TRIGGERS)
         # The recorder slug for each trigger, in the same order as the prose list.
-        slugs = re.search(r"Record the trigger as (.+?), in that order\.", re.sub(r"\s+", " ", reviewers))
+        slugs = re.search(
+            r"Record the trigger as (.+?), respectively, matching the list above\.",
+            re.sub(r"\s+", " ", reviewers),
+        )
         self.assertIsNotNone(slugs, "missing recorder trigger slugs")
         recorder = ast.parse((SKILL / "evidence/evidence.py").read_text(encoding="utf-8"))
         triggers = next(

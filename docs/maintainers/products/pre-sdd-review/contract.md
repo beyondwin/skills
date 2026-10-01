@@ -181,6 +181,11 @@ only reason to dispatch a second reviewer.
 - `public/private data-boundary changes`
 - `external side effects such as publishing, billing, messaging, or production mutations`
 
+The recorder takes one `trigger` slug per run, matching this list in order:
+`runtime-removal`, `schema-migration`, `auth-boundary`, `data-boundary`,
+`external-side-effect`. When more than one class applies, the focused reviewer
+examines each of them and the record names the first in the list.
+
 An invocation has at most two review roles: one primary role and, when a
 trigger applies, one focused risk role. A new re-review may change the agent,
 but never adds a role or widens the risk class. Evidence `reviewers` (0-2) is

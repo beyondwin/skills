@@ -289,8 +289,9 @@ of the recorder source. Six runs called `finish` once. Claude L7 and L7b each
 needed a second call because the first `block_reason` ran over 100
 characters (`schema-invalid`). Neither SKILL.md nor `evidence/README.md` states
 that limit. After the limit was written into SKILL.md and the recorder README,
-one more Claude L7 run on the final text (`SKILL.md` `30a83420`, opus, effort
-high, $0.70) finished with one `finish` call: `BLOCKED`, `full`, 1 reviewer, an
+one more Claude L7 run on the then-final text (`SKILL.md` `30a83420`, before the
+step 4 and 5 "default mode only" and trigger-record wording; opus, effort high,
+$0.70) finished with one `finish` call: `BLOCKED`, `full`, 1 reviewer, an
 86-character `block_reason` starting `decision:`. The Codex close step now applies
 only when the host offers `close_agent`, and step 4 says its run is expected to
 show `repair_after_last_review`.

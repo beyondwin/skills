@@ -16,6 +16,7 @@ All notable changes to this product are documented in this file.
 - `start --model ""` (or a multi-line or over-long model) fails with `invalid-arguments` like every other argument error, not `schema-invalid`.
 - The Codex close step applies only when the host offers `close_agent` (Codex CLI 0.157.1 has none); a reviewer that returned its final answer is left alone.
 - `SKILL.md` and the recorder README state the string limits that `finish` enforces: `block_reason` 100 characters, a finding's locator 200, consequence and fix 300. A live run lost a `finish` attempt to an unstated limit.
+- Steps 4 and 5 say "In default mode only, take the continuation", so a `review-only` run asked to fix what is left does not edit. The trigger slugs are recorded "respectively, matching the list above"; when more than one risk class applies, the focused reviewer examines each and the record names the first in that list.
 - `summary --repo` refuses `.`, `..`, or a value with a slash, with a message that it is the checkout's display name; before, such a value silently matched nothing. `summary --plan` drops a leading `./`.
 
 ### Changed
