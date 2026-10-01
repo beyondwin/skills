@@ -84,7 +84,9 @@ no feature, dependency, host claim, or product decision may be added.
 Each reviewer starts with no inherited conversation (Codex:
 `fork_turns: "none"`); its only input is the dispatch instruction. The
 controller sends a running reviewer nothing except the one missing-fields
-re-ask and closes it when its records are in (Codex: `close_agent`). On Claude
+re-ask and closes it when its records are in (Codex: `close_agent` when the host
+offers it; Codex CLI 0.157.1 does not, and a reviewer that returned its final
+answer is left alone). On Claude
 Code, prefer an agent type without edit tools.
 
 If no independent fresh reviewer is available, the controller does not stand
@@ -351,7 +353,8 @@ The next invocation takes the first matching path:
 4. Fix what is left: if the last run was a reusable `REVISE`, nothing changed
    as in step 3, and the request asks to fix the handoff, take the
    continuation in default mode: `start`, apply the handoff's minimal fixes as repair pass 1,
-   then closure.
+   then closure. The record then has one repair and one review, so its run is
+   expected to show `repair_after_last_review`.
 5. Continuation: if the last run was a reusable `REVISE`, the change list
    shows only the design, plan, and ledger, and the user did not ask for a full
    re-review, start from closure with no discovery.

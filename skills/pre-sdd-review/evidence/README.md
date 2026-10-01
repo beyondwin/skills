@@ -88,7 +88,9 @@ the verdict: `blocked` only when no independent primary review ran (`reviewers`
 0, `review_passes` 0), and `primary-role-not-obtained` is recorded only on such
 a run; a `BLOCKED` verdict reached after a review keeps `full` or `degraded`.
 By convention `block_reason` starts with `decision:`, `input:`, `evidence:`, or
-`reviewer:`. Example:
+`reviewer:`. String limits: `block_reason` 100 characters, a finding's
+`location.locator` 200, `consequence` and `fix` 300 each; a longer value fails
+`finish` with `schema-invalid`. Example:
 
 ```json
 {"execution":"full","reviewers":1,"trigger":null,"degraded_reasons":[],"verdict":"READY","block_reason":null,"review_passes":1,"repair_passes":0,"findings":[]}
@@ -121,7 +123,9 @@ for its own plan: another plan's repair may change the shared design, and the
 ledger is always shared. `repo_reality_citing_documents_only` counts the
 ledger as a document, since it is derived evidence. A campaign plan made
 stale after its last permitted closure ends `REVISE` with no open finding, so
-its run is expected to show `revise_without_unresolved_finding`.
+its run is expected to show `revise_without_unresolved_finding`. A fix-what-is-left
+continuation applies its repair before its only closure review, so its run is
+expected to show `repair_after_last_review`.
 
 ## Reading the log
 

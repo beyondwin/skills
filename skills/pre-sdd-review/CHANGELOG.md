@@ -14,6 +14,8 @@ All notable changes to this product are documented in this file.
 - After printing the final report, the controller stops: no code edit, branch, stash, commit, or new invocation without a new user turn that asks for it. A change the controller made does not count as a changed document. The SDD sentence now stands alone.
 - `SKILL.md` and `evidence/README.md` say schema 2, 3, or 4 records are unsupported, and the recorder README says schema 4 (not 5) came from 4.0.0 through 5.1.0.
 - `start --model ""` (or a multi-line or over-long model) fails with `invalid-arguments` like every other argument error, not `schema-invalid`.
+- The Codex close step applies only when the host offers `close_agent` (Codex CLI 0.157.1 has none); a reviewer that returned its final answer is left alone.
+- `SKILL.md` and the recorder README state the string limits that `finish` enforces: `block_reason` 100 characters, a finding's locator 200, consequence and fix 300. A live run lost a `finish` attempt to an unstated limit.
 - `summary --repo` refuses `.`, `..`, or a value with a slash, with a message that it is the checkout's display name; before, such a value silently matched nothing. `summary --plan` drops a leading `./`.
 
 ### Changed
@@ -30,7 +32,7 @@ All notable changes to this product are documented in this file.
 
 - `--help` and `-h`, on their own or after any command, print the recorder's command table on stdout and exit 0.
 - `show` accepts `--repo` and ignores it, so it takes the same arguments as `finish` and `abandon`.
-- A reusable `REVISE` with nothing changed and a request to fix what is left takes the continuation: `start`, the handoff's fixes as repair pass 1, then closure. Nothing reviewed is edited before `start` except the step-2 decision record and campaign pre-pass repairs.
+- A reusable `REVISE` with nothing changed and a request to fix what is left takes the continuation: `start`, the handoff's fixes as repair pass 1, then closure. Nothing reviewed is edited before `start` except the step-2 decision record and campaign pre-pass repairs. Its run is expected to show `repair_after_last_review`, because the repair comes before the only closure review.
 
 ### Notes
 

@@ -1156,7 +1156,7 @@ class PreSddReviewContractTests(unittest.TestCase):
             "A change this controller made does not count as a changed document",
             "Start each reviewer with no inherited conversation (Codex: `fork_turns: \"none\"`); its only input is the dispatch instruction",
             "Send nothing to a running reviewer except the one missing-fields re-ask",
-            "close each reviewer once its records are in (Codex: `close_agent`)",
+            "close each reviewer once its records are in (Codex: `close_agent` when the host offers it; a reviewer that returned its final answer is left alone)",
             "Edit no reviewed document before `start`, except the step-2 decision record and campaign pre-pass repairs",
             "Take the continuation (Default mode): call `start`, apply the handoff's minimal fixes as repair pass 1, then run closure",
         ):

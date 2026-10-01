@@ -193,7 +193,9 @@ the first match:
 4. **Fix what is left.** The latest completed run is a reusable `REVISE`,
    nothing changed as step 3 defines it, and the outer request asks to fix the
    handoff. Take the continuation (Default mode): call `start`, apply the
-   handoff's minimal fixes as repair pass 1, then run closure.
+   handoff's minimal fixes as repair pass 1, then run closure. Its record has
+   one repair and one review, so `finish` reports `repair_after_last_review`;
+   that anomaly is expected here.
 5. **Only the documents changed.** Take the continuation (Default mode) when
    the latest completed run is `REVISE` with a reusable `execution`, the
    change list is docs-only, the documents' diff since the run's `sha_end` can
@@ -280,7 +282,8 @@ instruction that the reviewer is read-only. Start each reviewer with no
 inherited conversation (Codex: `fork_turns: "none"`); its only input is the
 dispatch instruction. Send nothing to a running reviewer except the one
 missing-fields re-ask below, and close each reviewer once its records are in
-(Codex: `close_agent`). Supported host: Codex only; on any other host, record
+(Codex: `close_agent` when the host offers it; a reviewer that returned its
+final answer is left alone). Supported host: Codex only; on any other host, record
 its real id with `--client`.
 
 A second fresh reviewer is conditional, not routine: dispatch one focused reviewer only for
@@ -512,8 +515,9 @@ for a material repairable document defect, including one still material after
 the last pass. Return `BLOCKED` when required authority, input, or
 repository evidence is unavailable, unresolvable, or would require a new
 product decision, or when an independent primary reviewer cannot be obtained.
-Name the cause in `block_reason`, starting with `decision:`, `input:`,
-`evidence:`, or `reviewer:` (a convention, not an enum); a `BLOCKED` run with
+Name the cause in a one-line `block_reason` of at most 100 characters, starting
+with `decision:`, `input:`, `evidence:`, or `reviewer:` (a convention, not an
+enum); a `BLOCKED` run with
 a null `block_reason` is an anomaly.
 An open `BLOCKER`, including one still `partially-closed`, forces `BLOCKED`,
 never `REVISE`.
