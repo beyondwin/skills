@@ -12,7 +12,8 @@ All notable changes to this product are documented in this file.
 - An explicit call with no Korean text asks once for the text in one short Korean line instead of replying that the editor does not apply.
 - `diagnose` returns findings only, never the unchanged source. Clean text gets one line such as `고칠 부분 없음`.
 - Legal, medical, or financial text with no stated mode gets `correct` plus a `확인 필요` line on the claim. An explicit `polish` may change wording but keeps each claim verbatim. The impossible "separate source verification" requirement is gone.
-- A `확인 필요` line comes after the edited text, on its own line.
+- A `확인 필요` line comes after the edited text, on its own line. The output contract says the high-stakes line is one of the material holds, so it is not dropped as "not material".
+- The no-rewording list is the same on every face; the Preservation Gate no longer adds "permission", which modality already covers.
 
 ### Changed
 

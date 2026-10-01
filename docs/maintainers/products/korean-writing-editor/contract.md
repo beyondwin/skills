@@ -43,7 +43,8 @@ provider CLI, and it answers `routing unavailable` when asked about routing.
   hold. Clean text gets a one-line "nothing to fix" reply.
 - Do not attach a rubric, change list, score, routing receipt, or "using the
   skill" narration. Add the short hold line defined in `SKILL.md` only when a
-  real hold is needed; it comes after the edited text.
+  real hold is needed (the high-stakes line below is one); it comes after the
+  edited text.
 - A non-editing request (translation, drafting, and so on) gets a refusal only.
   Do not do that other job in the same turn.
 - Already-correct negation, modality, obligation, possibility, quantity, and
