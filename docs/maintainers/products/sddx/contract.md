@@ -63,11 +63,18 @@ under `.waygent/` that has an SDDx block.
   trailer), `Search paths`, `Worker checks`, and `Host checks`. A fix, retry, or
   final batch brief starts from
   `extract_task.py <plan> --heading "Global Constraints"`.
+- A plan whose run-wide rules sit under another heading gets that heading as a
+  recorded ruling, passed with `--constraints-heading` (and as `--heading` for
+  a fix, retry, or final batch brief). A plan with no such section is asked
+  about once.
+- guide.md names no plan path and copies the plan's global rules in full.
 - A fix resumes the same worker session at the same effort. A retry after a
   failure is a fresh worker at XHigh. An `interrupted` or `stale` attempt (the runner
-  was stopped) is not a task failure: it resumes the same session at the same
-  effort and does not use up the retry. Final-review fixes and the app walk are one
-  worker attempt.
+  was stopped) is not a task failure: when its trailer commit and `report.md`
+  are there it is judged as a finished attempt, else it resumes the same
+  session at the same effort and does not use up the retry. Final-review fixes
+  and the app walk are one worker attempt; with no High or Medium the host walks
+  the app itself, and a fix the walk needs goes to one worker attempt.
 - Implementer effort is High or XHigh per task, from the table in `SKILL.md`.
   It is not the session effort, and design ambiguity is a ruling, not XHigh.
 - Run a task's Host checks before that task's review.
@@ -84,6 +91,8 @@ compliance as PASS, FAIL, or UNVERIFIED.
   pass. A missing or partial tool record is UNVERIFIED. Neither is a clean DONE.
 - Filename listings and reading repository ignore/build/test settings are
   allowed and are not scope deviations.
+- The worker runs test commands bare. A shell ending in `; echo …$?` proves
+  nothing about the test exit, because the index holds the echo's exit.
 - BLOCKED, NEEDS_CONTEXT, a missing report, or an unclear result is not DONE.
 
 ## Recording models
@@ -98,7 +107,10 @@ The progress line records what actually ran:
 - Reviewers and the controller: `observed_model.py` reads the host's own
   transcript (Claude Code `agent-<id>.jsonl` or the session file; Codex
   `rollout-*-<thread>.jsonl`) and prints models and efforts with counts. It
-  prints no transcript text.
+  prints no transcript text. The controller's own id is
+  `$CLAUDE_CODE_SESSION_ID` on Claude Code and `$CODEX_THREAD_ID` on Codex.
+- Whitespace in `reported_model` becomes `_` in the progress line
+  (`Grok_4.7_256K_High`).
 - A value nothing confirmed is written with `(requested)`.
 
 ## Current state

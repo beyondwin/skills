@@ -32,6 +32,10 @@ never a `-fast` variant.
 
 - Use it when an implementation plan file exists and your message contains
   `/sddx` (Claude Code) or `$sddx` (Codex). Nothing else turns it on.
+- The plan needs one section of run-wide rules, normally
+  `## Global Constraints`, because the worker never reads the plan. Under
+  another title, SDDx names that section and records the choice; with no such
+  section, it asks once.
 - Do not use it to write a spec or plan, or for `/waygent`, `writing-plans`,
   `executing-plans` (including Native), `pre-sdd-review`, plain SDD, coding in
   this session, or "implement this with Grok" without `/sddx` or `$sddx`.
@@ -42,6 +46,8 @@ sddx: Claude Code and Codex supported for local or repository-based use.
 
 - Hosts are `claude-code` and `codex`. Cursor Agent and Grok Build are workers,
   not hosts.
+- Codex: interactive sessions. `codex exec` does not load explicit-only skills,
+  so `$sddx` does nothing there.
 - The waygent skill must be installed next to this one (the same links, below).
   Without it SDDx stops.
 - macOS only. Windows and Linux are unsupported, and the product CLIs refuse
@@ -159,15 +165,17 @@ $sddx docs/history/plans/example.md grok
 7. Work outside the plan is asked about first. A needed push or publish stops as
    `BLOCKED`.
 
-Watch a worker with `run_worker.py status`: it shows the session ID, whether the
-worker is alive (`pid_alive`), and a short list of reads, searches, and shells.
-Do not paste the whole log.
+The host waits with `run_worker.py wait` (up to nine minutes per call) and never
+ends its turn while a worker runs, because a headless host stops the runner
+when the turn ends. Watch a worker with `run_worker.py status`: it shows the
+session ID, whether the worker is alive (`pid_alive`), and a short list of
+reads, searches, and shells. Do not paste the whole log.
 
 | Situation | Result | What to do next |
 | --- | --- | --- |
 | Worker prints nothing for `--idle-timeout` (default 900 seconds; `0` = off) | Worker stopped, `timed_out`, exit 124, `the worker wrote no output for 900 seconds` | Check the worktree for leftover changes. Do not resume that session; start a fresh worker with a brief naming the last report and commits. |
 | Past `--timeout` (default `0` = no limit) | Worker stopped, `timed_out`, exit 124 | Check `status` and the report. |
-| Ctrl-C or SIGTERM to the runner | `interrupted`; the worker is stopped too (SIGTERM, then SIGKILL after ten seconds), exit 130 | Check for leftover background processes the worker started. |
+| Ctrl-C or SIGTERM to the runner | `interrupted`; the worker is stopped too (SIGTERM, then SIGKILL after ten seconds), exit 130 | Check for leftover background processes the worker started. The run then resumes that worker's session; a stopped runner is not a task failure. |
 | Out of balance (402), or an auth or permission failure | Attempt ends | Fix the cause first; nothing retries automatically. |
 
 To stop an attempt, stop the runner. Do not signal the recorded worker pid or use

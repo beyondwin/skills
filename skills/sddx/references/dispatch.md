@@ -52,7 +52,7 @@ When `available` is true:
   `--auto-review`, `--sandbox`, `enabled]`. `launch` gives `cwd_flag`
   `--workspace` or `--cwd`, `prompt_flag` null, `effort_flag` null, and
   `output_format` `stream-json`. `model_ids` holds confirmed Grok 4.7 ids
-  with no trailing `-fast` (`grok-4.7-high`, `grok-4.7-xhigh`). Cursor Grok
+  with no trailing `-fast` (for example `grok-4.7-high`, `grok-4.7-xhigh`). Cursor Grok
   4.6, 4.5, and every `-fast` id are already dropped. Pass one of those ids
   to the runner as `--model`.
 
@@ -102,12 +102,16 @@ this one cannot. Extract the task section in the controller:
 is success, 2 is a file or argument error, and 3 is a section-selection error:
 the heading is absent, duplicated, or has an empty body. Missing, duplicate, or
 empty `Global Constraints` / `Global constraints` is also exit 3, and the
-controller must not dispatch. The command never overwrites an existing output
-file, so write each extraction to a new path.
+controller must not dispatch. A plan whose run-wide rules sit under another
+title gets `--constraints-heading "<exact title>"` beside
+`--global-constraints`, once that title is a recorded ruling; the flag replaces
+the two default titles. The command never overwrites an existing output file,
+so write each extraction to a new path.
 
 A brief with no plan heading of its own (a fix, a retry, the final batch)
 starts from the constraints section alone:
-`extract_task.py <plan-file> --heading "Global Constraints" --output <new-path>`.
+`extract_task.py <plan-file> --heading "Global Constraints" --output <new-path>`,
+or the ruled title in place of `Global Constraints`.
 If the plan points at another plan's constraints, extract from that plan. Do not
 copy constraints by hand or from a cached `/tmp` file.
 
@@ -117,7 +121,8 @@ Then append, in this order, and nothing from the plan beyond it:
   explicitly listed task reference.
 - `Depends on:` names and signatures from earlier tasks, nothing else.
 - waygent's test-first paragraph and trailer rule, verbatim from its brief:
-  the task's last commit carries `Waygent-Task: N` in its last paragraph.
+  the task's last commit carries `Waygent-Task: N` (`Waygent-Task: final` for
+  the final batch) in its last paragraph.
 - `Search paths:` concrete source/test files or directories. Keep planning
   documents out of it; a glob without a target path can still search the whole
   repository.
@@ -129,8 +134,8 @@ Then append, in this order, and nothing from the plan beyond it:
   the worker to recover it from the plan.
 
 A fix brief adds the High and Medium findings verbatim. A continuation brief
-names the previous `report.md` and the commits already made. waygent's
-~1,500-character brief limit does not apply to these briefs.
+names the previous `report.md` and the commits already made. waygent's brief
+length limit does not apply to these briefs.
 
 `Search paths` limits content searches. Filename-only listings inside the
 current worktree, including its root, and direct reads of repository
@@ -319,7 +324,9 @@ it; record the remaining difference and state path in `progress.md`.
 
 `worker.jsonl` is the CLI's tool-call/results stream and stays local and
 uncommitted with the rest of the attempt directory. Preserve test commands and
-their actual exits. If the trace is unavailable or incomplete, record role
+their actual exits. A shell whose command ends in `; echo …$?` proves nothing
+about the test exit: the index records the echo's exit, so do not count it as
+RED or GREEN evidence. If the trace is unavailable or incomplete, record role
 compliance as UNVERIFIED. A final message alone is not a tool trace.
 
 Record the attempt path and the confirmed session ID in the current-state
@@ -394,8 +401,10 @@ log body. Role compliance is still the controller's.
   copied once and never replaced. `model` stays the requested id. Grok reports
   no effort, so `configured_effort` (the flag value) is the only effort fact
   there.
-- An `interrupted` or `stale` attempt is a stopped runner, not a failed task:
-  resume its session at the same effort (SKILL.md "Timeouts and errors").
+- An `interrupted` or `stale` attempt is a stopped runner, not a failed task.
+  When the task's trailer commit and `report.md` are there, judge it as a
+  finished attempt; otherwise resume its session at the same effort (SKILL.md
+  "Timeouts and errors").
   An `exited` attempt with no trailer commit is a task failure, whatever its
   exit code.
 - `session_id_in_log` is the id the log reports, offered only when the record

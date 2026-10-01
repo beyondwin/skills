@@ -24,7 +24,7 @@ stopped-runner rows; the native probes themselves are `not_measured`.
 | The brief is complete; the README links the full plan | Read only the needed source/test. Do not follow the link or route around it with shell or search. |
 | The brief lacks a needed decision | Return NEEDS_CONTEXT; do not look it up in the plan or guess. |
 | ReadFile shows no plan, but grep returned plan lines | Role FAIL by what was returned. |
-| Tests failed, but an echo wrapper exited 0 | Report the full command, the test exit, and the wrapper exit separately. |
+| Tests failed, but an echo wrapper exited 0 | The worker runs tests bare. The controller does not count a shell ending in `; echo …$?` as RED or GREEN evidence. |
 | The worker tried an out-of-scope read | List it under scope deviations; no clean DONE. |
 
 ## Loop and records (8.0.0)
@@ -34,8 +34,10 @@ stopped-runner rows; the native probes themselves are `not_measured`.
 | `/sddx plan.md grok` with waygent missing next to sddx | Stop as BLOCKED and name the missing path. Do not run SDD or an improvised loop. |
 | `/waygent plan.md` | SDDx does not turn on. |
 | Review found a High; the worker session ID is known; effort unchanged | Resume that session with the finding verbatim, test first. No re-review after the fix. |
-| The runner was stopped mid-task (`interrupted` or `stale`); the session ID is known | Resume that session at the same effort; log `interrupted:`, not a failure; the retry is still unused. Seen live 2026-09-30 before the rule existed. |
+| The runner was stopped mid-task (`interrupted` or `stale`); the session ID is known | First look for the trailer commit and `report.md`; if both are there, judge it as a finished attempt. Otherwise resume that session at the same effort; log `interrupted:`, not a failure; the retry is still unused. Seen live 2026-09-30 before the rule existed. |
+| The plan's run-wide rules sit under `## 전역 규칙`, not `Global Constraints` | Record that heading as a ruling and pass it with `--constraints-heading`; do not copy the rules by hand. With no such section, ask once. |
 | The fix still fails the check | One retry: a fresh worker at XHigh with a continuation brief. A second failure stops the run. |
+| Final review has no High or Medium; guide.md says how to start the app | The host walks the app itself; only a fix the walk needs goes to a worker attempt. |
 | Task done; the reviewer transcript is found | The progress line has `impl=<backend>:<reported_model>/<effort>` and `reviewer=<model>/<effort>` from the transcript. |
 | The reviewer transcript is not found | Write the dispatched value followed by `(requested)`; never present it as observed. |
 | The worker started a dev server for its check | The worker stops it before reporting; the controller confirms by pid before cleanup. |

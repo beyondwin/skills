@@ -32,6 +32,9 @@ Grok 4.7만 쓰고 `-fast` 변형은 쓰지 않습니다.
 
 - 쓸 때: 구현 계획 파일이 있고, 메시지에 `/sddx`(Claude Code) 또는
   `$sddx`(Codex)를 적었을 때만 씁니다.
+- 계획에는 계획 전체에 걸린 규칙을 담은 절이 하나 있어야 합니다. 보통
+  `## Global Constraints`입니다. 워커가 계획을 읽지 않기 때문입니다. 제목이
+  다르면 SDDx가 그 절을 정해 기록하고, 그런 절이 없으면 한 번 묻습니다.
 - 쓰지 않을 때: 설계·계획 작성, `/waygent`, `writing-plans`,
   `executing-plans`(Native 포함), `pre-sdd-review`, 일반 SDD, 이 세션에서 직접
   코딩, `/sddx`나 `$sddx` 없는 “Grok으로 구현해 줘”.
@@ -43,6 +46,8 @@ sddx: Claude Code and Codex supported for local or repository-based use.
 
 - 호스트는 `claude-code`, `codex`입니다. Cursor Agent와 Grok Build는 워커이고
   호스트가 아닙니다.
+- Codex는 대화형 세션에서 씁니다. `codex exec`는 명시 호출 전용 스킬을 읽지
+  않으므로 거기서는 `$sddx`가 아무 일도 하지 않습니다.
 - waygent 스킬이 이 스킬 옆에 설치되어 있어야 합니다(아래와 같은 방식의 링크).
   없으면 SDDx는 멈춥니다.
 - OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않고, Windows에서는 제품 CLI가
@@ -152,6 +157,8 @@ $sddx docs/history/plans/example.md grok
    못한 값에는 `(requested)`가 붙습니다.
 7. 계획 밖 작업은 먼저 묻습니다. push나 게시가 필요하면 `BLOCKED`로 멈춥니다.
 
+호스트는 `run_worker.py wait`로 기다리며(한 번에 최대 9분), 워커가 도는 동안
+턴을 끝내지 않습니다. 헤드리스 호스트는 턴이 끝나면 러너를 멈추기 때문입니다.
 워커 진행 상황은 `run_worker.py status`로 봅니다. 세션 ID, 워커 생존
 여부(`pid_alive`), 읽은 파일·검색·셸 목록만 짧게 보여 주며, 로그 전체는 붙여
 넣지 않습니다.
@@ -160,7 +167,7 @@ $sddx docs/history/plans/example.md grok
 | --- | --- | --- |
 | 워커가 `--idle-timeout` 동안 아무것도 출력하지 않음(기본 900초, `0`은 끔) | 워커 중지, `timed_out`, exit 124, `the worker wrote no output for 900 seconds` | 워크트리에 남은 변경을 확인하고, 그 세션을 잇지 말고, 이전 보고서와 커밋을 적은 브리프로 새 워커를 띄웁니다. |
 | `--timeout` 초과(기본 `0`, 끔) | 워커 중지, `timed_out`, exit 124 | `status`와 보고서를 확인합니다. |
-| 러너에 Ctrl-C 또는 SIGTERM | `interrupted`, 워커도 중지(SIGTERM, 10초 뒤 SIGKILL), exit 130 | 워커가 띄운 백그라운드 프로세스가 남았는지 확인합니다. |
+| 러너에 Ctrl-C 또는 SIGTERM | `interrupted`, 워커도 중지(SIGTERM, 10초 뒤 SIGKILL), exit 130 | 워커가 띄운 백그라운드 프로세스가 남았는지 확인합니다. 그다음 그 워커의 세션을 이어 갑니다. 러너가 멈춘 것은 과제 실패가 아닙니다. |
 | 잔액 부족(402), 인증·권한 실패 | 시도 종료 | 조건을 먼저 바꿉니다. 자동 재시도는 없습니다. |
 
 시도를 멈출 때는 러너를 멈추고, 기록된 워커 pid나 `pkill -f`는 쓰지 마세요.

@@ -48,6 +48,9 @@ not add Cursor or Grok to `supported_hosts`.
 | Codex | `$sddx` | `~/.agents/skills/sddx` |
 | Claude Code | `/sddx` | `~/.claude/skills/sddx` |
 
+Codex loads `$sddx` in interactive sessions. `codex exec` does not load
+explicit-only skills, so `$sddx` does nothing there.
+
 `agents/openai.yaml` is optional Codex display metadata, not a required runtime
 file. Since 8.0.0 there is no Claude Code agent definition or plugin file.
 

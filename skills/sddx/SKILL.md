@@ -42,8 +42,9 @@ block. SDDx always needs a plan file: waygent's no-plan mode is not used here.
 Keep one active plan at a time. Follow an order a parent plan states; never
 guess one from file names or dates.
 
-Ask once, and only when the plan path is absent or invalid, or the order of
-independent plans is unclear. Everything else: decide and record the ruling.
+Ask once, and only when the plan path is absent or invalid, the order of
+independent plans is unclear, or no plan section holds the run-wide rules.
+Everything else: decide and record the ruling.
 
 ## Plan scope
 
@@ -89,17 +90,20 @@ old attempt exited, and never pass the previous provider's session ID.
 | The brief | `extract_task.py` output plus the waygent lines, per `references/dispatch.md` |
 | "Same implementer" for a fix | `--resume <session_id>` at the same effort; else a fresh worker told what is already done |
 | Retry one tier up | a fresh worker at XHigh (the worker model stays Grok 4.7) |
-| Final-review fixes and the app walk | one worker attempt, one batch |
+| Final-review fixes and the app walk | one worker attempt, one batch; with no High or Medium, the host walks the app itself and a fix the walk needs goes to one worker attempt |
 | Reviewers | native, as waygent's Models section says |
 
 The worker cannot read the plan, so every brief carries the plan's run-wide
-constraints: `extract_task.py --global-constraints` prepends them. A
-constraint that is not in the brief does not exist for the worker.
-`references/dispatch.md` holds the brief, launch, watch, and cleanup steps.
-Launch only through `run_worker.py`; never hand-compose a provider command, and
-never dump a whole worker log into this session. Never end your turn while a
-worker runs: block on `run_worker.py wait`, and call it again on exit 3. Do not pass `--worktree` to the
-worker.
+constraints: `extract_task.py --global-constraints` prepends them. When the
+plan keeps them under a heading other than `Global Constraints`, name that
+heading as a recorded ruling and pass it with `--constraints-heading`. A
+constraint that is not in the brief does not exist for the worker. guide.md
+names no plan path and copies the plan's global rules in full, never "see
+plan". `references/dispatch.md` holds the brief, launch, watch, and cleanup
+steps. Launch only through `run_worker.py`; never hand-compose a provider
+command, and never dump a whole worker log into this session. Never end your
+turn while a worker runs: block on `run_worker.py wait` as the Hosts table
+says, and call it again on exit 3. Do not pass `--worktree` to the worker.
 
 ## Implementer effort
 
@@ -123,7 +127,8 @@ commit, clean tree, fast check), read `report.md` and `run_worker.py status`
 A successful prohibited read (the plan, credentials, secrets) is FAIL even when
 tests pass. Missing or incomplete tool evidence is UNVERIFIED, never PASS.
 Neither permits a clean DONE. Give the reviewer the evidence and any
-discrepancy with the worker report.
+discrepancy with the worker report. A shell whose command ends in
+`; echo …$?` proves nothing about the test exit; the index holds the echo's.
 
 Filename-only listings inside the worktree and direct reads of repository
 ignore/build/test configuration are allowed inspection, not scope deviations;
@@ -142,12 +147,14 @@ and no code change is needed, run it here instead of calling the worker again.
 
 Tell a stopped runner from a failed task. An attempt whose `state` is
 `interrupted`, or whose record is `stale`, means the runner was stopped, not
-that the worker failed. Resume its session (`session_id`, else
-`session_id_in_log`) at the same effort, and record `task N: interrupted:`
-rather than a failure; it does not use up waygent's one retry. With no session
-ID, start a fresh worker told what is already done. A worker that exits by
-itself, or is killed, with no trailer commit or a failed check is a task
-failure: waygent's retry, a fresh worker at XHigh.
+that the worker failed. If the task's trailer commit and `report.md` are
+there, the worker finished: judge it as a finished attempt. Otherwise resume
+its session (`session_id`, else `session_id_in_log`) at the same effort, and
+record `task N: interrupted:` rather than a failure; it does not use up
+waygent's one retry. With no session ID, start a fresh worker told what is
+already done. A worker that exits by itself, or is killed, with no trailer
+commit or a failed check is a task failure: waygent's retry, a fresh worker at
+XHigh.
 
 An attempt whose `error` is `the worker wrote no output for <N> seconds` hit
 the idle timeout (`--idle-timeout`, default 900). Check the worktree for partial
@@ -159,11 +166,11 @@ longer than the idle window, raise `--idle-timeout` above that command's
 expected duration before launch.
 
 A confirmed provider 402, or an auth or permission failure, ends the attempt:
-record the condition that must change,
-and do not re-run under the same condition. There is no automatic retry anywhere in these helpers. If the
-worker needs a host-outside side effect (push, publish, shared-branch update),
-stop and return BLOCKED. Do not copy host credentials or environment values
-into a brief.
+record the condition that must change, and
+do not re-run under the same condition. There is no automatic retry anywhere in
+these helpers. If the worker needs a host-outside side effect (push, publish,
+shared-branch update), stop and return BLOCKED. Do not copy host credentials or
+environment values into a brief.
 
 ## Recording models
 
@@ -174,14 +181,17 @@ received `/sddx` or `$sddx` is the orchestrator; do not switch its model.
   worker's own stream said), and `configured_effort`.
 - Native reviewer or orchestrator: `python3 "<skill-root>/scripts/observed_model.py"
   claude-code --agent-id <agentId>` (this session: `--session-id
-  "$CLAUDE_CODE_SESSION_ID"`; Codex: `codex --thread-id <id>`) reads the
-  host's own transcript. A session id taken from a file path is not yours.
+  "$CLAUDE_CODE_SESSION_ID"`; Codex: `codex --thread-id <id>`, this session
+  `"$CODEX_THREAD_ID"`) reads the host's own transcript. A session id taken
+  from a file path is not yours.
 
 Write them into waygent's progress lines:
 
-    task N: done <sha7> impl=<backend>:<reported_model>/<effort> review=<clean|fixed K|skipped> reviewer=<model>/<effort> tests=<summary> role=<PASS|FAIL|UNVERIFIED>
+    task N: done <sha7> impl=<backend>:<reported_model>/<effort> review=<clean|fixed K|overruled K|skipped (<why>)|unknown> reviewer=<model>/<effort> tests=<summary> role=<PASS|FAIL|UNVERIFIED>
 
-Add `(requested)` after a value that no transcript or stream confirmed. The
+Write `reported_model` with each run of whitespace replaced by `_`
+(`Grok_4.7_256K_High`), so the line stays `key=value` tokens. Add
+`(requested)` after a value that no transcript or stream confirmed. The
 `final:` line and retry lines carry `impl=` and `reviewer=` the same way.
 
 ## Current state
@@ -200,6 +210,7 @@ fix it before the next dispatch. Do not create any other state file.
 | Invocation | `/sddx` | `$sddx` |
 | Asking for a backend | AskUserQuestion | the question tool, else a short text question |
 | Worker launch and status | the same product Python scripts | the same product Python scripts |
+| Waiting on a worker | `exec python3 … run_worker.py run …` as the Bash tool's background command (no trailing `&`); each `wait` in a foreground Bash call with `timeout: 600000` | `wait` through `exec_command` with the largest `yield_time_ms` it accepts, at least (`--max-seconds` + 10) × 1000; no `write_stdin` or `status` polls between waits; `session_id` from the `wait` output |
 | Review | Agent tool, per waygent Models | `spawn_agent`, per waygent Models |
 
 The supported OS is macOS. Do not add Windows transport. Refuse Windows at the product CLIs.
