@@ -31,7 +31,8 @@ The required evidence is `python3 scripts/verify.py --skill waygent`. Its stages
   per finding, and Lows go in the report
 - resume and checks: a trailer commit with no `done` line, a clean tree, a failed check
   at step 3 or 5, and a red final suite handled as a failure
-- the progress lines record `impl=<m/e>` and `reviewer=<m/e>`, `inherit` when unset;
+- the progress lines record `impl=<m/e>` and `reviewer=<m/e>`, `inherit` when unset,
+  `reviewer=none` only when no reviewer ran;
   one review-status set (`clean|fixed K|overruled K|skipped (<why>)|unknown`) stated
   once; the `model:` header omits effort when none was set
 - run scoping: resume starts on `$P/progress.md` or `/waygent` alone, done means a
@@ -41,7 +42,8 @@ The required evidence is `python3 scripts/verify.py --skill waygent`. Its stages
 - finished and several folders: `/waygent` alone picks the folder with no
   `final: done` or asks once, a finished folder starts nothing, and a `start` that is
   not an ancestor of HEAD stops the run
-- the final phase: `final: start`, `Waygent-Task: final` commits, its resume rule, and
+- the final phase: `final: start`, `Waygent-Task: final` commits, its resume rule (a
+  `Waygent-Task: final` commit in `start..HEAD` goes to the full suite run), and
   `impl=` on the `final: done` line; a retry line `task N: retry impl=<m/e>`
 - one subagent at a time, reviewers included; the Claude Code line
   (`run_in_background: false` when offered, end the turn on a background dispatch,

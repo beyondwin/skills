@@ -42,8 +42,9 @@ If `$P/progress.md` exists, or on `/waygent` alone, resume:
   is in `start..HEAD`; never redo it.
 - Continue at the next task in the recorded order (default: lowest) with no trailer
   commit. A trailer commit with no `done` line: go on at step 5 if `reviews/task-N.md`
-  exists, else at step 4. `final: start` with no `final: done`: the fixes if
-  `reviews/final.md` exists, else the final review.
+  exists, else at step 4. `final: start` with no `final: done`: the full suite run if a
+  `Waygent-Task: final` commit is in `start..HEAD`, else the fixes if `reviews/final.md`
+  exists, else the final review.
 - Dirty tree: an attempt was cut off. Give it to the same implementer if reachable, else
   a fresh one ("continue from the uncommitted changes"). Never discard it; keep `base=`.
 
@@ -100,9 +101,9 @@ Otherwise start:
    the changed code from starting or deploying is never outside the task. The fix commit
    also carries the trailer. Check as step 3. Append each Low as
    `task N: low: <file:line> <gist>`.
-6. Append `task N: done <sha7> impl=<m/e>
-   review=<clean|fixed K|overruled K|skipped (<why>)|unknown> reviewer=<m/e>
-   tests=<summary>`. `<m/e>`: `<model>/<effort>`, each as set, else `inherit`; never guess.
+6. Append `task N: done <sha7> impl=<m/e> review=<clean|fixed K|overruled K|skipped
+   (<why>)|unknown> reviewer=<m/e> tests=<summary>`. `<m/e>`: `<model>/<effort>`, each as
+   set, else `inherit`; never guess. `reviewer=none` only when no reviewer ran.
 
 ## When a task fails
 

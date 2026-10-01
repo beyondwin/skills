@@ -84,6 +84,7 @@ class WaygentContractTests(unittest.TestCase):
         self.assertIn("impl=<m/e>", self.text)
         self.assertIn("reviewer=<m/e>", self.text)
         self.assertIn("else `inherit`; never guess", self.text)
+        self.assertIn("`reviewer=none` only when no reviewer ran", self.text)
 
     def test_final_review_and_check_contract(self) -> None:
         self.assertIn("contract drift between layers", self.lowered)
@@ -149,6 +150,9 @@ class WaygentContractTests(unittest.TestCase):
         self.assertIn("append `final: start`", self.lowered)
         self.assertIn("`Waygent-Task: final`", self.text)
         self.assertIn("`final: start` with no `final: done`", self.text)
+        self.assertIn(
+            "the full suite run if a `Waygent-Task: final` commit is in `start..HEAD`", self.text
+        )
         self.assertIn("`final: done <sha7> impl=<m/e> reviewer=<m/e>", self.text)
         self.assertIn("`task N: retry impl=<m/e>`", self.text)
 

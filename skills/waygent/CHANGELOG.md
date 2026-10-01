@@ -21,8 +21,9 @@ All notable changes to this product are documented in this file.
   `start` is no longer an ancestor of HEAD (say, after a squash), the run stops and says
   the history changed.
 - The final phase can resume: it opens with `final: start`, its fix commits carry
-  `Waygent-Task: final`, and a resume goes to the fixes when `reviews/final.md` exists,
-  else to the review.
+  `Waygent-Task: final`, and a resume goes to the full suite run when a
+  `Waygent-Task: final` commit is already in `start..HEAD`, else to the fixes when
+  `reviews/final.md` exists, else to the review.
 - One subagent at a time, reviewers included; the controller waits for each to report
   before the next dispatch or message. Claude Code sets `run_in_background: false` when
   the Agent tool offers it; a dispatch that still returns in the background ends the turn
@@ -46,7 +47,8 @@ All notable changes to this product are documented in this file.
 - Progress records: one review-status set,
   `review=<clean|fixed K|overruled K|skipped (<why>)|unknown>`; the final line adds
   `impl=<m/e>`; a retry appends `task N: retry impl=<m/e>`; the `model:` header records
-  the session's model and its effort as set, else the model alone.
+  the session's model and its effort as set, else the model alone; `reviewer=none` only
+  when no reviewer ran.
 - Size rules match real plans: the brief is at most ~2,000 characters; `guide.md` at most
   ~60 lines, names the plan's global rules by section (verbatim only if they fit), gets
   traps found later appended, and names generated paths to exclude locally in

@@ -61,7 +61,8 @@ brainstorming, writing a spec or plan, a single small fix).
   final batch.
 - `progress.md` records who did each step as `model/effort` (`impl=`, `reviewer=`):
   the values the controller set in the dispatch, `inherit` for any it left unset.
-  Values are never guessed. The `model:` header holds the session's model and its
+  Values are never guessed; `reviewer=none` only when no reviewer ran (a skipped
+  review). The `model:` header holds the session's model and its
   effort as set, else the model alone. Review status uses one set of values:
   `clean`, `fixed K`, `overruled K`, `skipped (<why>)`, `unknown`.
 - One final review of the whole change, only once. It also asks for contract drift
@@ -71,7 +72,8 @@ brainstorming, writing a spec or plan, a single small fix).
   finds in the same batch, with no second review. The phase opens with `final: start`;
   its commits carry `Waygent-Task: final`; the closing line records `impl=`,
   `reviewer=`, and `walk=<ok|none (<why>)>`. A resume after `final: start` with no
-  `final: done` goes to the fixes when `reviews/final.md` exists, else to the review.
+  `final: done` goes to the full suite run when a `Waygent-Task: final` commit is in
+  `start..HEAD`, else to the fixes when `reviews/final.md` exists, else to the review.
 - `guide.md` (about 60 lines at most) lists the test, lint, and build or typecheck
   commands and splits a fast check from slow suites; the fast check includes the build
   step when the repo has one. The controller reruns only the fast check after each
