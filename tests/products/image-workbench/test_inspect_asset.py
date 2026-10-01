@@ -9,6 +9,7 @@ import struct
 import subprocess
 import tempfile
 import unittest
+import unittest.mock
 import zlib
 from pathlib import Path
 from types import ModuleType
@@ -729,6 +730,86 @@ class AssetInspectorTests(unittest.TestCase):
                 self.assertEqual(error["output"], str(target))
                 self.assertEqual(error["path"], str(source))
                 self.assertTrue(error["error"])
+
+    def test_empty_output_is_refused_not_stdout(self):
+        # Break: `--output ""` is falsy, so it prints to stdout and exits 0.
+        data = make_png(3, 2, color_type=6)
+        with tempfile.TemporaryDirectory(prefix="image facts ") as directory:
+            source = Path(directory) / "asset.png"
+            source.write_bytes(data)
+            stdout, stderr = StringSink(), StringSink()
+            self.assertEqual(main([str(source), "--output", ""], stdout, stderr), 1)
+            self.assertEqual(stdout.value, "")
+            error = json.loads(stderr.value)
+            self.assertEqual(error["output"], "")
+            self.assertTrue(error["error"])
+
+    def test_new_output_with_an_image_suffix_is_refused(self):
+        # Break: a missing `hero.png` target is created holding JSON.
+        data = make_png(3, 2, color_type=6)
+        for name in ("hero.png", "hero.jpg", "hero.JPEG", "hero.webp", "hero.gif"):
+            with self.subTest(name=name), tempfile.TemporaryDirectory(prefix="image facts ") as directory:
+                source = Path(directory) / "asset.png"
+                source.write_bytes(data)
+                target = Path(directory) / name
+                stdout, stderr = StringSink(), StringSink()
+                self.assertEqual(main([str(source), "--output", str(target)], stdout, stderr), 1)
+                self.assertFalse(target.exists())
+                self.assertEqual(sorted(p.name for p in Path(directory).iterdir()), ["asset.png"])
+                self.assertEqual(json.loads(stderr.value)["output"], str(target))
+
+    def test_existing_empty_output_is_accepted_as_a_fresh_report(self):
+        # Break: a 0-byte `report.json` (say, from `touch`) is refused as non-JSON.
+        data = make_png(3, 2, color_type=6)
+        with tempfile.TemporaryDirectory(prefix="image facts ") as directory:
+            source = Path(directory) / "asset.png"
+            output = Path(directory) / "report.json"
+            source.write_bytes(data)
+            output.write_bytes(b"")
+            stdout, stderr = StringSink(), StringSink()
+            self.assertEqual(main([str(source), "--output", str(output)], stdout, stderr), 0)
+            self.assertEqual(stderr.value, "")
+            self.assertEqual(json.loads(output.read_text(encoding="utf-8"))["sha256"], hashlib.sha256(data).hexdigest())
+
+    def test_existing_output_is_sniffed_from_a_bounded_prefix(self):
+        # Break: the whole existing target is read to test it.
+        data = make_png(3, 2, color_type=6)
+        limit = INSPECTOR.REPORT_SNIFF_BYTES
+        cases = {
+            "big.json": (b"[" + b"0," * limit + b"0]", 0),
+            "big-notes.json": (b"notes " * limit, 1),
+            "big-image.json": (make_png(1, 1, color_type=6) + b"\0" * (2 * limit), 1),
+        }
+        for name, (content, expected) in cases.items():
+            with self.subTest(name=name), tempfile.TemporaryDirectory(prefix="image facts ") as directory:
+                source = Path(directory) / "asset.png"
+                output = Path(directory) / name
+                source.write_bytes(data)
+                output.write_bytes(content)
+                reads = []
+                real_open = open
+
+                def counting_open(file, mode="r", *args, **kwargs):
+                    handle = real_open(file, mode, *args, **kwargs)
+                    if str(file) == str(output.resolve()) and "r" in mode:
+                        real_read = handle.read
+
+                        def read(size=-1):
+                            reads.append(size)
+                            return real_read(size)
+
+                        handle.read = read
+                    return handle
+
+                stdout, stderr = StringSink(), StringSink()
+                with unittest.mock.patch("builtins.open", counting_open):
+                    self.assertEqual(main([str(source), "--output", str(output)], stdout, stderr), expected)
+                self.assertTrue(reads)
+                self.assertTrue(all(0 <= size <= limit + 1 for size in reads), reads)
+                if expected:
+                    self.assertEqual(output.read_bytes(), content)
+                else:
+                    self.assertEqual(json.loads(output.read_text(encoding="utf-8"))["format"], "png")
 
     def test_output_through_symlink_updates_linked_json_report(self):
         data = make_png(3, 2, color_type=6)

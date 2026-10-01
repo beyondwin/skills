@@ -2,6 +2,7 @@
 """Inspect basic facts from local PNG, JPEG, and WebP image assets."""
 
 import argparse
+import codecs
 from collections.abc import Iterable, Iterator
 import dataclasses
 import errno
@@ -461,10 +462,16 @@ def _require_distinct_output(input_path: Path, output_path: Path) -> None:
         raise ValueError("output path refers to the input asset")
 
 
-IMAGE_SIGNATURES = (b"\x89PNG\r\n\x1a\n", b"\xff\xd8")
+IMAGE_SIGNATURES = (b"\x89PNG\r\n\x1a\n", b"\xff\xd8", b"GIF87a", b"GIF89a")
+IMAGE_SUFFIXES = frozenset((".png", ".jpg", ".jpeg", ".webp", ".gif"))
+# An existing target is judged from this many leading bytes. A report that
+# fits is parsed whole; a longer one must at least start as JSON text.
+REPORT_SNIFF_BYTES = 64 * 1024
 
 
-def _require_json_report_target(target: Path) -> None:
+def _require_json_report_target(output_path: Path, target: Path) -> None:
+    if output_path.suffix.lower() in IMAGE_SUFFIXES or target.suffix.lower() in IMAGE_SUFFIXES:
+        raise ValueError("output path has an image file suffix")
     try:
         status = target.stat()
     except FileNotFoundError:
@@ -473,18 +480,26 @@ def _require_json_report_target(target: Path) -> None:
         raise OSError(errno.EISDIR, os.strerror(errno.EISDIR))
     if not stat.S_ISREG(status.st_mode):
         raise ValueError("output path is not a regular file")
-    data = target.read_bytes()
+    with open(target, "rb") as handle:
+        data = handle.read(REPORT_SNIFF_BYTES + 1)
+    if not data:
+        return
     if data.startswith(IMAGE_SIGNATURES) or (data[:4] == b"RIFF" and data[8:12] == b"WEBP"):
         raise ValueError("output path is an image file")
     try:
-        json.loads(data.decode("utf-8"))
+        if len(data) <= REPORT_SNIFF_BYTES:
+            json.loads(data.decode("utf-8"))
+        else:
+            text = codecs.getincrementaldecoder("utf-8")().decode(data, final=False)
+            if not text.lstrip().startswith(("{", "[")):
+                raise ValueError("not JSON text")
     except (UnicodeDecodeError, ValueError) as error:
         raise ValueError("output path is an existing non-JSON file") from error
 
 
 def _write_report(output_path: Path, rendered: str) -> None:
     target = output_path.resolve()
-    _require_json_report_target(target)
+    _require_json_report_target(output_path, target)
     try:
         mode = stat.S_IMODE(target.stat().st_mode)
     except FileNotFoundError:
@@ -523,8 +538,10 @@ def main(argv=None, output_stream=None, error_stream=None):
         _write_json({"error": message, "path": args.path}, error_stream)
         return 1
     rendered = json.dumps(dataclasses.asdict(facts), sort_keys=True) + "\n"
-    if args.output:
+    if args.output is not None:
         try:
+            if not args.output:
+                raise ValueError("output path is empty")
             _require_distinct_output(Path(args.path), Path(args.output))
             _write_report(Path(args.output), rendered)
         except (OSError, ValueError) as error:
