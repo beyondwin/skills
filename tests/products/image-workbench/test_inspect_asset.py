@@ -282,10 +282,10 @@ class AssetInspectorTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     parse_webp(bytes(data))
 
-    def test_webp_vp8l_reports_dimensions_with_unknown_alpha(self):
-        self.assertEqual(parse_webp(make_webp_vp8l(1, 1)), (1, 1, None))
+    def test_webp_vp8l_reports_dimensions_and_alpha_is_used_bit(self):
+        self.assertEqual(parse_webp(make_webp_vp8l(1, 1)), (1, 1, False))
 
-    def test_webp_vp8l_rejects_nonzero_version_preserves_alpha_hint(self):
+    def test_webp_vp8l_rejects_nonzero_version_and_reads_alpha_hint(self):
         valid = make_webp_vp8l(1, 1)
         for version in range(1, 8):
             with self.subTest(version=version):
@@ -295,7 +295,7 @@ class AssetInspectorTests(unittest.TestCase):
                     parse_webp(bytes(data))
         alpha_hint = bytearray(valid)
         alpha_hint[24] |= 0x10
-        self.assertEqual(parse_webp(bytes(alpha_hint)), (1, 1, None))
+        self.assertEqual(parse_webp(bytes(alpha_hint)), (1, 1, True))
 
     def test_webp_vp8x_reserved_bits_remain_rejected(self):
         valid = make_webp_extended_vp8(1, 1, alpha=True)
@@ -469,6 +469,64 @@ class AssetInspectorTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             parse_webp(make_webp_vp8x(1, 1, alpha=False, extra_payload=b"\0"))
 
+    def test_trailing_bytes_after_image_end_are_counted(self):
+        trailer = b"\0\xff\xd9MP4 trailer\xff\xd9"
+        samples = {
+            "png": make_png(3, 2, color_type=6),
+            "jpeg": make_jpeg(1, 1),
+            "webp": make_webp_vp8(1, 1),
+        }
+        for image_format, data in samples.items():
+            with self.subTest(image_format=image_format):
+                clean = inspect_bytes(data)
+                self.assertEqual(clean.trailing_bytes, 0)
+                padded = inspect_bytes(data + trailer)
+                self.assertEqual(padded.format, image_format)
+                self.assertEqual(padded.trailing_bytes, len(trailer))
+                self.assertEqual((padded.width, padded.height), (clean.width, clean.height))
+                self.assertEqual(padded.byte_size, len(data) + len(trailer))
+                self.assertEqual(padded.sha256, hashlib.sha256(data + trailer).hexdigest())
+
+    def test_png_iend_with_payload_is_still_rejected(self):
+        data = make_png(3, 2, color_type=6)
+        bad_iend = data[:-12] + struct.pack(">I", 1) + b"IEND\0" + struct.pack(">I", zlib.crc32(b"IEND\0") & 0xFFFFFFFF)
+        with self.assertRaisesRegex(ValueError, "invalid PNG IEND chunk"):
+            parse_png(bad_iend)
+
+    def test_jpeg_scan_walk_skips_stuffing_restart_and_segments(self):
+        valid = make_jpeg(1, 1)
+        body = valid[:-2]
+        variants = {
+            "restart_marker": body + b"\xff\xd0\x12",
+            "fill_bytes": body + b"\xff\xff\xff\xd9"[:-2],
+            "comment_segment": body + b"\xff\xfe\x00\x06\xff\xd9\x00\x00",
+        }
+        for name, prefix in variants.items():
+            with self.subTest(name=name):
+                facts = inspect_bytes(prefix + b"\xff\xd9")
+                self.assertEqual((facts.width, facts.height, facts.trailing_bytes), (1, 1, 0))
+        with self.assertRaisesRegex(ValueError, "JPEG segment length"):
+            parse_jpeg(body + b"\xff\xfe\x00\x40" + b"\xff\xd9")
+
+    def test_inspect_file_reports_extension_match(self):
+        cases = {
+            "asset.png": (make_png(1, 1, color_type=6), True),
+            "asset.PNG": (make_png(1, 1, color_type=6), True),
+            "photo.jpg": (make_jpeg(1, 1), True),
+            "photo.JPEG": (make_jpeg(1, 1), True),
+            "photo.webp": (make_webp_vp8(1, 1), True),
+            "hero-v2.png": (make_jpeg(1, 1), False),
+            "hero.jpg": (make_png(1, 1, color_type=6), False),
+            "noextension": (make_png(1, 1, color_type=6), False),
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            for name, (data, expected) in cases.items():
+                with self.subTest(name=name):
+                    path = Path(directory) / name
+                    path.write_bytes(data)
+                    self.assertIs(inspect_file(path).extension_matches, expected)
+        self.assertIsNone(inspect_bytes(make_png(1, 1, color_type=6)).extension_matches)
+
     def test_inspect_file_reports_hash_and_byte_size(self):
         data = make_png(3, 2, color_type=6)
         with tempfile.TemporaryDirectory() as directory:
@@ -512,9 +570,11 @@ class AssetInspectorTests(unittest.TestCase):
             {
                 "alpha": True,
                 "byte_size": len(data),
+                "extension_matches": True,
                 "format": "png",
                 "height": 2,
                 "sha256": hashlib.sha256(data).hexdigest(),
+                "trailing_bytes": 0,
                 "width": 3,
             },
             sort_keys=True,
@@ -609,8 +669,8 @@ class AssetInspectorTests(unittest.TestCase):
             self.assertEqual(main([str(source), "--output", str(output)], stdout, stderr), 0)
             self.assertEqual(source.read_bytes(), data)
             self.assertEqual(json.loads(output.read_text(encoding="utf-8")), {
-                "alpha": True, "byte_size": len(data), "format": "png",
-                "height": 2, "sha256": hashlib.sha256(data).hexdigest(), "width": 3,
+                "alpha": True, "byte_size": len(data), "extension_matches": True, "format": "png",
+                "height": 2, "sha256": hashlib.sha256(data).hexdigest(), "trailing_bytes": 0, "width": 3,
             })
             self.assertEqual(stdout.value, "")
             self.assertEqual(stderr.value, "")
