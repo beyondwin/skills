@@ -116,8 +116,9 @@ $pre-sdd-review review-only docs/history/specs/<design>.md docs/history/plans/<p
 | 그 밖의 경우(다른 파일도 바뀜, 전체 재검토 요청, 기록 없음) | 처음부터 새로 검토합니다 |
 
 `execution`이 `full`인 run과 사유가 `focused-role-not-obtained`뿐인 `degraded` run의
-인계만 재사용하며, 다른 `degraded`나 `blocked`인 run의 인계는 재사용하지 않습니다.
-`degraded`는 역할마다 새 검토자를 구하지 못했거나 한 검토자를 겹쳐 쓴 run입니다.
+인계만 재사용하며, 다른 `degraded` run의 인계와 위 사용자 결정 행 밖의 `BLOCKED`
+결과는 재사용하지 않습니다. `degraded`는 역할마다 새 검토자를 구하지 못했거나 한
+검토자를 겹쳐 쓴 run이고, `blocked`는 검토가 아예 돌지 않은 run입니다.
 새 사용자 결정 때문에 세 번 연속 `BLOCKED`가 나오면, 남은 결정을 한꺼번에
 정하도록 설계로 돌려보냅니다.
 

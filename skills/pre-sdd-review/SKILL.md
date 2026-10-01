@@ -201,8 +201,8 @@ the first match:
    no reuse and no continuation.
 
 A run is reusable when its `execution` is `full`, or `degraded` with
-`focused-role-not-obtained` as its only reason. Outside step 2, a `blocked`
-run is never reused, and neither is any other `degraded` run; for those,
+`focused-role-not-obtained` as its only reason. Outside step 2, a `BLOCKED`
+verdict is never reused, and neither is any other `degraded` run; for those,
 re-run the input gates and call `start` for a fresh full review.
 
 ### Start and finish
@@ -237,6 +237,12 @@ call `abandon --run-id <id> --repo . --reason <reason>` with one of
 `review_passes` counts reviewer dispatch rounds in this run: discovery is one,
 each closure is one. It is `0` only for a `BLOCKED` run that dispatched no
 reviewer (with `reviewers: 0`).
+
+`execution` describes the review, not the verdict. It is `blocked` only when
+no independent primary review ran: an input gate (the required base or an
+unresolved `**Spec:**`) stopped the run, or no primary reviewer was obtained;
+that run records `reviewers: 0` and `review_passes: 0`. A `BLOCKED` verdict
+reached after a review keeps `full` or `degraded`.
 
 A schema 2 or 3 record from an earlier recorder fails with
 `schema-unsupported` and never blocks `start`; leave it and start a new run.
@@ -287,7 +293,8 @@ counts distinct agents obtained for these logical roles, not intended roles
 and not cumulative fresh agent calls; a `full` run records 2 when a trigger
 applies and 1 otherwise.
 
-If a fresh independent primary reviewer cannot be obtained, return `BLOCKED`.
+If a fresh independent primary reviewer cannot be obtained, return `BLOCKED`
+with `execution=blocked` and the degraded reason `primary-role-not-obtained`.
 Do not use the controlling agent as a substitute independent primary and do
 not run a short degraded round in its place. Reusing one agent for two
 dispatches in this invocation is `execution=degraded` with
@@ -488,8 +495,9 @@ for a material repairable document defect, including one still material after
 the last pass. Return `BLOCKED` when required authority, input, or
 repository evidence is unavailable, unresolvable, or would require a new
 product decision, or when an independent primary reviewer cannot be obtained.
-Record that run as `execution=blocked` and name the cause in `block_reason`; a
-`BLOCKED` run with a null `block_reason` is an anomaly.
+Name the cause in `block_reason`, starting with `decision:`, `input:`,
+`evidence:`, or `reviewer:` (a convention, not an enum); a `BLOCKED` run with
+a null `block_reason` is an anomaly.
 An open `BLOCKER`, including one still `partially-closed`, forces `BLOCKED`,
 never `REVISE`.
 
@@ -541,7 +549,7 @@ proofread, publish a release, or make an accepted product decision.
 
 - Resume a reviewer by naming findings, paths, symbols, or fixes
 - Start a new review when documents, `HEAD`, and the request are unchanged and the change list is docs-only since a reusable run
-- Reuse a handoff from an `execution=blocked` run, or reuse any handoff on document hashes alone
+- Reuse a handoff from a `BLOCKED` run outside step 2, or reuse any handoff on document hashes alone
 - Dispatch a second reviewer, or record `reviewers: 2`, with no risk trigger
 - Return or accept a finding summary instead of complete PSDR records
 - Print `READY` without the `Anomalies:` line from `finish`

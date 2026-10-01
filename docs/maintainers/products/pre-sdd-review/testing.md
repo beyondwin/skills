@@ -84,7 +84,7 @@ in fixtures, test logs, or committed live records.
 - `repair-pass-accounting`
 - `red-flag-seeded-retry`
 - `red-flag-anomalous-ready`
-- `blocked-execution-restarts`
+- `blocked-verdict-restarts`
 - `near-miss-write-spec`
 - `near-miss-write-plan`
 - `near-miss-code-review`
@@ -217,7 +217,11 @@ spaces and mixed case. In L9, greeting recorded `review_passes` 2 with
 `repair_passes` 0 on both hosts. Claude's farewell ended `REVISE` on a new
 test-isolation finding from its last closure. The extra toolchain findings
 (no installed `tsc` or Node types) come from the harness repository, not the
-fixtures. n=1 per cell; not a quality measurement.
+fixtures. On the same text, Claude Code recorded L7's `BLOCKED` with
+`execution` `blocked` and L7b's with `full`, while Codex recorded `blocked`
+both times. `execution` now describes the review, not the verdict, so `full`
+(a reviewer ran) is the intended label for both. n=1 per cell; not a quality
+measurement.
 
 Evidence tests use only temporary Git repositories and synthetic skill roots.
 Records never hold source text, raw paths, prompts, transcripts, or

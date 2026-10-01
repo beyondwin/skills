@@ -129,9 +129,10 @@ again, "changed" covers commits, uncommitted edits, and new untracked files:
 | Anything else (other files changed, full re-review asked, no record) | A fresh review from the start |
 
 Only a `full` run's handoff, or that of a `degraded` run whose only reason is
-`focused-role-not-obtained`, is reused; any other `degraded` or `blocked`
-run's handoff is never reused. A `degraded` run is one that could not get a
-fresh reviewer for every role, or reused one. After three `BLOCKED` runs in a
+`focused-role-not-obtained`, is reused; any other `degraded` run's handoff, and
+a `BLOCKED` result outside the user-decision rows above, is never reused. A
+`degraded` run is one that could not get a fresh reviewer for every role, or
+reused one; a `blocked` run is one where no review ran at all. After three `BLOCKED` runs in a
 row on new user decisions, the design is sent back to settle the remaining
 decisions at once.
 

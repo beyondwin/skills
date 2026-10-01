@@ -84,7 +84,12 @@ or null), `degraded_reasons` (list of `primary-role-not-obtained`,
 `focused-role-not-obtained`, `agent-reused-within-invocation`,
 `agent-reused-across-plans`, or `other`), `verdict`, `block_reason`,
 `review_passes` (0–4; 0 only for `execution` `blocked` with `reviewers` 0),
-`repair_passes` (0–3), and `findings`. Example:
+`repair_passes` (0–3), and `findings`. `execution` describes the review, not
+the verdict: `blocked` only when no independent primary review ran (`reviewers`
+0, `review_passes` 0), and `primary-role-not-obtained` is recorded only on such
+a run; a `BLOCKED` verdict reached after a review keeps `full` or `degraded`.
+By convention `block_reason` starts with `decision:`, `input:`, `evidence:`, or
+`reviewer:`. Example:
 
 ```json
 {"execution":"full","reviewers":1,"trigger":null,"degraded_reasons":[],"verdict":"READY","block_reason":null,"review_passes":1,"repair_passes":0,"findings":[]}
@@ -127,7 +132,7 @@ The log is for agents.
   `outside-repository` means it belongs to another checkout.
 - A handoff is reusable only from a run whose `execution` is `full`, or
   `degraded` with `focused-role-not-obtained` as its only reason; never from a
-  `blocked` run or any other `degraded` run. Reuse it only when its document
+  `BLOCKED` verdict outside the decision path or any other `degraded` run. Reuse it only when its document
   hashes (design, plan, and ledger), `git.head_end`, and the request are all
   unchanged and
   `git diff --name-only <git.head_end>` plus

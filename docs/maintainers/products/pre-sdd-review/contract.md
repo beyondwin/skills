@@ -183,7 +183,7 @@ with a trigger and 1 without; anything else is observed as
 
 ### Degraded reasons
 
-- `primary-role-not-obtained`
+- `primary-role-not-obtained` (recorded only on an `execution=blocked` run)
 - `focused-role-not-obtained`
 - `agent-reused-within-invocation`
 - `agent-reused-across-plans`
@@ -235,6 +235,11 @@ Repair accounting:
 - If the last action was a repair, never return `READY`.
 - `review_passes` counts reviewer dispatch rounds (discovery 1, each closure
   1). It is 0 only for a `BLOCKED` run that dispatched no reviewer.
+- `execution` describes the review, not the verdict. It is `blocked` only when
+  no independent primary review ran (an input gate, the required base, an
+  unresolved `**Spec:**`, or no primary reviewer), with `reviewers` 0 and
+  `review_passes` 0. A `BLOCKED` verdict reached after a review keeps `full`
+  or `degraded`.
 - A continuation is its own run: it counts passes from 1 and keeps the same
   caps. Only the number of continuations is uncapped.
 - A finding left `partially-closed` counts as unresolved and forces `REVISE`;
@@ -270,6 +275,9 @@ invocation, record it in the handoff, and apply the existing verdict rules.
 - `BLOCKED`: required input, authority, or repository evidence is missing, a
   new product decision is needed, or no independent primary reviewer is
   available. An open `BLOCKER` forces `BLOCKED`.
+
+`block_reason` names the cause and, by convention (not an enum), starts with
+`decision:`, `input:`, `evidence:`, or `reviewer:`.
 
 The final report states the freshness list and invalidation rule below as
 written.
@@ -326,7 +334,7 @@ The next invocation takes the first matching path:
 3. Handoff reuse: from a reusable run (`full`, or `degraded` whose only reason
    is `focused-role-not-obtained`), reuse the handoff only when the design,
    plan, and ledger hashes, `HEAD`, and the request are unchanged and the change list is docs-only. Handoffs of
-   other `degraded` runs and of `blocked` runs are never reused. A reuse calls no
+   other `degraded` runs and of `BLOCKED` runs are never reused. A reuse calls no
    `start` and prints `Evidence: not_recorded; reason=reused-prior-run`.
 4. Continuation: if the last run was a reusable `REVISE`, the change list
    shows only the design, plan, and ledger, and the user did not ask for a full
@@ -362,9 +370,9 @@ controller uses it in this order.
    `start`; its `runs` are this plan's runs. Close this plan's `pending` run with
    `abandon --repo`. If the plan's last completed verdict is `REVISE` or
    `BLOCKED`, `show` it.
-3. Take the path from "Next invocation" above. When `execution` is
-   `blocked` (outside the decision path), or `degraded` with any reason besides
-   `focused-role-not-obtained`, never reuse its handoff: recheck the input
+3. Take the path from "Next invocation" above. When the verdict is
+   `BLOCKED` (outside the decision path), or `execution` is `degraded` with any
+   reason besides `focused-role-not-obtained`, never reuse its handoff: recheck the input
    gates and call `start` for a fresh full review.
 4. Unless the path ended without a review (decision checkpoint or reuse),
    call `start` once the plan path resolves, before any reviewer dispatch,
