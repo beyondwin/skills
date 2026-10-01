@@ -1,6 +1,6 @@
 ---
 name: how-it-works
-description: Use when the user wants to understand how a mechanism or flow works visually, asks for a diagram or step-by-step path, names 그림/길/뼈대/허점, invokes the skill explicitly, or asks 원리부터, 그림으로, 어떻게 돌아가, or 감이 안 와. Do not use for debugging, implementation, review, translation, one-line factual lookup, child-register explanation, or ELI5 requests.
+description: Use when the user wants to understand how a mechanism or flow works visually, asks for a diagram or step-by-step path, names 그림/길/뼈대/허점, or asks 원리부터, 그림으로, 어떻게 돌아가, or 감이 안 와. Do not use for debugging, implementation, review, translation, one-line factual lookup, child-register explanation, or ELI5 requests.
 license: Apache-2.0
 compatibility: Requires an Agent Skills host that can read this directory and return Markdown text.
 metadata:
