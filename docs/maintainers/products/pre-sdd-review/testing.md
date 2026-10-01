@@ -268,7 +268,7 @@ per the single reading (the 2026-09-30 seed used `blocked`). M1 seeds L2b's
 | L3 | Missing required base: `execution` `blocked`, `reviewers` 0 | `BLOCKED` | not run |
 | L4 | Prior `BLOCKED` decision answered in the request; Codex reviewer isolation | not run | `READY` |
 | L7 | Open product decision, `review-only`: `BLOCKED` after a review records `full` | `BLOCKED`, `BLOCKED` | `BLOCKED` |
-| M1 | Prior `REVISE`, nothing changed, request "남은 문제 고쳐줘": `start` before the first edit, carried IDs repaired in pass 1, then closure | `READY` (anomaly) | not run |
+| M1 | Prior `REVISE`, nothing changed, a Korean request to fix what is left: `start` before the first edit, carried IDs repaired in pass 1, then closure | `READY` (anomaly) | not run |
 
 All five Codex `spawn_agent` calls (L1, L4, L7) set `fork_turns` to `"none"`.
 Each reviewer rollout holds none of the parent history, the user request, or

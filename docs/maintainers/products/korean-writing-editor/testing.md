@@ -118,7 +118,7 @@ them. Prompts were synthetic and are not stored.
 Output contract, before and after the 2.0.6 text. Each run used a fresh empty
 working directory and a copy of the skill passed by path (`SKILL.md` `3b8fca30` for
 2.0.5; `b655ab67` for 2.0.6, the text before the version bump and before the last
-Preservation Gate and `확인 필요` wording fixes), so no repository `AGENTS.md` was
+Preservation Gate and hold-line wording fixes), so no repository `AGENTS.md` was
 loaded. Two runs per
 cell; every run read the pinned `SKILL.md`.
 
