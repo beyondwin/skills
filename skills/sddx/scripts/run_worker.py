@@ -495,9 +495,12 @@ def run_worker(options: RunOptions) -> int:
         except KeyboardInterrupt:
             # Only an interrupt that `_launch` did not handle reaches here: one
             # before the worker existed, or one after a terminal record
-            # (`exited`, `launch_failed`) was written. That record is kept;
-            # only a `starting` one is rewritten, with no child to end.
+            # (`exited`, `launch_failed`) was set. That record is kept, and
+            # written again in case the interrupt beat its write; only a
+            # `starting` one is rewritten, with no child to end.
             if metadata.get("state") != "starting":
+                with contextlib.suppress(KeyboardInterrupt):
+                    write_metadata(metadata_path, metadata)
                 return 130
             with contextlib.suppress(KeyboardInterrupt):
                 metadata.update(

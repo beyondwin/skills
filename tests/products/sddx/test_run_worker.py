@@ -1511,6 +1511,28 @@ class WorkerExecutionTests(RunnerFixture):
         self.assertEqual(metadata["exit_code"], 0)
         self.assertIsNotNone(metadata["pid"])
 
+    def test_an_interrupt_before_the_exit_record_reaches_disk_still_writes_it(self) -> None:
+        # Break: the interrupt lands between the `exited` update and its write,
+        # so the record on disk stays `running` and the worker's exit is lost.
+        module = self.load()
+        self.write_grok(BEHAVIOUR_OK)
+        real_write = module.write_metadata
+        state = {"raised": False}
+
+        def interrupt_then_write(path, metadata):
+            if metadata.get("state") == "exited" and not state["raised"]:
+                state["raised"] = True
+                raise KeyboardInterrupt
+            real_write(path, metadata)
+
+        with self.pinned_resolver(module):
+            with mock.patch.object(module, "write_metadata", interrupt_then_write):
+                code = self.invoke(module, self.options(module))
+        self.assertEqual(code, 130)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "exited")
+        self.assertEqual(metadata["exit_code"], 0)
+
     def test_an_interrupt_before_the_running_record_still_names_the_worker_pid(self) -> None:
         # Break: an interrupt between `Popen` and the `running` update records
         # `pid: null`, which reads as "before the worker started".
