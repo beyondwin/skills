@@ -231,9 +231,10 @@ class HowItWorksPayloadTests(unittest.TestCase):
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         runtime = section(text, "## Runtime", "## After EXPLAIN")
         self.assertIn(
-            "When the host can read files, read `references/output.md` (and `references/korean.md` for a Korean reply) before replying.",
+            "When the host can read files, read the references EXPLAIN lists, starting with `references/output.md`, before replying.",
             runtime,
         )
+        self.assertNotIn("(and `references/korean.md` for a Korean reply) before replying", runtime)
         self.assertIn(
             "Only when the host cannot read files this turn, emit the complete required deliverable from the skeleton in Required deliverable.",
             runtime,

@@ -8,7 +8,7 @@ All notable changes to this product are documented in this file.
 
 ### Fixed
 
-- Replies keep the title, headings, `**H1**` hop list, and `다음:` / `Next:` line even when the model skips the references: `SKILL.md` now carries the reply skeleton, mirrored from `references/output.md`, with the hop list before Mermaid. A host that can read files reads `output.md` (and `korean.md` for Korean) first; only a host that cannot read files replies from the skeleton alone.
+- Replies keep the title, headings, `**H1**` hop list, and `다음:` / `Next:` line even when the model skips the references: `SKILL.md` now carries the reply skeleton, mirrored from `references/output.md`, with the hop list before Mermaid. A host that can read files first reads the references the EXPLAIN section lists, starting with `output.md` (so `visuals.md` is no longer skipped); only a host that cannot read files replies from the skeleton alone.
 - A new red flag catches a Mermaid hop id with no matching `**Hk**` list item.
 - The picture box rule is the same in `output.md` and `visuals.md`: 4–6 boxes, one per hop; more than 6 means recut the slice.
 - Hop ids stay the same across rungs: each hop's Mermaid label starts with its id (`H1: …`), a skeleton branch reuses its parent id (`H3a`), and the picture hop list is the baseline.

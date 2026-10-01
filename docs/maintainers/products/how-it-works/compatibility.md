@@ -3,8 +3,10 @@
 This document sets which hosts and OS how-it-works supports and what backs that. The
 supported hosts are `codex` and `claude-code` from the product registry, for local or
 repository-based use only. Support scope and current measurement are separate. Live
-evidence for the current payload is `not_measured` on Codex; Claude Code has one
-format probe ([testing](testing.md), "Live record, 2026-10-01").
+evidence for the current payload is `not_measured` on Codex. Claude Code has one
+format probe of the 3.0.2 text before the version bump and before the Runtime
+reading-list change ([testing](testing.md), "Live record, 2026-10-01"), so the
+current payload is `not_measured` there too.
 
 - Grok: not supported.
 - Cursor: not a support target.

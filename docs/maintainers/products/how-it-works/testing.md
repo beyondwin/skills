@@ -133,8 +133,8 @@ confirmed that only the project copy loads). Before = the shipped 3.0.1 text
 (`SKILL.md` `be952cba`). P1 and P2 "after" ran an intermediate 3.0.2 text
 (`e00d4e05`) whose skeleton printed Korean / English labels side by side; Haiku
 echoed both, so the skeleton was made one-language with the intent line first. P3
-"after" ran that final text (`e589d7bb`, the shipped `a89cd5d3` apart from
-`metadata.version` and `updated_at`). Scoring: `observe_text` (fence,
+"after" ran that text (`e589d7bb`, the 3.0.2 text before the version bump; the
+shipped 3.0.2 `SKILL.md` also changes the Runtime line to read the EXPLAIN list). Scoring: `observe_text` (fence,
 hop ids), the `# … · <rung>` title, the four section headings, the next-move line,
 reference reads from the stream, and sentence endings.
 

@@ -70,9 +70,10 @@ Mermaid source. At picture, the Body does not walk the hops again.
 
 - `skills/how-it-works/references/output.md` owns the reply chrome and hop ID rules.
   `SKILL.md` "Required deliverable" carries a mirror of the reply skeleton, and a test
-  keeps the two equal. When the host can read files, the skill reads `output.md` (and
-  `korean.md` for a Korean reply) before replying; only a host that cannot read files
-  emits from the mirror alone.
+  keeps the two equal. When the host can read files, the skill reads the references
+  the EXPLAIN section lists (`output.md`, then `visuals.md`, then `korean.md`,
+  `stakes.md`, or `sources.md` as they apply) before replying; only a host that
+  cannot read files emits from the mirror alone.
 - The title names the rung in the reply language: the Korean rung name or
   picture/path/skeleton/fracture. The next-move labels have Korean and English forms
   in `SKILL.md`.
