@@ -141,6 +141,8 @@ $waygent docs/plan.md
 - With a plan file it follows the plan's task order; without one it shows a task
   list first.
 - If a run was cut off, send the same command again. Finished tasks are skipped.
+  `/waygent` alone picks up the one unfinished run, and asks once if there are several.
+- A finished run is only reported; new work needs a new `/waygent <request>`.
 - A plan that names its test command and its rules gets better results.
 
 ## Expected result
@@ -158,20 +160,32 @@ $waygent docs/plan.md
   .gitignore              # the line "*": keeps the folder out of git
   <plan-slug>/
     progress.md           # per-task state, rulings, failure causes
-    guide.md              # test command and the plan's shared rules; implementers read it first
+    guide.md              # commands, app start, shared rules; implementers read it first
     reviews/task-N.md     # the reviewer's full findings
     reviews/final.md
 ```
 
 **What `progress.md` looks like**: one line per step, including who did the work
-(`model/effort`; `inherit` means the subagent took the session's value).
+(`model/effort`). `inherit` means the main session set no value; a subagent one tier
+up may then run at its own configured effort, not the session's. The `model:` header
+is the session's own model, with its effort only when one was set.
 
 ```text
+model: opus/high
 task 1: start base=3f2a1c0
 task 1: low: usage/store.py:41 loop reads each row twice
 task 1: done 8c1d2e4 impl=opus/inherit review=fixed 2 reviewer=opus/inherit tests=43 passed
-final: done 9e0f3a1 reviewer=fable/inherit fixed=1 walk=ok tests=47 passed
+task 2: start base=8c1d2e4
+task 2: failure: suite red after commit — cause: stale import — next: fix the import
+task 2: retry impl=fable/inherit
+task 2: done 5b7a9d2 impl=fable/inherit review=clean reviewer=opus/inherit tests=45 passed
+final: start
+final: done 9e0f3a1 impl=opus/inherit reviewer=fable/inherit fixed=1 walk=ok tests=47 passed
 ```
+
+The review field is one of `clean`, `fixed K`, `overruled K`, `skipped (<why>)`, or
+`unknown` (rebuilt after the records were lost). `walk=none (<why>)` says why the app
+was not walked.
 
 **When done**: a report of at most 15 lines: tasks and commits, findings fixed or
 overruled, the final test result, and anything not verified.
@@ -179,29 +193,39 @@ overruled, the final test result, and anything not verified.
 **When something goes wrong**
 - A failed task gets one written cause and one retry. A second failure stops the run
   with the reason. A red test run after the final fixes is handled the same way.
-- On a usage limit it writes `paused: limit` and stops. Call it again to continue.
-- If a run is cut off, call it again. Committed tasks are not redone; a task cut off
-  before its review picks up at the review. Uncommitted work is never thrown away.
-  If `.waygent/` is deleted, progress is rebuilt from the `Waygent-Task` commits.
+- A subagent's brief rate-limit error (429) gets one redispatch. When the session
+  itself hits its usage limit, it writes `paused: limit` and stops. Call it again to
+  continue.
+- If a run is cut off, call it again. Tasks committed in this run are not redone; a
+  task cut off before its review picks up at the review, and a cut-off final phase
+  picks up at its review or its fixes. Uncommitted work is never thrown away. If
+  `.waygent/` is deleted, call `/waygent` alone: progress is rebuilt from this run's
+  `Waygent-Task` commits. If the branch history was rewritten under the run (say, a
+  squash), it stops and says so.
 
 **Reviews**
 - A reviewer's High or Medium is fixed once. The main session may reject one only
   after running the reviewer's reproduction and seeing the code work.
 - Low findings are only written down; the final review sees them, but they are not
   fixed automatically.
+- Findings the repository cannot settle, such as deploy order or a billing policy,
+  come back as notes in the report for you to decide.
 
 **Models**
 - Implementers and per-task reviewers use this session's model, never a cheaper one.
 - Only the final review and the retry after a failure go one tier up: Claude Code
   goes sonnet → opus → fable; Codex keeps the model and sets `reasoning_effort` to
   `xhigh`. Cursor and Grok Build cannot pick, so they use the same model.
+- One subagent runs at a time, reviewers included. In Claude Code a subagent may run
+  in the background; the main session waits for it, so keep the session open until
+  the run ends. If it closes, call the command again.
 
 **App check**: implementers stick to tests and start the app only when their task
-changes how it starts. At the end, if `guide.md` says how to start the app, the final
-fixer starts it once, walks the changed flows on real data, fixes what it finds, and
-stops it.
+changes how it starts. `guide.md` says how to start the app, or why there is none. At
+the end the final fixer starts it once, walks the changed flows on real data, fixes
+what it finds, and stops it.
 
-**Not done**: brainstorming or spec phases, re-review loops, parallel implementers,
+**Not done**: brainstorming or spec phases, re-review loops, parallel subagents,
 a human checkpoint per task, edits to `CLAUDE.md` or `AGENTS.md`.
 
 **Limits**: fixed code is seen again only by the final review. Results depend on the

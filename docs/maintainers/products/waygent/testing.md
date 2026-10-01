@@ -31,8 +31,29 @@ The required evidence is `python3 scripts/verify.py --skill waygent`. Its stages
   per finding, and Lows go in the report
 - resume and checks: a trailer commit with no `done` line, a clean tree, a failed check
   at step 3 or 5, and a red final suite handled as a failure
-- the progress lines record `impl=<m/e>` and `reviewer=<m/e>`, `inherit` when unset
-- `SKILL.md` under 140 lines
+- the progress lines record `impl=<m/e>` and `reviewer=<m/e>`, `inherit` when unset;
+  one review-status set (`clean|fixed K|overruled K|skipped (<why>)|unknown`) stated
+  once; the `model:` header omits effort when none was set
+- run scoping: resume starts on `$P/progress.md` or `/waygent` alone, done means a
+  trailer commit in `start..HEAD`, step 3 searches `$BASE..HEAD`, the rebuild uses the
+  upstream or remote default branch and asks when a task number repeats, and resume
+  follows the recorded task order
+- finished and several folders: `/waygent` alone picks the folder with no
+  `final: done` or asks once, a finished folder starts nothing, and a `start` that is
+  not an ancestor of HEAD stops the run
+- the final phase: `final: start`, `Waygent-Task: final` commits, its resume rule, and
+  `impl=` on the `final: done` line; a retry line `task N: retry impl=<m/e>`
+- one subagent at a time, reviewers included; the Claude Code line
+  (`run_in_background: false` when offered, end the turn on a background dispatch,
+  re-dispatch a lost subagent fresh, prefer a fresh implementer over SendMessage) and
+  the Codex `wait_agent` line with a long timeout
+- `guide.md`: test, lint, and build or typecheck commands, the build step in the fast
+  check, `app: <how to start>` or `app: none (<why>)`, generated paths in
+  `.git/info/exclude`, at most ~60 lines, global rules verbatim only if they fit, traps
+  appended later; the brief at most ~2,000 characters; `walk=<ok|none (<why>)>`
+- limits: a subagent's transient 429 is redispatched once, the controller's own usage
+  limit appends `paused: limit`; the reviewer asks carry a pasted stop line
+- `SKILL.md` under 165 lines
 
 `validate_product` also checks that `agents/openai.yaml` sets
 `allow_implicit_invocation: false`.
@@ -53,3 +74,11 @@ Live measurement is not part of the default verification. The tasks, hidden test
 driver are in [waygent design and evaluation](../../../research/2026-09-waygent-eval/README.md),
 and per-host records go in [compatibility](compatibility.md). When the installed
 files' behavior rules change, measure again with that harness.
+
+The harness drives `claude -p`, where controllers set `run_in_background: false` and
+every dispatch returns inline. Interactive Claude Code sessions may not offer that
+flag, and then every dispatch returns in the background. The harness has not measured
+that mode, the one-subagent-at-a-time wait in it, a resume inside the final phase, or
+two runs on one branch; these need an interactive or purpose-built run. The harness
+also runs without `--effort`, so its Claude Code controllers and same-model subagents
+ran at medium effort.

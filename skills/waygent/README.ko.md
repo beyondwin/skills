@@ -134,6 +134,8 @@ $waygent docs/plan.md
 
 - 계획 파일이 있으면 그 과제 순서대로 돌고, 없으면 과제 목록부터 보여 줍니다.
 - 중간에 끊겼으면 같은 명령을 다시 부르세요. 끝난 과제는 건너뜁니다.
+  `/waygent`만 부르면 끝나지 않은 실행 하나를 이어 가고, 여러 개면 한 번 묻습니다.
+- 끝난 실행은 보고만 합니다. 새 일은 새 `/waygent <요청>`으로 부르세요.
 - 계획에 테스트 명령과 지켜야 할 규칙이 적혀 있을수록 결과가 좋습니다.
 
 ## 예상 결과
@@ -150,20 +152,31 @@ $waygent docs/plan.md
   .gitignore              # "*" 한 줄. 폴더 전체를 git에서 뺍니다.
   <계획이름>/
     progress.md           # 과제별 진행, 판단, 실패 원인
-    guide.md              # 테스트 명령과 계획의 공통 규칙. 구현자가 먼저 읽습니다.
+    guide.md              # 명령, 앱 실행 방법, 공통 규칙. 구현자가 먼저 읽습니다.
     reviews/task-N.md     # 리뷰어의 지적 전문
     reviews/final.md
 ```
 
 **`progress.md` 모양**: 단계마다 한 줄씩 남고, 누가 했는지(`모델/effort`)도 적힙니다.
-`inherit`는 서브에이전트가 세션 값을 그대로 물려받았다는 뜻입니다.
+`inherit`는 메인 세션이 값을 정하지 않았다는 뜻입니다. 이때 한 등급 위 서브에이전트는
+세션 값이 아니라 그 모델에 설정된 effort로 돌 수 있습니다. 머리의 `model:`은 세션 자신의
+모델이고, effort는 정해져 있을 때만 붙습니다.
 
 ```text
+model: opus/high
 task 1: start base=3f2a1c0
 task 1: low: usage/store.py:41 loop reads each row twice
 task 1: done 8c1d2e4 impl=opus/inherit review=fixed 2 reviewer=opus/inherit tests=43 passed
-final: done 9e0f3a1 reviewer=fable/inherit fixed=1 walk=ok tests=47 passed
+task 2: start base=8c1d2e4
+task 2: failure: suite red after commit — cause: stale import — next: fix the import
+task 2: retry impl=fable/inherit
+task 2: done 5b7a9d2 impl=fable/inherit review=clean reviewer=opus/inherit tests=45 passed
+final: start
+final: done 9e0f3a1 impl=opus/inherit reviewer=fable/inherit fixed=1 walk=ok tests=47 passed
 ```
+
+리뷰 칸은 `clean`, `fixed K`, `overruled K`, `skipped (<이유>)`, `unknown`(기록을 잃고
+다시 만든 경우) 중 하나입니다. `walk=none (<이유>)`는 앱을 확인하지 않은 이유를 적습니다.
 
 **끝났을 때**: 15줄 이내로 보고합니다. 끝낸 과제와 커밋, 고치거나 기각한 지적, 마지막
 테스트 결과, 확인하지 못한 것을 적습니다.
@@ -171,27 +184,35 @@ final: done 9e0f3a1 reviewer=fable/inherit fixed=1 walk=ok tests=47 passed
 **문제가 생기면**
 - 과제가 실패하면 원인을 한 줄 적고 한 번만 다시 시도합니다. 또 실패하면 멈추고 이유를
   보고합니다. 끝 수정 뒤 테스트가 깨져도 똑같이 합니다.
-- 사용량 한도에 걸리면 `paused: limit`을 적고 멈춥니다. 다시 부르면 이어서 합니다.
-- 중간에 끊기면 다시 부르세요. 커밋된 과제는 다시 하지 않고, 리뷰 전에 끊긴 과제는
-  리뷰부터 이어 갑니다. 커밋 안 된 변경은 버리지 않습니다. `.waygent/`가 지워져도
-  커밋의 `Waygent-Task`로 진행을 다시 만듭니다.
+- 서브에이전트가 잠깐 요청 한도 오류(429)를 받으면 한 번 다시 보냅니다. 세션 자체가
+  사용량 한도에 걸리면 `paused: limit`을 적고 멈춥니다. 다시 부르면 이어서 합니다.
+- 중간에 끊기면 다시 부르세요. 이번 실행에서 커밋된 과제는 다시 하지 않고, 리뷰 전에
+  끊긴 과제는 리뷰부터, 끊긴 끝 단계는 그 리뷰나 수정부터 이어 갑니다. 커밋 안 된 변경은
+  버리지 않습니다. `.waygent/`가 지워졌으면 `/waygent`만 부르세요. 이번 실행의
+  `Waygent-Task` 커밋으로 진행을 다시 만듭니다. 실행 도중 브랜치 기록이 바뀌었으면(예:
+  squash) 멈추고 그렇게 알립니다.
 
 **리뷰**
 - 리뷰어의 High·Medium은 한 번 고칩니다. 메인 세션이 기각하려면 리뷰어가 준 재현을
   직접 돌려 코드가 맞게 도는 것을 봐야 합니다.
 - Low는 기록만 합니다. 끝 리뷰가 참고하지만 자동으로 고치지는 않습니다.
+- 배포 순서나 과금 정책처럼 저장소만으로 정할 수 없는 지적은 보고에 메모로 남겨 직접
+  정하게 합니다.
 
 **모델**
 - 구현자와 과제별 리뷰어는 지금 세션과 같은 모델을 씁니다. 싼 모델로 내리지 않습니다.
 - 끝 전체 리뷰와 실패 뒤 재시도만 한 등급 위를 씁니다. Claude Code는 sonnet → opus →
   fable 순이고, Codex는 같은 모델에 `reasoning_effort`만 `xhigh`로 올립니다. Cursor와
   Grok Build는 모델을 고를 수 없어 같은 모델을 씁니다.
+- 서브에이전트는 리뷰어를 포함해 한 번에 하나만 돕니다. Claude Code에서는 서브에이전트가
+  백그라운드로 돌 수 있고, 메인 세션은 그 끝을 기다립니다. 실행이 끝날 때까지 세션을 열어
+  두세요. 닫혔으면 같은 명령을 다시 부르세요.
 
 **앱 확인**: 구현자는 테스트만 돌리고, 앱 실행 방식을 바꾸는 과제일 때만 앱을 띄웁니다.
-끝에 `guide.md`에 앱 실행 방법이 있으면, 끝 수정 담당이 앱을 한 번 띄워 바뀐 흐름을
-실제 데이터로 확인하고, 찾은 문제를 고치고, 앱을 끕니다.
+`guide.md`에는 앱 실행 방법이나 앱이 없는 이유가 적힙니다. 끝에 끝 수정 담당이 앱을 한 번
+띄워 바뀐 흐름을 실제 데이터로 확인하고, 찾은 문제를 고치고, 앱을 끕니다.
 
-**하지 않는 것**: 브레인스토밍·스펙 단계, 재리뷰 반복, 구현자 병렬 실행, 과제마다 사람
+**하지 않는 것**: 브레인스토밍·스펙 단계, 재리뷰 반복, 서브에이전트 병렬 실행, 과제마다 사람
 확인, `CLAUDE.md`·`AGENTS.md` 수정.
 
 **한계**: 고친 코드는 끝 리뷰에서만 다시 봅니다. 결과는 모델과 계획의 질에 달려 있습니다.
