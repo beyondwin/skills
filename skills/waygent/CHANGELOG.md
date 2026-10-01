@@ -13,6 +13,13 @@ All notable changes to this product are documented in this file.
   Task 3 brief ran 2,275-2,319 characters because of rulings the task needed, with no
   harm.
 
+### Fixed
+
+- Reviewers leave the tree as they found it, and a tree left dirty by any review is
+  restored (`git restore . && git clean -fd`) before the fix. In a 2026-10-02 sddx run a
+  task reviewer left a test mutant in the code although its ask said not to edit; the
+  next worker found it by chance.
+
 ## 0.3.1 - 2026-10-01
 
 ### Fixed

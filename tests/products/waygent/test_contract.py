@@ -23,7 +23,7 @@ from scripts.lib.product_contract import (  # noqa: E402
 from scripts.lib.product_registry import load_registry  # noqa: E402
 
 SKILL = ROOT / "skills" / "waygent"
-MAX_SKILL_LINES = 165
+MAX_SKILL_LINES = 170
 
 
 def _fold(text: str) -> str:
@@ -182,6 +182,8 @@ class WaygentContractTests(unittest.TestCase):
         self.assertIn("a subagent's transient 429: redispatch it once", self.lowered)
         self.assertIn("your own usage limit: append `paused: limit` and stop", self.lowered)
         self.assertIn('paste: "spawn nothing; stop every process you start;', self.lowered)
+        self.assertIn("leave the tree as you found it;", self.lowered)
+        self.assertIn("reviewer's: `git restore . && git clean -fd`", self.lowered)
         self.assertIn("<P>/reviews/task-N.md", self.text)
         self.assertIn("<P>/reviews/final.md", self.text)
 

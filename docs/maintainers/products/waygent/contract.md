@@ -81,7 +81,8 @@ brainstorming, writing a spec or plan, a single small fix).
   `app: none (<why>)`, names generated paths to exclude locally, and gets traps found
   later appended.
 - Reviewer asks carry a quoted line the controller pastes: spawn nothing, stop every
-  process started, write the full review to its path, reply only High / Medium / Low.
+  process started, leave the tree as found, write the full review to its path, reply
+  only High / Medium / Low. A tree left dirty by a reviewer is restored before the fix.
 - A task may take several commits; only its last carries the trailer.
 - A gap that keeps the changed code from starting or deploying is fixed inside the
   task, never left as a note for the user. Implementers start the app only when their
@@ -101,7 +102,7 @@ brainstorming, writing a spec or plan, a single small fix).
   (`spawn_subagent`) and Cursor Agent (`Task`) no model is named, so children use the
   session model. Every registry host has its own line in the Models section.
 - Do not commit to `main` or `master`. Do not push, merge, or open a PR unless asked.
-- `SKILL.md` stays under 165 lines. Lightness is part of the contract.
+- `SKILL.md` stays under 170 lines. Lightness is part of the contract.
 
 ## Deliberately left out
 

@@ -55,7 +55,7 @@ The required evidence is `python3 scripts/verify.py --skill waygent`. Its stages
   appended later; the brief about 2,000 characters, rulings and dependencies kept when longer; `walk=<ok|none (<why>)>`
 - limits: a subagent's transient 429 is redispatched once, the controller's own usage
   limit appends `paused: limit`; the reviewer asks carry a pasted stop line
-- `SKILL.md` under 165 lines
+- `SKILL.md` under 170 lines
 
 `validate_product` also checks that `agents/openai.yaml` sets
 `allow_implicit_invocation: false`.

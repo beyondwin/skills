@@ -89,9 +89,11 @@ Otherwise start:
    `BASE..HEAD`, and runs the diff itself. Ask for: behavior defects (interrupts, stale
    state, partial failure, races, error paths), mismatches with the plan's rules, and
    tests that do not measure what they claim. Paste: "Spawn nothing; stop every process
-   you start; write the full review to <P>/reviews/task-N.md; reply only High / Medium /
-   Low, each with file:line and a one-line reproduction, at most 15 lines." Skip only a
-   task with no behavior (docs, rename): `review=skipped (<why>) reviewer=none`.
+   you start; leave the tree as you found it; write the full review to
+   <P>/reviews/task-N.md; reply only High / Medium / Low, each with file:line and a
+   one-line reproduction, at most 15 lines." A tree dirty after any review is the
+   reviewer's: `git restore . && git clean -fd`. Skip only a task with no behavior
+   (docs, rename): `review=skipped (<why>) reviewer=none`.
 5. Fix once, no re-review. Send High and Medium verbatim to the same implementer if
    reachable, else a fresh one. Each fix starts from a test that fails first. A ruling
    never cancels a High or Medium: overrule one only after running its reproduction and
@@ -127,8 +129,9 @@ step 4 list) and what per-task review cannot see: duplicated helpers, state shar
 across tasks, contract drift between layers (server types, API schema, client types,
 mocks), money and counts on failure paths, config needed at startup and deploy order,
 queries at real scale (N+1), dead code, tests that assert nothing. Paste: "Spawn
-nothing; stop every process you start; write the full review to <P>/reviews/final.md;
-reply only High / Medium / Low, each with a failure scenario checked against the code."
+nothing; stop every process you start; leave the tree as you found it; write the full
+review to <P>/reviews/final.md; reply only High / Medium / Low, each with a failure
+scenario checked against the code."
 Send High and Medium to one implementer in one batch, test-first, under step 5's
 overrule and plan-name rules; its commits carry `Waygent-Task: final`. Lows go in the
 report. Then, unless guide.md says `app: none`, that implementer starts the app, walks
