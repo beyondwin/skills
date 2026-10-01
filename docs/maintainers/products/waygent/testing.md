@@ -80,7 +80,13 @@ files' behavior rules change, measure again with that harness.
 The harness drives `claude -p`, where controllers set `run_in_background: false` and
 every dispatch returns inline. Interactive Claude Code sessions may not offer that
 flag, and then every dispatch returns in the background. The harness has not measured
-that mode, the one-subagent-at-a-time wait in it, a resume inside the final phase, or
-two runs on one branch; these need an interactive or purpose-built run. The harness
-also runs without `--effort`, so its Claude Code controllers and same-model subagents
-ran at medium effort.
+that mode or the one-subagent-at-a-time wait in it; that needs an interactive run.
+The harness also runs without `--effort`, so its Claude Code controllers and
+same-model subagents ran at medium effort.
+
+The 2026-10-01 check used a copy of the harness driver that passes `--effort high`,
+seeds stale state (trailer commits from an earlier run on the branch, a finished
+`.waygent/` folder), and stops a run at a chosen point (the first new trailer commit,
+or `reviews/final.md` written without `final: done`). It measured run scoping, `/waygent`
+alone with a finished folder, and a resume inside the final phase; the numbers are in
+[compatibility](compatibility.md).
