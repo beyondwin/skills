@@ -92,8 +92,8 @@ Otherwise start:
    you start; leave the tree as you found it; write the full review to
    <P>/reviews/task-N.md; reply only High / Medium / Low, each with file:line and a
    one-line reproduction, at most 15 lines." A tree dirty after any review is the
-   reviewer's: `git restore . && git clean -fd`. Skip only a task with no behavior
-   (docs, rename): `review=skipped (<why>) reviewer=none`.
+   reviewer's: `git stash push -u -m "waygent: review leftovers"`. Skip only a task
+   with no behavior (docs, rename): `review=skipped (<why>) reviewer=none`.
 5. Fix once, no re-review. Send High and Medium verbatim to the same implementer if
    reachable, else a fresh one. Each fix starts from a test that fails first. A ruling
    never cancels a High or Medium: overrule one only after running its reproduction and

@@ -82,7 +82,7 @@ brainstorming, writing a spec or plan, a single small fix).
   later appended.
 - Reviewer asks carry a quoted line the controller pastes: spawn nothing, stop every
   process started, leave the tree as found, write the full review to its path, reply
-  only High / Medium / Low. A tree left dirty by a reviewer is restored before the fix.
+  only High / Medium / Low. A tree left dirty by a reviewer is stashed (recoverable) before the fix.
 - A task may take several commits; only its last carries the trailer.
 - A gap that keeps the changed code from starting or deploying is fixed inside the
   task, never left as a note for the user. Implementers start the app only when their

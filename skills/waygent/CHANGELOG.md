@@ -16,7 +16,8 @@ All notable changes to this product are documented in this file.
 ### Fixed
 
 - Reviewers leave the tree as they found it, and a tree left dirty by any review is
-  restored (`git restore . && git clean -fd`) before the fix. In a 2026-10-02 sddx run a
+  stashed (`git stash push -u -m "waygent: review leftovers"`, so nothing is lost)
+  before the fix. In a 2026-10-02 sddx run a
   task reviewer left a test mutant in the code although its ask said not to edit; the
   next worker found it by chance.
 
