@@ -54,14 +54,23 @@ class VersionTests(unittest.TestCase):
             self.assertEqual(set(envelope["error"]), {"code", "message"})
             self.assertEqual(envelope["error"]["code"], "invalid-arguments")
 
-    def test_help_uses_the_error_envelope(self) -> None:
+    def test_help_prints_the_command_table_and_touches_no_home(self) -> None:
+        readme = (EVIDENCE_DIR / "README.md").read_text(encoding="utf-8")
+        table = [line for line in readme.splitlines() if line.startswith("| ")]
+        self.assertGreater(len(table), 2)
         with tempfile.TemporaryDirectory() as directory:
-            home = Path(directory)
-            for argv in (["--help"], ["start", "--help"]):
+            home = Path(directory) / "home"
+            for argv in (
+                ["--help"], ["-h"], ["start", "--help"], ["finish", "-h"], ["abandon", "--help"],
+                ["outcome", "--help"], ["show", "--help"], ["summary", "-h"],
+            ):
                 with self.subTest(argv=argv):
-                    code, out, err = run(argv, home=home, cwd=home)
-                    self.assertEqual((code, out), (2, ""))
-                    self.assertEqual(error_code(err), "invalid-arguments")
+                    code, out, err = run(argv, home=home, cwd=Path(directory))
+                    self.assertEqual((code, err), (0, ""))
+                    for line in table:
+                        self.assertIn(line, out.splitlines())
+                    self.assertIn("evidence/README.md", out)
+            self.assertFalse(home.exists())
 
     def test_script_runs_as_a_file_without_installation(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -241,6 +250,17 @@ class StartTests(unittest.TestCase):
             argv += ["--prior-plan", f"docs/plan-{index}.md"]
         code, _, err = run(argv, home=self.home, cwd=self.repo)
         self.assertEqual((code, error_code(err)), (2, "invalid-arguments"))
+
+    def test_start_rejects_an_empty_or_multiline_model_as_invalid_arguments(self) -> None:
+        for model in ("", "   ", "a\nb", "m" * 101):
+            with self.subTest(model=model):
+                code, _, err = run(
+                    ["start", "--skill-root", str(self.skill), "--repo", str(self.repo), "--plan", "docs/plan.md",
+                     "--client", "codex", "--model", model, "--mode", "default"],
+                    home=self.home, cwd=self.repo,
+                )
+                self.assertEqual((code, error_code(err)), (2, "invalid-arguments"))
+        self.assertFalse((self.home / "runs").exists())
 
     def test_start_rejects_an_unsafe_prior_plan_as_invalid_arguments_not_schema_invalid(self) -> None:
         code, _, err = run(
@@ -671,6 +691,16 @@ class AbandonOutcomeShowTests(unittest.TestCase):
         code, _, err = run(["show", "--run-id", "not-a-uuid"], home=self.home, cwd=self.repo)
         self.assertEqual((code, error_code(err)), (2, "invalid-arguments"))
 
+    def test_show_accepts_and_ignores_repo(self) -> None:
+        expected = (self.home / "runs" / f"{self.run_id}.json").read_text(encoding="utf-8")
+        elsewhere = self.workspace / "elsewhere"
+        elsewhere.mkdir()
+        for repo in (".", str(self.repo), str(elsewhere)):
+            with self.subTest(repo=repo):
+                code, out, err = run(["show", "--run-id", self.run_id, "--repo", repo], home=self.home, cwd=self.repo)
+                self.assertEqual((code, err), (0, ""))
+                self.assertEqual(out, expected)
+
 
 class SummaryTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -798,6 +828,21 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(self._summary("--last", "1")["counts"]["status"], {"completed": 0, "abandoned": 0, "pending": 1})
         code, _, err = run(["summary", "--last", "0"], home=self.home, cwd=self.repo)
         self.assertEqual((code, error_code(err)), (2, "invalid-arguments"))
+
+    def test_summary_repo_is_a_display_name_not_a_path(self) -> None:
+        for repo in (".", "..", "./repo", str(self.repo), "a\\b"):
+            with self.subTest(repo=repo):
+                code, out, err = run(["summary", "--repo", repo], home=self.home, cwd=self.repo)
+                self.assertEqual((code, out), (2, ""))
+                self.assertEqual(error_code(err), "invalid-arguments")
+                self.assertIn("display name", json.loads(err)["error"]["message"])
+
+    def test_summary_plan_strips_a_leading_dot_slash(self) -> None:
+        first = start(self.home, self.repo, self.skill)
+        self.assertEqual(
+            [item["run_id"] for item in self._summary("--repo", "repo", "--plan", "./docs/plan.md")["runs"]],
+            [first],
+        )
 
 
 if __name__ == "__main__":

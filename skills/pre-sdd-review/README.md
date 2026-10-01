@@ -35,7 +35,8 @@ resolved, the skill returns `BLOCKED` instead of guessing among nearby files.
 
 pre-sdd-review: Codex supported; other hosts not_measured.
 
-Codex is the only supported host today. Other hosts have not been checked. See
+Codex is the only supported host today. Maintainer live runs on another host
+do not make it supported. See
 [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/users/en/compatibility.md).
 
 ## Install
@@ -107,8 +108,9 @@ $pre-sdd-review review-only docs/history/specs/<design>.md docs/history/plans/<p
 - `BLOCKED`: required input, authority, or repository evidence is missing, or
   a new product decision is needed.
 
-A run whose last action was a repair is never `READY`, and an open `BLOCKER`
-makes it `BLOCKED`. A `READY` report prints the final document paths and
+A repair is always followed by one more closure; only when no fresh reviewer
+can be had does the run end `REVISE` without it, never `READY`. An open
+`BLOCKER` makes it `BLOCKED`. A `READY` report prints the final document paths and
 fingerprints (SHA-256), plus the observation anomalies that `finish` returned
 as an `Anomalies:` line (`none` when there are none, `not_recorded` without
 the recorder). Anomalies do not change the verdict. Repairs that keep
@@ -123,15 +125,17 @@ again, "changed" covers commits, uncommitted edits, and new untracked files:
 | Since the last verdict | This call |
 | --- | --- |
 | Nothing changed and the request is the same | No new review; the previous result and handoff (remaining-problem list) are reused |
-| It was `REVISE`, or `BLOCKED` on a user decision that is now answered, and only the design, plan, or ledger changed | Continues from closure with no new discovery. Needs a recorded run for this plan |
+| It was `REVISE` from a reusable run, nothing changed, and you ask to fix what is left | After `start`, the handoff's fixes are applied and one closure checks them; no new discovery |
+| It was `REVISE` from a reusable run, or `BLOCKED` on a user decision that is now answered, and only the design, plan, or ledger changed | Continues from closure with no new discovery. Needs a recorded run for this plan |
 | `BLOCKED` on a user decision you answer in this request | The answer is written into the design; if only the design, plan, or ledger changed, the review continues from closure, otherwise it starts fresh |
 | `BLOCKED` on a user decision still unanswered | No reviewer; shows the same question again and prints `Evidence: not_recorded; reason=previous-decision-checkpoint` |
 | Anything else (other files changed, full re-review asked, no record) | A fresh review from the start |
 
 Only a `full` run's handoff, or that of a `degraded` run whose only reason is
-`focused-role-not-obtained`, is reused; any other `degraded` or `blocked`
-run's handoff is never reused. A `degraded` run is one that could not get a
-fresh reviewer for every role, or reused one. After three `BLOCKED` runs in a
+`focused-role-not-obtained`, is reused; any other `degraded` run's handoff, and
+a `BLOCKED` result outside the user-decision rows above, is never reused. A
+`degraded` run is one that could not get a fresh reviewer for every role, or
+reused one; a `blocked` run is one where no review ran at all. After three `BLOCKED` runs in a
 row on new user decisions, the design is sent back to settle the remaining
 decisions at once.
 

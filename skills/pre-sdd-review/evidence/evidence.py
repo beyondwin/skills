@@ -93,6 +93,23 @@ FINDING_KEYS = frozenset(
     }
 )
 
+HELP_TEXT = "\n".join(
+    (
+        'evidence.py commands; the full reference is evidence/README.md in the skill root.',
+        '',
+        '| Command | Arguments | Effect |',
+        '| --- | --- | --- |',
+        '| `--version` | none | Print the canonical schema 5 handshake |',
+        '| `--help`, `-h` | none, or after any command | Print this table on stdout and exit 0 |',
+        '| `start` | `--skill-root --repo --plan [--design] [--ledger] [--prior-plan ...] --client [--model] --mode` | Create the identity if needed, hash documents, read Git state, validate and write a checkout-bound `pending` record, print `run_id` and `status` |',
+        "| `finish` | `--run-id --repo` and one JSON object on stdin | Require the original checkout binding, recompute the design, plan, and ledger end hashes and Git state, validate, write `completed`, print `run_id`, `status`, `verdict`, and this run's `anomalies` |",
+        '| `abandon` | `--run-id --repo --reason` | Require the original checkout binding, then close a pending run; reason is `user-cancelled`, `input-changed`, `scope-changed`, `input-format-fixed`, or `other` |',
+        '| `outcome` | `--run-id --label [--note]` | Record `good`, `false-ready`, `noisy`, or `abandoned` on a completed run; may be re-recorded |',
+        '| `show` | `--run-id [--repo]` | Validate the record, then return its original bytes unchanged; `--repo` is accepted and ignored |',
+        '| `summary` | `[--repo NAME] [--plan PATH] [--last N]` | Scan and validate records, then print the aggregate JSON described under Reading the log |',
+    )
+) + "\n"
+
 _PATTERN = re.compile(r"[a-z0-9][a-z0-9._-]{0,79}\Z")
 _FINDING_ID = re.compile(r"PSDR-[0-9]{3,}\Z")
 _CONTROL = re.compile(r"[\x00-\x1f\x7f]")
@@ -795,7 +812,9 @@ def cmd_start(args: argparse.Namespace, home: Path, cwd: Path) -> dict[str, obje
     if len(prior_plans) > MAX_PRIOR_PLANS:
         fail("invalid-arguments", f"--prior-plan exceeds {MAX_PRIOR_PLANS} entries")
     skill = skill_snapshot(locator(cwd, args.skill_root))
-    model = _string(args.model, "model", 100)
+    model = args.model
+    if not model.strip() or len(model) > 100 or _CONTROL.search(model):
+        fail("invalid-arguments", "--model must be a non-empty single-line string of at most 100 characters")
     run_id = str(uuid.uuid4())
     record: dict[str, object] = {
         "schema": SCHEMA,
@@ -1049,7 +1068,9 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
 def cmd_summary(args: argparse.Namespace, home: Path) -> dict[str, object]:
     if args.last is not None and args.last < 1:
         fail("invalid-arguments", "--last must be a positive integer")
-    plan = None if args.plan is None else _relative_argument(args.plan, "--plan")
+    if args.repo is not None and (args.repo in ("", ".", "..") or "/" in args.repo or "\\" in args.repo):
+        fail("invalid-arguments", "summary --repo is the checkout directory's display name, not a path")
+    plan = None if args.plan is None else _relative_argument(args.plan.removeprefix("./"), "--plan")
     records, invalid, unsupported = scan_records(home)
     if args.repo is not None:
         records = [record for record in records if record["repo"] == args.repo]
@@ -1100,6 +1121,7 @@ def build_parser() -> _Parser:
     outcome.add_argument("--note")
     show = commands.add_parser("show", add_help=False)
     show.add_argument("--run-id", required=True)
+    show.add_argument("--repo")  # accepted and ignored: show reads any run without a checkout binding
     summary = commands.add_parser("summary", add_help=False)
     summary.add_argument("--repo")
     summary.add_argument("--plan")
@@ -1131,6 +1153,9 @@ def main(
             return 0
         if "--version" in arguments:
             fail("invalid-arguments", "--version accepts no other arguments")
+        if "--help" in arguments or "-h" in arguments:
+            write_bytes(stdout, HELP_TEXT.encode("utf-8"))
+            return 0
         args = build_parser().parse_args(arguments)
         home = evidence_home(environ)
         if args.command == "start":

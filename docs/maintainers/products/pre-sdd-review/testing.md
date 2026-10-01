@@ -42,7 +42,7 @@ model, so real model review quality is `not_measured`.
 
 ## Fixture boundary
 
-`cases.json` owns exactly fifty-two cases covering activation, default flow,
+`cases.json` owns exactly fifty-four cases covering activation, default flow,
 review-only, verdicts, risk, freshness, evidence, and near-miss requests.
 `fixtures/` owns exactly nine synthetic repositories:
 `ready`, `missing-coverage`, `false-verification`, `runtime-removal`,
@@ -84,7 +84,7 @@ in fixtures, test logs, or committed live records.
 - `repair-pass-accounting`
 - `red-flag-seeded-retry`
 - `red-flag-anomalous-ready`
-- `blocked-execution-restarts`
+- `blocked-verdict-restarts`
 - `near-miss-write-spec`
 - `near-miss-write-plan`
 - `near-miss-code-review`
@@ -110,6 +110,8 @@ in fixtures, test logs, or committed live records.
 - `continuation-needs-recorded-run`
 - `focused-only-degraded-continues`
 - `continuation-after-recorded-decision`
+- `reviewer-starts-without-context`
+- `fix-handoff-continues`
 
 ### Fixture inventory
 
@@ -126,8 +128,8 @@ in fixtures, test logs, or committed live records.
 ## Optional live checks
 
 Live checks are local, explicit, and optional. They may cost money. CI does
-not require them. They use only a fresh Codex session and a non-sensitive
-synthetic design and plan. The record keeps only host, client version, date,
+not require them. Checks that count toward host support use only a fresh
+Codex session and a non-sensitive synthetic design and plan. The record keeps only host, client version, date,
 case identifier, and verdict. Never turn a provider-free result into a live
 quality claim. Never store user documents or full model responses.
 
@@ -179,21 +181,42 @@ merged text adds only the reuse `Evidence:` wording on top of L5's.
 
 | Case | What it checks | Claude Code | Codex |
 | --- | --- | --- | --- |
-| L1 | Default flow: find both defects, repair, fresh closure | `READY` | `READY` |
+| L1 | Default flow: find both defects, repair, fresh closure | `READY` | `READY` (forked) |
 | L2a | Prior `REVISE`, plan and uncommitted code changed: fresh discovery | `READY` | not run |
 | L2b | Prior `REVISE`, only the plan changed: continuation keeps IDs | `READY` | `READY` |
 | L3 | Missing required base: `BLOCKED`, `start` called, `review_passes` 0 | `BLOCKED` | `BLOCKED` |
-| L4 | Prior `BLOCKED` decision answered in the request: record it, continue | `READY` | `READY` |
+| L4 | Prior `BLOCKED` decision answered in the request: record it, continue | `READY` | `READY` (forked) |
 | L5 | L1 again with nothing changed and the repaired plan uncommitted: reuse, no `start` | `READY` (reused) | `READY` (reused) |
 
 Every run edited nothing outside the design and plan, every recorded run
-finished with no anomalies, and every report printed its lines in the
-specified order. The L5 hosts printed different reuse `Evidence:` reasons, so
+finished with no anomalies, and every L1-L5 report printed its lines in the
+specified order (the later L6b Claude Code report printed its handoff under a
+bold label instead of `Handoff:`). The L5 hosts printed different reuse `Evidence:` reasons, so
 the reuse line is now fixed as `reason=reused-prior-run`. The first L4 run exposed a
 gap (a remainder split off under a new ID was treated as unmapped), which was
-fixed before the recorded L4 runs. n=1 per cell. This is not a quality
+fixed before the recorded L4 runs. The first Codex L5 attempt is not in the
+table: the sandbox refused to run the recorder, the controller printed
+`Evidence: not_recorded; reason=executor-unavailable` (a reason outside
+today's list), and L5 was rerun. n=1 per cell. This is not a quality
 measurement and does not change the host matrix in
 [Compatibility](compatibility.md).
+
+The Claude Code cells are maintainer probes (`claude -p` with a skill copy
+passed by path, n=1 per cell), not the fresh-session smoke check on a native
+install that [Compatibility](compatibility.md) asks for, so Claude Code stays
+`not_measured`.
+
+On Codex a `$pre-sdd-review` mention also injects the natively installed
+SKILL.md (here the repository working tree), so these Codex controllers read
+that text next to the pinned copy, and its hash changed during the day. Before
+a Codex live run, disable or rename the native install, or invoke without `$`,
+and check that the rollout holds no `<skill>` block for this skill.
+
+A cell marked forked means the Codex controller started its reviewers with its
+own conversation (`fork_turns` left at the default or set to `all`), so each
+reviewer saw the user request and SKILL.md. The L9 controller also messaged a
+running closure reviewer. Those cells are not evidence of reviewer
+independence. SKILL.md now requires `fork_turns: "none"` and `close_agent`.
 
 ### Live record, 2026-09-30 (schema 5)
 
@@ -209,7 +232,7 @@ for L6b, L7b, L8, and L9.
 | L6b | Missing command: `IMPORTANT` `repo-reality` | `REVISE` | `REVISE` |
 | L7b | Open product decision: `BLOCKER` `authority-drift` | `BLOCKED` | `BLOCKED` |
 | L8 | Campaign, plan-only repair: ledger start and end hashes recorded | `READY`, `READY` | `READY`, `READY` |
-| L9 | Campaign, farewell's repair changes the shared design: greeting gets a closure before its verdict, no anomaly | `READY`, `REVISE` | `READY`, `READY` |
+| L9 | Campaign, farewell's repair changes the shared design: greeting gets a closure before its verdict, no anomaly | `READY`, `REVISE` | `READY`, `READY` (forked) |
 
 In the first L6/L7 runs, both hosts also flagged the two sample strings as a
 weak proof of "returned unchanged", so both fixture plans gained a test with
@@ -217,7 +240,11 @@ spaces and mixed case. In L9, greeting recorded `review_passes` 2 with
 `repair_passes` 0 on both hosts. Claude's farewell ended `REVISE` on a new
 test-isolation finding from its last closure. The extra toolchain findings
 (no installed `tsc` or Node types) come from the harness repository, not the
-fixtures. n=1 per cell; not a quality measurement.
+fixtures. On the same text, Claude Code recorded L7's `BLOCKED` with
+`execution` `blocked` and L7b's with `full`, while Codex recorded `blocked`
+both times. `execution` now describes the review, not the verdict, so `full`
+(a reviewer ran) is the intended label for both. n=1 per cell; not a quality
+measurement.
 
 Evidence tests use only temporary Git repositories and synthetic skill roots.
 Records never hold source text, raw paths, prompts, transcripts, or

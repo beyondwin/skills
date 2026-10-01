@@ -81,6 +81,12 @@ reviewer. Reviewers report evidence and the smallest authority-preserving fix;
 only the controller edits documents. Only the paths below may be edited, and
 no feature, dependency, host claim, or product decision may be added.
 
+Each reviewer starts with no inherited conversation (Codex:
+`fork_turns: "none"`); its only input is the dispatch instruction. The
+controller sends a running reviewer nothing except the one missing-fields
+re-ask and closes it when its records are in (Codex: `close_agent`). On Claude
+Code, prefer an agent type without edit tools.
+
 If no independent fresh reviewer is available, the controller does not stand
 in for the independent primary reviewer. Evidence `reviewers` counts the agents
 actually obtained for logical roles, not the number of roles intended.
@@ -183,7 +189,7 @@ with a trigger and 1 without; anything else is observed as
 
 ### Degraded reasons
 
-- `primary-role-not-obtained`
+- `primary-role-not-obtained` (recorded only on an `execution=blocked` run)
 - `focused-role-not-obtained`
 - `agent-reused-within-invocation`
 - `agent-reused-across-plans`
@@ -232,9 +238,16 @@ Repair accounting:
 - `repair_passes` counts every repair pass the controller applied. A new
   invocation does not copy an earlier finding's `repair_pass`.
 - `repaired` is used only for records a closure reviewer closed.
-- If the last action was a repair, never return `READY`.
+- If the last action was a repair, never return `READY`: close it with one
+  more closure review. Return `REVISE` without that closure only when no fresh
+  closure reviewer can be obtained.
 - `review_passes` counts reviewer dispatch rounds (discovery 1, each closure
   1). It is 0 only for a `BLOCKED` run that dispatched no reviewer.
+- `execution` describes the review, not the verdict. It is `blocked` only when
+  no independent primary review ran (an input gate, the required base, an
+  unresolved `**Spec:**`, or no primary reviewer), with `reviewers` 0 and
+  `review_passes` 0. A `BLOCKED` verdict reached after a review keeps `full`
+  or `degraded`.
 - A continuation is its own run: it counts passes from 1 and keeps the same
   caps. Only the number of continuations is uncapped.
 - A finding left `partially-closed` counts as unresolved and forces `REVISE`;
@@ -270,6 +283,9 @@ invocation, record it in the handoff, and apply the existing verdict rules.
 - `BLOCKED`: required input, authority, or repository evidence is missing, a
   new product decision is needed, or no independent primary reviewer is
   available. An open `BLOCKER` forces `BLOCKED`.
+
+`block_reason` names the cause and, by convention (not an enum), starts with
+`decision:`, `input:`, `evidence:`, or `reviewer:`.
 
 The final report states the freshness list and invalidation rule below as
 written.
@@ -325,10 +341,18 @@ The next invocation takes the first matching path:
    continue.
 3. Handoff reuse: from a reusable run (`full`, or `degraded` whose only reason
    is `focused-role-not-obtained`), reuse the handoff only when the design,
-   plan, and ledger hashes, `HEAD`, and the request are unchanged and the change list is docs-only. Handoffs of
-   other `degraded` runs and of `blocked` runs are never reused. A reuse calls no
+   plan, and ledger hashes, `HEAD`, and the request are unchanged, the request
+   does not ask to fix the handoff, and the change list is docs-only. Handoffs of
+   other `degraded` runs and of `BLOCKED` runs are never reused. Reuse and
+   continuation compare the `repo` display name, plan path, document hashes,
+   `git.head_end`, and the change list; `finish` and `abandon` enforce the
+   checkout binding, so the controller does not recompute it. A reuse calls no
    `start` and prints `Evidence: not_recorded; reason=reused-prior-run`.
-4. Continuation: if the last run was a reusable `REVISE`, the change list
+4. Fix what is left: if the last run was a reusable `REVISE`, nothing changed
+   as in step 3, and the request asks to fix the handoff, take the
+   continuation in default mode: `start`, apply the handoff's minimal fixes as repair pass 1,
+   then closure.
+5. Continuation: if the last run was a reusable `REVISE`, the change list
    shows only the design, plan, and ledger, and the user did not ask for a full
    re-review, start from closure with no discovery.
    - Reading an earlier run's recorded findings as open records is not handoff
@@ -337,7 +361,7 @@ The next invocation takes the first matching path:
      a remainder with a different severity or class, close or keep the carried
      record on its own terms and write the remainder as a new record with a new
      ID. That remainder is not unmapped; it is eligible for repair.
-5. Otherwise run full discovery. Without a recorded run for this plan there is
+6. Otherwise run full discovery. Without a recorded run for this plan there is
    no reuse and no continuation.
 
 - Repeated blocks: if three consecutive runs of the same plan are `BLOCKED` on
@@ -362,17 +386,23 @@ controller uses it in this order.
    `start`; its `runs` are this plan's runs. Close this plan's `pending` run with
    `abandon --repo`. If the plan's last completed verdict is `REVISE` or
    `BLOCKED`, `show` it.
-3. Take the path from "Next invocation" above. When `execution` is
-   `blocked` (outside the decision path), or `degraded` with any reason besides
-   `focused-role-not-obtained`, never reuse its handoff: recheck the input
+3. Take the path from "Next invocation" above. When the verdict is
+   `BLOCKED` (outside the decision path), or `execution` is `degraded` with any
+   reason besides `focused-role-not-obtained`, never reuse its handoff: recheck the input
    gates and call `start` for a fresh full review.
 4. Unless the path ended without a review (decision checkpoint or reuse),
    call `start` once the plan path resolves, before any reviewer dispatch,
-   even when an input gate will return `BLOCKED`. Call `finish` once after the
+   even when an input gate will return `BLOCKED`. No reviewed document is
+   edited before `start`, except the step-2 decision record and campaign
+   pre-pass repairs. Call `finish` once after the
    verdict and repairs are done.
 5. There is exactly one `Evidence:` line. If the recorder is missing or fails,
    report `Evidence: not_recorded; reason=<code>`; that failure does not change
-   `READY`, `REVISE`, or `BLOCKED`.
+   `READY`, `REVISE`, or `BLOCKED`. `<code>` is the failing command's error
+   code (such as `outside-repository`), `recorder-unavailable`,
+   `recorder-incompatible`, `reused-prior-run`, or
+   `previous-decision-checkpoint`. A document outside the `--repo` checkout
+   fails `start` with `outside-repository`; the review continues unrecorded.
 
 Schema compatibility:
 
@@ -397,7 +427,8 @@ A schema 5 finding carries `source` (`reviewer`, `ledger-pass`, or
 `machine-check`) and `repair_pass`. `repair_pass` is `null` or 0..3: `0` is a
 pre-pass ledger or machine-check repair, and `null` is a finding this
 invocation did not repair. `status` is `repaired`, `partially-closed`, or
-`unresolved`. `pattern` is a controller-assigned slug for the defect shape. A
+`unresolved`. `pattern` is a controller-assigned slug for the defect shape;
+the four recurring shapes in the protocol's Pass 3 use its fixed slugs. A
 finding without `source`, or `degraded_reasons`
 outside the fixed vocabulary, is `schema-invalid`. `finding.evidence` is a list
 of repository-relative paths, not prose.
@@ -422,10 +453,12 @@ salt, or a different evidence home is not the original binding. Locks need
 supported OS locking. Read-only `show`, `summary`, and `--version` need no
 locking. Windows is not supported.
 
-`show` validates a record and returns its original bytes. `summary` reports
-`invalid_records` and `unsupported_records` from a full scan before filtering.
-`--repo` filters only on the `repo` display name, `--plan` on the plan's
-repository-relative path, and `--last` picks valid ordered records. `runs`
+`show` validates a record and returns its original bytes; it accepts and
+ignores `--repo`. `--help` on any command prints the command table and exits 0.
+`summary` reports `invalid_records` and `unsupported_records` from a full scan
+before filtering. `--repo` filters only on the `repo` display name and refuses
+a path, `--plan` on the plan's repository-relative path, and `--last` picks
+valid ordered records. `runs`
 lists at most the newest 50 of the filtered records; `runs_total` counts them
 all, and the other sections always cover every filtered record. `counts.verdict` includes every completed verdict seen, and
 `normal_verdict` and `anomalous_verdict` split them by observation. These are
@@ -475,6 +508,11 @@ documents, not a pre-repair copy.
 ### SDD handoff
 
 Do not start SDD unless the outer request explicitly asks for implementation.
+
+After the final report the controller stops. It does not start another
+invocation, edit code, branch, stash, or commit unless a new user turn asks
+for it, apart from SDD the outer request asked for. A change the controller
+made does not count as a changed document.
 
 ### Contract
 

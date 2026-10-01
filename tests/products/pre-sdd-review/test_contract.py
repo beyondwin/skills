@@ -65,7 +65,7 @@ CASE_IDS = (
     "repair-pass-accounting",
     "red-flag-seeded-retry",
     "red-flag-anomalous-ready",
-    "blocked-execution-restarts",
+    "blocked-verdict-restarts",
     "near-miss-write-spec",
     "near-miss-write-plan",
     "near-miss-code-review",
@@ -91,6 +91,8 @@ CASE_IDS = (
     "continuation-needs-recorded-run",
     "focused-only-degraded-continues",
     "continuation-after-recorded-decision",
+    "reviewer-starts-without-context",
+    "fix-handoff-continues",
 )
 FIXTURE_NAMES = (
     "conditional-edit-surface",
@@ -1067,7 +1069,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("one discovery stage", skill)
         self.assertIn("one discovery stage", contract)
         self.assertIn("summary --repo <repo display name>", skill)
-        self.assertIn("a `blocked` run is never reused", skill)
+        self.assertIn("a `BLOCKED` verdict is never reused", skill)
         self.assertNotIn("summary --last 20", skill)
         self.assertIn("Close any `pending` run for this plan", skill)
         self.assertIn("Discoveries of different plans may overlap", skill)
@@ -1091,7 +1093,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("An open `BLOCKER`, including one still `partially-closed`, forces `BLOCKED`", skill)
         self.assertIn("dispatch no reviewer and make no repair", skill)
         self.assertIn("summary --repo", contract)
-        self.assertIn("When `execution` is `blocked`", re.sub(r"\s+", " ", contract))
+        self.assertIn("When the verdict is `BLOCKED` (outside the decision path)", re.sub(r"\s+", " ", contract))
         self.assertNotIn("summary --last 20", contract)
         self.assertIn("Discoveries may overlap; repairs do not", contract)
         self.assertNotIn("do not overlap them", contract)
@@ -1133,7 +1135,9 @@ class PreSddReviewContractTests(unittest.TestCase):
         for phrase in (
             "Unless Choose the path ended the invocation without a review (steps 2 and 3), call `start` once the plan path resolves, before any reviewer dispatch, even when an input gate is about to return `BLOCKED`",
             "It decides between runs only; during a run, any `HEAD` move counts",
-            "Outside step 2, a `blocked` run is never reused",
+            "Outside step 2, a `BLOCKED` verdict is never reused",
+            "`execution` describes the review, not the verdict. It is `blocked` only when no independent primary review ran",
+            "A `BLOCKED` verdict reached after a review keeps `full` or `degraded`",
             "In `review-only`, make no edit: report the decision to record",
             "a run with no discovery records `trigger: null`",
             "it counts its passes from 1 and keeps the two-plus-residual cap",
@@ -1147,6 +1151,14 @@ class PreSddReviewContractTests(unittest.TestCase):
             "print `Evidence: not_recorded; reason=reused-prior-run`",
             "Plan text that must change to follow the decision is a direct mapped repair impact",
             "That remainder's source is the carried record, so it is not unmapped",
+            "close it with one more closure review; return `REVISE` without that closure only when no fresh closure reviewer can be obtained",
+            "After printing the report, stop.",
+            "A change this controller made does not count as a changed document",
+            "Start each reviewer with no inherited conversation (Codex: `fork_turns: \"none\"`); its only input is the dispatch instruction",
+            "Send nothing to a running reviewer except the one missing-fields re-ask",
+            "close each reviewer once its records are in (Codex: `close_agent`)",
+            "Edit no reviewed document before `start`, except the step-2 decision record and campaign pre-pass repairs",
+            "Take the continuation (Default mode): call `start`, apply the handoff's minimal fixes as repair pass 1, then run closure",
         ):
             self.assertIn(phrase, skill)
         self.assertIn("If `HEAD` moves off the freeze before the verdict", freshness)
@@ -1327,12 +1339,12 @@ class PreSddReviewContractTests(unittest.TestCase):
             ("READY", "print_anomalies", "verdict_unchanged"),
         )
         self.assertEqual(
-            cases["blocked-execution-restarts"],
-            ("no_reuse_blocked_execution", "rerun_input_gates", "start"),
+            cases["blocked-verdict-restarts"],
+            ("no_reuse_blocked_verdict", "rerun_input_gates", "start"),
         )
         self.assertEqual(cases["residual-pass-closes-small-remainder"], ("residual_pass", "closure_of_those_ids_only", "new_shape_ends_invocation"))
         self.assertEqual(cases["open-blocker-forces-blocked"], ("BLOCKED", "no_revise_with_open_blocker"))
-        self.assertEqual(cases["repair-last-no-ready"], ("no_ready_after_repair", "closure_or_revise"))
+        self.assertEqual(cases["repair-last-no-ready"], ("no_ready_after_repair", "closure_after_repair", "revise_only_without_closure_reviewer"))
         self.assertEqual(cases["unanswered-decision-no-redispatch"], ("reprint_checkpoint", "no_reviewer_dispatch", "no_repair"))
         self.assertEqual(cases["three-new-decisions-return-to-design"], ("BLOCKED", "return_to_design"))
         self.assertEqual(cases["continuation-skips-discovery"], ("continuation", "closure_first", "prior_finding_ids", "no_discovery"))
@@ -1341,6 +1353,8 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertEqual(cases["continuation-needs-recorded-run"], ("fresh_discovery",))
         self.assertEqual(cases["focused-only-degraded-continues"], ("continuation", "no_focused_role", "trigger_null"))
         self.assertEqual(cases["continuation-after-recorded-decision"], ("continuation", "closure_first"))
+        self.assertEqual(cases["reviewer-starts-without-context"], ("no_inherited_context", "dispatch_instruction_only", "no_message_but_reask", "close_after_records"))
+        self.assertEqual(cases["fix-handoff-continues"], ("continuation", "start_before_edit", "handoff_fixes_are_repair_pass_1", "closure"))
 
     def test_authority_and_risk_selection_are_ordered_and_conditional(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -1354,6 +1368,16 @@ class PreSddReviewContractTests(unittest.TestCase):
             "## Default mode: review -> repair documents -> scoped re-review",
         )
         self.assertEqual(second_review_risk_triggers(reviewers), RISK_TRIGGERS)
+        # The recorder slug for each trigger, in the same order as the prose list.
+        slugs = re.search(r"Record the trigger as (.+?), in that order\.", re.sub(r"\s+", " ", reviewers))
+        self.assertIsNotNone(slugs, "missing recorder trigger slugs")
+        recorder = ast.parse((SKILL / "evidence/evidence.py").read_text(encoding="utf-8"))
+        triggers = next(
+            ast.literal_eval(node.value)
+            for node in recorder.body
+            if isinstance(node, ast.Assign) and any(getattr(target, "id", None) == "TRIGGERS" for target in node.targets)
+        )
+        self.assertEqual(tuple(re.findall(r"`([a-z-]+)`", slugs.group(1))), triggers)
 
     def test_mutation_boundary_retains_every_exclusion(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -1484,7 +1508,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         for phrase in (
             "Resume a reviewer by naming findings, paths, symbols, or fixes",
             "Start a new review when documents, `HEAD`, and the request are unchanged and the change list is docs-only since a reusable run",
-            "Reuse a handoff from an `execution=blocked` run, or reuse any handoff on document hashes alone",
+            "Reuse a handoff from a `BLOCKED` run outside step 2, or reuse any handoff on document hashes alone",
             "Dispatch a second reviewer, or record `reviewers: 2`, with no risk trigger",
             "Return or accept a finding summary instead of complete PSDR records",
             "Print `READY` without the `Anomalies:` line from `finish`",
@@ -1668,13 +1692,14 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
         # run's handoff is never reused.
         self.assertIn(
             "`full`인 run과 사유가 `focused-role-not-obtained`뿐인 `degraded` run의 인계만 "
-            "재사용하며, 다른 `degraded`나 `blocked`인 run의 인계는 재사용하지 않습니다.",
+            "재사용하며, 다른 `degraded` run의 인계와 위 사용자 결정 행 밖의 `BLOCKED` 결과는 "
+            "재사용하지 않습니다.",
             normalized_korean,
         )
         self.assertIn(
             "Only a `full` run's handoff, or that of a `degraded` run whose only reason is "
-            "`focused-role-not-obtained`, is reused; any other `degraded` or `blocked` "
-            "run's handoff is never reused.",
+            "`focused-role-not-obtained`, is reused; any other `degraded` run's handoff, and "
+            "a `BLOCKED` result outside the user-decision rows above, is never reused.",
             normalized_english,
         )
 
@@ -1823,8 +1848,8 @@ class PreSddReviewDocumentationTests(unittest.TestCase):
             "not_measured",
         ):
             self.assertIn(fact, normalized_testing)
-        self.assertEqual(len(CASE_IDS), 52)
-        self.assertIn("exactly fifty-two cases", normalized_testing)
+        self.assertEqual(len(CASE_IDS), 54)
+        self.assertIn("exactly fifty-four cases", normalized_testing)
         self.assertIn("Only Codex is supported today", compatibility)
         self.assertIn("Every other host\nis `not_measured`", compatibility)
         self.assertIn("## Recorder compatibility", compatibility)
