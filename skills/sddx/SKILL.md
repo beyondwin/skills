@@ -184,8 +184,9 @@ received `/sddx` or `$sddx` is the orchestrator; do not switch its model.
   worker's own stream said), and `configured_effort`.
 - Native reviewer or orchestrator: `python3 "<skill-root>/scripts/observed_model.py"
   claude-code --agent-id <agentId>` (this session: `--session-id
-  "$CLAUDE_CODE_SESSION_ID"`; Codex: `codex --thread-id <id>`, this session
-  `"$CODEX_THREAD_ID"`) reads the host's own transcript. A session id taken
+  "$CLAUDE_CODE_SESSION_ID"`; Codex: `codex --thread-id <id>`, or
+  `codex --agent-path /root/<name>` for the path `spawn_agent` returned, this
+  session `"$CODEX_THREAD_ID"`) reads the host's own transcript. A session id taken
   from a file path is not yours.
 
 Write them into waygent's progress lines:
@@ -193,7 +194,9 @@ Write them into waygent's progress lines:
     task N: done <sha7> impl=<backend>:<reported_model>/<effort> review=<clean|fixed K|overruled K|skipped (<why>)|unknown> reviewer=<model>/<effort> tests=<summary> role=<PASS|FAIL|UNVERIFIED>
 
 Write `reported_model` with each run of whitespace replaced by `_`
-(`Grok_4.7_256K_High`), so the line stays `key=value` tokens. Add
+(`Grok_4.7_256K_High`), so the line stays `key=value` tokens. Only
+`reported_model` gets this; every other value keeps waygent's format
+(`review=fixed 1`, `tests=44 passed`). Add
 `(requested)` after a value that no transcript or stream confirmed. The
 `final:` line and retry lines carry `impl=` and `reviewer=` the same way.
 
@@ -213,7 +216,7 @@ fix it before the next dispatch. Do not create any other state file.
 | Invocation | `/sddx` | `$sddx` |
 | Asking for a backend | AskUserQuestion | the question tool, else a short text question |
 | Worker launch and status | the same product Python scripts | the same product Python scripts |
-| Waiting on a worker | `exec python3 … run_worker.py run …` as the Bash tool's background command (no trailing `&`); each `wait` in a foreground Bash call with `timeout: 600000` | `wait` through `exec_command` with the largest `yield_time_ms` it accepts, at least (`--max-seconds` + 10) × 1000; no `write_stdin` or `status` polls between waits; `session_id` from the `wait` output |
+| Waiting on a worker | `exec python3 … run_worker.py run …` as the Bash tool's background command (no trailing `&`); each `wait` in a foreground Bash call with `timeout: 600000` | start `wait` once with `exec_command` (Codex 0.157.1 returns it within 30000 ms), then poll that same session with `write_stdin` (empty `chars`, `yield_time_ms: 300000`) until it exits; no `status` calls between waits; `session_id` from the `wait` output |
 | Review | Agent tool, per waygent Models | `spawn_agent`, per waygent Models |
 
 The supported OS is macOS. Do not add Windows transport. Refuse Windows at the product CLIs.

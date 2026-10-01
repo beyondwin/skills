@@ -229,6 +229,9 @@ started are not pursued and no process tree is cleaned up here. Those
 processes (for example a backgrounded shell, a build daemon, or Cursor's
 `worker-server`, which was seen reparented to pid 1 after its worker exited)
 can outlive the worker, so confirm and end them by pid yourself before cleanup.
+Look for them with `pgrep -f "<worktree path>"`, which prints pids only. Never
+print `ps aux`, `pgrep -fl`, or `pgrep -a` output: other processes' command
+lines can carry API keys, and the 8.1.0 live check leaked one that way.
 
 An attempt ended by the idle timeout records `timed_out`, exit 124, and
 `error` `the worker wrote no output for <N> seconds`, where `<N>` is the
@@ -273,10 +276,12 @@ the background, then block in the foreground:
   as the Bash tool's background command, with no trailing `&`, so the
   background task is the runner itself. Run each `wait` in a foreground Bash
   call with `timeout: 600000`; the default of 120000 ms kills a 540-second wait.
-- Codex: start `run` in its own `exec_command`. Run each `wait` through
-  `exec_command` with the largest `yield_time_ms` the tool accepts, at least
-  (`--max-seconds` + 10) × 1000. Do not poll with `write_stdin` or `status`
-  between waits.
+- Codex: start `run` in its own `exec_command`. Start each `wait` once with
+  `exec_command`; Codex 0.157.1 returns that call within 30000 ms whatever
+  `yield_time_ms` asks for. While `wait` is still running, poll that same
+  session with `write_stdin` (empty `chars`, `yield_time_ms: 300000`) until it
+  exits, then start the next `wait` the same way. Call no `status` between
+  waits.
 
 `wait` is read-only. It returns exit 0 with a one-line summary (`over`,
 `state`, `exit_code`, `error`, `pid_alive`, `stale`, `session_id`,
@@ -344,6 +349,13 @@ not from the dispatch and not from the reviewer's own words:
     python3 "<skill-root>/scripts/observed_model.py" claude-code --agent-id <agentId>
     python3 "<skill-root>/scripts/observed_model.py" claude-code --session-id <this session>
     python3 "<skill-root>/scripts/observed_model.py" codex --thread-id <thread id>
+    python3 "<skill-root>/scripts/observed_model.py" codex --agent-path /root/<name>
+
+A Codex multi-agent v2 `spawn_agent` returns only an agent path
+(`/root/review_task1`). `--agent-path` finds the child rollout whose
+`session_meta` names that `agent_path` and this session as `parent_thread_id`
+(`--parent-thread-id`, default `$CODEX_THREAD_ID`). Codex transcripts are read
+from `$CODEX_HOME/sessions` (`CODEX_HOME` defaults to `~/.codex`).
 
 It prints one JSON line: `found`, `source`, `models` and `efforts` with counts,
 and `reason` (`not_found`, `ambiguous`, `no_model_turns`, or null). It reads

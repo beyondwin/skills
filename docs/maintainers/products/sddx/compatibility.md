@@ -82,7 +82,8 @@ cannot leave its role.
 The runner, resolver, and sandbox helpers are unchanged apart from the
 `.waygent/` path, `reported_model`, and the `wait` subcommand. The later runner
 changes (`runner_pid`, an interrupt while the backend is resolved, the `wait`
-start grace, the cmux hook switch) are covered by the offline checks only.
+start grace, the cmux hook switch) were exercised by the live check in
+[testing](testing.md), "Live check, 2026-10-01 (8.1.0)".
 
 | Host | Worker | State |
 | --- | --- | --- |

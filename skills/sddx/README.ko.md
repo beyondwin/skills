@@ -167,7 +167,7 @@ $sddx docs/history/plans/example.md grok
 | --- | --- | --- |
 | 워커가 `--idle-timeout` 동안 아무것도 출력하지 않음(기본 900초, `0`은 끔) | 워커 중지, `timed_out`, exit 124, `the worker wrote no output for 900 seconds` | 워크트리에 남은 변경을 확인하고, 그 세션을 잇지 말고, 이전 보고서와 커밋을 적은 브리프로 새 워커를 띄웁니다. |
 | `--timeout` 초과(기본 `0`, 끔) | 워커 중지, `timed_out`, exit 124 | `status`와 보고서를 확인합니다. |
-| 러너에 Ctrl-C 또는 SIGTERM | `interrupted`, 워커도 중지(SIGTERM, 10초 뒤 SIGKILL), exit 130 | 워커가 띄운 백그라운드 프로세스가 남았는지 확인합니다. 그다음 그 과제의 트레일러 커밋과 `report.md`가 이미 있지 않으면 그 워커의 세션을 이어 갑니다. 러너가 멈춘 것은 과제 실패가 아닙니다. |
+| 러너에 Ctrl-C 또는 SIGTERM | `interrupted`, 워커도 중지(SIGTERM, 10초 뒤 SIGKILL), exit 130 | 워커가 띄운 백그라운드 프로세스가 남았는지 `pgrep -f <worktree 경로>`로 확인합니다. 다른 프로세스의 API 키가 보일 수 있으니 `ps aux` 출력은 찍지 않습니다. 그다음 그 과제의 트레일러 커밋과 `report.md`가 이미 있지 않으면 그 워커의 세션을 이어 갑니다. 러너가 멈춘 것은 과제 실패가 아닙니다. |
 | 잔액 부족(402), 인증·권한 실패 | 시도 종료 | 조건을 먼저 바꿉니다. 자동 재시도는 없습니다. |
 
 시도를 멈출 때는 러너를 멈추고, 기록된 워커 pid나 `pkill -f`는 쓰지 마세요.

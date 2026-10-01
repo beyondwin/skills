@@ -42,6 +42,17 @@ All notable changes to this product are documented in this file.
   output (or `run.json`), not from `status`.
 - The docs say a command cut at the tools index's 200-character limit is not
   test-exit evidence either.
+- Leftover worker processes are found with `pgrep -f "<worktree path>"` (pids
+  only). The docs forbid printing `ps aux`, `pgrep -fl`, or `pgrep -a` output,
+  which leaked another Cursor worker's API key in the 8.1.0 live check.
+- The `_` whitespace replacement applies to `reported_model` only; other
+  progress-line values keep waygent's format (`review=fixed 1`,
+  `tests=44 passed`).
+- `observed_model.py codex --agent-path /root/<name>` reads the reviewer that a
+  Codex multi-agent v2 `spawn_agent` returned as an agent path, through the
+  child rollout's `agent_path` and `parent_thread_id` (`--parent-thread-id`,
+  default `$CODEX_THREAD_ID`). Codex transcripts are read from
+  `$CODEX_HOME/sessions`, not always `~/.codex/sessions`.
 - The docs say a worker that gets SIGTERM may record `-15` or `143` (Cursor
   2026.09.26 and Grok 1.0.44 both recorded 143).
 - The progress line writes `reported_model` with whitespace replaced by `_`
@@ -56,10 +67,11 @@ All notable changes to this product are documented in this file.
 - Waiting is spelled out per host. Claude Code launches
   `exec python3 … run_worker.py run …` as the Bash tool's background command
   and runs each `wait` with `timeout: 600000` (the 120-second default killed a
-  540-second wait). Codex runs `wait` through `exec_command` with a
-  `yield_time_ms` of at least (`--max-seconds` + 10) × 1000 and does not poll
-  with `write_stdin` or `status` between waits; the session id comes from the
-  `wait` output.
+  540-second wait). Codex starts `wait` once with `exec_command` (Codex 0.157.1
+  returns that call within 30000 ms) and polls the same session with
+  `write_stdin` (empty `chars`, `yield_time_ms: 300000`) until it exits, with
+  no `status` calls between waits; the session id comes from the `wait`
+  output.
 - To stop an attempt on Claude Code, stop the background task that runs the
   runner; the advice to use `$!` is gone.
 - With no High or Medium in the final review, the host walks the app itself;

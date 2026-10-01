@@ -111,11 +111,14 @@ The progress line records what actually ran:
   `reported_model` is copied once and never replaced.
 - Reviewers and the controller: `observed_model.py` reads the host's own
   transcript (Claude Code `agent-<id>.jsonl` or the session file; Codex
-  `rollout-*-<thread>.jsonl`) and prints models and efforts with counts. It
-  prints no transcript text. The controller's own id is
+  `rollout-*-<thread>.jsonl`, under `$CODEX_HOME/sessions`) and prints models
+  and efforts with counts. A Codex `/root/<name>` agent path from
+  `spawn_agent` resolves through the child rollout's `agent_path` and
+  `parent_thread_id` (`--agent-path`). It prints no transcript text. The controller's own id is
   `$CLAUDE_CODE_SESSION_ID` on Claude Code and `$CODEX_THREAD_ID` on Codex.
 - Whitespace in `reported_model` becomes `_` in the progress line
-  (`Grok_4.7_256K_High`).
+  (`Grok_4.7_256K_High`). Only `reported_model` gets this; every other value
+  keeps waygent's format (`review=fixed 1`, `tests=44 passed`).
 - A value nothing confirmed is written with `(requested)`.
 
 ## Current state
@@ -136,9 +139,10 @@ default 540). A missing attempt folder, or one with no `run.json`, counts as
 not started for `--start-grace` (default 15 seconds) and as a refused launch
 after it. Claude
 Code launches `run` with `exec` as the Bash tool's background command and runs
-`wait` with `timeout: 600000`; Codex runs `wait` through `exec_command` with a
-`yield_time_ms` of at least (`--max-seconds` + 10) × 1000 and does not poll
-with `write_stdin` or `status` between waits. Attempt folders live under
+`wait` with `timeout: 600000`; Codex starts `wait` once with `exec_command`
+(Codex 0.157.1 returns that call within 30000 ms) and polls that same session
+with `write_stdin` (empty `chars`, `yield_time_ms: 300000`) until it exits,
+with no `status` calls between waits. Attempt folders live under
 `$P/attempts/`, and the runner refuses any path outside the repository's
 `.waygent/` directory. The Grok sandbox state file also lives under `.waygent/`.
 
@@ -167,7 +171,9 @@ with `write_stdin` or `status` between waits. Attempt folders live under
   and exits (Cursor 2026.09.26 and Grok 1.0.44 both record 143).
 - The runner signals only the worker process. Anything the worker started (a
   background shell, a build daemon, Cursor's `worker-server`) can outlive it;
-  end them by pid.
+  end them by pid. Find them with `pgrep -f "<worktree path>"` (pids only);
+  never print `ps aux`, `pgrep -fl`, or `pgrep -a` output, which can carry
+  other processes' API keys.
 
 ### Timeouts
 

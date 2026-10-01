@@ -464,13 +464,15 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("$CLAUDE_CODE_SESSION_ID", skill)
         self.assertIn("$CODEX_THREAD_ID", skill)
         # The per-host recipe: a 540 s wait outlives Claude Code's 120 s Bash
-        # default, and the Codex controller polled every 45 s without one.
+        # default. Codex 0.157.1 returns `exec_command` within 30000 ms, so the
+        # same session is polled with an empty `write_stdin` until it exits.
         for name, text in (("SKILL.md", skill), ("dispatch.md", dispatch), ("contract.md", contract)):
             with self.subTest(face=name):
                 self.assertIn("timeout: 600000", text)
-                self.assertIn("yield_time_ms", text)
-                self.assertIn("(`--max-seconds` + 10) × 1000", text)
-                self.assertIn("write_stdin", text)
+                self.assertIn("`write_stdin` (empty `chars`, `yield_time_ms: 300000`) until it exits", text)
+                self.assertIn("30000 ms", text)
+                self.assertNotIn("(`--max-seconds` + 10) × 1000", text)
+                self.assertNotIn("largest `yield_time_ms`", text)
                 self.assertNotIn("$!", text)
         self.assertIn("no trailing `&`", dispatch)
         self.assertIn("--start-grace", dispatch)
@@ -542,6 +544,19 @@ class SddxContractTests(unittest.TestCase):
             "alone follows waygent's `/waygent` alone rule (the one unfinished folder; several: ask once; no folder: rebuild from this branch's trailer commits), then rebuilds the SDDx block",
             contract,
         )
+        # 8.1.0 live check: process check, `_` scope, Codex agent paths.
+        for text in (dispatch, contract):
+            self.assertIn('`pgrep -f "<worktree path>"`', text)
+            self.assertIn("never print `ps aux`, `pgrep -fl`, or `pgrep -a` output", text.replace("Never print", "never print"))
+        self.assertIn("pgrep -f <worktree path>", readme)
+        for text in (skill, contract):
+            self.assertIn("Only `reported_model` gets this; every other value keeps waygent's format", text)
+        self.assertIn("`codex --agent-path /root/<name>`", skill)
+        self.assertIn("--agent-path /root/<name>", dispatch)
+        self.assertIn("$CODEX_HOME/sessions", dispatch)
+        self.assertIn("$CODEX_HOME/sessions", contract)
+        self.assertIn('"Live check, 2026-10-01 (8.1.0)"', compatibility)
+        self.assertNotIn("covered by the offline checks only", compatibility)
         # Whole-branch review L-1, L-14, L-17, M-5.
         self.assertIn("unless the task's trailer commit and `report.md` are already there", readme)
         self.assertIn("트레일러 커밋과 `report.md`가 이미 있지 않으면", readme_ko)
