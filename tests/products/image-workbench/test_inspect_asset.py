@@ -344,12 +344,47 @@ class AssetInspectorTests(unittest.TestCase):
         oversized = make_png_with_idat(1, 1, 6, zlib.compress(b"\0" * 10_000_000))
         with self.assertRaisesRegex(ValueError, "PNG image data size mismatch"):
             parse_png(oversized)
-        declared_too_large = make_png_with_idat(10_000, 10_000, 6, zlib.compress(b""))
-        with self.assertRaisesRegex(ValueError, "PNG image data exceeds"):
+        declared_too_large = make_png_with_idat(12_000, 12_000, 6, zlib.compress(b""))
+        with self.assertRaisesRegex(ValueError, "PNG image data exceeds 512 MiB limit"):
             parse_png(declared_too_large)
         mismatched = make_png_with_idat(1, 1, 6, zlib.compress(b"\0" * 6))
         with self.assertRaisesRegex(ValueError, "PNG image data size mismatch"):
             parse_png(mismatched)
+
+    def test_png_4096_square_rgba_is_inspected_in_bounded_slices(self):
+        compressor = zlib.compressobj(1)
+        row = b"\0" * (1 + 4096 * 4)
+        compressed = b"".join(compressor.compress(row) for _ in range(4096)) + compressor.flush()
+        data = make_png_with_idat(4096, 4096, 6, compressed)
+        real_zlib = INSPECTOR.zlib
+        limits = []
+
+        class RecordingDecompressor:
+            def __init__(self):
+                self._inner = real_zlib.decompressobj()
+
+            def decompress(self, chunk, max_length=0):
+                limits.append(max_length)
+                return self._inner.decompress(chunk, max_length)
+
+            def __getattr__(self, name):
+                return getattr(self._inner, name)
+
+        class RecordingZlib:
+            error = real_zlib.error
+            crc32 = staticmethod(real_zlib.crc32)
+
+            @staticmethod
+            def decompressobj():
+                return RecordingDecompressor()
+
+        INSPECTOR.zlib = RecordingZlib
+        try:
+            self.assertEqual(parse_png(data), (4096, 4096, True))
+        finally:
+            INSPECTOR.zlib = real_zlib
+        self.assertTrue(limits)
+        self.assertTrue(all(0 < limit <= 1 << 20 for limit in limits), max(limits))
 
     def test_png_accepts_empty_trailing_idat_after_zlib_eof_only(self):
         compressed = zlib.compress(b"\0" * 5)

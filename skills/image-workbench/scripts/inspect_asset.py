@@ -33,7 +33,8 @@ def _require_dimensions(width, height):
     return width, height
 
 
-MAX_PNG_DECODED_BYTES = 64 * 1024 * 1024
+MAX_PNG_DECODED_BYTES = 512 * 1024 * 1024
+PNG_DECODE_SLICE_BYTES = 1024 * 1024
 PNG_BIT_DEPTHS = {
     0: {1, 2, 4, 8, 16},
     2: {8, 16},
@@ -98,26 +99,31 @@ def _decode_png_idat(
             if chunk:
                 raise ValueError("invalid PNG image data")
             continue
-        try:
-            decoded = decompressor.decompress(chunk, expected_size - decoded_size + 1)
-        except zlib.error as error:
-            raise ValueError("invalid PNG image data") from error
-        decoded_size += len(decoded)
-        if decoded_size > expected_size or decompressor.unconsumed_tail:
-            raise ValueError("PNG image data size mismatch")
-        if decompressor.unused_data:
-            raise ValueError("invalid PNG image data")
-        cursor = 0
-        while cursor < len(decoded):
-            if row_remaining == 0:
-                row_remaining = next(sizes, 0)
-                if not row_remaining:
-                    raise ValueError("PNG image data size mismatch")
-                if decoded[cursor] > 4:
-                    raise ValueError("invalid PNG scanline filter")
-            consumed = min(row_remaining, len(decoded) - cursor)
-            cursor += consumed
-            row_remaining -= consumed
+        pending = chunk
+        while True:
+            try:
+                decoded = decompressor.decompress(pending, PNG_DECODE_SLICE_BYTES)
+            except zlib.error as error:
+                raise ValueError("invalid PNG image data") from error
+            decoded_size += len(decoded)
+            if decoded_size > expected_size:
+                raise ValueError("PNG image data size mismatch")
+            if decompressor.unused_data:
+                raise ValueError("invalid PNG image data")
+            cursor = 0
+            while cursor < len(decoded):
+                if row_remaining == 0:
+                    row_remaining = next(sizes, 0)
+                    if not row_remaining:
+                        raise ValueError("PNG image data size mismatch")
+                    if decoded[cursor] > 4:
+                        raise ValueError("invalid PNG scanline filter")
+                consumed = min(row_remaining, len(decoded) - cursor)
+                cursor += consumed
+                row_remaining -= consumed
+            pending = decompressor.unconsumed_tail
+            if decompressor.eof or (not pending and len(decoded) < PNG_DECODE_SLICE_BYTES):
+                break
     if not decompressor.eof:
         raise ValueError("invalid PNG image data")
     if decoded_size != expected_size or row_remaining or next(sizes, None) is not None:
@@ -152,7 +158,7 @@ def parse_png(data):
         raise ValueError("invalid PNG bit depth")
     expected_decoded_size = _png_decoded_byte_count(width, height, bit_depth, color_type, interlace)
     if expected_decoded_size > MAX_PNG_DECODED_BYTES:
-        raise ValueError("PNG image data exceeds 64 MiB limit")
+        raise ValueError("PNG image data exceeds 512 MiB limit")
 
     alpha = color_type in (4, 6)
     seen_image_data = False
