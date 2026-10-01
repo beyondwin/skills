@@ -23,7 +23,7 @@ from scripts.lib.product_contract import (  # noqa: E402
 from scripts.lib.product_registry import load_registry  # noqa: E402
 
 SKILL = ROOT / "skills" / "waygent"
-MAX_SKILL_LINES = 140
+MAX_SKILL_LINES = 165
 
 
 def _fold(text: str) -> str:
@@ -128,6 +128,63 @@ class WaygentContractTests(unittest.TestCase):
         self.assertEqual(set(product.supported_hosts), set(labels))
         for host in product.supported_hosts:
             self.assertIn(labels[host], self.raw)
+
+    def test_run_scoping_contract(self) -> None:
+        # Trailers count only inside this run, so an older run's commits never pass.
+        self.assertIn("If `$P/progress.md` exists, or on `/waygent` alone, resume", self.text)
+        self.assertIn("is in `start..HEAD`; never redo it", self.text)
+        self.assertIn("git log $BASE..HEAD --grep='^Waygent-Task: N$'", self.text)
+        self.assertIn("the branch's upstream or the remote default branch", self.text)
+        self.assertIn("repeats in that range, ask which run", self.lowered)
+        self.assertIn("next task in the recorded order", self.lowered)
+
+    def test_finished_and_several_folders(self) -> None:
+        self.assertIn("whose progress has no `final: done`", self.text)
+        self.assertIn("several: ask once", self.lowered)
+        self.assertIn("is finished: report it and start nothing", self.lowered)
+        self.assertIn("is a new `/waygent <request>`", self.text)
+        self.assertIn("not an ancestor of head, stop and say the history changed", self.lowered)
+
+    def test_final_phase_records_and_resume(self) -> None:
+        self.assertIn("append `final: start`", self.lowered)
+        self.assertIn("`Waygent-Task: final`", self.text)
+        self.assertIn("`final: start` with no `final: done`", self.text)
+        self.assertIn("`final: done <sha7> impl=<m/e> reviewer=<m/e>", self.text)
+        self.assertIn("`task N: retry impl=<m/e>`", self.text)
+
+    def test_one_subagent_at_a_time(self) -> None:
+        self.assertIn("never two subagents at once, reviewers included", self.lowered)
+        self.assertIn("wait for each to report before the next dispatch or message", self.lowered)
+        self.assertIn("`run_in_background: false` when the Agent tool offers it", self.text)
+        self.assertIn("completion notification", self.lowered)
+        self.assertIn("re-dispatched fresh", self.lowered)
+        self.assertIn("over sendmessage", self.lowered)
+        self.assertIn("`wait_agent` with a long timeout", self.text)
+        self.assertIn("do not poll it every few seconds", self.lowered)
+
+    def test_guide_and_fast_check_cover_the_build(self) -> None:
+        self.assertIn("build or typecheck", self.lowered)
+        self.assertIn("the build step when the repo has one", self.lowered)
+        self.assertIn("`app: <how to start>` or `app: none (<why>)`", self.text)
+        self.assertIn("walk=<ok|none (<why>)>", self.text)
+        self.assertIn("at most ~60 lines", self.lowered)
+        self.assertIn("verbatim only if they fit", self.lowered)
+        self.assertIn("append traps found later", self.lowered)
+        self.assertIn("`.git/info/exclude`", self.text)
+        self.assertIn("at most ~2,000 characters", self.lowered)
+
+    def test_limits_and_reviewer_paste_line(self) -> None:
+        self.assertIn("a subagent's transient 429: redispatch it once", self.lowered)
+        self.assertIn("your own usage limit: append `paused: limit` and stop", self.lowered)
+        self.assertIn('paste: "spawn nothing; stop every process you start;', self.lowered)
+        self.assertIn("<P>/reviews/task-N.md", self.text)
+        self.assertIn("<P>/reviews/final.md", self.text)
+
+    def test_one_review_enum_and_model_header(self) -> None:
+        enum = "review=<clean|fixed K|overruled K|skipped (<why>)|unknown>"
+        self.assertEqual(self.text.count(enum), 1)
+        self.assertNotIn("review=<clean|fixed K|skipped>", self.text)
+        self.assertIn("else omit effort", self.lowered)
 
     def test_skill_stays_light(self) -> None:
         self.assertLess(len(self.raw.splitlines()), MAX_SKILL_LINES)
