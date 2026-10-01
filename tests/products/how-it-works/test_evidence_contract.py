@@ -43,6 +43,32 @@ class EvidenceContractTests(unittest.TestCase):
         text = '```mermaid\nflowchart LR\nA["H1 start"]\n```\n1. **H2** — stop\n'
         self.assertEqual(module.observe_text(text)["hop_ids"]["status"], "fail")
 
+    def test_branch_suffix_ids_count_as_their_parent_hop(self):
+        text = ('```mermaid\nsequenceDiagram\nA->>B: H1: ask\nalt hit\nB->>A: H2a: cached\n'
+                'else miss\nB->>C: H2b: ask root\nend\n```\n1. **H1** — ask\n2. **H2** — answer\n')
+        self.assertEqual(module.observe_text(text)["hop_ids"]["status"], "pass")
+        missing_parent = '```mermaid\nA["H1"] --> B["H2a"]\n```\n1. **H1** — only\n'
+        self.assertEqual(module.observe_text(missing_parent)["hop_ids"]["status"], "fail")
+        suffixed_list = '```mermaid\nA["H1"]\n```\n1. **H1a** — branch is not a list hop\n'
+        self.assertEqual(module.observe_text(suffixed_list)["hop_ids"]["status"], "fail")
+
+    def test_case_ids_come_from_live_cases(self):
+        record = synthetic_record()
+        record["cases"]["unlisted-case"] = record["cases"].pop("explicit-dns-path")
+        with self.assertRaisesRegex(ValueError, "unknown case"):
+            module.record_binding(record, current_version="2.0.0", current_hash="a"*64)
+
+    def test_near_miss_keeps_every_output_dimension_unmeasured(self):
+        record = synthetic_record()
+        dimensions = {name: {"status": "not_measured", "method": "not_run"}
+                      for name in module.DIMENSIONS}
+        record["cases"]["near-miss-debug"] = {"invocation": "pass", "dimensions": dimensions}
+        self.assertEqual(module.record_binding(record, current_version="2.0.0", current_hash="a"*64),
+                         "current-bounded")
+        record["cases"]["near-miss-debug"]["dimensions"]["fence"] = {"status": "fail", "method": "lexical"}
+        with self.assertRaisesRegex(ValueError, "near-miss"):
+            module.record_binding(record, current_version="2.0.0", current_hash="a"*64)
+
     def test_different_payload_cannot_claim_current_build(self):
         record = synthetic_record()
         self.assertEqual(module.record_binding(record, current_version="2.0.0", current_hash="b"*64),
@@ -147,7 +173,7 @@ class EvidenceContractTests(unittest.TestCase):
     def test_malformed_metadata_and_nested_shapes_are_rejected(self):
         variants = [None, [], {}, {"schema_version": 3}]
         for key, value in (("product", "other"), ("product_version", " "), ("host", "unknown"),
-                           ("host", []), ("client_version", None), ("runner_version", 2),
+                           ("host", "grok"), ("host", "cursor"), ("host", []), ("client_version", None), ("runner_version", 2),
                            ("executed_on", "2026-02-30"), ("payload_sha256", "A"*64),
                            ("payload_sha256", "a"*63), ("payload_sha256", None),
                            ("model", " "), ("model", False), ("cases", [])):

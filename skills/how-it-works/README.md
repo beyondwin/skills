@@ -6,7 +6,8 @@
 
 How It Works explains one mechanism in one chat reply. Every reply has a Mermaid
 diagram and a numbered list of steps. You pick one of four depths. If you don't pick,
-it starts at picture.
+it starts at picture. If the topic is already technical jargon and you name no depth,
+it starts at skeleton.
 
 - picture: the whole shape at a glance
 - path: the flow, one step at a time
@@ -131,13 +132,13 @@ renderer is not a failed task.
 Every reply has these six parts:
 
 1. one-sentence claim — what moves, in one sentence
-2. Mermaid — the diagram
-3. numbered hop list — the steps in order
+2. numbered hop list — the steps in order
+3. Mermaid — the diagram
 4. rung-specific body — the body for the depth you picked
 5. adjacent slices — nearby topics this reply leaves out
 6. one next move — one thing to try next
 
-At picture, the Map shows the numbered steps (hops) before the Mermaid source, and the
+The Map shows the numbered steps (hops) before the Mermaid source. At picture, the
 Body doesn't walk the steps again.
 
 Reply outline:

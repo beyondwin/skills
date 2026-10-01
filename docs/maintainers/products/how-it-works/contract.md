@@ -21,8 +21,19 @@ Before explaining, it fills four slots: `slice` (the piece to explain), `type` (
 of explanation), `rung` (depth), and `language` (reply language). It infers `type`
 and `language`.
 
-There are four rungs: picture, path, skeleton, and fracture. The rung picker
-recommends picture first. The rung is set in this order:
+The Direct, Ask one, and Cut paths also cover three common request shapes:
+
+- Re-explaining the assistant's own earlier answer: the slice is the one mechanism
+  that answer rests on.
+- A bundled ask that is not a mechanism (pending decisions, a recap) is answered after
+  the next move as a short separate list.
+- More than one mechanism in one request goes to Ask one or Cut.
+
+A medical, legal, or financial topic adds the stakes banner and is still explained in
+the same turn; it never pauses for confirmation.
+
+There are four rungs: picture, path, skeleton, and fracture; picture is the default.
+The rung is set in this order:
 
 `explicit rung > explicit depth alias > existing jargon default > default picture`
 
@@ -48,28 +59,43 @@ fatal.
 The six required parts:
 
 1. one-sentence claim — what moves, in one sentence
-2. Mermaid — the diagram
-3. numbered hop list — the steps in order
+2. numbered hop list — the steps in order
+3. Mermaid — the diagram
 4. rung-specific body — the body for the chosen rung
 5. adjacent slices — nearby topics this reply leaves out
 6. one next move — one thing to try next
 
-At picture, the Map lists the numbered hops before the Mermaid source. The picture
-Body does not walk the hops again.
+The parts are numbered in chrome order: the Map lists the numbered hops before the
+Mermaid source. At picture, the Body does not walk the hops again.
 
 - `skills/how-it-works/references/output.md` owns the reply chrome and hop ID rules.
-- The visual channel is mermaid. Hand-drawn HTML boxes are not a diagram.
+  `SKILL.md` "Required deliverable" carries a mirror of the reply skeleton, and a test
+  keeps the two equal. When the host can read files, the skill reads `output.md` (and
+  `korean.md` for a Korean reply) before replying; only a host that cannot read files
+  emits from the mirror alone.
+- The title names the rung in the reply language: 그림/길/뼈대/허점 or
+  picture/path/skeleton/fracture. The next-move labels have Korean and English forms
+  in `SKILL.md`.
+- The visual channel is mermaid. Hand-drawn HTML boxes are not a diagram. Picture
+  draws 4–6 boxes, one per hop; `output.md` and `visuals.md` state the same rule.
 - Every rung keeps the baseline Mermaid and a numbered hop list with ids like `H1`,
-  `H2` in the Map. Ids stay the same across rungs; added detail attaches to the same
-  hops.
+  `H2` in the Map. The baseline is the picture hop list: deeper rungs may redraw the
+  diagram type but keep the same ids, and added detail attaches to the same hops.
+  Each hop's Mermaid label starts with its id (`H1: …`); an `alt`/`opt` branch reuses
+  its parent id with a letter suffix (`H3a`), and the numbered list keeps parent ids.
 - The fracture failure/regime table goes in the Body. It never replaces the Mermaid.
 
 Headings, intent line, body, banner, and next move use only the selected language.
 Paired labels in the shared template (Korean / English) mean "pick the one for this
 language", not "print both".
 
-Comparisons explain the tradeoff under the user's stated conditions. Medical, legal,
-and financial comparisons do not have to end in a personal action recommendation.
+Comparisons use one table with four fixed columns at every rung (what it optimizes,
+what it gives up, failure shape, how to undo) and explain the tradeoff under the
+user's stated conditions. Medical, legal, and financial comparisons do not have to end
+in a personal action recommendation.
+
+Korean replies use 해요체 even when earlier turns used 합니다체, and never address the
+user as 우리, 여러분, 당신, 너, or 네가.
 
 ## Safety
 
@@ -123,11 +149,14 @@ Don't put a behavior change in one file only.
   `SKILL.md` dump gate (the table that stops an early info dump), fixtures, and public
   docs.
 - Output chrome, type recipes, hop ids, the fracture Body table, comparison policy:
-  `skills/how-it-works/references/output.md` and the matching fixture ids.
+  `skills/how-it-works/references/output.md`, the skeleton mirror in `SKILL.md`
+  "Required deliverable", and the matching fixture ids.
 - Visual channel: `skills/how-it-works/references/visuals.md`. Every rung keeps the
-  baseline mermaid source and numbered hop list.
-- Korean voice and the Korean intent/picture examples:
-  `skills/how-it-works/references/korean.md`. Do not call `korean-writing-editor`.
+  baseline mermaid source and numbered hop list. The picture box rule and the per-rung
+  hop id rules appear in both `output.md` and `visuals.md`; change them together.
+- Korean voice and the Korean picture examples:
+  `skills/how-it-works/references/korean.md`. The Korean intent line lives only in
+  `SKILL.md` "Classify". Do not call `korean-writing-editor`.
 - Stakes banner and high-stakes checks: the exact per-language banner bytes in
   `skills/how-it-works/references/stakes.md`.
 - Source or citation policy: `skills/how-it-works/references/sources.md`. Keep

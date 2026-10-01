@@ -54,6 +54,10 @@ What these checks prove and don't prove:
   forbidden strings only.
 - They also reject exact returns of the old high-stakes banner and the old DNS jargon
   wording. That proves static agreement between docs and fixtures only.
+- `test_skill_skeleton_mirrors_output_chrome` keeps the reply skeleton in `SKILL.md`
+  equal to the one in `references/output.md`, and other pins keep the picture box rule
+  and the hop id label rules the same in `output.md` and `visuals.md`. That proves the
+  files agree, not that a model emits the skeleton or reads the references.
 - Whether a real model follows the depth precedence is `not_measured`. So are the
   truth of the explanation, real Korean register, English output quality, the model
   producing all six parts, and Mermaid parser/renderer results.
@@ -74,9 +78,9 @@ and links must be unchanged.
 Live runs are local, explicit, optional, and may cost money. CI never requires them.
 Don't describe a payload contract pass as evidence of a live call.
 
-Supported hosts stay Codex and Claude Code, and live evidence for the current
-installed files is `not_measured`. Support scope and current measurement are judged
-separately. No live record is committed.
+Supported hosts stay Codex and Claude Code. Live evidence on Codex is
+`not_measured`; Claude Code has the format probe below. Support scope and current
+measurement are judged separately. No schema 2 record file is committed.
 
 The pure functions of the new evidence contract live in
 `tests/products/how-it-works/live/evidence_contract.py` and are not part of the
@@ -84,14 +88,16 @@ installed payload. Inputs in `test_evidence_contract.py` are synthetic unit-test
 not real run records. No real new record file is created.
 
 - `observe_text` observes only these as `lexical` (string level): a closed, non-empty
-  Mermaid fence; the same H1/H2 hop ids in source and body; and duplicates in the
-  numbered list.
+  Mermaid fence; the same H1/H2 hop ids in source and body, where a branch id such as
+  `H3a` in the source counts as `H3`; and duplicates in the numbered list.
 - `skill_loading` needs a separate `host_event`, `mermaid_syntax` needs a real
   `parser` or `renderer` run, and `meaning` needs a `semantic_review`. Loading is never
   inferred from the skill name being mentioned or from output chrome.
 - Every dimension has a `status` and a `method`; with no source it is
   `not_measured/not_run`. A near-miss judges invocation only and leaves the five output
-  dimensions unmeasured.
+  dimensions unmeasured; `record_binding` rejects a near-miss case with any other
+  status. Case ids must come from `live/cases.json`, and `host` must be `codex` or
+  `claude-code`.
 - Schema 2 records the real product version, the hash from the existing
   `payload_sha256(Path)`, model, host, client/runner version, run date, and per-case
   invocation plus five dimensions. An unknown model is `null` and the result is
@@ -103,7 +109,8 @@ not real run records. No real new record file is created.
   declared method is true.
 
 Direct unit checks cover: broken Mermaid is never promoted to a pass; hop mismatch,
-duplicates, and absence; null model; version/hash
+duplicates, and absence; branch ids counted as their parent hop; unknown case ids,
+retired hosts, and a measured near-miss dimension; null model; version/hash
 mismatch; a real shared-hash change after a temporary reference edit; extra keys, bad
 dates, missing dimensions, and boolean schema; and bad method declarations. Shape
 alone never proves syntax, causality, rung changes, or accessibility. A parser or
@@ -111,8 +118,39 @@ renderer result is recorded only when one could already run; this work never req
 installing one.
 
 The three existing synthetic prompts and the detailed schema and observation steps are
-in `tests/products/how-it-works/live/README.md`. Never commit full responses, private
+in `tests/products/how-it-works/live/README.md`. Its commands run only Codex and Claude
+Code with JSON event output (`codex exec --json`, `claude --print --output-format
+stream-json --verbose`), because `skill_loading` passes only on a host event read from
+that stream. Never commit full responses, private
 prompts, or credentials.
+
+## Live record, 2026-10-01
+
+Format probe for the inlined reply skeleton (3.0.2), on macOS with Claude Code 2.1.284.
+Each run used a fresh Git repo with the skill copied to `<repo>/.claude/skills/how-it-works/`
+and `claude -p --setting-sources project --strict-mcp-config` (a pilot with a marker line
+confirmed that only the project copy loads). Before = the 3.0.1 text (`SKILL.md`
+`e00d4e05`); after = the 3.0.2 text (`e589d7bb`; an intermediate after text `be952cba`
+printed bilingual labels on Haiku and was replaced). Scoring: `observe_text` (fence,
+hop ids), the `# … · <rung>` title, the four section headings, the `다음:`/`Next:` line,
+reference reads from the stream, and sentence endings.
+
+| Set | Model | Prompt | Before | After |
+| --- | --- | --- | --- | --- |
+| P1 | opus, effort high | `/how-it-works DNS가 어떻게 돌아가는지 알려줘` ×3, English path-depth rebase ×2 | 5/5 all checks | 5/5 all checks |
+| P2 | opus, effort high | long technical answer, then "무슨 말인지 하나도 모르겠어 … 쉽게 다시 설명해줘" (`--resume`) ×3 | 3/3 | 3/3 |
+| P3 | sonnet | Korean DNS ×3 (after: + English ×1) | hop ids 2/3 (the run that skipped the references failed) | hop ids 4/4; references read 3/3 Korean |
+| P3 | haiku | Korean DNS ×3 (after: + English ×1) | title 1/3, headings 1/3, `다음:` 2/3, hop ids 0/3 | title 4/4, headings 4/4, `다음:` 4/4, hop ids 2/4 |
+
+All Korean replies in both arms were 해요체. Claude Code cost per call was $0.16-0.21
+(opus), $0.42-0.55 (two-turn opus), about $0.08 (sonnet), and about $0.03 (haiku).
+
+Limits: n is small (3-5 per cell). Opus 5.5 kept the format with the old text too, so
+the gain shows only on smaller models; the failures in the real 3.0.0 runs came from an
+earlier model mid-conversation. Haiku still skipped the reference reads and missed hop
+ids in 2/4. Skill loading was observed from the stream (`Skill` tool_use and the
+injected body), not recorded as a schema 2 file. Codex and implicit activation were not
+run.
 
 ## Commands
 

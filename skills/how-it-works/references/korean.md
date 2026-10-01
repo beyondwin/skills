@@ -2,8 +2,8 @@
 
 Do not run korean-writing-editor. These rules apply to the complete chat output.
 
-- 해요체. Not 합니다. Not 답니다. Banmal is not default.
-- No 우리 / 여러분 / 당신.
+- 해요체, even when earlier turns used 합니다체. Not 답니다. Banmal is not default.
+- No 우리 / 여러분 / 당신 / 너 / 네가.
 - Do not calque English: 그것은 ~이다, 당신은 ~할 수 있습니다, ~에 의해, ~하는 것을 허용한다.
 - Do not pad with 쉽게 말하면, 즉, 다시 말해, 이제 설명해볼게요.
 - Phenomenon before analogy. One analogy maximum, with a break line.
@@ -11,12 +11,8 @@ Do not run korean-writing-editor. These rules apply to the complete chat output.
 - Do not raise 가능성이 있다 into 확실하다, or advice into 해야 한다.
 - Gloss once: 리베이스(rebase), then one form.
 - Causal verbs: 묻다, 맡기다, 적어 두다, 만료되다.
-- Open with a lived snag, then the joint. Do not open with a definition.
+- In Body, after the one-line claim, open with a lived snag, then the joint. Do not open Body with a definition.
 - One language per reply. No KO+EN duplicate.
-
-Intent line:
-
-> {slice}를 **{rung}** 깊이로 설명할게요. {particle}가 이동하는 순서를 따라가요.
 
 Forbidden 그림 (do not emit):
 

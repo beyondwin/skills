@@ -3,7 +3,8 @@
 This document sets which hosts and OS how-it-works supports and what backs that. The
 supported hosts are `codex` and `claude-code` from the product registry, for local or
 repository-based use only. Support scope and current measurement are separate. Live
-evidence for the current payload is `not_measured`.
+evidence on Codex is `not_measured`; Claude Code has one format probe
+([testing](testing.md), "Live record, 2026-10-01").
 
 - Grok: not supported.
 - Cursor: not a support target.
@@ -69,7 +70,8 @@ topics, provider transcripts, or private logs.
 ### Records
 
 A schema 2 record separates the observed version, payload hash, model, host,
-client, runner, and date, plus per-case invocation and five observed dimensions.
+client, runner, and date, plus per-case invocation and five observed dimensions. The
+record accepts only the supported hosts, `codex` and `claude-code`.
 
 - `lexical` checks of `fence` and `hop_ids` can't promote `skill_loading`,
   `mermaid_syntax`, or `meaning` to a pass.
