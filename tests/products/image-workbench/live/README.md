@@ -26,8 +26,21 @@ Four checks (after the SKILL.md host table exists):
 4. Make or edit one image: save a new project file, inspector pass, open
    it. Do not treat the chat preview path as the final file.
 
-Write results only in `smoke-record.json`. Fields: `date`,
-`grok_identity`, `skill_version`, `skill_md_sha256`, `probe`,
-`discovery`, `explicit_brief`, `implicit_and_near_miss`,
-`output_contract`, optional inspector `format`/`width`/`height`.
-The four checks are `pass`, `fail`, or `not_run`.
+Write results only in `smoke-record.json`. Fields:
+
+- `session_id`: the Grok session id of the run (required).
+- `run_at`: ISO 8601 timestamp with a time zone, for example
+  `2026-10-01T09:30:00+09:00` (required).
+- `grok_identity`, `skill_version`, `probe`.
+- `skill_md_sha256`: SHA-256 of `SKILL.md` with the frontmatter `metadata:`
+  line and its indented lines removed (required). A version-only bump keeps
+  it; any other change to `SKILL.md` needs a new smoke. From the repository
+  root, print it with
+  `python3 -c 'import sys; sys.path.insert(0, "tests/products/image-workbench"); import test_live_record as t; print(t.skill_binding_sha256(t.SKILL.read_bytes()))'`.
+- `discovery`, `explicit_brief`, `implicit_and_near_miss`, `output_contract`:
+  `pass`, `fail`, or `not_run`. The offline test requires all four `pass`.
+- `inspector`: an object with the inspected `format`, `width`, and `height`
+  (required).
+
+Edit the record only after a real run. Do not refresh the hash, time, or
+session without running the four checks on the current text.

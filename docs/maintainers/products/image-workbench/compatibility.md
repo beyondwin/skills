@@ -34,7 +34,9 @@ result. Do not commit user images, private references, generated media,
 credentials, or provider receipts.
 
 The four-item Grok smoke record is
-`tests/products/image-workbench/live/smoke-record.json`. Follow
+`tests/products/image-workbench/live/smoke-record.json`. It names the Grok
+`session_id` and `run_at` of the run and is bound to `SKILL.md` without its
+`metadata:` block, so only a version bump leaves it valid. Follow
 [Testing](testing.md) and `tests/products/image-workbench/live/README.md` for
 the steps.
 

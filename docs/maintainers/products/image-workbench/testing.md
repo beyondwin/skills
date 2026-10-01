@@ -37,6 +37,12 @@ There are 32 offline cases. They do not prove an image looks good. The live
 Grok check steps are in `tests/products/image-workbench/live/README.md`; CI
 does not run them. Record offline passes and live image results separately.
 
+`test_live_record.py` binds the Grok claim to `live/smoke-record.json`: four
+`pass` values, a `session_id`, an ISO `run_at` with a time zone, an
+`inspector` object, and the SHA-256 of `SKILL.md` without its frontmatter
+`metadata:` block. A version-only bump keeps a valid smoke; any other
+`SKILL.md` change needs a new Grok smoke before the test passes again.
+
 ## Commands
 
 ```bash
