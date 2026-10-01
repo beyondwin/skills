@@ -13,15 +13,16 @@ Host check (do this before saying Grok is supported):
 3. This Grok session must have `image_gen` and `image_edit`.
 4. Make one fake still-life (no real person). If the file lands in the
    session `images/` folder, copy it to a throwaway project file, run
-   `python3 scripts/inspect_asset.py` from the skill folder, then delete
-   the files. Do not git-add them.
+   `python3 <skill-root>/scripts/inspect_asset.py <absolute-path>` with no
+   `--output` (or one outside the skill folder), then delete the files. Do
+   not git-add them.
 
 Four checks (after the SKILL.md host table exists):
 
 1. Find the skill: same `grok inspect` path check.
 2. Call `/image-workbench` for a brief only. Do not make an image.
 3. Ask for a project hero image without the slash command: the skill
-   should start. Then `kws-image-workbench …` should do nothing.
+   should start. Then a casual one-off picture request should not start it.
 4. Make or edit one image: save a new project file, inspector pass, open
    it. Do not treat the chat preview path as the final file.
 

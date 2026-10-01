@@ -15,8 +15,9 @@ support evidence.
   `SKILL.md`.
 - `brief` and `audit` only need to read.
 - `generate` and `edit` need the host's image tool and a way to open the
-  result: the Codex built-in image tool, or Grok `image_gen`/`image_edit`. If
-  either is missing, do not claim to make or edit an image.
+  result: Codex `image_gen` (generate and edit), or Grok
+  `image_gen`/`image_edit`. If either is missing, do not claim to make or edit
+  an image.
 
 ## Evidence without provider calls
 
@@ -44,8 +45,8 @@ build:
 
 1. The host finds the skill.
 2. It can be called with `$image-workbench` or `/image-workbench`.
-3. A request for a project image turns it on, and `kws-image-workbench` does
-   not.
+3. A request for a project image turns it on, and a casual one-off picture
+   does not.
 4. brief/audit create no files, and an authorized generate/edit saves a
    project file.
 

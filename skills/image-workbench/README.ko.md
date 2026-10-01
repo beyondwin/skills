@@ -95,6 +95,10 @@ ls -ld ~/.agents/skills/image-workbench
 unlink ~/.agents/skills/image-workbench
 ```
 
+Codex도 `~/.agents/skills`를 읽으므로 이 링크 하나로 Codex와 Grok에서 모두
+씁니다. 두 호스트를 다 쓴다면 한 가지만 설치하세요. 이 링크를 쓰거나, Codex만
+쓴다면 `$skill-installer`를 씁니다. 둘 다 설치하면 Codex에 두 번 나옵니다.
+
 `~/.grok`나 `~/.codex`에 복사본을 만들지 마세요. 같은 방법이
 [로컬 링크](https://github.com/beyondwin/skills/blob/main/docs/users/ko/install-local.md)에도
 있습니다.
@@ -121,14 +125,19 @@ $image-workbench 이 프로젝트 랜딩 페이지 hero 이미지를 만들어�
 `brief`와 `audit`은 읽기 전용입니다. 생성·편집 요청이 분명할 때만 이미지를
 만듭니다.
 
-프로젝트에 넣을 최종 파일은 스킬 폴더에서 `python3 scripts/inspect_asset.py`로
-형식과 크기를 확인합니다. 대화 창에만 보이는 미리보기 경로는 최종 파일이
-아닙니다.
+프로젝트에 넣을 최종 파일은
+`python3 <skill-root>/scripts/inspect_asset.py <absolute-asset-path>`로
+확인합니다. `<skill-root>`는 설치된 스킬 폴더입니다. 보고서에는 형식, 너비,
+높이, 알파, 바이트 크기, SHA-256, `extension_matches`(파일 확장자가 실제 형식과
+맞는지), `trailing_bytes`(이미지 끝 뒤에 붙은 바이트 수)가 나옵니다. 대화 창에만
+보이는 미리보기 경로는 최종 파일이 아닙니다. Grok는 투명도 없는 JPEG를
+돌려주므로 결과의 `.jpg` 확장자를 그대로 둡니다.
 
 이 검사는 PNG·JPEG·WebP의 기본 구조만 봅니다. 통과해도 그림이 좋다거나, 파일을
 끝까지 읽었다거나, 써도 될 권리가 있다는 뜻은 아닙니다. 최종 후보는 반드시
-열어서 확인합니다. `--output facts.json`은 별도 JSON 보고서만 갱신합니다. 입력
-이미지를 덮어쓰려 하면 거부합니다.
+열어서 확인합니다. `--output`에는 스킬 폴더 밖의 절대 경로를 줍니다. 이미 있는
+JSON 보고서만 갱신하고, 입력 이미지나 다른 이미지, 그 밖의 파일은 덮어쓰지
+않으며, 실패하면 출력 경로를 알려 줍니다.
 
 ## 더 보기
 

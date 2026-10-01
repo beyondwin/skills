@@ -2,7 +2,7 @@
 
 Fixtures live in `tests/products/image-workbench/`. To change the fixture
 format or a judging rule, first change the evaluator self-test and the
-fixtures (positive and mistyped-name cases). See the test fail, then implement.
+fixtures (positive and near-miss cases). See the test fail, then implement.
 
 ## Deterministic fixtures
 
@@ -19,8 +19,10 @@ without a real image call.
   `tests/products/image-workbench/test_inspect_asset.py`, the evaluator
   full-scope expectations, and the public docs together. Bump SemVer when
   behavior changes.
-- Call the inspector from the real skill root, not through a repo-relative
-  `skills/` path.
+- Call the inspector by its path under the real skill root
+  (`python3 <skill-root>/scripts/inspect_asset.py <absolute-asset-path>`),
+  not through a repo-relative `skills/` path. Keep any `--output` report
+  outside the skill folder.
 - When an evaluator or inspector command or package path changes, align
   `tests/products/image-workbench/run.py` and `python3 scripts/verify.py`.
 - `test_payload_docs.py` checks, in a temporary standalone copy, that README
