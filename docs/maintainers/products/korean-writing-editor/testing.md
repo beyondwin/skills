@@ -53,6 +53,8 @@ dated CHANGELOG entry, and rejection of a broken README link together.
   preambles on `norm-spacing-can-01`, the possibility-to-maybe substitution on
   `meaning-negation-01`, and refuse-then-translate on
   `trigger-translation-03`.
+- `--self-test` runs the evaluator's own unit tests and combines with
+  `--scope`; the package tests run that combination.
 - A fixture pass proves only the offline oracle (answer checker) contract. It
   does not prove live model quality.
 
@@ -110,7 +112,7 @@ approved 160-call result.
 ```bash
 python3 scripts/verify.py --skill korean-writing-editor
 python3 scripts/verify.py
-python3 tests/products/korean-writing-editor/offline/run.py --scope full
+python3 tests/products/korean-writing-editor/offline/run.py --self-test --scope full
 python3 tests/products/korean-writing-editor/live/live_matrix.py --dry-run
 git diff --check
 ```

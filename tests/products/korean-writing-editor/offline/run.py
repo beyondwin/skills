@@ -792,8 +792,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.self_test:
-        result = run_self_tests()
-        return 0 if result.wasSuccessful() else 1
+        if not run_self_tests().wasSuccessful():
+            return 1
+        if args.scope is None:
+            return 0
 
     if args.scope is None:
         parser.error("one of --self-test or --scope is required")

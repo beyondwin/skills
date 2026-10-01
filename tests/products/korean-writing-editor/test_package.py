@@ -53,6 +53,12 @@ class KoreanPackageTests(unittest.TestCase):
         self.assertIn(EXPECTED_SUMMARY, result.stdout)
         self.assertIn("mutation checks: PASS", result.stdout)
 
+    def test_self_test_combines_with_full_scope(self) -> None:
+        result = run_offline("--self-test", "--scope", "full")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("OK", result.stderr)
+        self.assertIn(EXPECTED_SUMMARY, result.stdout)
+
     def test_staged_copy_passes_full_scope(self) -> None:
         self.assertTrue(SKILL_ROOT.is_dir(), "installed payload is absent")
         with tempfile.TemporaryDirectory() as directory:
