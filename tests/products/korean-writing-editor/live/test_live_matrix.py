@@ -496,8 +496,8 @@ GUIDE_PRIVACY_PARAGRAPH = (
 )
 GUIDE_OFFLINE_PARAGRAPH = (
     "The offline command below does not call Codex, Cursor, or any provider and "
-    "does not authorize or prove live execution; it verifies only the thirty-one "
-    "synthetic offline fixtures and their mutation contract."
+    "does not authorize or prove live execution; it verifies only the synthetic "
+    "offline fixtures and their mutation contract."
 )
 GUIDE_REPLAY_PARAGRAPH = (
     "Choose a fresh unused run ID for each authorized cycle. Do not reuse a "

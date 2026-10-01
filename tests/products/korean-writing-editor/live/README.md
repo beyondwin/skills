@@ -65,8 +65,8 @@ facts, and only bounded redacted excerpts.
 ## Offline Validation
 
 The offline command below does not call Codex, Cursor, or any provider and does
-not authorize or prove live execution; it verifies only the thirty-one synthetic
-offline fixtures and their mutation contract.
+not authorize or prove live execution; it verifies only the synthetic offline
+fixtures and their mutation contract.
 
 ```bash
 python3 tests/products/korean-writing-editor/offline/run.py --scope full --skill-root skills/korean-writing-editor
