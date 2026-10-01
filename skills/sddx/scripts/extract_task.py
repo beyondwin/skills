@@ -6,6 +6,8 @@ the one section whose title matches exactly, and returns (or writes) that
 section's original source bytes untouched.
 
 Pass ``--global-constraints`` to prepend the plan's Global Constraints section.
+A plan that keeps its run-wide rules under another title names it with
+``--constraints-heading "<exact title>"``, which replaces the default titles.
 """
 
 from __future__ import annotations
@@ -14,6 +16,12 @@ import argparse
 import re
 import sys
 from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from resolve_backend import refuse_windows  # noqa: E402
 
 _HEADING_RE = re.compile(r"^ {0,3}(#{1,6})(?:[ \t]+(.*))?$")
 _FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
@@ -106,13 +114,15 @@ def extract_task(
     heading: str,
     *,
     global_constraints: bool = False,
+    constraints_heading: str | None = None,
 ) -> bytes:
     """Extract the section for ``heading`` from ``plan``, byte-for-byte.
 
     When ``global_constraints`` is true, prepend the plan's Global Constraints
-    section (no extra separator newline). Raises ValueError when the heading
-    has no match, more than one match, or an empty (blank-only) body — and,
-    with the flag, when constraints are missing, duplicated, or empty.
+    section (no extra separator newline), or the section titled exactly
+    ``constraints_heading`` when one is named. Raises ValueError when the
+    heading has no match, more than one match, or an empty (blank-only) body —
+    and, with the flag, when constraints are missing, duplicated, or empty.
     """
     lines = plan.splitlines(keepends=True)
     decoded_lines = [line.decode("utf-8") for line in lines]
@@ -121,11 +131,15 @@ def extract_task(
     section = _section_bytes(lines, decoded_lines, start, end, heading)
     if not global_constraints:
         return section
-    matches = [item for item in headings if item[2] in GLOBAL_CONSTRAINT_TITLES]
+    if constraints_heading is None:
+        titles, name = GLOBAL_CONSTRAINT_TITLES, "Global Constraints"
+    else:
+        titles, name = frozenset({constraints_heading}), constraints_heading
+    matches = [item for item in headings if item[2] in titles]
     if not matches:
-        raise ValueError("no heading matches 'Global Constraints'")
+        raise ValueError(f"no heading matches {name!r}")
     if len(matches) > 1:
-        raise ValueError("heading 'Global Constraints' matches more than one section")
+        raise ValueError(f"heading {name!r} matches more than one section")
     c_start, c_level, c_title = matches[0]
     c_end = len(lines)
     for other_start, other_level, _ in headings:
@@ -137,16 +151,26 @@ def extract_task(
 
 
 def main(argv: list[str] | None = None) -> int:
+    refused = refuse_windows()
+    if refused is not None:
+        return refused
     parser = argparse.ArgumentParser(prog="extract_task.py")
     parser.add_argument("plan", type=Path)
     parser.add_argument("--heading", required=True)
     parser.add_argument("--global-constraints", action="store_true")
+    parser.add_argument(
+        "--constraints-heading",
+        help="exact title of the plan's run-wide rules; needs --global-constraints",
+    )
     parser.add_argument("--output", required=True, type=Path)
     try:
         args = parser.parse_args(argv)
     except SystemExit as error:
         code = error.code
         return code if isinstance(code, int) else 2
+    if args.constraints_heading is not None and not args.global_constraints:
+        print("error: --constraints-heading needs --global-constraints", file=sys.stderr)
+        return 2
 
     try:
         plan_bytes = args.plan.read_bytes()
@@ -159,6 +183,7 @@ def main(argv: list[str] | None = None) -> int:
             plan_bytes,
             args.heading,
             global_constraints=args.global_constraints,
+            constraints_heading=args.constraints_heading,
         )
     except UnicodeDecodeError as error:
         print(f"error: plan file is not valid UTF-8: {error}", file=sys.stderr)

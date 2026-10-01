@@ -3,11 +3,13 @@ from __future__ import annotations
 import contextlib
 import io
 import json
+import os
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "skills" / "sddx" / "scripts" / "observed_model.py"
@@ -166,6 +168,13 @@ class ObservedModelTests(unittest.TestCase):
                 observed_model.main(["claude-code", "--thread-id", THREAD_ID])
             with self.assertRaises(SystemExit):
                 observed_model.main(["claude-code"])
+
+    def test_windows_is_refused_with_the_shared_message(self) -> None:
+        with mock.patch.object(os, "name", "nt"):
+            code, payload, err = self.run_main("codex", "--thread-id", THREAD_ID)
+        self.assertEqual(code, 2)
+        self.assertIsNone(payload)
+        self.assertEqual(err, "BLOCKED: Windows is not a supported OS\n")
 
     def test_output_carries_no_transcript_text(self) -> None:
         write_jsonl(

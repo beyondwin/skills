@@ -115,24 +115,37 @@ Launch only through `run_worker.py run`; read attempts only through
 `run_worker.py status` and `run_worker.py wait`. The controller never ends its
 turn while a worker runs, because a headless host kills the runner with the
 session; it blocks on `wait` (exit 0 when over, exit 3 after `--max-seconds`,
-default 540). Attempt folders live under `$P/attempts/`, and the runner
-refuses any path outside the repository's `.waygent/` directory. The Grok sandbox
-state file also lives under `.waygent/`.
+default 540). A missing attempt folder counts as not started for
+`--start-grace` (default 15 seconds) and as a refused launch after it. Claude
+Code launches `run` with `exec` as the Bash tool's background command and runs
+`wait` with `timeout: 600000`; Codex runs `wait` through `exec_command` with a
+`yield_time_ms` of at least (`--max-seconds` + 10) × 1000 and does not poll
+with `write_stdin` or `status` between waits. Attempt folders live under
+`$P/attempts/`, and the runner refuses any path outside the repository's
+`.waygent/` directory. The Grok sandbox state file also lives under `.waygent/`.
 
 - `run.json` holds process facts only, including `session_id`, `reported_model`,
-  `requested_effort`, `configured_effort`, and `skill_version`. Its `state` is
-  process state, not task state.
+  `requested_effort`, `configured_effort`, `skill_version`, and `runner_pid`
+  (written at `starting`). Its `state` is process state, not task state.
 - `status` gives metadata, `pid_alive`, `stale`, `session_id_in_log`, and a
   bounded tools index (Cursor `tool_call`, Grok `tool_use`). It never returns a
   log body unless asked for a window.
-- A Grok shell still running in the foreground is not in the index yet.
-- Stopping: send SIGTERM to the runner (`ps -o ppid= -p <pid>`), never
-  `pkill -f`. If that parent is pid 1, the runner is gone; only then signal the
-  worker pid.
-- On SIGTERM or Ctrl-C the runner records `interrupted` with
-  `the runner was interrupted (SIGTERM or Ctrl-C)` and ends the worker. If the
-  worker could not be confirmed ended, `exit_code` is null, so check
+- `stale` means a `starting` or `running` record whose runner and worker are
+  both gone; a live runner with a dead worker is not stale. A record without
+  `runner_pid` is stale only at `running` with no live worker.
+- A shell still running in the foreground is not in the index yet. A shell
+  with no integer exit is indexed with `exit_code` null on both backends.
+- Stopping: send SIGTERM to the runner, never `pkill -f`. On Claude Code that
+  is the host's stop for the background task running it; otherwise the parent
+  of the worker pid (`ps -o ppid= -p <pid>`). If that parent is pid 1, the
+  runner is gone; only then signal the worker pid.
+- On SIGTERM or Ctrl-C, from the runner's first record onward, the runner
+  records `interrupted` with `the runner was interrupted (SIGTERM or Ctrl-C)`
+  and ends the worker, exiting 130; with no worker yet, `pid` stays null. If
+  the worker could not be confirmed ended, `exit_code` is null, so check
   `pid_alive` before cleanup.
+- A worker that gets SIGTERM records `-15`, or `143` when the CLI catches it
+  and exits (Cursor 2026.09.26 and Grok 1.0.44 both record 143).
 - The runner signals only the worker process. Anything the worker started (a
   background shell, a build daemon, Cursor's `worker-server`) can outlive it;
   end them by pid.

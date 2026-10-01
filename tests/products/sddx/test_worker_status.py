@@ -19,6 +19,7 @@ import json
 import os
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -304,6 +305,28 @@ class DefaultStatusTests(StatusFixture):
         self.assertIs(payload["tools"]["truncated"], False)
         rendered = json.dumps(payload, ensure_ascii=False)
         self.assertNotIn(secret, rendered)
+
+    def test_a_cursor_shell_without_an_integer_exit_is_indexed_with_null(self) -> None:
+        # Break: the shell is dropped, so a command that ran without an exit
+        # (backgrounded, or cut off) leaves no trace in the index, unlike Grok.
+        module = self.load()
+        self.write_metadata()
+        event = {
+            "type": "tool_call",
+            "subtype": "completed",
+            "tool_call": {
+                "shellToolCall": {
+                    "args": {"command": "npm run dev"},
+                    "result": {"success": {"stdout": "listening"}},
+                },
+            },
+        }
+        self.write_stdout((json.dumps(event) + "\n").encode("utf-8"))
+        payload = module.read_status(self.attempt)
+        self.assertEqual(
+            payload["tools"]["shells"], [{"exit_code": None, "command": "npm run dev"}]
+        )
+        self.assertNotIn("listening", json.dumps(payload))
 
     def test_unknown_tool_shapes_are_an_empty_index_not_an_error(self) -> None:
         # Break: a non-Cursor event or a broken line fails the query.
@@ -1073,11 +1096,168 @@ class WaitCommandTests(StatusFixture):
                 self.assertEqual(code, 2)
                 self.assertIsNone(payload)
                 self.assertIn("BLOCKED:", err)
+        for grace in ("-1", "nan", "inf", "3601"):
+            with self.subTest(grace=grace):
+                code, payload, err = self.wait(module, "--start-grace", grace)
+                self.assertEqual(code, 2)
+                self.assertIsNone(payload)
+                self.assertIn("BLOCKED:", err)
+        # A missing parent is never a launch still on its way.
         code, payload, err = self.cli(
-            module, ["wait", "--attempt-dir", str(self.base / "absent")]
+            module, ["wait", "--attempt-dir", str(self.base / "absent" / "attempt")]
         )
         self.assertEqual(code, 2)
+        self.assertIn("BLOCKED: attempt directory does not exist", err)
 
     def test_the_default_bound_fits_one_host_tool_call(self) -> None:
         module = self.load()
         self.assertLessEqual(module.DEFAULT_WAIT_SECONDS, 540)
+
+
+class WaitStartGraceTests(StatusFixture):
+    """`wait` started right after a background `run` may beat the runner's mkdir."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.attempt.rmdir()
+
+    def wait(self, module, *extra: str) -> tuple[int, dict | None, str]:
+        with mock.patch.object(module, "WAIT_POLL_SECONDS", 0.02):
+            code, out, err = self.cli(
+                module, ["wait", "--attempt-dir", str(self.attempt), *extra]
+            )
+        return code, (json.loads(out) if out else None), err
+
+    def test_a_bound_inside_the_grace_is_not_over_rather_than_refused(self) -> None:
+        # Break: `wait` refuses a directory the runner has not created yet.
+        module = self.load()
+        code, payload, err = self.wait(module, "--max-seconds", "0.2")
+        self.assertEqual(code, 3)
+        self.assertEqual(err, "")
+        self.assertFalse(payload["over"])
+        self.assertIsNone(payload["state"])
+        self.assertFalse(self.attempt.exists())
+
+    def test_a_directory_that_appears_during_the_grace_is_waited_on(self) -> None:
+        module = self.load()
+        polls = {"n": 0}
+        real_sleep = module.time.sleep
+
+        def sleep(seconds):
+            polls["n"] += 1
+            if polls["n"] == 3:
+                self.attempt.mkdir()
+                self.write_metadata(state="exited", exit_code=0, pid=None)
+            real_sleep(seconds)
+
+        with mock.patch.object(module.time, "sleep", sleep):
+            code, payload, err = self.wait(module, "--max-seconds", "5")
+        self.assertEqual(code, 0, err)
+        self.assertTrue(payload["over"])
+        self.assertEqual(payload["state"], "exited")
+
+    def test_a_directory_still_absent_after_the_grace_is_a_refused_launch(self) -> None:
+        module = self.load()
+        code, payload, err = self.wait(module, "--start-grace", "0.2", "--max-seconds", "5")
+        self.assertEqual(code, 2)
+        self.assertIsNone(payload)
+        self.assertIn("BLOCKED: attempt directory does not exist", err)
+
+    def test_a_zero_grace_refuses_at_once(self) -> None:
+        module = self.load()
+        started = time.monotonic()
+        code, payload, err = self.wait(module, "--start-grace", "0", "--max-seconds", "5")
+        self.assertEqual(code, 2)
+        self.assertLess(time.monotonic() - started, 2)
+
+    def test_the_default_grace_is_bounded(self) -> None:
+        module = self.load()
+        self.assertGreater(module.DEFAULT_START_GRACE_SECONDS, 0)
+        self.assertLessEqual(module.DEFAULT_START_GRACE_SECONDS, 30)
+
+
+class WaitUnreadableRecordTests(StatusFixture):
+    def test_an_unreadable_record_is_blocked_not_a_traceback(self) -> None:
+        # Break: `wait` lets the ValueError from `read_metadata` escape.
+        module = self.load()
+        for text in ("{not json", '{"schema_version": 1}'):
+            with self.subTest(text=text):
+                (self.attempt / "run.json").write_text(text, encoding="utf-8")
+                code, out, err = self.cli(
+                    module, ["wait", "--attempt-dir", str(self.attempt), "--max-seconds", "1"]
+                )
+                self.assertEqual(code, 2)
+                self.assertEqual(out, "")
+                self.assertTrue(err.startswith("BLOCKED: run.json"), err)
+
+
+class RunnerPidTests(StatusFixture):
+    """A record that names its runner's pid is judged by that runner too."""
+
+    DEAD = 2**22
+
+    def summary(self, module) -> tuple[int, dict]:
+        with mock.patch.object(module, "WAIT_POLL_SECONDS", 0.02):
+            code, out, _ = self.cli(
+                module, ["wait", "--attempt-dir", str(self.attempt), "--max-seconds", "0.2"]
+            )
+        return code, json.loads(out)
+
+    def test_a_starting_record_whose_runner_is_gone_is_stale_and_over(self) -> None:
+        # Break: a runner killed while it resolved the backend leaves
+        # `starting` with no pid, and `wait` loops on exit 3 forever.
+        module = self.load()
+        self.write_metadata(state="starting", pid=None, runner_pid=self.DEAD)
+        self.assertIs(module.read_status(self.attempt)["stale"], True)
+        code, payload = self.summary(module)
+        self.assertEqual(code, 0)
+        self.assertTrue(payload["over"])
+        self.assertTrue(payload["stale"])
+
+    def test_a_running_record_whose_runner_and_worker_are_gone_is_stale(self) -> None:
+        module = self.load()
+        self.write_metadata(state="running", pid=self.DEAD, runner_pid=self.DEAD)
+        self.assertIs(module.read_status(self.attempt)["stale"], True)
+        code, payload = self.summary(module)
+        self.assertEqual(code, 0)
+        self.assertTrue(payload["stale"])
+
+    def test_a_live_runner_with_a_dead_worker_is_not_over(self) -> None:
+        # Break: `wait` calls the attempt stale in the moment between the
+        # worker being reaped and the runner writing its terminal state.
+        module = self.load()
+        self.write_metadata(state="running", pid=self.DEAD, runner_pid=os.getpid())
+        self.assertIs(module.read_status(self.attempt)["stale"], False)
+        code, payload = self.summary(module)
+        self.assertEqual(code, 3)
+        self.assertFalse(payload["over"])
+        self.assertFalse(payload["stale"])
+
+    def test_a_live_runner_still_starting_is_not_over(self) -> None:
+        module = self.load()
+        self.write_metadata(state="starting", pid=None, runner_pid=os.getpid())
+        code, payload = self.summary(module)
+        self.assertEqual(code, 3)
+        self.assertFalse(payload["stale"])
+
+    def test_an_orphaned_worker_still_running_is_not_over(self) -> None:
+        # The runner is gone but its worker still works; it is over once the
+        # worker ends, not before.
+        module = self.load()
+        self.write_metadata(state="running", pid=os.getpid(), runner_pid=self.DEAD)
+        code, payload = self.summary(module)
+        self.assertEqual(code, 3)
+        self.assertFalse(payload["stale"])
+
+    def test_a_record_without_runner_pid_keeps_the_old_rule(self) -> None:
+        # Records written before `runner_pid` existed: a `starting` record is
+        # never over, and only `running` with a dead worker is stale.
+        module = self.load()
+        self.write_metadata(state="starting", pid=None)
+        code, payload = self.summary(module)
+        self.assertEqual(code, 3)
+        self.assertFalse(payload["stale"])
+        self.write_metadata(state="running", pid=self.DEAD)
+        code, payload = self.summary(module)
+        self.assertEqual(code, 0)
+        self.assertTrue(payload["stale"])

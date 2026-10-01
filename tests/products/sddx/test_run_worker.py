@@ -16,6 +16,7 @@ import io
 import json
 import os
 import shutil
+import signal
 import stat
 import subprocess
 import sys
@@ -219,6 +220,7 @@ METADATA_FIELDS = {
     "requested_effort",
     "configured_effort",
     "skill_version",
+    "runner_pid",
     "state",
     "pid",
     "exit_code",
@@ -1009,6 +1011,10 @@ class WorkerExecutionTests(RunnerFixture):
             self.invoke(module, self.options(module))
         self.assertEqual([entry["state"] for entry in observed], ["starting", "running", "exited"])
         self.assertIsNone(observed[0]["pid"])
+        # The runner's own pid is on the record from `starting`, so a reader can
+        # tell a runner still resolving the backend from one that was killed.
+        self.assertEqual(observed[0]["runner_pid"], os.getpid())
+        self.assertEqual({entry["runner_pid"] for entry in observed}, {os.getpid()})
         self.assertIsInstance(observed[1]["pid"], int)
         self.assertIsNone(observed[1]["ended_at"])
         self.assertIsNotNone(observed[2]["ended_at"])
@@ -1430,6 +1436,73 @@ class WorkerExecutionTests(RunnerFixture):
         stop.assert_called_once_with(process)
         kill.assert_not_called()
         self.assertIsNotNone(process.poll(), "runner must still end its own worker")
+
+    def test_an_interrupt_while_the_backend_is_resolved_records_interrupted(self) -> None:
+        # Break: Ctrl-C during `resolve()` escapes as a traceback and leaves
+        # `run.json` at `starting` with no pid, which `wait` never calls over.
+        module = self.load()
+        self.write_grok(BEHAVIOUR_OK)
+        with mock.patch.object(module, "resolve", side_effect=KeyboardInterrupt):
+            code = self.invoke(module, self.options(module))
+        self.assertEqual(code, 130)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "interrupted")
+        self.assertIsNone(metadata["pid"])
+        self.assertIsNone(metadata["exit_code"])
+        self.assertIsNotNone(metadata["ended_at"])
+        self.assertEqual(metadata["error"], "the runner was interrupted (SIGTERM or Ctrl-C)")
+        self.assertEqual(metadata["runner_pid"], os.getpid())
+        self.assert_no_worker_invocation()
+
+    @unittest.skipUnless(os.name != "nt", "SIGTERM handling is a POSIX signal convention")
+    def test_sigterm_while_the_backend_is_resolved_records_interrupted(self) -> None:
+        # Break: the SIGTERM handler is installed only after `resolve()`, so a
+        # SIGTERM during the backend probes takes the default action: the
+        # runner dies 143 and `run.json` stays `starting` with `pid: null`.
+        # Only a real signal to a real runner process shows that.
+        body = _cli_body(
+            GROK_VERSION, GROK_HELP, GROK_MODELS, self.argv_log, self.marker, BEHAVIOUR_OK
+        )
+        slow = "    time.sleep(4)\n    sys.stdout.write(VERSION)\n"
+        body = body.replace("    sys.stdout.write(VERSION)\n", slow, 1)
+        self.assertIn(slow, body)
+        grok = self.bindir / "grok"
+        grok.write_text(f"#!{sys.executable}\n{body}", encoding="utf-8")
+        grok.chmod(grok.stat().st_mode | stat.S_IXUSR)
+        runner = subprocess.Popen(
+            [
+                sys.executable, str(SCRIPTS / "run_worker.py"), "run",
+                "--backend", "grok",
+                "--worktree", str(self.worktree),
+                "--brief", str(self.brief),
+                "--attempt-dir", str(self.attempt),
+                "--effort", "high",
+                "--model", "grok-4.7",
+                "--sandbox-profile", "sddx-worktree",
+            ],
+            env={**os.environ, "PATH": str(self.bindir)},
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        self.addCleanup(lambda: runner.poll() is None and runner.kill())
+        record = self.attempt / "run.json"
+        deadline = time.monotonic() + 15
+        while not record.exists() and time.monotonic() < deadline:
+            time.sleep(0.02)
+        self.assertTrue(record.exists(), "runner never wrote its starting record")
+        self.assertEqual(self.metadata()["state"], "starting")
+        time.sleep(0.5)  # inside the four-second version probe
+        runner.send_signal(signal.SIGTERM)
+        runner.communicate(timeout=30)
+        self.assertEqual(runner.returncode, 130)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "interrupted")
+        self.assertIsNone(metadata["pid"])
+        self.assertIsNone(metadata["exit_code"])
+        self.assertEqual(metadata["error"], "the runner was interrupted (SIGTERM or Ctrl-C)")
+        self.assertEqual(metadata["runner_pid"], runner.pid)
+        self.assert_no_worker_invocation()
 
     @unittest.skipUnless(os.name != "nt", "SIGTERM handling is a POSIX signal convention")
     def test_the_sigterm_handler_is_installed_before_the_worker_starts(self) -> None:
@@ -2464,14 +2537,22 @@ class AttemptTimeoutTests(RunnerFixture):
 class WorkerEnvironmentTests(RunnerFixture):
     def test_grok_mcp_discovery_is_disabled_only_in_the_child(self) -> None:
         module = self.load()
-        names = ("GROK_CURSOR_MCPS_ENABLED", "GROK_CLAUDE_MCPS_ENABLED", "SDDX_TEST_ENV")
+        names = (
+            "GROK_CURSOR_MCPS_ENABLED",
+            "GROK_CLAUDE_MCPS_ENABLED",
+            "CMUX_GROK_HOOKS_DISABLED",
+            "SDDX_TEST_ENV",
+        )
         behaviour = "print(json.dumps({k: os.environ.get(k) for k in " + repr(names) + "}))\n"
         self.write_grok(behaviour=behaviour)
         with mock.patch.dict(os.environ, dict.fromkeys(names, "keep")):
             self.assertEqual(self.invoke(module, self.options(module)), 0)
             self.assertEqual({k: os.environ[k] for k in names}, dict.fromkeys(names, "keep"))
         actual = json.loads((self.attempt / "worker.jsonl").read_text())
-        self.assertEqual(actual, {names[0]: "0", names[1]: "0", names[2]: "keep"})
+        # The cmux `grok` wrapper installs its hooks unless this is "1".
+        self.assertEqual(
+            actual, {names[0]: "0", names[1]: "0", names[2]: "1", names[3]: "keep"}
+        )
         argv = self.worker_argv()
         self.assertEqual(argv[argv.index("--disallowed-tools") + 1], "search_tool,use_tool")
         self.assertEqual(argv[argv.index("--deny") + 1], "MCPTool(*)")
