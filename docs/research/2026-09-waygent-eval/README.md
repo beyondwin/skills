@@ -52,7 +52,7 @@ design came from and how it did when we ran it.
 
 | Included | Evidence |
 | --- | --- |
-| One fresh implementer per Task, a short brief (about 1,300 characters in 0.1.0, at most ~1,500 now) + one shared guide | v27 was 16% faster and 37% cheaper than v26. All four models recommended it |
+| One fresh implementer per Task, a short brief (about 1,300 characters in 0.1.0, about 2,000 now) + one shared guide | v27 was 16% faster and 37% cheaper than v26. All four models recommended it |
 | Tests first (implement after seeing the failure) | User requirement. Every run left 53-195 of its own tests |
 | One review per Task, no re-review | User requirement. v26's review round trips took 2.4 hours |
 | One final full review | In v26 only the final review caught cross-task problems. In this task too, the final review alone caught the same defect |

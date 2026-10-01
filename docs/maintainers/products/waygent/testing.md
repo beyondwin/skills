@@ -52,7 +52,7 @@ The required evidence is `python3 scripts/verify.py --skill waygent`. Its stages
 - `guide.md`: test, lint, and build or typecheck commands, the build step in the fast
   check, `app: <how to start>` or `app: none (<why>)`, generated paths in
   `.git/info/exclude`, at most ~60 lines, global rules verbatim only if they fit, traps
-  appended later; the brief at most ~2,000 characters; `walk=<ok|none (<why>)>`
+  appended later; the brief about 2,000 characters, rulings and dependencies kept when longer; `walk=<ok|none (<why>)>`
 - limits: a subagent's transient 429 is redispatched once, the controller's own usage
   limit appends `paused: limit`; the reviewer asks carry a pasted stop line
 - `SKILL.md` under 165 lines

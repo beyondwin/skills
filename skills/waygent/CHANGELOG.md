@@ -4,6 +4,15 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 0.3.2 - 2026-10-02
+
+### Changed
+
+- The implementer brief is about 2,000 characters, not at most: recorded rulings and
+  dependencies stay in even when that runs longer. In the 2026-10-01 live runs every
+  Task 3 brief ran 2,275-2,319 characters because of rulings the task needed, with no
+  harm.
+
 ## 0.3.1 - 2026-10-01
 
 ### Fixed

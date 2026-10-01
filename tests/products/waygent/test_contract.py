@@ -175,7 +175,8 @@ class WaygentContractTests(unittest.TestCase):
         self.assertIn("verbatim only if they fit", self.lowered)
         self.assertIn("append traps found later", self.lowered)
         self.assertIn("`.git/info/exclude`", self.text)
-        self.assertIn("at most ~2,000 characters", self.lowered)
+        self.assertIn("brief, about 2,000 characters;", self.lowered)
+        self.assertIn("recorded rulings and dependencies stay in", self.lowered)
 
     def test_limits_and_reviewer_paste_line(self) -> None:
         self.assertIn("a subagent's transient 429: redispatch it once", self.lowered)

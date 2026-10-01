@@ -4,8 +4,8 @@ description: Use only when the user message contains /waygent or $waygent. Runs 
 license: Apache-2.0
 compatibility: Requires a Git repository and a host with a subagent tool (Claude Code Agent tool, Codex spawn_agent with multi_agent enabled, Cursor Agent Task tool, or Grok Build spawn_subagent). Works with or without a plan file.
 metadata:
-  version: "0.3.1"
-  updated_at: "2026-10-01"
+  version: "0.3.2"
+  updated_at: "2026-10-02"
 ---
 
 # waygent
@@ -64,7 +64,8 @@ Otherwise start:
 
 1. `BASE=$(git rev-parse HEAD)`. Append `task N: start base=<sha7>`.
 2. Dispatch one implementer. Never two subagents at once, reviewers included; wait for
-   each to report before the next dispatch or message. Brief, at most ~2,000 characters:
+   each to report before the next dispatch or message. Brief, about 2,000 characters;
+   recorded rulings and dependencies stay in even when that runs longer:
 
    ```
    Task N of M: <title>. Read <P>/guide.md first. Plan: <path>, section "<task heading>".
