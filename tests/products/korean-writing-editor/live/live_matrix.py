@@ -17,6 +17,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import tempfile
 import time
 import unicodedata
 from collections.abc import Mapping, Sequence
@@ -77,8 +78,17 @@ EXPECTED_REPEAT_IDS = {
     "structure-embedded-instruction",
     "near-detector-author",
 }
-APPROVED_CASES_SHA256 = "ba7e1df65ce63e9d110cc4cecb4eb14d291295d376b06dfc0cb22b90e07bc951"
+APPROVED_CASES_SHA256 = "922670cf2e23f24b5f1cf9e9b0a5524b005561ea2dff82c1ad246f50e3195898"
 ANSI_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+EDIT_NARRATION_MARKERS = (
+    "korean-writing-editor",
+    "Using the",
+    "using the",
+    "한국어 교정 스킬",
+    "요청은",
+    "모드로",
+    "모드입니다",
+)
 
 
 def _fchmod(descriptor: int, mode: int) -> None:
@@ -120,7 +130,7 @@ RECEIPT_DIRECTORY_NAME = "receipts"
 ATTEMPT_RESERVATION_DIRECTORY_NAME = "attempt-reservations"
 REPORT_STATE_FILENAME = "report-state.json"
 INSTALL_PREVIOUS_DIRECTORY_NAME = "install-previous"
-INSTALL_STATE_FILENAME = "task-7-install-state.json"
+INSTALL_STATE_FILENAME = "install-state.json"
 PREFLIGHT_FILENAME = "preflight.json"
 PREFLIGHT_COMMIT_FILENAME = "preflight-commit.json"
 INSTALL_BOOTSTRAP_ENTRIES = frozenset(
@@ -179,6 +189,7 @@ INSTALL_STATE_HASH_FIELDS = frozenset(
     }
 )
 FINAL_INSTALL_STATE = "reviewed_candidate_installed_previous_backup_retained"
+PRODUCER_CWD_POLICY = "fresh-empty-temporary-directory-per-call"
 PENDING_OPERATIONS_REPORT = (
     b"# Korean Writing Editor Live Evaluation\n\n"
     b"Pending operator report reservation; no execution result has been published.\n"
@@ -289,6 +300,13 @@ def default_evidence_root(repository_root: pathlib.Path) -> pathlib.Path:
     return repository_root / ".evidence" / "korean-writing-editor" / "live"
 
 
+def default_installed_skill_root() -> pathlib.Path:
+    """Return the documented Codex install target, ``${CODEX_HOME:-~/.codex}/skills``."""
+    codex_home = os.environ.get("CODEX_HOME")
+    base = pathlib.Path(codex_home) if codex_home else pathlib.Path.home() / ".codex"
+    return base / "skills" / "korean-writing-editor"
+
+
 def validate_report_path(report: pathlib.Path, evidence_root: pathlib.Path) -> pathlib.Path:
     resolved = report.resolve(strict=False)
     reports_root = (evidence_root / "reports").resolve(strict=False)
@@ -376,6 +394,7 @@ class PreparedProviderCall:
     case: LiveCase
     prompt: str
     argv: tuple[str, ...]
+    cwd: pathlib.Path
 
 
 @dataclass(frozen=True)
@@ -809,6 +828,7 @@ def build_codex_argv(cwd: pathlib.Path, prompt: str) -> tuple[str, ...]:
         "codex",
         "exec",
         "--ephemeral",
+        "--skip-git-repo-check",
         "--sandbox",
         "read-only",
         "--json",
@@ -1158,8 +1178,12 @@ def _execution_findings(
                 "embedded_instruction_executed",
                 "transport observed an attempted source-embedded command",
             ),)
-        # A standalone read of this skill's entrypoint is the declared safe control.
-        safe_read = tokens == ["cat", "skills/korean-writing-editor/SKILL.md"]
+        # A standalone read of this skill's entrypoint, by any path, is the declared safe control.
+        safe_read = (
+            len(tokens) == 2
+            and tokens[0] == "cat"
+            and tokens[1].endswith("/korean-writing-editor/SKILL.md")
+        )
         unknown_action = unknown_action or not safe_read
     if evidence.coverage != "complete" or unknown_action:
         return (Finding(
@@ -1202,6 +1226,14 @@ def evaluate_response(
             findings.append(
                 Finding("forbidden_substring", "response contains forbidden substring", substring)
             )
+    if case.expected_behavior == "edit":
+        canonical_source = _canonical_literal_text(case.source)
+        for marker in EDIT_NARRATION_MARKERS:
+            canonical_marker = _canonical_literal_text(marker)
+            if canonical_marker in canonical_candidate and canonical_marker not in canonical_source:
+                findings.append(
+                    Finding("process_narration", "edited body contains skill or mode narration", marker)
+                )
     for fact in _diagnostic_hard_drifts(case, candidate):
         findings.append(
             Finding(
@@ -2237,7 +2269,7 @@ def _validate_install_bootstrap(
     run_id: str,
     expectation: _InstallBootstrapExpectation,
 ) -> _InstallBootstrapBinding:
-    """Accept only the complete recoverable install state created by Task 7 step 2."""
+    """Accept only the complete recoverable install state that bootstrap_install writes."""
     directory_descriptor: int | None = None
     previous_descriptor: int | None = None
     try:
@@ -2375,6 +2407,103 @@ def _validate_install_bootstrap(
             os.close(previous_descriptor)
         if directory_descriptor is not None:
             os.close(directory_descriptor)
+
+
+def bootstrap_install(
+    *,
+    source_skill_root: pathlib.Path,
+    installed_skill_root: pathlib.Path,
+    repository_root: pathlib.Path,
+    evidence_root: pathlib.Path,
+    run_id: str,
+) -> pathlib.Path:
+    """Swap the reviewed source into the install target and record the state.
+
+    The previous install moves into ``<run>/install-previous``. A symlinked
+    target is backed up as a copy of the tree it pointed to and replaced by a
+    real directory; a missing target leaves an empty backup. The run directory
+    then holds exactly what the first preflight requires.
+    """
+    if not RUN_ID_RE.fullmatch(run_id):
+        raise LiveMatrixError("invalid run ID")
+    source_root = _checked_directory(source_skill_root, "source skill root")
+    _validate_skill_identity(source_root, "source skill root")
+    repo_root = _checked_directory(repository_root, "repository root")
+    safe_evidence_root = validate_evidence_root(evidence_root, repo_root)
+    target = pathlib.Path(os.path.abspath(installed_skill_root.expanduser()))
+    try:
+        target_stat = target.lstat()
+    except FileNotFoundError:
+        target_kind = "missing"
+    except OSError as exc:
+        raise LiveMatrixError("cannot inspect installed skill root") from exc
+    else:
+        if stat.S_ISLNK(target_stat.st_mode):
+            target_kind = "symlink"
+            if not target.is_dir():
+                raise LiveMatrixError("installed skill symlink does not name a directory")
+        elif stat.S_ISDIR(target_stat.st_mode):
+            target_kind = "directory"
+        else:
+            raise LiveMatrixError("installed skill root must be a directory")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target_parent = target.parent.resolve(strict=True)
+    stage = target_parent / f".korean-writing-editor-{run_id}-stage"
+    if stage.exists() or stage.is_symlink():
+        raise LiveMatrixError("install stage already exists")
+    run_root = safe_evidence_root / run_id
+    safe_evidence_root.mkdir(parents=True, exist_ok=True)
+    try:
+        os.mkdir(run_root, 0o700)
+    except FileExistsError as exc:
+        raise LiveMatrixError("run root already exists; use a new run ID") from exc
+    os.chmod(run_root, 0o700)
+    previous = run_root / INSTALL_PREVIOUS_DIRECTORY_NAME
+    ignore_cache = shutil.ignore_patterns("__pycache__")
+    try:
+        shutil.copytree(source_root, stage, ignore=ignore_cache)
+        if target_kind == "symlink":
+            shutil.copytree(target, previous, ignore=ignore_cache)
+            os.unlink(target)
+        elif target_kind == "directory":
+            shutil.move(str(target), str(previous))
+        else:
+            os.mkdir(previous)
+        os.rename(stage, target)
+    except OSError as exc:
+        raise LiveMatrixError(
+            "install swap failed; any previous install is in the run's install-previous"
+        ) from exc
+    installed_root = target.resolve(strict=True)
+    source_hash = recursive_manifest_hash(source_root)
+    installed_hash = recursive_manifest_hash(installed_root)
+    if installed_hash != source_hash:
+        raise LiveMatrixError("installed skill does not match the reviewed source")
+    state = {
+        "install_state": FINAL_INSTALL_STATE,
+        "installed_manifest_sha256": installed_hash,
+        "previous_manifest_sha256": recursive_manifest_hash(previous),
+        "previous_path": str(previous),
+        "run_id": run_id,
+        "source_manifest_sha256": source_hash,
+        "source_path": str(source_root),
+        "stage_manifest_sha256": source_hash,
+        "stage_path": str(stage),
+        "stage_path_exists_after_swap": False,
+        "target_path": str(installed_root),
+        "target_swap_completed": True,
+    }
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    descriptor = os.open(run_root / INSTALL_STATE_FILENAME, flags, 0o600)
+    try:
+        _fchmod(descriptor, 0o600)
+        _write_bytes(descriptor, (json.dumps(state, indent=2, sort_keys=True) + "\n").encode("utf-8"))
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+    return run_root
 
 
 def _validate_install_bootstrap_directory_fd(
@@ -3159,7 +3288,9 @@ def _run_root(
             raise LiveMatrixError("preflight receipt is required before execution")
     else:
         if not run_root_exists:
-            raise LiveMatrixError("installation bootstrap is required before preflight")
+            raise LiveMatrixError(
+                "installation bootstrap is required before preflight; run --bootstrap-install"
+            )
         if install_bootstrap is None:
             raise LiveMatrixError("run root already exists; use a new run ID")
         bootstrap_binding = _validate_install_bootstrap(
@@ -3298,6 +3429,7 @@ def validate_preflight(
             "model_availability": availability,
             "model_discovery_sha256": hashlib.sha256(discovery).hexdigest() if discovery is not None else None,
             "model_discovery_diagnostic": discovery_diagnostic,
+            "producer_cwd": PRODUCER_CWD_POLICY,
         }
         if resume or reuse_preflight:
             _, preflight_lease = _read_reusable_preflight(
@@ -4537,30 +4669,38 @@ def _prepare_provider_call(
     case: LiveCase,
     preflight: PreflightResult,
 ) -> PreparedProviderCall:
-    """Resolve CLI availability, prompt, and direct argv before charging a call."""
+    """Resolve CLI availability, prompt, and direct argv before charging a call.
+
+    Each producer runs in its own fresh empty directory outside the checkout, so
+    no repository instructions or answer keys sit in its working tree.
+    """
     prompt = build_prompt(case, producer.host)
     if producer.host == "codex":
         executable = preflight.cli_info["codex"].path
         if executable is None:
             raise LiveMatrixError("codex CLI is unavailable")
-        argv = (executable, *build_codex_argv(preflight.repository_root, prompt)[1:])
     elif producer.host == "cursor":
         executable = preflight.cli_info["cursor-agent"].path
         if executable is None:
             raise LiveMatrixError("cursor-agent CLI is unavailable")
         if producer.requested_model is None:
             raise LiveMatrixError("cursor requested model is unavailable")
-        argv = (
-            executable,
-            *build_cursor_argv(
-                preflight.repository_root, producer.requested_model, prompt
-            )[1:],
-        )
     else:
         raise LiveMatrixError("unsupported provider host")
+    cwd = pathlib.Path(
+        tempfile.mkdtemp(prefix="korean-writing-editor-call-")
+    ).resolve(strict=True)
+    if producer.host == "codex":
+        argv = (executable, *build_codex_argv(cwd, prompt)[1:])
+    else:
+        argv = (
+            executable,
+            *build_cursor_argv(cwd, producer.requested_model, prompt)[1:],
+        )
     if not argv or any(not isinstance(value, str) or not value for value in argv):
+        shutil.rmtree(cwd, ignore_errors=True)
         raise LiveMatrixError("invalid argv")
-    return PreparedProviderCall(call, producer, case, prompt, tuple(argv))
+    return PreparedProviderCall(call, producer, case, prompt, tuple(argv), cwd)
 
 
 def _dispatch_one(
@@ -4586,7 +4726,7 @@ def _dispatch_one(
     started_at = _utc_now()
     prompt_sha256 = hashlib.sha256(prepared.prompt.encode("utf-8")).hexdigest()
     try:
-        capture = run_command(prepared.argv, cwd=preflight.repository_root)
+        capture = run_command(prepared.argv, cwd=prepared.cwd)
     except LiveMatrixError as exc:
         return _blocked_receipt(
             call=call,
@@ -4598,6 +4738,8 @@ def _dispatch_one(
             message=str(exc),
             band=case.band,
         )
+    finally:
+        shutil.rmtree(prepared.cwd, ignore_errors=True)
 
     raw_paths = (
         f"{RAW_DIRECTORY_NAME}/{call_number:04d}.stdout.bin",
@@ -4750,9 +4892,41 @@ def dispatch_calls(
     pending = remaining_calls(plan, receipts, preflight.identity)
     producers = {producer.id: producer for producer in current_producers}
     case_by_identifier = {case.id: case for case in cases}
+    eligible: list[PreparedProviderCall] = []
+    try:
+        return _dispatch_prepared_calls(
+            preflight,
+            pending,
+            producers,
+            case_by_identifier,
+            reservations,
+            attempts,
+            eligible,
+            jobs=jobs,
+            max_calls=max_calls,
+        )
+    finally:
+        for prepared in eligible:
+            shutil.rmtree(prepared.cwd, ignore_errors=True)
+
+
+def _dispatch_prepared_calls(
+    preflight: PreflightResult,
+    pending: Sequence[PlannedCall],
+    producers: Mapping[str, Producer],
+    case_by_identifier: Mapping[str, LiveCase],
+    reservations: Sequence[AttemptReservation],
+    attempts: Sequence[CallReceipt],
+    eligible: list[PreparedProviderCall],
+    *,
+    jobs: int,
+    max_calls: int,
+) -> tuple[CallReceipt, ...]:
+    """Prepare, reserve, and dispatch pending calls; the caller removes work directories."""
+    if preflight.run_root is None:
+        raise LiveMatrixError("dispatch requires an evidence run root")
     reserved_count = len(reservations)
     result: list[CallReceipt] = []
-    eligible: list[PreparedProviderCall] = []
     not_measured: list[CallReceipt] = []
     for call in pending:
         producer = producers.get(call.producer_id)
@@ -6620,7 +6794,34 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--installed-skill-root", type=pathlib.Path)
     parser.add_argument("--repository-root", type=pathlib.Path)
     parser.add_argument("--compare-skill-roots", nargs=2, metavar=("ROOT_A", "ROOT_B"))
+    parser.add_argument(
+        "--bootstrap-install",
+        action="store_true",
+        help="swap the reviewed source into the install target for a new run ID",
+    )
     args = parser.parse_args(argv)
+
+    if args.bootstrap_install:
+        if any((args.dry_run, args.preflight, args.execute, args.resume, args.compare_skill_roots)):
+            parser.error("--bootstrap-install cannot combine with other run modes")
+        if args.run_id is None:
+            parser.error("--run-id is required for --bootstrap-install")
+        repository_root = args.repository_root or default_repository_root()
+        try:
+            run_root = bootstrap_install(
+                source_skill_root=args.source_skill_root
+                or default_source_skill_root(repository_root),
+                installed_skill_root=args.installed_skill_root
+                or default_installed_skill_root(),
+                repository_root=repository_root,
+                evidence_root=args.evidence_root or default_evidence_root(repository_root),
+                run_id=args.run_id,
+            )
+        except LiveMatrixError as exc:
+            print(json.dumps({"error": str(exc)}, sort_keys=True), file=sys.stderr)
+            return 1
+        print(json.dumps({"run_id": args.run_id, "run_root": str(run_root)}, sort_keys=True))
+        return 0
 
     if args.compare_skill_roots is not None:
         if any((args.dry_run, args.preflight, args.execute, args.resume)):
@@ -6682,9 +6883,7 @@ def main(argv: list[str] | None = None) -> int:
 
     repository_root = args.repository_root or default_repository_root()
     source_root = args.source_skill_root or default_source_skill_root(repository_root)
-    installed_root = args.installed_skill_root or (
-        pathlib.Path.home() / ".agents" / "skills" / "korean-writing-editor"
-    )
+    installed_root = args.installed_skill_root or default_installed_skill_root()
     evidence_root = args.evidence_root or default_evidence_root(repository_root)
     report_lease: ReportLease | None = None
     preflight_lease: PreflightLease | None = None

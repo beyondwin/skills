@@ -10,7 +10,9 @@ in the installed files.
 
 An explicit call is `$korean-writing-editor` or `/korean-writing-editor` with
 Korean source text. Implicit activation is allowed only when there is both a
-proofreading or polishing request and Korean text the user supplied.
+proofreading or polishing request and Korean text the user supplied. An
+explicit call with no source text and no excluded task asks once for the text
+in one short Korean line.
 
 A valid request defaults to conservative `polish`.
 
@@ -28,22 +30,26 @@ The real trigger phrases are Korean; `SKILL.md` holds them.
 - A grammar fix that needs a guess about the subject, register, or meaning is
   not applied; the hold rule applies instead.
 
-Model tiers are `fast`, `balanced`, and `frontier`. Do not hard-code provider
-model names. Do not call a classifier model.
+There is no model tier routing. The skill uses the active model; it does not
+chain rewrites, run a panel, call a classifier model, or launch an external
+provider CLI, and it answers `routing unavailable` when asked about routing.
 
 ## Output
 
 - In `correct` and `polish`, the default output is the edited text only. The
   first character belongs to that text.
-- In `diagnose`, the default output is the findings. The first line names an
-  issue, class, or hold.
-- Do not attach a rewritten draft, rubric, change list, score, routing
-  receipt, or "using the skill" narration. Add the short hold note defined in
-  `SKILL.md` only when a real hold is needed.
+- In `diagnose`, the default output is the findings only, never a rewritten
+  draft or the unchanged source. The first line names an issue, class, or
+  hold. Clean text gets a one-line "nothing to fix" reply.
+- Do not attach a rubric, change list, score, routing receipt, or "using the
+  skill" narration. Add the short hold line defined in `SKILL.md` only when a
+  real hold is needed; it comes after the edited text.
 - A non-editing request (translation, drafting, and so on) gets a refusal only.
   Do not do that other job in the same turn.
-- Replacing an already-correct expression with a synonym is reverted in both
-  `correct` and `polish`.
+- Already-correct negation, modality, obligation, possibility, quantity, and
+  attribution wording is kept in both `correct` and `polish`. Attribution
+  covers the speaker, the quoted words, and the reporting verb. Ordinary
+  readability swaps stay allowed in `polish`.
 
 ## Diagnostic evidence limits
 
@@ -69,8 +75,9 @@ checks that catch a forbidden rewrite in `diagnose`, stay in place.
 - Do not store user Korean text as fixtures, logs, or voice profiles.
 - Do not send text to unofficial web spelling services.
 - Do not look up facts unless the user asks separately.
-- High-stakes text (legal, medical, financial) defaults to mechanical
-  `correct` or `diagnose`.
+- High-stakes text (legal, medical, financial) with no stated mode gets
+  `correct` plus a hold line on the claim. An explicit `polish` changes
+  wording only and keeps the claims verbatim.
 - Live cases use synthetic examples only. Do not commit private manuscripts or
   full transcripts.
 
@@ -81,15 +88,16 @@ Do not put a behavior change in one file only.
 - Trigger or near-miss change (a similar request that must not activate):
   activation text in `skills/korean-writing-editor/SKILL.md`, positive and
   near-miss fixtures in `tests/products/korean-writing-editor/offline/cases.json`,
+  live cases in `tests/products/korean-writing-editor/live/live_cases.json`,
   the product READMEs, and shared public guides.
 - Mode or output change (`diagnose`, `correct`, `polish`, edited-text-only
   output, hold marking): `SKILL.md`,
-  `skills/korean-writing-editor/references/editorial-guide.md`, fixtures, and
-  public guides.
-- Model tier change (`fast`, `balanced`, `frontier`, routing, delegation):
-  routing fixtures in `tests/products/korean-writing-editor/offline/cases.json`
-  and public guides. Do not hard-code provider model names or call a
-  classifier model.
+  `skills/korean-writing-editor/references/editorial-guide.md`, offline
+  fixtures, `live/live_cases.json`, and public guides.
+- Model or routing change: the `## Model` section in `SKILL.md`, the
+  `routing unavailable` check in
+  `tests/products/korean-writing-editor/offline/run.py`, and public guides. Do
+  not hard-code provider model names or call a classifier model.
 - Normative claim change: the authoritative source entry in
   `skills/korean-writing-editor/references/sources.md` and fixtures that hold
   its boundary.

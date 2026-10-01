@@ -23,13 +23,18 @@ RUNNER = (
 )
 CASES = RUNNER.with_name("cases.json")
 EXPECTED_SUMMARY = (
-    "33 cases: normative=10 preservation=8 noop=6 voice=4 trigger=5"
+    "35 cases: normative=10 preservation=8 noop=6 voice=4 trigger=7"
 )
 PAYLOAD_FILES = (
     "SKILL.md",
     "references/editorial-guide.md",
     "references/sources.md",
 )
+
+
+def release_version() -> str:
+    release = tomllib.loads((SKILL_ROOT / "release.toml").read_text(encoding="utf-8"))
+    return release["version"]
 
 
 def run_offline(*extra: str) -> subprocess.CompletedProcess[str]:
@@ -45,9 +50,14 @@ class KoreanPackageTests(unittest.TestCase):
     def test_korean_offline_runner_accepts_explicit_skill_root(self) -> None:
         result = run_offline("--scope", "full", "--skill-root", str(SKILL_ROOT))
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("33 cases:", result.stdout)
         self.assertIn(EXPECTED_SUMMARY, result.stdout)
         self.assertIn("mutation checks: PASS", result.stdout)
+
+    def test_self_test_combines_with_full_scope(self) -> None:
+        result = run_offline("--self-test", "--scope", "full")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("OK", result.stderr)
+        self.assertIn(EXPECTED_SUMMARY, result.stdout)
 
     def test_staged_copy_passes_full_scope(self) -> None:
         self.assertTrue(SKILL_ROOT.is_dir(), "installed payload is absent")
@@ -77,17 +87,19 @@ class KoreanPackageTests(unittest.TestCase):
                         self.assertTrue(resolved.is_relative_to(staged.resolve()))
                         self.assertTrue(resolved.is_file())
 
-    def test_release_target_and_skill_version_are_205(self) -> None:
-        release = tomllib.loads(
-            (SKILL_ROOT / "release.toml").read_text(encoding="utf-8")
-        )
-        self.assertEqual(release["version"], "2.0.5")
+    def test_skill_version_and_changelog_follow_release_target(self) -> None:
+        version = release_version()
+        self.assertRegex(version, r"^\d+\.\d+\.\d+$")
         self.assertIn(
-            'version: "2.0.5"',
+            f'version: "{version}"',
             (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8"),
         )
         changelog = (SKILL_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-        self.assertRegex(changelog, r"(?m)^## 2\.0\.4 - \d{4}-\d{2}-\d{2}$")
+        self.assertRegex(
+            changelog,
+            rf"(?m)^## (Unreleased|{re.escape(version)} - \d{{4}}-\d{{2}}-\d{{2}})$",
+        )
+        self.assertRegex(changelog, r"(?m)^## \d+\.\d+\.\d+ - \d{4}-\d{2}-\d{2}$")
 
     def test_full_scope_rejects_a_broken_readme_link_in_a_copied_payload(
         self,
@@ -113,7 +125,7 @@ class KoreanPackageTests(unittest.TestCase):
         self.assertIn("name: korean-writing-editor", text)
         self.assertIn("license: Apache-2.0", text)
         self.assertIn("compatibility:", text)
-        self.assertIn('version: "2.0.5"', text)
+        self.assertIn(f'version: "{release_version()}"', text)
         for relative in PAYLOAD_FILES:
             self.assertTrue(
                 (SKILL_ROOT / relative).is_file(),
@@ -132,7 +144,7 @@ class KoreanPackageTests(unittest.TestCase):
         self.assertTrue(CASES.is_file(), "cases.json is absent")
         payload = json.loads(CASES.read_text(encoding="utf-8"))
         self.assertEqual(payload["version"], "1")
-        self.assertEqual(len(payload["cases"]), 33)
+        self.assertEqual(len(payload["cases"]), 35)
         runner_text = RUNNER.read_text(encoding="utf-8")
         self.assertIn("--skill-root", runner_text)
         self.assertIn('with_name("cases.json")', runner_text)

@@ -12,7 +12,8 @@ sentences. Meaning, voice, names, dates, and numbers stay the same.
 Use it when you have Korean text and want it corrected or polished.
 
 Do not use `korean-writing-editor` for translation, drafting, summaries,
-code review, casual chat, AI-authorship detection, or detector evasion.
+general writing or Korean-learning advice, code review, casual chat,
+AI-authorship detection, detector evasion, or imitating a named author.
 
 ## Supported hosts
 
