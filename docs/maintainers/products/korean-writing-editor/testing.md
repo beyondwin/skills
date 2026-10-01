@@ -43,12 +43,12 @@ dated CHANGELOG entry, and rejection of a broken README link together.
   check.
 - `trigger-diagnose-05` is `diagnose` findings. It fails if it has a rewritten
   draft, the unchanged source, or a process preamble.
-- `trigger-diagnose-clean-07` is `diagnose` on clean text: one line such as
-  `고칠 부분 없음`. Returning the unchanged source fails.
+- `trigger-diagnose-clean-07` is `diagnose` on clean text: one "nothing to
+  fix" line. Returning the unchanged source fails.
 - `trigger-explicit-no-text-06` is an explicit call with no source text. The
   reply asks once for the text; a no-op handoff fails.
 - `meaning-quote-07` keeps the speaker, the quoted words, and the reporting
-  verb `말했다`. Changing the verb to `밝혔다` fails its mutation check.
+  verb. Swapping the reporting verb fails its mutation check.
 - Each of these mutations must also fail: the English and Korean skill-usage
   preambles on `norm-spacing-can-01`, the possibility-to-maybe substitution on
   `meaning-negation-01`, and refuse-then-translate on

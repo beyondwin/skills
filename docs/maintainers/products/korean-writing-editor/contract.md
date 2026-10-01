@@ -40,10 +40,10 @@ provider CLI, and it answers `routing unavailable` when asked about routing.
   first character belongs to that text.
 - In `diagnose`, the default output is the findings only, never a rewritten
   draft or the unchanged source. The first line names an issue, class, or
-  hold. Clean text gets one line such as `고칠 부분 없음`.
+  hold. Clean text gets a one-line "nothing to fix" reply.
 - Do not attach a rubric, change list, score, routing receipt, or "using the
-  skill" narration. Add the short `확인 필요` hold line only when a real hold
-  is needed; it comes after the edited text.
+  skill" narration. Add the short hold line defined in `SKILL.md` only when a
+  real hold is needed; it comes after the edited text.
 - A non-editing request (translation, drafting, and so on) gets a refusal only.
   Do not do that other job in the same turn.
 - Already-correct negation, modality, obligation, possibility, quantity, and
@@ -76,7 +76,7 @@ checks that catch a forbidden rewrite in `diagnose`, stay in place.
 - Do not send text to unofficial web spelling services.
 - Do not look up facts unless the user asks separately.
 - High-stakes text (legal, medical, financial) with no stated mode gets
-  `correct` plus a `확인 필요` line on the claim. An explicit `polish` changes
+  `correct` plus a hold line on the claim. An explicit `polish` changes
   wording only and keeps the claims verbatim.
 - Live cases use synthetic examples only. Do not commit private manuscripts or
   full transcripts.
