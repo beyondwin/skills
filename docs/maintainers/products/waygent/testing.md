@@ -79,8 +79,9 @@ files' behavior rules change, measure again with that harness.
 
 The harness drives `claude -p`, where controllers set `run_in_background: false` and
 every dispatch returns inline. Interactive Claude Code sessions may not offer that
-flag, and then every dispatch returns in the background. The harness has not measured
-that mode or the one-subagent-at-a-time wait in it; that needs an interactive run.
+flag, and then every dispatch returns in the background. The harness does not cover
+that mode; on 2026-10-02 one interactive session driven through tmux measured it (see
+[compatibility](compatibility.md)).
 The harness also runs without `--effort`, so its Claude Code controllers and
 same-model subagents ran at medium effort.
 
@@ -89,4 +90,10 @@ seeds stale state (trailer commits from an earlier run on the branch, a finished
 `.waygent/` folder), and stops a run at a chosen point (the first new trailer commit,
 or `reviews/final.md` written without `final: done`). It measured run scoping, `/waygent`
 alone with a finished folder, and a resume inside the final phase; the numbers are in
-[compatibility](compatibility.md).
+[compatibility](compatibility.md). The 2026-10-02 check added a resume with the final
+fixes already committed, full runs with a docs-only task, and the interactive run.
+
+Not changed, by decision: a plan task that must end uncommitted has no rule of its own.
+One real plan asked for it (1 of 601 plans found), and the controller handled it with a
+recorded ruling and one commit carrying both trailers, as the Input section allows. A
+bundling rule would also conflict with sddx's one-task-per-worker contract.
