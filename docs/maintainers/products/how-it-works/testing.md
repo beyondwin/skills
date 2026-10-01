@@ -129,9 +129,12 @@ prompts, or credentials.
 Format probe for the inlined reply skeleton (3.0.2), on macOS with Claude Code 2.1.284.
 Each run used a fresh Git repo with the skill copied to `<repo>/.claude/skills/how-it-works/`
 and `claude -p --setting-sources project --strict-mcp-config` (a pilot with a marker line
-confirmed that only the project copy loads). Before = the 3.0.1 text (`SKILL.md`
-`e00d4e05`); after = the 3.0.2 text (`e589d7bb`; an intermediate after text `be952cba`
-printed bilingual labels on Haiku and was replaced). Scoring: `observe_text` (fence,
+confirmed that only the project copy loads). Before = the shipped 3.0.1 text
+(`SKILL.md` `be952cba`). P1 and P2 "after" ran an intermediate 3.0.2 text
+(`e00d4e05`) whose skeleton printed Korean / English labels side by side; Haiku
+echoed both, so the skeleton was made one-language with the intent line first. P3
+"after" ran that final text (`e589d7bb`, the shipped `a89cd5d3` apart from
+`metadata.version` and `updated_at`). Scoring: `observe_text` (fence,
 hop ids), the `# … · <rung>` title, the four section headings, the next-move line,
 reference reads from the stream, and sentence endings.
 
