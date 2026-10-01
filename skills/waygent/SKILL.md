@@ -20,7 +20,8 @@ in a dispatch, no whole diffs, and whole files only once at start, for repo trap
 - `/waygent <request>` with no plan: write a numbered task list (goal, files, done-check
   per task) into the progress file, show it, ask once to proceed; it is the plan now.
 - `/waygent` alone: resume the one folder under `.waygent/` whose progress has no
-  `final: done`; several: ask once; no folder at all: rebuild from this branch's trailers.
+  `final: done`; several: ask once; no folder at all: rebuild from this branch's trailers
+  (slug from the branch name, else ask once).
 - Ask only when docs and code contradict each other, or a choice changes what the
   user will see. Everything else: decide, and record the ruling in progress.
 
@@ -49,8 +50,8 @@ If `$P/progress.md` exists, or on `/waygent` alone, resume:
 Otherwise start:
 - If on `main` or `master`, create `waygent/<plan-slug>` unless the user named a branch.
   Never commit to `main` or `master`. Never push, merge, or open a PR unless asked.
-- Write `$P/progress.md`: `plan: <path>`, `branch:`, `start: <sha>`, `model: <m/e>`
-  (this session's model and effort as set, else omit effort).
+- Write `$P/progress.md`: `plan: <path>`, `branch:`, `start: <sha>`,
+  `model: <model>/<effort>` (this session's, effort as set, else omit effort).
 - Write `$P/guide.md`, at most ~60 lines: working directory; the exact test, lint, and
   build or typecheck commands (run each once, note the result), split into a fast check
   (with the build step when the repo has one) and the slow rest (one command: it is the
