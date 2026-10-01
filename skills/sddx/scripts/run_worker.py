@@ -493,9 +493,12 @@ def run_worker(options: RunOptions) -> int:
                 metadata_path, stdout_path, stderr_path,
             )
         except KeyboardInterrupt:
-            # Only an interrupt that `_launch` did not handle reaches here, and
-            # it handles every one after the worker exists, so there is no
-            # child to end. Recorded with the same error as a handled one.
+            # Only an interrupt that `_launch` did not handle reaches here: one
+            # before the worker existed, or one after a terminal record
+            # (`exited`, `launch_failed`) was written. That record is kept;
+            # only a `starting` one is rewritten, with no child to end.
+            if metadata.get("state") != "starting":
+                return 130
             with contextlib.suppress(KeyboardInterrupt):
                 metadata.update(
                     state="interrupted",
@@ -613,6 +616,7 @@ def _launch(
                 remember_stream_facts(metadata, stdout_path)
                 metadata.update(
                     state="interrupted",
+                    pid=process.pid,
                     exit_code=process.poll(),
                     ended_at=utc_now(),
                     error=INTERRUPTED_ERROR,
@@ -721,8 +725,9 @@ def _launch(
             write_metadata(metadata_path, metadata)
         except KeyboardInterrupt:
             # One raised inside `Popen` itself has no child handle to end yet;
-            # `run_worker` records it with `pid: null`.
-            if process is None:
+            # `run_worker` records it with `pid: null`. One after the `exited`
+            # record leaves that record to `run_worker`, which keeps it.
+            if process is None or metadata.get("state") == "exited":
                 raise
             return interrupted()
     return code if code >= 0 else 128 - code
@@ -1292,7 +1297,9 @@ def wait_command(
 
     An attempt directory that does not exist yet, under a parent that does, is
     waited for until `start_grace` seconds have passed in this call; then it is
-    a refused launch (exit 2). A missing parent is refused at once.
+    a refused launch (exit 2). So is a directory with no `run.json` yet: a
+    runner stopped between its mkdir and its first record leaves one. A
+    missing parent is refused at once.
     """
     if not math.isfinite(max_seconds) or not 0 < max_seconds <= MAX_WAIT_SECONDS:
         return _blocked(f"max-seconds must be above 0 and at most {MAX_WAIT_SECONDS:g}")
@@ -1306,6 +1313,10 @@ def wait_command(
         if not attempt.is_dir():
             if not attempt.parent.is_dir() or now - started >= start_grace:
                 return _blocked("attempt directory does not exist")
+            summary = _not_started_summary(attempt)
+        elif not os.path.lexists(attempt / METADATA_NAME):
+            if now - started >= start_grace:
+                return _blocked("attempt directory has no run.json")
             summary = _not_started_summary(attempt)
         else:
             try:

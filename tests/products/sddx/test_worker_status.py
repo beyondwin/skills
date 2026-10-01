@@ -1175,6 +1175,43 @@ class WaitStartGraceTests(StatusFixture):
         self.assertGreater(module.DEFAULT_START_GRACE_SECONDS, 0)
         self.assertLessEqual(module.DEFAULT_START_GRACE_SECONDS, 30)
 
+    def test_a_directory_without_a_record_after_the_grace_is_a_refused_launch(self) -> None:
+        # Break: a runner stopped between its mkdir and its first record leaves
+        # a directory with no `run.json`, and `wait` answers exit 3 forever.
+        module = self.load()
+        self.attempt.mkdir()
+        (self.attempt / "brief.md").write_text("brief\n", encoding="utf-8")
+        code, payload, err = self.wait(module, "--start-grace", "0.2", "--max-seconds", "5")
+        self.assertEqual(code, 2)
+        self.assertIsNone(payload)
+        self.assertIn("BLOCKED: attempt directory has no run.json", err)
+
+    def test_a_directory_without_a_record_inside_the_grace_is_not_over(self) -> None:
+        module = self.load()
+        self.attempt.mkdir()
+        code, payload, err = self.wait(module, "--max-seconds", "0.2")
+        self.assertEqual(code, 3)
+        self.assertEqual(err, "")
+        self.assertFalse(payload["over"])
+        self.assertIsNone(payload["state"])
+
+    def test_a_record_that_appears_during_the_grace_is_waited_on(self) -> None:
+        module = self.load()
+        self.attempt.mkdir()
+        polls = {"n": 0}
+        real_sleep = module.time.sleep
+
+        def sleep(seconds):
+            polls["n"] += 1
+            if polls["n"] == 3:
+                self.write_metadata(state="exited", exit_code=0, pid=None)
+            real_sleep(seconds)
+
+        with mock.patch.object(module.time, "sleep", sleep):
+            code, payload, err = self.wait(module, "--start-grace", "5", "--max-seconds", "5")
+        self.assertEqual(code, 0, err)
+        self.assertEqual(payload["state"], "exited")
+
 
 class WaitUnreadableRecordTests(StatusFixture):
     def test_an_unreadable_record_is_blocked_not_a_traceback(self) -> None:

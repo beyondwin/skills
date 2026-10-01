@@ -141,6 +141,8 @@ def extract_task(
     if len(matches) > 1:
         raise ValueError(f"heading {name!r} matches more than one section")
     c_start, c_level, c_title = matches[0]
+    if c_start == start:
+        raise ValueError(f"heading {name!r} is the task section itself")
     c_end = len(lines)
     for other_start, other_level, _ in headings:
         if other_start > c_start and other_level <= c_level:
@@ -170,6 +172,12 @@ def main(argv: list[str] | None = None) -> int:
         return code if isinstance(code, int) else 2
     if args.constraints_heading is not None and not args.global_constraints:
         print("error: --constraints-heading needs --global-constraints", file=sys.stderr)
+        return 2
+    if args.constraints_heading is not None and not args.constraints_heading.strip():
+        print("error: --constraints-heading is blank", file=sys.stderr)
+        return 2
+    if args.constraints_heading == args.heading:
+        print("error: --constraints-heading names the same section as --heading", file=sys.stderr)
         return 2
 
     try:

@@ -342,6 +342,26 @@ class ExtractTaskConstraintsHeadingTests(_ExtractTaskCase):
         self.assertEqual(code, 2)
         self.assertFalse(output.exists())
 
+    def test_cli_blank_named_heading_is_an_argument_error(self) -> None:
+        # Break: `--constraints-heading ""` matches a bare `##` heading.
+        for blank in ("", "   "):
+            with self.subTest(blank=blank), mock.patch("sys.stderr"):
+                code, output = self.cli("--global-constraints", "--constraints-heading", blank)
+                self.assertEqual(code, 2)
+                self.assertFalse(output.exists())
+
+    def test_cli_named_heading_equal_to_the_heading_is_an_argument_error(self) -> None:
+        # Break: the same section is emitted twice, once as the constraints.
+        with mock.patch("sys.stderr"):
+            code, output = self.cli("--global-constraints", "--constraints-heading", "Task 1: 저장")
+        self.assertEqual(code, 2)
+        self.assertFalse(output.exists())
+
+    def test_constraints_that_are_the_task_section_are_refused(self) -> None:
+        plan = "## Global Constraints\n- cap: 5\n".encode("utf-8")
+        with self.assertRaises(ValueError):
+            extract_task(plan, "Global Constraints", global_constraints=True)
+
     def test_cli_missing_named_heading_exits_3(self) -> None:
         with mock.patch("sys.stderr"):
             code, output = self.cli("--global-constraints", "--constraints-heading", "공통 규칙")

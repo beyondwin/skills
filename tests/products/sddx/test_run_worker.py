@@ -1454,6 +1454,102 @@ class WorkerExecutionTests(RunnerFixture):
         self.assertEqual(metadata["runner_pid"], os.getpid())
         self.assert_no_worker_invocation()
 
+    def test_an_interrupt_after_the_exit_is_recorded_keeps_that_record(self) -> None:
+        # Break: a SIGTERM between the `exited` write and the return reaches
+        # the outer handler, which rewrites the finished record as
+        # `interrupted` with `pid` and `exit_code` null.
+        module = self.load()
+
+        def finished_then_interrupted(options, backend, worktree, attempt_dir, rules,
+                                      metadata, metadata_path, *rest):
+            metadata.update(state="exited", pid=4242, exit_code=0, ended_at=module.utc_now())
+            module.write_metadata(metadata_path, metadata)
+            raise KeyboardInterrupt
+
+        with mock.patch.object(module, "_launch", finished_then_interrupted):
+            code = self.invoke(module, self.options(module))
+        self.assertEqual(code, 130)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "exited")
+        self.assertEqual(metadata["pid"], 4242)
+        self.assertEqual(metadata["exit_code"], 0)
+        self.assertIsNone(metadata["error"])
+
+    def test_an_interrupt_after_a_launch_failure_is_recorded_keeps_that_record(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_OK)
+        with self.on_synthetic_path():
+            resolved = dict(module.resolve("grok"))
+        resolved.update(available=False, reason="synthetic")
+        with mock.patch.object(module, "resolve", return_value=resolved):
+            with mock.patch.object(module, "_blocked", side_effect=KeyboardInterrupt):
+                code = self.invoke(module, self.options(module))
+        self.assertEqual(code, 130)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "launch_failed")
+        self.assertIn("synthetic", metadata["error"])
+
+    def test_an_interrupt_after_the_exit_write_inside_the_wait_keeps_exited(self) -> None:
+        # Break: the inner handler turns an `exited` record into `interrupted`.
+        module = self.load()
+        self.write_grok(BEHAVIOUR_OK)
+        real_write = module.write_metadata
+        state = {"raised": False}
+
+        def write_then_interrupt(path, metadata):
+            real_write(path, metadata)
+            if metadata.get("state") == "exited" and not state["raised"]:
+                state["raised"] = True
+                raise KeyboardInterrupt
+
+        with self.pinned_resolver(module):
+            with mock.patch.object(module, "write_metadata", write_then_interrupt):
+                code = self.invoke(module, self.options(module))
+        self.assertEqual(code, 130)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "exited")
+        self.assertEqual(metadata["exit_code"], 0)
+        self.assertIsNotNone(metadata["pid"])
+
+    def test_an_interrupt_before_the_running_record_still_names_the_worker_pid(self) -> None:
+        # Break: an interrupt between `Popen` and the `running` update records
+        # `pid: null`, which reads as "before the worker started".
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SLEEP)
+        started: list[subprocess.Popen] = []
+
+        class PidInterruptingPopen(subprocess.Popen):
+            raised = False
+
+            def __init__(self, *args, **kwargs):
+                self._armed = False
+                super().__init__(*args, **kwargs)
+                started.append(self)
+                self._armed = True
+
+            @property
+            def pid(self):
+                if getattr(self, "_armed", False) and not PidInterruptingPopen.raised:
+                    PidInterruptingPopen.raised = True
+                    raise KeyboardInterrupt
+                return self._real_pid
+
+            @pid.setter
+            def pid(self, value):
+                self._real_pid = value
+
+        with self.pinned_resolver(module):
+            with mock.patch.object(module.subprocess, "Popen", PidInterruptingPopen):
+                code = self.invoke(module, self.options(module))
+        self.assertEqual(len(started), 1)
+        process = started[0]
+        self.addCleanup(lambda: subprocess.Popen.wait(process))
+        self.addCleanup(process.kill)
+        self.assertEqual(code, 130)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "interrupted")
+        self.assertEqual(metadata["pid"], process._real_pid)
+
     @unittest.skipUnless(os.name != "nt", "SIGTERM handling is a POSIX signal convention")
     def test_sigterm_while_the_backend_is_resolved_records_interrupted(self) -> None:
         # Break: the SIGTERM handler is installed only after `resolve()`, so a
