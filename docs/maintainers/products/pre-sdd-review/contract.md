@@ -350,7 +350,7 @@ The next invocation takes the first matching path:
    `start` and prints `Evidence: not_recorded; reason=reused-prior-run`.
 4. Fix what is left: if the last run was a reusable `REVISE`, nothing changed
    as in step 3, and the request asks to fix the handoff, take the
-   continuation: `start`, apply the handoff's minimal fixes as repair pass 1,
+   continuation in default mode: `start`, apply the handoff's minimal fixes as repair pass 1,
    then closure.
 5. Continuation: if the last run was a reusable `REVISE`, the change list
    shows only the design, plan, and ledger, and the user did not ask for a full

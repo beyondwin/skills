@@ -192,8 +192,8 @@ the first match:
    `Anomalies: not_recorded`.
 4. **Fix what is left.** The latest completed run is a reusable `REVISE`,
    nothing changed as step 3 defines it, and the outer request asks to fix the
-   handoff. Take the continuation: call `start`, apply the handoff's minimal
-   fixes as repair pass 1, then run closure.
+   handoff. Take the continuation (Default mode): call `start`, apply the
+   handoff's minimal fixes as repair pass 1, then run closure.
 5. **Only the documents changed.** Take the continuation (Default mode) when
    the latest completed run is `REVISE` with a reusable `execution`, the
    change list is docs-only, the documents' diff since the run's `sha_end` can

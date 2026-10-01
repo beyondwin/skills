@@ -1158,7 +1158,7 @@ class PreSddReviewContractTests(unittest.TestCase):
             "Send nothing to a running reviewer except the one missing-fields re-ask",
             "close each reviewer once its records are in (Codex: `close_agent`)",
             "Edit no reviewed document before `start`, except the step-2 decision record and campaign pre-pass repairs",
-            "Take the continuation: call `start`, apply the handoff's minimal fixes as repair pass 1, then run closure",
+            "Take the continuation (Default mode): call `start`, apply the handoff's minimal fixes as repair pass 1, then run closure",
         ):
             self.assertIn(phrase, skill)
         self.assertIn("If `HEAD` moves off the freeze before the verdict", freshness)
