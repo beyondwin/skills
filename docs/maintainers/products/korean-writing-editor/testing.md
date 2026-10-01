@@ -107,6 +107,45 @@ approved 160-call result.
 - Before a paid call (dispatch), reserve the state that matches the report
   target. Do not use the final report write as the first ownership claim.
 
+## Codex smoke, 2026-10-01
+
+A direct probe on macOS with Codex CLI 0.157.1, `codex exec --json`, model
+`gpt-6-astra` with `model_reasoning_effort="high"` (the config default model is
+refused for `codex exec` on a ChatGPT account). It is not a runner 18 baseline: no
+reservation, receipt, or reviewer step, and the responses were judged by reading
+them. Prompts were synthetic and are not stored.
+
+Output contract, before and after the 2.0.6 text. Each run used a fresh empty
+working directory and a copy of the skill passed by path (`SKILL.md` `3b8fca30` for
+2.0.5, `b655ab67` for 2.0.6), so no repository `AGENTS.md` was loaded. Two runs per
+cell; every run read the pinned `SKILL.md`.
+
+| Case | 2.0.5 | 2.0.6 |
+| --- | --- | --- |
+| `diagnose` on clean text | a free-form "no problem" sentence (2/2) | the one-line no-issue reply `SKILL.md` names (2/2) |
+| high-stakes contract clause, no mode | corrected text only (2/2) | corrected text, then a needs-check line (2/2) |
+| explicit call with no text | asks for the text (2/2) | asks for the text (2/2) |
+| `polish` keeps a reporting verb | kept (2/2) | kept (2/2) |
+| `correct` on an obligation sentence | exact expected sentence (2/2) | exact expected sentence (2/2) |
+| explicit call asking for translation | refuses, no English (2/2) | refuses, no English (2/2) |
+
+Discovery and activation, with the installed skill (`~/.agents/skills` link to
+this checkout, 2.0.5 text; the activation bounds did not change in 2.0.6):
+
+- explicit `$korean-writing-editor`: the rollout carries the installed `SKILL.md`
+  as an injected skill block, and the reply is the corrected sentence (1/1 checked
+  in a saved rollout, 2/2 replies correct);
+- explicit `/korean-writing-editor`: the agent reads the installed `SKILL.md` and
+  replies with the corrected sentence (2/2);
+- implicit spelling request with no skill name: the skill loads and the reply is
+  the corrected sentence (2/2);
+- near-miss translation request with no skill name: the skill does not load and
+  Codex translates normally (2/2).
+
+Limits: n = 2 per cell; one model and effort; the 2.0.5-to-2.0.6 difference shows
+in two of six cases, and the other four already passed on 2.0.5. The runner 18
+baseline has still not been executed.
+
 ## Commands
 
 ```bash

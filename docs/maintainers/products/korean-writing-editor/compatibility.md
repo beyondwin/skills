@@ -31,6 +31,11 @@ commit user Korean text, provider responses, or credentials.
 Follow [Testing](testing.md) and
 `tests/products/korean-writing-editor/live/README.md` for the procedure.
 
+The four Codex smokes were run on 2026-10-01 with a direct probe (discovery,
+`$` and `/` explicit calls, an implicit call and a near-miss, and the output
+contract); see [Testing](testing.md), "Codex smoke, 2026-10-01". That probe is not
+a runner 18 baseline.
+
 Run evidence comes from runner 18 (live runner version 18). Receipts from
 older runners are rejected as malformed and cannot start or resume a run. A new
 run needs a new run ID.
