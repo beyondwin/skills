@@ -246,6 +246,64 @@ both times. `execution` now describes the review, not the verdict, so `full`
 (a reviewer ran) is the intended label for both. n=1 per cell; not a quality
 measurement.
 
+### Live record, 2026-10-01
+
+Same harness as the 2026-09-30 records: a fresh synthetic Git repository per
+run, an empty `PRE_SDD_REVIEW_HOME`, and a pinned copy of the skill. Claude
+Code 2.1.284 (`claude -p`, Opus 5.5, effort high) loaded the copy from the
+repository's `.claude/skills/` with `--setting-sources project` and was
+invoked with `/pre-sdd-review`. Codex CLI 0.157.1 (`codex exec`,
+`gpt-6-astra`, effort high; the configured default `gpt-6.1-sol` is refused
+for this account) was told to read the copy by path, with no
+`$pre-sdd-review` mention, and no rollout holds a `<skill>` block for this
+skill or reads the native install. SKILL.md SHA-256 `bb5926aa0f97` in every
+run. L4 and M1 seed the prior run with the pinned recorder's `start` and
+`finish`. L4's seed is `BLOCKED` with `execution` `full` and `reviewers` 1,
+per the single reading (the 2026-09-30 seed used `blocked`). M1 seeds L2b's
+`REVISE` and leaves the plan unchanged.
+
+| Case | What it checks | Claude Code | Codex |
+| --- | --- | --- | --- |
+| L1 | Default flow; Codex reviewers start with `fork_turns: "none"` | `READY` | `READY` |
+| L3 | Missing required base: `execution` `blocked`, `reviewers` 0 | `BLOCKED` | not run |
+| L4 | Prior `BLOCKED` decision answered in the request; Codex reviewer isolation | not run | `READY` |
+| L7 | Open product decision, `review-only`: `BLOCKED` after a review records `full` | `BLOCKED`, `BLOCKED` | `BLOCKED` |
+| M1 | Prior `REVISE`, nothing changed, request "남은 문제 고쳐줘": `start` before the first edit, carried IDs repaired in pass 1, then closure | `READY` (anomaly) | not run |
+
+All five Codex `spawn_agent` calls (L1, L4, L7) set `fork_turns` to `"none"`.
+Each reviewer rollout holds none of the parent history, the user request, or
+SKILL.md, and no controller messaged a reviewer. No controller called `close_agent`.
+Codex CLI 0.157.1 offers `spawn_agent`, `send_message`, `followup_task`,
+`wait_agent`, `interrupt_agent`, and `list_agents`, but no `close_agent`.
+Every reviewer ended on its own with `task_complete`. The L7 controller also
+set a reviewer `model` that nothing asked for.
+
+Every `BLOCKED` reached after a review recorded `execution` `full` with
+`reviewers` 1 on both hosts, and L3's gate `BLOCKED` recorded `blocked`,
+`reviewers` 0, `review_passes` 0. The 2026-09-30 split between L7 and L7b did
+not recur.
+
+The recorder's `--help` and `-h`, alone or after any command, exit 0 with the
+command table. No transcript holds an `invalid-arguments` envelope or a read
+of the recorder source. Six runs called `finish` once. Claude L7 and L7b each
+needed a second call because the first `block_reason` ran over 100
+characters (`schema-invalid`). Neither SKILL.md nor `evidence/README.md` states
+that limit.
+
+In M1 the controller took the fix-what-is-left continuation. It called
+`start` before its first edit, repaired PSDR-001 and PSDR-002 in pass 1 with
+their IDs kept, and closed them with one fresh reviewer (`review_passes` 1,
+`repair_passes` 1). `finish` returned `repair_after_last_review`. That path
+always records as many repair passes as review passes, so the anomaly is
+expected there, but no document says so. Every other run finished with no
+anomalies.
+
+One finding used a fixed Pass 3 slug: Codex L4's `addendum-half-folded`, for a
+plan template left in English after the design recorded Korean. The other
+three shapes did not occur. Claude L7 and L7b printed the handoff under a
+heading instead of a `Handoff:` line. n=1 per cell (two Claude L7 runs); not a
+quality measurement, and Claude Code stays `not_measured`.
+
 Evidence tests use only temporary Git repositories and synthetic skill roots.
 Records never hold source text, raw paths, prompts, transcripts, or
 credentials. `outcome` labels and the normal/anomalous verdict split are
