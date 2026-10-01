@@ -22,7 +22,8 @@ A valid request defaults to conservative `polish`.
 | `correct` | "Fix typos only." | Apply normative corrections and clearly required local grammar only. |
 | `polish` | "Polish it naturally." | Apply the same required corrections, then optional readability and local flow edits that keep meaning and voice. |
 
-The real trigger phrases are Korean; `SKILL.md` holds them.
+The Korean phrases that pick a mode are in `SKILL.md`. Activation comes from the
+English `description`, which has no Korean words.
 
 - `correct` and `polish` both fix normative errors and clear local grammar
   errors, such as a duplicated particle or clearly broken agreement.

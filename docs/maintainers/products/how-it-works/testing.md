@@ -155,6 +155,23 @@ ids in 2/4. Skill loading was observed from the stream (`Skill` tool_use and the
 injected body), not recorded as a schema 2 file. Codex and implicit activation were not
 run.
 
+## Implicit activation, 2026-10-02
+
+Claude Code 2.1.284, `claude -p`, Opus 5.5 at effort high, the 3.0.2 skill copied into
+a fresh repository's `.claude/skills/` with `--setting-sources project` (`SKILL.md`
+`4a5751e95195`). No skill name in the prompt.
+
+| Request | Skill tool called |
+| --- | --- |
+| `implicit-positive` from `cases.json` (DNS path, Korean) | 2/2, `· 길` reply |
+| "I don't get how the TCP handshake works; start from the principle" (Korean, uses 감이 안 와 and 원리부터) | 2/2, `· 그림` reply |
+| `near-miss-debug` from `cases.json` (fix a failing DNS resolver test) | 0/2; looked for the code instead |
+
+The description's bounds hold on Opus 5.5 in both directions, so the trigger stays as
+it is. The four real activations so far all came mid-conversation after an earlier
+answer; no real request is known to have been missed, so there is no evidence for a
+wider trigger. n = 2 per row; about $1.0 in all.
+
 ## Commands
 
 ```bash

@@ -310,6 +310,26 @@ three shapes did not occur. Claude L7 and L7b printed the handoff under a
 heading instead of a `Handoff:` line. n=1 per cell (two Claude L7 runs); not a
 quality measurement, and Claude Code stays `not_measured`.
 
+### Live record, 2026-10-02 (6.1.1)
+
+The question: a reusable `READY` run, then a commit that changes no file, then
+the same request. Same harness: a fresh greeter repository per run (the plan
+already throws on an empty name and runs `npm test`), an empty
+`PRE_SDD_REVIEW_HOME`, a `READY` seed (`full`, 1 reviewer, 0 findings) written
+with the pinned recorder's `start` and `finish`, and then
+`git commit --allow-empty`. Claude Code 2.1.284, `claude -p`, Opus 5.5 at effort
+high, `/pre-sdd-review docs/plans/greeter.md`. 6.1.1 SKILL.md `df71213aff3d`;
+6.1.0 SKILL.md `efd3ccfed490`.
+
+| Case | 6.1.1 | 6.1.0 |
+| --- | --- | --- |
+| Empty commit after `READY`, 2 runs each | No `start`, no reviewer; `Evidence: not_recorded; reason=reused-prior-run`. Both runs named the empty commit and the clean tree. $0.34, $0.31 | `start` and a full discovery review plus closure (2 reviewers) because `HEAD` moved; `READY` again. $0.76, $0.85 |
+| Commit that rewrites `src/greet.js` after `READY`, 1 run | No reuse: the run named the code change and stopped at the implementation-started gate. $0.26 | not run |
+
+The 6.1.0 reviews also repaired a test detail in the plan: the seeded `READY`
+had no real review behind it. Reuse trusts the prior run, as it already did for
+an unchanged `HEAD`. n=2 per arm.
+
 Evidence tests use only temporary Git repositories and synthetic skill roots.
 Records never hold source text, raw paths, prompts, transcripts, or
 credentials. `outcome` labels and the normal/anomalous verdict split are

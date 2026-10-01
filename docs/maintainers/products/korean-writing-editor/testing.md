@@ -145,8 +145,26 @@ this checkout, 2.0.5 text; the activation bounds did not change in 2.0.6):
   Codex translates normally (2/2).
 
 Limits: n = 2 per cell; one model and effort; the 2.0.5-to-2.0.6 difference shows
-in two of six cases, and the other four already passed on 2.0.5. The runner 18
-baseline has still not been executed.
+in two of six cases, and the other four already passed on 2.0.5. Those four guard
+against regressions; they do not tell the texts apart. The runner 18 baseline has
+still not been executed.
+
+## Claude Code activation probe, 2026-10-02
+
+Claude Code 2.1.284, `claude -p`, Opus 5.5 at effort high, with the 2.0.6 skill
+copied into a fresh repository's `.claude/skills/` and `--setting-sources project`
+(`SKILL.md` `16ce16cb3964`). No skill name in the prompt. Prompts were synthetic and
+are not stored.
+
+| Request | Skill tool called | Reply |
+| --- | --- | --- |
+| spelling and spacing check of one Korean sentence | 2/2 | the corrected sentence only (2/2) |
+| translate one Korean sentence into English | 0/2 | a normal translation (2/2) |
+
+This matches the Codex result above, so implicit activation is right on both hosts
+with the English-only description. Real use is still 0 on both hosts, so there is
+no missed request to justify Korean trigger words in the description. n = 2 per
+cell; about $0.25 in all.
 
 ## Commands
 
