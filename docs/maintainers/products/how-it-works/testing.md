@@ -78,9 +78,9 @@ and links must be unchanged.
 Live runs are local, explicit, optional, and may cost money. CI never requires them.
 Don't describe a payload contract pass as evidence of a live call.
 
-Supported hosts stay Codex and Claude Code, and live evidence for the current
-installed files is `not_measured`. Support scope and current measurement are judged
-separately. No live record is committed.
+Supported hosts stay Codex and Claude Code. Live evidence on Codex is
+`not_measured`; Claude Code has the format probe below. Support scope and current
+measurement are judged separately. No schema 2 record file is committed.
 
 The pure functions of the new evidence contract live in
 `tests/products/how-it-works/live/evidence_contract.py` and are not part of the
@@ -123,6 +123,34 @@ Code with JSON event output (`codex exec --json`, `claude --print --output-forma
 stream-json --verbose`), because `skill_loading` passes only on a host event read from
 that stream. Never commit full responses, private
 prompts, or credentials.
+
+## Live record, 2026-10-01
+
+Format probe for the inlined reply skeleton (3.0.2), on macOS with Claude Code 2.1.284.
+Each run used a fresh Git repo with the skill copied to `<repo>/.claude/skills/how-it-works/`
+and `claude -p --setting-sources project --strict-mcp-config` (a pilot with a marker line
+confirmed that only the project copy loads). Before = the 3.0.1 text (`SKILL.md`
+`e00d4e05`); after = the 3.0.2 text (`e589d7bb`; an intermediate after text `be952cba`
+printed bilingual labels on Haiku and was replaced). Scoring: `observe_text` (fence,
+hop ids), the `# … · <rung>` title, the four section headings, the `다음:`/`Next:` line,
+reference reads from the stream, and sentence endings.
+
+| Set | Model | Prompt | Before | After |
+| --- | --- | --- | --- | --- |
+| P1 | opus, effort high | `/how-it-works DNS가 어떻게 돌아가는지 알려줘` ×3, English path-depth rebase ×2 | 5/5 all checks | 5/5 all checks |
+| P2 | opus, effort high | long technical answer, then "무슨 말인지 하나도 모르겠어 … 쉽게 다시 설명해줘" (`--resume`) ×3 | 3/3 | 3/3 |
+| P3 | sonnet | Korean DNS ×3 (after: + English ×1) | hop ids 2/3 (the run that skipped the references failed) | hop ids 4/4; references read 3/3 Korean |
+| P3 | haiku | Korean DNS ×3 (after: + English ×1) | title 1/3, headings 1/3, `다음:` 2/3, hop ids 0/3 | title 4/4, headings 4/4, `다음:` 4/4, hop ids 2/4 |
+
+All Korean replies in both arms were 해요체. Claude Code cost per call was $0.16-0.21
+(opus), $0.42-0.55 (two-turn opus), about $0.08 (sonnet), and about $0.03 (haiku).
+
+Limits: n is small (3-5 per cell). Opus 5.5 kept the format with the old text too, so
+the gain shows only on smaller models; the failures in the real 3.0.0 runs came from an
+earlier model mid-conversation. Haiku still skipped the reference reads and missed hop
+ids in 2/4. Skill loading was observed from the stream (`Skill` tool_use and the
+injected body), not recorded as a schema 2 file. Codex and implicit activation were not
+run.
 
 ## Commands
 
