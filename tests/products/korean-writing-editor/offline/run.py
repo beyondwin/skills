@@ -131,6 +131,16 @@ def validate_case(case: dict[str, object]) -> list[str]:
         if field in case and not isinstance(case.get(field), str):
             errors.append(f"{prefix}: {field} must be string")
 
+    request = case.get("request")
+    source = case.get("source")
+    if (
+        case.get("expected_trigger") is True
+        and isinstance(request, str)
+        and isinstance(source, str)
+        and source not in request
+    ):
+        errors.append(f"{prefix}: request does not contain source")
+
     for field in STRING_LIST_FIELDS:
         if field not in case:
             continue
@@ -168,6 +178,12 @@ def evaluate_candidate(case: dict[str, object]) -> list[str]:
 
     if case.get("expected_noop") is True and candidate != source:
         errors.append(f"{case_id}: expected no-op but candidate differs from source")
+    if case.get("expected_noop") is False and candidate == source:
+        errors.append(f"{case_id}: expected an edit but candidate equals source")
+    if case.get("expected_trigger") is False and candidate == source:
+        errors.append(
+            f"{case_id}: near-miss candidate echoes the source instead of a handoff"
+        )
 
     must_preserve = case.get("must_preserve") or []
     if isinstance(must_preserve, list):
@@ -544,7 +560,7 @@ class EvaluatorTests(unittest.TestCase):
         case = {
             "id": "case-01",
             "category": "preservation",
-            "request": "다듬어줘",
+            "request": "다듬어줘: 출시하지 않을 수 있다.",
             "source": "출시하지 않을 수 있다.",
             "candidate": "출시하지 않을 수 있다.",
             "candidate_trigger": True,
@@ -695,6 +711,41 @@ class EvaluatorTests(unittest.TestCase):
         self.assertIn("mutation: missing meaning-quantity-03", errors)
         self.assertIn("mutation: missing norm-spacing-can-01", errors)
 
+    def test_triggered_request_must_contain_source(self):
+        case = self.valid_case(request="다듬어줘: 출시하지 않는다.")
+        self.assertIn("case-01: request does not contain source", validate_case(case))
+        near_miss = self.valid_case(
+            request="번역해줘",
+            expected_trigger=False,
+            candidate_trigger=False,
+        )
+        self.assertNotIn(
+            "case-01: request does not contain source", validate_case(near_miss)
+        )
+
+    def test_edit_expected_candidate_must_differ_from_source(self):
+        case = self.valid_case(expected_noop=False)
+        self.assertIn(
+            "case-01: expected an edit but candidate equals source",
+            evaluate_candidate(case),
+        )
+
+    def test_near_miss_candidate_must_not_echo_source(self):
+        case = self.valid_case(
+            expected_trigger=False,
+            candidate_trigger=False,
+            expected_mode="none",
+            candidate_mode="none",
+            expected_tier="none",
+            candidate_tier="none",
+            must_preserve=[],
+            required_substrings=[],
+        )
+        self.assertIn(
+            "case-01: near-miss candidate echoes the source instead of a handoff",
+            evaluate_candidate(case),
+        )
+
     def test_mode_term_does_not_match_correction(self):
         self.assertFalse(_contains_term("local corrections only", "correct"))
         self.assertTrue(_contains_term("mode `correct` and polish", "correct"))
@@ -743,7 +794,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     print(
-        "33 cases: "
+        f"{len(_cases)} cases: "
         f"normative={category_counts['normative']} "
         f"preservation={category_counts['preservation']} "
         f"noop={category_counts['noop']} "
