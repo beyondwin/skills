@@ -784,11 +784,11 @@ class PublicInspectorContractTests(unittest.TestCase):
     def test_inspector_runs_under_system_python(self):
         self.assertTrue(INSPECTOR_PATH.is_file(), "public inspector is absent")
         probe = subprocess.run(
-            ["/usr/bin/python3", "-c", "import sys"],
+            ["/usr/bin/python3", "-c", "import sys; sys.exit(sys.version_info < (3, 9))"],
             capture_output=True, text=True, timeout=60,
         )
         if probe.returncode != 0:
-            self.skipTest("/usr/bin/python3 is not usable on this host")
+            self.skipTest("/usr/bin/python3 is missing, unusable, or older than 3.9")
         data = make_png(3, 2, color_type=6)
         with tempfile.TemporaryDirectory() as directory:
             asset = Path(directory) / "asset.png"

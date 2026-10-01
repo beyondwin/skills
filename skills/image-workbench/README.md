@@ -16,6 +16,7 @@ Do not use `image-workbench` for:
 
 - a casual one-off picture
 - SVG or UI drawn in code
+- a data chart
 - building the actual screen
 - copying an external prompt gallery
 
