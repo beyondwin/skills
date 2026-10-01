@@ -41,9 +41,8 @@ the display name.
 
 ## Records from earlier recorders
 
-Recorders before 6.0.0 wrote schema 2, 3, or 4 files (schema 5 came from
-4.0.0 through 5.1.0). This recorder does
-not read, migrate, or close them. `show`, `finish`, `abandon`, and `outcome` on
+Recorders before 6.0.0 wrote schema 2, 3, or 4 files (schema 4 came from
+4.0.0 through 5.1.0). This recorder does not read, migrate, or close them. `show`, `finish`, `abandon`, and `outcome` on
 such a run fail with `schema-unsupported` and leave the file unchanged.
 `summary` skips it and counts it in `unsupported_records`. They never block
 `start`: a new run is always schema 5. To clear them, delete each
@@ -96,7 +95,8 @@ By convention `block_reason` starts with `decision:`, `input:`, `evidence:`, or
 ```
 
 Each finding has `id` (`PSDR-` plus three or more digits, such as `PSDR-001`), `severity`, `class`, `pattern` (a
-lowercase slug for the defect shape), `status` (`repaired`,
+lowercase slug for the defect shape; the reviewer protocol fixes the slugs of
+its four recurring shapes), `status` (`repaired`,
 `partially-closed`, `unresolved`),
 `source` (`reviewer`, `ledger-pass`, `machine-check`), `repair_pass` (null or
 0–3, where `0` marks a pre-pass ledger or machine-check repair), `location`
@@ -138,7 +138,10 @@ The log is for agents.
   `git diff --name-only <git.head_end>` plus
   `git ls-files --others --exclude-standard` names no path besides the design,
   plan, and ledger. A reuse records nothing and prints
-  `Evidence: not_recorded; reason=reused-prior-run`.
+  `Evidence: not_recorded; reason=reused-prior-run`. The controller compares
+  the `repo` display name, plan path, document hashes, `git.head_end`, and the
+  change list; `finish` and `abandon` enforce the checkout binding, so it never
+  recomputes `repo_key`.
 - When only the design, plan, or ledger changed since a `REVISE` from a
   reusable run, or since
   a `BLOCKED` run whose user decision the documents now record, the next
@@ -149,13 +152,16 @@ The log is for agents.
 `summary` returns `runs`, `runs_total`, `counts`, `cost`, `chains` (plans
 reviewed more than once in the same checkout), `findings` (with
 `repeated_patterns`), and `anomalies`; every drill-down entry carries `run_id`
-values for `show`. Start from `anomalies` and `chains`. `runs` lists at most
+values for `show`. Start from `anomalies` and `chains`. In a campaign every
+plan starts before discovery and finishes with the others, so each plan's
+`elapsed_s`, and therefore `cost.elapsed_s`, is campaign wall time, not
+per-plan cost. `runs` lists at most
 the newest 50 of the filtered records, oldest first; `runs_total` counts all of
 them, and every other section covers them all.
 
 `invalid_records` is the number of invalid files found across the entire scan
-before any filters. `unsupported_records` counts, the same way, the schema 2
-and 3 files from earlier recorders. `--repo` filters only the display name in
+before any filters. `unsupported_records` counts, the same way, the schema 2,
+3, and 4 files from earlier recorders. `--repo` filters only the display name in
 `repo`; it is not an identity or checkout filter. `--last` selects from the validated records in
 their canonical start-time and `run_id` order.
 
@@ -179,15 +185,23 @@ detect secrets.
 The reviewer protocol remains authoritative for semantic behavior. Recording
 is optional. If the recorder is unavailable or fails, report
 `Evidence: not_recorded; reason=<code>`; this cannot change `READY`, `REVISE`,
-or `BLOCKED`.
+or `BLOCKED`. `<code>` is the failing command's error code below,
+`recorder-unavailable`, `recorder-incompatible`, `reused-prior-run`, or
+`previous-decision-checkpoint`.
 
 ## Errors
 
 Failures print one line to stderr, `{"error":{"code":"…","message":"…"}}`,
 and exit 2; an argument error is `invalid-arguments`. `--help` prints the
-command table and exits 0. Codes: `invalid-arguments`, `schema-invalid`, `run-not-found`,
-`not-git-repository`, `outside-repository`, `already-finished`,
-`evidence-home-unwritable`, `identity-unavailable`, `schema-unsupported`,
-and `locking-unavailable`. `finish` needs every recorded document (design,
-plan, ledger) still at its path; a missing one fails with
-`outside-repository` and leaves the run `pending`, so close it with `abandon`.
+command table and exits 0. Codes: `invalid-arguments`, `schema-invalid`,
+`run-not-found`, `not-git-repository`, `outside-repository`,
+`already-finished`, `evidence-home-unwritable`, `identity-unavailable`,
+`schema-unsupported`, and `locking-unavailable`.
+
+- `start` needs `--plan`, `--design`, and `--ledger` inside the `--repo`
+  checkout. A document in another checkout or worktree fails with
+  `outside-repository` and nothing is written; the review continues and prints
+  `Evidence: not_recorded; reason=outside-repository`.
+- `finish` needs every recorded document (design, plan, ledger) still at its
+  path; a missing one fails with `outside-repository` and leaves the run
+  `pending`, so close it with `abandon`.

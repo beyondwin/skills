@@ -128,8 +128,8 @@ in fixtures, test logs, or committed live records.
 ## Optional live checks
 
 Live checks are local, explicit, and optional. They may cost money. CI does
-not require them. They use only a fresh Codex session and a non-sensitive
-synthetic design and plan. The record keeps only host, client version, date,
+not require them. Checks that count toward host support use only a fresh
+Codex session and a non-sensitive synthetic design and plan. The record keeps only host, client version, date,
 case identifier, and verdict. Never turn a provider-free result into a live
 quality claim. Never store user documents or full model responses.
 
@@ -189,13 +189,28 @@ merged text adds only the reuse `Evidence:` wording on top of L5's.
 | L5 | L1 again with nothing changed and the repaired plan uncommitted: reuse, no `start` | `READY` (reused) | `READY` (reused) |
 
 Every run edited nothing outside the design and plan, every recorded run
-finished with no anomalies, and every report printed its lines in the
-specified order. The L5 hosts printed different reuse `Evidence:` reasons, so
+finished with no anomalies, and every L1-L5 report printed its lines in the
+specified order (the later L6b Claude Code report printed its handoff under a
+bold label instead of `Handoff:`). The L5 hosts printed different reuse `Evidence:` reasons, so
 the reuse line is now fixed as `reason=reused-prior-run`. The first L4 run exposed a
 gap (a remainder split off under a new ID was treated as unmapped), which was
-fixed before the recorded L4 runs. n=1 per cell. This is not a quality
+fixed before the recorded L4 runs. The first Codex L5 attempt is not in the
+table: the sandbox refused to run the recorder, the controller printed
+`Evidence: not_recorded; reason=executor-unavailable` (a reason outside
+today's list), and L5 was rerun. n=1 per cell. This is not a quality
 measurement and does not change the host matrix in
 [Compatibility](compatibility.md).
+
+The Claude Code cells are maintainer probes (`claude -p` with a skill copy
+passed by path, n=1 per cell), not the fresh-session smoke check on a native
+install that [Compatibility](compatibility.md) asks for, so Claude Code stays
+`not_measured`.
+
+On Codex a `$pre-sdd-review` mention also injects the natively installed
+SKILL.md (here the repository working tree), so these Codex controllers read
+that text next to the pinned copy, and its hash changed during the day. Before
+a Codex live run, disable or rename the native install, or invoke without `$`,
+and check that the rollout holds no `<skill>` block for this skill.
 
 A cell marked forked means the Codex controller started its reviewers with its
 own conversation (`fork_turns` left at the default or set to `all`), so each

@@ -238,7 +238,9 @@ Repair accounting:
 - `repair_passes` counts every repair pass the controller applied. A new
   invocation does not copy an earlier finding's `repair_pass`.
 - `repaired` is used only for records a closure reviewer closed.
-- If the last action was a repair, never return `READY`.
+- If the last action was a repair, never return `READY`: close it with one
+  more closure review. Return `REVISE` without that closure only when no fresh
+  closure reviewer can be obtained.
 - `review_passes` counts reviewer dispatch rounds (discovery 1, each closure
   1). It is 0 only for a `BLOCKED` run that dispatched no reviewer.
 - `execution` describes the review, not the verdict. It is `blocked` only when
@@ -341,7 +343,10 @@ The next invocation takes the first matching path:
    is `focused-role-not-obtained`), reuse the handoff only when the design,
    plan, and ledger hashes, `HEAD`, and the request are unchanged, the request
    does not ask to fix the handoff, and the change list is docs-only. Handoffs of
-   other `degraded` runs and of `BLOCKED` runs are never reused. A reuse calls no
+   other `degraded` runs and of `BLOCKED` runs are never reused. Reuse and
+   continuation compare the `repo` display name, plan path, document hashes,
+   `git.head_end`, and the change list; `finish` and `abandon` enforce the
+   checkout binding, so the controller does not recompute it. A reuse calls no
    `start` and prints `Evidence: not_recorded; reason=reused-prior-run`.
 4. Fix what is left: if the last run was a reusable `REVISE`, nothing changed
    as in step 3, and the request asks to fix the handoff, take the
@@ -393,7 +398,11 @@ controller uses it in this order.
    verdict and repairs are done.
 5. There is exactly one `Evidence:` line. If the recorder is missing or fails,
    report `Evidence: not_recorded; reason=<code>`; that failure does not change
-   `READY`, `REVISE`, or `BLOCKED`.
+   `READY`, `REVISE`, or `BLOCKED`. `<code>` is the failing command's error
+   code (such as `outside-repository`), `recorder-unavailable`,
+   `recorder-incompatible`, `reused-prior-run`, or
+   `previous-decision-checkpoint`. A document outside the `--repo` checkout
+   fails `start` with `outside-repository`; the review continues unrecorded.
 
 Schema compatibility:
 
@@ -418,7 +427,8 @@ A schema 5 finding carries `source` (`reviewer`, `ledger-pass`, or
 `machine-check`) and `repair_pass`. `repair_pass` is `null` or 0..3: `0` is a
 pre-pass ledger or machine-check repair, and `null` is a finding this
 invocation did not repair. `status` is `repaired`, `partially-closed`, or
-`unresolved`. `pattern` is a controller-assigned slug for the defect shape. A
+`unresolved`. `pattern` is a controller-assigned slug for the defect shape;
+the four recurring shapes in the protocol's Pass 3 use its fixed slugs. A
 finding without `source`, or `degraded_reasons`
 outside the fixed vocabulary, is `schema-invalid`. `finding.evidence` is a list
 of repository-relative paths, not prose.
@@ -498,6 +508,11 @@ documents, not a pre-repair copy.
 ### SDD handoff
 
 Do not start SDD unless the outer request explicitly asks for implementation.
+
+After the final report the controller stops. It does not start another
+invocation, edit code, branch, stash, or commit unless a new user turn asks
+for it, apart from SDD the outer request asked for. A change the controller
+made does not count as a changed document.
 
 ### Contract
 

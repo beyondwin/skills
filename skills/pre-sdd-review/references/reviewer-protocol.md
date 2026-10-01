@@ -120,21 +120,24 @@ paths, state transitions, migration order, destructive targets and safe
 prerequisites. Reject placeholders, implied work, and steps that leave an
 implementer to choose among materially different designs.
 
-Check these four by name. They recur across plans and languages.
+Check these four by name. They recur across plans and languages. Each has a
+fixed `pattern` slug, given in parentheses; other shapes take free slugs.
 
-- **An addendum folded into the tasks only halfway.** A revisions or
-  final-checks section states a requirement while the task's code block keeps
-  the old shape. Two tasks then build the same record with different arity and
-  neither reconciliation compiles.
-- **Verification that exists in prose but not in code.** "That test covers
-  this" where the test is absent or does not look at it. A concurrency
-  requirement with no stated method passes with sequential calls.
-- **A line number used as a location.** A preceding plan inserting above shifts
-  every number below. When the symbol name is already given, the number carries
-  only misinformation.
-- **A closed list updated on one side only.** Schema enums, exact-match key
-  arrays, zod enums, tests that count members. Each plan adds its own entry and
-  one omission leaves the published document rejecting its own schema.
+- **An addendum folded into the tasks only halfway** (`addendum-half-folded`).
+  A revisions or final-checks section states a requirement while the task's
+  code block keeps the old shape. Two tasks then build the same record with
+  different arity and neither reconciliation compiles.
+- **Verification that exists in prose but not in code**
+  (`prose-only-verification`). "That test covers this" where the test is
+  absent or does not look at it. A concurrency requirement with no stated
+  method passes with sequential calls.
+- **A line number used as a location** (`line-number-location`). A preceding
+  plan inserting above shifts every number below. When the symbol name is
+  already given, the number carries only misinformation.
+- **A closed list updated on one side only** (`closed-list-one-side`). Schema
+  enums, exact-match key arrays, zod enums, tests that count members. Each
+  plan adds its own entry and one omission leaves the published document
+  rejecting its own schema.
 
 Apply these checks only when their observable trigger is present:
 

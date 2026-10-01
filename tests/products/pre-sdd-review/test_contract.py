@@ -1151,6 +1151,9 @@ class PreSddReviewContractTests(unittest.TestCase):
             "print `Evidence: not_recorded; reason=reused-prior-run`",
             "Plan text that must change to follow the decision is a direct mapped repair impact",
             "That remainder's source is the carried record, so it is not unmapped",
+            "close it with one more closure review; return `REVISE` without that closure only when no fresh closure reviewer can be obtained",
+            "After printing the report, stop.",
+            "A change this controller made does not count as a changed document",
             "Start each reviewer with no inherited conversation (Codex: `fork_turns: \"none\"`); its only input is the dispatch instruction",
             "Send nothing to a running reviewer except the one missing-fields re-ask",
             "close each reviewer once its records are in (Codex: `close_agent`)",
@@ -1341,7 +1344,7 @@ class PreSddReviewContractTests(unittest.TestCase):
         )
         self.assertEqual(cases["residual-pass-closes-small-remainder"], ("residual_pass", "closure_of_those_ids_only", "new_shape_ends_invocation"))
         self.assertEqual(cases["open-blocker-forces-blocked"], ("BLOCKED", "no_revise_with_open_blocker"))
-        self.assertEqual(cases["repair-last-no-ready"], ("no_ready_after_repair", "closure_or_revise"))
+        self.assertEqual(cases["repair-last-no-ready"], ("no_ready_after_repair", "closure_after_repair", "revise_only_without_closure_reviewer"))
         self.assertEqual(cases["unanswered-decision-no-redispatch"], ("reprint_checkpoint", "no_reviewer_dispatch", "no_repair"))
         self.assertEqual(cases["three-new-decisions-return-to-design"], ("BLOCKED", "return_to_design"))
         self.assertEqual(cases["continuation-skips-discovery"], ("continuation", "closure_first", "prior_finding_ids", "no_discovery"))
@@ -1365,6 +1368,16 @@ class PreSddReviewContractTests(unittest.TestCase):
             "## Default mode: review -> repair documents -> scoped re-review",
         )
         self.assertEqual(second_review_risk_triggers(reviewers), RISK_TRIGGERS)
+        # The recorder slug for each trigger, in the same order as the prose list.
+        slugs = re.search(r"Record the trigger as (.+?), in that order\.", re.sub(r"\s+", " ", reviewers))
+        self.assertIsNotNone(slugs, "missing recorder trigger slugs")
+        recorder = ast.parse((SKILL / "evidence/evidence.py").read_text(encoding="utf-8"))
+        triggers = next(
+            ast.literal_eval(node.value)
+            for node in recorder.body
+            if isinstance(node, ast.Assign) and any(getattr(target, "id", None) == "TRIGGERS" for target in node.targets)
+        )
+        self.assertEqual(tuple(re.findall(r"`([a-z-]+)`", slugs.group(1))), triggers)
 
     def test_mutation_boundary_retains_every_exclusion(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")

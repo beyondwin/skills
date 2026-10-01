@@ -35,7 +35,8 @@ resolved, the skill returns `BLOCKED` instead of guessing among nearby files.
 
 pre-sdd-review: Codex supported; other hosts not_measured.
 
-Codex is the only supported host today. Other hosts have not been checked. See
+Codex is the only supported host today. Maintainer live runs on another host
+do not make it supported. See
 [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/users/en/compatibility.md).
 
 ## Install
@@ -107,8 +108,9 @@ $pre-sdd-review review-only docs/history/specs/<design>.md docs/history/plans/<p
 - `BLOCKED`: required input, authority, or repository evidence is missing, or
   a new product decision is needed.
 
-A run whose last action was a repair is never `READY`, and an open `BLOCKER`
-makes it `BLOCKED`. A `READY` report prints the final document paths and
+A repair is always followed by one more closure; only when no fresh reviewer
+can be had does the run end `REVISE` without it, never `READY`. An open
+`BLOCKER` makes it `BLOCKED`. A `READY` report prints the final document paths and
 fingerprints (SHA-256), plus the observation anomalies that `finish` returned
 as an `Anomalies:` line (`none` when there are none, `not_recorded` without
 the recorder). Anomalies do not change the verdict. Repairs that keep

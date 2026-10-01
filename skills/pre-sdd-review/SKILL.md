@@ -2,7 +2,7 @@
 name: pre-sdd-review
 description: Use when an approved design spec and implementation plan already exist and must be reviewed, automatically improved, and re-reviewed against repository reality immediately before SDD. Do not use for creating specs or plans, reviewing code, implementing changes, proofreading, or release readiness.
 license: Apache-2.0
-compatibility: Requires a local Git repository, readable design and plan files, and a host that can start a fresh read-only subagent for independent review. Measured on Codex only.
+compatibility: Requires a local Git repository, readable design and plan files, and a host that can start a fresh read-only subagent for independent review. Supported host: Codex only.
 metadata:
   version: "6.0.0"
   updated_at: "2026-09-30"
@@ -22,10 +22,6 @@ plan exist, implementation has not started (or the user explicitly requests a
 document reset before resuming), and the purpose is readiness review before
 SDD or plan execution. Explicit `$pre-sdd-review` invocation is preferred;
 implicit activation requires that purpose to be unambiguous.
-
-Do not activate for writing an initial design or plan, code or pull-request
-review, release verification, proofreading, or general documentation
-improvement.
 
 ### Single-plan path
 
@@ -128,8 +124,9 @@ Git `HEAD` (or `unborn`); and whether the worktree is clean or dirty
 (`git status --porcelain`). Also record the baseline: `HEAD` alone when no
 plan precedes this one, or `HEAD` with the ordered list of preceding plans
 when they do. Record the ledger's repository-relative path and SHA-256 when a
-ledger exists, at start and again at the verdict. With the recorder, `show`
-returns these values for the run.
+ledger exists, at start and again at the verdict. With a compatible recorder,
+`start` records these hashes and the Git state (`show` returns them); compute
+them by hand only without it.
 The final report adds the review timestamp and the final verdict.
 
 Any content change to the resolved design or plan invalidates an earlier
@@ -187,12 +184,11 @@ the first match:
      reason=previous-decision-checkpoint`. Other plans continue.
 3. **Nothing changed.** The run's `execution` is reusable, `plan.sha_end`,
    `design.sha_end`, and `ledger.sha_end` (when recorded) match the current
-   documents, `git.head_end` matches
-   `HEAD`, the change list is docs-only, and the outer request does not ask
-   for a re-review, ask to fix the handoff, or name changed authority or
-   repository evidence. Reuse
-   the prior result and handoff without a new review; call no `start`, and
-   print `Evidence: not_recorded; reason=reused-prior-run` and
+   documents, `git.head_end` matches `HEAD`, the change list is docs-only,
+   and the outer request does not ask for a re-review, ask to fix the
+   handoff, or name changed authority or repository evidence. Reuse the prior
+   result and handoff without a new review; call no `start`, and print
+   `Evidence: not_recorded; reason=reused-prior-run` and
    `Anomalies: not_recorded`.
 4. **Fix what is left.** The latest completed run is a reusable `REVISE`,
    nothing changed as step 3 defines it, and the outer request asks to fix the
@@ -208,7 +204,10 @@ the first match:
 A run is reusable when its `execution` is `full`, or `degraded` with
 `focused-role-not-obtained` as its only reason. Outside step 2, a `BLOCKED`
 verdict is never reused, and neither is any other `degraded` run; for those,
-re-run the input gates and call `start` for a fresh full review.
+re-run the input gates and call `start` for a fresh full review. Reuse and
+continuation compare the `repo` display name, plan path, document hashes,
+`git.head_end`, and the change list; `finish` and `abandon` enforce the
+checkout binding, so do not recompute it.
 
 ### Start and finish
 
@@ -225,8 +224,10 @@ python3 "<skill-root>/evidence/evidence.py" start --skill-root "<skill-root>" \
 ```
 
 If `**Spec:**` cannot be resolved, omit `--design`; the recorder does not
-parse `**Spec:**`. `--client` is one of `codex`, `claude-code`, `cursor`,
-`grok`, `other`, `unknown`. In a campaign, pass the ledger path with
+parse `**Spec:**`. `--plan`, `--design`, and `--ledger` must be inside the
+`--repo` checkout; when one is not, print `Evidence: not_recorded;
+reason=outside-repository` and continue the review. `--client` is one of
+`codex`, `claude-code`, `cursor`, `grok`, `other`, `unknown`. In a campaign, pass the ledger path with
 `--ledger` and each preceding plan with a repeated `--prior-plan`. Keep the
 returned `run_id` controller-local and out of user documents. The same
 lifecycle applies to default and `review-only` mode.
@@ -234,24 +235,24 @@ lifecycle applies to default and `review-only` mode.
 After the verdict and any repairs are final, call `finish --run-id <id>
 --repo .` once with the review facts as one JSON object on stdin, then print
 exactly one `Evidence:` line: `Evidence: recorded; run_id=<run-id>` or
-`Evidence: not_recorded; reason=<code>`. An unavailable, malformed,
-incompatible, or permission-failing recorder must continue the review and
-never changes the semantic verdict. If the invocation ends before `finish`,
+`Evidence: not_recorded; reason=<code>`. `<code>` is the failing recorder
+command's error code (such as `outside-repository`), `recorder-unavailable`,
+`recorder-incompatible`, `reused-prior-run`, or `previous-decision-checkpoint`.
+An unavailable, malformed, incompatible, or permission-failing recorder must
+continue the review and never changes the semantic verdict. If the invocation ends before `finish`,
 call `abandon --run-id <id> --repo . --reason <reason>` with one of
 `user-cancelled`, `input-changed`, `scope-changed`, `input-format-fixed`, or
 `other`; never leave a run pending.
 
 `review_passes` counts reviewer dispatch rounds in this run: discovery is one,
 each closure is one. It is `0` only for a `BLOCKED` run that dispatched no
-reviewer (with `reviewers: 0`).
+reviewer (with `reviewers: 0`). `execution` describes the review, not the
+verdict. It is `blocked` only when no independent primary review ran: an input
+gate (the required base or an unresolved `**Spec:**`) stopped the run, or no
+primary reviewer was obtained. A `BLOCKED` verdict reached after a review
+keeps `full` or `degraded`.
 
-`execution` describes the review, not the verdict. It is `blocked` only when
-no independent primary review ran: an input gate (the required base or an
-unresolved `**Spec:**`) stopped the run, or no primary reviewer was obtained;
-that run records `reviewers: 0` and `review_passes: 0`. A `BLOCKED` verdict
-reached after a review keeps `full` or `degraded`.
-
-A schema 2 or 3 record from an earlier recorder fails with
+A schema 2, 3, or 4 record from an earlier recorder fails with
 `schema-unsupported` and never blocks `start`; leave it and start a new run.
 Recording an `outcome` (`good`, `false-ready`, `noisy`, `abandoned`) is not a
 controller duty; the user or the SDD worker may record one after SDD. Never
@@ -262,11 +263,12 @@ A finding record carries `id`, `severity`, `class`, `pattern`, `status`,
 `source`, `repair_pass`, `location` (`path`, `locator`), `evidence`,
 `consequence`, and `fix`. `id` is `PSDR-` plus three or more digits; a record
 first raised in a closure round takes the next number after the highest so far.
-`status` is `repaired`, `partially-closed`, or
-`unresolved`. `pattern` is a short lowercase slug the controller assigns to
-the defect shape, such as `closed-list-one-face`; keep the same slug for the
-same shape across rounds. `evidence` is a list of repository-relative paths,
-not prose.
+`status` is `repaired`, `partially-closed`, or `unresolved`. `pattern` is a
+short lowercase slug the controller assigns to the defect shape; keep the same
+slug for the same shape across rounds. The four recurring shapes in the
+reviewer protocol's Pass 3 use its fixed slugs, such as `closed-list-one-side`;
+other slugs are free. `evidence` is a list of repository-relative paths, not
+prose.
 
 ## Select reviewers
 
@@ -286,6 +288,8 @@ framework or runtime removal; schema migration or data deletion;
 authentication, authorization, or security boundaries; public/private
 data-boundary changes; or external side effects such as publishing, billing,
 messaging, or production mutations. It examines only the triggered risk class.
+Record the trigger as `runtime-removal`, `schema-migration`, `auth-boundary`,
+`data-boundary`, or `external-side-effect`, in that order.
 
 The controller deduplicates all findings by evidence and consequence before
 repair. Reviewers never edit files.
@@ -347,7 +351,8 @@ its closure closed anything. Pre-pass ledger and machine-check repairs keep
 `repair_pass: 0` and are not a pass. Write `repaired` only when a closure
 reviewer closed that record; a record the controller repaired but no closure
 reviewer closed stays `unresolved`. Never return `READY` when the last action
-was a repair: close it with one more closure review, or return `REVISE`.
+was a repair: close it with one more closure review; return `REVISE` without
+that closure only when no fresh closure reviewer can be obtained.
 
 Closure disposition is `closed`, `partially-closed`, or `open`, recorded as
 `repaired`, `partially-closed`, and `unresolved` respectively. Record the
@@ -520,10 +525,6 @@ next invocation scope. New authority implies `BLOCKED`, never `REVISE`. This
 packet does not authorize another repair pass or certify its suggested scope
 as complete.
 
-Do not automatically start another invocation after `REVISE` or `BLOCKED`.
-A later invocation requires an explicit outer request or changed document,
-authority, or repository evidence; Choose the path decides what it runs.
-
 When this run would end `BLOCKED` on a new product decision and the two
 preceding runs of this plan in the recorder's chain did too, the handoff sends
 the design back to be finished with all remaining decisions at once, and says
@@ -535,8 +536,11 @@ fingerprints, together with the freshness record. Print the `anomalies` list
 that `finish` returned for this run as `Anomalies: <names>`, or
 `Anomalies: none` when it is empty. When the recorder was not used or
 `finish` failed, print `Anomalies: not_recorded`. Do not look this run up in
-a windowed `summary`. Anomalies do not change the verdict. Do not start SDD unless the outer request explicitly asks for implementation. In that combined request,
-hand the SDD worker the final repaired documents, not the pre-review copies.
+a windowed `summary`. Anomalies do not change the verdict.
+
+Do not start SDD unless the outer request explicitly asks for implementation.
+In that combined request, hand the SDD worker the final repaired documents,
+not the pre-review copies.
 
 Include a compact pass receipt in the final report. Do not persist user
 documents or full model responses merely to create it. Print the final report
@@ -550,6 +554,12 @@ Handoff: the unresolved handoff packet (REVISE and BLOCKED only)
 Evidence: recorded; run_id=<id> | not_recorded; reason=<code>
 Anomalies: <names> | none | not_recorded (READY only)
 ```
+
+After printing the report, stop. Do not automatically start another
+invocation, and do not edit code, branch, stash, or commit, unless a new user
+turn asks for it (SDD that the outer request asked for is the one exception).
+A change this controller made does not count as a changed document; Choose the
+path decides what a later invocation runs.
 
 ## Do not use this skill for
 

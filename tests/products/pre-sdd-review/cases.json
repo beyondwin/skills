@@ -218,7 +218,7 @@
     {
       "id": "repair-last-no-ready",
       "request": "$pre-sdd-review sample-app/design.md sample-app/plan.md whose last action was a repair no closure reviewer saw",
-      "expect": ["no_ready_after_repair", "closure_or_revise"]
+      "expect": ["no_ready_after_repair", "closure_after_repair", "revise_only_without_closure_reviewer"]
     },
     {
       "id": "unanswered-decision-no-redispatch",

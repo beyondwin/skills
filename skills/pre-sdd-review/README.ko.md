@@ -32,7 +32,8 @@ SDD(계획 실행) 직전에, 승인된 설계와 구현 계획이 서로 맞는
 
 pre-sdd-review: Codex supported; other hosts not_measured.
 
-지금은 Codex에서만 지원합니다. 다른 호스트는 아직 확인하지 않았습니다. 자세한 내용은
+지금은 Codex에서만 지원합니다. 다른 호스트에서 관리자가 실제로 돌려 본 기록이 있어도
+지원 호스트가 되지는 않습니다. 자세한 내용은
 [호환성](https://github.com/beyondwin/skills/blob/main/docs/users/ko/compatibility.md)을 보세요.
 
 ## 설치
@@ -95,7 +96,8 @@ $pre-sdd-review review-only docs/history/specs/<design>.md docs/history/plans/<p
 - `REVISE`: 고칠 수 있는 중요한 문서 결함이 남았습니다.
 - `BLOCKED`: 필요한 입력·권위·저장소 증거가 없거나, 새 제품 결정이 필요합니다.
 
-마지막 동작이 수리이면 `READY`가 아니고, 열린 `BLOCKER`가 있으면 `BLOCKED`입니다.
+수리 뒤에는 항상 종결 재검토를 한 번 더 합니다. 새 검토자를 구할 수 없을 때만 그 재검토 없이
+`REVISE`로 끝나며, `READY`가 되지는 않습니다. 열린 `BLOCKER`가 있으면 `BLOCKED`입니다.
 `READY` 보고에는 최종 문서 경로와 지문(SHA-256)을 적습니다. `finish`가 돌려준
 관찰 이상(기록기가 본 어긋난 점)도 `Anomalies:` 줄로 적습니다. 없으면 `none`,
 기록기를 쓰지 않았으면 `not_recorded`입니다. 이상이 판정을 바꾸지는 않습니다. 제품 의도를 지키는 수정은 묻지 않고 적용하고, 사용자 결정이
