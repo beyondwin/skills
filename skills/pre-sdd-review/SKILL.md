@@ -247,7 +247,9 @@ paraphrases only.
 
 A finding record carries `id`, `severity`, `class`, `pattern`, `status`,
 `source`, `repair_pass`, `location` (`path`, `locator`), `evidence`,
-`consequence`, and `fix`. `status` is `repaired`, `partially-closed`, or
+`consequence`, and `fix`. `id` is `PSDR-` plus three or more digits; a record
+first raised in a closure round takes the next number after the highest so far.
+`status` is `repaired`, `partially-closed`, or
 `unresolved`. `pattern` is a short lowercase slug the controller assigns to
 the defect shape, such as `closed-list-one-face`; keep the same slug for the
 same shape across rounds. `evidence` is a list of repository-relative paths,

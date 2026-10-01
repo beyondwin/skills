@@ -422,10 +422,12 @@ salt, or a different evidence home is not the original binding. Locks need
 supported OS locking. Read-only `show`, `summary`, and `--version` need no
 locking. Windows is not supported.
 
-`show` validates a record and returns its original bytes. `summary` reports
-`invalid_records` and `unsupported_records` from a full scan before filtering.
-`--repo` filters only on the `repo` display name, `--plan` on the plan's
-repository-relative path, and `--last` picks valid ordered records. `runs`
+`show` validates a record and returns its original bytes; it accepts and
+ignores `--repo`. `--help` on any command prints the command table and exits 0.
+`summary` reports `invalid_records` and `unsupported_records` from a full scan
+before filtering. `--repo` filters only on the `repo` display name and refuses
+a path, `--plan` on the plan's repository-relative path, and `--last` picks
+valid ordered records. `runs`
 lists at most the newest 50 of the filtered records; `runs_total` counts them
 all, and the other sections always cover every filtered record. `counts.verdict` includes every completed verdict seen, and
 `normal_verdict` and `anomalous_verdict` split them by observation. These are

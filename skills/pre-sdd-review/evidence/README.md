@@ -61,18 +61,21 @@ supported OS; this uses POSIX `fcntl.flock`.
 | Command | Arguments | Effect |
 | --- | --- | --- |
 | `--version` | none | Print the canonical schema 5 handshake |
+| `--help`, `-h` | none, or after any command | Print this table on stdout and exit 0 |
 | `start` | `--skill-root --repo --plan [--design] [--ledger] [--prior-plan ...] --client [--model] --mode` | Create the identity if needed, hash documents, read Git state, validate and write a checkout-bound `pending` record, print `run_id` and `status` |
 | `finish` | `--run-id --repo` and one JSON object on stdin | Require the original checkout binding, recompute the design, plan, and ledger end hashes and Git state, validate, write `completed`, print `run_id`, `status`, `verdict`, and this run's `anomalies` |
 | `abandon` | `--run-id --repo --reason` | Require the original checkout binding, then close a pending run; reason is `user-cancelled`, `input-changed`, `scope-changed`, `input-format-fixed`, or `other` |
 | `outcome` | `--run-id --label [--note]` | Record `good`, `false-ready`, `noisy`, or `abandoned` on a completed run; may be re-recorded |
-| `show` | `--run-id` | Validate the record, then return its original bytes unchanged |
-| `summary` | `[--repo NAME] [--plan PATH] [--last N]` | Scan and validate records, then print the aggregate JSON below |
+| `show` | `--run-id [--repo]` | Validate the record, then return its original bytes unchanged; `--repo` is accepted and ignored |
+| `summary` | `[--repo NAME] [--plan PATH] [--last N]` | Scan and validate records, then print the aggregate JSON described under Reading the log |
 
 `--client` is `codex`, `claude-code`, `cursor`, `grok`, `other`, or `unknown`.
-`--mode` is `default` or `review-only`. `--model` defaults to `unknown`.
-`--repo` on `start`, `finish`, and `abandon` is a path into the checkout;
-`summary --repo` is the checkout directory's name and `summary --plan` is the
-plan's repository-relative path.
+`--mode` is `default` or `review-only`. `--model` defaults to `unknown` and
+must be one non-empty line of at most 100 characters. `--repo` on `start`,
+`finish`, and `abandon` is a path into the checkout; `show` accepts and ignores
+it. `summary --repo` is the checkout directory's display name, so `.`, `..`, or
+a value with a slash fails with `invalid-arguments`. `summary --plan` is the
+plan's repository-relative path; a leading `./` is dropped.
 
 `finish` reads exactly these keys: `execution` (`full`, `degraded`,
 `blocked`), `reviewers` (0–2), `trigger` (`runtime-removal`,
@@ -87,7 +90,7 @@ or null), `degraded_reasons` (list of `primary-role-not-obtained`,
 {"execution":"full","reviewers":1,"trigger":null,"degraded_reasons":[],"verdict":"READY","block_reason":null,"review_passes":1,"repair_passes":0,"findings":[]}
 ```
 
-Each finding has `id` (`PSDR-001`), `severity`, `class`, `pattern` (a
+Each finding has `id` (`PSDR-` plus three or more digits, such as `PSDR-001`), `severity`, `class`, `pattern` (a
 lowercase slug for the defect shape), `status` (`repaired`,
 `partially-closed`, `unresolved`),
 `source` (`reviewer`, `ledger-pass`, `machine-check`), `repair_pass` (null or
@@ -175,7 +178,8 @@ or `BLOCKED`.
 ## Errors
 
 Failures print one line to stderr, `{"error":{"code":"…","message":"…"}}`,
-and exit 2. Codes: `invalid-arguments`, `schema-invalid`, `run-not-found`,
+and exit 2; an argument error is `invalid-arguments`. `--help` prints the
+command table and exits 0. Codes: `invalid-arguments`, `schema-invalid`, `run-not-found`,
 `not-git-repository`, `outside-repository`, `already-finished`,
 `evidence-home-unwritable`, `identity-unavailable`, `schema-unsupported`,
 and `locking-unavailable`. `finish` needs every recorded document (design,
