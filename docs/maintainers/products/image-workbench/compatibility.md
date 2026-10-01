@@ -15,8 +15,9 @@ support evidence.
   `SKILL.md`.
 - `brief` and `audit` only need to read.
 - `generate` and `edit` need the host's image tool and a way to open the
-  result: the Codex built-in image tool, or Grok `image_gen`/`image_edit`. If
-  either is missing, do not claim to make or edit an image.
+  result: Codex `image_gen` (generate and edit), or Grok
+  `image_gen`/`image_edit`. If either is missing, do not claim to make or edit
+  an image.
 
 ## Evidence without provider calls
 
@@ -33,7 +34,9 @@ result. Do not commit user images, private references, generated media,
 credentials, or provider receipts.
 
 The four-item Grok smoke record is
-`tests/products/image-workbench/live/smoke-record.json`. Follow
+`tests/products/image-workbench/live/smoke-record.json`. It names the Grok
+`session_id` and `run_at` of the run and is bound to `SKILL.md` without its
+`metadata:` block, so only a version bump leaves it valid. Follow
 [Testing](testing.md) and `tests/products/image-workbench/live/README.md` for
 the steps.
 
@@ -44,8 +47,8 @@ build:
 
 1. The host finds the skill.
 2. It can be called with `$image-workbench` or `/image-workbench`.
-3. A request for a project image turns it on, and `kws-image-workbench` does
-   not.
+3. A request for a project image turns it on, and a casual one-off picture
+   does not.
 4. brief/audit create no files, and an authorized generate/edit saves a
    project file.
 

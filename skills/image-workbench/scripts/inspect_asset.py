@@ -4,22 +4,29 @@
 import argparse
 from collections.abc import Iterable, Iterator
 import dataclasses
+import errno
 import hashlib
 import json
+import os
 from pathlib import Path
+import stat
 import struct
 import sys
+import tempfile
+from typing import Optional
 import zlib
 
 
 @dataclasses.dataclass(frozen=True)
 class AssetFacts:
-    alpha: bool | None
+    alpha: Optional[bool]
     byte_size: int
     format: str
     height: int
     sha256: str
+    trailing_bytes: int
     width: int
+    extension_matches: Optional[bool] = None
 
 
 def _require_dimensions(width, height):
@@ -28,7 +35,8 @@ def _require_dimensions(width, height):
     return width, height
 
 
-MAX_PNG_DECODED_BYTES = 64 * 1024 * 1024
+MAX_PNG_DECODED_BYTES = 512 * 1024 * 1024
+PNG_DECODE_SLICE_BYTES = 1024 * 1024
 PNG_BIT_DEPTHS = {
     0: {1, 2, 4, 8, 16},
     2: {8, 16},
@@ -93,26 +101,31 @@ def _decode_png_idat(
             if chunk:
                 raise ValueError("invalid PNG image data")
             continue
-        try:
-            decoded = decompressor.decompress(chunk, expected_size - decoded_size + 1)
-        except zlib.error as error:
-            raise ValueError("invalid PNG image data") from error
-        decoded_size += len(decoded)
-        if decoded_size > expected_size or decompressor.unconsumed_tail:
-            raise ValueError("PNG image data size mismatch")
-        if decompressor.unused_data:
-            raise ValueError("invalid PNG image data")
-        cursor = 0
-        while cursor < len(decoded):
-            if row_remaining == 0:
-                row_remaining = next(sizes, 0)
-                if not row_remaining:
-                    raise ValueError("PNG image data size mismatch")
-                if decoded[cursor] > 4:
-                    raise ValueError("invalid PNG scanline filter")
-            consumed = min(row_remaining, len(decoded) - cursor)
-            cursor += consumed
-            row_remaining -= consumed
+        pending = chunk
+        while True:
+            try:
+                decoded = decompressor.decompress(pending, PNG_DECODE_SLICE_BYTES)
+            except zlib.error as error:
+                raise ValueError("invalid PNG image data") from error
+            decoded_size += len(decoded)
+            if decoded_size > expected_size:
+                raise ValueError("PNG image data size mismatch")
+            if decompressor.unused_data:
+                raise ValueError("invalid PNG image data")
+            cursor = 0
+            while cursor < len(decoded):
+                if row_remaining == 0:
+                    row_remaining = next(sizes, 0)
+                    if not row_remaining:
+                        raise ValueError("PNG image data size mismatch")
+                    if decoded[cursor] > 4:
+                        raise ValueError("invalid PNG scanline filter")
+                consumed = min(row_remaining, len(decoded) - cursor)
+                cursor += consumed
+                row_remaining -= consumed
+            pending = decompressor.unconsumed_tail
+            if decompressor.eof or (not pending and len(decoded) < PNG_DECODE_SLICE_BYTES):
+                break
     if not decompressor.eof:
         raise ValueError("invalid PNG image data")
     if decoded_size != expected_size or row_remaining or next(sizes, None) is not None:
@@ -120,6 +133,10 @@ def _decode_png_idat(
 
 
 def parse_png(data):
+    return _parse_png(data)[:3]
+
+
+def _parse_png(data):
     if not data.startswith(b"\x89PNG\r\n\x1a\n"):
         raise ValueError("invalid PNG signature")
     if len(data) < 33:
@@ -147,7 +164,7 @@ def parse_png(data):
         raise ValueError("invalid PNG bit depth")
     expected_decoded_size = _png_decoded_byte_count(width, height, bit_depth, color_type, interlace)
     if expected_decoded_size > MAX_PNG_DECODED_BYTES:
-        raise ValueError("PNG image data exceeds 64 MiB limit")
+        raise ValueError("PNG image data exceeds 512 MiB limit")
 
     alpha = color_type in (4, 6)
     seen_image_data = False
@@ -196,7 +213,7 @@ def parse_png(data):
             seen_trns = True
             alpha = True
         elif chunk_type == b"IEND":
-            if chunk_length != 0 or payload_end + 4 != len(data):
+            if chunk_length != 0:
                 raise ValueError("invalid PNG IEND chunk")
             if not seen_image_data:
                 raise ValueError("missing PNG IDAT")
@@ -212,10 +229,38 @@ def parse_png(data):
         expected_decoded_size,
         _png_scanline_sizes(width, height, bit_depth, color_type, interlace),
     )
-    return width, height, alpha
+    return width, height, alpha, offset + 12
+
+
+def _jpeg_eoi_offset(data, position):
+    """Walk entropy-coded data and later segments up to the first EOI marker."""
+    while True:
+        marker_start = data.find(b"\xff", position)
+        if marker_start < 0 or marker_start + 1 >= len(data):
+            raise ValueError("missing JPEG scan or EOI")
+        marker = data[marker_start + 1]
+        if marker == 0x00 or marker == 0x01 or 0xD0 <= marker <= 0xD7:
+            position = marker_start + 2
+        elif marker == 0xFF:
+            position = marker_start + 1
+        elif marker == 0xD9:
+            return marker_start
+        elif marker == 0xD8:
+            raise ValueError("invalid JPEG marker")
+        else:
+            if marker_start + 4 > len(data):
+                raise ValueError("truncated JPEG segment")
+            segment_length = struct.unpack(">H", data[marker_start + 2:marker_start + 4])[0]
+            if segment_length < 2 or marker_start + 2 + segment_length > len(data):
+                raise ValueError("invalid JPEG segment length")
+            position = marker_start + 2 + segment_length
 
 
 def parse_jpeg(data):
+    return _parse_jpeg(data)[:3]
+
+
+def _parse_jpeg(data):
     if not data.startswith(b"\xff\xd8"):
         raise ValueError("invalid JPEG SOI")
     offset = 2
@@ -271,12 +316,10 @@ def parse_jpeg(data):
             if any((table >> 4) > 3 or (table & 0x0F) > 3 for table in tables):
                 raise ValueError("invalid JPEG SOS table selectors")
             scan_start = offset + segment_length
-            if scan_start >= len(data) - 2 or data[-2:] != b"\xff\xd9":
+            eoi = _jpeg_eoi_offset(data, scan_start)
+            if eoi == scan_start:
                 raise ValueError("missing JPEG scan or EOI")
-            scan = data[scan_start:-2]
-            if not scan:
-                raise ValueError("missing JPEG scan or EOI")
-            return dimensions
+            return dimensions + (eoi + 2,)
         offset += segment_length
     if dimensions is not None:
         raise ValueError("missing JPEG scan or EOI")
@@ -284,11 +327,15 @@ def parse_jpeg(data):
 
 
 def parse_webp(data):
+    return _parse_webp(data)[:3]
+
+
+def _parse_webp(data):
     if len(data) < 12 or data[:4] != b"RIFF" or data[8:12] != b"WEBP":
         raise ValueError("invalid WebP RIFF header")
     declared_size = struct.unpack("<I", data[4:8])[0]
     riff_end = declared_size + 8
-    if declared_size < 4 or riff_end != len(data):
+    if declared_size < 4 or riff_end > len(data):
         raise ValueError("truncated WebP RIFF")
 
     offset = 12
@@ -356,27 +403,30 @@ def parse_webp(data):
         width = (packed & 0x3FFF) + 1
         height = ((packed >> 14) & 0x3FFF) + 1
         _require_dimensions(width, height)
-        alpha = None
+        alpha = bool((packed >> 28) & 1)
     if vp8x is None:
-        return width, height, alpha
+        return width, height, alpha, riff_end
     canvas_width = int.from_bytes(vp8x[4:7], "little") + 1
     canvas_height = int.from_bytes(vp8x[7:10], "little") + 1
     _require_dimensions(canvas_width, canvas_height)
     if (canvas_width, canvas_height) != (width, height):
         raise ValueError("WebP VP8X canvas does not match image data")
-    return canvas_width, canvas_height, bool(vp8x[0] & 0x10)
+    return canvas_width, canvas_height, bool(vp8x[0] & 0x10), riff_end
+
+
+FORMAT_SUFFIXES = {"png": {".png"}, "jpeg": {".jpg", ".jpeg"}, "webp": {".webp"}}
 
 
 def inspect_bytes(data):
     if data.startswith(b"\x89PNG\r\n\x1a\n"):
         image_format = "png"
-        width, height, alpha = parse_png(data)
+        width, height, alpha, end = _parse_png(data)
     elif data.startswith(b"\xff\xd8"):
         image_format = "jpeg"
-        width, height, alpha = parse_jpeg(data)
+        width, height, alpha, end = _parse_jpeg(data)
     elif data.startswith(b"RIFF") and len(data) >= 12 and data[8:12] == b"WEBP":
         image_format = "webp"
-        width, height, alpha = parse_webp(data)
+        width, height, alpha, end = _parse_webp(data)
     else:
         raise ValueError("unsupported image format")
     return AssetFacts(
@@ -385,12 +435,15 @@ def inspect_bytes(data):
         format=image_format,
         height=height,
         sha256=hashlib.sha256(data).hexdigest(),
+        trailing_bytes=len(data) - end,
         width=width,
     )
 
 
 def inspect_file(path):
-    return inspect_bytes(Path(path).read_bytes())
+    facts = inspect_bytes(Path(path).read_bytes())
+    suffix = Path(path).suffix.lower()
+    return dataclasses.replace(facts, extension_matches=suffix in FORMAT_SUFFIXES[facts.format])
 
 
 def _write_json(value, output_stream):
@@ -406,6 +459,52 @@ def _require_distinct_output(input_path: Path, output_path: Path) -> None:
         return
     if identical:
         raise ValueError("output path refers to the input asset")
+
+
+IMAGE_SIGNATURES = (b"\x89PNG\r\n\x1a\n", b"\xff\xd8")
+
+
+def _require_json_report_target(target: Path) -> None:
+    try:
+        status = target.stat()
+    except FileNotFoundError:
+        return
+    if stat.S_ISDIR(status.st_mode):
+        raise OSError(errno.EISDIR, os.strerror(errno.EISDIR))
+    if not stat.S_ISREG(status.st_mode):
+        raise ValueError("output path is not a regular file")
+    data = target.read_bytes()
+    if data.startswith(IMAGE_SIGNATURES) or (data[:4] == b"RIFF" and data[8:12] == b"WEBP"):
+        raise ValueError("output path is an image file")
+    try:
+        json.loads(data.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError) as error:
+        raise ValueError("output path is an existing non-JSON file") from error
+
+
+def _write_report(output_path: Path, rendered: str) -> None:
+    target = output_path.resolve()
+    _require_json_report_target(target)
+    try:
+        mode = stat.S_IMODE(target.stat().st_mode)
+    except FileNotFoundError:
+        umask = os.umask(0)
+        os.umask(umask)
+        mode = 0o666 & ~umask
+    handle = tempfile.NamedTemporaryFile(
+        "w", encoding="utf-8", dir=target.parent, prefix=f".{target.name}.", suffix=".tmp", delete=False
+    )
+    try:
+        with handle:
+            handle.write(rendered)
+        os.chmod(handle.name, mode)
+        os.replace(handle.name, target)
+    except BaseException:
+        try:
+            os.unlink(handle.name)
+        except FileNotFoundError:
+            pass
+        raise
 
 
 def main(argv=None, output_stream=None, error_stream=None):
@@ -427,10 +526,10 @@ def main(argv=None, output_stream=None, error_stream=None):
     if args.output:
         try:
             _require_distinct_output(Path(args.path), Path(args.output))
-            Path(args.output).write_text(rendered)
+            _write_report(Path(args.output), rendered)
         except (OSError, ValueError) as error:
             message = error.strerror if isinstance(error, OSError) and error.strerror else str(error)
-            _write_json({"error": message, "path": args.path}, error_stream)
+            _write_json({"error": message, "output": args.output, "path": args.path}, error_stream)
             return 1
     else:
         output_stream.write(rendered)

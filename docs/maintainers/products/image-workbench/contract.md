@@ -13,16 +13,21 @@ step with each other:
 Public install guidance lives in the product `README.md`/`README.ko.md` and in
 `docs/users/`.
 
-To make or edit an image, use only the Codex built-in image tool or Grok
-`image_gen`/`image_edit`. A preview path that exists only in the chat is not a
-final project file. In offline fixtures, `builtin_imagegen` means "call the
-current host's image tool".
+To make or edit an image, use only the host's built-in tool: Codex
+`image_gen` for generate and edit, or Grok `image_gen`/`image_edit`. A host
+result path (Grok session `images/`, Codex `$CODEX_HOME/generated_images/`)
+is not a final project file; copy it into a project sibling before inspection.
+In offline fixtures, `builtin_imagegen` means "call the current host's image
+tool".
 
 ## Trigger and defaults
 
 Turn on when the project needs a bitmap. Explicit calls are `$image-workbench`
-or `/image-workbench`. The old `kws-` name is a mistyped call and does nothing.
-A casual one-off picture is left to the host's own image feature.
+or `/image-workbench`. The `SKILL.md` description carries the use line and the
+exclusions within its first 250 or so characters, because hosts truncate it.
+Do not turn on for a casual one-off picture (left to the host's own image
+feature), an SVG-only or code-native asset, a data chart, frontend
+implementation, or copying a prompt gallery.
 
 Pick exactly one mode before acting: `brief`, `generate`, `edit`, or `audit`.
 
@@ -32,27 +37,39 @@ Pick exactly one mode before acting: `brief`, `generate`, `edit`, or `audit`.
 
 ## Output and routing
 
-Not sent to image generation:
+"Route The Deliverable" applies to a project raster request that turns out to
+need a native path. Such a part is not sent to image generation:
 
 - Icons, screen UI, exact layouts, and SVG go to the code/vector path.
 - Exact text, logos, and charts are not drawn whole; use a deterministic or
   mixed path.
 - Diagrams go to SVG, Mermaid, HTML, or canvas.
 
+A request that is only one of these is a non-activation (`none`/`no_op`), not
+a `generate` route. `generate` always means a new raster image.
+
 Write an `ImageSpec` before running. Give each input image exactly one role:
 `edit_target`, `subject_reference`, `style_reference`, or
 `compositing_input`.
 
-For a final project file, run `python3 scripts/inspect_asset.py <path>` from
-the skill folder to check format and size. These numbers do not replace
-looking at the image.
+For a final project file, run
+`python3 <skill-root>/scripts/inspect_asset.py <absolute-asset-path>` with an
+absolute asset path, and give `--output` an absolute path outside the skill
+folder. It reports format, dimensions, alpha, byte size, SHA-256,
+`extension_matches`, and `trailing_bytes`. These numbers do not replace
+looking at the image. On Grok, results are JPEG without alpha; keep the `.jpg`
+extension, and hold or report an explicit conversion when acceptance needs
+transparency, PNG, or exact pixels.
 
 Inspector rules:
 
 - Never write the result to the same file as the input image, including
   through a symlink or hard link.
-- Leave input images untouched. An existing separate JSON report may be
-  updated.
+- Leave input images untouched. An existing `--output` target must be a
+  regular JSON file; refuse images and other files, and write atomically.
+- An `--output` failure reports the output path in an `output` key.
+- Accept bytes after the PNG IEND, JPEG EOI, or RIFF end and count them in
+  `trailing_bytes`.
 - It reads only basic PNG, JPEG, and WebP structure. It does not prove the
   image is good or that you hold rights to it. Always open final candidates.
 
@@ -76,7 +93,7 @@ not widen authorization for read-only modes.
 When trigger, mode, or authorization changes, update these in the same change:
 
 - `skills/image-workbench/SKILL.md`
-- the positive fixtures and the mistyped-name fixtures
+- the positive fixtures and the near-miss fixtures
 - the product READMEs and shared public guides
 
 Recheck with fixtures that `brief`/`audit` stay read-only and that

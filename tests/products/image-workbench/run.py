@@ -192,7 +192,7 @@ class EvaluatorTests(unittest.TestCase):
             "save-replacement-authorized",
             "auth-brief-no-tool",
             "auth-audit-no-tool",
-            "near-miss-legacy-kws-invocation",
+            "near-miss-prompt-gallery",
             "near-miss-svg",
             "save-preview-only",
             "auth-edit-missing-target-hold",
@@ -491,7 +491,7 @@ class EvaluatorTests(unittest.TestCase):
             skill = root / "SKILL.md"
             skill.write_text(
                 skill.read_text(encoding="utf-8").replace(
-                    "`python3 scripts/inspect_asset.py <path>` from this skill root",
+                    "`python3 <skill-root>/scripts/inspect_asset.py <absolute-asset-path>`",
                     "`python3 skills/image-workbench/scripts/inspect_asset.py <path>`",
                 ),
                 encoding="utf-8",
@@ -1406,7 +1406,7 @@ def validate_skill_tree(skill_root: pathlib.Path, scope: str) -> list[str]:
                 errors.append(
                     "SKILL.md: inspector command must resolve from the skill root"
                 )
-            if "`python3 scripts/inspect_asset.py" not in skill_text:
+            if "`python3 <skill-root>/scripts/inspect_asset.py" not in skill_text:
                 errors.append("SKILL.md: missing skill-root inspector command")
             if "skills/image-workbench" in documents["scripts/inspect_asset.py"]:
                 errors.append(
@@ -1476,11 +1476,11 @@ def validate_skill_tree(skill_root: pathlib.Path, scope: str) -> list[str]:
             ("image_gen", "SKILL.md: missing Grok image_gen tool name"),
             ("image_edit", "SKILL.md: missing Grok image_edit tool name"),
             (
-                "Map ImageSpec canvas to aspect_ratio when it is a ratio.",
+                "On Grok, map ImageSpec canvas to aspect_ratio when it is a ratio.",
                 "SKILL.md: missing canvas-to-aspect_ratio wording",
             ),
             (
-                "Do not pass n or count.",
+                "On Grok, do not pass n or count",
                 "SKILL.md: missing no-n-or-count wording",
             ),
             (
@@ -1488,11 +1488,11 @@ def validate_skill_tree(skill_root: pathlib.Path, scope: str) -> list[str]:
                 "SKILL.md: missing pixel-mismatch-not-hold wording",
             ),
             (
-                "Do not call image_to_video or reference_to_video.",
+                "do not call image_to_video or reference_to_video.",
                 "SKILL.md: missing no-video-tools wording",
             ),
             (
-                "Single-image edit keeps the source aspect ratio.",
+                "On Grok, single-image edit keeps the source aspect ratio.",
                 "SKILL.md: missing single-edit-source-aspect wording",
             ),
             (
@@ -1621,7 +1621,7 @@ def run_mutation_checks(cases: list[dict[str, object]]) -> list[str]:
     for case_id in (
         "auth-brief-no-tool",
         "auth-audit-no-tool",
-        "near-miss-legacy-kws-invocation",
+        "near-miss-prompt-gallery",
     ):
         for action in ("builtin_imagegen", "new_file", "replace_existing"):
             mutated, lookup_errors = _reference_case(cases_by_id, case_id)

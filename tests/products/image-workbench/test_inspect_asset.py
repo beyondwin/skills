@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import ast
 import hashlib
 import importlib.util
 import json
 import os
 import struct
+import subprocess
 import tempfile
 import unittest
 import zlib
@@ -280,10 +282,10 @@ class AssetInspectorTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     parse_webp(bytes(data))
 
-    def test_webp_vp8l_reports_dimensions_with_unknown_alpha(self):
-        self.assertEqual(parse_webp(make_webp_vp8l(1, 1)), (1, 1, None))
+    def test_webp_vp8l_reports_dimensions_and_alpha_is_used_bit(self):
+        self.assertEqual(parse_webp(make_webp_vp8l(1, 1)), (1, 1, False))
 
-    def test_webp_vp8l_rejects_nonzero_version_preserves_alpha_hint(self):
+    def test_webp_vp8l_rejects_nonzero_version_and_reads_alpha_hint(self):
         valid = make_webp_vp8l(1, 1)
         for version in range(1, 8):
             with self.subTest(version=version):
@@ -293,7 +295,7 @@ class AssetInspectorTests(unittest.TestCase):
                     parse_webp(bytes(data))
         alpha_hint = bytearray(valid)
         alpha_hint[24] |= 0x10
-        self.assertEqual(parse_webp(bytes(alpha_hint)), (1, 1, None))
+        self.assertEqual(parse_webp(bytes(alpha_hint)), (1, 1, True))
 
     def test_webp_vp8x_reserved_bits_remain_rejected(self):
         valid = make_webp_extended_vp8(1, 1, alpha=True)
@@ -342,12 +344,47 @@ class AssetInspectorTests(unittest.TestCase):
         oversized = make_png_with_idat(1, 1, 6, zlib.compress(b"\0" * 10_000_000))
         with self.assertRaisesRegex(ValueError, "PNG image data size mismatch"):
             parse_png(oversized)
-        declared_too_large = make_png_with_idat(10_000, 10_000, 6, zlib.compress(b""))
-        with self.assertRaisesRegex(ValueError, "PNG image data exceeds"):
+        declared_too_large = make_png_with_idat(12_000, 12_000, 6, zlib.compress(b""))
+        with self.assertRaisesRegex(ValueError, "PNG image data exceeds 512 MiB limit"):
             parse_png(declared_too_large)
         mismatched = make_png_with_idat(1, 1, 6, zlib.compress(b"\0" * 6))
         with self.assertRaisesRegex(ValueError, "PNG image data size mismatch"):
             parse_png(mismatched)
+
+    def test_png_4096_square_rgba_is_inspected_in_bounded_slices(self):
+        compressor = zlib.compressobj(1)
+        row = b"\0" * (1 + 4096 * 4)
+        compressed = b"".join(compressor.compress(row) for _ in range(4096)) + compressor.flush()
+        data = make_png_with_idat(4096, 4096, 6, compressed)
+        real_zlib = INSPECTOR.zlib
+        limits = []
+
+        class RecordingDecompressor:
+            def __init__(self):
+                self._inner = real_zlib.decompressobj()
+
+            def decompress(self, chunk, max_length=0):
+                limits.append(max_length)
+                return self._inner.decompress(chunk, max_length)
+
+            def __getattr__(self, name):
+                return getattr(self._inner, name)
+
+        class RecordingZlib:
+            error = real_zlib.error
+            crc32 = staticmethod(real_zlib.crc32)
+
+            @staticmethod
+            def decompressobj():
+                return RecordingDecompressor()
+
+        INSPECTOR.zlib = RecordingZlib
+        try:
+            self.assertEqual(parse_png(data), (4096, 4096, True))
+        finally:
+            INSPECTOR.zlib = real_zlib
+        self.assertTrue(limits)
+        self.assertTrue(all(0 < limit <= 1 << 20 for limit in limits), max(limits))
 
     def test_png_accepts_empty_trailing_idat_after_zlib_eof_only(self):
         compressed = zlib.compress(b"\0" * 5)
@@ -432,6 +469,64 @@ class AssetInspectorTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             parse_webp(make_webp_vp8x(1, 1, alpha=False, extra_payload=b"\0"))
 
+    def test_trailing_bytes_after_image_end_are_counted(self):
+        trailer = b"\0\xff\xd9MP4 trailer\xff\xd9"
+        samples = {
+            "png": make_png(3, 2, color_type=6),
+            "jpeg": make_jpeg(1, 1),
+            "webp": make_webp_vp8(1, 1),
+        }
+        for image_format, data in samples.items():
+            with self.subTest(image_format=image_format):
+                clean = inspect_bytes(data)
+                self.assertEqual(clean.trailing_bytes, 0)
+                padded = inspect_bytes(data + trailer)
+                self.assertEqual(padded.format, image_format)
+                self.assertEqual(padded.trailing_bytes, len(trailer))
+                self.assertEqual((padded.width, padded.height), (clean.width, clean.height))
+                self.assertEqual(padded.byte_size, len(data) + len(trailer))
+                self.assertEqual(padded.sha256, hashlib.sha256(data + trailer).hexdigest())
+
+    def test_png_iend_with_payload_is_still_rejected(self):
+        data = make_png(3, 2, color_type=6)
+        bad_iend = data[:-12] + struct.pack(">I", 1) + b"IEND\0" + struct.pack(">I", zlib.crc32(b"IEND\0") & 0xFFFFFFFF)
+        with self.assertRaisesRegex(ValueError, "invalid PNG IEND chunk"):
+            parse_png(bad_iend)
+
+    def test_jpeg_scan_walk_skips_stuffing_restart_and_segments(self):
+        valid = make_jpeg(1, 1)
+        body = valid[:-2]
+        variants = {
+            "restart_marker": body + b"\xff\xd0\x12",
+            "fill_bytes": body + b"\xff\xff\xff\xd9"[:-2],
+            "comment_segment": body + b"\xff\xfe\x00\x06\xff\xd9\x00\x00",
+        }
+        for name, prefix in variants.items():
+            with self.subTest(name=name):
+                facts = inspect_bytes(prefix + b"\xff\xd9")
+                self.assertEqual((facts.width, facts.height, facts.trailing_bytes), (1, 1, 0))
+        with self.assertRaisesRegex(ValueError, "JPEG segment length"):
+            parse_jpeg(body + b"\xff\xfe\x00\x40" + b"\xff\xd9")
+
+    def test_inspect_file_reports_extension_match(self):
+        cases = {
+            "asset.png": (make_png(1, 1, color_type=6), True),
+            "asset.PNG": (make_png(1, 1, color_type=6), True),
+            "photo.jpg": (make_jpeg(1, 1), True),
+            "photo.JPEG": (make_jpeg(1, 1), True),
+            "photo.webp": (make_webp_vp8(1, 1), True),
+            "hero-v2.png": (make_jpeg(1, 1), False),
+            "hero.jpg": (make_png(1, 1, color_type=6), False),
+            "noextension": (make_png(1, 1, color_type=6), False),
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            for name, (data, expected) in cases.items():
+                with self.subTest(name=name):
+                    path = Path(directory) / name
+                    path.write_bytes(data)
+                    self.assertIs(inspect_file(path).extension_matches, expected)
+        self.assertIsNone(inspect_bytes(make_png(1, 1, color_type=6)).extension_matches)
+
     def test_inspect_file_reports_hash_and_byte_size(self):
         data = make_png(3, 2, color_type=6)
         with tempfile.TemporaryDirectory() as directory:
@@ -475,9 +570,11 @@ class AssetInspectorTests(unittest.TestCase):
             {
                 "alpha": True,
                 "byte_size": len(data),
+                "extension_matches": True,
                 "format": "png",
                 "height": 2,
                 "sha256": hashlib.sha256(data).hexdigest(),
+                "trailing_bytes": 0,
                 "width": 3,
             },
             sort_keys=True,
@@ -520,6 +617,7 @@ class AssetInspectorTests(unittest.TestCase):
                 self.assertEqual(len(stderr.value.splitlines()), 1)
                 error = json.loads(stderr.value)
                 self.assertEqual(error["path"], str(source))
+                self.assertEqual(error["output"], target)
                 self.assertTrue(error["error"])
 
     def test_output_symlink_alias_preserves_both_directions(self):
@@ -571,11 +669,12 @@ class AssetInspectorTests(unittest.TestCase):
             self.assertEqual(main([str(source), "--output", str(output)], stdout, stderr), 0)
             self.assertEqual(source.read_bytes(), data)
             self.assertEqual(json.loads(output.read_text(encoding="utf-8")), {
-                "alpha": True, "byte_size": len(data), "format": "png",
-                "height": 2, "sha256": hashlib.sha256(data).hexdigest(), "width": 3,
+                "alpha": True, "byte_size": len(data), "extension_matches": True, "format": "png",
+                "height": 2, "sha256": hashlib.sha256(data).hexdigest(), "trailing_bytes": 0, "width": 3,
             })
             self.assertEqual(stdout.value, "")
             self.assertEqual(stderr.value, "")
+            self.assertEqual(sorted(p.name for p in Path(directory).iterdir()), ["asset.png", "facts.json"])
 
     def test_output_write_error_cli_exits_one_with_error_json(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -588,8 +687,65 @@ class AssetInspectorTests(unittest.TestCase):
         self.assertEqual(stdout.value, "")
         payload = json.loads(stderr.value)
         self.assertEqual(payload["path"], str(input_path))
-        # Unix EISDIR vs Windows EACCES when --output is a directory.
-        self.assertIn(payload["error"], {"Is a directory", "Permission denied", "Access is denied"})
+        self.assertEqual(payload["output"], directory)
+        self.assertEqual(payload["error"], "Is a directory")
+
+    def test_output_missing_parent_reports_output_path(self):
+        with tempfile.TemporaryDirectory() as directory:
+            input_path = Path(directory) / "asset.png"
+            input_path.write_bytes(make_png(3, 2, color_type=6))
+            output = Path(directory) / "missing" / "facts.json"
+            stdout, stderr = StringSink(), StringSink()
+            result = main([str(input_path), "--output", str(output)], stdout, stderr)
+        self.assertEqual(result, 1)
+        self.assertEqual(stdout.value, "")
+        self.assertEqual(
+            json.loads(stderr.value),
+            {"error": "No such file or directory", "output": str(output), "path": str(input_path)},
+        )
+
+    def test_output_refuses_existing_image_or_non_json_file(self):
+        data = make_png(3, 2, color_type=6)
+        others = {
+            "other.png": make_png(4, 4, color_type=2),
+            "other.jpg": make_jpeg(1, 1),
+            "other.webp": make_webp_vp8(1, 1),
+            "image.json": make_png(1, 1, color_type=6),
+            "notes.json": b"plain notes, not JSON\n",
+            "binary.json": b"\xff\xfe\x00garbage",
+        }
+        for name, content in others.items():
+            with self.subTest(name=name), tempfile.TemporaryDirectory(prefix="image facts ") as directory:
+                source = Path(directory) / "asset.png"
+                target = Path(directory) / name
+                source.write_bytes(data)
+                target.write_bytes(content)
+                stdout, stderr = StringSink(), StringSink()
+                self.assertEqual(main([str(source), "--output", str(target)], stdout, stderr), 1)
+                self.assertEqual(target.read_bytes(), content)
+                self.assertEqual(source.read_bytes(), data)
+                self.assertEqual(sorted(p.name for p in Path(directory).iterdir()), sorted({"asset.png", name}))
+                error = json.loads(stderr.value)
+                self.assertEqual(error["output"], str(target))
+                self.assertEqual(error["path"], str(source))
+                self.assertTrue(error["error"])
+
+    def test_output_through_symlink_updates_linked_json_report(self):
+        data = make_png(3, 2, color_type=6)
+        with tempfile.TemporaryDirectory(prefix="image facts ") as directory:
+            source = Path(directory) / "asset.png"
+            report = Path(directory) / "report.json"
+            link = Path(directory) / "link.json"
+            source.write_bytes(data)
+            report.write_text('{"old": true}\n', encoding="utf-8")
+            try:
+                link.symlink_to(report)
+            except (OSError, NotImplementedError) as error:
+                self.skipTest(f"symlink unavailable on this host: {error}")
+            self.assertEqual(main([str(source), "--output", str(link)], StringSink(), StringSink()), 0)
+            self.assertTrue(link.is_symlink())
+            self.assertEqual(json.loads(report.read_text(encoding="utf-8"))["sha256"], hashlib.sha256(data).hexdigest())
+            self.assertEqual(sorted(p.name for p in Path(directory).iterdir()), ["asset.png", "link.json", "report.json"])
 
 
 class PublicInspectorContractTests(unittest.TestCase):
@@ -601,6 +757,49 @@ class PublicInspectorContractTests(unittest.TestCase):
         self.assertEqual((facts.width, facts.height, facts.alpha), (3, 2, True))
         self.assertEqual(facts.byte_size, len(data))
         self.assertEqual(facts.sha256, hashlib.sha256(data).hexdigest())
+
+    def test_runtime_script_avoids_pep604_annotations(self):
+        # macOS /usr/bin/python3 is 3.9; `X | None` annotations crash there.
+        self.assertTrue(INSPECTOR_PATH.is_file(), "public inspector is absent")
+        source = INSPECTOR_PATH.read_text(encoding="utf-8")
+        self.assertNotIn("from __future__ import annotations", source)
+        tree = ast.parse(source)
+        annotations = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.AnnAssign):
+                annotations.append(node.annotation)
+            elif isinstance(node, ast.arg) and node.annotation is not None:
+                annotations.append(node.annotation)
+            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.returns is not None:
+                annotations.append(node.returns)
+        unions = [
+            ast.unparse(annotation)
+            for annotation in annotations
+            for inner in ast.walk(annotation)
+            if isinstance(inner, ast.BinOp) and isinstance(inner.op, ast.BitOr)
+        ]
+        self.assertEqual(unions, [])
+
+    @unittest.skipUnless(Path("/usr/bin/python3").is_file(), "no /usr/bin/python3")
+    def test_inspector_runs_under_system_python(self):
+        self.assertTrue(INSPECTOR_PATH.is_file(), "public inspector is absent")
+        probe = subprocess.run(
+            ["/usr/bin/python3", "-c", "import sys; sys.exit(sys.version_info < (3, 9))"],
+            capture_output=True, text=True, timeout=60,
+        )
+        if probe.returncode != 0:
+            self.skipTest("/usr/bin/python3 is missing, unusable, or older than 3.9")
+        data = make_png(3, 2, color_type=6)
+        with tempfile.TemporaryDirectory() as directory:
+            asset = Path(directory) / "asset.png"
+            asset.write_bytes(data)
+            result = subprocess.run(
+                ["/usr/bin/python3", str(INSPECTOR_PATH), str(asset)],
+                capture_output=True, text=True, timeout=60,
+            )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        facts = json.loads(result.stdout)
+        self.assertEqual((facts["format"], facts["width"], facts["height"]), ("png", 3, 2))
 
     def test_runtime_script_contains_no_unittest_suite(self):
         self.assertTrue(INSPECTOR_PATH.is_file(), "public inspector is absent")

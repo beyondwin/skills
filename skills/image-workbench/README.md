@@ -16,6 +16,7 @@ Do not use `image-workbench` for:
 
 - a casual one-off picture
 - SVG or UI drawn in code
+- a data chart
 - building the actual screen
 - copying an external prompt gallery
 
@@ -96,6 +97,10 @@ ls -ld ~/.agents/skills/image-workbench
 unlink ~/.agents/skills/image-workbench
 ```
 
+Codex reads `~/.agents/skills` too, so this one link serves both Codex and
+Grok. If you use both hosts, install only one copy: this link, or
+`$skill-installer` for Codex alone. Two copies show up as two Codex entries.
+
 Do not copy the skill into `~/.grok` or `~/.codex`. The same steps are in
 [Local links](https://github.com/beyondwin/skills/blob/main/docs/users/en/install-local.md).
 
@@ -121,14 +126,20 @@ It first picks exactly one mode:
 `brief` and `audit` are read-only. It creates an image only when the generate
 or edit request is clear.
 
-For a file that goes into the project, run `python3 scripts/inspect_asset.py`
-from this skill folder to check format and size. A preview path that exists
-only in the chat is not the final file.
+For a file that goes into the project, it runs
+`python3 <skill-root>/scripts/inspect_asset.py <absolute-asset-path>`, where
+`<skill-root>` is the installed skill folder. The report lists format, width,
+height, alpha, byte size, SHA-256, `extension_matches` (the file extension
+fits the detected format), and `trailing_bytes` (extra bytes after the image
+end). A preview path that exists only in the chat is not the final file. Grok
+returns JPEG without transparency, so its results keep the `.jpg` extension.
 
 That check reads only basic PNG, JPEG, or WebP structure. A pass does not mean
 the picture looks good, that the whole file was decoded, or that you have the
-right to use it. Open every final candidate yourself. `--output facts.json`
-writes only a separate JSON report and refuses to overwrite the input image.
+right to use it. Open every final candidate yourself. `--output` takes an
+absolute report path outside the skill folder. It updates only an existing
+JSON report, refuses to overwrite the input image, another image, or any other
+file, and names the output path when it fails.
 
 ## See also
 

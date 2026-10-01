@@ -19,14 +19,14 @@ even when file facts are available.
 ## Mechanical Criteria
 
 For a project-bound final file, record detected format, dimensions, alpha when
-exposed, byte size, SHA-256, and destination/path readiness with the local
-inspector. These facts describe the file; they do not judge aesthetics, rights,
-or the result of an edit.
+exposed, byte size, SHA-256, extension match, and trailing bytes with the local
+inspector, and confirm the destination path separately. These facts describe
+the file; they do not judge aesthetics, rights, or the result of an edit.
 
 The inspector verifies selected file facts and required parsed structure,
 not complete bitstream decoding. Visual quality and rights remain separate
-checks. Its JSON output must not alias the input asset; a separate existing
-JSON report may be updated.
+checks. Its JSON output must not alias the input asset; an existing
+`--output` target must be a JSON report, never an image or other file.
 
 ## Critical Versus Advisory
 
