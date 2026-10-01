@@ -9,12 +9,13 @@ import json
 from pathlib import Path
 import struct
 import sys
+from typing import Optional
 import zlib
 
 
 @dataclasses.dataclass(frozen=True)
 class AssetFacts:
-    alpha: bool | None
+    alpha: Optional[bool]
     byte_size: int
     format: str
     height: int

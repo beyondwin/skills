@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import ast
 import hashlib
 import importlib.util
 import json
 import os
 import struct
+import subprocess
 import tempfile
 import unittest
 import zlib
@@ -601,6 +603,49 @@ class PublicInspectorContractTests(unittest.TestCase):
         self.assertEqual((facts.width, facts.height, facts.alpha), (3, 2, True))
         self.assertEqual(facts.byte_size, len(data))
         self.assertEqual(facts.sha256, hashlib.sha256(data).hexdigest())
+
+    def test_runtime_script_avoids_pep604_annotations(self):
+        # macOS /usr/bin/python3 is 3.9; `X | None` annotations crash there.
+        self.assertTrue(INSPECTOR_PATH.is_file(), "public inspector is absent")
+        source = INSPECTOR_PATH.read_text(encoding="utf-8")
+        self.assertNotIn("from __future__ import annotations", source)
+        tree = ast.parse(source)
+        annotations = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.AnnAssign):
+                annotations.append(node.annotation)
+            elif isinstance(node, ast.arg) and node.annotation is not None:
+                annotations.append(node.annotation)
+            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.returns is not None:
+                annotations.append(node.returns)
+        unions = [
+            ast.unparse(annotation)
+            for annotation in annotations
+            for inner in ast.walk(annotation)
+            if isinstance(inner, ast.BinOp) and isinstance(inner.op, ast.BitOr)
+        ]
+        self.assertEqual(unions, [])
+
+    @unittest.skipUnless(Path("/usr/bin/python3").is_file(), "no /usr/bin/python3")
+    def test_inspector_runs_under_system_python(self):
+        self.assertTrue(INSPECTOR_PATH.is_file(), "public inspector is absent")
+        probe = subprocess.run(
+            ["/usr/bin/python3", "-c", "import sys"],
+            capture_output=True, text=True, timeout=60,
+        )
+        if probe.returncode != 0:
+            self.skipTest("/usr/bin/python3 is not usable on this host")
+        data = make_png(3, 2, color_type=6)
+        with tempfile.TemporaryDirectory() as directory:
+            asset = Path(directory) / "asset.png"
+            asset.write_bytes(data)
+            result = subprocess.run(
+                ["/usr/bin/python3", str(INSPECTOR_PATH), str(asset)],
+                capture_output=True, text=True, timeout=60,
+            )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        facts = json.loads(result.stdout)
+        self.assertEqual((facts["format"], facts["width"], facts["height"]), ("png", 3, 2))
 
     def test_runtime_script_contains_no_unittest_suite(self):
         self.assertTrue(INSPECTOR_PATH.is_file(), "public inspector is absent")
