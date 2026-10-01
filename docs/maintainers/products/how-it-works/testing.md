@@ -163,8 +163,8 @@ a fresh repository's `.claude/skills/` with `--setting-sources project` (`SKILL.
 
 | Request | Skill tool called |
 | --- | --- |
-| `implicit-positive` from `cases.json` (DNS path, Korean) | 2/2, `· 길` reply |
-| "I don't get how the TCP handshake works; start from the principle" (Korean, uses 감이 안 와 and 원리부터) | 2/2, `· 그림` reply |
+| `implicit-positive` from `cases.json` (DNS path, Korean) | 2/2, a path-rung reply |
+| "I don't get how the TCP handshake works; start from the principle" (Korean, using two of the description's cue phrases) | 2/2, a picture-rung reply |
 | `near-miss-debug` from `cases.json` (fix a failing DNS resolver test) | 0/2; looked for the code instead |
 
 The description's bounds hold on Opus 5.5 in both directions, so the trigger stays as
