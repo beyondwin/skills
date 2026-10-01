@@ -562,8 +562,8 @@ GUIDE_IDENTITY_PARAGRAPH = (
     "version, repository HEAD and branch, source and installed skill hashes, "
     "`live_cases.json` hash, producer IDs, requested model IDs, scope, canonical "
     "selected call IDs, CLI paths, versions and diagnostics, model availability, "
-    "and model-discovery digest and diagnostic. A missing field or any mismatch "
-    "fails closed and requires a new run ID."
+    "model-discovery digest and diagnostic, and producer working-directory policy. "
+    "A missing field or any mismatch fails closed and requires a new run ID."
 )
 GUIDE_LEASE_PARAGRAPH = (
     "One `ReportLease` holds one `O_RDWR` and `O_NOFOLLOW` target file FD plus one "
@@ -589,6 +589,13 @@ GUIDE_ACTIVATION_PARAGRAPH = (
     "evaluator does not infer hidden routing or activation from a self-report. "
     "Offline fixtures and synthetic live evidence do not establish general writing "
     "quality, authorship, or provider-wide reliability."
+)
+GUIDE_PRODUCER_CWD_PARAGRAPH = (
+    "Each producer call runs in its own fresh empty temporary directory outside the "
+    "checkout, recorded as `producer_cwd` in the preflight payload, so repository "
+    "`AGENTS.md` or `CLAUDE.md` files and the offline and live answer keys are not "
+    "in its working tree. The read-only sandbox can still read absolute paths, and "
+    "user-level host instructions still load. Reviewer calls run from the checkout."
 )
 GUIDE_JUDGE_PARAGRAPH = (
     "The deterministic judge is three-valued. It NFC-normalizes bounded horizontal "
@@ -782,7 +789,7 @@ GUIDE_EXPECTED_SECTIONS = (
             "The optional report is written only to `<evidence-root>/reports/<name>.md`.",
         ),
     ),
-    ("Limitations", (GUIDE_ACTIVATION_PARAGRAPH,)),
+    ("Limitations", (GUIDE_ACTIVATION_PARAGRAPH, GUIDE_PRODUCER_CWD_PARAGRAPH)),
 )
 
 
@@ -1984,6 +1991,7 @@ class ProviderAdapterTests(unittest.TestCase):
                 "codex",
                 "exec",
                 "--ephemeral",
+                "--skip-git-repo-check",
                 "--sandbox",
                 "read-only",
                 "--json",
@@ -1993,6 +2001,38 @@ class ProviderAdapterTests(unittest.TestCase):
             ),
         )
         self.assertNotIn("--model", argv)
+
+    def test_producer_runs_in_a_fresh_empty_directory_per_call(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            run_root = pathlib.Path(directory)
+            call, case, preflight, producer, capture = single_codex_dispatch_fixture(run_root)
+            first = live_matrix._prepare_provider_call(call, producer, case, preflight)
+            second = live_matrix._prepare_provider_call(call, producer, case, preflight)
+            try:
+                for prepared in (first, second):
+                    self.assertTrue(prepared.cwd.is_dir())
+                    self.assertEqual(list(prepared.cwd.iterdir()), [])
+                    self.assertFalse(prepared.cwd.is_relative_to(preflight.repository_root))
+                    self.assertEqual(
+                        prepared.argv[prepared.argv.index("--cd") + 1], str(prepared.cwd)
+                    )
+                self.assertNotEqual(first.cwd, second.cwd)
+                reservation = live_matrix.reserve_attempt(
+                    run_root,
+                    preflight.identity,
+                    call,
+                    producer,
+                    kind="producer",
+                    call_number=1,
+                    ceiling=1,
+                )
+                with mock.patch("live_matrix.run_command", return_value=capture) as provider:
+                    live_matrix._dispatch_one(first, preflight, reservation)
+                self.assertEqual(provider.call_args.kwargs["cwd"], first.cwd)
+                self.assertFalse(first.cwd.exists())
+            finally:
+                shutil.rmtree(first.cwd, ignore_errors=True)
+                shutil.rmtree(second.cwd, ignore_errors=True)
 
     def test_cursor_argv_is_sandboxed_ask_and_not_forced(self) -> None:
         repo = pathlib.Path("/repo")
@@ -3286,6 +3326,12 @@ class LiveMatrixLifecycleTests(UnixOnlyLiveTestMixin, unittest.TestCase):
                         )
 
             self.assertEqual(first.run_root, run_root.resolve(strict=True))
+            self.assertEqual(
+                json.loads((run_root / "preflight.json").read_text(encoding="utf-8"))[
+                    "producer_cwd"
+                ],
+                "fresh-empty-temporary-directory-per-call",
+            )
             self.assertEqual(
                 {path.name for path in run_root.iterdir()},
                 {

@@ -178,9 +178,9 @@ run ID and scope.
 Resume validates the complete current preflight payload: run ID, runner
 version, repository HEAD and branch, source and installed skill hashes,
 `live_cases.json` hash, producer IDs, requested model IDs, scope, canonical
-selected call IDs, CLI paths, versions and diagnostics, model availability, and
-model-discovery digest and diagnostic. A missing field or any mismatch fails
-closed and requires a new run ID.
+selected call IDs, CLI paths, versions and diagnostics, model availability,
+model-discovery digest and diagnostic, and producer working-directory policy. A
+missing field or any mismatch fails closed and requires a new run ID.
 
 When matching preflight state exists but both report target and report state
 are absent, execute exclusively creates bounded pending content and persists
@@ -369,3 +369,9 @@ carry `activation_not_measured` and are `partially_verified`; the evaluator
 does not infer hidden routing or activation from a self-report. Offline
 fixtures and synthetic live evidence do not establish general writing quality,
 authorship, or provider-wide reliability.
+
+Each producer call runs in its own fresh empty temporary directory outside the
+checkout, recorded as `producer_cwd` in the preflight payload, so repository
+`AGENTS.md` or `CLAUDE.md` files and the offline and live answer keys are not
+in its working tree. The read-only sandbox can still read absolute paths, and
+user-level host instructions still load. Reviewer calls run from the checkout.

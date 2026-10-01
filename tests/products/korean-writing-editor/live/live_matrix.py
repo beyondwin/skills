@@ -17,6 +17,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import tempfile
 import time
 import unicodedata
 from collections.abc import Mapping, Sequence
@@ -188,6 +189,7 @@ INSTALL_STATE_HASH_FIELDS = frozenset(
     }
 )
 FINAL_INSTALL_STATE = "reviewed_candidate_installed_previous_backup_retained"
+PRODUCER_CWD_POLICY = "fresh-empty-temporary-directory-per-call"
 PENDING_OPERATIONS_REPORT = (
     b"# Korean Writing Editor Live Evaluation\n\n"
     b"Pending operator report reservation; no execution result has been published.\n"
@@ -385,6 +387,7 @@ class PreparedProviderCall:
     case: LiveCase
     prompt: str
     argv: tuple[str, ...]
+    cwd: pathlib.Path
 
 
 @dataclass(frozen=True)
@@ -818,6 +821,7 @@ def build_codex_argv(cwd: pathlib.Path, prompt: str) -> tuple[str, ...]:
         "codex",
         "exec",
         "--ephemeral",
+        "--skip-git-repo-check",
         "--sandbox",
         "read-only",
         "--json",
@@ -3319,6 +3323,7 @@ def validate_preflight(
             "model_availability": availability,
             "model_discovery_sha256": hashlib.sha256(discovery).hexdigest() if discovery is not None else None,
             "model_discovery_diagnostic": discovery_diagnostic,
+            "producer_cwd": PRODUCER_CWD_POLICY,
         }
         if resume or reuse_preflight:
             _, preflight_lease = _read_reusable_preflight(
@@ -4558,30 +4563,38 @@ def _prepare_provider_call(
     case: LiveCase,
     preflight: PreflightResult,
 ) -> PreparedProviderCall:
-    """Resolve CLI availability, prompt, and direct argv before charging a call."""
+    """Resolve CLI availability, prompt, and direct argv before charging a call.
+
+    Each producer runs in its own fresh empty directory outside the checkout, so
+    no repository instructions or answer keys sit in its working tree.
+    """
     prompt = build_prompt(case, producer.host)
     if producer.host == "codex":
         executable = preflight.cli_info["codex"].path
         if executable is None:
             raise LiveMatrixError("codex CLI is unavailable")
-        argv = (executable, *build_codex_argv(preflight.repository_root, prompt)[1:])
     elif producer.host == "cursor":
         executable = preflight.cli_info["cursor-agent"].path
         if executable is None:
             raise LiveMatrixError("cursor-agent CLI is unavailable")
         if producer.requested_model is None:
             raise LiveMatrixError("cursor requested model is unavailable")
-        argv = (
-            executable,
-            *build_cursor_argv(
-                preflight.repository_root, producer.requested_model, prompt
-            )[1:],
-        )
     else:
         raise LiveMatrixError("unsupported provider host")
+    cwd = pathlib.Path(
+        tempfile.mkdtemp(prefix="korean-writing-editor-call-")
+    ).resolve(strict=True)
+    if producer.host == "codex":
+        argv = (executable, *build_codex_argv(cwd, prompt)[1:])
+    else:
+        argv = (
+            executable,
+            *build_cursor_argv(cwd, producer.requested_model, prompt)[1:],
+        )
     if not argv or any(not isinstance(value, str) or not value for value in argv):
+        shutil.rmtree(cwd, ignore_errors=True)
         raise LiveMatrixError("invalid argv")
-    return PreparedProviderCall(call, producer, case, prompt, tuple(argv))
+    return PreparedProviderCall(call, producer, case, prompt, tuple(argv), cwd)
 
 
 def _dispatch_one(
@@ -4607,7 +4620,7 @@ def _dispatch_one(
     started_at = _utc_now()
     prompt_sha256 = hashlib.sha256(prepared.prompt.encode("utf-8")).hexdigest()
     try:
-        capture = run_command(prepared.argv, cwd=preflight.repository_root)
+        capture = run_command(prepared.argv, cwd=prepared.cwd)
     except LiveMatrixError as exc:
         return _blocked_receipt(
             call=call,
@@ -4619,6 +4632,8 @@ def _dispatch_one(
             message=str(exc),
             band=case.band,
         )
+    finally:
+        shutil.rmtree(prepared.cwd, ignore_errors=True)
 
     raw_paths = (
         f"{RAW_DIRECTORY_NAME}/{call_number:04d}.stdout.bin",
@@ -4771,9 +4786,41 @@ def dispatch_calls(
     pending = remaining_calls(plan, receipts, preflight.identity)
     producers = {producer.id: producer for producer in current_producers}
     case_by_identifier = {case.id: case for case in cases}
+    eligible: list[PreparedProviderCall] = []
+    try:
+        return _dispatch_prepared_calls(
+            preflight,
+            pending,
+            producers,
+            case_by_identifier,
+            reservations,
+            attempts,
+            eligible,
+            jobs=jobs,
+            max_calls=max_calls,
+        )
+    finally:
+        for prepared in eligible:
+            shutil.rmtree(prepared.cwd, ignore_errors=True)
+
+
+def _dispatch_prepared_calls(
+    preflight: PreflightResult,
+    pending: Sequence[PlannedCall],
+    producers: Mapping[str, Producer],
+    case_by_identifier: Mapping[str, LiveCase],
+    reservations: Sequence[AttemptReservation],
+    attempts: Sequence[CallReceipt],
+    eligible: list[PreparedProviderCall],
+    *,
+    jobs: int,
+    max_calls: int,
+) -> tuple[CallReceipt, ...]:
+    """Prepare, reserve, and dispatch pending calls; the caller removes work directories."""
+    if preflight.run_root is None:
+        raise LiveMatrixError("dispatch requires an evidence run root")
     reserved_count = len(reservations)
     result: list[CallReceipt] = []
-    eligible: list[PreparedProviderCall] = []
     not_measured: list[CallReceipt] = []
     for call in pending:
         producer = producers.get(call.producer_id)
