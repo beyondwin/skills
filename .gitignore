@@ -1,6 +1,16 @@
-.worktrees/
-.superpowers/
+# Agent and host local state (never commit)
+.claude/
+CLAUDE.local.md
+.codex/
+.cursor/
+.grok/
+.serena/
 .remember/
+.superpowers/
+.waygent/
+.worktrees/
+.pre-sdd-review/
+.playwright-mcp/
 
 # Python bytecode
 __pycache__/
@@ -29,8 +39,7 @@ htmlcov/
 # Generated release archives (never commit)
 dist/
 
-# Playwright / browser tooling
-.playwright-mcp/
+# Playwright / browser test output
 test-results/
 playwright-report/
 blob-report/
@@ -49,5 +58,3 @@ Thumbs.db
 
 # Logs
 *.log
-.serena
-.claude
