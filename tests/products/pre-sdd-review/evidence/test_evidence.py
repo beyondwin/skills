@@ -28,7 +28,7 @@ from support import (
 import evidence
 
 
-VERSION_LINE = b'{"cli_version":"6.1.1","schema":5,"skill_name":"pre-sdd-review"}\n'
+VERSION_LINE = b'{"cli_version":"6.1.2","schema":5,"skill_name":"pre-sdd-review"}\n'
 
 
 class VersionTests(unittest.TestCase):

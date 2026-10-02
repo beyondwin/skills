@@ -4,11 +4,17 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 6.1.2 - 2026-10-02
+
 ### Changed
 
 - Campaign rules (the shared-file ledger pre-pass, discovery waves, the campaign schedule and stale set, and campaign `review-only`) moved from `SKILL.md` to `references/campaign.md`. `SKILL.md` keeps one pointer where each section was, and its single-plan path names the file to skip. The rules are unchanged.
 - `SKILL.md` no longer restates recorder field detail that `evidence/README.md` owns: the `--client` and `abandon` reason values, the `Evidence:` reason codes, the finding record's fields, ID format, and `status` values, the `outcome` labels, and the `block_reason` prefixes and length limit. It points to the recorder README instead and keeps the lifecycle steps.
 - `SKILL.md` has a `Gotchas` section with three recorded live-run facts: Codex `spawn_agent` forks the parent conversation unless `fork_turns: "none"` is set, and Codex CLI 0.157.1 has no `close_agent`; `finish` rejects a `block_reason` over 100 characters; Claude Code reports printed the handoff under a heading or bold label instead of the `Handoff:` line.
+
+### Notes
+
+- Handshake `cli_version` is 6.1.2. Record schema stays 5.
 
 ## 6.1.1 - 2026-10-02
 
