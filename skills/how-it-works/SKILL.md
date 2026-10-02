@@ -58,7 +58,7 @@ Missing-slot order: slice, then a language question only if KO/EN mix would chan
 
 Rungs:
 
-- **그림** — 한 장 (default)
+- **그림** — 한 장 (default): a smaller true map; a false simplification is a bug
 - **길** — 누가 무엇을 넘기는지
 - **뼈대** — 갈림길과 실패
 - **허점** — 이 그림이 금 가는 곳
