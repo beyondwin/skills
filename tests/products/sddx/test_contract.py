@@ -580,6 +580,30 @@ class SddxContractTests(unittest.TestCase):
         self.assertIn("the `wait` subcommand", compatibility)
         self.assertIn("`Waygent-Task: final`", dispatch)
 
+    def test_gotchas_hold_recorded_facts_once(self) -> None:
+        fold = lambda value: re.sub(r"\s+", " ", value)
+        skill = fold((SKILL / "SKILL.md").read_text(encoding="utf-8"))
+        gotchas = skill.split("## Gotchas", 1)[1].split("## ", 1)[0]
+        # testing.md 2026-10-01 V3: `ps aux` printed a Cursor API key.
+        self.assertIn("`ps aux` and `pgrep -fl` print other processes' full command lines", gotchas)
+        self.assertIn("`pgrep -f <worktree path>` prints pids only", gotchas)
+        # testing.md 2026-10-01: Codex 0.157.1's tool schema and a direct probe.
+        self.assertIn("Codex 0.157.1 returns `exec_command` within 30000 ms", gotchas)
+        self.assertEqual(skill.count("30000 ms"), 1)
+        # Commit 9e50890: a coloured listing resolved `no_grok_model`.
+        self.assertIn("`no_model_list` and `model_list_unreadable` are reading faults", gotchas)
+        # Emphasis-only and restated lines stay out.
+        self.assertNotIn("Violating the letter", skill)
+        flags = skill.split("## Red flags", 1)[1]
+        for restated in (
+            "Activating without",
+            "Ending the turn while a worker runs",
+            "Retrying after a confirmed 402",
+            "XHigh to be safe",
+            "Worker git push",
+        ):
+            self.assertNotIn(restated, flags, restated)
+
     def test_grok_tools_index_is_on_every_face(self) -> None:
         dispatch = (SKILL / "references" / "dispatch.md").read_text(encoding="utf-8")
         contract = (

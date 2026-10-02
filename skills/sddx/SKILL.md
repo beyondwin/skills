@@ -25,7 +25,6 @@ Activate only when the user message contains /sddx or $sddx.
 Do not activate on /waygent, native SDD, executing-plans (including Native
 inline), writing-plans, pre-sdd-review, or any request that does not contain
 /sddx or $sddx.
-Violating the letter of this gate is violating the spirit.
 </HARD-GATE>
 
 waygent's own "run only with /waygent" and "not for /sddx" lines are about
@@ -218,26 +217,27 @@ fix it before the next dispatch. Do not create any other state file.
 | Invocation | `/sddx` | `$sddx` |
 | Asking for a backend | AskUserQuestion | the question tool, else a short text question |
 | Worker launch and status | the same product Python scripts | the same product Python scripts |
-| Waiting on a worker | `exec python3 … run_worker.py run …` as the Bash tool's background command (no trailing `&`); each `wait` in a foreground Bash call with `timeout: 600000` | start `wait` once with `exec_command` (Codex 0.157.1 returns it within 30000 ms), then poll that same session with `write_stdin` (empty `chars`, `yield_time_ms: 300000`) until it exits; no `status` calls between waits; `session_id` from the `wait` output |
+| Waiting on a worker | `exec python3 … run_worker.py run …` as the Bash tool's background command (no trailing `&`); each `wait` in a foreground Bash call with `timeout: 600000` | start `wait` once with `exec_command`, then poll that same session with `write_stdin` (empty `chars`, `yield_time_ms: 300000`) until it exits; no `status` calls between waits; `session_id` from the `wait` output |
 | Review | Agent tool, per waygent Models | `spawn_agent`, per waygent Models |
 
 The supported OS is macOS. Do not add Windows transport. Refuse Windows at the product CLIs.
 
+## Gotchas
+
+- `ps aux` and `pgrep -fl` print other processes' full command lines, and
+  other agents' command lines can carry API keys. In the 8.1.0 live check a
+  `ps aux` leftover check printed a Cursor background worker's API key into
+  the session transcript. `pgrep -f <worktree path>` prints pids only.
+- Codex 0.157.1 returns `exec_command` within 30000 ms whatever
+  `yield_time_ms` asks for. Only `write_stdin` on the same session waits, up
+  to 300000 ms.
+- A missing model and an unreadable model listing once looked the same: a
+  coloured Cursor listing read as no ids and resolved `no_grok_model`, and
+  the controller took the model as gone. `reason` now separates them:
+  `no_model_list` and `model_list_unreadable` are reading faults, and only
+  `no_grok_model` and `no_grok_4_7` say the model is absent.
+
 ## Red flags
 
-- Activating without `/sddx` or `$sddx`, or on `/waygent`
-- Copying waygent into this file, or running without it
-- A native implementer subagent, or the controller editing application code
-- A brief without the plan's run-wide constraints, or the whole plan as a reference
-- Hand-composing a provider command, or dumping a whole worker log
-- Launching Grok CLI or Cursor Agent on any model other than Grok 4.7, or on a `-fast` variant
-- Treating PATH `agent` as Cursor, or auto-failover when a backend is missing
-- Auto-selecting the only available backend without confirmation
-- Ending the turn while a worker runs
+- Treating PATH `agent` as Cursor
 - Starting an attempt while the previous attempt's `pid_alive` is true, or stopping one with `pkill -f` or by signalling `run.json.pid` while its runner is alive
-- Resuming a session whose attempt wrote no output
-- Retrying after a confirmed 402 without a changed condition
-- Implementer XHigh to be safe, or copying the session effort onto it
-- A PASS without a tool trace, or a clean DONE after a prohibited read
-- A model or effort in progress that nothing observed, without `(requested)`
-- Worker git push, publish, or shared-branch update
