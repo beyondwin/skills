@@ -27,7 +27,7 @@ EXPECTED = {
     "how-it-works": "3.0.3",
     "pre-sdd-review": "6.1.2",
     "sddx": "8.2.0",
-    "waygent": "0.3.2",
+    "waygent": "0.3.3",
 }
 REGISTRY = load_registry(ROOT / "products.toml")
 

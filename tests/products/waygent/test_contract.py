@@ -6,6 +6,7 @@ phrases and the line ceiling, not wording or a digest.
 
 from __future__ import annotations
 
+import re
 import sys
 import tomllib
 import unittest
@@ -59,6 +60,13 @@ class WaygentContractTests(unittest.TestCase):
         self.assertIn("brainstorming", lowered)
         self.assertIn("spec", lowered)
         self.assertIn("single small fix", lowered)
+
+    def test_description_is_trigger_only(self) -> None:
+        description = str(self.frontmatter.get("description", "")).strip()
+        sentences = [part for part in re.split(r"(?<=[.!?])\s+", description) if part]
+        self.assertGreaterEqual(len(sentences), 2)
+        for sentence in sentences:
+            self.assertTrue(sentence.startswith(("Use ", "Do not use ")), sentence)
 
     def test_progress_and_resume_contract(self) -> None:
         self.assertIn(".waygent/<plan-slug>/", self.text)

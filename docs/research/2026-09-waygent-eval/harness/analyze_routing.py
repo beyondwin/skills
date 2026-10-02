@@ -3,12 +3,15 @@
 
 usage: analyze_routing.py [--json OUT]   (reads runs/route-pilot and runs/route)
 Roles come from the agent definition type when there is one, else the dispatch description.
-Cost per role is the list-price estimate from each transcript (bench.py transcript_usage).
+Cost per role is the list-price estimate from each transcript (bench.py transcript_usage),
+recomputed here: meta.json of runs before a7276a6 stored the undercounting first-usage sums.
 """
 import json, re, statistics as st, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+import bench  # noqa: E402
 CELLS = ["wg_base", "wg_final_xhigh", "wg_review_high", "wg_impl_sonnet"]
 EXCLUDE = {"route-pilot/wg_base-opus-1-app2"}  # an implementer hit a 429 mid-final; see the pre-registration
 
@@ -40,7 +43,7 @@ def one(tag, d):
     fixed_tasks = sum(int(x) for x in re.findall(r"review=fixed (\d+)", ptxt))
     overruled = sum(int(x) for x in re.findall(r"review=overruled (\d+)", ptxt))
     final_fixed = sum(int(x) for x in re.findall(r"^final: done .*?fixed=(\d+)", ptxt, re.M))
-    t = m.get("transcripts", {})
+    t = bench.session_agents(m["sessions"])
     roles = {}
     impl_turns = []
     observed = set()

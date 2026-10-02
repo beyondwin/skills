@@ -4,6 +4,14 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 0.3.3 - 2026-10-03
+
+### Changed
+
+- The description says only when to use the skill and when not to; the sentence that
+  summarized the loop is gone. A contract test keeps every sentence a "Use" or
+  "Do not use" sentence, as in the other five products.
+
 ## 0.3.2 - 2026-10-02
 
 ### Changed

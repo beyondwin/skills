@@ -1,11 +1,11 @@
 ---
 name: waygent
-description: Use only when the user message contains /waygent or $waygent. Runs a multi-task implementation with one fresh implementer subagent per task, test-first, one review per task, one final review, and resume from a progress file. Do not use for brainstorming, writing specs or plans, a single small fix, /sddx, or Superpowers subagent-driven-development.
+description: Use only when the user message contains /waygent or $waygent. Do not use for brainstorming, writing specs or plans, a single small fix, /sddx, or Superpowers subagent-driven-development.
 license: Apache-2.0
 compatibility: Requires a Git repository and a host with a subagent tool (Claude Code Agent tool, Codex spawn_agent with multi_agent enabled, Cursor Agent Task tool, or Grok Build spawn_subagent). Works with or without a plan file.
 metadata:
-  version: "0.3.2"
-  updated_at: "2026-10-02"
+  version: "0.3.3"
+  updated_at: "2026-10-03"
 ---
 
 # waygent
