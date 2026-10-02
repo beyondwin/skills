@@ -1,0 +1,460 @@
+[
+ {
+  "host": "claude",
+  "skill": "how-it-works",
+  "kind": "neg",
+  "split": "held",
+  "n": 8,
+  "correct": 8,
+  "rate": 1.0,
+  "ci95": [
+   0.676,
+   1.0
+  ],
+  "rep_agreement": "4/4",
+  "misses": {},
+  "other_skills": {
+   "dataviz": 2
+  },
+  "timeouts": 0
+ },
+ {
+  "host": "claude",
+  "skill": "how-it-works",
+  "kind": "neg",
+  "split": "train",
+  "n": 16,
+  "correct": 16,
+  "rate": 1.0,
+  "ci95": [
+   0.806,
+   1.0
+  ],
+  "rep_agreement": "8/8",
+  "misses": {},
+  "other_skills": {
+   "eli5": 2,
+   "brainstorming": 2,
+   "systematic-debugging": 1
+  },
+  "timeouts": 0
+ },
+ {
+  "host": "claude",
+  "skill": "how-it-works",
+  "kind": "pos",
+  "split": "held",
+  "n": 8,
+  "correct": 8,
+  "rate": 1.0,
+  "ci95": [
+   0.676,
+   1.0
+  ],
+  "rep_agreement": "4/4",
+  "misses": {},
+  "other_skills": {},
+  "timeouts": 0
+ },
+ {
+  "host": "claude",
+  "skill": "how-it-works",
+  "kind": "pos",
+  "split": "train",
+  "n": 16,
+  "correct": 16,
+  "rate": 1.0,
+  "ci95": [
+   0.806,
+   1.0
+  ],
+  "rep_agreement": "8/8",
+  "misses": {},
+  "other_skills": {},
+  "timeouts": 0
+ },
+ {
+  "host": "claude",
+  "skill": "pre-sdd-review",
+  "kind": "neg",
+  "split": "held",
+  "n": 8,
+  "correct": 8,
+  "rate": 1.0,
+  "ci95": [
+   0.676,
+   1.0
+  ],
+  "rep_agreement": "4/4",
+  "misses": {},
+  "other_skills": {
+   "executing-plans": 2,
+   "brainstorming": 2,
+   "test-driven-development": 1
+  },
+  "timeouts": 2
+ },
+ {
+  "host": "claude",
+  "skill": "pre-sdd-review",
+  "kind": "neg",
+  "split": "train",
+  "n": 16,
+  "correct": 16,
+  "rate": 1.0,
+  "ci95": [
+   0.806,
+   1.0
+  ],
+  "rep_agreement": "8/8",
+  "misses": {},
+  "other_skills": {
+   "brainstorming": 4,
+   "writing-plans": 2,
+   "code-review": 2
+  },
+  "timeouts": 1
+ },
+ {
+  "host": "claude",
+  "skill": "pre-sdd-review",
+  "kind": "pos",
+  "split": "held",
+  "n": 8,
+  "correct": 8,
+  "rate": 1.0,
+  "ci95": [
+   0.676,
+   1.0
+  ],
+  "rep_agreement": "4/4",
+  "misses": {},
+  "other_skills": {},
+  "timeouts": 0
+ },
+ {
+  "host": "claude",
+  "skill": "pre-sdd-review",
+  "kind": "pos",
+  "split": "train",
+  "n": 16,
+  "correct": 16,
+  "rate": 1.0,
+  "ci95": [
+   0.806,
+   1.0
+  ],
+  "rep_agreement": "8/8",
+  "misses": {},
+  "other_skills": {},
+  "timeouts": 0
+ },
+ {
+  "host": "codex",
+  "skill": "how-it-works",
+  "kind": "neg",
+  "split": "held",
+  "n": 8,
+  "correct": 8,
+  "rate": 1.0,
+  "ci95": [
+   0.676,
+   1.0
+  ],
+  "rep_agreement": "4/4",
+  "misses": {},
+  "other_skills": {
+   "verification-before-completion": 2
+  },
+  "timeouts": 0
+ },
+ {
+  "host": "codex",
+  "skill": "how-it-works",
+  "kind": "neg",
+  "split": "train",
+  "n": 16,
+  "correct": 16,
+  "rate": 1.0,
+  "ci95": [
+   0.806,
+   1.0
+  ],
+  "rep_agreement": "8/8",
+  "misses": {},
+  "other_skills": {
+   "verification-before-completion": 6,
+   "systematic-debugging": 3,
+   "test-driven-development": 3,
+   "brainstorming": 2,
+   "executing-plans": 2
+  },
+  "timeouts": 1
+ },
+ {
+  "host": "codex",
+  "skill": "how-it-works",
+  "kind": "pos",
+  "split": "held",
+  "n": 8,
+  "correct": 8,
+  "rate": 1.0,
+  "ci95": [
+   0.676,
+   1.0
+  ],
+  "rep_agreement": "4/4",
+  "misses": {},
+  "other_skills": {},
+  "timeouts": 0
+ },
+ {
+  "host": "codex",
+  "skill": "how-it-works",
+  "kind": "pos",
+  "split": "train",
+  "n": 16,
+  "correct": 16,
+  "rate": 1.0,
+  "ci95": [
+   0.806,
+   1.0
+  ],
+  "rep_agreement": "8/8",
+  "misses": {},
+  "other_skills": {},
+  "timeouts": 0
+ },
+ {
+  "host": "codex",
+  "skill": "image-workbench",
+  "kind": "neg",
+  "split": "held",
+  "n": 8,
+  "correct": 8,
+  "rate": 1.0,
+  "ci95": [
+   0.676,
+   1.0
+  ],
+  "rep_agreement": "4/4",
+  "misses": {},
+  "other_skills": {
+   "brainstorming": 2,
+   "verification-before-completion": 2
+  },
+  "timeouts": 2
+ },
+ {
+  "host": "codex",
+  "skill": "image-workbench",
+  "kind": "neg",
+  "split": "train",
+  "n": 16,
+  "correct": 16,
+  "rate": 1.0,
+  "ci95": [
+   0.806,
+   1.0
+  ],
+  "rep_agreement": "8/8",
+  "misses": {},
+  "other_skills": {
+   "verification-before-completion": 7,
+   "brainstorming": 5,
+   "imagegen": 2,
+   "impeccable": 2,
+   "test-driven-development": 2
+  },
+  "timeouts": 2
+ },
+ {
+  "host": "codex",
+  "skill": "image-workbench",
+  "kind": "pos",
+  "split": "held",
+  "n": 8,
+  "correct": 8,
+  "rate": 1.0,
+  "ci95": [
+   0.676,
+   1.0
+  ],
+  "rep_agreement": "4/4",
+  "misses": {},
+  "other_skills": {
+   "imagegen": 4
+  },
+  "timeouts": 0
+ },
+ {
+  "host": "codex",
+  "skill": "image-workbench",
+  "kind": "pos",
+  "split": "train",
+  "n": 16,
+  "correct": 16,
+  "rate": 1.0,
+  "ci95": [
+   0.806,
+   1.0
+  ],
+  "rep_agreement": "8/8",
+  "misses": {},
+  "other_skills": {
+   "imagegen": 5,
+   "brainstorming": 2
+  },
+  "timeouts": 0
+ },
+ {
+  "host": "codex",
+  "skill": "korean-writing-editor",
+  "kind": "neg",
+  "split": "held",
+  "n": 8,
+  "correct": 8,
+  "rate": 1.0,
+  "ci95": [
+   0.676,
+   1.0
+  ],
+  "rep_agreement": "4/4",
+  "misses": {},
+  "other_skills": {},
+  "timeouts": 0
+ },
+ {
+  "host": "codex",
+  "skill": "korean-writing-editor",
+  "kind": "neg",
+  "split": "train",
+  "n": 16,
+  "correct": 16,
+  "rate": 1.0,
+  "ci95": [
+   0.806,
+   1.0
+  ],
+  "rep_agreement": "8/8",
+  "misses": {},
+  "other_skills": {
+   "systematic-debugging": 2
+  },
+  "timeouts": 0
+ },
+ {
+  "host": "codex",
+  "skill": "korean-writing-editor",
+  "kind": "pos",
+  "split": "held",
+  "n": 8,
+  "correct": 8,
+  "rate": 1.0,
+  "ci95": [
+   0.676,
+   1.0
+  ],
+  "rep_agreement": "4/4",
+  "misses": {},
+  "other_skills": {},
+  "timeouts": 0
+ },
+ {
+  "host": "codex",
+  "skill": "korean-writing-editor",
+  "kind": "pos",
+  "split": "train",
+  "n": 16,
+  "correct": 16,
+  "rate": 1.0,
+  "ci95": [
+   0.806,
+   1.0
+  ],
+  "rep_agreement": "8/8",
+  "misses": {},
+  "other_skills": {},
+  "timeouts": 0
+ },
+ {
+  "host": "codex",
+  "skill": "pre-sdd-review",
+  "kind": "neg",
+  "split": "held",
+  "n": 8,
+  "correct": 8,
+  "rate": 1.0,
+  "ci95": [
+   0.676,
+   1.0
+  ],
+  "rep_agreement": "4/4",
+  "misses": {},
+  "other_skills": {
+   "executing-plans": 2,
+   "using-git-worktrees": 2,
+   "test-driven-development": 2,
+   "verification-before-completion": 2,
+   "korean-writing-editor": 2
+  },
+  "timeouts": 2
+ },
+ {
+  "host": "codex",
+  "skill": "pre-sdd-review",
+  "kind": "neg",
+  "split": "train",
+  "n": 16,
+  "correct": 16,
+  "rate": 1.0,
+  "ci95": [
+   0.806,
+   1.0
+  ],
+  "rep_agreement": "8/8",
+  "misses": {},
+  "other_skills": {
+   "verification-before-completion": 9,
+   "systematic-debugging": 5,
+   "brainstorming": 4,
+   "writing-plans": 2,
+   "ouroboros-qa": 1
+  },
+  "timeouts": 3
+ },
+ {
+  "host": "codex",
+  "skill": "pre-sdd-review",
+  "kind": "pos",
+  "split": "held",
+  "n": 8,
+  "correct": 8,
+  "rate": 1.0,
+  "ci95": [
+   0.676,
+   1.0
+  ],
+  "rep_agreement": "4/4",
+  "misses": {},
+  "other_skills": {},
+  "timeouts": 0
+ },
+ {
+  "host": "codex",
+  "skill": "pre-sdd-review",
+  "kind": "pos",
+  "split": "train",
+  "n": 16,
+  "correct": 16,
+  "rate": 1.0,
+  "ci95": [
+   0.806,
+   1.0
+  ],
+  "rep_agreement": "8/8",
+  "misses": {},
+  "other_skills": {},
+  "timeouts": 0
+ }
+]

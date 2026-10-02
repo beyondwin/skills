@@ -1,0 +1,30 @@
+{
+ "claude": {
+  "calls": 96,
+  "pos_hit": 48,
+  "pos_n": 48,
+  "neg_false": 0,
+  "neg_n": 48,
+  "median_secs_to_target": 4.3,
+  "timeouts": 3,
+  "pins": {
+   "how-it-works": "4a5751e9519571037eca8a0b10dcdf2f0b964150bb33b9092e4b2bdf0f716385",
+   "pre-sdd-review": "df71213aff3dbcc817f466ca62ee5f25b7ac09184d9d3732018ed6543cce3176"
+  }
+ },
+ "codex": {
+  "calls": 192,
+  "pos_hit": 96,
+  "pos_n": 96,
+  "neg_false": 0,
+  "neg_n": 96,
+  "median_secs_to_target": 16.3,
+  "timeouts": 10,
+  "pins": {
+   "how-it-works": "4a5751e9519571037eca8a0b10dcdf2f0b964150bb33b9092e4b2bdf0f716385",
+   "korean-writing-editor": "16ce16cb39641650b951ded7253245c72828530eca4c0307f114a4db2d28ece0",
+   "image-workbench": "95c1a39799995130ff3f9b070f38c6d5d5693d46223b3f1e42876e8ab3adbae1",
+   "pre-sdd-review": "df71213aff3dbcc817f466ca62ee5f25b7ac09184d9d3732018ed6543cce3176"
+  }
+ }
+}

@@ -1,0 +1,242 @@
+[
+{
+"label": "kwe-2.0.6",
+"id": "limit",
+"rep": 1,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 48,
+"sha": "16ce16cb3964"
+},
+{
+"label": "kwe-2.0.6",
+"id": "limit",
+"rep": 2,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 48,
+"sha": "16ce16cb3964"
+},
+{
+"label": "kwe-2.0.6",
+"id": "modality",
+"rep": 1,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 31,
+"sha": "16ce16cb3964"
+},
+{
+"label": "kwe-2.0.6",
+"id": "modality",
+"rep": 2,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 31,
+"sha": "16ce16cb3964"
+},
+{
+"label": "kwe-2.0.6",
+"id": "neg-attr",
+"rep": 1,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 23,
+"sha": "16ce16cb3964"
+},
+{
+"label": "kwe-2.0.6",
+"id": "neg-attr",
+"rep": 2,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 23,
+"sha": "16ce16cb3964"
+},
+{
+"label": "kwe-2.0.6",
+"id": "neg-oblig",
+"rep": 1,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 31,
+"sha": "16ce16cb3964"
+},
+{
+"label": "kwe-2.0.6",
+"id": "neg-oblig",
+"rep": 2,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 31,
+"sha": "16ce16cb3964"
+},
+{
+"label": "kwe-2.0.6",
+"id": "partial-neg",
+"rep": 1,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 29,
+"sha": "16ce16cb3964"
+},
+{
+"label": "kwe-2.0.6",
+"id": "partial-neg",
+"rep": 2,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 29,
+"sha": "16ce16cb3964"
+},
+{
+"label": "kwe-2.0.6",
+"id": "quantity-attr",
+"rep": 1,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 29,
+"sha": "16ce16cb3964"
+},
+{
+"label": "kwe-2.0.6",
+"id": "quantity-attr",
+"rep": 2,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 29,
+"sha": "16ce16cb3964"
+},
+{
+"label": "kwe-2.0.7",
+"id": "limit",
+"rep": 1,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 48,
+"sha": "d8ccefa5cb92"
+},
+{
+"label": "kwe-2.0.7",
+"id": "limit",
+"rep": 2,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 48,
+"sha": "d8ccefa5cb92"
+},
+{
+"label": "kwe-2.0.7",
+"id": "modality",
+"rep": 1,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 31,
+"sha": "d8ccefa5cb92"
+},
+{
+"label": "kwe-2.0.7",
+"id": "modality",
+"rep": 2,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 31,
+"sha": "d8ccefa5cb92"
+},
+{
+"label": "kwe-2.0.7",
+"id": "neg-attr",
+"rep": 1,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 23,
+"sha": "d8ccefa5cb92"
+},
+{
+"label": "kwe-2.0.7",
+"id": "neg-attr",
+"rep": 2,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 23,
+"sha": "d8ccefa5cb92"
+},
+{
+"label": "kwe-2.0.7",
+"id": "neg-oblig",
+"rep": 1,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 31,
+"sha": "d8ccefa5cb92"
+},
+{
+"label": "kwe-2.0.7",
+"id": "neg-oblig",
+"rep": 2,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 31,
+"sha": "d8ccefa5cb92"
+},
+{
+"label": "kwe-2.0.7",
+"id": "partial-neg",
+"rep": 1,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 29,
+"sha": "d8ccefa5cb92"
+},
+{
+"label": "kwe-2.0.7",
+"id": "partial-neg",
+"rep": 2,
+"loaded": false,
+"kept": true,
+"missing": [],
+"reply_chars": 29,
+"sha": "d8ccefa5cb92"
+},
+{
+"label": "kwe-2.0.7",
+"id": "quantity-attr",
+"rep": 1,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 29,
+"sha": "d8ccefa5cb92"
+},
+{
+"label": "kwe-2.0.7",
+"id": "quantity-attr",
+"rep": 2,
+"loaded": true,
+"kept": true,
+"missing": [],
+"reply_chars": 29,
+"sha": "d8ccefa5cb92"
+}
+]
