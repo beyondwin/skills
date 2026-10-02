@@ -18,6 +18,9 @@ network.
 
 The product package regression tests check `release.toml`, `SKILL.md`, the
 dated CHANGELOG entry, and rejection of a broken README link together.
+They also check that the description is trigger-only: it starts with
+"Use when" or "Use only when", and every sentence starts with "Use" or
+"Do not use".
 
 ## Deterministic fixtures
 
