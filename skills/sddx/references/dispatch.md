@@ -418,8 +418,9 @@ log body. Role compliance is still the controller's.
   there.
 - `metadata.usage` is the token counts of the stream's last `result` event,
   read when the attempt ends `exited` or `timed_out`: `input_tokens`,
-  `output_tokens`, and `cache_read_tokens`, copied as reported from Cursor's
-  `inputTokens`, `outputTokens`, and `cacheReadTokens`. A count the event
+  `output_tokens`, `cache_read_tokens`, and `cache_write_tokens`, copied as
+  reported from Cursor's `inputTokens`, `outputTokens`, `cacheReadTokens`, and
+  `cacheWriteTokens`. A count the event
   lacks is null. It is null for Grok, whose stream has shown no usage, for an
   attempt whose worker never wrote that event, and for an `interrupted`
   record even when the event is in the log. Whether a `--resume` attempt's

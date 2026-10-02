@@ -203,7 +203,8 @@ BEHAVIOUR_CURSOR_RESULT_USAGE = (
     "    'session_id': " + repr(SESSION_ID) + ", 'model': 'Synthetic Model'}) + '\\n')\n"
     "sys.stdout.write(json.dumps({'type': 'result', 'subtype': 'success', 'is_error': False,\n"
     "    'result': 'DONE', 'session_id': " + repr(SESSION_ID) + ",\n"
-    "    'usage': {'inputTokens': 115000, 'outputTokens': 14000, 'cacheReadTokens': 90000}}) + '\\n')\n"
+    "    'usage': {'inputTokens': 115000, 'outputTokens': 14000, 'cacheReadTokens': 90000,\n"
+    "              'cacheWriteTokens': 2000}}) + '\\n')\n"
     "raise SystemExit(0)\n"
 )
 
@@ -2243,7 +2244,12 @@ class UsageTests(RunnerFixture):
         self.assertEqual(self.invoke(module, options), 0)
         self.assertEqual(
             self.metadata()["usage"],
-            {"input_tokens": 115000, "output_tokens": 14000, "cache_read_tokens": 90000},
+            {
+                "input_tokens": 115000,
+                "output_tokens": 14000,
+                "cache_read_tokens": 90000,
+                "cache_write_tokens": 2000,
+            },
         )
 
     def test_a_stream_without_usage_records_null(self) -> None:
@@ -2277,7 +2283,12 @@ class UsageTests(RunnerFixture):
         )
         self.assertEqual(
             module.read_usage(path),
-            {"input_tokens": 10, "output_tokens": None, "cache_read_tokens": None},
+            {
+                "input_tokens": 10,
+                "output_tokens": None,
+                "cache_read_tokens": None,
+                "cache_write_tokens": None,
+            },
         )
 
     def test_a_missing_stream_reads_as_none(self) -> None:

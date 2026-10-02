@@ -7,8 +7,9 @@ All notable changes to this product are documented in this file.
 ### Added
 
 - `run.json` records `usage`: the token counts of the worker stream's last
-  `result` event (`input_tokens`, `output_tokens`, `cache_read_tokens`, from
-  Cursor's `inputTokens`, `outputTokens`, `cacheReadTokens`), read when the
+  `result` event (`input_tokens`, `output_tokens`, `cache_read_tokens`,
+  `cache_write_tokens`, from Cursor's `inputTokens`, `outputTokens`,
+  `cacheReadTokens`, `cacheWriteTokens`), read when the
   attempt ends `exited` or `timed_out`. It is null for a stream without that
   event, which so far is every Grok stream. No cost is derived from it.
 

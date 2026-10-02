@@ -152,7 +152,7 @@ with no `status` calls between waits. Attempt folders live under
   `runner_pid` (written at `starting`). Its `state` is process state, not task
   state.
 - `usage` is the token counts of the stream's last `result` event
-  (`input_tokens`, `output_tokens`, `cache_read_tokens`, from Cursor's
+  (`input_tokens`, `output_tokens`, `cache_read_tokens`, `cache_write_tokens`, from Cursor's
   camelCase `usage` keys), read at `exited` or `timed_out`. It is null when
   the stream has no such event, which so far is every Grok stream, and on an
   `interrupted` record. Whether a resumed attempt's counts include earlier

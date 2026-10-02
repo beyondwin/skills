@@ -57,10 +57,12 @@ What each test file locks:
   `usage` from a synthetic Cursor `result` event (the last one wins, a bad
   count is null, a stream without one is null), and the Grok child's
   `CMUX_GROK_HOOKS_DISABLED=1`. The `usage` key names (`inputTokens`,
-  `outputTokens`, `cacheReadTokens`) come from the 2026-09 waygent-eval
-  harness that read real cursor-agent streams
-  (`docs/research/2026-09-waygent-eval/harness/bench.py`); no SDDx live check
-  has recorded `usage` yet.
+  `outputTokens`, `cacheReadTokens`, `cacheWriteTokens`) come from the 2026-09
+  waygent-eval harness that read real cursor-agent streams
+  (`docs/research/2026-09-waygent-eval/harness/bench.py`) and a 2026-10-02
+  one-line `cursor-agent -p --model grok-4.7-high --output-format stream-json`
+  call whose `result.usage` held exactly these four; no SDDx live run has
+  recorded `usage` yet.
 - `tests/products/sddx/test_worker_status.py`: checks `stale` (a `starting` or
   `running` record whose runner and worker are gone; a live runner with a dead
   worker is not stale; records without `runner_pid` keep the older

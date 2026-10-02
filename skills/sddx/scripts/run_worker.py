@@ -102,13 +102,15 @@ WAIT_SLICE_SECONDS = 1.0
 SESSION_ID_KEYS = ("session_id", "sessionId", "chatId", "chat_id")
 # Cursor's `stream-json` closes with a `result` event whose `usage` object holds
 # these camelCase counts; the 2026-09 waygent-eval harness read them from real
-# cursor-agent runs (docs/research/2026-09-waygent-eval/harness/bench.py). No
+# cursor-agent runs (docs/research/2026-09-waygent-eval/harness/bench.py), and a
+# 2026-10-02 grok-4.7-high call showed all four, `cacheWriteTokens` included. No
 # Grok stream seen so far carried usage, so a Grok record keeps `usage` null.
 # Counts are copied as reported: no cost is derived and nothing is summed.
 USAGE_KEYS = (
     ("inputTokens", "input_tokens"),
     ("outputTokens", "output_tokens"),
     ("cacheReadTokens", "cache_read_tokens"),
+    ("cacheWriteTokens", "cache_write_tokens"),
 )
 
 # The reading boundary from the design spec's R4, repeated in every dispatch so a
