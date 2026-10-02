@@ -54,6 +54,8 @@ What these checks prove and don't prove:
   forbidden strings only.
 - They also reject exact returns of the old high-stakes banner and the old DNS jargon
   wording. That proves static agreement between docs and fixtures only.
+- `test_description_is_trigger_only` keeps the description to trigger sentences: it
+  starts with "Use when" and every sentence starts with "Use" or "Do not use".
 - `test_skill_skeleton_mirrors_output_chrome` keeps the reply skeleton in `SKILL.md`
   equal to the one in `references/output.md`, and other pins keep the picture box rule
   and the hop id label rules the same in `output.md` and `visuals.md`. That proves the
@@ -121,8 +123,9 @@ The three existing synthetic prompts and the detailed schema and observation ste
 in `tests/products/how-it-works/live/README.md`. Its commands run only Codex and Claude
 Code with JSON event output (`codex exec --json`, `claude --print --output-format
 stream-json --verbose`), because `skill_loading` passes only on a host event read from
-that stream. Never commit full responses, private
-prompts, or credentials.
+that stream. Claude Code runs add `--setting-sources project --strict-mcp-config` in a
+fresh fixture repository per case that holds the skill under `.claude/skills/`, so
+only that copy loads. Never commit full responses, private prompts, or credentials.
 
 ## Live record, 2026-10-01
 

@@ -1,5 +1,5 @@
 schema_version = 1
 name = "how-it-works"
-version = "3.0.2"
+version = "3.0.3"
 tag_prefix = "how-it-works-v"
 license = "Apache-2.0"

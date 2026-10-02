@@ -4,6 +4,23 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 3.0.3 - 2026-10-02
+
+### Fixed
+
+- An analogy the user asks for (animals included) is no longer refused. `SKILL.md`
+  now matches `references/output.md`: one analogy, mapped per the Metaphor
+  isomorphism rule, with the Map still Mermaid plus the hop list.
+
+### Changed
+
+- `SKILL.md` is shorter. The Dump gate table is removed (each row restated a rule
+  stated elsewhere), rung precedence is stated once in Slots, and the tagline and
+  the closing red-flag line are gone. Behavior is unchanged.
+- A new Gotchas section records two observed failures: replies written without
+  the references dropped parts of the skeleton, and a skeleton with Korean and
+  English labels side by side was echoed in both languages.
+
 ## 3.0.2 - 2026-10-01
 
 ### Fixed

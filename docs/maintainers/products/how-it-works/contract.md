@@ -79,6 +79,9 @@ Mermaid source. At picture, the Body does not walk the hops again.
   in `SKILL.md`.
 - The visual channel is mermaid. Hand-drawn HTML boxes are not a diagram. Picture
   draws 4–6 boxes, one per hop; `output.md` and `visuals.md` state the same rule.
+- An analogy, including one the user asks for (animals, say), is a single analogy
+  mapped per the Metaphor isomorphism rule in `output.md`, with a break line. It never
+  replaces the Mermaid map or the hop list.
 - Every rung keeps the baseline Mermaid and a numbered hop list with ids like `H1`,
   `H2` in the Map. The baseline is the picture hop list: deeper rungs may redraw the
   diagram type but keep the same ids, and added detail attaches to the same hops.
@@ -118,7 +121,7 @@ English banners. The skill does not call `korean-writing-editor`.
 
 ## Version and install
 
-The current product version is `3.0.2`. The source of truth is
+The current product version is `3.0.3`. The source of truth is
 `skills/how-it-works/release.toml`; `SKILL.md` `metadata.version` copies it.
 `metadata.updated_at` is the date of the latest installed-file change. None of this
 metadata means a tag, publication, or GitHub Release exists.
@@ -148,8 +151,7 @@ Don't put a behavior change in one file only.
   public docs.
 - Slot default or alias changes (`slice`, `type`, `rung`, `language`, explicit
   rung/alias precedence, the conditional jargon default, numbers as topic data): the
-  `SKILL.md` dump gate (the table that stops an early info dump), fixtures, and public
-  docs.
+  single rung precedence rule in `SKILL.md` "Slots", fixtures, and public docs.
 - Output chrome, type recipes, hop ids, the fracture Body table, comparison policy:
   `skills/how-it-works/references/output.md`, the skeleton mirror in `SKILL.md`
   "Required deliverable", and the matching fixture ids.

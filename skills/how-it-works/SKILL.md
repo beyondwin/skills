@@ -4,18 +4,16 @@ description: Use when the user wants to understand how a mechanism or flow works
 license: Apache-2.0
 compatibility: Requires an Agent Skills host that can read this directory and return Markdown text.
 metadata:
-  version: "3.0.2"
-  updated_at: "2026-10-01"
+  version: "3.0.3"
+  updated_at: "2026-10-02"
 ---
 
 # how-it-works
 
-Same machine, chosen rung. The picture holds.
-
 <HARD-GATE>
 Do not explain until `slice` is a cut mechanism.
-Fill `type` and `language` by inference. Fill `rung` by precedence, including
-default 그림. Announce the rung in the intent line. Explain in the same turn.
+Fill `type` and `language` by inference and `rung` by the precedence in Slots.
+Announce the rung in the intent line. Explain in the same turn.
 If the noun is a civilization (인터넷, AI, 자본주의), do not explain — cut a slice first.
 Do not activate on eli5, /eli5, or “explain like I’m 5”. That is a different skill.
 Do not use this explanation flow on debugging, implementation, review, translation, one-line lookup, or eli5 requests.
@@ -38,7 +36,7 @@ Paths:
 
 | Path | When | Do |
 | --- | --- | --- |
-| Direct | slice is a cut mechanism | Fill rung by precedence. Intent line, then explain in the same turn. |
+| Direct | slice is a cut mechanism | Intent line, then explain in the same turn. |
 | Ask one | slice missing, conflicting rungs, or mixed KO/EN that would change the output | Ask one closed question. |
 | Cut | blob noun | Three slices + Other. No essay. |
 
@@ -52,9 +50,7 @@ Do not stack two questions. Do not re-ask a filled slot. Do not survey genre, au
 
 ## Slots
 
-Required before EXPLAIN: `slice`, `type`, `rung`, and `language`. Infer `type`
-and `language`. Fill `rung` by precedence. Do not wait for a user token for
-`rung`.
+Required before EXPLAIN: `slice`, `type`, `rung`, and `language`.
 
 Infer `type` when the verb is obvious (`vs` → 비교, `어떻게 고치냐` → 절차, `왜/원리` → 개념, `흐름` → 흐름). Ask type only if the guess would change the output. Type inference does not fill `rung`.
 
@@ -67,15 +63,12 @@ Rungs:
 - **뼈대** — 갈림길과 실패
 - **허점** — 이 그림이 금 가는 곳
 
-Depth precedence: explicit rung > explicit depth alias > existing jargon default > default 그림
-An explicitly selected 그림/길/뼈대/허점 (picture/path/skeleton/fracture) wins.
-Explicit 쉽게/한눈에/한 장 selects 그림 even with jargon such as rebase, TTL, or Raft.
-Interpret numeric aliases only when explicitly selecting depth; numbers in the topic are not depth choices.
-Never replace a filled rung.
+Rung precedence: explicit rung > explicit depth alias > existing jargon default > default 그림. Never replace a filled rung.
 
-Silent aliases (never print numbers or ages): 쉽게/한눈에/한 장/감이 안 와 → 그림; 따라가 → 길; 내부/실무/속 → 뼈대; 한계/깊게/예외/반례 → 허점. Explicit numeric depth selections use `5` → 그림, `10` → 길, `15` → 뼈대, and `20` → 허점. `Raft term 20`, `HTTP/2`, and `5개 노드` contain topic data, not depth choices.
-
-If the prompt already uses domain words (`rebase`, `TTL`, `Raft`), default **뼈대** only when neither a rung nor a depth alias was supplied.
+- An explicitly selected 그림/길/뼈대/허점 (picture/path/skeleton/fracture) wins.
+- Silent aliases (never print numbers or ages): 쉽게/한눈에/한 장/감이 안 와 → 그림; 따라가 → 길; 내부/실무/속 → 뼈대; 한계/깊게/예외/반례 → 허점. Explicit numeric depth selections use `5` → 그림, `10` → 길, `15` → 뼈대, and `20` → 허점. Interpret numeric aliases only when explicitly selecting depth: `Raft term 20`, `HTTP/2`, and `5개 노드` contain topic data.
+- If the prompt already uses domain words (`rebase`, `TTL`, `Raft`), default **뼈대**. Explicit 쉽게/한눈에/한 장 selects 그림 even with jargon.
+- Missing rung takes default 그림, announced in the intent line.
 
 Medical, legal, or financial topic: read `references/stakes.md`, add its banner, and still explain in the same turn.
 
@@ -161,30 +154,19 @@ A host page, Canvas, or visual preview may be added only after the complete outp
 
 ## EXPLAIN
 
-Read `references/output.md`, then `references/visuals.md`. If Korean → `references/korean.md`. If metaphor → the isomorphism section in `output.md`. If medical/legal/financial → `references/stakes.md`. For claims that depend on date, jurisdiction, or material uncertainty, also read `references/sources.md`.
-
-## Dump gate
-
-| Excuse | Reality |
-| --- | --- |
-| They asked 설명해줘 so answer now | Missing slice still waits. Missing rung takes default 그림, announces, explains. |
-| Topic is obvious | Announce type+rung. Explain same turn. |
-| I'll draw the boxes in HTML | Mermaid draws the map. Hand-authored boxes are not a diagram. |
-| I'll skip hops because a renderer will draw them | Source plus hop list is required. Rendering is enhancement only. |
-| I'll add a preview first and fill chat later | Preview comes after the complete output, and only if useful. |
-| They asked 동물로 so use animals | Animals requested still means no animals. Map is mermaid + table. Analogy vehicle is not a mascot. |
-| Depth 그림 means simpler than true | 그림 is a smaller true map. False-simple is a bug. |
-| I’ll add sources from memory | Verify in this turn or mark the dependent claim unverified. Never invent a reference. |
-| Korean and English to be safe | One language. Gloss once. |
-| I’ll explain the whole internet then zoom | Cut first. |
+Read `references/output.md`, then `references/visuals.md`. If Korean → `references/korean.md`. An analogy, including one the user asks for (동물로), is one analogy mapped per the Metaphor isomorphism section in `output.md`; the Map stays Mermaid plus the hop list. If medical/legal/financial → `references/stakes.md`. For claims that depend on date, jurisdiction, or material uncertainty, also read `references/sources.md`.
 
 ## Red flags
 
 - Essay in the same turn as the first classification when slice is missing
 - `/eli5` handled as this skill
-- `여러분`, `답니다`, animals, hand-drawn HTML boxes in place of mermaid
+- `여러분` or `답니다`
+- An analogy or hand-drawn HTML boxes in place of mermaid
 - A reply that omits Mermaid source or the numbered hop list
 - A Mermaid hop id with no matching `**Hk**` list item (a branch `H3a` matches `**H3**`), or hop list items without `**Hk**`
 - 허점 that cannot collapse to 그림
 
-All of these mean: stop, classify, restart the gate.
+## Gotchas
+
+- Replies written without reading the references dropped parts of the skeleton. In 2026-10-01 Claude Code runs on the text before the skeleton was copied here, Haiku got hop ids right in 0 of 3 runs, and the one Sonnet run that skipped the references failed them. With the copy, Haiku still skipped the reference reads and missed hop ids in 2 of 4 runs.
+- A skeleton that printed Korean and English labels side by side had both echoed back. The paired labels in After EXPLAIN are one choice per reply language.

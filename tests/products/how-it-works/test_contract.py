@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -190,7 +191,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
     def test_release_and_repeatable_install_contract(self) -> None:
         from scripts.lib.product_contract import load_product_release
 
-        self.assertEqual(load_product_release(SKILL).version, "3.0.2")
+        self.assertEqual(load_product_release(SKILL).version, "3.0.3")
         self.assertEqual(
             {path.name for path in SKILL.glob("README*.md")}, {"README.md", "README.ko.md"}
         )
@@ -208,7 +209,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
         self.assertEqual(set(frontmatter), PORTABLE_FIELDS)
         self.assertEqual(frontmatter["name"], "how-it-works")
         self.assertEqual(frontmatter["license"], "Apache-2.0")
-        self.assertEqual(frontmatter["metadata"]["version"], "3.0.2")
+        self.assertEqual(frontmatter["metadata"]["version"], "3.0.3")
 
     def test_frontmatter_has_no_host_tool_requirement(self) -> None:
         frontmatter = parse_skill_frontmatter((SKILL / "SKILL.md").read_text(encoding="utf-8"))
@@ -320,6 +321,33 @@ class HowItWorksPayloadTests(unittest.TestCase):
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         self.assertIn("name: how-it-works\n", text.split("---")[1])
         self.assertEqual(SKILL.name, "how-it-works")
+
+    def test_description_is_trigger_only(self) -> None:
+        frontmatter = parse_skill_frontmatter((SKILL / "SKILL.md").read_text(encoding="utf-8"))
+        description = str(frontmatter["description"]).strip()
+        self.assertTrue(description.startswith("Use when"))
+        sentences = [part for part in re.split(r"(?<=[.!?])\s+", description) if part]
+        self.assertGreaterEqual(len(sentences), 2)
+        for sentence in sentences:
+            self.assertTrue(sentence.startswith(("Use ", "Do not use ")), sentence)
+
+    def test_requested_analogy_is_mapped_not_refused(self) -> None:
+        text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        explain = section(text, "## EXPLAIN", "## Red flags")
+        self.assertIn(
+            "An analogy, including one the user asks for (동물로), is one analogy mapped per the Metaphor isomorphism section in `output.md`; the Map stays Mermaid plus the hop list.",
+            explain,
+        )
+        self.assertIn("Optional, single, mapped, broken-out.", _reference("output.md"))
+        for stale in ("no animals", "## Dump gate", "restart the gate", "Same machine, chosen rung"):
+            self.assertNotIn(stale, text)
+
+    def test_gotchas_record_observed_failures(self) -> None:
+        text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        self.assertLess(text.index("## Red flags"), text.index("## Gotchas"))
+        gotchas = text.split("## Gotchas", 1)[1]
+        self.assertIn("Haiku still skipped the reference reads", gotchas)
+        self.assertIn("Korean and English labels side by side had both echoed back", gotchas)
 
     def test_description_excludes_eli5_and_workflow(self) -> None:
         frontmatter = parse_skill_frontmatter((SKILL / "SKILL.md").read_text(encoding="utf-8"))
@@ -771,6 +799,10 @@ class HowItWorksLiveContractTests(unittest.TestCase):
         self.assertIn('--cd "$PWD"', text)
         self.assertIn("codex exec --json", text)
         self.assertIn("claude --print --output-format stream-json --verbose", text)
+        claude_runs = [line for line in text.splitlines() if "claude --print" in line]
+        self.assertTrue(claude_runs)
+        for line in claude_runs:
+            self.assertIn("--setting-sources project --strict-mcp-config", line)
         self.assertIn('.name=="Skill"', text)
         self.assertIn("how-it-works/SKILL.md", text)
 

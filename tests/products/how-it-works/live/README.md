@@ -70,10 +70,31 @@ how_it_works_smoke_tmp="$(mktemp -d)"
 codex exec --json --ephemeral --sandbox read-only --cd "$PWD" -o "$how_it_works_smoke_tmp/codex-explicit.md" '$how-it-works DNS가 브라우저 요청에서 IP 주소가 되는 길을 보여줘' > "$how_it_works_smoke_tmp/codex-explicit.jsonl"
 codex exec --json --ephemeral --sandbox read-only --cd "$PWD" -o "$how_it_works_smoke_tmp/codex-implicit.md" 'DNS 요청이 브라우저에서 어디를 거쳐 IP 주소가 되는지 길로 보여줘' > "$how_it_works_smoke_tmp/codex-implicit.jsonl"
 codex exec --json --ephemeral --sandbox read-only --cd "$PWD" -o "$how_it_works_smoke_tmp/codex-near-miss.md" 'DNS resolver 테스트 실패를 고쳐줘. 동작 설명은 하지 마.' > "$how_it_works_smoke_tmp/codex-near-miss.jsonl"
-claude --print --output-format stream-json --verbose --no-session-persistence --permission-mode plan '/how-it-works DNS가 브라우저 요청에서 IP 주소가 되는 길을 보여줘' > "$how_it_works_smoke_tmp/claude-explicit.jsonl"
-claude --print --output-format stream-json --verbose --no-session-persistence --permission-mode plan 'DNS 요청이 브라우저에서 어디를 거쳐 IP 주소가 되는지 길로 보여줘' > "$how_it_works_smoke_tmp/claude-implicit.jsonl"
-claude --print --output-format stream-json --verbose --no-session-persistence --permission-mode plan 'DNS resolver 테스트 실패를 고쳐줘. 동작 설명은 하지 마.' > "$how_it_works_smoke_tmp/claude-near-miss.jsonl"
 ```
+
+Claude Code runs isolated with `--setting-sources project --strict-mcp-config`, so it
+loads only the skill copy inside each case's fresh fixture repository, not the user's
+installed skills, settings, or MCP servers. Do not isolate with a fake `HOME`; that
+logs `claude` out on macOS. Unset `CLAUDECODE` and `CLAUDE_CODE_*` first, and record
+the SHA-256 of the `SKILL.md` the runs used:
+
+```bash
+unset CLAUDECODE $(env | sed -n 's/^\(CLAUDE_CODE_[A-Za-z0-9_]*\)=.*/\1/p')
+shasum -a 256 skills/how-it-works/SKILL.md > "$how_it_works_smoke_tmp/skill.sha256"
+for case_name in explicit implicit near-miss; do
+  fixture="$how_it_works_smoke_tmp/fixture-$case_name"
+  git init -q "$fixture"
+  mkdir -p "$fixture/.claude/skills"
+  ditto skills/how-it-works "$fixture/.claude/skills/how-it-works"
+done
+(cd "$how_it_works_smoke_tmp/fixture-explicit" && claude --print --output-format stream-json --verbose --setting-sources project --strict-mcp-config --no-session-persistence --permission-mode plan '/how-it-works DNS가 브라우저 요청에서 IP 주소가 되는 길을 보여줘') > "$how_it_works_smoke_tmp/claude-explicit.jsonl"
+(cd "$how_it_works_smoke_tmp/fixture-implicit" && claude --print --output-format stream-json --verbose --setting-sources project --strict-mcp-config --no-session-persistence --permission-mode plan 'DNS 요청이 브라우저에서 어디를 거쳐 IP 주소가 되는지 길로 보여줘') > "$how_it_works_smoke_tmp/claude-implicit.jsonl"
+(cd "$how_it_works_smoke_tmp/fixture-near-miss" && claude --print --output-format stream-json --verbose --setting-sources project --strict-mcp-config --no-session-persistence --permission-mode plan 'DNS resolver 테스트 실패를 고쳐줘. 동작 설명은 하지 마.') > "$how_it_works_smoke_tmp/claude-near-miss.jsonl"
+```
+
+`--setting-sources project` also skips the user's `effortLevel`, so these runs use the
+session default effort. Take the model and effort that actually ran from the stream
+(`message.model` and the top-level `effort`).
 
 Reading the event streams:
 

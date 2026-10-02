@@ -10,8 +10,8 @@ standalone version. No tag, publication, or GitHub Release has been made.
 
 ## SemVer examples
 
-- PATCH: a broken relative link, an install README fix, a defect fix that restores the
-  documented dump gate
+- PATCH: a broken relative link, an install README fix, a defect fix that restores a
+  documented rule
 - MINOR: a new optional alias that keeps the default picture rung
 - MAJOR: dropping the numbered hop list from the required output, requiring a host
   tool, activating on `/eli5`, or changing the default rung
@@ -21,6 +21,8 @@ standalone version. No tag, publication, or GitHub Release has been made.
 3.0.1 is a PATCH: English-first docs and English instruction text, same behavior.
 3.0.2 is a PATCH: the reply skeleton is inlined in `SKILL.md`, references are read
 whenever the host can, and the rung rules contradicting each other are aligned.
+3.0.3 is a PATCH: a requested analogy follows the mapped-analogy rule `output.md`
+already documented instead of being refused, and `SKILL.md` drops restated rules.
 
 Rules:
 
