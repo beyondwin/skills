@@ -1,0 +1,17 @@
+wg_base opus 2
+wg_final_xhigh opus 2
+wg_review_high opus 2
+wg_impl_sonnet opus 2
+wg_base opus 3
+wg_final_xhigh opus 3
+wg_review_high opus 3
+wg_impl_sonnet opus 3
+wg_base opus 4
+wg_final_xhigh opus 4
+wg_review_high opus 4
+wg_impl_sonnet opus 4
+wg_base opus 5
+wg_final_xhigh opus 5
+wg_base opus 6
+wg_final_xhigh opus 6
+wg_base opus 7
