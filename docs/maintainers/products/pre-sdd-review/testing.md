@@ -355,7 +355,7 @@ this, holds on both hosts. The description stays as it is.
 ### End-to-end probe, 2026-10-03 (6.1.1 vs 6.1.2)
 
 `psr_probe.py` in the [skill trigger eval](../../../research/2026-10-skill-trigger-eval/README.md)
-ran the whole skill to its report on Codex 0.157.1 (gpt-6-astra/high, an isolated home with
+ran the whole skill to its report on Codex 0.160.0 (gpt-6-astra/high, an isolated home with
 only pre-sdd-review, memories off), once with the 6.1.1 text (`df71213a`) and once with the
 6.1.2 text (`d621401f`). Each text got two single-plan runs and one two-plan campaign on the
 synthetic relay fixture, whose plan names `npm test` in a Python repo. Results:
