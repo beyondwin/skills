@@ -961,6 +961,17 @@ class PreSddReviewContractTests(unittest.TestCase):
         )
         self.assertEqual(frontmatter["name"], "pre-sdd-review")
 
+    def test_description_is_trigger_only(self) -> None:
+        frontmatter = parse_skill_frontmatter(
+            (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        )
+        description = str(frontmatter["description"]).strip()
+        self.assertTrue(description.startswith("Use when"))
+        sentences = [part for part in re.split(r"(?<=[.!?])\s+", description) if part]
+        self.assertGreaterEqual(len(sentences), 2)
+        for sentence in sentences:
+            self.assertTrue(sentence.startswith(("Use ", "Do not use ")), sentence)
+
     def test_release_sources_target_current_patch(self) -> None:
         release = tomllib.loads((SKILL / "release.toml").read_text(encoding="utf-8"))
         frontmatter = parse_skill_frontmatter(
