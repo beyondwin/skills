@@ -4,6 +4,27 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+### Added
+
+- `run.json` records `usage`: the token counts of the worker stream's last
+  `result` event (`input_tokens`, `output_tokens`, `cache_read_tokens`, from
+  Cursor's `inputTokens`, `outputTokens`, `cacheReadTokens`), read when the
+  attempt ends `exited` or `timed_out`. It is null for a stream without that
+  event, which so far is every Grok stream. No cost is derived from it.
+
+### Changed
+
+- SKILL.md drops the emphasis-only HARD-GATE line and the fourteen red flags
+  that restated a body rule. The two red flags that are the only home of their
+  check stay (PATH `agent` as Cursor; starting or stopping an attempt by
+  `pid_alive`, `pkill -f`, or `run.json.pid`).
+- A new Gotchas section holds three recorded facts: `ps aux` and `pgrep -fl`
+  print other processes' command lines, which carried an API key in the 8.1.0
+  live check, while `pgrep -f` prints pids only; Codex 0.157.1 returns
+  `exec_command` within 30000 ms, moved out of the Hosts table; and a coloured
+  listing once resolved `no_grok_model`, which `reason` now tells apart from a
+  reading fault.
+
 ## 8.1.1 - 2026-10-02
 
 ### Fixed

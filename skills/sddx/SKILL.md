@@ -4,7 +4,7 @@ description: Use when the user runs /sddx or $sddx. Do not use for writing a spe
 license: Apache-2.0
 compatibility: Requires a local Git repository, an implementation plan file, the waygent skill installed next to this one, and Claude Code or Codex as the orchestrator host. Implementer CLIs are optional and resolved at runtime.
 metadata:
-  version: "8.1.1"
+  version: "8.2.0"
   updated_at: "2026-10-02"
 ---
 
