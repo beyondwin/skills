@@ -337,3 +337,17 @@ observer input, not model quality or audit-grade proof. Damaged-record counts
 come from a full scan before filtering. Windows and Linux are not supported.
 Claude Code, Cursor, and Grok stay `not_measured` until their own native or
 live stage runs separately.
+
+### Trigger eval, 2026-10-02
+
+Recorded in full in the [skill trigger eval](../../../research/2026-10-skill-trigger-eval/README.md). The 6.1.1 text (`df71213a`) loaded for 24 of 24 requests to
+review an approved spec and plan before SDD, phrased without the skill name. It loaded for
+0 of 24 near-misses. On Codex (gpt-6-astra/high, every installed skill and plugin) the
+near-misses were writing the spec or plan, code review, implementing the plan,
+proofreading, release readiness, brainstorming, a diff review, translation, a summary,
+fixing tests, and a requirements interview. Claude Code (opus/high, the user's enabled
+skills and the superpowers hook) gave the same 24 and 0, with brainstorming,
+writing-plans, executing-plans and code-review taking the near-misses. The Claude Code cell
+is informational: the host matrix stays Codex only. The implicit trigger, unmeasured before
+this, holds on both hosts. The description stays as it is.
+

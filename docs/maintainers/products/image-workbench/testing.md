@@ -43,6 +43,23 @@ does not run them. Record offline passes and live image results separately.
 `metadata:` block. A version-only bump keeps a valid smoke; any other
 `SKILL.md` change needs a new Grok smoke before the test passes again.
 
+## Codex trigger eval, 2026-10-02
+
+Recorded in full in the [skill trigger eval](../../../research/2026-10-skill-trigger-eval/README.md). Codex gpt-6-astra/high with every installed skill and plugin,
+in a synthetic project with brand notes and PNG assets. SKILL.md was `95c1a397`, which is not
+edited, so the Grok smoke binding holds.
+
+- **Positives.** The skill loaded for 24 of 24 project raster requests: replacing the hero
+  image, a transparent logo, an App Store size, a thumbnail, comparing two heroes, auditing a
+  banner, onboarding art, colour correction, an OG plan, an asset audit, an app icon, and
+  masking personal data. `imagegen` loaded with it on the generation requests.
+- **Near-misses.** It loaded for 0 of 24: a casual cat picture, an SVG logo, a data chart, a
+  React section, a prompt gallery, icon swaps, lazy loading, a PNG/WebP question, a Mermaid
+  diagram, badges, slides, and an app recommendation.
+- **Design.** 12 prompts per kind with 4 held out, two repeats each.
+
+The description stays as it is. Grok was not part of this eval.
+
 ## Commands
 
 ```bash

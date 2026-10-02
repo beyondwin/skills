@@ -175,6 +175,37 @@ it is. The four real activations so far all came mid-conversation after an earli
 answer; no real request is known to have been missed, so there is no evidence for a
 wider trigger. n = 2 per row; about $1.0 in all.
 
+## Trigger eval and format probe, 2026-10-02
+
+Recorded in full in the [skill trigger eval](../../../research/2026-10-skill-trigger-eval/README.md).
+
+**Trigger eval.** It ran with the user's whole skill set installed, on two hosts:
+- Claude Code: every enabled skill, the eli5, claude-md-management and commit-commands
+  plugins, and the superpowers hook, on opus/high.
+- Codex: every installed skill and plugin, on gpt-6-astra/high.
+
+The 3.0.2 text (`4a5751e9`) loaded for 24 of 24 positives on each host and for 0 of 24
+near-misses. The near-misses were a one-line lookup, debugging, ELI5, review, translation,
+implementation, a child-register request, a summary, a decision, and a data chart. eli5 took
+the ELI5 request and dataviz took the chart. There were 12 prompts per kind with 4 held out,
+two repeats each. All prompts were single-turn in fresh sessions, so the real
+mid-conversation path ("I don't get it") is covered by only one pasted-context prompt. The
+description stays as it is.
+
+**Format probe, 3.0.2 against 3.0.3.** Claude Code, `/how-it-works`, a fresh repository
+holding only this skill, `--setting-sources project`, n = 4 per cell (3 Korean DNS, 1
+English rebase).
+
+| Model | Text | Mermaid, hop ids, title, headings, next line | `references/output.md` read |
+| --- | --- | --- | --- |
+| opus/high | 3.0.2 / 3.0.3 (`91fa3aa9`) | 4/4 / 4/4 | 0/4 / 0/4 |
+| sonnet | 3.0.2 / 3.0.3 | 4/4 / 4/4 | 3/4 / 4/4 |
+| haiku | 3.0.2 / 3.0.3 | 4/4 / 4/4 | 0/4 / 3/4 |
+
+Removing the Dump gate table and the restated rung rules cost nothing measurable. Haiku
+matched hop ids in all 8 runs here, against 2 of 4 on 2026-10-01, which is within run-to-run
+spread at this n. About $2.9 in all.
+
 ## Commands
 
 ```bash
