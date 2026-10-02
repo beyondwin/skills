@@ -420,9 +420,12 @@ log body. Role compliance is still the controller's.
   read when the attempt ends `exited` or `timed_out`: `input_tokens`,
   `output_tokens`, and `cache_read_tokens`, copied as reported from Cursor's
   `inputTokens`, `outputTokens`, and `cacheReadTokens`. A count the event
-  lacks is null. It is null for Grok, whose stream has shown no usage, and for
-  an attempt whose worker never wrote that event. It is not a cost; write it
-  as tokens, never as dollars.
+  lacks is null. It is null for Grok, whose stream has shown no usage, for an
+  attempt whose worker never wrote that event, and for an `interrupted`
+  record even when the event is in the log. Whether a `--resume` attempt's
+  counts include the earlier attempts of that session is not measured, so do
+  not sum `usage` across attempts that share a `session_id`. It is not a cost;
+  write it as tokens, never as dollars.
 - An `interrupted` or `stale` attempt is a stopped runner, not a failed task.
   When the task's trailer commit and `report.md` are there, judge it as a
   finished attempt; otherwise resume its session at the same effort (SKILL.md
