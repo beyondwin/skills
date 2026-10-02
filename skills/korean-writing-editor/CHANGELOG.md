@@ -4,6 +4,10 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- `SKILL.md` states the no-rewording list (negation, modality, obligation, possibility, quantity, and attribution, with the `말했다`/`밝혔다` example) once, in the Preservation Gate. Editing Pass steps 2 and 6 point to the gate instead of repeating the list. Behavior is unchanged.
+
 ## 2.0.6 - 2026-10-01
 
 ### Fixed

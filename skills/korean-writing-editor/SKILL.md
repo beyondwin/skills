@@ -4,8 +4,8 @@ description: Use only when the user asks to proofread, correct, or polish Korean
 license: Apache-2.0
 compatibility: Requires Korean source text and local Agent Skills file access. Uses the active model.
 metadata:
-  version: "2.0.6"
-  updated_at: "2026-10-01"
+  version: "2.0.7"
+  updated_at: "2026-10-02"
 ---
 
 # Korean Writing Editor
@@ -79,8 +79,7 @@ For a valid request, in this order:
    name issues, decision class, and holds; skip steps 3–5 and 7, check the
    findings against the original at step 6, and return findings only.
 2. Note material propositions and invariants in working memory only, without
-   persisting user text: negation, certainty, obligation, time, causality,
-   quantities, names, quotations, and attribution.
+   persisting user text: what the Preservation Gate protects.
 3. Apply normative local corrections and clearly required local grammar
    corrections (`correct` and `polish` only).
 4. Apply optional readability and local flow improvements, including ordinary
@@ -88,8 +87,7 @@ For a valid request, in this order:
 5. Restore intentional voice features (repetition, fragments, endings, slang,
    indirectness, rhythm) when they are voice rather than errors.
 6. Compare with the original and revert any unsupported semantic change,
-   invariant break, or rewording of already-correct negation, modality,
-   obligation, possibility, quantity, or attribution wording.
+   invariant break, or rewording the Preservation Gate forbids.
 7. Return the original unchanged when no edit is needed.
 
 ## Preservation Gate
