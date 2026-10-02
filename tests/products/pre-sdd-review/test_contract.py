@@ -34,6 +34,7 @@ PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
         "agents/openai.yaml",
         "evidence/README.md",
         "evidence/evidence.py",
+        "references/campaign.md",
         "references/reviewer-protocol.md",
         "release.toml",
     }
@@ -271,7 +272,6 @@ REQUIRED_SECTIONS = (
     "# Pre-SDD Review",
     "## Hard gate",
     "## Resolve authoritative inputs",
-    "## Pre-pass: shared-file ledger",
     "## Capture freshness",
     "## Optional local evidence",
     "## Select reviewers",
@@ -280,7 +280,16 @@ REQUIRED_SECTIONS = (
     "## Repair rules",
     "## Verdict and handoff",
     "## Do not use this skill for",
+    "## Gotchas",
     "## Red flags",
+)
+CAMPAIGN_SECTIONS = (
+    "# Campaign rules",
+    "## Split and order",
+    "## Pre-pass: shared-file ledger",
+    "## Discovery waves",
+    "## Campaign schedule",
+    "## Review-only",
 )
 AUTHORITY_ORDER = (
     "User-approved direction and referenced visual authority.",
@@ -1056,6 +1065,11 @@ class PreSddReviewContractTests(unittest.TestCase):
             " ",
             (MAINTAINERS / "contract.md").read_text(encoding="utf-8"),
         )
+        campaign = re.sub(
+            r"\s+",
+            " ",
+            (SKILL / "references/campaign.md").read_text(encoding="utf-8"),
+        )
 
         self.assertIn("at most two review roles", skill)
         self.assertIn("does not add a review role", skill)
@@ -1072,17 +1086,18 @@ class PreSddReviewContractTests(unittest.TestCase):
         self.assertIn("a `BLOCKED` verdict is never reused", skill)
         self.assertNotIn("summary --last 20", skill)
         self.assertIn("Close any `pending` run for this plan", skill)
-        self.assertIn("Discoveries of different plans may overlap", skill)
-        self.assertIn("Repairs do not overlap", skill)
-        self.assertNotIn("do not overlap them", skill)
-        self.assertIn("marks every other plan that depends on it stale", skill)
-        self.assertIn("whichever of i and j comes first", skill)
-        self.assertIn("A stale plan takes its scoped closure after the repair that made it stale", skill)
+        self.assertIn("Discoveries of different plans may overlap", campaign)
+        self.assertIn("Repairs do not overlap", campaign)
+        for document in (skill, campaign):
+            self.assertNotIn("do not overlap them", document)
+        self.assertIn("marks every other plan that depends on it stale", campaign)
+        self.assertIn("whichever of i and j comes first", campaign)
+        self.assertIn("A stale plan takes its scoped closure after the repair that made it stale", campaign)
         self.assertIn("summary --repo <repo display name> --plan <plan>", skill)
         self.assertIn("`ledger.sha_end` (when recorded)", skill)
-        self.assertIn("controller-local campaign state", skill)
-        self.assertIn("not a record field", skill)
-        self.assertIn("Paths not in `Files:` are not in this stale set", skill)
+        self.assertIn("controller-local campaign state", campaign)
+        self.assertIn("not a record field", campaign)
+        self.assertIn("Paths not in `Files:` are not in this stale set", campaign)
         self.assertIn("Do not use the controlling agent as a substitute independent primary", skill)
         self.assertIn("distinct agents obtained", skill)
         self.assertIn("If the first review has zero findings", skill)
@@ -1224,13 +1239,47 @@ class PreSddReviewContractTests(unittest.TestCase):
                 r"-> READY \| REVISE \| BLOCKED"
             ),
         )
-        self.assertIn("Discoveries of different plans may overlap", workflow)
         self.assertIn("skip repair and closure", workflow)
         self.assertIn("A stale plan still takes scoped closure", workflow)
         self.assertIn("repair diff", workflow)
-        self.assertIn("A preceding plan that is `BLOCKED` does not stop later discovery", workflow)
-        self.assertIn("controller-local campaign state", workflow)
-        self.assertIn("Paths not in `Files:` are not in this stale set", workflow)
+        self.assertIn("[references/campaign.md](references/campaign.md)", workflow)
+
+        campaign = (SKILL / "references/campaign.md").read_text(encoding="utf-8")
+        positions = tuple(campaign.index(heading) for heading in CAMPAIGN_SECTIONS)
+        self.assertEqual(positions, tuple(sorted(positions)))
+        schedule = section(campaign, "## Campaign schedule", "## Review-only")
+        self.assertIn("Discoveries of different plans may overlap", schedule)
+        self.assertIn("A preceding plan that is `BLOCKED` does not stop later discovery", schedule)
+        self.assertIn("controller-local campaign state", schedule)
+        self.assertIn("Paths not in `Files:` are not in this stale set", schedule)
+
+    def test_single_plan_path_indexes_the_campaign_reference(self) -> None:
+        body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        single = re.sub(r"\s+", " ", section(body, "### Single-plan path", "## Resolve authoritative inputs"))
+        self.assertIn("Skip every rule marked \"campaign\" and [references/campaign.md](references/campaign.md)", single)
+        skill_headings = {heading for _, heading, _ in markdown_headings(body)}
+        for heading in CAMPAIGN_SECTIONS[1:]:
+            self.assertNotIn(heading, skill_headings)
+        # One pointer where each moved campaign section was.
+        for start, end in (
+            ("## Resolve authoritative inputs", "## Capture freshness"),
+            ("## Select reviewers", "## Default mode: review -> repair documents -> scoped re-review"),
+            ("### Continuation after `REVISE` or `BLOCKED`", "## Review-only mode"),
+            ("## Review-only mode", "## Repair rules"),
+        ):
+            with self.subTest(section=start):
+                self.assertIn("(references/campaign.md)", section(body, start, end))
+
+    def test_gotchas_state_only_recorded_facts(self) -> None:
+        body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
+        gotchas = re.sub(r"\s+", " ", section(body, "## Gotchas", "## Red flags"))
+        for fact in (
+            "Codex `spawn_agent` forks the parent conversation into the reviewer unless `fork_turns: \"none\"` is set",
+            "Codex CLI 0.157.1 has no `close_agent`",
+            "`finish` rejects a `block_reason` over 100 characters as `schema-invalid`",
+            "Claude Code reports printed the handoff under a heading or a bold label instead of on the report's `Handoff:` line",
+        ):
+            self.assertIn(fact, gotchas)
 
     def test_optional_evidence_lifecycle_is_ordered_and_non_blocking(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
@@ -1360,7 +1409,7 @@ class PreSddReviewContractTests(unittest.TestCase):
 
     def test_authority_and_risk_selection_are_ordered_and_conditional(self) -> None:
         body = (SKILL / "SKILL.md").read_text(encoding="utf-8")
-        inputs = section(body, "## Resolve authoritative inputs", "## Pre-pass: shared-file ledger")
+        inputs = section(body, "## Resolve authoritative inputs", "## Capture freshness")
         authority_items = tuple(re.findall(r"^\d+\. (.+)$", inputs, re.MULTILINE))
         self.assertEqual(authority_items, AUTHORITY_ORDER)
 

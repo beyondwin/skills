@@ -25,8 +25,9 @@ implicit activation requires that purpose to be unambiguous.
 
 ### Single-plan path
 
-Most runs review one plan. Skip every rule marked "campaign" (a campaign is
-one outer request that names two or more plans).
+Most runs review one plan. Skip every rule marked "campaign" and
+[references/campaign.md](references/campaign.md) (a campaign is one outer
+request that names two or more plans).
 
 1. Resolve the plan, its `**Spec:**` design, and the required base.
 2. Pick the path: reuse, continuation, or discovery (Choose the path).
@@ -48,13 +49,8 @@ files: return `BLOCKED`.
 
 If the input is ambiguous between multiple plans, ask for one exact plan when
 the user is available; otherwise return `BLOCKED` instead of inventing an
-aggregate verdict. Campaign: a request naming several plans is split into
-separate verdict-bearing invocations, each with its own plan-local verdict.
-Run the pre-pass below once before the first of them. Discoveries of
-different plans may overlap. Repairs do not overlap. Do not emit an aggregate
-`READY`. A repair that changes a shared design marks every other plan that
-depends on it stale in this campaign, before or after it in the order; do not
-open a new campaign for that invalidation.
+aggregate verdict. Campaign: split, order, and stale rules are in
+[references/campaign.md](references/campaign.md).
 
 Interpret conflicts in this order:
 
@@ -77,44 +73,9 @@ checkout with `git merge-base --is-ancestor <required-base> HEAD`. If the base
 does not resolve or is not an ancestor of `HEAD`, preserve the mismatch and
 return `BLOCKED`; do not review or repair against a different checkout.
 
-## Pre-pass: shared-file ledger
-
-Campaign only; skip it for a single plan. Run it once, before the first
-verdict-bearing invocation, when the outer request names two or more plans or
-asks for it explicitly. It emits no verdict.
-
-1. Fix the execution order. Take it from the user or derive it from the plans'
-   stated prerequisites. If it cannot be fixed, stop and ask: without an order
-   there is no baseline.
-2. Build the ledger. Scrape each plan's `Files:` backticked paths and invert
-   them into one row per path. If a plan has no `Files:` section, stop and ask;
-   never derive the paths from task edit surfaces.
-3. Sweep the rows that two or more plans touch.
-4. Run the machine checks over every plan at once.
-5. Steps 3 and 4 emit candidates, not findings. A candidate becomes a defect
-   only when the repository confirms it.
-6. Record `HEAD` as the campaign freeze.
-
-The controlling agent does all of this. Dispatch no reviewer: a reviewer here
-would be a third review role outside any plan's invocation. The next
-invocation's fresh discovery review is the independent check on these repairs.
-
-Hand the confirmed candidates to the controller, never to a reviewer. Repair
-them before dispatching any reviewer, so the reviewer still arrives told
-nothing. Those repairs precede review, so they consume no repair pass; record
-them with `repair_pass: 0` and `source` `ledger-pass` or `machine-check`.
-
-The ledger is derived evidence, never authority. When it disagrees with a
-plan's `Files:`, the plan wins and the ledger is rebuilt. Its default path is
-`docs/superpowers/ledgers/YYYY-MM-DD-<campaign>.md`; a user preference wins.
-
-Under `review-only`, keep the ledger controller-local, write no file, and make
-no intake repair. Report confirmed candidates as findings; they count as
-unresolved findings for the verdict.
-
-This pre-pass is not a recorded run. The recorder binds one run to one plan and
-to a verdict, and this pass has neither. The ledger reaches evidence through
-each plan's own `start`.
+Campaign: run the shared-file ledger pre-pass in
+[references/campaign.md](references/campaign.md) once, before the first plan's
+invocation.
 
 ## Capture freshness
 
@@ -226,25 +187,22 @@ python3 "<skill-root>/evidence/evidence.py" start --skill-root "<skill-root>" \
 ```
 
 If `**Spec:**` cannot be resolved, omit `--design`; the recorder does not
-parse `**Spec:**`. `--plan`, `--design`, and `--ledger` must be inside the
-`--repo` checkout; when one is not, print `Evidence: not_recorded;
-reason=outside-repository` and continue the review. `--client` is one of
-`codex`, `claude-code`, `cursor`, `grok`, `other`, `unknown`. In a campaign, pass the ledger path with
-`--ledger` and each preceding plan with a repeated `--prior-plan`. Keep the
-returned `run_id` controller-local and out of user documents. The same
-lifecycle applies to default and `review-only` mode.
+parse `**Spec:**`. Argument values, including `--client` and the
+`outside-repository` case, are in the
+[recorder README](evidence/README.md). In a campaign, pass the
+ledger path with `--ledger` and each preceding plan with a repeated
+`--prior-plan`. Keep the returned `run_id` controller-local and out of user
+documents. The same lifecycle applies to default and `review-only` mode.
 
 After the verdict and any repairs are final, call `finish --run-id <id>
 --repo .` once with the review facts as one JSON object on stdin, then print
 exactly one `Evidence:` line: `Evidence: recorded; run_id=<run-id>` or
-`Evidence: not_recorded; reason=<code>`. `<code>` is the failing recorder
-command's error code (such as `outside-repository`), `recorder-unavailable`,
-`recorder-incompatible`, `reused-prior-run`, or `previous-decision-checkpoint`.
-An unavailable, malformed, incompatible, or permission-failing recorder must
-continue the review and never changes the semantic verdict. If the invocation ends before `finish`,
-call `abandon --run-id <id> --repo . --reason <reason>` with one of
-`user-cancelled`, `input-changed`, `scope-changed`, `input-format-fixed`, or
-`other`; never leave a run pending.
+`Evidence: not_recorded; reason=<code>`, with `<code>` from the recorder
+README's Boundary section. An unavailable, malformed, incompatible, or
+permission-failing recorder must continue the review and never changes the
+semantic verdict. If the invocation ends before `finish`, call `abandon
+--run-id <id> --repo . --reason <reason>` with a reason from the recorder
+README; never leave a run pending.
 
 `review_passes` counts reviewer dispatch rounds in this run: discovery is one,
 each closure is one. It is `0` only for a `BLOCKED` run that dispatched no
@@ -254,23 +212,18 @@ gate (the required base or an unresolved `**Spec:**`) stopped the run, or no
 primary reviewer was obtained. A `BLOCKED` verdict reached after a review
 keeps `full` or `degraded`.
 
-A schema 2, 3, or 4 record from an earlier recorder fails with
-`schema-unsupported` and never blocks `start`; leave it and start a new run.
-Recording an `outcome` (`good`, `false-ready`, `noisy`, `abandoned`) is not a
+A record from an earlier recorder fails with `schema-unsupported` and never
+blocks `start`; leave it and start a new run. Recording an `outcome` is not a
 controller duty; the user or the SDD worker may record one after SDD. Never
 store a full reviewer response or source body in evidence; use bounded
 paraphrases only.
 
-A finding record carries `id`, `severity`, `class`, `pattern`, `status`,
-`source`, `repair_pass`, `location` (`path`, `locator`), `evidence`,
-`consequence`, and `fix`. `id` is `PSDR-` plus three or more digits; a record
-first raised in a closure round takes the next number after the highest so far.
-`status` is `repaired`, `partially-closed`, or `unresolved`. `pattern` is a
-short lowercase slug the controller assigns to the defect shape; keep the same
-slug for the same shape across rounds. The four recurring shapes in the
-reviewer protocol's Pass 3 use its fixed slugs, such as `closed-list-one-side`;
-other slugs are free. `evidence` is a list of repository-relative paths, not
-prose.
+The finding record's fields and their values are in the recorder README. A
+record first raised in a closure round takes the next ID number after the
+highest so far. `pattern` is a short lowercase slug the controller assigns to
+the defect shape; keep the same slug for the same shape across rounds. The
+four recurring shapes in the reviewer protocol's Pass 3 use its fixed slugs,
+such as `closed-list-one-side`; other slugs are free.
 
 ## Select reviewers
 
@@ -324,10 +277,7 @@ focused risk role was triggered in discovery but not obtained, the run is
 `execution=degraded` with `focused-role-not-obtained`; that reason alone does
 not bar reuse or continuation.
 
-Campaign: if the host can supply only k fresh agents, run discovery in waves
-of k. Do not reuse an agent across plans to fill a wave; that is loss of
-independence (`agent-reused-across-plans`), not reuse. Do not bind a later
-`READY` to a preceding plan.
+Campaign: discovery waves are in [references/campaign.md](references/campaign.md).
 
 ## Default mode: review -> repair documents -> scoped re-review
 
@@ -433,40 +383,15 @@ passes from 1 and keeps the two-plus-residual cap. Only the number of
 continuations is uncapped: text outside the diff already passed one
 discovery, and closure's bounded regression covers the diff.
 
-### Campaign schedule
-
-When the outer request names two or more plans, after the pre-pass:
-
-1. Discovery in host-sized waves of fresh agents. Discoveries of different plans may overlap. No verdict.
-2. Serial repair in execution order. Update stale plans from each delta.
-3. Closure only for repaired or stale plans, in parallel up to the host cap.
-4. At most one more serial repair + closure per plan, plus the residual pass. Then plan-local verdicts.
-
-A preceding plan that is `BLOCKED` does not stop later discovery. Do not bind
-a later `READY` to a preceding plan.
-
-Stale is controller-local campaign state, not a record field and not the
-worktree's dirty flag. After repairing plan i, Δ is the union of changed
-resolved design, plan, and ledger fingerprints; repair-impact map symbols,
-paths, commands, and consumers; and paths cited by repaired findings. Plan j
-is stale when i precedes j and Δ intersects j's read set. Plan j is also
-stale when a shared design j depends on changed, whichever of i and j comes
-first: that design is j's authority, so the change voids j's earlier review.
-j's read set is the resolved design, plan, and ledger paths and hashes,
-`Files:` paths, preceding-plan paths, and discovery-record `evidence` paths.
-A stale plan takes its scoped closure after the repair that made it stale and
-before its verdict. A plan made stale after its last permitted closure returns
-`REVISE`, and its handoff names the changed document.
-Paths not in `Files:` are not in this stale set; those holes are machine-checked.
+Campaign: the cross-plan schedule and the stale set are in
+[references/campaign.md](references/campaign.md).
 
 ## Review-only mode
 
 `review-only` is explicit. Make no file changes, use the same fresh read-only
 review and controller deduplication, and return the first review's verdict.
 
-Campaign `review-only` may overlap discoveries. It still makes no file
-changes and returns each plan's first-review verdict. There is no repair and
-no stale set.
+Campaign `review-only` is in [references/campaign.md](references/campaign.md).
 
 ## Repair rules
 
@@ -488,7 +413,7 @@ approval requests.
 
 ### Machine checks
 
-Run these in the pre-pass over every plan at once, and in every invocation
+Run these in the campaign pre-pass over every plan at once, and in every invocation
 over the repaired documents before dispatching a closure reviewer. Pass the
 results to the closure reviewer as their own dispatch item.
 
@@ -517,10 +442,9 @@ for a material repairable document defect, including one still material after
 the last pass. Return `BLOCKED` when required authority, input, or
 repository evidence is unavailable, unresolvable, or would require a new
 product decision, or when an independent primary reviewer cannot be obtained.
-Name the cause in a one-line `block_reason` of at most 100 characters, starting
-with `decision:`, `input:`, `evidence:`, or `reviewer:` (a convention, not an
-enum); a `BLOCKED` run with
-a null `block_reason` is an anomaly.
+Name the cause in a one-line `block_reason` (prefix convention and length limit
+in the recorder README); a `BLOCKED` run with a null `block_reason` is an
+anomaly.
 An open `BLOCKER`, including one still `partially-closed`, forces `BLOCKED`,
 never `REVISE`.
 
@@ -572,6 +496,18 @@ path decides what a later invocation runs.
 Do not use this skill to create designs or plans, implement or edit application
 code, review a source diff, perform release readiness or security review,
 proofread, publish a release, or make an accepted product decision.
+
+## Gotchas
+
+Recorded in live runs.
+
+- Codex `spawn_agent` forks the parent conversation into the reviewer unless
+  `fork_turns: "none"` is set, so a forked reviewer sees the user request and
+  this file. Codex CLI 0.157.1 has no `close_agent`; its reviewers end on
+  their own.
+- `finish` rejects a `block_reason` over 100 characters as `schema-invalid`.
+- Claude Code reports printed the handoff under a heading or a bold label
+  instead of on the report's `Handoff:` line.
 
 ## Red flags
 

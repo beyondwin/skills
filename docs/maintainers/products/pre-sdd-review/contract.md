@@ -116,7 +116,10 @@ wins and the ledger is rebuilt.
 ## Ledger pre-pass
 
 When the outer request names two or more plans, or asks for this pass
-explicitly, it runs once before the first verdict-bearing invocation.
+explicitly, it runs once before the first verdict-bearing invocation. The
+installed campaign rules (this pre-pass, discovery waves, the schedule, the
+stale set, and campaign `review-only`) live in
+`skills/pre-sdd-review/references/campaign.md`, which single-plan runs skip.
 
 - It gives no verdict. Its output is the ledger, the settled execution order,
   and repository-confirmed defect candidates.
@@ -492,8 +495,9 @@ values never auto-edit the skill, export fixtures, or rank clients or models.
 Never put a behavior change in only one file.
 
 - Authority order, verdicts, repair limits, reviewer roles:
-  `skills/pre-sdd-review/SKILL.md`, `references/reviewer-protocol.md`, this
-  contract, `tests/products/pre-sdd-review/cases.json`, and the product READMEs.
+  `skills/pre-sdd-review/SKILL.md`, `references/reviewer-protocol.md`,
+  `references/campaign.md` for campaign rules, this contract,
+  `tests/products/pre-sdd-review/cases.json`, and the product READMEs.
 - Recorder commands and schema 5: `skills/pre-sdd-review/evidence/evidence.py`,
   `evidence/README.md`, `tests/products/pre-sdd-review/evidence/`.
 - Host support: `products.toml`, `compatibility.md`, the public guides, and the
