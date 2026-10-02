@@ -1,0 +1,677 @@
+{
+ "note": "Synthetic prompts written for this eval in the style of real requests; no real session text.",
+ "cases": [
+  {
+   "id": "how-it-works:pos01",
+   "skill": "how-it-works",
+   "kind": "pos",
+   "split": "train",
+   "text": "DNS가 브라우저에서 주소 찾아가는 과정이 감이 안와 그림으로 보여줘"
+  },
+  {
+   "id": "how-it-works:pos02",
+   "skill": "how-it-works",
+   "kind": "pos",
+   "split": "train",
+   "text": "이 repo에서 요청 들어오면 rate limiter 거쳐서 큐까지 어디로 가는지 길로 보여줘"
+  },
+  {
+   "id": "how-it-works:pos03",
+   "skill": "how-it-works",
+   "kind": "pos",
+   "split": "train",
+   "text": "TCP 핸드셰이크 원리부터 알려줘 왜 세번이나 주고받는지"
+  },
+  {
+   "id": "how-it-works:pos04",
+   "skill": "how-it-works",
+   "kind": "pos",
+   "split": "train",
+   "text": "git rebase가 내부적으로 어떻게 돌아가는건지 모르겟어 흐름으로 보여줘"
+  },
+  {
+   "id": "how-it-works:pos05",
+   "skill": "how-it-works",
+   "kind": "pos",
+   "split": "held",
+   "text": "OAuth 로그인할때 리다이렉트 왔다갔다 하는거 순서대로 그림으로 설명해줘"
+  },
+  {
+   "id": "how-it-works:pos06",
+   "skill": "how-it-works",
+   "kind": "pos",
+   "split": "train",
+   "text": "src/queue.py 재시도가 어떻게 돌아가는건지 뼈대만 보여줘"
+  },
+  {
+   "id": "how-it-works:pos07",
+   "skill": "how-it-works",
+   "kind": "pos",
+   "split": "held",
+   "text": "HTTPS 인증서 검증이 어디서 어떻게 되는지 단계별로 보여줘"
+  },
+  {
+   "id": "how-it-works:pos08",
+   "skill": "how-it-works",
+   "kind": "pos",
+   "split": "train",
+   "text": "리액트에서 상태 바뀌면 화면이 어떻게 다시 그려지는지 길 따라가면서 설명좀"
+  },
+  {
+   "id": "how-it-works:pos09",
+   "skill": "how-it-works",
+   "kind": "pos",
+   "split": "train",
+   "text": "토큰 버킷 rate limiter가 어떻게 돌아가는지 허점까지 그림으로 알려줘"
+  },
+  {
+   "id": "how-it-works:pos10",
+   "skill": "how-it-works",
+   "kind": "pos",
+   "split": "held",
+   "text": "카프카 컨슈머 그룹 리밸런싱 어떻게 돌아가는지 감이 안 와"
+  },
+  {
+   "id": "how-it-works:pos11",
+   "skill": "how-it-works",
+   "kind": "pos",
+   "split": "held",
+   "text": "프롬프트 캐싱은 prefix 매칭으로 동작한다. API는 요청 시작부터 각 cache_control breakpoint까지를 캐시하므로 정적 내용을 앞에, 동적 내용을 뒤에 둬야 하고, 도구 정의나 모델을 세션 중간에 바꾸면 그 지점 이후 전체가 무효화된다. compaction도 부모와 같은 system prompt와 tool 정의로 fork해야 캐시를 재사용한다.\n\n이게 무슨말인지 하나도 모르겠어 어떻게 돌아가는건지 쉽게 보여줘"
+  },
+  {
+   "id": "how-it-works:pos12",
+   "skill": "how-it-works",
+   "kind": "pos",
+   "split": "train",
+   "text": "쿠버네티스에서 pod 하나 뜨기까지 어디어디 거치는지 원리부터 알려줘"
+  },
+  {
+   "id": "how-it-works:neg01",
+   "skill": "how-it-works",
+   "kind": "neg",
+   "split": "held",
+   "text": "DNS가 뭐야? 한줄로만"
+  },
+  {
+   "id": "how-it-works:neg02",
+   "skill": "how-it-works",
+   "kind": "neg",
+   "split": "train",
+   "text": "tests/test_ratelimit.py 돌려보고 실패하면 고쳐줘"
+  },
+  {
+   "id": "how-it-works:neg03",
+   "skill": "how-it-works",
+   "kind": "neg",
+   "split": "train",
+   "text": "TCP 핸드셰이크 다섯살한테 설명하듯이 알려줘"
+  },
+  {
+   "id": "how-it-works:neg04",
+   "skill": "how-it-works",
+   "kind": "neg",
+   "split": "train",
+   "text": "src/ratelimit.py 코드 리뷰해줘 버그 있는지"
+  },
+  {
+   "id": "how-it-works:neg05",
+   "skill": "how-it-works",
+   "kind": "neg",
+   "split": "train",
+   "text": "이 문단 한국어로 번역해줘: The token bucket refills at a fixed rate and each request spends one token."
+  },
+  {
+   "id": "how-it-works:neg06",
+   "skill": "how-it-works",
+   "kind": "neg",
+   "split": "train",
+   "text": "src/queue.py에 재시도 지연 기능 추가해줘"
+  },
+  {
+   "id": "how-it-works:neg07",
+   "skill": "how-it-works",
+   "kind": "neg",
+   "split": "train",
+   "text": "초등학생 조카한테 인터넷이 어떻게 되는지 설명해주려는데 아이 눈높이 말투로 써줘"
+  },
+  {
+   "id": "how-it-works:neg08",
+   "skill": "how-it-works",
+   "kind": "neg",
+   "split": "held",
+   "text": "HTTP 429 상태코드가 뭐였지"
+  },
+  {
+   "id": "how-it-works:neg09",
+   "skill": "how-it-works",
+   "kind": "neg",
+   "split": "train",
+   "text": "README 세줄로 요약해줘"
+  },
+  {
+   "id": "how-it-works:neg10",
+   "skill": "how-it-works",
+   "kind": "neg",
+   "split": "held",
+   "text": "git rebase랑 merge 중에 우리 팀은 뭐 쓰는게 나아"
+  },
+  {
+   "id": "how-it-works:neg11",
+   "skill": "how-it-works",
+   "kind": "neg",
+   "split": "train",
+   "text": "kafka max.poll.interval.ms 기본값 알려줘"
+  },
+  {
+   "id": "how-it-works:neg12",
+   "skill": "how-it-works",
+   "kind": "neg",
+   "split": "held",
+   "text": "data/sales.csv로 월별 매출 차트 그려줘"
+  },
+  {
+   "id": "korean-writing-editor:pos01",
+   "skill": "korean-writing-editor",
+   "kind": "pos",
+   "split": "train",
+   "text": "맞춤법 띄어쓰기 봐줘: 오늘 회의는 3시에 시작 할 예정 입니다 참석 부탁 드립니다."
+  },
+  {
+   "id": "korean-writing-editor:pos02",
+   "skill": "korean-writing-editor",
+   "kind": "pos",
+   "split": "held",
+   "text": "고객한테 보낼 메일인데 자연스럽게 다듬어줘: 안녕하세요 요청하신 자료 첨부해서 보내드립니다 확인후 회신 부탁드려요 감사합니다"
+  },
+  {
+   "id": "korean-writing-editor:pos03",
+   "skill": "korean-writing-editor",
+   "kind": "pos",
+   "split": "train",
+   "text": "오타만 고쳐줘 내용은 건드리지마: 이번 업데이트에서는 로그인 오류를 수정햇고 속도도 개선됬습니다."
+  },
+  {
+   "id": "korean-writing-editor:pos04",
+   "skill": "korean-writing-editor",
+   "kind": "pos",
+   "split": "held",
+   "text": "보고서 문단인데 문장 매끄럽게 교정해줘: 이번 분기 매출은 전년대비 증가 하였으며 이는 신규 고객의 유입이 증가한것에 기인한것으로 판단 되어진다."
+  },
+  {
+   "id": "korean-writing-editor:pos05",
+   "skill": "korean-writing-editor",
+   "kind": "pos",
+   "split": "train",
+   "text": "공지문인데 어색한데 없나 봐줘: 금일 서버 점검으로 인하여 서비스 이용이 일시적으로 불가 하오니 양해 부탁드립니다."
+  },
+  {
+   "id": "korean-writing-editor:pos06",
+   "skill": "korean-writing-editor",
+   "kind": "pos",
+   "split": "train",
+   "text": "PR 설명 한국어로 쓴건데 문법 맞는지 확인좀: 재시도 로직을 추가 했고 테스트도 같이 넣었읍니다."
+  },
+  {
+   "id": "korean-writing-editor:pos07",
+   "skill": "korean-writing-editor",
+   "kind": "pos",
+   "split": "held",
+   "text": "자소서 한 문단 교정 부탁해: 저는 어려운 문제를 만났을때 포기 하지않고 끝까지 해결하는 끈기가 있다고 생각 합니다."
+  },
+  {
+   "id": "korean-writing-editor:pos08",
+   "skill": "korean-writing-editor",
+   "kind": "pos",
+   "split": "train",
+   "text": "카톡 공지 좀 다듬어줘 너무 딱딱하지 않게: 이번주 금요일 회식 있습니다 전원 참석 바랍니다"
+  },
+  {
+   "id": "korean-writing-editor:pos09",
+   "skill": "korean-writing-editor",
+   "kind": "pos",
+   "split": "train",
+   "text": "띄어쓰기 맞나 봐줘: 할수있을것같습니다"
+  },
+  {
+   "id": "korean-writing-editor:pos10",
+   "skill": "korean-writing-editor",
+   "kind": "pos",
+   "split": "train",
+   "text": "이 문장 비문인지 봐주고 고쳐줘: 저희는 고객님께서 만족하실수있도록 최선을 다할 것을 약속드리며 노력하겠습니다."
+  },
+  {
+   "id": "korean-writing-editor:pos11",
+   "skill": "korean-writing-editor",
+   "kind": "pos",
+   "split": "held",
+   "text": "README 한국어 소개 문단 교정해줘: 이 프로젝트는 작업을 큐에 넣고 재시도 해주는 간단한 릴레이 입니다."
+  },
+  {
+   "id": "korean-writing-editor:pos12",
+   "skill": "korean-writing-editor",
+   "kind": "pos",
+   "split": "train",
+   "text": "슬랙에 올릴 글인데 어색한 표현 고쳐줘: 배포 완료 되었으니 이상한거 있으시면 말씀 주세용"
+  },
+  {
+   "id": "korean-writing-editor:neg01",
+   "skill": "korean-writing-editor",
+   "kind": "neg",
+   "split": "held",
+   "text": "이 문장 영어로 번역해줘: 회의는 내일 오전입니다."
+  },
+  {
+   "id": "korean-writing-editor:neg02",
+   "skill": "korean-writing-editor",
+   "kind": "neg",
+   "split": "held",
+   "text": "팀 회식 공지문 하나 새로 써줘"
+  },
+  {
+   "id": "korean-writing-editor:neg03",
+   "skill": "korean-writing-editor",
+   "kind": "neg",
+   "split": "train",
+   "text": "이 글 세줄 요약해줘: 이번 분기 매출은 전년 대비 늘었고 신규 고객이 많이 들어왔으며 다음 분기에도 증가가 예상된다."
+  },
+  {
+   "id": "korean-writing-editor:neg04",
+   "skill": "korean-writing-editor",
+   "kind": "neg",
+   "split": "train",
+   "text": "'되'랑 '돼'는 언제 구분해서 쓰는거야?"
+  },
+  {
+   "id": "korean-writing-editor:neg05",
+   "skill": "korean-writing-editor",
+   "kind": "neg",
+   "split": "train",
+   "text": "이 글 AI가 쓴건지 판별해줘: 저는 어려운 문제를 만났을 때 포기하지 않습니다."
+  },
+  {
+   "id": "korean-writing-editor:neg06",
+   "skill": "korean-writing-editor",
+   "kind": "neg",
+   "split": "train",
+   "text": "이 문단 김훈 작가 문체로 바꿔줘: 오늘은 비가 왔다. 나는 집에 있었다."
+  },
+  {
+   "id": "korean-writing-editor:neg07",
+   "skill": "korean-writing-editor",
+   "kind": "neg",
+   "split": "train",
+   "text": "src/queue.py 주석이랑 코드 리뷰해줘"
+  },
+  {
+   "id": "korean-writing-editor:neg08",
+   "skill": "korean-writing-editor",
+   "kind": "neg",
+   "split": "held",
+   "text": "안녕 오늘 날씨 좋다 ㅎㅎ"
+  },
+  {
+   "id": "korean-writing-editor:neg09",
+   "skill": "korean-writing-editor",
+   "kind": "neg",
+   "split": "held",
+   "text": "이 공지를 영어 이메일로 바꿔줘: 금요일에 서버 점검이 있습니다."
+  },
+  {
+   "id": "korean-writing-editor:neg10",
+   "skill": "korean-writing-editor",
+   "kind": "neg",
+   "split": "train",
+   "text": "기술 블로그 글 주제 추천해줘"
+  },
+  {
+   "id": "korean-writing-editor:neg11",
+   "skill": "korean-writing-editor",
+   "kind": "neg",
+   "split": "train",
+   "text": "이 공지에 내용 더 붙여서 길게 써줘: 금요일에 서버 점검이 있습니다."
+  },
+  {
+   "id": "korean-writing-editor:neg12",
+   "skill": "korean-writing-editor",
+   "kind": "neg",
+   "split": "train",
+   "text": "GPT 탐지기에 안 걸리게 이 글 바꿔줘: 저는 끈기가 있는 사람입니다."
+  },
+  {
+   "id": "image-workbench:pos01",
+   "skill": "image-workbench",
+   "kind": "pos",
+   "split": "train",
+   "text": "랜딩 히어로 이미지 하나 만들어서 assets/hero.png 교체해줘 docs/brand.md 톤 맞춰서"
+  },
+  {
+   "id": "image-workbench:pos02",
+   "skill": "image-workbench",
+   "kind": "pos",
+   "split": "train",
+   "text": "assets/logo.png 배경 투명하게 바꿔서 저장해줘"
+  },
+  {
+   "id": "image-workbench:pos03",
+   "skill": "image-workbench",
+   "kind": "pos",
+   "split": "train",
+   "text": "앱스토어 스크린샷 1290x2796 규격에 맞게 assets/screen1.png 여백 넣어서 맞춰줘"
+  },
+  {
+   "id": "image-workbench:pos04",
+   "skill": "image-workbench",
+   "kind": "pos",
+   "split": "train",
+   "text": "블로그 썸네일 1200x630으로 하나 만들어서 assets에 저장해줘 브랜드 색 지켜서"
+  },
+  {
+   "id": "image-workbench:pos05",
+   "skill": "image-workbench",
+   "kind": "pos",
+   "split": "held",
+   "text": "assets/hero.png랑 hero-v2.png 비교해서 어느게 글자 올리기 좋은지 봐줘"
+  },
+  {
+   "id": "image-workbench:pos06",
+   "skill": "image-workbench",
+   "kind": "pos",
+   "split": "train",
+   "text": "assets/banner.png 규격이랑 텍스트 들어갈 자리 문제없는지 검사해줘"
+  },
+  {
+   "id": "image-workbench:pos07",
+   "skill": "image-workbench",
+   "kind": "pos",
+   "split": "held",
+   "text": "온보딩 일러스트 3장 같은 스타일로 생성해서 assets/onboarding/에 넣어줘"
+  },
+  {
+   "id": "image-workbench:pos08",
+   "skill": "image-workbench",
+   "kind": "pos",
+   "split": "train",
+   "text": "assets/hero.png 색감을 brand.md 팔레트에 맞게 보정해서 저장해줘"
+  },
+  {
+   "id": "image-workbench:pos09",
+   "skill": "image-workbench",
+   "kind": "pos",
+   "split": "train",
+   "text": "og 이미지 만들어야 하는데 어떤 구성으로 갈지 먼저 계획부터 잡아줘"
+  },
+  {
+   "id": "image-workbench:pos10",
+   "skill": "image-workbench",
+   "kind": "pos",
+   "split": "train",
+   "text": "assets 폴더 이미지들 해상도 제각각인데 웹용으로 괜찮은지 점검해줘"
+  },
+  {
+   "id": "image-workbench:pos11",
+   "skill": "image-workbench",
+   "kind": "pos",
+   "split": "held",
+   "text": "앱 아이콘 1024 png 하나 생성해서 assets/icon.png로 저장해줘 마스코트는 빼고"
+  },
+  {
+   "id": "image-workbench:pos12",
+   "skill": "image-workbench",
+   "kind": "pos",
+   "split": "held",
+   "text": "assets/screen1.png에 개인정보 보이는거 있나 확인하고 있으면 가려서 저장해줘"
+  },
+  {
+   "id": "image-workbench:neg01",
+   "skill": "image-workbench",
+   "kind": "neg",
+   "split": "train",
+   "text": "고양이 그림 하나 그려줘 그냥 재미로"
+  },
+  {
+   "id": "image-workbench:neg02",
+   "skill": "image-workbench",
+   "kind": "neg",
+   "split": "train",
+   "text": "로고를 SVG 코드로 만들어줘"
+  },
+  {
+   "id": "image-workbench:neg03",
+   "skill": "image-workbench",
+   "kind": "neg",
+   "split": "train",
+   "text": "data/sales.csv로 월별 매출 차트 그려줘"
+  },
+  {
+   "id": "image-workbench:neg04",
+   "skill": "image-workbench",
+   "kind": "neg",
+   "split": "train",
+   "text": "히어로 섹션 React 컴포넌트로 구현해줘"
+  },
+  {
+   "id": "image-workbench:neg05",
+   "skill": "image-workbench",
+   "kind": "neg",
+   "split": "train",
+   "text": "미드저니 프롬프트 모음 20개 만들어줘"
+  },
+  {
+   "id": "image-workbench:neg06",
+   "skill": "image-workbench",
+   "kind": "neg",
+   "split": "train",
+   "text": "navbar 아이콘을 lucide 아이콘으로 바꿔줘"
+  },
+  {
+   "id": "image-workbench:neg07",
+   "skill": "image-workbench",
+   "kind": "neg",
+   "split": "held",
+   "text": "이미지 lazy loading 적용해줘"
+  },
+  {
+   "id": "image-workbench:neg08",
+   "skill": "image-workbench",
+   "kind": "neg",
+   "split": "held",
+   "text": "png랑 webp 차이가 뭐야"
+  },
+  {
+   "id": "image-workbench:neg09",
+   "skill": "image-workbench",
+   "kind": "neg",
+   "split": "train",
+   "text": "아키텍처 다이어그램 mermaid로 그려줘"
+  },
+  {
+   "id": "image-workbench:neg10",
+   "skill": "image-workbench",
+   "kind": "neg",
+   "split": "train",
+   "text": "README에 빌드 배지 추가해줘"
+  },
+  {
+   "id": "image-workbench:neg11",
+   "skill": "image-workbench",
+   "kind": "neg",
+   "split": "held",
+   "text": "발표용 슬라이드 덱 만들어줘 relay 소개로"
+  },
+  {
+   "id": "image-workbench:neg12",
+   "skill": "image-workbench",
+   "kind": "neg",
+   "split": "held",
+   "text": "사진 보정 앱 추천해줘"
+  },
+  {
+   "id": "pre-sdd-review:pos01",
+   "skill": "pre-sdd-review",
+   "kind": "pos",
+   "split": "train",
+   "text": "스펙이랑 계획 문서 다 썼어 구현 들어가기 전에 검토 돌려줘"
+  },
+  {
+   "id": "pre-sdd-review:pos02",
+   "skill": "pre-sdd-review",
+   "kind": "pos",
+   "split": "held",
+   "text": "docs/specs 재시도 백오프 설계랑 docs/plans 계획 구현 전에 검증하고 개선해줘"
+  },
+  {
+   "id": "pre-sdd-review:pos03",
+   "skill": "pre-sdd-review",
+   "kind": "pos",
+   "split": "train",
+   "text": "계획 문서가 실제 repo랑 안 맞는거 없는지 보고 고쳐줘 승인된거라 바로 sdd 들어갈거야"
+  },
+  {
+   "id": "pre-sdd-review:pos04",
+   "skill": "pre-sdd-review",
+   "kind": "pos",
+   "split": "train",
+   "text": "구현 계획 리뷰하고 문제 있으면 문서 수정까지 해줘 다음에 서브에이전트로 돌릴거야"
+  },
+  {
+   "id": "pre-sdd-review:pos05",
+   "skill": "pre-sdd-review",
+   "kind": "pos",
+   "split": "train",
+   "text": "sdd 돌리기 전에 스펙이랑 플랜 사각지대 없는지 다각도로 검토해줘"
+  },
+  {
+   "id": "pre-sdd-review:pos06",
+   "skill": "pre-sdd-review",
+   "kind": "pos",
+   "split": "held",
+   "text": "retry backoff 플랜 이대로 바로 실행해도 되는 상태인지 판정해줘 문제 있으면 개선하고"
+  },
+  {
+   "id": "pre-sdd-review:pos07",
+   "skill": "pre-sdd-review",
+   "kind": "pos",
+   "split": "train",
+   "text": "스펙 승인 났고 플랜도 있어 구현자가 헷갈릴 부분 없게 다듬고 다시 검토해줘"
+  },
+  {
+   "id": "pre-sdd-review:pos08",
+   "skill": "pre-sdd-review",
+   "kind": "pos",
+   "split": "held",
+   "text": "이 계획대로 waygent 돌리기 전에 계획 문서 점검해줘"
+  },
+  {
+   "id": "pre-sdd-review:pos09",
+   "skill": "pre-sdd-review",
+   "kind": "pos",
+   "split": "train",
+   "text": "설계 문서랑 구현 계획 서로 안 맞는거 찾아서 고쳐줘"
+  },
+  {
+   "id": "pre-sdd-review:pos10",
+   "skill": "pre-sdd-review",
+   "kind": "pos",
+   "split": "train",
+   "text": "구현계획에 적힌 테스트 명령어 실제 있는건지 확인하고 문서 정리해줘 구현은 하지마"
+  },
+  {
+   "id": "pre-sdd-review:pos11",
+   "skill": "pre-sdd-review",
+   "kind": "pos",
+   "split": "train",
+   "text": "다른 세션에서 플랜 작성 끝냈어 구현 전에 검토 한번 돌려줘"
+  },
+  {
+   "id": "pre-sdd-review:pos12",
+   "skill": "pre-sdd-review",
+   "kind": "pos",
+   "split": "held",
+   "text": "스팩 구현문서 리뷰해서 개선해줘 해당 문서들"
+  },
+  {
+   "id": "pre-sdd-review:neg01",
+   "skill": "pre-sdd-review",
+   "kind": "neg",
+   "split": "train",
+   "text": "재시도 백오프 기능 스펙 문서 새로 써줘"
+  },
+  {
+   "id": "pre-sdd-review:neg02",
+   "skill": "pre-sdd-review",
+   "kind": "neg",
+   "split": "train",
+   "text": "docs/specs 설계로 구현 계획 작성해줘"
+  },
+  {
+   "id": "pre-sdd-review:neg03",
+   "skill": "pre-sdd-review",
+   "kind": "neg",
+   "split": "train",
+   "text": "방금 구현한 src/queue.py 코드 리뷰해줘"
+  },
+  {
+   "id": "pre-sdd-review:neg04",
+   "skill": "pre-sdd-review",
+   "kind": "neg",
+   "split": "held",
+   "text": "docs/plans 계획대로 구현해줘"
+  },
+  {
+   "id": "pre-sdd-review:neg05",
+   "skill": "pre-sdd-review",
+   "kind": "neg",
+   "split": "held",
+   "text": "docs/plans 계획 문서 맞춤법만 봐줘"
+  },
+  {
+   "id": "pre-sdd-review:neg06",
+   "skill": "pre-sdd-review",
+   "kind": "neg",
+   "split": "train",
+   "text": "이번 릴리스 나가도 되는지 체크해줘"
+  },
+  {
+   "id": "pre-sdd-review:neg07",
+   "skill": "pre-sdd-review",
+   "kind": "neg",
+   "split": "train",
+   "text": "새 기능 아이디어 브레인스토밍하자"
+  },
+  {
+   "id": "pre-sdd-review:neg08",
+   "skill": "pre-sdd-review",
+   "kind": "neg",
+   "split": "train",
+   "text": "PR 올리기 전에 지금 diff 검토해줘"
+  },
+  {
+   "id": "pre-sdd-review:neg09",
+   "skill": "pre-sdd-review",
+   "kind": "neg",
+   "split": "train",
+   "text": "docs/plans 계획 문서 영어로 번역해줘"
+  },
+  {
+   "id": "pre-sdd-review:neg10",
+   "skill": "pre-sdd-review",
+   "kind": "neg",
+   "split": "held",
+   "text": "docs/plans 계획 요약해줘"
+  },
+  {
+   "id": "pre-sdd-review:neg11",
+   "skill": "pre-sdd-review",
+   "kind": "neg",
+   "split": "train",
+   "text": "tests 깨진거 있으면 고쳐줘"
+  },
+  {
+   "id": "pre-sdd-review:neg12",
+   "skill": "pre-sdd-review",
+   "kind": "neg",
+   "split": "held",
+   "text": "스펙 쓰기 전에 요구사항 인터뷰부터 해줘"
+  }
+ ]
+}

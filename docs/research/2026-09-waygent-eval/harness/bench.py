@@ -29,6 +29,17 @@ PROMPTS = {
     "waygent_010": "/waygent docs/plan.md" + AWAY,  # bench-only variant: the 0.1.0 text, for before/after
     "waygent_fo": "/waygent docs/plan.md" + AWAY,  # bench-only variant: no per-task review  # superpowers also installed: does its hook hijack /waygent?
 }
+# 2026-10-02 routing cells: frozen copies that differ from the base only in the Models section,
+# each with the agent definition that carries its model and effort (Claude Code only).
+ROUTING = {
+    "wg_base": ("waygent-0.3.2-base", None),
+    "wg_final_xhigh": ("waygent-final-xhigh", ("waygent-final-reviewer", "opus", "xhigh")),
+    "wg_review_high": ("waygent-review-high", ("waygent-task-reviewer", "opus", "high")),
+    "wg_impl_sonnet": ("waygent-impl-sonnet", ("waygent-implementer", "sonnet", "high")),
+}
+for _c in ROUTING:
+    PROMPTS[_c] = "/waygent docs/plan.md" + AWAY
+
 RESUME_PROMPTS = {
     "vanilla": "docs/plan.md 계획을 구현하던 중에 세션이 끊겼어. 이어서 끝까지 구현해줘." + AWAY,
     "superpowers": "superpowers:subagent-driven-development 로 docs/plan.md 를 실행하던 중에 세션이 끊겼어. 이어서 끝까지 실행해줘." + AWAY,
@@ -37,6 +48,9 @@ RESUME_PROMPTS = {
     "waygent_fo": "/waygent docs/plan.md 세션이 끊겼어. 이어서 해줘." + AWAY,
     "waygent_010": "/waygent docs/plan.md 세션이 끊겼어. 이어서 해줘." + AWAY,
 }
+for _c in ROUTING:
+    RESUME_PROMPTS[_c] = "/waygent docs/plan.md 세션이 끊겼어. 이어서 해줘." + AWAY
+
 CONTINUE = "계속 진행해. 계획의 모든 Task를 끝까지 구현해줘."
 MODULES = ["session.py", "batch.py", "workspace.py", "candidates.py"]
 
@@ -59,14 +73,14 @@ def setup(run_dir, cond):
         (home / ".codex").mkdir(parents=True)
         shutil.copy(Path.home() / ".codex" / "auth.json", home / ".codex" / "auth.json")
         (home / ".codex" / "config.toml").write_text("[features]\nmulti_agent = true\n")
-    if cond in ("waygent", "both", "waygent_fo", "waygent_010"):
+    if cond in ("waygent", "both", "waygent_fo", "waygent_010") or cond in ROUTING:
         if CODEX:
             # codex exec does not expand a $skill mention for an explicit-only skill, so the
             # bench copy leaves out agents/openai.yaml (the explicit-only policy) and nothing else.
             dst = run_dir / "home" / ".agents" / "skills" / "waygent"
         else:
             dst = repo / (".cursor" if CURSOR else ".claude") / "skills" / "waygent"
-        variants = {"waygent_fo": "waygent-fo", "waygent_010": "waygent-0.1.0"}
+        variants = {"waygent_fo": "waygent-fo", "waygent_010": "waygent-0.1.0", **{c: v for c, (v, _) in ROUTING.items()}}
         src = ROOT / "skill-variants" / variants[cond] if cond in variants else REPO_SKILLS / "skills" / "waygent"
         shutil.copytree(src, dst,
                         ignore=shutil.ignore_patterns("README*", "CHANGELOG.md", "release.toml", "LICENSE.txt",
@@ -101,6 +115,11 @@ def claude_cmd(cond, model, msg, session, first):
            "--disallowedTools", "AskUserQuestion", "--strict-mcp-config", "--max-budget-usd", "60"]
     if cond in ("superpowers", "both"):
         cmd += ["--plugin-dir", str(SUPERPOWERS)]
+    if cond in ROUTING and ROUTING[cond][1]:
+        name, m, effort = ROUTING[cond][1]
+        # Routing only: a one-line neutral prompt and no tools field, so the cell differs in model and effort alone.
+        cmd += ["--agents", json.dumps({name: {"description": f"waygent {name[8:]}", "model": m, "effort": effort,
+                                               "prompt": "You are a subagent. Do the task you are given."}})]
     cmd += (["--session-id", session] if first else ["--resume", session])
     return cmd
 
@@ -248,6 +267,59 @@ def parse(path):
             "is_error": (result or {}).get("is_error"), "model_usage": (result or {}).get("modelUsage")}
 
 
+# API list prices per million tokens (input, output, cache read, 5m write, 1h write), 2026-10-02.
+PRICES = {"claude-opus-5-5": (4, 20, 0.20, 5, 8), "claude-fable-5-1": (10, 50, 0.25, 12.5, 20),
+          "claude-sonnet-5-5": (2, 10, 0.20, 2.5, 4), "claude-haiku-4-5": (1, 5, 0.10, 1.25, 2)}
+
+
+def transcript_usage(path):
+    """Per-transcript model, effort, turns, tokens and list-price cost, deduplicated by message id."""
+    seen, models, efforts = set(), {}, {}
+    tok = {"in": 0, "out": 0, "cache_read": 0, "write_5m": 0, "write_1h": 0}
+    cost = 0.0
+    for line in open(path, errors="replace"):
+        try:
+            e = json.loads(line)
+        except Exception:
+            continue
+        if e.get("type") != "assistant":
+            continue
+        m = e.get("message", {})
+        if m.get("id") in seen or m.get("model") in (None, "<synthetic>"):
+            continue
+        seen.add(m.get("id"))
+        models[m["model"]] = models.get(m["model"], 0) + 1
+        efforts[str(e.get("effort"))] = efforts.get(str(e.get("effort")), 0) + 1
+        u = m.get("usage", {})
+        cc = u.get("cache_creation") or {}
+        t = {"in": u.get("input_tokens") or 0, "out": u.get("output_tokens") or 0,
+             "cache_read": u.get("cache_read_input_tokens") or 0,
+             "write_5m": cc.get("ephemeral_5m_input_tokens") or 0, "write_1h": cc.get("ephemeral_1h_input_tokens") or 0}
+        if not cc:
+            t["write_5m"] = u.get("cache_creation_input_tokens") or 0
+        for k in tok:
+            tok[k] += t[k]
+        pr = next((v for k, v in PRICES.items() if m["model"].startswith(k)), None)
+        if pr:
+            cost += (t["in"] * pr[0] + t["out"] * pr[1] + t["cache_read"] * pr[2] + t["write_5m"] * pr[3] + t["write_1h"] * pr[4]) / 1e6
+    return {"models": models, "efforts": efforts, "turns": len(seen), "tokens": tok, "list_cost": round(cost, 4)}
+
+
+def session_agents(sessions):
+    """Main and subagent transcripts Claude Code wrote for these sessions (none for Codex or Cursor)."""
+    out = {"main": [], "agents": []}
+    projects = Path.home() / ".claude" / "projects"
+    for sid in sessions:
+        for f in projects.glob(f"*/{sid}.jsonl"):
+            out["main"].append({"session": sid, **transcript_usage(f)})
+        for f in sorted(projects.glob(f"*/{sid}/subagents/agent-*.jsonl")):
+            mf = f.with_suffix(".meta.json")
+            info = json.loads(mf.read_text()) if mf.exists() else {}
+            out["agents"].append({"session": sid, "agent_id": f.stem[6:], "type": info.get("agentType"),
+                                  "desc": info.get("description"), **transcript_usage(f)})
+    return out
+
+
 def score(repo, run_dir):
     """Hidden tests on the final working tree (whatever the agent left, committed or not)."""
     work = run_dir / "score"
@@ -339,6 +411,8 @@ def main():
         if t["cost"] is not None:
             last[t["session"]] = t["cost"]
     meta["cost_usd"] = round(sum(last.values()), 4)
+    if not (CODEX or CURSOR):
+        meta["transcripts"] = session_agents(meta["sessions"])
     meta["git"] = git_facts(repo)
     meta["score"] = score(repo, run_dir)
     (run_dir / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1))

@@ -1,0 +1,4 @@
+wg_final_xhigh opus 1
+wg_review_high opus 1
+wg_impl_sonnet opus 1
+wg_base opus 1
