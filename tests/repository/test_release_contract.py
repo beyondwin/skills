@@ -24,7 +24,7 @@ from scripts.lib.product_registry import load_registry, PRODUCT_README_NAMES  # 
 EXPECTED = {
     "korean-writing-editor": "2.0.6",
     "image-workbench": "2.1.1",
-    "how-it-works": "3.0.2",
+    "how-it-works": "3.0.3",
     "pre-sdd-review": "6.1.1",
     "sddx": "8.1.1",
     "waygent": "0.3.2",
@@ -48,9 +48,9 @@ class ProductReleaseTests(unittest.TestCase):
 
     def test_how_it_works_current_archive_identity(self) -> None:
         product = load_product_release(ROOT / "skills/how-it-works")
-        self.assertEqual(product.version, "3.0.2")
-        self.assertEqual(product.tag, "how-it-works-v3.0.2")
-        self.assertEqual(product.artifact_name, "how-it-works-v3.0.2.zip")
+        self.assertEqual(product.version, "3.0.3")
+        self.assertEqual(product.tag, "how-it-works-v3.0.3")
+        self.assertEqual(product.artifact_name, "how-it-works-v3.0.3.zip")
 
     def test_pre_sdd_review_current_archive_identity(self) -> None:
         product = load_product_release(ROOT / "skills/pre-sdd-review")
@@ -75,11 +75,11 @@ class ProductReleaseTests(unittest.TestCase):
             shutil.copytree(ROOT / "skills" / "how-it-works", root)
             manifest = root / "release.toml"
             original = manifest.read_text(encoding="utf-8")
-            mutated = original.replace('version = "3.0.2"', 'version = "3.0.3"', 1)
+            mutated = original.replace('version = "3.0.3"', 'version = "3.0.4"', 1)
             self.assertNotEqual(mutated, original)
             manifest.write_text(mutated, encoding="utf-8")
             errors = validate_product(root, self.registry)
-            self.assertIn("release.toml version 3.0.3 != SKILL.md version 3.0.2", errors)
+            self.assertIn("release.toml version 3.0.4 != SKILL.md version 3.0.3", errors)
 
     def test_payload_hash_changes_with_bytes_but_is_stable_across_copies(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
