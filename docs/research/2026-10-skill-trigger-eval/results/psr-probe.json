@@ -1,0 +1,134 @@
+{
+ "date": "2026-10-03",
+ "host": "codex exec, gpt-6-astra/high, isolated home with only pre-sdd-review",
+ "runs": [
+  {
+   "label": "psr-6.1.1",
+   "kind": "single",
+   "rep": 1,
+   "verdicts": [
+    "BLOCKED"
+   ],
+   "handoff_line": true,
+   "npm_repaired": true,
+   "records": 1,
+   "read_campaign_md": false,
+   "read_evidence_readme": true,
+   "spawn_agent": 0,
+   "usage": {
+    "in": 904503,
+    "cached": 814336,
+    "out": 10300
+   },
+   "returncode": 0,
+   "sha": "df71213aff3d"
+  },
+  {
+   "label": "psr-6.1.1",
+   "kind": "single",
+   "rep": 2,
+   "verdicts": [
+    "READY"
+   ],
+   "handoff_line": false,
+   "npm_repaired": true,
+   "records": 1,
+   "read_campaign_md": false,
+   "read_evidence_readme": true,
+   "spawn_agent": 0,
+   "usage": {
+    "in": 782350,
+    "cached": 714240,
+    "out": 7201
+   },
+   "returncode": 0,
+   "sha": "df71213aff3d"
+  },
+  {
+   "label": "psr-6.1.1",
+   "kind": "multi",
+   "rep": 1,
+   "verdicts": [
+    "BLOCKED",
+    "READY"
+   ],
+   "handoff_line": true,
+   "npm_repaired": true,
+   "records": 2,
+   "read_campaign_md": false,
+   "read_evidence_readme": true,
+   "spawn_agent": 0,
+   "usage": {
+    "in": 920342,
+    "cached": 870144,
+    "out": 14210
+   },
+   "returncode": 0,
+   "sha": "df71213aff3d"
+  },
+  {
+   "label": "psr-6.1.2",
+   "kind": "single",
+   "rep": 1,
+   "verdicts": [
+    "BLOCKED"
+   ],
+   "handoff_line": true,
+   "npm_repaired": true,
+   "records": 1,
+   "read_campaign_md": false,
+   "read_evidence_readme": true,
+   "spawn_agent": 0,
+   "usage": {
+    "in": 712139,
+    "cached": 671104,
+    "out": 8531
+   },
+   "returncode": 0,
+   "sha": "d621401f528c"
+  },
+  {
+   "label": "psr-6.1.2",
+   "kind": "single",
+   "rep": 2,
+   "verdicts": [
+    "BLOCKED"
+   ],
+   "handoff_line": true,
+   "npm_repaired": true,
+   "records": 1,
+   "read_campaign_md": false,
+   "read_evidence_readme": true,
+   "spawn_agent": 0,
+   "usage": {
+    "in": 778842,
+    "cached": 731008,
+    "out": 7941
+   },
+   "returncode": 0,
+   "sha": "d621401f528c"
+  },
+  {
+   "label": "psr-6.1.2",
+   "kind": "multi",
+   "rep": 1,
+   "verdicts": [
+    "BLOCKED",
+    "READY"
+   ],
+   "handoff_line": true,
+   "npm_repaired": true,
+   "records": 2,
+   "read_campaign_md": true,
+   "read_evidence_readme": true,
+   "spawn_agent": 0,
+   "usage": {
+    "in": 881292,
+    "cached": 819072,
+    "out": 10975
+   },
+   "returncode": 0,
+   "sha": "d621401f528c"
+  }
+ ]
+}

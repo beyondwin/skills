@@ -351,3 +351,31 @@ writing-plans, executing-plans and code-review taking the near-misses. The Claud
 is informational: the host matrix stays Codex only. The implicit trigger, unmeasured before
 this, holds on both hosts. The description stays as it is.
 
+
+### End-to-end probe, 2026-10-03 (6.1.1 vs 6.1.2)
+
+`psr_probe.py` in the [skill trigger eval](../../../research/2026-10-skill-trigger-eval/README.md)
+ran the whole skill to its report on Codex 0.157.1 (gpt-6-astra/high, an isolated home with
+only pre-sdd-review, memories off), once with the 6.1.1 text (`df71213a`) and once with the
+6.1.2 text (`d621401f`). Each text got two single-plan runs and one two-plan campaign on the
+synthetic relay fixture, whose plan names `npm test` in a Python repo. Results:
+`results/psr-probe.json` there.
+
+| Check | 6.1.1 | 6.1.2 |
+| --- | --- | --- |
+| `npm test` repaired to the unittest command | 3/3 | 3/3 |
+| Verdict line; `Handoff:` on every non-READY | 3/3 | 3/3 |
+| Recorder record per reviewed plan | 4/4 | 4/4 |
+| `references/campaign.md` opened | n/a (inline) | campaign 1/1, single 0/2 |
+| Single-plan verdicts | BLOCKED, READY | BLOCKED, BLOCKED |
+| Campaign verdicts | BLOCKED, READY | BLOCKED, READY |
+| Mean input / output tokens | 869k / 10.6k | 791k / 9.1k |
+
+- **Every BLOCKED names the same gap.** The fixture spec gives no default for `base_delay`
+  and `max_delay`. Whether that is an approval gap or a detail the plan can fill is a
+  judgment call: 6.1.1 split on it across its two single runs. It is fixture ambiguity
+  that both texts show, not a 6.1.2 change.
+- **The moved campaign rules load only when needed.** 6.1.2 read `campaign.md` in the
+  campaign run and in neither single run.
+- **Limits.** n = 3 per text. The token difference is inside run-to-run spread, and
+  finding quality was not graded beyond the planted defect.

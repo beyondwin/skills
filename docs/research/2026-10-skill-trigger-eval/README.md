@@ -103,7 +103,7 @@ six products).
 
 ## Product probes run alongside
 
-The same harness folder holds two regression probes for this round's text edits.
+The same harness folder holds three regression probes for this round's text edits.
 
 - **`format_probe.py`** compared how-it-works 3.0.2 (`4a5751e9`) and 3.0.3 (`91fa3aa9`).
   - It ran on Claude Code with the explicit `/how-it-works`: 3 Korean DNS prompts and
@@ -122,6 +122,14 @@ The same harness folder holds two regression probes for this round's text edits.
   - Both texts kept every invariant, 12/12.
   - In 1 of the 12 runs on 2.0.7, the model answered without opening SKILL.md.
   - Results: `results/kwe-preserve-probe.json`.
+- **`psr_probe.py`** compared pre-sdd-review 6.1.1 (`df71213a`) and 6.1.2 (`d621401f`) end
+  to end on Codex: two single-plan runs and one two-plan campaign per text.
+  - Both texts repaired the planted `npm test` in 3/3 runs, wrote a verdict, a `Handoff:` on
+    every non-READY, and one recorder record per plan.
+  - Verdicts split between BLOCKED and READY on one real gap in the fixture spec (no default
+    delays) for both texts.
+  - 6.1.2 opened the moved `references/campaign.md` in the campaign run only.
+  - Results: `results/psr-probe.json`; details in the product's `testing.md`.
 
 ## Re-running
 
