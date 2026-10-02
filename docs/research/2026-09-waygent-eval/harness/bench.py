@@ -273,10 +273,11 @@ PRICES = {"claude-opus-5-5": (4, 20, 0.20, 5, 8), "claude-fable-5-1": (10, 50, 0
 
 
 def transcript_usage(path):
-    """Per-transcript model, effort, turns, tokens and list-price cost, deduplicated by message id."""
-    seen, models, efforts = set(), {}, {}
-    tok = {"in": 0, "out": 0, "cache_read": 0, "write_5m": 0, "write_1h": 0}
-    cost = 0.0
+    """Per-transcript model, effort, turns, tokens and list-price cost.
+
+    A message is logged once per content block with the usage seen so far, so each message id
+    keeps its last (largest) usage; summing the first one undercounts output by about half."""
+    msgs = {}
     for line in open(path, errors="replace"):
         try:
             e = json.loads(line)
@@ -285,12 +286,18 @@ def transcript_usage(path):
         if e.get("type") != "assistant":
             continue
         m = e.get("message", {})
-        if m.get("id") in seen or m.get("model") in (None, "<synthetic>"):
+        if m.get("model") in (None, "<synthetic>"):
             continue
-        seen.add(m.get("id"))
-        models[m["model"]] = models.get(m["model"], 0) + 1
-        efforts[str(e.get("effort"))] = efforts.get(str(e.get("effort")), 0) + 1
         u = m.get("usage", {})
+        prev = msgs.get(m.get("id"))
+        if prev is None or (u.get("output_tokens") or 0) >= (prev[2].get("output_tokens") or 0):
+            msgs[m.get("id")] = (m["model"], str(e.get("effort")), u)
+    models, efforts = {}, {}
+    tok = {"in": 0, "out": 0, "cache_read": 0, "write_5m": 0, "write_1h": 0}
+    cost = 0.0
+    for model, effort, u in msgs.values():
+        models[model] = models.get(model, 0) + 1
+        efforts[effort] = efforts.get(effort, 0) + 1
         cc = u.get("cache_creation") or {}
         t = {"in": u.get("input_tokens") or 0, "out": u.get("output_tokens") or 0,
              "cache_read": u.get("cache_read_input_tokens") or 0,
@@ -299,10 +306,10 @@ def transcript_usage(path):
             t["write_5m"] = u.get("cache_creation_input_tokens") or 0
         for k in tok:
             tok[k] += t[k]
-        pr = next((v for k, v in PRICES.items() if m["model"].startswith(k)), None)
+        pr = next((v for k, v in PRICES.items() if model.startswith(k)), None)
         if pr:
             cost += (t["in"] * pr[0] + t["out"] * pr[1] + t["cache_read"] * pr[2] + t["write_5m"] * pr[3] + t["write_1h"] * pr[4]) / 1e6
-    return {"models": models, "efforts": efforts, "turns": len(seen), "tokens": tok, "list_cost": round(cost, 4)}
+    return {"models": models, "efforts": efforts, "turns": len(msgs), "tokens": tok, "list_cost": round(cost, 4)}
 
 
 def session_agents(sessions):
