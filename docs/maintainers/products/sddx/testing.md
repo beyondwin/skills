@@ -53,8 +53,14 @@ What each test file locks:
   off; bad values are refused; a shorter `--timeout` wins), the defaults
   (`--timeout` 0, `--idle-timeout` 900), the wrapper exit rules, closed stdin,
   attempt path refusal (only under `.waygent/`; `.superpowers/` is refused),
-  `reported_model` from the stream's `system`/`init` event, copied once, and the
-  Grok child's `CMUX_GROK_HOOKS_DISABLED=1`.
+  `reported_model` from the stream's `system`/`init` event, copied once,
+  `usage` from a synthetic Cursor `result` event (the last one wins, a bad
+  count is null, a stream without one is null), and the Grok child's
+  `CMUX_GROK_HOOKS_DISABLED=1`. The `usage` key names (`inputTokens`,
+  `outputTokens`, `cacheReadTokens`) come from the 2026-09 waygent-eval
+  harness that read real cursor-agent streams
+  (`docs/research/2026-09-waygent-eval/harness/bench.py`); no SDDx live check
+  has recorded `usage` yet.
 - `tests/products/sddx/test_worker_status.py`: checks `stale` (a `starting` or
   `running` record whose runner and worker are gone; a live runner with a dead
   worker is not stale; records without `runner_pid` keep the older

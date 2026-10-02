@@ -148,8 +148,14 @@ with no `status` calls between waits. Attempt folders live under
 `.waygent/` directory. The Grok sandbox state file also lives under `.waygent/`.
 
 - `run.json` holds process facts only, including `session_id`, `reported_model`,
-  `requested_effort`, `configured_effort`, `skill_version`, and `runner_pid`
-  (written at `starting`). Its `state` is process state, not task state.
+  `usage`, `requested_effort`, `configured_effort`, `skill_version`, and
+  `runner_pid` (written at `starting`). Its `state` is process state, not task
+  state.
+- `usage` is the token counts of the stream's last `result` event
+  (`input_tokens`, `output_tokens`, `cache_read_tokens`, from Cursor's
+  camelCase `usage` keys), read at `exited` or `timed_out`. It is null when
+  the stream has no such event, which so far is every Grok stream. No cost is
+  derived from it.
 - `status` gives metadata, `pid_alive`, `stale`, `session_id_in_log`, and a
   bounded tools index (Cursor `tool_call`, Grok `tool_use`). It never returns a
   log body unless asked for a window.

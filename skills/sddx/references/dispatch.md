@@ -368,7 +368,7 @@ Do not pass `--plugin-dir`. Do not approve extra MCP servers.
 
 `run.json` holds process facts only: `schema_version` 2, `backend`,
 `identity`, `model`, `worktree`, `attempt_dir`, `brief_sha256`, `resume_id`,
-`session_id`, `reported_model`, `requested_effort`, `configured_effort`, `skill_version`,
+`session_id`, `reported_model`, `usage`, `requested_effort`, `configured_effort`, `skill_version`,
 `runner_pid`, `state`, `pid`, `exit_code`, `started_at`, `ended_at`, `error`.
 `skill_version` is the installed skill's `release.toml` version, written once
 at start. A missing or unreadable version refuses the launch before the
@@ -416,6 +416,13 @@ log body. Role compliance is still the controller's.
   copied once and never replaced. `model` stays the requested id. Grok reports
   no effort, so `configured_effort` (the flag value) is the only effort fact
   there.
+- `metadata.usage` is the token counts of the stream's last `result` event,
+  read when the attempt ends `exited` or `timed_out`: `input_tokens`,
+  `output_tokens`, and `cache_read_tokens`, copied as reported from Cursor's
+  `inputTokens`, `outputTokens`, and `cacheReadTokens`. A count the event
+  lacks is null. It is null for Grok, whose stream has shown no usage, and for
+  an attempt whose worker never wrote that event. It is not a cost; write it
+  as tokens, never as dollars.
 - An `interrupted` or `stale` attempt is a stopped runner, not a failed task.
   When the task's trailer commit and `report.md` are there, judge it as a
   finished attempt; otherwise resume its session at the same effort (SKILL.md

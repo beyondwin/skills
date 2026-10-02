@@ -195,6 +195,18 @@ BEHAVIOUR_SESSION_INIT = (
     "raise SystemExit(0)\n"
 )
 
+# A synthetic Cursor `stream-json` close: the `result` event and its camelCase
+# `usage` counts, as the 2026-09 waygent-eval harness read them. The numbers
+# are made up.
+BEHAVIOUR_CURSOR_RESULT_USAGE = (
+    "sys.stdout.write(json.dumps({'type': 'system', 'subtype': 'init',\n"
+    "    'session_id': " + repr(SESSION_ID) + ", 'model': 'Synthetic Model'}) + '\\n')\n"
+    "sys.stdout.write(json.dumps({'type': 'result', 'subtype': 'success', 'is_error': False,\n"
+    "    'result': 'DONE', 'session_id': " + repr(SESSION_ID) + ",\n"
+    "    'usage': {'inputTokens': 115000, 'outputTokens': 14000, 'cacheReadTokens': 90000}}) + '\\n')\n"
+    "raise SystemExit(0)\n"
+)
+
 # Arguments a controller may legitimately need to hand a worker. `%SYNTHETIC_VALUE%`
 # is a made-up name that must survive as literal text; none of these are secrets.
 HOSTILE_ARGUMENTS = (
@@ -213,6 +225,7 @@ METADATA_FIELDS = {
     "model",
     "session_id",
     "reported_model",
+    "usage",
     "worktree",
     "attempt_dir",
     "brief_sha256",
@@ -2205,6 +2218,71 @@ class ReportedModelTests(RunnerFixture):
         metadata = {"session_id": None, "reported_model": "synthetic-kept"}
         module.remember_stream_facts(metadata, path)
         self.assertEqual(metadata["reported_model"], "synthetic-kept")
+
+
+class UsageTests(RunnerFixture):
+    """The attempt record carries the token counts the stream's `result` reported."""
+
+    def stream(self, *events: object) -> Path:
+        path = self.base / "stream.jsonl"
+        path.write_text(
+            "".join(
+                (event if isinstance(event, str) else json.dumps(event)) + "\n"
+                for event in events
+            ),
+            encoding="utf-8",
+        )
+        return path
+
+    def test_cursor_result_usage_reaches_the_metadata(self) -> None:
+        module = self.load()
+        self.write_cursor(BEHAVIOUR_CURSOR_RESULT_USAGE)
+        options = self.options(
+            module, backend="cursor", model="grok-4.7-high", sandbox_profile=None
+        )
+        self.assertEqual(self.invoke(module, options), 0)
+        self.assertEqual(
+            self.metadata()["usage"],
+            {"input_tokens": 115000, "output_tokens": 14000, "cache_read_tokens": 90000},
+        )
+
+    def test_a_stream_without_usage_records_null(self) -> None:
+        module = self.load()
+        self.write_grok(BEHAVIOUR_SESSION_INIT)
+        self.assertEqual(self.invoke(module, self.options(module)), 0)
+        metadata = self.metadata()
+        self.assertEqual(metadata["state"], "exited")
+        self.assertIn("usage", metadata)
+        self.assertIsNone(metadata["usage"])
+
+    def test_only_a_result_event_with_counts_is_usage(self) -> None:
+        module = self.load()
+        path = self.stream(
+            "not json",
+            {"type": "assistant", "usage": {"inputTokens": 1}},
+            {"type": "result", "usage": "not an object"},
+            {"type": "result", "usage": {"somethingElse": 3}},
+        )
+        self.assertIsNone(module.read_usage(path))
+
+    def test_the_last_result_wins_and_bad_counts_are_null(self) -> None:
+        module = self.load()
+        path = self.stream(
+            {"type": "result", "usage": {"inputTokens": 1, "outputTokens": 2}},
+            {"type": "assistant", "text": "between"},
+            {
+                "type": "result",
+                "usage": {"inputTokens": 10, "outputTokens": -1, "cacheReadTokens": True},
+            },
+        )
+        self.assertEqual(
+            module.read_usage(path),
+            {"input_tokens": 10, "output_tokens": None, "cache_read_tokens": None},
+        )
+
+    def test_a_missing_stream_reads_as_none(self) -> None:
+        module = self.load()
+        self.assertIsNone(module.read_usage(self.base / "absent.jsonl"))
 
 
 class SessionIdRecordingTests(RunnerFixture):

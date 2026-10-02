@@ -2,7 +2,8 @@
 
 This is not an orchestrator. It has no scheduler, no retry, no backend failover,
 and no process-tree management. The provider events it reads are the session ID
-the worker reports in its own stream, the model its init event names, and on
+the worker reports in its own stream, the model its init event names, the
+token counts a closing `result` event reports, and on
 `status` a bounded tools index copied from Cursor `tool_call` objects and Grok
 `tool_use` items. It still does not judge DONE, 402, or role
 compliance, and it still does not put log bodies in the default status payload.
@@ -99,6 +100,16 @@ WAIT_SLICE_SECONDS = 1.0
 # rule written to one provider's shape is exactly what this runner keeps getting
 # wrong, not because any of them has been seen.
 SESSION_ID_KEYS = ("session_id", "sessionId", "chatId", "chat_id")
+# Cursor's `stream-json` closes with a `result` event whose `usage` object holds
+# these camelCase counts; the 2026-09 waygent-eval harness read them from real
+# cursor-agent runs (docs/research/2026-09-waygent-eval/harness/bench.py). No
+# Grok stream seen so far carried usage, so a Grok record keeps `usage` null.
+# Counts are copied as reported: no cost is derived and nothing is summed.
+USAGE_KEYS = (
+    ("inputTokens", "input_tokens"),
+    ("outputTokens", "output_tokens"),
+    ("cacheReadTokens", "cache_read_tokens"),
+)
 
 # The reading boundary from the design spec's R4, repeated in every dispatch so a
 # resumed attempt carries it too.
@@ -410,6 +421,42 @@ def read_reported_model(path: Path) -> str | None:
     return None
 
 
+def read_usage(path: Path) -> dict[str, int | None] | None:
+    """The token counts of the stream's last `result` event, or `None`.
+
+    Only an integer count is kept; a missing, negative, or non-integer one is
+    `None`. A `result` event without at least one count is not usage. The
+    `result` event closes the stream, so the whole log is read, one line at a
+    time, and only lines that mention `usage` are parsed.
+    """
+    found: dict[str, int | None] | None = None
+    try:
+        handle = path.open("rb")
+    except OSError:
+        return None
+    with handle:
+        for raw in handle:
+            if b'"usage"' not in raw:
+                continue
+            try:
+                event = json.loads(raw.decode("utf-8", errors="replace"))
+            except (ValueError, RecursionError):
+                continue
+            if not isinstance(event, dict) or event.get("type") != "result":
+                continue
+            usage = event.get("usage")
+            if not isinstance(usage, dict):
+                continue
+            counts: dict[str, int | None] = {}
+            for source, name in USAGE_KEYS:
+                value = usage.get(source)
+                ok = isinstance(value, int) and not isinstance(value, bool) and value >= 0
+                counts[name] = value if ok else None
+            if any(value is not None for value in counts.values()):
+                found = counts
+    return found
+
+
 def remember_stream_facts(metadata: dict[str, Any], path: Path) -> bool:
     """Copy the first stream session id and init model into the record.
 
@@ -466,6 +513,7 @@ def run_worker(options: RunOptions) -> int:
         "resume_id": options.resume_id,
         "session_id": None,
         "reported_model": None,
+        "usage": None,
         "requested_effort": options.effort,
         "configured_effort": None,
         "state": "starting",
@@ -658,6 +706,7 @@ def _launch(
                 # anything the worker started is left exactly where it is.
                 _end_process(process)
                 remember_stream_facts(metadata, stdout_path)
+                metadata["usage"] = read_usage(stdout_path)
                 metadata.update(
                     state="timed_out",
                     exit_code=process.poll(),
@@ -720,6 +769,7 @@ def _launch(
                     elif options.idle_timeout and now - last_activity >= options.idle_timeout:
                         return timed_out(idle_error(options.idle_timeout))
             remember_stream_facts(metadata, stdout_path)
+            metadata["usage"] = read_usage(stdout_path)
             metadata.update(
                 state="exited",
                 exit_code=code,
