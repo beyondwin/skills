@@ -6,7 +6,7 @@ Nothing is shared between runs except the read-only fixture, hidden tests and to
 
 usage: bench.py <cond> <model> <rep> [--kill-after-task N]
 """
-import json, os, re, shutil, signal, subprocess, sys, time, uuid
+import hashlib, json, os, re, shutil, signal, subprocess, sys, time, uuid
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -337,11 +337,12 @@ def score(repo, run_dir):
     shutil.copytree(ROOT / ("hidden-app" if SUFFIX else "hidden"), hid)
     res = {}
     for f in sorted(hid.glob("test_*.py")):
-        p = subprocess.run([sys.executable, "-m", "unittest", "-v", f"_hidden.{f.stem}"], cwd=work,
+        before = len(res)
+        p = subprocess.run([sys.executable, "-m", "unittest", "-v", "-b", f"_hidden.{f.stem}"], cwd=work,
                            capture_output=True, text=True, timeout=300)
         for m in re.finditer(r"^(test_\w+) \(.*?\) \.\.\. (ok|FAIL|ERROR)", p.stderr, re.M):
             res[m.group(1)] = m.group(2)
-        if not any(k.startswith(f"test_{f.stem[5:]}") for k in res) and "Error" in p.stderr:
+        if len(res) == before and p.returncode != 0:
             res[f"{f.stem}:import"] = "ERROR"
     own = subprocess.run([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-t", "."], cwd=work,
                          capture_output=True, text=True, timeout=300)
@@ -386,6 +387,9 @@ def main():
     run_dir = ROOT / "runs" / TAG / name
     repo = setup(run_dir, cond)
     meta = {"cond": cond, "model": model, "rep": rep, "resume_test": kill_after, "sessions": [], "turns": []}
+    skill = next(repo.glob(".*/skills/waygent/SKILL.md"), None) or next((run_dir / "home").glob(".*/skills/waygent/SKILL.md"), None)
+    if skill:
+        meta["skill_sha256"] = hashlib.sha256(skill.read_bytes()).hexdigest()
     t_start = time.time()
     session = str(uuid.uuid4())  # Claude Code: we choose it; Cursor: replaced by the chat id it reports
     msg = PROMPTS[cond]

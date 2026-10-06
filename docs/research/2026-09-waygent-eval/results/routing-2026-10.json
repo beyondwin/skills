@@ -1,0 +1,770 @@
+{
+ "runs": [
+  {
+   "run": "route-pilot/wg_final_xhigh-opus-1-app2",
+   "cell": "wg_final_xhigh",
+   "cost_reported": 3.6804,
+   "cost_list": 3.68,
+   "wall_min": 16.7,
+   "hidden": 12,
+   "trap": 7,
+   "task_fixed": 1,
+   "task_overruled": 0,
+   "final_fixed": 2,
+   "roles": {
+    "implement": 0.91,
+    "task_review": 0.737,
+    "final_review": 1.025,
+    "final_fix": 0.237,
+    "controller": 0.771
+   },
+   "impl_turns_mean": 10,
+   "agents": 8,
+   "observed": [
+    "final_fix:opus-5-5/medium",
+    "final_review:opus-5-5/xhigh",
+    "implement:opus-5-5/medium",
+    "task_review:opus-5-5/medium"
+   ],
+   "lows": 17
+  },
+  {
+   "run": "route-pilot/wg_impl_sonnet-opus-1-app2",
+   "cell": "wg_impl_sonnet",
+   "cost_reported": 3.7148,
+   "cost_list": 3.715,
+   "wall_min": 14.3,
+   "hidden": 12,
+   "trap": 7,
+   "task_fixed": 1,
+   "task_overruled": 0,
+   "final_fixed": 2,
+   "roles": {
+    "implement": 0.457,
+    "final_review": 1.651,
+    "task_review": 0.663,
+    "final_fix": 0.236,
+    "controller": 0.708
+   },
+   "impl_turns_mean": 7.3,
+   "agents": 9,
+   "observed": [
+    "final_fix:sonnet-5-5/high",
+    "final_review:fable-5-1/high",
+    "implement:sonnet-5-5/high",
+    "task_review:opus-5-5/medium"
+   ],
+   "lows": 16
+  },
+  {
+   "run": "route-pilot/wg_review_high-opus-1-app2",
+   "cell": "wg_review_high",
+   "cost_reported": 3.878,
+   "cost_list": 3.878,
+   "wall_min": 15.2,
+   "hidden": 12,
+   "trap": 7,
+   "task_fixed": 1,
+   "task_overruled": 0,
+   "final_fixed": 2,
+   "roles": {
+    "task_review": 0.898,
+    "final_fix": 0.249,
+    "implement": 0.857,
+    "final_review": 1.172,
+    "controller": 0.702
+   },
+   "impl_turns_mean": 7.7,
+   "agents": 9,
+   "observed": [
+    "final_fix:opus-5-5/medium",
+    "final_review:fable-5-1/high",
+    "implement:opus-5-5/medium",
+    "task_review:opus-5-5/high"
+   ],
+   "lows": 13
+  },
+  {
+   "run": "route/wg_base-opus-2-app2",
+   "cell": "wg_base",
+   "cost_reported": 4.113,
+   "cost_list": 4.113,
+   "wall_min": 16.3,
+   "hidden": 12,
+   "trap": 7,
+   "task_fixed": 2,
+   "task_overruled": 0,
+   "final_fixed": 2,
+   "roles": {
+    "task_review": 0.784,
+    "final_fix": 0.231,
+    "implement": 1.021,
+    "final_review": 1.326,
+    "controller": 0.751
+   },
+   "impl_turns_mean": 11.3,
+   "agents": 8,
+   "observed": [
+    "final_fix:opus-5-5/medium",
+    "final_review:fable-5-1/high",
+    "implement:opus-5-5/medium",
+    "task_review:opus-5-5/medium"
+   ],
+   "lows": 12
+  },
+  {
+   "run": "route/wg_base-opus-3-app2",
+   "cell": "wg_base",
+   "cost_reported": 4.8889,
+   "cost_list": 4.889,
+   "wall_min": 18.8,
+   "hidden": 12,
+   "trap": 7,
+   "task_fixed": 1,
+   "task_overruled": 0,
+   "final_fixed": 2,
+   "roles": {
+    "task_review": 0.855,
+    "implement": 0.979,
+    "final_fix": 0.387,
+    "final_review": 1.917,
+    "controller": 0.75
+   },
+   "impl_turns_mean": 11,
+   "agents": 8,
+   "observed": [
+    "final_fix:opus-5-5/medium",
+    "final_review:fable-5-1/high",
+    "implement:opus-5-5/medium",
+    "task_review:opus-5-5/medium"
+   ],
+   "lows": 14
+  },
+  {
+   "run": "route/wg_base-opus-4-app2",
+   "cell": "wg_base",
+   "cost_reported": 4.7861,
+   "cost_list": 4.786,
+   "wall_min": 18.9,
+   "hidden": 12,
+   "trap": 7,
+   "task_fixed": 1,
+   "task_overruled": 0,
+   "final_fixed": 3,
+   "roles": {
+    "final_review": 1.998,
+    "implement": 0.971,
+    "final_fix": 0.302,
+    "task_review": 0.727,
+    "controller": 0.787
+   },
+   "impl_turns_mean": 11,
+   "agents": 8,
+   "observed": [
+    "final_fix:opus-5-5/medium",
+    "final_review:fable-5-1/high",
+    "implement:opus-5-5/medium",
+    "task_review:opus-5-5/medium"
+   ],
+   "lows": 13
+  },
+  {
+   "run": "route/wg_base-opus-5-app2",
+   "cell": "wg_base",
+   "cost_reported": 4.4905,
+   "cost_list": 4.491,
+   "wall_min": 17.9,
+   "hidden": 11,
+   "trap": 7,
+   "task_fixed": 1,
+   "task_overruled": 0,
+   "final_fixed": 1,
+   "roles": {
+    "task_review": 0.684,
+    "final_review": 1.733,
+    "implement": 1.099,
+    "final_fix": 0.223,
+    "controller": 0.752
+   },
+   "impl_turns_mean": 9.7,
+   "agents": 9,
+   "observed": [
+    "final_fix:opus-5-5/medium",
+    "final_review:fable-5-1/high",
+    "implement:opus-5-5/medium",
+    "task_review:opus-5-5/medium"
+   ],
+   "lows": 12
+  },
+  {
+   "run": "route/wg_base-opus-6-app2",
+   "cell": "wg_base",
+   "cost_reported": 4.5117,
+   "cost_list": 4.512,
+   "wall_min": 16.5,
+   "hidden": 12,
+   "trap": 7,
+   "task_fixed": 1,
+   "task_overruled": 0,
+   "final_fixed": 2,
+   "roles": {
+    "implement": 0.91,
+    "final_fix": 0.244,
+    "task_review": 0.79,
+    "final_review": 1.803,
+    "controller": 0.765
+   },
+   "impl_turns_mean": 9.3,
+   "agents": 8,
+   "observed": [
+    "final_fix:opus-5-5/medium",
+    "final_review:fable-5-1/high",
+    "implement:opus-5-5/medium",
+    "task_review:opus-5-5/medium"
+   ],
+   "lows": 14
+  },
+  {
+   "run": "route/wg_base-opus-7-app2",
+   "cell": "wg_base",
+   "cost_reported": 4.541,
+   "cost_list": 4.541,
+   "wall_min": 17.9,
+   "hidden": 12,
+   "trap": 7,
+   "task_fixed": 3,
+   "task_overruled": 0,
+   "final_fixed": 2,
+   "roles": {
+    "implement": 1.155,
+    "final_fix": 0.415,
+    "task_review": 0.739,
+    "final_review": 1.362,
+    "controller": 0.869
+   },
+   "impl_turns_mean": 9,
+   "agents": 10,
+   "observed": [
+    "final_fix:opus-5-5/medium",
+    "final_review:fable-5-1/high",
+    "implement:opus-5-5/medium",
+    "task_review:opus-5-5/medium"
+   ],
+   "lows": 12
+  },
+  {
+   "run": "route/wg_final_xhigh-opus-2-app2",
+   "cell": "wg_final_xhigh",
+   "cost_reported": 3.9482,
+   "cost_list": 3.948,
+   "wall_min": 17.7,
+   "hidden": 12,
+   "trap": 7,
+   "task_fixed": 2,
+   "task_overruled": 0,
+   "final_fixed": 1,
+   "roles": {
+    "implement": 1.019,
+    "task_review": 0.712,
+    "final_review": 1.091,
+    "final_fix": 0.423,
+    "controller": 0.703
+   },
+   "impl_turns_mean": 11,
+   "agents": 8,
+   "observed": [
+    "final_fix:opus-5-5/medium",
+    "final_review:opus-5-5/xhigh",
+    "implement:opus-5-5/medium",
+    "task_review:opus-5-5/medium"
+   ],
+   "lows": 9
+  },
+  {
+   "run": "route/wg_final_xhigh-opus-3-app2",
+   "cell": "wg_final_xhigh",
+   "cost_reported": 4.0389,
+   "cost_list": 4.039,
+   "wall_min": 19.3,
+   "hidden": 12,
+   "trap": 7,
+   "task_fixed": 2,
+   "task_overruled": 0,
+   "final_fixed": 1,
+   "roles": {
+    "task_review": 0.743,
+    "final_review": 1.153,
+    "implement": 1.115,
+    "final_fix": 0.276,
+    "controller": 0.751
+   },
+   "impl_turns_mean": 8.7,
+   "agents": 10,
+   "observed": [
+    "final_fix:opus-5-5/medium",
+    "final_review:opus-5-5/xhigh",
+    "implement:opus-5-5/medium",
+    "task_review:opus-5-5/medium"
+   ],
+   "lows": 12
+  },
+  {
+   "run": "route/wg_final_xhigh-opus-4-app2",
+   "cell": "wg_final_xhigh",
+   "cost_reported": 4.3048,
+   "cost_list": 4.305,
+   "wall_min": 20.0,
+   "hidden": 12,
+   "trap": 7,
+   "task_fixed": 2,
+   "task_overruled": 0,
+   "final_fixed": 3,
+   "roles": {
+    "task_review": 0.778,
+    "implement": 0.984,
+    "final_review": 1.119,
+    "final_fix": 0.567,
+    "controller": 0.857
+   },
+   "impl_turns_mean": 11,
+   "agents": 8,
+   "observed": [
+    "final_fix:opus-5-5/medium",
+    "final_review:opus-5-5/xhigh",
+    "implement:opus-5-5/medium",
+    "task_review:opus-5-5/medium"
+   ],
+   "lows": 9
+  },
+  {
+   "run": "route/wg_final_xhigh-opus-5-app2",
+   "cell": "wg_final_xhigh",
+   "cost_reported": 3.7642,
+   "cost_list": 3.764,
+   "wall_min": 18.5,
+   "hidden": 12,
+   "trap": 7,
+   "task_fixed": 1,
+   "task_overruled": 0,
+   "final_fixed": 0,
+   "roles": {
+    "implement": 0.916,
+    "final_fix": 0.145,
+    "task_review": 0.8,
+    "final_review": 1.11,
+    "controller": 0.793
+   },
+   "impl_turns_mean": 10,
+   "agents": 8,
+   "observed": [
+    "final_fix:opus-5-5/medium",
+    "final_review:opus-5-5/xhigh",
+    "implement:opus-5-5/medium",
+    "task_review:opus-5-5/medium"
+   ],
+   "lows": 20
+  },
+  {
+   "run": "route/wg_final_xhigh-opus-6-app2",
+   "cell": "wg_final_xhigh",
+   "cost_reported": 3.8476,
+   "cost_list": 3.848,
+   "wall_min": 19.2,
+   "hidden": 12,
+   "trap": 7,
+   "task_fixed": 1,
+   "task_overruled": 0,
+   "final_fixed": 2,
+   "roles": {
+    "task_review": 0.612,
+    "implement": 1.071,
+    "final_fix": 0.489,
+    "final_review": 0.968,
+    "controller": 0.707
+   },
+   "impl_turns_mean": 9.7,
+   "agents": 9,
+   "observed": [
+    "final_fix:opus-5-5/medium",
+    "final_review:opus-5-5/xhigh",
+    "implement:opus-5-5/medium",
+    "task_review:opus-5-5/medium"
+   ],
+   "lows": 8
+  },
+  {
+   "run": "route/wg_impl_sonnet-opus-2-app2",
+   "cell": "wg_impl_sonnet",
+   "cost_reported": 3.6082,
+   "cost_list": 3.608,
+   "wall_min": 15.2,
+   "hidden": 12,
+   "trap": 7,
+   "task_fixed": 1,
+   "task_overruled": 0,
+   "final_fixed": 1,
+   "roles": {
+    "task_review": 0.864,
+    "implement": 0.537,
+    "final_fix": 0.201,
+    "final_review": 1.302,
+    "controller": 0.704
+   },
+   "impl_turns_mean": 8,
+   "agents": 9,
+   "observed": [
+    "final_fix:sonnet-5-5/high",
+    "final_review:fable-5-1/high",
+    "implement:sonnet-5-5/high",
+    "task_review:opus-5-5/medium"
+   ],
+   "lows": 14
+  },
+  {
+   "run": "route/wg_impl_sonnet-opus-3-app2",
+   "cell": "wg_impl_sonnet",
+   "cost_reported": 4.2195,
+   "cost_list": 4.22,
+   "wall_min": 22.0,
+   "hidden": 12,
+   "trap": 7,
+   "task_fixed": 1,
+   "task_overruled": 0,
+   "final_fixed": 4,
+   "roles": {
+    "task_review": 0.813,
+    "implement": 0.611,
+    "final_fix": 0.154,
+    "final_review": 1.855,
+    "controller": 0.787
+   },
+   "impl_turns_mean": 9.3,
+   "agents": 9,
+   "observed": [
+    "final_fix:sonnet-5-5/high",
+    "final_review:fable-5-1/high",
+    "implement:sonnet-5-5/high",
+    "task_review:opus-5-5/medium"
+   ],
+   "lows": 11
+  },
+  {
+   "run": "route/wg_impl_sonnet-opus-4-app2",
+   "cell": "wg_impl_sonnet",
+   "cost_reported": 3.7008,
+   "cost_list": 3.701,
+   "wall_min": 15.2,
+   "hidden": 12,
+   "trap": 7,
+   "task_fixed": 2,
+   "task_overruled": 0,
+   "final_fixed": 1,
+   "roles": {
+    "implement": 0.625,
+    "final_review": 1.499,
+    "task_review": 0.729,
+    "final_fix": 0.082,
+    "controller": 0.765
+   },
+   "impl_turns_mean": 8.7,
+   "agents": 10,
+   "observed": [
+    "final_fix:sonnet-5-5/high",
+    "final_review:fable-5-1/high",
+    "implement:sonnet-5-5/high",
+    "task_review:opus-5-5/medium"
+   ],
+   "lows": 14
+  },
+  {
+   "run": "route/wg_review_high-opus-2-app2",
+   "cell": "wg_review_high",
+   "cost_reported": 4.5641,
+   "cost_list": 4.564,
+   "wall_min": 19.5,
+   "hidden": 12,
+   "trap": 7,
+   "task_fixed": 1,
+   "task_overruled": 0,
+   "final_fixed": 2,
+   "roles": {
+    "task_review": 0.848,
+    "implement": 1.07,
+    "final_review": 1.662,
+    "final_fix": 0.253,
+    "controller": 0.731
+   },
+   "impl_turns_mean": 9.3,
+   "agents": 9,
+   "observed": [
+    "final_fix:opus-5-5/medium",
+    "final_review:fable-5-1/high",
+    "implement:opus-5-5/medium",
+    "task_review:opus-5-5/high"
+   ],
+   "lows": 9
+  },
+  {
+   "run": "route/wg_review_high-opus-3-app2",
+   "cell": "wg_review_high",
+   "cost_reported": 4.7507,
+   "cost_list": 4.751,
+   "wall_min": 20.7,
+   "hidden": 11,
+   "trap": 7,
+   "task_fixed": 1,
+   "task_overruled": 0,
+   "final_fixed": 3,
+   "roles": {
+    "implement": 1.06,
+    "final_fix": 0.432,
+    "task_review": 0.862,
+    "final_review": 1.63,
+    "controller": 0.766
+   },
+   "impl_turns_mean": 9,
+   "agents": 9,
+   "observed": [
+    "final_fix:opus-5-5/medium",
+    "final_review:fable-5-1/high",
+    "implement:opus-5-5/medium",
+    "task_review:opus-5-5/high"
+   ],
+   "lows": 12
+  },
+  {
+   "run": "route/wg_review_high-opus-4-app2",
+   "cell": "wg_review_high",
+   "cost_reported": 5.1291,
+   "cost_list": 5.129,
+   "wall_min": 22.5,
+   "hidden": 12,
+   "trap": 7,
+   "task_fixed": 1,
+   "task_overruled": 0,
+   "final_fixed": 2,
+   "roles": {
+    "implement": 1.225,
+    "task_review": 0.94,
+    "final_review": 2.014,
+    "final_fix": 0.185,
+    "controller": 0.766
+   },
+   "impl_turns_mean": 13.3,
+   "agents": 9,
+   "observed": [
+    "final_fix:opus-5-5/medium",
+    "final_review:fable-5-1/high",
+    "implement:opus-5-5/medium",
+    "task_review:opus-5-5/high"
+   ],
+   "lows": 15
+  }
+ ],
+ "summary": {
+  "wg_base": {
+   "n": 6,
+   "hidden_min": 11,
+   "trap_min": 7,
+   "cost_reported": [
+    4.555,
+    0.111
+   ],
+   "wall_min": [
+    17.717,
+    0.452
+   ],
+   "final_review": [
+    1.69,
+    0.116
+   ],
+   "task_review": [
+    0.763,
+    0.024
+   ],
+   "implement": [
+    1.022,
+    0.037
+   ],
+   "final_fix": [
+    0.3,
+    0.034
+   ],
+   "controller": [
+    0.779,
+    0.019
+   ],
+   "task_fixed": [
+    1.5,
+    0.342
+   ],
+   "final_fixed": [
+    2,
+    0.258
+   ],
+   "impl_turns": [
+    10.217,
+    0.408
+   ],
+   "observed": [
+    "final_fix:opus-5-5/medium",
+    "final_review:fable-5-1/high",
+    "implement:opus-5-5/medium",
+    "task_review:opus-5-5/medium"
+   ]
+  },
+  "wg_final_xhigh": {
+   "n": 6,
+   "hidden_min": 12,
+   "trap_min": 7,
+   "cost_reported": [
+    3.931,
+    0.091
+   ],
+   "wall_min": [
+    18.567,
+    0.491
+   ],
+   "final_review": [
+    1.078,
+    0.028
+   ],
+   "task_review": [
+    0.73,
+    0.027
+   ],
+   "implement": [
+    1.002,
+    0.034
+   ],
+   "final_fix": [
+    0.356,
+    0.066
+   ],
+   "controller": [
+    0.764,
+    0.024
+   ],
+   "task_fixed": [
+    1.5,
+    0.224
+   ],
+   "final_fixed": [
+    1.5,
+    0.428
+   ],
+   "impl_turns": [
+    10.067,
+    0.354
+   ],
+   "observed": [
+    "final_fix:opus-5-5/medium",
+    "final_review:opus-5-5/xhigh",
+    "implement:opus-5-5/medium",
+    "task_review:opus-5-5/medium"
+   ]
+  },
+  "wg_review_high": {
+   "n": 4,
+   "hidden_min": 11,
+   "trap_min": 7,
+   "cost_reported": [
+    4.58,
+    0.262
+   ],
+   "wall_min": [
+    19.475,
+    1.553
+   ],
+   "final_review": [
+    1.619,
+    0.173
+   ],
+   "task_review": [
+    0.887,
+    0.021
+   ],
+   "implement": [
+    1.053,
+    0.075
+   ],
+   "final_fix": [
+    0.28,
+    0.053
+   ],
+   "controller": [
+    0.741,
+    0.015
+   ],
+   "task_fixed": [
+    1,
+    0.0
+   ],
+   "final_fixed": [
+    2.25,
+    0.25
+   ],
+   "impl_turns": [
+    9.825,
+    1.209
+   ],
+   "observed": [
+    "final_fix:opus-5-5/medium",
+    "final_review:fable-5-1/high",
+    "implement:opus-5-5/medium",
+    "task_review:opus-5-5/high"
+   ]
+  },
+  "wg_impl_sonnet": {
+   "n": 4,
+   "hidden_min": 12,
+   "trap_min": 7,
+   "cost_reported": [
+    3.811,
+    0.138
+   ],
+   "wall_min": [
+    16.675,
+    1.788
+   ],
+   "final_review": [
+    1.577,
+    0.117
+   ],
+   "task_review": [
+    0.767,
+    0.045
+   ],
+   "implement": [
+    0.557,
+    0.039
+   ],
+   "final_fix": [
+    0.168,
+    0.033
+   ],
+   "controller": [
+    0.741,
+    0.021
+   ],
+   "task_fixed": [
+    1.25,
+    0.25
+   ],
+   "final_fixed": [
+    2,
+    0.707
+   ],
+   "impl_turns": [
+    8.325,
+    0.433
+   ],
+   "observed": [
+    "final_fix:sonnet-5-5/high",
+    "final_review:fable-5-1/high",
+    "implement:sonnet-5-5/high",
+    "task_review:opus-5-5/medium"
+   ]
+  }
+ }
+}

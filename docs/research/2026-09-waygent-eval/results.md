@@ -353,6 +353,62 @@ answer, 10 or 20 calls per cell, fresh empty directory each call, about $0.10 a 
 - No ablation was run. A 0.3.0-without-the-Lows-rule arm at n=4 would cost about $17 with a
   standard error near $0.15 on a $0.27 effect, too small to settle it.
 
+## 14. Model routing cells (added 2026-10-07)
+
+Three changes to waygent 0.3.2's Models section, each against the unchanged text, on app2.
+The decision rules were written before the batch ([pre-registration](routing-preregistration.md)).
+Claude Code 2.1.284, orchestrator opus at the session default (medium). Each cell carries its
+model and effort in one `--agents` definition; the transcripts confirm every role ran as
+intended (`final_review` fable/high in base, opus/xhigh in final-xhigh; `task_review`
+opus/high in review-high; implementers and fixes sonnet-5-5/high in impl-sonnet). SKILL.md
+sha256: base `d0b253c8`, final-xhigh `6b53f2a8`, review-high `53eab7ed`, impl-sonnet
+`04a04a25`. These runs did not store the hash; the variant files were committed (a168b99)
+before the batch and are unchanged since, and each run's `subagent_type` matches its cell.
+`bench.py` now writes `skill_sha256` into `meta.json`.
+
+| Cell | n | Hidden (of 12) | Traps | Mean cost | Final review | Task review | Implementers | Impl. turns | Minutes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| base | 6 | 12, 12, 12, 11*, 12, 12 | 7/7 | $4.56 ± 0.11 | $1.69 ± 0.12 | $0.76 | $1.02 | 10.2 | 17.7 |
+| final-xhigh | 6 | all 12 | 7/7 | $3.93 ± 0.09 | $1.08 ± 0.03 | $0.73 | $1.00 | 10.1 | 18.6 |
+| review-high | 4 | 12, 12, 11, 12 | 7/7 | $4.58 ± 0.26 | $1.62 | $0.89 ± 0.02 | $1.05 | 9.8 | 19.5 |
+| impl-sonnet | 4 | all 12 | 7/7 | $3.81 ± 0.14 | $1.58 | $0.77 | $0.56 ± 0.04 | 8.3 | 16.7 |
+
+Cost is reported by Claude Code; role costs are list-price estimates from each transcript
+(`harness/analyze_routing.py`, numbers in [results/routing-2026-10.json](results/routing-2026-10.json)).
+± is the standard error of the mean. n includes one pilot run for each changed cell; the
+pilot base run is excluded (an implementer hit a 429 mid-final).
+
+\* Scorer artifact, not a failure. In base rep 5 `test_t3_basic_stranger_forbidden` is
+absent from the parsed results, not FAIL. That run's server prints `rejected caller: ...` to
+stderr on a 403; `unittest -v` writes it between the test name and `ok`, so the scorer's
+line pattern dropped the test. The run's repository is gone, so it cannot be rescored, and
+the table keeps the recorded 11. The scorer now runs `unittest -b` (buffered output) and adds
+an `:import` ERROR only when a file yields no results at all; before, any failing assertion
+also added a spurious `test_app:import` entry, as in review-high rep 3. So base has no
+confirmed hidden loss, and review-high rep 3 (`test_t1_basic_usage_shape` FAIL) is the only
+real hidden failure in the 20 runs.
+
+Decisions, by the pre-registered rules:
+
+- **final-xhigh passes all three rules.** Final-review cost fell $0.61 (SE of the
+  difference 0.12, so more than 5 SE); no run fell below 12/12 or 7/7. Valid final High and
+  Medium findings per run, read from each `reviews/final.md`: base 2, 2, 1, 0, 1, 2;
+  final-xhigh 1, 1, 1, 2, 0, 1. Every final-xhigh run is inside the base range (0 to 2).
+  Counting the "no safe deploy order" findings as valid (they argue against design 5)
+  moves base to 1 to 3 and puts final-xhigh rep 5 (0) below it. **Not shipped:** the Agent
+  tool on Claude Code takes `model` but no effort, so opus at xhigh needs a shipped
+  `.claude/agents/` definition. That is an install-contract change and stays a follow-up;
+  the Fable rule stays.
+- **review-high is not adopted.** It had a real hidden loss (rep 3), and per-task reviews
+  fixed fewer findings than base (1.0 per run vs 1.5), not more. Task-review cost rose $0.12.
+- **impl-sonnet passes the rule as written, at ceiling.** No hidden or trap loss, implementer
+  turns 8.3 vs 10.2 (inside 2x), run cost $0.74 lower (SE of the difference 0.18).
+  app2 is near saturation, so "no loss" here cannot detect a quality drop; the per-task
+  fixes (1.25 per run vs 1.5) are the only loss-sensitive signal, and they are within noise.
+  **Not shipped:** the cell ran sonnet at high through an agent definition. `model: "sonnet"`
+  on the Agent tool would run at the session's effort (medium here), which no run measured.
+- Wall time did not change beyond noise in any cell.
+
 ## Cost totals
 
 - Measurement (Claude Code): $147.41. Main measurement $124.94, reruns after the rule fix $14.46,
@@ -364,6 +420,8 @@ answer, 10 or 20 calls per cell, fresh empty directory each call, about $0.10 a 
   runs $19.25); rerun 12 runs $35.70; effort-inheritance probes about $1.
 - Section 13 (2026-09-30): Claude Code about $52.5 (app2 8 runs $32.45; library 2 runs $20.07,
   with the killed session not counted); decision probe $18.08 (180 calls); app2 smoke on D $7.77 (2 runs; two runs on text F were stopped early and are not counted).
+- Section 14 (2026-10-02/03): Claude Code $89.40 for 21 app2 runs (4 pilot, one of them excluded,
+  and 17 batch); final-review validity read by one opus subagent.
 - Cursor runs and blind scoring (codex, 22 outputs) are not reported in dollars.
 - Same-day isolated gstack rerun from the previous comparison: agent $52.17, simulated user $4.36,
   scoring $1.30.

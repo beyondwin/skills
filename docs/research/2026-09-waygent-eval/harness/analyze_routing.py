@@ -23,7 +23,7 @@ def role(a):
         return "final_review"
     if "final" in d or "walk" in d:
         return "final_fix"
-    if t == "waygent-task-reviewer" or "review" in d:
+    if t == "waygent-task-reviewer" or ("review" in d and "fix" not in d):
         return "task_review"
     return "implement"
 
