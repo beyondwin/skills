@@ -3,7 +3,7 @@
 `waygent` is a light implementation skill that wraps a model. This folder records where its
 design came from and how it did when we ran it.
 
-- Skill: [`skills/waygent/SKILL.md`](../../../skills/waygent/SKILL.md) (measured as 0.1.0, 0.2.0, and 0.3.0; each measured copy was under 140 lines)
+- Skill: [`skills/waygent/SKILL.md`](../../../skills/waygent/SKILL.md) (measured as 0.1.0, 0.2.0, 0.3.0, and 0.3.2 routing cells; each measured copy was under 140 lines)
 - Design basis: the 30 runs in the [agent workflow comparison](../2026-09-agent-workflow-comparison/README.md),
   the user's own v26/v27 comparison, and independent designs from four models (Opus 5.5,
   Fable 5.1, Grok 4.7, GPT-5.6 Sol)
@@ -48,6 +48,14 @@ design came from and how it did when we ran it.
    A resume right after a commit ran the missed review. `progress.md` now shows each step's
    model and effort ([results, section 13](results.md)).
 
+9. **Model routing cells (20 app2 runs, rules written before the batch).** A final reviewer on
+   opus/xhigh instead of fable cut final-review cost from $1.69 to $1.08 with no loss, but
+   Claude Code's Agent tool cannot set effort, so it waits for a shipped agent definition.
+   Per-task reviewers on opus/high were not adopted (one real hidden failure, fewer fixes).
+   Sonnet implementers were $0.74 cheaper with no loss, measured at ceiling and at an effort
+   the shipped text could not set, so nothing changed. Base's one 11/12 was a scorer artifact
+   ([results, section 14](results.md)).
+
 ## What went into the skill and what was left out
 
 | Included | Evidence |
@@ -60,7 +68,7 @@ design came from and how it did when we ran it.
 | Reject High and Medium findings only after trying to reproduce them | The 1 run in this evaluation where the main agent rejected a correct finding |
 | Resume from a progress file and commit trailers | Resumed without duplicates after a forced kill. Measured with `.git/waygent/`, then moved to a self-ignoring `.waygent/` like superpowers ([model routing and record location](model-routing.md)) |
 | Pin the same model; stop at the rate limit | In v26 the stretch on a cheaper model wasted 5 hours and $128 |
-| Only the final review and retries after failure go one tier up | The 9-harness survey and this evaluation ([model routing and record location](model-routing.md)). Effect not measured |
+| Only the final review and retries after failure go one tier up | The 9-harness survey and this evaluation ([model routing and record location](model-routing.md)). Quality effect not measured; the routing cells measured cost only ([results, section 14](results.md)) |
 | No commits on main/master, no push or PR | In the previous comparison BMAD, Ralph, and others committed to main |
 
 Left out: brainstorming and spec stages, per-Task brief and report files, re-review loops,
