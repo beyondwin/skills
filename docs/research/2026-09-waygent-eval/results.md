@@ -395,10 +395,11 @@ Decisions, by the pre-registered rules:
   Medium findings per run, read from each `reviews/final.md`: base 2, 2, 1, 0, 1, 2;
   final-xhigh 1, 1, 1, 2, 0, 1. Every final-xhigh run is inside the base range (0 to 2).
   Counting the "no safe deploy order" findings as valid (they argue against design 5)
-  moves base to 1 to 3 and puts final-xhigh rep 5 (0) below it. **Not shipped:** the Agent
-  tool on Claude Code takes `model` but no effort, so opus at xhigh needs a shipped
-  `.claude/agents/` definition. That is an install-contract change and stays a follow-up;
-  the Fable rule stays.
+  moves base to 1 to 3 and puts final-xhigh rep 5 (0) below it. **Shipped in 0.4.0:** the
+  Agent tool on Claude Code takes `model` but no effort, so the definition ships as
+  `skills/waygent/agents/waygent-final-reviewer.md` with an optional link into
+  `~/.claude/agents/`; without the link the final reviewer stays fable. One app2 run on
+  the shipped text and link (2026-10-07): 12/12, 7/7, $3.76, final reviewer opus/xhigh.
 - **review-high is not adopted.** It had a real hidden loss (rep 3), and per-task reviews
   fixed fewer findings than base (1.0 per run vs 1.5), not more. Task-review cost rose $0.12.
 - **impl-sonnet passes the rule as written, at ceiling.** No hidden or trap loss, implementer
@@ -421,7 +422,8 @@ Decisions, by the pre-registered rules:
 - Section 13 (2026-09-30): Claude Code about $52.5 (app2 8 runs $32.45; library 2 runs $20.07,
   with the killed session not counted); decision probe $18.08 (180 calls); app2 smoke on D $7.77 (2 runs; two runs on text F were stopped early and are not counted).
 - Section 14 (2026-10-02/03): Claude Code $89.40 for 21 app2 runs (4 pilot, one of them excluded,
-  and 17 batch); final-review validity read by one opus subagent.
+  and 17 batch); final-review validity read by one opus subagent. 0.4.0 check (2026-10-07):
+  one app2 run $3.76 and a one-call agent-link probe $0.08.
 - Cursor runs and blind scoring (codex, 22 outputs) are not reported in dollars.
 - Same-day isolated gstack rerun from the previous comparison: agent $52.17, simulated user $4.36,
   scoring $1.30.

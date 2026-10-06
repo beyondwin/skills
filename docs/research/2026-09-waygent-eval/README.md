@@ -49,8 +49,8 @@ design came from and how it did when we ran it.
    model and effort ([results, section 13](results.md)).
 
 9. **Model routing cells (20 app2 runs, rules written before the batch).** A final reviewer on
-   opus/xhigh instead of fable cut final-review cost from $1.69 to $1.08 with no loss, but
-   Claude Code's Agent tool cannot set effort, so it waits for a shipped agent definition.
+   opus/xhigh instead of fable cut final-review cost from $1.69 to $1.08 with no loss.
+   Claude Code's Agent tool cannot set effort, so 0.4.0 ships it as an agent definition.
    Per-task reviewers on opus/high were not adopted (one real hidden failure, fewer fixes).
    Sonnet implementers were $0.74 cheaper with no loss, measured at ceiling and at an effort
    the shipped text could not set, so nothing changed. Base's one 11/12 was a scorer artifact
