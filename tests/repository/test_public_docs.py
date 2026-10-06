@@ -181,6 +181,7 @@ REPOSITORY_DOCS = (
     ROOT / "docs" / "maintainers" / "repository" / "versioning.md",
     ROOT / "docs" / "maintainers" / "repository" / "products-registry.md",
     ROOT / "docs" / "maintainers" / "repository" / "release.md",
+    ROOT / "docs" / "maintainers" / "repository" / "skill-practices.md",
 )
 PRODUCT_PROTOCOL_FILES = ("contract.md", "testing.md", "compatibility.md", "release.md")
 REGISTRY_SCHEMA_FIELDS = (
@@ -1500,6 +1501,7 @@ class MaintainerStructureTests(unittest.TestCase):
             "repository/versioning.md",
             "repository/products-registry.md",
             "repository/release.md",
+            "repository/skill-practices.md",
         ):
             self.assertIn(href, index)
         for product in REGISTRY.products:

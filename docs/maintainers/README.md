@@ -9,6 +9,7 @@ Install help for users lives in each product README and in `docs/users/`.
 
 | Task | Edit | Change with it | Check |
 | --- | --- | --- | --- |
+| Create or improve a skill | Read [skill practices](repository/skill-practices.md) first | Add a rule there only with its evidence | None |
 | Change product behavior | `skills/<name>/` | The files-to-change-together list in that product's `contract.md` ([products](products/)), `testing.md`, and the version if needed | `python3 scripts/verify.py --skill <name>` |
 | Add host support | That product's `compatibility.md` ([products](products/)) | `products.toml`, public docs, tests | `python3 scripts/verify.py` |
 | Register a product | `products.toml` | `skills/<name>/`, `tests/products/<name>/`, `docs/maintainers/products/<name>/`. Steps: [products registry](repository/products-registry.md) | `python3 scripts/verify.py` |
@@ -46,6 +47,7 @@ Before any merge, run `python3 scripts/verify.py`.
 | [Products registry](repository/products-registry.md) | `products.toml` schema and registration |
 | [Versioning](repository/versioning.md) | Product SemVer rules and tags |
 | [Release](repository/release.md) | Per-product check, build, and verify-download |
+| [Skill practices](repository/skill-practices.md) | Measured rules for writing and changing a skill, and how to measure a change |
 
 ## Product docs
 

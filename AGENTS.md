@@ -10,6 +10,7 @@
 
 - How the tree is split: [Architecture](docs/maintainers/repository/architecture.md).
 - Products and owned paths: [products.toml](products.toml). Contribution scope: [CONTRIBUTING.md](CONTRIBUTING.md).
+- Before you create or improve a skill, read [Skill practices](docs/maintainers/repository/skill-practices.md): measured rules for writing a skill and measuring a change. Add a rule there only with its evidence.
 - When you edit `skills/<name>/`, check the contracts in `tests/products/<name>/` and `docs/maintainers/products/<name>/`.
 - When an installed product file changes, update `skills/<name>/release.toml`, `metadata.version` in `SKILL.md`, and the `Unreleased` section of `CHANGELOG.md` together, per [Versioning](docs/maintainers/repository/versioning.md).
 - A supported-host change goes into the product list, the docs, and the tests together.
