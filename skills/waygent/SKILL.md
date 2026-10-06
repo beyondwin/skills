@@ -4,8 +4,8 @@ description: Use only when the user message contains /waygent or $waygent. Do no
 license: Apache-2.0
 compatibility: Requires a Git repository and a host with a subagent tool (Claude Code Agent tool, Codex spawn_agent with multi_agent enabled, Cursor Agent Task tool, or Grok Build spawn_subagent). Works with or without a plan file.
 metadata:
-  version: "0.3.3"
-  updated_at: "2026-10-03"
+  version: "0.4.0"
+  updated_at: "2026-10-07"
 ---
 
 # waygent
@@ -148,12 +148,14 @@ the final reviewer, and the retry after a failure. At the top tier, or when the 
 cannot pick, use your own. No subagent spawns subagents of its own or leaves a process
 running; say so in every brief, reviewers' included.
 
-- Claude Code: name the model in every dispatch; tiers are sonnet, opus, fable. Set
-  `run_in_background: false` when the Agent tool offers it. When a dispatch returns in
-  the background, end the turn with only that dispatch outstanding and continue on its
-  completion notification; a subagent lost when the session ended is re-dispatched
-  fresh. When the session may not stay open, prefer a fresh implementer ("continue
-  from the uncommitted changes") over SendMessage.
+- Claude Code: name the model in every dispatch; tiers are sonnet, opus, fable. Except:
+  if the Agent tool offers `subagent_type: "waygent-final-reviewer"` and you run below
+  opus at xhigh (fable is not below), the final reviewer is that type with no `model`
+  (`reviewer=opus/xhigh`). Set `run_in_background: false` when the Agent tool offers it.
+  A dispatch that returns in the background: end the turn with only it outstanding and
+  continue on its completion notification; a subagent lost when the session ended is
+  re-dispatched fresh. If the session may not stay open, prefer a fresh implementer
+  ("continue from the uncommitted changes") over SendMessage.
 - Codex: `fork_turns: "none"`, `model` and `reasoning_effort` unset so the child inherits
   yours; do not guess your model name. One tier up sets only `reasoning_effort: "xhigh"`.
   Use `wait_agent` with a long timeout; do not poll it every few seconds.

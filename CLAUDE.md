@@ -19,7 +19,8 @@ These add Claude Code facts to AGENTS.md. AGENTS.md wins on any conflict.
   alias `fable`), Sonnet 5.5 (`claude-sonnet-5-5`, alias `sonnet`), Haiku 4.5. Write model names
   in docs and fixtures with these IDs.
 - Waygent's Claude Code tiers are `sonnet` → `opus` → `fable`; name the model in every
-  dispatch (see `skills/waygent/SKILL.md`, `Models`).
+  dispatch except the final reviewer, which is the `waygent-final-reviewer` agent type
+  (opus at xhigh) with no model when it is installed (see `skills/waygent/SKILL.md`, `Models`).
 - Brief subagents with the files, the exact output shape, and the read-only or write scope.
   State limits once, plainly; capitals and repeated warnings add nothing.
 

@@ -165,6 +165,42 @@ print("linked")
 - Codex: `python3 - "$PWD/skills/waygent" "$HOME/.agents/skills/waygent" <<'PY'`
 - Cursor Agent: `python3 - "$PWD/skills/waygent" "$HOME/.cursor/skills/waygent" <<'PY'`
 
+Claude Code에서는 원하면 끝 리뷰어의 agent 정의도 링크합니다. 그러면 끝 전체 리뷰가
+fable 대신 opus xhigh로 돕니다. 아래 블록도 같은 방식으로, 블록 밑에 적힌 첫 줄과 함께 실행합니다. 이미 있는 파일이나 링크는 바꾸지 않습니다.
+
+<!-- waygent-agent-link -->
+```python
+import os
+import sys
+from pathlib import Path
+
+if len(sys.argv) != 3:
+    raise SystemExit("usage: python3 - SOURCE TARGET")
+source = Path(sys.argv[1]).expanduser().resolve(strict=True)
+target = Path(os.path.abspath(os.path.expanduser(sys.argv[2])))
+if not source.is_file() or source.suffix != ".md" or source.parent.name != "agents":
+    raise SystemExit("source must be an agent definition file")
+if target.is_symlink():
+    try:
+        same = target.resolve(strict=True) == source
+    except (OSError, RuntimeError):
+        same = False
+    if same:
+        print("already linked")
+        raise SystemExit(0)
+    raise SystemExit("refusing different or dangling link")
+if target.exists():
+    raise SystemExit("refusing existing file or directory")
+target.parent.mkdir(parents=True, exist_ok=True)
+try:
+    target.symlink_to(source)
+except FileExistsError:
+    raise SystemExit("target appeared during installation; inspect it before retrying")
+print("linked")
+```
+
+- Agent 링크: `python3 - "$PWD/skills/waygent/agents/waygent-final-reviewer.md" "$HOME/.claude/agents/waygent-final-reviewer.md" <<'PY'`
+
 3. 첫 호출은 [`waygent` README](../../../skills/waygent/README.ko.md)를 보세요.
 
 ## image-workbench
@@ -232,8 +268,9 @@ unlink ~/.agents/skills/sddx
 unlink ~/.claude/skills/sddx
 
 # waygent
-ls -ld ~/.claude/skills/waygent ~/.agents/skills/waygent ~/.cursor/skills/waygent
+ls -ld ~/.claude/skills/waygent ~/.agents/skills/waygent ~/.cursor/skills/waygent ~/.claude/agents/waygent-final-reviewer.md
 unlink ~/.claude/skills/waygent
+unlink ~/.claude/agents/waygent-final-reviewer.md
 unlink ~/.agents/skills/waygent
 unlink ~/.cursor/skills/waygent
 

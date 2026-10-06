@@ -60,7 +60,8 @@ brainstorming, writing a spec or plan, a single small fix).
 - Low findings are recorded and passed to the final review; they are not fixed in the
   final batch.
 - `progress.md` records who did each step as `model/effort` (`impl=`, `reviewer=`):
-  the values the controller set in the dispatch, `inherit` for any it left unset.
+  the values the controller set in the dispatch, `inherit` for any it left unset;
+  a dispatch by agent type records the definition's values (`reviewer=opus/xhigh`).
   Values are never guessed; `reviewer=none` only when no reviewer ran (a skipped
   review). The `model:` header holds the session's model and its
   effort as set, else the model alone. Review status uses one set of values:
@@ -97,7 +98,13 @@ brainstorming, writing a spec or plan, a single small fix).
   in a cheaper model or lower effort. When the host can pick models, only the final
   reviewer and the post-failure retry implementer use a model one tier up. On Codex, no
   model name is written, so children inherit the session model; one tier up sets only
-  `reasoning_effort` to `xhigh`. This is because in the 2026-09-27 measurement the Codex
+  `reasoning_effort` to `xhigh`. On Claude Code the final reviewer is the
+  `waygent-final-reviewer` agent definition (`agents/waygent-final-reviewer.md`: opus,
+  effort xhigh) when the Agent tool offers that type and the controller runs below opus at
+  xhigh; it is dispatched with no `model`, since a per-dispatch model overrides the
+  definition's. Without the type the final reviewer goes one tier up by model as before.
+  The definition is installed by an optional link into `~/.claude/agents/`, because a
+  skill cannot define agents and the Agent tool takes no effort. This is because in the 2026-09-27 measurement the Codex
   controller misidentified its own model and wrote a different one. On Grok Build
   (`spawn_subagent`) and Cursor Agent (`Task`) no model is named, so children use the
   session model. Every registry host has its own line in the Models section.
@@ -124,6 +131,10 @@ and the finished evaluation in
   (`skills/sddx/references/dispatch.md`), copies the progress line formats, and refers
   to waygent's per-task step numbers ("waygent step 3"), so keep those stable too.
 - `skills/waygent/SKILL.md`, `release.toml`, `CHANGELOG.md`, `README.md`, `README.ko.md`
+- `skills/waygent/agents/waygent-final-reviewer.md`, its link line (marker
+  `<!-- waygent-agent-link -->`, a copy of `tests/products/waygent/fixtures/link-agent.py`)
+  in both READMEs and both `docs/users/*/install-local.md`,
+  and the `CLAUDE.md` tier line
 - `tests/products/waygent/test_contract.py`
 - `testing.md`, `compatibility.md`, and `release.md` in this directory
 - When hosts change: `products.toml`, the shared compatibility docs, and repository tests

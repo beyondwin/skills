@@ -85,6 +85,11 @@ def setup(run_dir, cond):
         shutil.copytree(src, dst,
                         ignore=shutil.ignore_patterns("README*", "CHANGELOG.md", "release.toml", "LICENSE.txt",
                                                       *(["agents"] if CODEX else [])))
+        agent = dst / "agents" / "waygent-final-reviewer.md"
+        if not CODEX and not CURSOR and agent.is_file():
+            # The shipped Claude Code install: the agent definition linked from the skill copy.
+            (repo / ".claude" / "agents").mkdir(parents=True, exist_ok=True)
+            (repo / ".claude" / "agents" / agent.name).symlink_to(agent)
         with open(repo / ".git" / "info" / "exclude", "a") as f:
             f.write(".claude/\n.cursor/\n")
     return repo

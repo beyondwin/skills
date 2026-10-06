@@ -106,11 +106,49 @@ print("linked")
 - Codex: `python3 - "$PWD/skills/waygent" "$HOME/.agents/skills/waygent" <<'PY'`
 - Cursor Agent: `python3 - "$PWD/skills/waygent" "$HOME/.cursor/skills/waygent" <<'PY'`
 
+Claude Code에서는 원하면 끝 리뷰어의 agent 정의도 링크합니다. 링크하면 끝 전체 리뷰가 fable
+대신 opus xhigh로 돌고, 없으면 예전처럼 fable로 돕니다. 아래 블록도 같은 방식으로, 블록
+밑에 적힌 첫 줄과 함께 실행합니다. 이미 있는 파일이나 링크는 바꾸지 않습니다.
+
+<!-- waygent-agent-link -->
+```python
+import os
+import sys
+from pathlib import Path
+
+if len(sys.argv) != 3:
+    raise SystemExit("usage: python3 - SOURCE TARGET")
+source = Path(sys.argv[1]).expanduser().resolve(strict=True)
+target = Path(os.path.abspath(os.path.expanduser(sys.argv[2])))
+if not source.is_file() or source.suffix != ".md" or source.parent.name != "agents":
+    raise SystemExit("source must be an agent definition file")
+if target.is_symlink():
+    try:
+        same = target.resolve(strict=True) == source
+    except (OSError, RuntimeError):
+        same = False
+    if same:
+        print("already linked")
+        raise SystemExit(0)
+    raise SystemExit("refusing different or dangling link")
+if target.exists():
+    raise SystemExit("refusing existing file or directory")
+target.parent.mkdir(parents=True, exist_ok=True)
+try:
+    target.symlink_to(source)
+except FileExistsError:
+    raise SystemExit("target appeared during installation; inspect it before retrying")
+print("linked")
+```
+
+- Agent 링크: `python3 - "$PWD/skills/waygent/agents/waygent-final-reviewer.md" "$HOME/.claude/agents/waygent-final-reviewer.md" <<'PY'`
+
 링크라서 저장소를 `git pull`하면 바로 최신이 됩니다. 지울 때는 확인한 뒤 링크만 지웁니다.
 
 ```bash
-ls -ld ~/.claude/skills/waygent ~/.agents/skills/waygent ~/.cursor/skills/waygent
+ls -ld ~/.claude/skills/waygent ~/.agents/skills/waygent ~/.cursor/skills/waygent ~/.claude/agents/waygent-final-reviewer.md
 unlink ~/.claude/skills/waygent
+unlink ~/.claude/agents/waygent-final-reviewer.md
 unlink ~/.agents/skills/waygent
 unlink ~/.cursor/skills/waygent
 ```
@@ -172,7 +210,7 @@ task 2: failure: suite red after commit — cause: stale import — next: fix th
 task 2: retry impl=fable/inherit
 task 2: done 5b7a9d2 impl=fable/inherit review=clean reviewer=opus/inherit tests=45 passed
 final: start
-final: done 9e0f3a1 impl=opus/inherit reviewer=fable/inherit fixed=1 walk=ok tests=47 passed
+final: done 9e0f3a1 impl=opus/inherit reviewer=opus/xhigh fixed=1 walk=ok tests=47 passed
 ```
 
 리뷰 칸은 `clean`, `fixed K`, `overruled K`, `skipped (<이유>)`, `unknown`(기록을 잃고
@@ -204,6 +242,8 @@ final: done 9e0f3a1 impl=opus/inherit reviewer=fable/inherit fixed=1 walk=ok tes
 - 끝 전체 리뷰와 실패 뒤 재시도만 한 등급 위를 씁니다. Claude Code는 sonnet → opus →
   fable 순이고, Codex는 같은 모델에 `reasoning_effort`만 `xhigh`로 올립니다. Cursor와
   Grok Build는 모델을 고를 수 없어 같은 모델을 씁니다.
+- Claude Code에서 위의 agent 링크를 걸어 두면 끝 전체 리뷰가 fable 대신 opus xhigh로
+  돕니다. 2026년 10월 측정에서 결과는 같았고 그 리뷰 비용은 3분의 1가량 줄었습니다.
 - 서브에이전트는 리뷰어를 포함해 한 번에 하나만 돕니다. Claude Code에서는 서브에이전트가
   백그라운드로 돌 수 있고, 메인 세션은 그 끝을 기다립니다. 실행이 끝날 때까지 세션을 열어
   두세요. 닫혔으면 같은 명령을 다시 부르세요.

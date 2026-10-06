@@ -6,8 +6,11 @@ phrases and the line ceiling, not wording or a digest.
 
 from __future__ import annotations
 
+import os
 import re
+import subprocess
 import sys
+import tempfile
 import tomllib
 import unittest
 from pathlib import Path
@@ -25,6 +28,8 @@ from scripts.lib.product_registry import load_registry  # noqa: E402
 
 SKILL = ROOT / "skills" / "waygent"
 MAX_SKILL_LINES = 170
+AGENT_LINKER = Path(__file__).resolve().parent / "fixtures" / "link-agent.py"
+AGENT_MARKER = "<!-- waygent-agent-link -->"
 
 
 def _fold(text: str) -> str:
@@ -114,6 +119,59 @@ class WaygentContractTests(unittest.TestCase):
         self.assertIn("cheaper model", self.lowered)
         self.assertIn("one tier up", self.lowered)
         self.assertIn("the final reviewer, and the retry after a failure", self.lowered)
+
+    def test_claude_code_final_reviewer_agent(self) -> None:
+        # A per-dispatch model overrides the definition's, so the dispatch names none.
+        agent = SKILL / "agents" / "waygent-final-reviewer.md"
+        fields = parse_skill_frontmatter(agent.read_text(encoding="utf-8"))
+        self.assertEqual(fields.get("name"), "waygent-final-reviewer")
+        self.assertEqual(fields.get("model"), "opus")
+        self.assertEqual(fields.get("effort"), "xhigh")
+        self.assertNotIn("tools", fields)
+        self.assertTrue(str(fields.get("description", "")).startswith("Use only when the waygent skill"))
+        self.assertIn('`subagent_type: "waygent-final-reviewer"`', self.text)
+        self.assertIn("that type with no `model`", self.text)
+        self.assertIn("`reviewer=opus/xhigh`", self.text)
+        linker = AGENT_LINKER.read_text(encoding="utf-8").rstrip("\n")
+        first_line = ('python3 - "$PWD/skills/waygent/agents/waygent-final-reviewer.md" '
+                      '"$HOME/.claude/agents/waygent-final-reviewer.md" <<\'PY\'')
+        for relative in ("skills/waygent/README.md", "skills/waygent/README.ko.md",
+                         "docs/users/en/install-local.md", "docs/users/ko/install-local.md"):
+            text = (ROOT / relative).read_text(encoding="utf-8")
+            with self.subTest(relative=relative):
+                self.assertEqual(text.count(AGENT_MARKER), 1)
+                block = re.match(r"\s*```python\n(.*?)\n```", text.split(AGENT_MARKER, 1)[1], re.S)
+                self.assertIsNotNone(block)
+                self.assertEqual(block.group(1), linker)
+                self.assertIn(first_line, text)
+                self.assertIn("unlink ~/.claude/agents/waygent-final-reviewer.md", text)
+
+    def test_agent_linker_never_replaces_anything(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            source = base / "skill" / "agents" / "a.md"
+            source.parent.mkdir(parents=True)
+            source.write_text("x", encoding="utf-8")
+            target = base / "home" / ".claude" / "agents" / "a.md"
+
+            def run() -> subprocess.CompletedProcess[str]:
+                return subprocess.run([sys.executable, "-", str(source), str(target)],
+                                      input=AGENT_LINKER.read_text(encoding="utf-8"),
+                                      capture_output=True, text=True)
+
+            first = run()
+            self.assertEqual((first.returncode, first.stdout.strip()), (0, "linked"))
+            self.assertEqual(target.resolve(), source.resolve())
+            again = run()
+            self.assertEqual((again.returncode, again.stdout.strip()), (0, "already linked"))
+            target.unlink()
+            target.write_text("keep", encoding="utf-8")
+            self.assertNotEqual(run().returncode, 0)
+            self.assertEqual(target.read_text(encoding="utf-8"), "keep")
+            target.unlink()
+            target.symlink_to(base / "missing")
+            self.assertNotEqual(run().returncode, 0)
+            self.assertEqual(os.readlink(target), str(base / "missing"))
 
     def test_codex_contract(self) -> None:
         description = str(self.frontmatter.get("description", ""))

@@ -111,12 +111,51 @@ with `PY` on its own line.
 - Codex: `python3 - "$PWD/skills/waygent" "$HOME/.agents/skills/waygent" <<'PY'`
 - Cursor Agent: `python3 - "$PWD/skills/waygent" "$HOME/.cursor/skills/waygent" <<'PY'`
 
+Claude Code, optional: link the final reviewer's agent definition too. With it, the
+final review runs on opus at xhigh instead of fable; without it, fable as before.
+Run this block the same way, with the first line given under it.
+It never replaces an existing file or link.
+
+<!-- waygent-agent-link -->
+```python
+import os
+import sys
+from pathlib import Path
+
+if len(sys.argv) != 3:
+    raise SystemExit("usage: python3 - SOURCE TARGET")
+source = Path(sys.argv[1]).expanduser().resolve(strict=True)
+target = Path(os.path.abspath(os.path.expanduser(sys.argv[2])))
+if not source.is_file() or source.suffix != ".md" or source.parent.name != "agents":
+    raise SystemExit("source must be an agent definition file")
+if target.is_symlink():
+    try:
+        same = target.resolve(strict=True) == source
+    except (OSError, RuntimeError):
+        same = False
+    if same:
+        print("already linked")
+        raise SystemExit(0)
+    raise SystemExit("refusing different or dangling link")
+if target.exists():
+    raise SystemExit("refusing existing file or directory")
+target.parent.mkdir(parents=True, exist_ok=True)
+try:
+    target.symlink_to(source)
+except FileExistsError:
+    raise SystemExit("target appeared during installation; inspect it before retrying")
+print("linked")
+```
+
+- Agent link: `python3 - "$PWD/skills/waygent/agents/waygent-final-reviewer.md" "$HOME/.claude/agents/waygent-final-reviewer.md" <<'PY'`
+
 Because it is a link, `git pull` in the repo updates it. To remove, check first and
 remove only the link.
 
 ```bash
-ls -ld ~/.claude/skills/waygent ~/.agents/skills/waygent ~/.cursor/skills/waygent
+ls -ld ~/.claude/skills/waygent ~/.agents/skills/waygent ~/.cursor/skills/waygent ~/.claude/agents/waygent-final-reviewer.md
 unlink ~/.claude/skills/waygent
+unlink ~/.claude/agents/waygent-final-reviewer.md
 unlink ~/.agents/skills/waygent
 unlink ~/.cursor/skills/waygent
 ```
@@ -180,7 +219,7 @@ task 2: failure: suite red after commit — cause: stale import — next: fix th
 task 2: retry impl=fable/inherit
 task 2: done 5b7a9d2 impl=fable/inherit review=clean reviewer=opus/inherit tests=45 passed
 final: start
-final: done 9e0f3a1 impl=opus/inherit reviewer=fable/inherit fixed=1 walk=ok tests=47 passed
+final: done 9e0f3a1 impl=opus/inherit reviewer=opus/xhigh fixed=1 walk=ok tests=47 passed
 ```
 
 The review field is one of `clean`, `fixed K`, `overruled K`, `skipped (<why>)`, or
@@ -216,6 +255,9 @@ overruled, the final test result, and anything not verified.
 - Only the final review and the retry after a failure go one tier up: Claude Code
   goes sonnet → opus → fable; Codex keeps the model and sets `reasoning_effort` to
   `xhigh`. Cursor and Grok Build cannot pick, so they use the same model.
+- In Claude Code, with the optional agent link above, the final review runs on opus at
+  xhigh instead of fable. In 2026-10 measurements it cost about a third less for that
+  review with the same results.
 - One subagent runs at a time, reviewers included. In Claude Code a subagent may run
   in the background; the main session waits for it, so keep the session open until
   the run ends. If it closes, call the command again.

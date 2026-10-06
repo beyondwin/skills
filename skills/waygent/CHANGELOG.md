@@ -4,6 +4,18 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+## 0.4.0 - 2026-10-07
+
+### Added
+
+- `agents/waygent-final-reviewer.md`, a Claude Code agent definition (opus, effort
+  xhigh). Linked into `~/.claude/agents/`, it becomes the final reviewer when the
+  controller runs below opus at xhigh, dispatched with no `model`; without the link the
+  final reviewer is fable as before. In the 2026-10 routing cells (app2, 6 runs each)
+  opus/xhigh cut final-review cost from $1.69 to $1.08 per run with no hidden or trap
+  loss and valid final findings inside fable's range. The progress line records
+  `reviewer=opus/xhigh`.
+
 ## 0.3.3 - 2026-10-03
 
 ### Changed

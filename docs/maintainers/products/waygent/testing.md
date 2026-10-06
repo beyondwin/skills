@@ -25,6 +25,13 @@ The required evidence is `python3 scripts/verify.py --skill waygent`. Its stages
 - the final-review blind spots (contract drift, failure paths, startup config), the
   app check on real data (stopping what it started), the fast check, the no-spawn line
   in every brief, and that a start or deploy gap is never outside the task
+- the Claude Code final reviewer: `agents/waygent-final-reviewer.md` names itself, sets
+  `model: opus` and `effort: xhigh` with no `tools`, and gates on waygent in its
+  description; SKILL.md dispatches that type with no `model` and records
+  `reviewer=opus/xhigh`; both READMEs and both `install-local.md` carry one
+  `<!-- waygent-agent-link -->` Python block equal to `fixtures/link-agent.py`, its first
+  line, and its `unlink`; the linker links once, accepts the same link, and leaves an
+  existing file or a different link untouched
 - the Grok rule (`spawn_subagent` with `run_in_background: false`, no `model`) and a
   Models line for every host in the registry
 - the review rules: a ruling never cancels a High or Medium, a one-line reproduction

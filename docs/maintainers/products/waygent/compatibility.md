@@ -29,6 +29,9 @@ skills/waygent/              repository source
 ├─ ~/.claude/skills/waygent ─→ Claude Code
 ├─ ~/.agents/skills/waygent ─→ Codex
 └─ ~/.cursor/skills/waygent ─→ Cursor Agent
+
+skills/waygent/agents/waygent-final-reviewer.md   optional, Claude Code only
+└─ ~/.claude/agents/waygent-final-reviewer.md ─→ final reviewer at opus/xhigh
 ```
 
 Grok Build reads all three folders and deduplicates by skill name.
