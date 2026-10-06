@@ -176,19 +176,20 @@ Recorded in full in the [skill trigger eval](../../../research/2026-10-skill-tri
 **Trigger eval.** Codex gpt-6-astra/high with every installed skill and plugin. The 2.0.6 text
 (`16ce16cb`) loaded for 24 of 24 proofreading requests: spelling and spacing, polishing an
 email, typos only, a report paragraph, a notice, a PR description, and so on. It loaded for
-0 of 24 near-misses: translation, drafting, summary, a 되/돼 question, AI detection,
+0 of 24 near-misses: translation, drafting, summary, a spelling-rule question (doe vs dwae), AI detection,
 author imitation, code review, small talk, detector evasion, and expansion. There were 12
 prompts per kind with 4 held out, two repeats each. The description stays as it is.
 
 **Preservation probe, 2.0.6 against 2.0.7.** Codex, an isolated home holding only this skill,
-`$korean-writing-editor 맞춤법이랑 띄어쓰기 고쳐줘: …` on six synthetic sentences. Each
+`$korean-writing-editor` with a short Korean request to fix spelling and spacing, on six
+synthetic sentences. Each
 sentence carries one invariant:
-- negated obligation (반드시 … 필요는 없)
-- modality (수 있을 것 같)
-- a quantity with attribution (약 30%, 밝혔다)
-- partial negation (모든 … 아닙니다)
-- a limit (두 번 이상, 안 됩니다)
-- negation with attribution (반대하지 않았, 말했다)
+- negated obligation ("need not")
+- modality ("it seems it may")
+- a quantity with attribution ("about 30%, it said")
+- partial negation ("not all")
+- a limit ("not more than twice")
+- negation with attribution ("said it did not oppose")
 
 Both texts kept every invariant in 12 of 12 runs (two repeats each). In 1 of the 12 runs on
 2.0.7 the model answered without opening SKILL.md. Stating the invariant list once
