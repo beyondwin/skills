@@ -6,6 +6,21 @@ Study conducted 2026-10-08–09 on macOS. The pre-registered procedure is in
 [method.md](method.md). Derived cell-level results are in [results.json](results.json);
 candidate and lifecycle results are in [followups.json](followups.json).
 
+Historical follow-up recorded 2026-10-09: the study and 6.1.3 development correction
+were committed, then pre-sdd-review, sddx, and waygent were retired. In the record
+update conversation, the user explicitly stated that this experiment informed
+the decision to sunset all three skills. The user further explained that these
+harnesses had helped with earlier models but seemed unnecessary as newer models
+became more capable. That is user experience and interpretation; this study did
+not compare older and newer models to establish a temporal cause. The
+[learning case](../../learning/cases/2026-10-08-pre-sdd-review-value.md) preserves
+the study's intent, alternatives, and lessons; the
+[retirement case](../../learning/cases/2026-10-09-retire-workflow-skills.md) records
+the later removal and that retrospective explanation. Recommendations and
+verification statements below describe study closure, before the user's final
+retirement decision, not current installation or support status. The measured
+scope remains pre-sdd-review on the tested fixtures, not a benchmark of all three.
+
 ## Decision
 
 For the small single-plan repositories tested here, use an ordinary competent

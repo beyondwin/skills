@@ -18,7 +18,8 @@
 | --- | --- | --- | --- |
 | [깊이를 먼저 물을까, 바로 설명할까?](cases/2026-09-12-explain-before-depth-question.md) | how-it-works | 2026-09-12 | 기본 그림 설명 구현. 당시 변경에서는 품질 미측정 |
 | [구현 스킬에 작업 관리 절차를 얼마나 넣을까?](cases/2026-09-27-light-implementation-workflow.md) | waygent | 2026-09-27부터 | 가벼운 절차를 구현·평가·수정. 이후 별도 결정으로 삭제 |
-| [작업 흐름 스킬 세 개를 왜 삭제했을까?](cases/2026-10-09-retire-workflow-skills.md) | pre-sdd-review, sddx, waygent | 2026-10-09 | 삭제 사실 확인. 검토한 자료에는 개인적 이유가 없음 |
+| [구현 전 리뷰 스킬의 추가 절차는 비용만큼 효과가 있었을까?](cases/2026-10-08-pre-sdd-review-value.md) | pre-sdd-review, 일반 리뷰 | 2026-10-08–09 | 작은 계획에서 추가 발견 없음. 오탐 수정 후, 사용자가 실험을 세 스킬 선셋의 판단 근거로 명시 |
+| [작업 흐름 스킬 세 개를 왜 삭제했을까?](cases/2026-10-09-retire-workflow-skills.md) | pre-sdd-review, sddx, waygent | 2026-10-09 | 최신 모델에서 하네스 필요성이 줄었다는 사용자 판단과 비교 실험을 근거로 선셋 |
 | [작업이 끝나도 판단의 맥락을 어떻게 남길까?](cases/2026-10-09-preserve-decision-context.md) | 저장소 | 2026-10-09 | 최소 기록 체계 도입. 지속적인 효용은 미측정 |
 
 ## 어디에 무엇을 남기는가
