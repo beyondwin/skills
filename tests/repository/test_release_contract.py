@@ -25,7 +25,7 @@ EXPECTED = {
     "korean-writing-editor": "2.0.7",
     "image-workbench": "2.1.1",
     "how-it-works": "3.0.3",
-    "pre-sdd-review": "6.1.2",
+    "pre-sdd-review": "6.1.3",
     "sddx": "8.2.0",
     "waygent": "0.4.0",
 }
@@ -54,9 +54,9 @@ class ProductReleaseTests(unittest.TestCase):
 
     def test_pre_sdd_review_current_archive_identity(self) -> None:
         product = load_product_release(ROOT / "skills/pre-sdd-review")
-        self.assertEqual(product.version, "6.1.2")
-        self.assertEqual(product.tag, "pre-sdd-review-v6.1.2")
-        self.assertEqual(product.artifact_name, "pre-sdd-review-v6.1.2.zip")
+        self.assertEqual(product.version, "6.1.3")
+        self.assertEqual(product.tag, "pre-sdd-review-v6.1.3")
+        self.assertEqual(product.artifact_name, "pre-sdd-review-v6.1.3.zip")
 
     def test_each_product_owns_an_independent_release_manifest(self) -> None:
         self.assertEqual(set(self.registry.names), set(EXPECTED))

@@ -1,0 +1,72 @@
+{
+  "a": {
+    "verdict": "READY",
+    "defects": [],
+    "negative_controls": [
+      "No non-string behavior requirement",
+      "Whitespace-only must remain literal",
+      "Existing implementation before planned feature is not a source defect for preimplementation readiness"
+    ]
+  },
+  "b": {
+    "verdict": "REVISE",
+    "defects": [
+      {
+        "id": "B1",
+        "scope": "docs/plan.md Task 1",
+        "fact": "Empty-string Anonymous behavior is omitted and code contradicts approved spec; all planned tests allow old behavior",
+        "repair": "Add explicit empty-string branch and exact acceptance test",
+        "class": "coverage",
+        "severity": "IMPORTANT"
+      },
+      {
+        "id": "B2",
+        "scope": "docs/plan.md Task 1",
+        "fact": "tools/check.py does not exist; actual runner documented by README is stdlib unittest",
+        "repair": "Replace with existing unittest discovery command",
+        "class": "repo-reality",
+        "severity": "IMPORTANT"
+      }
+    ]
+  },
+  "c": {
+    "verdict": "BLOCKED",
+    "defects": [
+      {
+        "id": "C1",
+        "scope": "docs/design.md Deferred product decision",
+        "fact": "Anonymous vs ValueError explicitly unresolved; neither repository nor owner authorized selection",
+        "repair": "Ask owner once for exact empty-string behavior; no automatic repair choosing one",
+        "class": "authority-drift",
+        "severity": "BLOCKER"
+      }
+    ]
+  },
+  "d": {
+    "verdict": "REVISE",
+    "defects": [
+      {
+        "id": "D1",
+        "scope": "docs/plan.md Task 1",
+        "fact": "src/reader.py validates exact RECORD_KEYS from src/contract.py; writer gains origin but contract is excluded, so valid new writer output is rejected",
+        "repair": "Add src/contract.py modification to exact new set, preserve reader tuple",
+        "class": "repo-reality",
+        "severity": "IMPORTANT"
+      },
+      {
+        "id": "D2",
+        "scope": "docs/plan.md Tasks 2 and 3",
+        "fact": "Nested tests/contracts directory has no __init__.py; chosen root discovery does not recurse there, so acceptance cases are not discovered",
+        "repair": "Add tests/contracts/__init__.py or explicitly discover with -s tests/contracts and run baseline too; verify named tests/count",
+        "class": "verification-gap",
+        "severity": "IMPORTANT"
+      }
+    ],
+    "negative_controls": [
+      "No data migration or backwards-compatibility requirement",
+      "Do not change reader tuple to include origin",
+      "Existing baseline pipeline assertion remains valid once contract updated",
+      "Origin has fixed approved value; no product decision is missing"
+    ]
+  }
+}

@@ -156,6 +156,14 @@ The protocol runs exactly `five passes`.
 4. verification falsification;
 5. readiness verdict.
 
+Verification falsification evaluates the acceptance checks as specified, including
+their stated invariants. A proposed counterexample that violates a prescribed
+assertion is not evidence of a verification gap. Concrete inputs may be selected
+from explicitly named test categories when approved behavior determines their
+expected results; the plan need not enumerate arbitrary implementation details.
+Missing assertions, ineffective discovery commands, and the producer-domain and
+concurrency checks remain material when supported by repository evidence.
+
 A finding records an ID, severity, class, exact document location, evidence,
 concrete consequence, and the smallest document fix. Zero findings is a valid
 result. Severities and classes come only from these lists.
@@ -392,7 +400,7 @@ controller uses it in this order.
    `python3 "<skill-root>/evidence/evidence.py" --version`. Record only when
    the handshake is exactly `skill_name=pre-sdd-review` and `schema=5`. The
    canonical line is
-   `{"cli_version":"6.0.0","schema":5,"skill_name":"pre-sdd-review"}` followed
+   `{"cli_version":"6.1.3","schema":5,"skill_name":"pre-sdd-review"}` followed
    by one LF.
 2. If compatible, run `summary --repo <display name> --plan <plan>` before
    `start`; its `runs` are this plan's runs. Close this plan's `pending` run with

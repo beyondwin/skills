@@ -8,6 +8,7 @@ models it was measured with.
 | --- | --- | --- |
 | [Agent workflow comparison](2026-09-agent-workflow-comparison/README.md) | 2026-09-27 | 9 tools, including superpowers and dryforge, plus plain Claude Code, measured on the same 3 tasks |
 | [waygent design and evaluation](2026-09-waygent-eval/README.md) | 2026-09-27 | The `waygent` skill built from the study above, measured 22 times against plain Claude Code and superpowers on a 10-Task job |
+| [Pre-SDD Review versus ordinary review](2026-10-pre-sdd-review-eval/README.md) | 2026-10-08–09 | Frozen 6.1.2 versus ordinary review on Sol, Astra, Opus and Grok; protocol ablation, repair, process audit and a bounded 6.1.3 correction |
 
 - Raw transcripts, provider receipts, and generated task repositories are not committed. Only
   aggregated numbers and grading results are kept.

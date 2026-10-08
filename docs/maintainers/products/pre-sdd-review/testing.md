@@ -2,7 +2,8 @@
 
 This document sets how far each kind of check proves anything: contract checks
 that run without a model, small synthetic fixtures, and optional live checks
-that call a real model. It does not claim to measure real review quality.
+that call a real model. Provider-free checks do not measure real review quality;
+bounded live comparisons below keep their own scope and limitations.
 
 Provider-free tests and fixtures live in `tests/products/pre-sdd-review/`.
 
@@ -379,3 +380,30 @@ synthetic relay fixture, whose plan names `npm test` in a Python repo. Results:
   campaign run and in neither single run.
 - **Limits.** n = 3 per text. The token difference is inside run-to-run spread, and
   finding quality was not graded beyond the planted defect.
+
+### Comparative evaluation, 2026-10-08–09 (6.1.2 and 6.1.3 candidate)
+
+The [comparison study](../../../research/2026-10-pre-sdd-review-eval/README.md)
+compares frozen 6.1.2 with ordinary review on isolated Sol 6.1/high,
+Astra/high, Claude Opus 5.5/high and Grok 4.7 Build/high sessions. Four synthetic
+repositories contain five unique defects. Clean and cross-file cases are repeated;
+protocol-only and document-repair arms measure different parts of the procedure.
+Observed identities, label-masked grades, times, reported usage, completion
+failures and process exceptions are reported separately. Non-Codex runs do not
+extend the supported-host matrix.
+
+Both ordinary and full procedures detect the known defects in completed reviews.
+The full procedure adds no true discoveries on this small set and takes longer.
+Its observable extra value is structured evidence and a separate repair closure.
+Repeated Claude false positives justify one 6.1.3 protocol clarification:
+counterexamples must satisfy the assertions already prescribed in the plan, and
+selecting concrete test data from explicit categories is implementation detail
+when approved behavior determines the result. Two fresh paired runs remove the
+same unnecessary finding; clean and cross-file checks preserve the intended
+verdicts, including two supported-host Sol checks. These are bounded observations,
+not evidence of general statistical superiority or lower production defect rates.
+
+The study also proves a static dirty-source reuse-predicate gap. A separate live
+Sol lifecycle probe compensates by inspecting the changed repository and returns
+REVISE; it does not reproduce an unsafe READY. That possible recorder change is
+not bundled into the clarification.

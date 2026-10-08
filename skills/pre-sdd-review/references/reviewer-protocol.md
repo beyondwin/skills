@@ -166,6 +166,8 @@ evidence, integration behavior evidence, browser/device behavior evidence,
 and external-side-effect evidence; never claim that one evidence class proves
 another.
 
+Evaluate acceptance checks as specified, including their stated invariants. A counterexample must satisfy those planned checks; one that also violates a prescribed assertion is not evidence of a gap. Selecting concrete inputs from explicitly named test categories is an implementation detail when approved behavior determines their expected results.
+
 When a plan asserts a constraint built from several conjuncts, require a table,
 not prose: one variant per conjunct removed, each rejection case checked
 against each variant. A prose judgement caught three of six conjuncts where the

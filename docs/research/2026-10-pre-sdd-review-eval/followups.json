@@ -1,0 +1,382 @@
+{
+  "candidate": [
+    {
+      "cell": "frozen/claude-c-skill-r3-discovery",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "seconds": 89.082,
+      "completed": true,
+      "changed_paths": [],
+      "usage": {
+        "input_including_cache": 313403,
+        "cache_read": 277428,
+        "output": 9079,
+        "reported_usd": 0.5022386000000001,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "c",
+        "known_defects_found": [
+          "C1"
+        ],
+        "verdict": "BLOCKED",
+        "fp_material": [
+          {
+            "finding": "PSDR-002 IMPORTANT verification-gap: literal inputs and outputs absent for named ordinary-string test categories",
+            "rationale": "The plan already prescribes exact tests for all named categories and says keep ordinary strings literal; the approved prefix and preservation invariant determine expected outputs. Self-matching normalization/strip tests would violate these checks. Picking representative inputs is an implementation detail; additional literal examples or normalization-sensitive Unicode examples are optional hardening, not a readiness requirement."
+          }
+        ],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "C1 correctly found and BLOCKED correct, but includes one material over-specification FP. No product choice is invented."
+      },
+      "grading": "label-masked independent adjudication"
+    },
+    {
+      "cell": "frozen/claude-c-skill-r4-discovery",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "seconds": 105.63,
+      "completed": true,
+      "changed_paths": [],
+      "usage": {
+        "input_including_cache": 392449,
+        "cache_read": 358790,
+        "output": 9822,
+        "reported_usd": 0.523674,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "c",
+        "known_defects_found": [
+          "C1"
+        ],
+        "verdict": "BLOCKED",
+        "fp_material": [
+          {
+            "finding": "PSDR-002 IMPORTANT verification-gap: literal inputs and outputs absent for named ordinary-string test categories",
+            "rationale": "The plan already prescribes exact tests for all named categories and says keep ordinary strings literal; the approved prefix and preservation invariant determine expected outputs. Self-matching normalization/strip tests would violate these checks. Picking representative inputs is an implementation detail; additional literal examples or normalization-sensitive Unicode examples are optional hardening, not a readiness requirement."
+          }
+        ],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "C1 correctly found and BLOCKED correct, but includes one material over-specification FP. No product choice is invented."
+      },
+      "grading": "label-masked independent adjudication"
+    },
+    {
+      "cell": "candidate/claude-d-skill-r3-discovery",
+      "protocol_sha256": "5d70337be164a9e27d60512520118f419273b2ac0faaaa8786ef76dee8ebce40",
+      "seconds": 95.272,
+      "completed": true,
+      "changed_paths": [],
+      "usage": {
+        "input_including_cache": 446954,
+        "cache_read": 410841,
+        "output": 10045,
+        "reported_usd": 0.5551692,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Both D defects correctly found. Exit-0 counterexample for undiscovered tests assumes the first contract defect is repaired; as originally written the baseline fails. This exposition issue does not invalidate D2."
+      },
+      "grading": "label-masked independent adjudication"
+    },
+    {
+      "cell": "candidate/claude-c-skill-r3-discovery",
+      "protocol_sha256": "5d70337be164a9e27d60512520118f419273b2ac0faaaa8786ef76dee8ebce40",
+      "seconds": 94.741,
+      "completed": true,
+      "changed_paths": [],
+      "usage": {
+        "input_including_cache": 314322,
+        "cache_read": 271368,
+        "output": 9376,
+        "reported_usd": 0.5717656,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "c",
+        "known_defects_found": [
+          "C1"
+        ],
+        "verdict": "BLOCKED",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Correctly retains C1 and explicitly filters reviewer demand for enumerated literals as nonmaterial. Phrase about making a choice refers to adjudicating a finding, not selecting empty-string product behavior; no authority violation."
+      },
+      "grading": "label-masked independent adjudication"
+    },
+    {
+      "cell": "candidate/claude-c-skill-r4-discovery",
+      "protocol_sha256": "5d70337be164a9e27d60512520118f419273b2ac0faaaa8786ef76dee8ebce40",
+      "seconds": 98.527,
+      "completed": true,
+      "changed_paths": [],
+      "usage": {
+        "input_including_cache": 438490,
+        "cache_read": 403420,
+        "output": 9999,
+        "reported_usd": 0.547616,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "c",
+        "known_defects_found": [
+          "C1"
+        ],
+        "verdict": "BLOCKED",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Correctly retains C1 and filters reviewer demand for enumerated literals as nonmaterial. Optional whitespace reminder is not counted as an FP."
+      },
+      "grading": "label-masked independent adjudication"
+    },
+    {
+      "cell": "candidate/claude-a-skill-r3-discovery",
+      "protocol_sha256": "5d70337be164a9e27d60512520118f419273b2ac0faaaa8786ef76dee8ebce40",
+      "seconds": 82.677,
+      "completed": true,
+      "changed_paths": [],
+      "usage": {
+        "input_including_cache": 392716,
+        "cache_read": 359708,
+        "output": 8349,
+        "reported_usd": 0.48887759999999997,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Clean control correctly accepted. Falsification examples are consistent with planned tests, and equivalent name-or-Anonymous expression is correctly not treated as a defect for string-only scope. No unsupported substantive readiness claim."
+      },
+      "grading": "label-masked independent adjudication"
+    },
+    {
+      "cell": "sol-a-skill-r3-discovery",
+      "protocol_sha256": "5d70337be164a9e27d60512520118f419273b2ac0faaaa8786ef76dee8ebce40",
+      "seconds": 120.187,
+      "completed": true,
+      "changed_paths": [],
+      "usage": {
+        "input_including_cache": 485966,
+        "cache_read": 453888,
+        "output": 2989,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6.1-sol",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "authority_violation": false
+      },
+      "grading": "unmasked primary agent supported-host smoke"
+    },
+    {
+      "cell": "sol-d-skill-r3-discovery",
+      "protocol_sha256": "5d70337be164a9e27d60512520118f419273b2ac0faaaa8786ef76dee8ebce40",
+      "seconds": 178.894,
+      "completed": true,
+      "changed_paths": [],
+      "usage": {
+        "input_including_cache": 492087,
+        "cache_read": 447232,
+        "output": 5628,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6.1-sol",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "authority_violation": false
+      },
+      "grading": "unmasked primary agent supported-host smoke"
+    }
+  ],
+  "process_audit": {
+    "scope": "Saved normal readable records only; no decryption, no provider calls. Prompt compliance separate from semantic quality. Generic required protocol examples not counted as seeds.",
+    "summary": {
+      "main_cells": 27,
+      "main_dispatches": 32,
+      "followup_cells": 8,
+      "followup_dispatches": 8,
+      "all_observed_child_sessions": 40,
+      "plaintext_dispatches_audited": 24,
+      "encrypted_dispatches_content_not_observable": 16,
+      "codex_all_spawn_fork_turns_none": true,
+      "codex_plaintext_stdout_alternative_count": 0,
+      "plaintext_child_initial_user_equals_dispatch": true,
+      "discovery_repo_input_mutations": 0,
+      "missing_fields_resume_dispatches": 1,
+      "completed_main_cells": 25,
+      "physical_fresh_child_sessions": 39,
+      "physical_resume_sessions": 1,
+      "main_fresh_child_sessions": 31,
+      "main_resume_dispatches": 1
+    },
+    "exceptions": [
+      {
+        "cell": "cells/claude-d-skill-r1-discovery",
+        "source": "controller.jsonl:53",
+        "kind": "targeted_discovery_hint",
+        "detail": "Controller directs reviewer to reason about unittest discovery for directories without __init__.py, the D2 causal mechanism."
+      },
+      {
+        "cell": "cells/claude-d-skill-r2-discovery",
+        "source": "controller.jsonl:51",
+        "kind": "targeted_discovery_hint",
+        "detail": "Controller directs reviewer to compare Python unittest discovery with the planned directory layout and confirm new tests execute; targeted D2 lead beyond the generic protocol examples."
+      },
+      {
+        "cell": "candidate-cells/candidate/claude-d-skill-r3-discovery",
+        "source": "controller.jsonl:44",
+        "kind": "targeted_discovery_hint",
+        "detail": "Controller explicitly mentions unittest package/__init__.py requirements for subdirectories, the D2 causal mechanism."
+      }
+    ],
+    "interpretation": "Targeted hints qualify procedural independence of reviewer rediscovery, not semantic correctness of end-to-end controller-plus-reviewer output. They are controller-generated within each run; no external oracle leakage was observed. Fresh child context does not imply unseeded dispatch. Codex encrypted prompt content is not observable from saved normal records, and no attempt was made to recover it. This is a bounded dispatch, context, repair-scope and closure audit, not complete lifecycle/format certification.",
+    "observations": [
+      {
+        "cell": "grok-a-skill-r2-discovery",
+        "kind": "allowed_missing_fields_resume",
+        "detail": "One fresh reviewer and one missing-fields-only resumption; no defect hint."
+      },
+      {
+        "cell": "grok-d-skill-r2-discovery",
+        "kind": "overly_broad_focused_role_trigger",
+        "detail": "Controller invoked a data-boundary reviewer despite approved internal-only envelope and unchanged external/public signatures. Extra role/cost, not an extra semantic finding."
+      }
+    ],
+    "repair_proof": [
+      {
+        "cell": "cells/claude-b-skill-r1-repair",
+        "changed_files": [
+          "docs/plan.md"
+        ],
+        "known_repairs": "Adds exact empty-string fallback and equality assertion; replaces nonexistent tools/check.py with repository unittest command; preserves other string behavior.",
+        "closure_status": "Both original records closed; final plan/design plus source/tests/README explicitly read by distinct child. Original findings in closure are required, not seeded discovery."
+      },
+      {
+        "cell": "cells/sol-b-skill-r1-repair",
+        "changed_files": [
+          "docs/plan.md"
+        ],
+        "known_repairs": "Adds exact empty-string fallback and equality assertion; replaces nonexistent tools/check.py with repository unittest command; preserves other string behavior.",
+        "closure_status": "Readable tool calls at lines 11/16/23 inspect protocol, final docs, diff and actual source/tests; task_complete at line 34 explicitly closes both findings and returns READY. Dispatch text itself encrypted."
+      },
+      {
+        "cell": "cells/grok-b-skill-r1-repair",
+        "changed_files": [
+          "docs/plan.md"
+        ],
+        "known_repairs": "Empty-string exact behavior and equality added; nonexistent runner replaced with repository unittest command; other approved string behavior preserved.",
+        "closure_status": "Distinct fresh child read final design/plan, source/tests and README; all three original records closed READY. These represent two causal defects.",
+        "record_status": "Completed/full/READY with review_passes=2 and repair_passes=1; actual final hashes match.",
+        "delivery_status": "No final controller report before 901.624-second timeout (returncode 143). Entire cell is not completed despite successful repair/closure/record dimensions."
+      }
+    ]
+  },
+  "reuse_probe": {
+    "engine": "sol",
+    "observed_model": "gpt-6.1-sol",
+    "effort": "high",
+    "initial_verdict": "READY",
+    "after_runner_removed_verdict": "REVISE",
+    "head_unchanged": true,
+    "documents_unchanged": true,
+    "prescribed_change_list": [],
+    "false_ready_reproduced": false,
+    "status": "static predicate counterexample; actual model compensated by inspecting repository"
+  },
+  "accounting": {
+    "core_controller_attempts": 62,
+    "core_completed": 60,
+    "candidate_controller_attempts": 8,
+    "reuse_controller_attempts": 2,
+    "core_claude_reported_usd": 5.1621074,
+    "candidate_claude_reported_usd": 3.189341,
+    "core_grok_reported_usd_lower_bound": 2.6760754,
+    "core_grok_unreported_cost_cells": [
+      "grok-b-skill-r1-repair",
+      "grok-c-skill-r1-discovery"
+    ],
+    "excluded_grok_infra_reported_usd_lower_bound": 0.87772904,
+    "scope": "CLI-reported estimates. Excludes identity probes and infrastructure failures from valid arms. Codex dollar costs and complete capped Grok costs are not reported. No complete study dollar total."
+  }
+}

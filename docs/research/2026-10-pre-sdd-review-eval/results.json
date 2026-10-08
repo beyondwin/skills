@@ -1,0 +1,2920 @@
+{
+  "cells": [
+    {
+      "cell": "astra-a-plain-r1-discovery",
+      "engine": "astra",
+      "case": "a",
+      "arm": "plain",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 32.279,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 76047,
+        "cache_read": 69376,
+        "output": 567,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6-astra",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Clean control correctly accepted; no material false positive."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "astra-a-plain-r2-discovery",
+      "engine": "astra",
+      "case": "a",
+      "arm": "plain",
+      "rep": 2,
+      "stage": "discovery",
+      "seconds": 34.317,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 76187,
+        "cache_read": 66176,
+        "output": 612,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6-astra",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Clean control correctly accepted; no material false positive."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "astra-a-protocol-r1-discovery",
+      "engine": "astra",
+      "case": "a",
+      "arm": "protocol",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 29.53,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 65502,
+        "cache_read": 57856,
+        "output": 523,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6-astra",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Clean control correctly accepted; no material false positive."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "astra-a-skill-r1-discovery",
+      "engine": "astra",
+      "case": "a",
+      "arm": "skill",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 101.126,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 425564,
+        "cache_read": 394112,
+        "output": 2298,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6-astra",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Clean control correctly accepted; no material false positive."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "astra-a-skill-r2-discovery",
+      "engine": "astra",
+      "case": "a",
+      "arm": "skill",
+      "rep": 2,
+      "stage": "discovery",
+      "seconds": 126.119,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 429497,
+        "cache_read": 397440,
+        "output": 2645,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6-astra",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Clean control correctly accepted; no material false positive."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "astra-b-plain-r1-discovery",
+      "engine": "astra",
+      "case": "b",
+      "arm": "plain",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 39.004,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 75427,
+        "cache_read": 69120,
+        "output": 734,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6-astra",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "b",
+        "known_defects_found": [
+          "B1",
+          "B2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no additional material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "astra-b-skill-r1-discovery",
+      "engine": "astra",
+      "case": "b",
+      "arm": "skill",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 143.604,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 490582,
+        "cache_read": 430464,
+        "output": 3398,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6-astra",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "b",
+        "known_defects_found": [
+          "B1",
+          "B2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no additional material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "astra-c-plain-r1-discovery",
+      "engine": "astra",
+      "case": "c",
+      "arm": "plain",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 31.696,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 75379,
+        "cache_read": 67200,
+        "output": 581,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6-astra",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "c",
+        "known_defects_found": [
+          "C1"
+        ],
+        "verdict": "BLOCKED",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no additional material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "astra-c-skill-r1-discovery",
+      "engine": "astra",
+      "case": "c",
+      "arm": "skill",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 140.578,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 426765,
+        "cache_read": 390016,
+        "output": 2958,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6-astra",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "c",
+        "known_defects_found": [
+          "C1"
+        ],
+        "verdict": "BLOCKED",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no additional material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "astra-d-plain-r1-discovery",
+      "engine": "astra",
+      "case": "d",
+      "arm": "plain",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 72.666,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 76936,
+        "cache_read": 69632,
+        "output": 1488,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6-astra",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no additional material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "astra-d-plain-r2-discovery",
+      "engine": "astra",
+      "case": "d",
+      "arm": "plain",
+      "rep": 2,
+      "stage": "discovery",
+      "seconds": 55.644,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 76946,
+        "cache_read": 67968,
+        "output": 1103,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6-astra",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no additional material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "astra-d-protocol-r1-discovery",
+      "engine": "astra",
+      "case": "d",
+      "arm": "protocol",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 81.112,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 105971,
+        "cache_read": 91264,
+        "output": 1874,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6-astra",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no additional material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "astra-d-skill-r1-discovery",
+      "engine": "astra",
+      "case": "d",
+      "arm": "skill",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 257.989,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 800708,
+        "cache_read": 753536,
+        "output": 6578,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6-astra",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no additional material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "astra-d-skill-r2-discovery",
+      "engine": "astra",
+      "case": "d",
+      "arm": "skill",
+      "rep": 2,
+      "stage": "discovery",
+      "seconds": 154.024,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 527870,
+        "cache_read": 494720,
+        "output": 4196,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6-astra",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no additional material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "claude-a-plain-r1-discovery",
+      "engine": "claude",
+      "case": "a",
+      "arm": "plain",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 21.488,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 74028,
+        "cache_read": 54534,
+        "output": 1761,
+        "reported_usd": 0.2020468,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Clean control correctly accepted. Explicit minor notes about test names and duplicate Ada case are advisory, not material FP."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "claude-a-plain-r2-discovery",
+      "engine": "claude",
+      "case": "a",
+      "arm": "plain",
+      "rep": 2,
+      "stage": "discovery",
+      "seconds": 32.571,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 95519,
+        "cache_read": 90229,
+        "output": 2850,
+        "reported_usd": 0.11732580000000001,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Clean control correctly accepted. Test naming, rendered-space caution, and duplicated Ada notes are explicitly minor/nonblocking; not material FP or extra defects."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "claude-a-protocol-r1-discovery",
+      "engine": "claude",
+      "case": "a",
+      "arm": "protocol",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 39.011,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 84288,
+        "cache_read": 76955,
+        "output": 2976,
+        "reported_usd": 0.13354300000000002,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Clean control correctly accepted. Nonmaterial test-method naming note not FP. Broad falsification language is stronger than finite examples prove, but does not introduce a readiness finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "claude-a-skill-r1-discovery",
+      "engine": "claude",
+      "case": "a",
+      "arm": "skill",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 86.271,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 313504,
+        "cache_read": 281009,
+        "output": 8646,
+        "reported_usd": 0.47529580000000005,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Clean control correctly accepted; no material false positive."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "claude-a-skill-r2-discovery",
+      "engine": "claude",
+      "case": "a",
+      "arm": "skill",
+      "rep": 2,
+      "stage": "discovery",
+      "seconds": 88.977,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 431208,
+        "cache_read": 398346,
+        "output": 8903,
+        "reported_usd": 0.5071842000000002,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "REVISE",
+        "fp_material": [
+          {
+            "finding": "PSDR-001 IMPORTANT verification-gap: required concrete unittest method names absent",
+            "rationale": "docs/plan.md already lists five exact input/output cases, requires separate equality tests, and explicitly says verify these new tests execute and pass. The implementer may choose method names. A skipped or undiscovered case violates the prescribed execution check; merely omitting arbitrary method identifiers does not make the plan unready."
+          }
+        ],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Clean control incorrectly rejected (false REVISE) based on one over-specification FP. No approved behavior was replaced; authority_violation remains false."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "claude-b-plain-r1-discovery",
+      "engine": "claude",
+      "case": "b",
+      "arm": "plain",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 22.87,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 93893,
+        "cache_read": 74143,
+        "output": 1838,
+        "reported_usd": 0.2095486,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "b",
+        "known_defects_found": [
+          "B1",
+          "B2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Three reported items collapse to B1 and B2. Uses ordinary-language blocking for repairable defects, but semantic verdict explicitly needs revision and says no new product decision; normalize to REVISE."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "claude-b-plain-r1-repair",
+      "engine": "claude",
+      "case": "b",
+      "arm": "plain",
+      "rep": 1,
+      "stage": "repair",
+      "seconds": 32.09,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [
+        "docs/plan.md"
+      ],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 135352,
+        "cache_read": 130643,
+        "output": 2686,
+        "reported_usd": 0.1174646,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "b",
+        "known_defects_found": [
+          "B1",
+          "B2"
+        ],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Three initial problem bullets deduplicate to B1/B2. Both are claimed repaired; final semantic verdict READY despite opening reference to original REVISE. Self-check described without claiming independent reviewer. Root verifies final files/scope separately."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "claude-b-skill-r1-discovery",
+      "engine": "claude",
+      "case": "b",
+      "arm": "skill",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 77.495,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 313882,
+        "cache_read": 280862,
+        "output": 8397,
+        "reported_usd": 0.47445040000000005,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "b",
+        "known_defects_found": [
+          "B1",
+          "B2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Three reported records collapse to two causal oracle defects: missing branch and its missing test both count once as B1; missing runner is B2."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "claude-b-skill-r1-repair",
+      "engine": "claude",
+      "case": "b",
+      "arm": "skill",
+      "rep": 1,
+      "stage": "repair",
+      "seconds": 124.808,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [
+        "docs/plan.md"
+      ],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 635850,
+        "cache_read": 583507,
+        "output": 13414,
+        "reported_usd": 0.7522773999999999,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 3,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "b",
+        "known_defects_found": [
+          "B1",
+          "B2"
+        ],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Both original defects identified and claimed repaired, with fresh independent closure reported. READY is appropriate if final-file and actual fresh-review claims hold; root verifies those artifacts separately. No new product decision claimed."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "claude-c-plain-r1-discovery",
+      "engine": "claude",
+      "case": "c",
+      "arm": "plain",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 24.515,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 74045,
+        "cache_read": 70548,
+        "output": 2168,
+        "reported_usd": 0.0854136,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "c",
+        "known_defects_found": [
+          "C1"
+        ],
+        "verdict": "BLOCKED",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "C1 correctly found. Extra literal-test specificity and normal-test overlap advice is explicitly nonblocking/minor, so not counted as a material FP. These are not additional ground-truth defects."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "claude-c-skill-r1-discovery",
+      "engine": "claude",
+      "case": "c",
+      "arm": "skill",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 101.091,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 442653,
+        "cache_read": 405958,
+        "output": 10329,
+        "reported_usd": 0.5583146,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "c",
+        "known_defects_found": [
+          "C1"
+        ],
+        "verdict": "BLOCKED",
+        "fp_material": [
+          {
+            "finding": "PSDR-002 IMPORTANT verification-gap: missing literal examples for ordinary-name tests",
+            "rationale": "docs/plan.md already requires exact tests for normal, mixed-case padded, whitespace-only, and Unicode names and says keep ordinary strings literal. docs/design.md fixes the Parcel prefix and whitespace/case preservation. Selecting representative inputs and computing their defined expected values is an implementation detail. A strip/case-changing implementation with matching wrong expectations would violate the already prescribed tests and design, not exploit a missing requirement."
+          }
+        ],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Correct BLOCKED/C1, but adds one unsupported material requirement for enumerated literal examples. No approved behavior is replaced, so this is an FP rather than authority violation."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "claude-d-plain-r1-discovery",
+      "engine": "claude",
+      "case": "d",
+      "arm": "plain",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 39.172,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 76791,
+        "cache_read": 71469,
+        "output": 3429,
+        "reported_usd": 0.12541780000000002,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "D1 and D2 correctly found. Exit-0 counterexample is coherent after D1 repair; the original writer-only plan would fail the existing regression. No extra material defect."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "claude-d-plain-r2-discovery",
+      "engine": "claude",
+      "case": "d",
+      "arm": "plain",
+      "rep": 2,
+      "stage": "discovery",
+      "seconds": 39.677,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 76503,
+        "cache_read": 71385,
+        "output": 3337,
+        "reported_usd": 0.12192900000000001,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "D1/D2 correctly detected. A factual counterexample overstatement says the original plan would still exit 0, although D1 makes the existing regression fail; D2 is still independently valid once D1 is fixed. Missing nested-test discovery was inferred rather than directly probed, candidly stated."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "claude-d-protocol-r1-discovery",
+      "engine": "claude",
+      "case": "d",
+      "arm": "protocol",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 39.119,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 85435,
+        "cache_read": 77561,
+        "output": 3242,
+        "reported_usd": 0.1433122,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "D1 and D2 correctly found. Requiring tests/__init__.py itself is not the proposed fix; actual fixes correctly add the nested package marker or flatten the test path."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "claude-d-skill-r1-discovery",
+      "engine": "claude",
+      "case": "d",
+      "arm": "skill",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 100.914,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 479074,
+        "cache_read": 442930,
+        "output": 10129,
+        "reported_usd": 0.5636260000000001,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "D1 and D2 correctly found. Historical Python namespace-support wording is imprecise, but the stated unmarked nested-directory discovery failure and fixes are correct for the fixture. No extra material defect."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "claude-d-skill-r2-discovery",
+      "engine": "claude",
+      "case": "d",
+      "arm": "skill",
+      "rep": 2,
+      "stage": "discovery",
+      "seconds": 105.836,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 439804,
+        "cache_read": 401368,
+        "output": 10203,
+        "reported_usd": 0.5749576000000001,
+        "observed": [
+          [
+            "claude-opus-5-5",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "message-ID-deduplicated controller and child transcripts"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no additional material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "grok-a-plain-r1-discovery",
+      "engine": "grok",
+      "case": "a",
+      "arm": "plain",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 292.773,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 106441,
+        "cache_read": 69888,
+        "output": 24032,
+        "reported_usd": 0.08576228,
+        "observed": [
+          [
+            "grok-4.7-build",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "inclusive parent ledger; child calls audited as included, do not add child ledgers"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Clean control correctly accepted; no material false positive."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "grok-a-plain-r2-discovery",
+      "engine": "grok",
+      "case": "a",
+      "arm": "plain",
+      "rep": 2,
+      "stage": "discovery",
+      "seconds": 240.669,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 185894,
+        "cache_read": 57728,
+        "output": 17088,
+        "reported_usd": 0.13182616,
+        "observed": [
+          [
+            "grok-4.7-build",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "inclusive parent ledger; child calls audited as included, do not add child ledgers"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "completed": true,
+        "scorable": true,
+        "note": "Clean control correctly accepted; no material FP."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "grok-a-protocol-r1-discovery",
+      "engine": "grok",
+      "case": "a",
+      "arm": "protocol",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 442.825,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 175073,
+        "cache_read": 135552,
+        "output": 25175,
+        "reported_usd": 0.10127512,
+        "observed": [
+          [
+            "grok-4.7-build",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "inclusive parent ledger; child calls audited as included, do not add child ledgers"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "completed": true,
+        "scorable": true,
+        "note": "Clean control correctly accepted with design, acceptance, source, and verification grounding. No material false positive."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "grok-a-skill-r1-discovery",
+      "engine": "grok",
+      "case": "a",
+      "arm": "skill",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 472.923,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 878522,
+        "cache_read": 715008,
+        "output": 44285,
+        "reported_usd": 0.32308228,
+        "observed": [
+          [
+            "grok-4.7-build",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "inclusive parent ledger; child calls audited as included, do not add child ledgers"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Clean control correctly accepted; no material false positive."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "grok-a-skill-r2-discovery",
+      "engine": "grok",
+      "case": "a",
+      "arm": "skill",
+      "rep": 2,
+      "stage": "discovery",
+      "seconds": 597.452,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 466630,
+        "cache_read": 235136,
+        "output": 44327,
+        "reported_usd": 0.28781612,
+        "observed": [
+          [
+            "grok-4.7-build",
+            "high"
+          ]
+        ],
+        "sessions": 3,
+        "scope": "inclusive parent ledger; child calls audited as included, do not add child ledgers"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "completed": true,
+        "scorable": true,
+        "note": "Clean control correctly accepted with concrete source, behavior, acceptance, and baseline evidence. No material FP or unsupported substantive readiness claim."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "grok-b-plain-r1-discovery",
+      "engine": "grok",
+      "case": "b",
+      "arm": "plain",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 153.329,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 96081,
+        "cache_read": 68096,
+        "output": 12167,
+        "reported_usd": 0.0554268,
+        "observed": [
+          [
+            "grok-4.7-build",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "inclusive parent ledger; child calls audited as included, do not add child ledgers"
+      },
+      "grade": {
+        "case": "b",
+        "known_defects_found": [
+          "B1",
+          "B2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Three numbered items deduplicate to B1 (missing empty behavior and test) and B2 (missing runner). All preserved-decision notes remain compatible with approved scope; no material FP."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "grok-b-plain-r1-repair",
+      "engine": "grok",
+      "case": "b",
+      "arm": "plain",
+      "rep": 1,
+      "stage": "repair",
+      "seconds": 261.776,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [
+        "docs/plan.md"
+      ],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 265022,
+        "cache_read": 192896,
+        "output": 21243,
+        "reported_usd": 0.12517372,
+        "observed": [
+          [
+            "grok-4.7-build",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "inclusive parent ledger; child calls audited as included, do not add child ledgers"
+      },
+      "grade": {
+        "case": "b",
+        "known_defects_found": [
+          "B1",
+          "B2"
+        ],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "completed": true,
+        "scorable": true,
+        "note": "Both original causal defects correctly identified and repaired. Parent independently verified actual diff: only docs/plan.md changed; exact-empty Anonymous branch and assertion added, other strings remain literal, and real unittest discovery command used. Postrepair READY is supported by that final-state evidence. Report describes self-checks, not independent closure; no source/test writes."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "grok-b-skill-r1-discovery",
+      "engine": "grok",
+      "case": "b",
+      "arm": "skill",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 416.905,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 632187,
+        "cache_read": 540032,
+        "output": 32167,
+        "reported_usd": 0.22009152,
+        "observed": [
+          [
+            "grok-4.7-build",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "inclusive parent ledger; child calls audited as included, do not add child ledgers"
+      },
+      "grade": {
+        "case": "b",
+        "known_defects_found": [
+          "B1",
+          "B2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no extra material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "grok-b-skill-r1-repair",
+      "engine": "grok",
+      "case": "b",
+      "arm": "skill",
+      "rep": 1,
+      "stage": "repair",
+      "seconds": 901.624,
+      "returncode": 143,
+      "timeout": true,
+      "changed_paths": [
+        "docs/plan.md"
+      ],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": null,
+        "cache_read": null,
+        "output": null,
+        "reported_usd": null,
+        "observed": [
+          [
+            "grok-4.7-build",
+            "high"
+          ]
+        ],
+        "sessions": 3,
+        "scope": "inclusive parent ledger; child calls audited as included, do not add child ledgers"
+      },
+      "grade": {
+        "case": "b",
+        "known_defects_found": [],
+        "verdict": null,
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": null,
+        "completed": false,
+        "scorable": false,
+        "repair_outcome": {
+          "status": "verified_success",
+          "known_defects_resolved": [
+            "B1",
+            "B2"
+          ],
+          "changed_paths": [
+            "docs/plan.md"
+          ],
+          "authority_violation": false,
+          "fresh_independent_closure": true,
+          "closure_verdict": "READY",
+          "recorder_verdict": "READY",
+          "review_passes": 2,
+          "repair_passes": 1,
+          "evidence_basis": "Parent independently verified actual plan-only diff, distinct fresh closure over final files, and finished evidence record. Empty behavior and missing test split into two reviewer records but count together as causal B1; missing command is B2."
+        },
+        "note": "Timed out before final controller report, so no delivered semantic verdict and exclude from final-answer quality denominator. Separate verified repair/closure success must not be counted as a delivered READY. Embedded child READY and finished recorder reflect work achieved, not completed controller delivery."
+      },
+      "completed": false,
+      "head_preserved": true
+    },
+    {
+      "cell": "grok-c-plain-r1-discovery",
+      "engine": "grok",
+      "case": "c",
+      "arm": "plain",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 86.147,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 69465,
+        "cache_read": 42752,
+        "output": 9050,
+        "reported_usd": 0.04389468,
+        "observed": [
+          [
+            "grok-4.7-build",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "inclusive parent ledger; child calls audited as included, do not add child ledgers"
+      },
+      "grade": {
+        "case": "c",
+        "known_defects_found": [
+          "C1"
+        ],
+        "verdict": "BLOCKED",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no extra material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "grok-c-skill-r1-discovery",
+      "engine": "grok",
+      "case": "c",
+      "arm": "skill",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 901.397,
+      "returncode": 143,
+      "timeout": true,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": null,
+        "cache_read": null,
+        "output": null,
+        "reported_usd": null,
+        "observed": [
+          [
+            "grok-4.7-build",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "inclusive parent ledger; child calls audited as included, do not add child ledgers"
+      },
+      "grade": {
+        "case": "c",
+        "known_defects_found": [],
+        "verdict": null,
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": null,
+        "completed": false,
+        "scorable": false,
+        "note": "Controller did not finish; exclude this run from semantic quality denominator. Embedded child REVISE is not a final controller verdict. Interim child proposals include narrowing away the unresolved feature and demanding literal test examples, but controller explicitly had yet to adjudicate them; do not count these as final FP/authority failures or as a completed detection result."
+      },
+      "completed": false,
+      "head_preserved": true
+    },
+    {
+      "cell": "grok-d-plain-r1-discovery",
+      "engine": "grok",
+      "case": "d",
+      "arm": "plain",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 281.049,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 178010,
+        "cache_read": 129664,
+        "output": 21992,
+        "reported_usd": 0.09978184,
+        "observed": [
+          [
+            "grok-4.7-build",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "inclusive parent ledger; child calls audited as included, do not add child ledgers"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no extra material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "grok-d-plain-r2-discovery",
+      "engine": "grok",
+      "case": "d",
+      "arm": "plain",
+      "rep": 2,
+      "stage": "discovery",
+      "seconds": 269.552,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 150842,
+        "cache_read": 76672,
+        "output": 20876,
+        "reported_usd": 0.10605688,
+        "observed": [
+          [
+            "grok-4.7-build",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "inclusive parent ledger; child calls audited as included, do not add child ledgers"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "completed": true,
+        "scorable": true,
+        "note": "Both true defects and REVISE correct. Minor inaccurate attribution: README specifies Python 3.9+, not exactly 3.9.6; observed interpreter version does not change the valid discovery finding. No extra material defect."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "grok-d-protocol-r1-discovery",
+      "engine": "grok",
+      "case": "d",
+      "arm": "protocol",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 472.625,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 206499,
+        "cache_read": 146816,
+        "output": 37921,
+        "reported_usd": 0.142902,
+        "observed": [
+          [
+            "grok-4.7-build",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "inclusive parent ledger; child calls audited as included, do not add child ledgers"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "completed": true,
+        "scorable": true,
+        "note": "Both true defects and REVISE correct. D2 counterexamples explicitly assume the shared key set is fixed, then show incorrect origin/payload/extra-key behavior passing the old pipeline assertion; causally sound and no extra material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "grok-d-skill-r1-discovery",
+      "engine": "grok",
+      "case": "d",
+      "arm": "skill",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 618.212,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 1224254,
+        "cache_read": 1118464,
+        "output": 58185,
+        "reported_usd": 0.38077348,
+        "observed": [
+          [
+            "grok-4.7-build",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "inclusive parent ledger; child calls audited as included, do not add child ledgers"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "completed": true,
+        "scorable": true,
+        "note": "All true defects and semantic verdict correct; no material FP."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "grok-d-skill-r2-discovery",
+      "engine": "grok",
+      "case": "d",
+      "arm": "skill",
+      "rep": 2,
+      "stage": "discovery",
+      "seconds": 834.028,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 1810252,
+        "cache_read": 1628928,
+        "output": 84311,
+        "reported_usd": 0.57221252,
+        "observed": [
+          [
+            "grok-4.7-build",
+            "high"
+          ]
+        ],
+        "sessions": 3,
+        "scope": "inclusive parent ledger; child calls audited as included, do not add child ledgers"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "completed": true,
+        "scorable": true,
+        "note": "Both material defects and semantic verdict correct with repository-specific evidence. Unchanged-code counterexample accurately isolates the verification gap; no extra material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "sol-a-plain-r1-discovery",
+      "engine": "sol",
+      "case": "a",
+      "arm": "plain",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 29.438,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 60014,
+        "cache_read": 51968,
+        "output": 538,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6.1-sol",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Clean control correctly accepted; no material false positive."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "sol-a-plain-r2-discovery",
+      "engine": "sol",
+      "case": "a",
+      "arm": "plain",
+      "rep": 2,
+      "stage": "discovery",
+      "seconds": 41.327,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 76189,
+        "cache_read": 68736,
+        "output": 841,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6.1-sol",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Clean control correctly accepted; no material false positive."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "sol-a-protocol-r1-discovery",
+      "engine": "sol",
+      "case": "a",
+      "arm": "protocol",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 28.233,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 83547,
+        "cache_read": 77312,
+        "output": 702,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6.1-sol",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Correct clean-control verdict, but answer provides no inspectable grounding or verification evidence. This is evidence-reporting weakness, not a false finding or wrong semantic verdict."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "sol-a-skill-r1-discovery",
+      "engine": "sol",
+      "case": "a",
+      "arm": "skill",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 102.969,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 447086,
+        "cache_read": 400000,
+        "output": 2641,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6.1-sol",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Clean control correctly accepted; no material false positive."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "sol-a-skill-r2-discovery",
+      "engine": "sol",
+      "case": "a",
+      "arm": "skill",
+      "rep": 2,
+      "stage": "discovery",
+      "seconds": 88.403,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 351171,
+        "cache_read": 321152,
+        "output": 2724,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6.1-sol",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "a",
+        "known_defects_found": [],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Clean control correctly accepted; no material false positive."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "sol-b-plain-r1-discovery",
+      "engine": "sol",
+      "case": "b",
+      "arm": "plain",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 38.42,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 75724,
+        "cache_read": 71168,
+        "output": 1062,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6.1-sol",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "b",
+        "known_defects_found": [
+          "B1",
+          "B2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no additional material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "sol-b-plain-r1-repair",
+      "engine": "sol",
+      "case": "b",
+      "arm": "plain",
+      "rep": 1,
+      "stage": "repair",
+      "seconds": 62.214,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [
+        "docs/plan.md"
+      ],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 78167,
+        "cache_read": 69760,
+        "output": 1833,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6.1-sol",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "b",
+        "known_defects_found": [
+          "B1",
+          "B2"
+        ],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Both original defects identified and claimed repaired, with concrete self-checks reported. Does not claim an independent reviewer. READY conditional on root final-file/scope validation."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "sol-b-skill-r1-discovery",
+      "engine": "sol",
+      "case": "b",
+      "arm": "skill",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 128.402,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 513313,
+        "cache_read": 479488,
+        "output": 3748,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6.1-sol",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "b",
+        "known_defects_found": [
+          "B1",
+          "B2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no additional material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "sol-b-skill-r1-repair",
+      "engine": "sol",
+      "case": "b",
+      "arm": "skill",
+      "rep": 1,
+      "stage": "repair",
+      "seconds": 244.868,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [
+        "docs/plan.md"
+      ],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 715200,
+        "cache_read": 668160,
+        "output": 8039,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6.1-sol",
+            "high"
+          ]
+        ],
+        "sessions": 3,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "b",
+        "known_defects_found": [
+          "B1",
+          "B2"
+        ],
+        "verdict": "READY",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Both original defects identified and claimed repaired, with two fresh review passes and closure reported. READY conditional on root final-file/scope and reviewer-log validation."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "sol-c-plain-r1-discovery",
+      "engine": "sol",
+      "case": "c",
+      "arm": "plain",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 35.46,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 75620,
+        "cache_read": 67456,
+        "output": 688,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6.1-sol",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "c",
+        "known_defects_found": [
+          "C1"
+        ],
+        "verdict": "BLOCKED",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no additional material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "sol-c-skill-r1-discovery",
+      "engine": "sol",
+      "case": "c",
+      "arm": "skill",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 113.063,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 432832,
+        "cache_read": 377216,
+        "output": 3270,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6.1-sol",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "c",
+        "known_defects_found": [
+          "C1"
+        ],
+        "verdict": "BLOCKED",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no additional material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "sol-d-plain-r1-discovery",
+      "engine": "sol",
+      "case": "d",
+      "arm": "plain",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 60.883,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 77632,
+        "cache_read": 72320,
+        "output": 1516,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6.1-sol",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no additional material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "sol-d-plain-r2-discovery",
+      "engine": "sol",
+      "case": "d",
+      "arm": "plain",
+      "rep": 2,
+      "stage": "discovery",
+      "seconds": 69.501,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": null,
+      "usage": {
+        "input_including_cache": 78839,
+        "cache_read": 65280,
+        "output": 1974,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6.1-sol",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no additional material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "sol-d-protocol-r1-discovery",
+      "engine": "sol",
+      "case": "d",
+      "arm": "protocol",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 83.663,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": null,
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 86305,
+        "cache_read": 70656,
+        "output": 1940,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6.1-sol",
+            "high"
+          ]
+        ],
+        "sessions": 1,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "Both true defects found. Undiscovered-test success counterexample applies to a faulty permissive reader or after D1 repair; does not assert that the unchanged original writer-only plan passes."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "sol-d-skill-r1-discovery",
+      "engine": "sol",
+      "case": "d",
+      "arm": "skill",
+      "rep": 1,
+      "stage": "discovery",
+      "seconds": 224.283,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 627745,
+        "cache_read": 583552,
+        "output": 7202,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6.1-sol",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no additional material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    },
+    {
+      "cell": "sol-d-skill-r2-discovery",
+      "engine": "sol",
+      "case": "d",
+      "arm": "skill",
+      "rep": 2,
+      "stage": "discovery",
+      "seconds": 187.321,
+      "returncode": 0,
+      "timeout": false,
+      "changed_paths": [],
+      "skill_sha256": "d621401f528cdd2da43c6f78e73805d168813ed03542a33a51bcc4984773933f",
+      "protocol_sha256": "195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d",
+      "usage": {
+        "input_including_cache": 594183,
+        "cache_read": 546816,
+        "output": 6474,
+        "reported_usd": null,
+        "observed": [
+          [
+            "gpt-6.1-sol",
+            "high"
+          ]
+        ],
+        "sessions": 2,
+        "scope": "sum of distinct session totals including children"
+      },
+      "grade": {
+        "case": "d",
+        "known_defects_found": [
+          "D1",
+          "D2"
+        ],
+        "verdict": "REVISE",
+        "fp_material": [],
+        "extra_valid": [],
+        "authority_violation": false,
+        "note": "All oracle defects found with specific causal evidence; no additional material finding."
+      },
+      "completed": true,
+      "head_preserved": true
+    }
+  ],
+  "groups": [
+    {
+      "engine": "astra",
+      "arm": "plain",
+      "stage": "discovery",
+      "n": 6,
+      "completed": 6,
+      "scored_completed": 6,
+      "grading_complete_for_completed": true,
+      "quality_observed": true,
+      "median_seconds_completed": 36.66,
+      "min_seconds": 31.696,
+      "max_seconds": 72.666,
+      "reported_usd_sum": null,
+      "known_defects_found_completed": 7,
+      "known_defect_opportunities_scored": 7,
+      "material_fp_completed": 0,
+      "ungraded": 0
+    },
+    {
+      "engine": "astra",
+      "arm": "protocol",
+      "stage": "discovery",
+      "n": 2,
+      "completed": 2,
+      "scored_completed": 2,
+      "grading_complete_for_completed": true,
+      "quality_observed": true,
+      "median_seconds_completed": 55.321,
+      "min_seconds": 29.53,
+      "max_seconds": 81.112,
+      "reported_usd_sum": null,
+      "known_defects_found_completed": 2,
+      "known_defect_opportunities_scored": 2,
+      "material_fp_completed": 0,
+      "ungraded": 0
+    },
+    {
+      "engine": "astra",
+      "arm": "skill",
+      "stage": "discovery",
+      "n": 6,
+      "completed": 6,
+      "scored_completed": 6,
+      "grading_complete_for_completed": true,
+      "quality_observed": true,
+      "median_seconds_completed": 142.091,
+      "min_seconds": 101.126,
+      "max_seconds": 257.989,
+      "reported_usd_sum": null,
+      "known_defects_found_completed": 7,
+      "known_defect_opportunities_scored": 7,
+      "material_fp_completed": 0,
+      "ungraded": 0
+    },
+    {
+      "engine": "claude",
+      "arm": "plain",
+      "stage": "discovery",
+      "n": 6,
+      "completed": 6,
+      "scored_completed": 6,
+      "grading_complete_for_completed": true,
+      "quality_observed": true,
+      "median_seconds_completed": 28.543,
+      "min_seconds": 21.488,
+      "max_seconds": 39.677,
+      "reported_usd_sum": 0.861682,
+      "known_defects_found_completed": 7,
+      "known_defect_opportunities_scored": 7,
+      "material_fp_completed": 0,
+      "ungraded": 0
+    },
+    {
+      "engine": "claude",
+      "arm": "plain",
+      "stage": "repair",
+      "n": 1,
+      "completed": 1,
+      "scored_completed": 1,
+      "grading_complete_for_completed": true,
+      "quality_observed": true,
+      "median_seconds_completed": 32.09,
+      "min_seconds": 32.09,
+      "max_seconds": 32.09,
+      "reported_usd_sum": 0.117465,
+      "known_defects_found_completed": 2,
+      "known_defect_opportunities_scored": 2,
+      "material_fp_completed": 0,
+      "ungraded": 0
+    },
+    {
+      "engine": "claude",
+      "arm": "protocol",
+      "stage": "discovery",
+      "n": 2,
+      "completed": 2,
+      "scored_completed": 2,
+      "grading_complete_for_completed": true,
+      "quality_observed": true,
+      "median_seconds_completed": 39.065,
+      "min_seconds": 39.011,
+      "max_seconds": 39.119,
+      "reported_usd_sum": 0.276855,
+      "known_defects_found_completed": 2,
+      "known_defect_opportunities_scored": 2,
+      "material_fp_completed": 0,
+      "ungraded": 0
+    },
+    {
+      "engine": "claude",
+      "arm": "skill",
+      "stage": "discovery",
+      "n": 6,
+      "completed": 6,
+      "scored_completed": 6,
+      "grading_complete_for_completed": true,
+      "quality_observed": true,
+      "median_seconds_completed": 94.946,
+      "min_seconds": 77.495,
+      "max_seconds": 105.836,
+      "reported_usd_sum": 3.153829,
+      "known_defects_found_completed": 7,
+      "known_defect_opportunities_scored": 7,
+      "material_fp_completed": 2,
+      "ungraded": 0
+    },
+    {
+      "engine": "claude",
+      "arm": "skill",
+      "stage": "repair",
+      "n": 1,
+      "completed": 1,
+      "scored_completed": 1,
+      "grading_complete_for_completed": true,
+      "quality_observed": true,
+      "median_seconds_completed": 124.808,
+      "min_seconds": 124.808,
+      "max_seconds": 124.808,
+      "reported_usd_sum": 0.752277,
+      "known_defects_found_completed": 2,
+      "known_defect_opportunities_scored": 2,
+      "material_fp_completed": 0,
+      "ungraded": 0
+    },
+    {
+      "engine": "grok",
+      "arm": "plain",
+      "stage": "discovery",
+      "n": 6,
+      "completed": 6,
+      "scored_completed": 6,
+      "grading_complete_for_completed": true,
+      "quality_observed": true,
+      "median_seconds_completed": 255.111,
+      "min_seconds": 86.147,
+      "max_seconds": 292.773,
+      "reported_usd_sum": 0.522749,
+      "known_defects_found_completed": 7,
+      "known_defect_opportunities_scored": 7,
+      "material_fp_completed": 0,
+      "ungraded": 0
+    },
+    {
+      "engine": "grok",
+      "arm": "plain",
+      "stage": "repair",
+      "n": 1,
+      "completed": 1,
+      "scored_completed": 1,
+      "grading_complete_for_completed": true,
+      "quality_observed": true,
+      "median_seconds_completed": 261.776,
+      "min_seconds": 261.776,
+      "max_seconds": 261.776,
+      "reported_usd_sum": 0.125174,
+      "known_defects_found_completed": 2,
+      "known_defect_opportunities_scored": 2,
+      "material_fp_completed": 0,
+      "ungraded": 0
+    },
+    {
+      "engine": "grok",
+      "arm": "protocol",
+      "stage": "discovery",
+      "n": 2,
+      "completed": 2,
+      "scored_completed": 2,
+      "grading_complete_for_completed": true,
+      "quality_observed": true,
+      "median_seconds_completed": 457.725,
+      "min_seconds": 442.825,
+      "max_seconds": 472.625,
+      "reported_usd_sum": 0.244177,
+      "known_defects_found_completed": 2,
+      "known_defect_opportunities_scored": 2,
+      "material_fp_completed": 0,
+      "ungraded": 0
+    },
+    {
+      "engine": "grok",
+      "arm": "skill",
+      "stage": "discovery",
+      "n": 6,
+      "completed": 5,
+      "scored_completed": 5,
+      "grading_complete_for_completed": true,
+      "quality_observed": true,
+      "median_seconds_completed": 597.452,
+      "min_seconds": 416.905,
+      "max_seconds": 901.397,
+      "reported_usd_sum": null,
+      "known_defects_found_completed": 6,
+      "known_defect_opportunities_scored": 6,
+      "material_fp_completed": 0,
+      "ungraded": 0
+    },
+    {
+      "engine": "grok",
+      "arm": "skill",
+      "stage": "repair",
+      "n": 1,
+      "completed": 0,
+      "scored_completed": 0,
+      "grading_complete_for_completed": true,
+      "quality_observed": false,
+      "median_seconds_completed": null,
+      "min_seconds": 901.624,
+      "max_seconds": 901.624,
+      "reported_usd_sum": null,
+      "known_defects_found_completed": null,
+      "known_defect_opportunities_scored": 0,
+      "material_fp_completed": null,
+      "ungraded": 0
+    },
+    {
+      "engine": "sol",
+      "arm": "plain",
+      "stage": "discovery",
+      "n": 6,
+      "completed": 6,
+      "scored_completed": 6,
+      "grading_complete_for_completed": true,
+      "quality_observed": true,
+      "median_seconds_completed": 39.873,
+      "min_seconds": 29.438,
+      "max_seconds": 69.501,
+      "reported_usd_sum": null,
+      "known_defects_found_completed": 7,
+      "known_defect_opportunities_scored": 7,
+      "material_fp_completed": 0,
+      "ungraded": 0
+    },
+    {
+      "engine": "sol",
+      "arm": "plain",
+      "stage": "repair",
+      "n": 1,
+      "completed": 1,
+      "scored_completed": 1,
+      "grading_complete_for_completed": true,
+      "quality_observed": true,
+      "median_seconds_completed": 62.214,
+      "min_seconds": 62.214,
+      "max_seconds": 62.214,
+      "reported_usd_sum": null,
+      "known_defects_found_completed": 2,
+      "known_defect_opportunities_scored": 2,
+      "material_fp_completed": 0,
+      "ungraded": 0
+    },
+    {
+      "engine": "sol",
+      "arm": "protocol",
+      "stage": "discovery",
+      "n": 2,
+      "completed": 2,
+      "scored_completed": 2,
+      "grading_complete_for_completed": true,
+      "quality_observed": true,
+      "median_seconds_completed": 55.948,
+      "min_seconds": 28.233,
+      "max_seconds": 83.663,
+      "reported_usd_sum": null,
+      "known_defects_found_completed": 2,
+      "known_defect_opportunities_scored": 2,
+      "material_fp_completed": 0,
+      "ungraded": 0
+    },
+    {
+      "engine": "sol",
+      "arm": "skill",
+      "stage": "discovery",
+      "n": 6,
+      "completed": 6,
+      "scored_completed": 6,
+      "grading_complete_for_completed": true,
+      "quality_observed": true,
+      "median_seconds_completed": 120.732,
+      "min_seconds": 88.403,
+      "max_seconds": 224.283,
+      "reported_usd_sum": null,
+      "known_defects_found_completed": 7,
+      "known_defect_opportunities_scored": 7,
+      "material_fp_completed": 0,
+      "ungraded": 0
+    },
+    {
+      "engine": "sol",
+      "arm": "skill",
+      "stage": "repair",
+      "n": 1,
+      "completed": 1,
+      "scored_completed": 1,
+      "grading_complete_for_completed": true,
+      "quality_observed": true,
+      "median_seconds_completed": 244.868,
+      "min_seconds": 244.868,
+      "max_seconds": 244.868,
+      "reported_usd_sum": null,
+      "known_defects_found_completed": 2,
+      "known_defect_opportunities_scored": 2,
+      "material_fp_completed": 0,
+      "ungraded": 0
+    }
+  ]
+}

@@ -4,6 +4,14 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- Verification counterexamples must satisfy the plan's prescribed assertions and invariants. Selecting concrete inputs from named test categories is not a material gap when approved behavior determines the expected results. This clarifies the existing exclusion of non-material implementation detail; it does not waive real missing assertions, undiscovered tests, or repository conflicts.
+
+### Notes
+
+- Handshake `cli_version` is 6.1.3. Record schema stays 5.
+
 ## 6.1.2 - 2026-10-02
 
 ### Changed

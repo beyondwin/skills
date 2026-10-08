@@ -35,7 +35,11 @@ evidence does not belong here.
 ## Measuring a change
 
 - **Compare before and after with live runs on a pinned skill text.** Record the
-  SHA-256 of the `SKILL.md` each run used; the waygent harness writes it to `meta.json`.
+  SHA-256 of `SKILL.md` and every changed reference, or a full resource manifest.
+  Pin the full resource tree throughout the comparison. SKILL.md alone cannot
+  distinguish a reference-only candidate: the pre-sdd-review clarification kept
+  identical SKILL.md bytes while changing reviewer behavior.
+  ([pre-sdd-review comparison](../../research/2026-10-pre-sdd-review-eval/README.md))
 - **Write the decision rule before the runs.** Name the metric, the threshold, and what
   counts as a loss, then decide by that rule. A difference smaller than about two
   standard errors is "no measured difference" and changes nothing.
