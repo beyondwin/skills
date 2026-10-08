@@ -4,19 +4,18 @@
 
 ## Install with `$skill-installer`
 
-In Codex, install [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), and [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md) with `$skill-installer`:
+In Codex, install [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md) and [`image-workbench`](../../../skills/image-workbench/README.md) with `$skill-installer`:
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
-$skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-review
 ```
 
 Each skill lands in `$CODEX_HOME/skills/<skill-name>` (`~/.codex/skills` when `CODEX_HOME` is unset). If that folder already exists, the installer stops.
 
 Then start a new turn and try the first call in the product README.
 
-How It Works, SDDx, and Waygent are not installed this way. Use [Local links](install-local.md).
+How It Works is not installed this way. Use [Local links](install-local.md).
 
 ## Optional: third-party installer
 
@@ -41,7 +40,7 @@ ls -ld "$SKILL_SOURCE"
 ls -ld "$SKILL_TARGET"
 ```
 
-Copy only if `$SKILL_TARGET` does not exist, or is a link you have confirmed points to this skill. If a real folder is already there, stop and do not copy over it. The same rule applies to `image-workbench` and `pre-sdd-review`.
+Copy only if `$SKILL_TARGET` does not exist, or is a link you have confirmed points to this skill. If a real folder is already there, stop and do not copy over it. The same rule applies to `image-workbench`.
 
 ## Update and uninstall
 
@@ -58,6 +57,6 @@ Check that:
 - it is the kind of entry you expect (a real folder or a link, and where a link points)
 - `name` and `metadata.version` in its `SKILL.md` are what you expect
 
-Only then remove that one path, and reinstall with `$skill-installer` if you are updating. Do the same for `.../skills/image-workbench` and `.../skills/pre-sdd-review`.
+Only then remove that one path, and reinstall with `$skill-installer` if you are updating. Do the same for `.../skills/image-workbench`.
 
 Never delete the parent `skills` folder or a home folder. Never pipe a remote script into a shell, and never replace an install you have not inspected.

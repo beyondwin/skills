@@ -1,27 +1,23 @@
 # Contributing
 
-This repository ships six standalone products. Where documents live is in
+This repository ships three standalone products. Where documents live is in
 [docs/README.md](docs/README.md). How the tree is split is in
 [architecture](docs/maintainers/repository/architecture.md).
 
 - `korean-writing-editor`
 - `image-workbench`
 - `how-it-works`
-- `pre-sdd-review`
-- `sddx`
-- `waygent`
 
 ## Scope
 
-New skills are not accepted by default. A pull request that adds another skill is out of scope unless repository governance is changed first. `waygent`, the sixth product, was added by the repository owner as a governance decision; that does not open the door to contributed skills.
+New skills are not accepted by default. A pull request that adds another skill is out of scope unless repository governance is changed first.
 
 The supported OS is macOS only. Windows and Linux are unsupported. An Ubuntu CI pass is not OS support evidence.
 
 Host support:
 
-- `how-it-works` and `sddx` currently claim Codex and Claude Code only.
-- `waygent` claims Claude Code, Codex, and Cursor Agent; records are in `docs/maintainers/products/waygent/compatibility.md`.
-- Do not broaden host support for `korean-writing-editor` or `pre-sdd-review`.
+- `how-it-works` currently claims Codex and Claude Code only.
+- Do not broaden host support for `korean-writing-editor`.
 - `image-workbench` claims Codex and Grok only after a recorded smoke on the current build.
 
 Host-support changes must update `products.toml`, the matching docs, and tests together.

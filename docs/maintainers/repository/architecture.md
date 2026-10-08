@@ -1,13 +1,13 @@
 # Repository architecture
 
-This repository holds six skills that install separately. This doc says where to look
+This repository holds three skills that install separately. This doc says where to look
 and what to check when you change something. Apache-2.0 applies to the root and to
 each skill.
 
 ## At a glance
 
 The current products are the ones in `products.toml`: `korean-writing-editor`,
-`image-workbench`, `how-it-works`, `pre-sdd-review`, `sddx`, and `waygent`. Each has
+`image-workbench`, and `how-it-works`. Each has
 its own version and installs on its own from a GitHub path.
 
 ```mermaid
@@ -17,9 +17,6 @@ flowchart TB
     K[korean-writing-editor]
     I[image-workbench]
     H[how-it-works]
-    P[pre-sdd-review]
-    S[sddx]
-    W[waygent]
   end
   R --> live
   live --> SK["skills/ payload"]
@@ -53,7 +50,6 @@ English; the Korean guide is `README.ko.md`
 | standalone product | A skill listed in `products.toml` that installs on its own |
 | host | The program that runs a skill: Codex, Claude Code, Cursor Agent, or Grok. Each product's `supported_hosts` in `products.toml` decides |
 | supported OS | macOS only. Windows and Linux are unsupported. Passing Ubuntu CI is not OS support |
-| worker | In `sddx`, an outside CLI that only implements (Cursor, Grok CLI). Not an `sddx` host. Cursor Agent is a host for `waygent` |
 | selector | An option that narrows which checks run: `--skill <name>` |
 | digest | The SHA-256 fingerprint of a payload. Tests never pin docs this way; they check phrases and facts |
 | fixture | A prepared test example |
@@ -86,9 +82,6 @@ Repository only, never installed:
 | `tests/products/korean-writing-editor/live/` | Synthetic live runner, unit tests, dry-run, operator notes |
 | `tests/products/image-workbench/` | Routing, permission, evidence, and inspector tests |
 | `tests/products/how-it-works/` | Synthetic DNS and rebase fixtures and payload tests |
-| `tests/products/pre-sdd-review/` | Synthetic design and plan fixtures |
-| `tests/products/sddx/` | Backend identity fixtures and product contract |
-| `tests/products/waygent/` | Product contract phrases and the `SKILL.md` line limit |
 | `docs/README.md` | Routes to install, use, maintain, and history |
 | `docs/users/` | Shared install, compatibility, safety, and verification guides |
 | `docs/maintainers/` | Architecture, registry, versioning, release, product rules |
@@ -140,7 +133,4 @@ Korean live evaluation is an explicit local task.
 Product protocols:
 [korean-writing-editor](../products/korean-writing-editor/contract.md),
 [image-workbench](../products/image-workbench/contract.md),
-[how-it-works](../products/how-it-works/contract.md),
-[pre-sdd-review](../products/pre-sdd-review/contract.md),
-[sddx](../products/sddx/contract.md),
-[waygent](../products/waygent/contract.md).
+[how-it-works](../products/how-it-works/contract.md).

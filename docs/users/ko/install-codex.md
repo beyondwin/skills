@@ -4,19 +4,18 @@
 
 ## `$skill-installer`로 설치
 
-Codex에서 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`image-workbench`](../../../skills/image-workbench/README.ko.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.ko.md)를 `$skill-installer`로 설치합니다.
+Codex에서 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md)와 [`image-workbench`](../../../skills/image-workbench/README.ko.md)를 `$skill-installer`로 설치합니다.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
-$skill-installer https://github.com/beyondwin/skills/tree/main/skills/pre-sdd-review
 ```
 
 각 스킬은 `$CODEX_HOME/skills/<skill-name>`에 들어갑니다(`CODEX_HOME`이 없으면 `~/.codex/skills`). 그 폴더가 이미 있으면 설치기가 멈춥니다.
 
 그다음 새 대화에서 제품 README의 첫 호출을 써 보세요.
 
-How It Works, SDDx, Waygent는 이 방법으로 설치하지 않습니다. [로컬 링크](install-local.md)를 쓰세요.
+How It Works는 이 방법으로 설치하지 않습니다. [로컬 링크](install-local.md)를 쓰세요.
 
 ## 선택: 제3자 설치기
 
@@ -41,7 +40,7 @@ ls -ld "$SKILL_SOURCE"
 ls -ld "$SKILL_TARGET"
 ```
 
-`$SKILL_TARGET`이 없거나, 이 스킬을 가리키는 링크임을 확인한 경우에만 복사하세요. 실제 폴더가 이미 있으면 멈추고 덮어쓰지 마세요. `image-workbench`와 `pre-sdd-review`도 같습니다.
+`$SKILL_TARGET`이 없거나, 이 스킬을 가리키는 링크임을 확인한 경우에만 복사하세요. 실제 폴더가 이미 있으면 멈추고 덮어쓰지 마세요. `image-workbench`도 같습니다.
 
 ## 갱신과 제거
 
@@ -58,6 +57,6 @@ ls -ld "$SKILL_TARGET"
 - 예상한 종류인가(실제 폴더인지 링크인지, 링크라면 어디를 가리키는지)
 - 그 안 `SKILL.md`의 `name`과 `metadata.version`이 예상한 값인가
 
-그런 뒤에만 그 경로 하나를 지우고, 갱신이라면 `$skill-installer`로 다시 설치하세요. `.../skills/image-workbench`와 `.../skills/pre-sdd-review`도 같은 순서로 합니다.
+그런 뒤에만 그 경로 하나를 지우고, 갱신이라면 `$skill-installer`로 다시 설치하세요. `.../skills/image-workbench`도 같은 순서로 합니다.
 
 상위 `skills` 폴더나 홈 폴더를 지우지 마세요. 원격 스크립트를 셸에 파이프하지 말고, 확인하지 않은 설치를 바꾸지 마세요.

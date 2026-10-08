@@ -22,9 +22,6 @@
 - [`korean-writing-editor`](../skills/korean-writing-editor/README.ko.md)
 - [`image-workbench`](../skills/image-workbench/README.ko.md)
 - [`how-it-works`](../skills/how-it-works/README.ko.md)
-- [`pre-sdd-review`](../skills/pre-sdd-review/README.ko.md)
-- [`sddx`](../skills/sddx/README.ko.md)
-- [`waygent`](../skills/waygent/README.ko.md)
 
 ## 관리·변경·릴리스
 

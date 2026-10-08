@@ -36,9 +36,6 @@ def _compile_paths(root: pathlib.Path) -> tuple[str, ...]:
             scripts_dir = skill / "scripts"
             if scripts_dir.is_dir():
                 paths.append(_posix("skills", skill.name, "scripts"))
-        evidence_dir = skills_root / "pre-sdd-review" / "evidence"
-        if evidence_dir.is_dir():
-            paths.append(_posix("skills", "pre-sdd-review", "evidence"))
     return tuple(paths)
 
 
@@ -131,60 +128,6 @@ def _stage_map(root: pathlib.Path) -> dict[str, Stage]:
                 _posix("tests", "products", "how-it-works"),
                 "-p",
                 "test_*.py",
-            ),
-            cwd=root,
-        ),
-        "pre-sdd-review-contract": Stage(
-            "pre-sdd-review-contract",
-            _python(
-                "-m",
-                "unittest",
-                "discover",
-                "-s",
-                _posix("tests", "products", "pre-sdd-review"),
-                "-p",
-                "test_c*.py",
-            ),
-            cwd=root,
-        ),
-        "sddx-contract": Stage(
-            "sddx-contract",
-            _python(
-                "-m",
-                "unittest",
-                "discover",
-                "-s",
-                _posix("tests", "products", "sddx"),
-                "-p",
-                "test_*.py",
-            ),
-            cwd=root,
-        ),
-        "waygent-contract": Stage(
-            "waygent-contract",
-            _python(
-                "-m",
-                "unittest",
-                "discover",
-                "-s",
-                _posix("tests", "products", "waygent"),
-                "-p",
-                "test_*.py",
-            ),
-            cwd=root,
-        ),
-
-        "pre-sdd-review-evidence": Stage(
-            "pre-sdd-review-evidence",
-            _python(
-                "-m",
-                "unittest",
-                "discover",
-                "-s",
-                _posix("tests", "products", "pre-sdd-review", "evidence"),
-                "-p",
-                "test_*.py",
-                "-v",
             ),
             cwd=root,
         ),

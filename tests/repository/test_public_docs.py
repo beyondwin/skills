@@ -82,22 +82,10 @@ IMAGE_SUPPORT = (
 HOW_IT_WORKS_SUPPORT = (
     "how-it-works: Codex and Claude Code supported for local or repository-based use."
 )
-PRE_SDD_REVIEW_SUPPORT = (
-    "pre-sdd-review: Codex supported; other hosts not_measured."
-)
-SDDX_SUPPORT = (
-    "sddx: Claude Code and Codex supported for local or repository-based use."
-)
-WAYGENT_SUPPORT = (
-    "waygent: Claude Code, Codex, Cursor Agent, and Grok Build supported for local or repository-based use."
-)
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
     "image-workbench": IMAGE_SUPPORT,
     "how-it-works": HOW_IT_WORKS_SUPPORT,
-    "pre-sdd-review": PRE_SDD_REVIEW_SUPPORT,
-    "sddx": SDDX_SUPPORT,
-    "waygent": WAYGENT_SUPPORT,
 }
 HOW_IT_WORKS_MKDIR = "mkdir -p ~/.agents/skills ~/.claude/skills"
 HOW_IT_WORKS_AGENTS_INVOCATION = (
@@ -170,7 +158,6 @@ USER_GUIDES = (
 CODEX_PRODUCTS = (
     "korean-writing-editor",
     "image-workbench",
-    "pre-sdd-review",
 )
 DOCS_INDEX = ROOT / "docs" / "README.md"
 DOCS_INDEX_KO = ROOT / "docs" / "README.ko.md"
@@ -392,56 +379,6 @@ def maintainer_english_source_errors(text: str) -> tuple[str, ...]:
         errors.append("maintainer first explanatory paragraph must be English prose")
     if re.search(r"[가-힣]", text):
         errors.append("English-first maintainer doc must not contain Korean text")
-    return tuple(errors)
-
-
-def pre_sdd_shared_contract_errors(
-    text: str,
-    *,
-    language: str,
-    document: str,
-) -> tuple[str, ...]:
-    headings = {
-        ("ko", "safety"): "## SDD 전 문서 검토",
-        ("en", "safety"): "## Pre-SDD document review",
-        ("ko", "verification"): "## 오프라인 픽스처",
-        ("en", "verification"): "## Offline fixtures",
-    }
-    clauses = {
-        ("ko", "safety"): (
-            "`pre-sdd-review`는 로컬 설계, 구현 계획, 참조된 ADR, 저장소 파일을 읽습니다.",
-            "기본 모드에서는 확인된 설계, 계획, 공유 파일 원장만 수정합니다.",
-            "저장소 소유 테스트는 사용자 문서를 전송하거나 지속 저장하거나 픽스처로 수집하지 않습니다.",
-            "이 제품은 텔레메트리나 업로드 경로를 추가하지 않습니다.",
-            "라이브 처리와 보존은 Codex 호스트의 데이터 제어를 따릅니다.",
-            "명시적인 외부 요청 없이는 구현이나 SDD를 시작하지 않습니다.",
-            "원자적 로컬 저장은 협력하는 client 사이의 일관성을 제공할 뿐, 악의적인 로컬 변조를 막는 서명된 audit log가 아닙니다.",
-        ),
-        ("en", "safety"): (
-            "`pre-sdd-review` reads local design, implementation plan, referenced ADR, and repository files.",
-            "In default mode it edits only the resolved design, plan, and shared-file ledger.",
-            "Repository-owned tests do not transmit, persist, or capture user documents as fixtures.",
-            "This product adds no telemetry or upload path.",
-            "Live processing and retention follow the Codex host's data controls.",
-            "It never starts implementation or SDD without an explicit outer request.",
-            "Atomic local storage gives cooperating clients consistency; it is not a signed audit log resistant to malicious local tampering.",
-        ),
-        ("ko", "verification"): (
-            "`pre-sdd-review`의 공급자 없는 픽스처는 지시와 패키지 계약만 검증합니다.",
-            "리뷰어 독립성, 의미 완전성, 라이브 리뷰 품질을 증명하지 않습니다.",
-        ),
-        ("en", "verification"): (
-            "`pre-sdd-review` provider-free fixtures validate only instruction and package contracts.",
-            "They do not prove reviewer independence, semantic completeness, or live review quality.",
-        ),
-    }
-    key = (language, document)
-    owned = _owned_section(text, headings[key])
-    if not owned:
-        return ("pre-sdd shared section is missing or duplicated",)
-    errors: list[str] = []
-    if any(owned.count(clause) != 1 for clause in clauses[key]):
-        errors.append("pre-sdd shared exact clauses differ")
     return tuple(errors)
 
 
@@ -705,7 +642,7 @@ class UserGuideFactTests(unittest.TestCase):
             "safety-and-privacy.md": all_products,
             "verification.md": all_products,
             "install-codex.md": CODEX_PRODUCTS,
-            "install-local.md": ("how-it-works", "sddx", "waygent", "image-workbench"),
+            "install-local.md": ("how-it-works", "image-workbench"),
         }
         for language in ("ko", "en"):
             for filename, names in owned.items():
@@ -751,7 +688,6 @@ class UserGuideFactTests(unittest.TestCase):
             self.assertNotIn("python3 scripts/verify.py", text)
             self.assertIn("install-codex.md", text)
             self.assertIn("install-local.md", text)
-            self.assertIn("skills/pre-sdd-review/evidence/README.md", text)
             for name in REGISTRY.names:
                 self.assertIn(name, text)
 
@@ -851,17 +787,6 @@ class UserGuideFactTests(unittest.TestCase):
         self.assertIn("`how-it-works` slices", english)
         self.assertNotIn("Gra" + "spic slices", english)
 
-    def test_safety_guide_mentions_sddx_without_live_cli_in_ci(self) -> None:
-        for language in ("ko", "en"):
-            text = _read(ROOT / "docs" / "users" / language / "safety-and-privacy.md")
-            lowered = text.lower()
-            self.assertIn("sddx", text)
-            self.assertIn("worktree", lowered)
-            self.assertTrue("xai" in lowered or "cursor" in lowered)
-            self.assertIn("verify.py", text)
-            self.assertNotIn("CURSOR_API_KEY", text)
-            verify = _read(ROOT / "docs" / "users" / language / "verification.md")
-            self.assertIn("python3 scripts/verify.py --skill sddx", verify)
 
     def test_verification_owns_offline_live_evidence_and_ci_scope(self) -> None:
         ci_sentences = {
@@ -897,7 +822,6 @@ class UserGuideFactTests(unittest.TestCase):
             self.assertNotIn("tests/products/korean-writing-editor/offline/", text)
             self.assertNotIn("`tests/products/image-workbench/`", text)
             self.assertNotIn("tests/products/how-it-works/", text)
-            self.assertNotIn("`tests/products/pre-sdd-review/`", text)
 
     def test_shared_guides_name_current_evidence_dimensions(self) -> None:
         for language in ("ko", "en"):
@@ -908,10 +832,7 @@ class UserGuideFactTests(unittest.TestCase):
                     "35", "normative=10", "runner 18", "32", "17",
                     "14 cases / 17 repeats", "119 / 3 / 122 / 38 / 160",
                     "hard", "failed", "partially_verified", "fence/hop",
-                    "loading", "syntax", "meaning", "schema 2", "schema 3",
-                    "schema-unsupported", "unsupported_records",
-                    "checkout", "LF",
-                    '"schema":5,"skill_name":"pre-sdd-review"', "schema 4", "schema 5",
+                    "loading", "syntax", "meaning",
                 ):
                     self.assertIn(phrase, verification)
                 compatibility = _read(base / "compatibility.md")
@@ -935,184 +856,6 @@ class UserGuideFactTests(unittest.TestCase):
                         compatibility,
                     )
                 self.assertNotIn("windows-portable", compatibility)
-                safety = _read(base / "safety-and-privacy.md")
-                for phrase in (
-                    "receipt", "semantic verdict", "32-byte", ".identity-salt",
-                    "HMAC-SHA-256", "repo_key", "clone/worktree", "evidence home",
-                    "schema 2", "schema-unsupported",
-                ):
-                    self.assertIn(phrase.lower(), safety.lower())
-                self.assertNotIn("schema 3와 4", safety)
-                self.assertNotIn("schema 3 and 4", safety.lower())
-
-    def test_pre_sdd_review_shared_guides_preserve_scope_and_evidence_limits(self) -> None:
-        korean_codex = _read(ROOT / "docs/users/ko/install-codex.md")
-        english_codex = _read(ROOT / "docs/users/en/install-codex.md")
-        installer = INSTALLER_COMMANDS["pre-sdd-review"]
-        self.assertIn(installer, korean_codex)
-        self.assertIn(installer, english_codex)
-        evidence = _read(ROOT / "skills/pre-sdd-review/evidence/README.md")
-        self.assertIn(
-            "python3 skills/pre-sdd-review/evidence/evidence.py --version",
-            evidence,
-        )
-        for language in ("ko", "en"):
-            for filename in ("installation.md", "install-codex.md", "install-local.md"):
-                text = _read(ROOT / "docs/users" / language / filename)
-                self.assertNotIn("--bin-dir", text)
-                self.assertNotIn("install.py", text)
-                self.assertNotIn("pre-sdd-review-evidence launcher", text)
-                self.assertNotIn("~/.local/bin/pre-sdd-review-evidence", text)
-
-        korean_safety = _read(ROOT / "docs/users/ko/safety-and-privacy.md")
-        english_safety = _read(ROOT / "docs/users/en/safety-and-privacy.md")
-        self.assertEqual(
-            pre_sdd_shared_contract_errors(korean_safety, language="ko", document="safety"),
-            (),
-        )
-        self.assertEqual(
-            pre_sdd_shared_contract_errors(english_safety, language="en", document="safety"),
-            (),
-        )
-
-        korean_verification = _read(ROOT / "docs/users/ko/verification.md")
-        english_verification = _read(ROOT / "docs/users/en/verification.md")
-        self.assertIn("python3 scripts/verify.py --skill pre-sdd-review", korean_verification)
-        self.assertIn("python3 scripts/verify.py --skill pre-sdd-review", english_verification)
-        self.assertIn("pre-sdd-review-evidence", korean_verification)
-        self.assertIn("pre-sdd-review-evidence", english_verification)
-        self.assertIn("evidence.py", korean_verification)
-        self.assertIn("evidence.py", english_verification)
-        self.assertEqual(
-            pre_sdd_shared_contract_errors(
-                korean_verification,
-                language="ko",
-                document="verification",
-            ),
-            (),
-        )
-        self.assertEqual(
-            pre_sdd_shared_contract_errors(
-                english_verification,
-                language="en",
-                document="verification",
-            ),
-            (),
-        )
-
-    def test_pre_sdd_evidence_docs_forbid_sensitive_bounded_values_and_audit_claims(self) -> None:
-        korean = _read(ROOT / "docs/users/ko/safety-and-privacy.md")
-        english = _read(ROOT / "docs/users/en/safety-and-privacy.md")
-        combined = re.sub(r"\s+", " ", korean + "\n" + english)
-        for phrase in (
-            "source text",
-            "absolute paths",
-            "prompts",
-            "provider transcripts",
-            "credentials",
-            "automatic secret detection",
-            "not a signed audit log",
-            "bounded note, consequence, or fix",
-            "may be re-recorded",
-            "self-improvement evidence",
-            "anomalies",
-            "chains",
-            "run_id",
-        ):
-            self.assertIn(phrase, combined)
-        for phrase in (
-            "The recorder does not promise automatic secret detection.",
-            "Atomic local storage gives cooperating clients consistency; it is not a signed audit log resistant to malicious local tampering.",
-            "An `outcome` label (`good`, `false-ready`, `noisy`, `abandoned`) is an observation recorded by a person or the SDD worker after SDD or implementation ends and may be re-recorded to correct it.",
-            "Labels are self-improvement evidence, not objective quality judgments or audit-grade proof.",
-            "Reading the log is an agent's task: `summary` returns JSON whose anomalies and chains carry run_id values.",
-        ):
-            self.assertIn(phrase, re.sub(r"\s+", " ", english))
-
-    def test_pre_sdd_shared_clause_validator_rejects_reversed_polarities(self) -> None:
-        cases = (
-            (
-                "ko",
-                "safety",
-                _read(ROOT / "docs/users/ko/safety-and-privacy.md"),
-                (
-                    ("확인된 설계, 계획, 공유 파일 원장만 수정합니다", "확인된 설계, 계획, 공유 파일 원장뿐 아니라 application code도 수정합니다"),
-                    (
-                        "저장소 소유 테스트는 사용자 문서를 전송하거나 지속 저장하거나 픽스처로 수집하지 않습니다",
-                        "저장소 소유 테스트는 사용자 문서를 전송하고 지속 저장하고 픽스처로 수집합니다",
-                    ),
-                    (
-                        "이 제품은 텔레메트리나 업로드 경로를 추가하지 않습니다",
-                        "이 제품은 텔레메트리와 업로드 경로를 추가합니다",
-                    ),
-                    (
-                        "라이브 처리와 보존은 Codex 호스트의 데이터 제어를 따릅니다",
-                        "저장소 소유 테스트가 라이브 처리와 보존을 제어합니다",
-                    ),
-                    (
-                        "저장소 소유 테스트는 사용자 문서를 전송하거나 지속 저장하거나 픽스처로 수집하지 않습니다",
-                        "사용자 문서를 전송하거나 지속 저장하거나 저장소 소유 테스트 픽스처로 수집하지 않습니다",
-                    ),
-                    ("명시적인 외부 요청 없이는 구현이나 SDD를 시작하지 않습니다", "명시적인 외부 요청 없이도 구현이나 SDD를 시작합니다"),
-                ),
-            ),
-            (
-                "en",
-                "safety",
-                _read(ROOT / "docs/users/en/safety-and-privacy.md"),
-                (
-                    ("edits only the resolved design, plan, and shared-file ledger", "edits not only the resolved design, plan, and shared-file ledger but also application code"),
-                    (
-                        "Repository-owned tests do not transmit, persist, or capture user documents as fixtures",
-                        "Repository-owned tests transmit, persist, and capture user documents as fixtures",
-                    ),
-                    (
-                        "This product adds no telemetry or upload path",
-                        "This product adds telemetry and an upload path",
-                    ),
-                    (
-                        "Live processing and retention follow the Codex host's data controls",
-                        "Repository-owned tests control live processing and retention",
-                    ),
-                    (
-                        "Repository-owned tests do not transmit, persist, or capture user documents as fixtures",
-                        "It does not transmit or persist user documents or capture them as repository-owned test fixtures",
-                    ),
-                    ("never starts implementation or SDD without an explicit outer request", "starts implementation or SDD without an explicit outer request"),
-                ),
-            ),
-            (
-                "ko",
-                "verification",
-                _read(ROOT / "docs/users/ko/verification.md"),
-                (
-                    ("지시와 패키지 계약만 검증합니다", "지시와 패키지 계약뿐 아니라 라이브 동작도 검증합니다"),
-                    ("라이브 리뷰 품질을 증명하지 않습니다", "라이브 리뷰 품질을 증명합니다"),
-                ),
-            ),
-            (
-                "en",
-                "verification",
-                _read(ROOT / "docs/users/en/verification.md"),
-                (
-                    ("validate only instruction and package contracts", "validate instruction and package contracts plus live behavior"),
-                    ("They do not prove reviewer independence, semantic completeness, or live review quality", "They prove reviewer independence, semantic completeness, and live review quality"),
-                ),
-            ),
-        )
-        for language, document, source, mutations in cases:
-            for old, new in mutations:
-                with self.subTest(language=language, document=document, mutation=new):
-                    mutation = source.replace(old, new, 1)
-                    self.assertNotEqual(mutation, source)
-                    self.assertIn(
-                        "pre-sdd shared exact clauses differ",
-                        pre_sdd_shared_contract_errors(
-                            mutation,
-                            language=language,
-                            document=document,
-                        ),
-                    )
 
 
 class DocumentationArchitectureTests(unittest.TestCase):
@@ -1457,7 +1200,7 @@ class MaintainerStructureTests(unittest.TestCase):
                 )
 
     def test_english_source_validator_rejects_korean_even_in_code_and_comments(self) -> None:
-        source = _read(ROOT / "docs/maintainers/products/pre-sdd-review/testing.md")
+        source = _read(ROOT / "docs/maintainers/products/how-it-works/testing.md")
         self.assertEqual(maintainer_english_source_errors(source), ())
         for hidden in (
             "<!-- 숨겨진 한국어 -->\n\n",
@@ -1471,7 +1214,7 @@ class MaintainerStructureTests(unittest.TestCase):
                 )
 
     def test_english_source_validator_accepts_literal_comment_and_fence_markers(self) -> None:
-        source = _read(ROOT / "docs/maintainers/products/pre-sdd-review/compatibility.md")
+        source = _read(ROOT / "docs/maintainers/products/how-it-works/compatibility.md")
         prefixes = (
             "```html\n<!-- literal comment -->\n```\n\n",
             "~~~text\n<!-- literal unclosed comment\n~~~\n\n",
@@ -1532,9 +1275,6 @@ class MaintainerStructureTests(unittest.TestCase):
             "korean-writing-editor": "tests/products/korean-writing-editor/offline/",
             "image-workbench": "tests/products/image-workbench/",
             "how-it-works": "tests/products/how-it-works/",
-            "pre-sdd-review": "tests/products/pre-sdd-review/",
-            "sddx": "tests/products/sddx/",
-            "waygent": "tests/products/waygent/",
         }
         for name, path in expected.items():
             text = _read(ROOT / "docs" / "maintainers" / "products" / name / "testing.md")

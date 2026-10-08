@@ -82,9 +82,6 @@ class RegistryParsingTests(unittest.TestCase):
                 "korean-writing-editor",
                 "image-workbench",
                 "how-it-works",
-                "pre-sdd-review",
-                "sddx",
-                "waygent",
             ),
         )
 
@@ -165,17 +162,6 @@ class RegistryParsingTests(unittest.TestCase):
                 path.write_text(source, encoding="utf-8")
                 with self.assertRaises(ValueError):
                     load_registry(path)
-
-
-class ProductRegistryTests(unittest.TestCase):
-    def test_pre_sdd_review_is_codex_only(self) -> None:
-        product = load_registry(ROOT / "products.toml").require("pre-sdd-review")
-        self.assertEqual(product.display_name, "Pre-SDD Review")
-        self.assertEqual(product.supported_hosts, ("codex",))
-        self.assertEqual(
-            product.verify_stages,
-            ("product-contract", "pre-sdd-review-contract", "pre-sdd-review-evidence", "python-compile"),
-        )
 
 
 class RegistryRejectionTests(unittest.TestCase):

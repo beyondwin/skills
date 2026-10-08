@@ -28,5 +28,5 @@
 
 - Process command lines on this Mac carry other agents' API keys. Do not print `ps aux`, `pgrep -fl`, or `pgrep -a`; `pgrep -f <path>` prints only pids.
 - Codex: isolate each run with its own `HOME` and `CODEX_HOME` holding a copy of `auth.json`, and turn memories off so runs share no state. A `$skill` mention also injects the natively installed copy of that skill, so for a pinned copy leave the native one out of the run's home. `codex exec` does not expand `$skill` for an explicit-only skill.
-- The model and effort in `~/.codex/config.toml` are not always what runs (on 2026-10-02 it named `gpt-6.1-sol`/low, which a ChatGPT account rejects, while 12 of the last 15 sessions ran `gpt-6-astra`/high). Read what ran from the rollout's `turn_context` (`skills/sddx/scripts/observed_model.py`).
+- The model and effort in `~/.codex/config.toml` are not always what runs (on 2026-10-02 it named `gpt-6.1-sol`/low, which a ChatGPT account rejects, while 12 of the last 15 sessions ran `gpt-6-astra`/high). Read what ran from the rollout's `turn_context`.
 - `/usr/bin/python3` on stock macOS is 3.9, and product scripts have broken on it (`910bd21`). Keep product scripts free of newer syntax.

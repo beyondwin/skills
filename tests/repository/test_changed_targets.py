@@ -192,9 +192,6 @@ class TargetMappingTests(RegistryRoutingTestCase):
                 "korean-writing-editor",
                 "image-workbench",
                 "how-it-works",
-                "pre-sdd-review",
-                "sddx",
-                "waygent",
             ),
         )
 

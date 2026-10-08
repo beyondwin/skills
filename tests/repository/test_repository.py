@@ -132,12 +132,8 @@ class OpenAIMetadataTests(unittest.TestCase):
             self.assertIn("short_description:", text)
             self.assertIn("default_prompt:", text)
             self.assertIn(f"${skill.name}", text)
-            if skill.name in {"sddx", "waygent"}:
-                self.assertIn("allow_implicit_invocation: false", text)
-                self.assertNotIn("allow_implicit_invocation: true", text)
-            else:
-                self.assertIn("allow_implicit_invocation: true", text)
-                self.assertNotIn("allow_implicit_invocation: false", text)
+            self.assertIn("allow_implicit_invocation: true", text)
+            self.assertNotIn("allow_implicit_invocation: false", text)
             lowered = text.lower()
             self.assertNotIn("translate", lowered)
             self.assertNotIn("detector", lowered)

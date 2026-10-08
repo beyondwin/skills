@@ -38,10 +38,6 @@ FULL_STAGE_NAMES = (
     "image-contract",
     "image-inspector",
     "how-it-works-contract",
-    "pre-sdd-review-contract",
-    "pre-sdd-review-evidence",
-    "sddx-contract",
-    "waygent-contract",
     "python-compile",
 )
 LIVE_TEST_PATH = (
@@ -196,7 +192,6 @@ class VerifyStageTests(unittest.TestCase):
             any(part.endswith("skills/image-workbench/scripts") for part in paths),
             paths,
         )
-        self.assertIn("skills/pre-sdd-review/evidence", paths)
         self.assertFalse(any("*" in part for part in stage.argv))
 
     def test_run_stage_returns_subprocess_exit_code(self) -> None:
@@ -257,18 +252,6 @@ class VerifyStageTests(unittest.TestCase):
         names = [stage.name for stage in self._selected(skill="how-it-works")]
         self.assertEqual(names, ["product-contract", "how-it-works-contract", "python-compile"])
 
-    def test_sddx_selection_runs_only_shared_and_sddx_gates(self) -> None:
-        names = [stage.name for stage in self._selected(skill="sddx")]
-        self.assertEqual(names, ["product-contract", "sddx-contract", "python-compile"])
-
-
-    def test_pre_sdd_review_selects_its_registered_stages(self) -> None:
-        product = self.registry.require("pre-sdd-review")
-        selected = stages(ROOT, self.registry, skill=product.name)
-        self.assertEqual(
-            tuple(stage.name for stage in selected),
-            ("product-contract", "pre-sdd-review-contract", "pre-sdd-review-evidence", "python-compile"),
-        )
 
     def test_korean_selection_runs_only_shared_and_korean_gates(self) -> None:
         names = [
@@ -329,17 +312,6 @@ class VerifyStageTests(unittest.TestCase):
         self.assertIn("tests/products/how-it-works", stage.argv)
         self.assertEqual(stage.argv[stage.argv.index("-p") + 1], "test_*.py")
 
-    def test_pre_sdd_review_contract_is_portable_unittest_discovery(self) -> None:
-        stage = self._stage("pre-sdd-review-contract", skill="pre-sdd-review")
-        self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
-        self.assertIn("tests/products/pre-sdd-review", stage.argv)
-        self.assertIn("test_c*.py", stage.argv)
-
-    def test_pre_sdd_review_evidence_full_gate_uses_unittest_discovery(self) -> None:
-        stage = self._stage("pre-sdd-review-evidence", skill="pre-sdd-review")
-        self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
-        self.assertIn("tests/products/pre-sdd-review/evidence", stage.argv)
-        self.assertIn("test_*.py", stage.argv)
 
     def test_selected_stages_use_sys_executable_and_tuple_argv(self) -> None:
         selections = ("how-it-works", "korean-writing-editor", "image-workbench", None)

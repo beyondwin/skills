@@ -34,7 +34,7 @@ ARCHIVE_MARKERS = ("SKILLS_ARCHIVE_CHECKOUT", "source/private")
 CREDENTIAL_MARKERS = ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "CURSOR_API_KEY")
 IGNORE_NAMES = frozenset({"__pycache__"})
 BYTECODE_SUFFIXES = {".pyc", ".pyo"}
-EXPLICIT_ONLY_SKILLS = frozenset({"sddx", "waygent"})
+EXPLICIT_ONLY_SKILLS = frozenset()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -231,8 +231,6 @@ def validate_product(skill_root: Path, registry: ProductRegistry) -> list[str]:
         errors.extend(_validate_openai_yaml(openai_path, skill_root.name))
 
     allowed_top_level = ALLOWED_TOP_LEVEL | set(readme_names.values())
-    if skill_root.name == "pre-sdd-review":
-        allowed_top_level = allowed_top_level | {"evidence"}
     for child in skill_root.iterdir():
         if _is_ignored_residue(child.name):
             continue

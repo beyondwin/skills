@@ -20,23 +20,17 @@ python3 scripts/verify.py
 - image-contract
 - image-inspector
 - how-it-works-contract
-- pre-sdd-review-contract
-- pre-sdd-review-evidence
-- sddx-contract
-- waygent-contract
 - python-compile
 
 CI는 Ubuntu에서 이 검증을 돌립니다. Ubuntu CI 통과는 macOS 지원을 증명하지 않습니다.
 
-스킬 하나만 검사하려면 이름을 넘깁니다. `product-contract`, 그 스킬의 단계, `python-compile`만 돕니다. 여섯 이름 모두 됩니다. 예:
+스킬 하나만 검사하려면 이름을 넘깁니다. `product-contract`, 그 스킬의 단계, `python-compile`만 돕니다. 세 이름 모두 됩니다. 예:
 
 ```bash
-python3 scripts/verify.py --skill pre-sdd-review
-python3 scripts/verify.py --skill sddx
-python3 scripts/verify.py --skill waygent
+python3 scripts/verify.py --skill how-it-works
 ```
 
-제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`image-workbench`](../../../skills/image-workbench/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.ko.md), [`sddx`](../../../skills/sddx/README.ko.md), [`waygent`](../../../skills/waygent/README.ko.md).
+제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`image-workbench`](../../../skills/image-workbench/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md).
 
 ## 공유 증거 문장
 
@@ -52,12 +46,6 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 - Image Workbench: 픽스처 32개와 mutation(일부러 망가뜨린 변형) 17개.
 - 한국어 후보: hard 검사(필수 검사)가 하나라도 실패하면 `failed`입니다. hard 검사를 통과해도 의미·귀속·요청한 편집이 관측되지 않으면 `partially_verified`입니다. 오프라인 통과만으로 라이브 상태가 되지 않습니다.
 - How It Works: fence/hop 유효성, loading, syntax, meaning은 각각 따로 증거가 필요합니다. 메타데이터가 맞는 것만으로 모델 실행을 증명하지 않습니다.
-
-`pre-sdd-review`의 공급자 없는 픽스처는 지시와 패키지 계약만 검증합니다. 리뷰어 독립성, 의미 완전성, 라이브 리뷰 품질을 증명하지 않습니다.
-
-`pre-sdd-review-evidence` 단계는 `tests/products/pre-sdd-review/evidence/`에서 `evidence.py`를 검사합니다. 네트워크, 모델, provider, telemetry를 부르지 않습니다.
-
-Pre-SDD 기록기는 schema 5만 읽고 쓰며, 기록을 바꾸는 명령은 그 checkout 결속이 필요합니다. 6.0.0 전 기록기가 쓴 schema 2·schema 3·schema 4 record는 모든 명령에서 `schema-unsupported`로 거절되고, `summary`는 `unsupported_records`로 셉니다. 새 run을 막지 않으며, 치우려면 그 파일을 지웁니다. `--version`은 `"schema":5,"skill_name":"pre-sdd-review"`가 든 canonical JSON 한 줄과 LF 하나를 출력하고 evidence home을 만들지 않습니다. 정확한 바이트는 [기록기 README](../../../skills/pre-sdd-review/evidence/README.md)를 보세요.
 
 통과는 일반 품질을 증명하지 않습니다.
 

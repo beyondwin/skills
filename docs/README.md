@@ -26,9 +26,6 @@ Each skill README covers install, first call, and limits.
 | `korean-writing-editor` | [en](../skills/korean-writing-editor/README.md) | [ko](../skills/korean-writing-editor/README.ko.md) |
 | `image-workbench` | [en](../skills/image-workbench/README.md) | [ko](../skills/image-workbench/README.ko.md) |
 | `how-it-works` | [en](../skills/how-it-works/README.md) | [ko](../skills/how-it-works/README.ko.md) |
-| `pre-sdd-review` | [en](../skills/pre-sdd-review/README.md) | [ko](../skills/pre-sdd-review/README.ko.md) |
-| `sddx` | [en](../skills/sddx/README.md) | [ko](../skills/sddx/README.ko.md) |
-| `waygent` | [en](../skills/waygent/README.md) | [ko](../skills/waygent/README.ko.md) |
 
 ## Maintain, change, or release
 

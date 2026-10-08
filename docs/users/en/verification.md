@@ -20,23 +20,17 @@ With no arguments it runs every stage in this order and stops at the first failu
 - image-contract
 - image-inspector
 - how-it-works-contract
-- pre-sdd-review-contract
-- pre-sdd-review-evidence
-- sddx-contract
-- waygent-contract
 - python-compile
 
 CI runs this verification on Ubuntu. An Ubuntu CI pass does not prove macOS support.
 
-To check one skill, pass its name. This runs `product-contract`, that skill's own stages, and `python-compile`. Any of the six names works, for example:
+To check one skill, pass its name. This runs `product-contract`, that skill's own stages, and `python-compile`. Any of the three names works, for example:
 
 ```bash
-python3 scripts/verify.py --skill pre-sdd-review
-python3 scripts/verify.py --skill sddx
-python3 scripts/verify.py --skill waygent
+python3 scripts/verify.py --skill how-it-works
 ```
 
-Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`pre-sdd-review`](../../../skills/pre-sdd-review/README.md), [`sddx`](../../../skills/sddx/README.md), [`waygent`](../../../skills/waygent/README.md).
+Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md).
 
 ## Shared evidence sentences
 
@@ -52,12 +46,6 @@ Offline tests prove the fixed contract only. Each product's fixture paths are in
 - Image Workbench: 32 fixtures and 17 mutations (deliberately broken variants).
 - Korean candidates: any hard failure makes the result `failed`. If hard checks pass but meaning, attribution, or the requested edit was not observed, the result is `partially_verified`. An offline pass alone is never a live status.
 - How It Works: fence/hop validity, loading, syntax, and meaning each need their own evidence. Matching metadata alone proves no model run.
-
-`pre-sdd-review` provider-free fixtures validate only instruction and package contracts. They do not prove reviewer independence, semantic completeness, or live review quality.
-
-The `pre-sdd-review-evidence` stage tests `evidence.py` under `tests/products/pre-sdd-review/evidence/`. It makes no network, model, provider, or telemetry call.
-
-The Pre-SDD recorder reads and writes schema 5 only, and commands that change records need its checkout binding. Records in schema 2, schema 3, or schema 4, written by recorders before 6.0.0, fail every command with `schema-unsupported`; `summary` counts them in `unsupported_records`. They never block a new run; delete them to clear them. `--version` prints one canonical JSON line containing `"schema":5,"skill_name":"pre-sdd-review"`, then one LF, and creates no evidence home. The exact bytes are in the [recorder README](../../../skills/pre-sdd-review/evidence/README.md).
 
 A pass does not prove general quality.
 

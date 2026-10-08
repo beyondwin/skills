@@ -8,9 +8,6 @@
 | --- | --- | --- |
 | [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md) | Codex `$skill-installer` | [Codex 설치](install-codex.md) |
 | [`image-workbench`](../../../skills/image-workbench/README.ko.md) | Codex `$skill-installer`, Grok 로컬 링크 | [Codex 설치](install-codex.md), [로컬 링크](install-local.md) |
-| [`pre-sdd-review`](../../../skills/pre-sdd-review/README.ko.md) | Codex `$skill-installer` | [Codex 설치](install-codex.md). 선택 기록기: [evidence README](../../../skills/pre-sdd-review/evidence/README.md) |
 | [`how-it-works`](../../../skills/how-it-works/README.ko.md) | 로컬 링크 | [로컬 링크](install-local.md) |
-| [`sddx`](../../../skills/sddx/README.ko.md) | 로컬 링크 | [로컬 링크](install-local.md) |
-| [`waygent`](../../../skills/waygent/README.ko.md) | 로컬 링크 | [로컬 링크](install-local.md) |
 
 모든 스킬의 라이선스는 Apache-2.0입니다.

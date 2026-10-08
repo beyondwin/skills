@@ -219,8 +219,8 @@ reviewer's assertions, independence, or verdict are correct.
 
 ## The adopted correction
 
-The candidate adds one paragraph to
-[reviewer-protocol.md](../../../skills/pre-sdd-review/references/reviewer-protocol.md).
+The candidate adds one paragraph to `reviewer-protocol.md` in the skill that
+this study measured. That skill is no longer in the tree.
 The frozen protocol SHA-256 is
 `195b3cc04363769c6deb75b5b73544c039bf3b9f6b804a70e0f22b1e2eab7c9d`;
 candidate is `5d70337be164a9e27d60512520118f419273b2ac0faaaa8786ef76dee8ebce40`.

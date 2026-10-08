@@ -29,8 +29,7 @@ Before any merge, run `python3 scripts/verify.py`.
   People who install, verify, change, or release read `docs/users/` and this
   `docs/maintainers/` index. Put each file in its reader's tree only.
 - One doc owns each fact; other pages link to it. `docs/users/` owns public install,
-  each `contract.md` and `SKILL.md` own product behavior, and
-  `skills/pre-sdd-review/evidence/README.md` owns recorder commands.
+  and each `contract.md` and `SKILL.md` own product behavior.
 - Write short sentences in plain words.
 - When you change a current doc, update the test phrase and fact checks in the same
   change. Tests for maintainer and user docs check exact phrases, facts, lists, order,
@@ -59,9 +58,6 @@ change in one product never requires a version bump in another.
 | korean-writing-editor | [contract](products/korean-writing-editor/contract.md) | [testing](products/korean-writing-editor/testing.md) | [compatibility](products/korean-writing-editor/compatibility.md) | [release](products/korean-writing-editor/release.md) |
 | image-workbench | [contract](products/image-workbench/contract.md) | [testing](products/image-workbench/testing.md) | [compatibility](products/image-workbench/compatibility.md) | [release](products/image-workbench/release.md) |
 | how-it-works | [contract](products/how-it-works/contract.md) | [testing](products/how-it-works/testing.md) | [compatibility](products/how-it-works/compatibility.md) | [release](products/how-it-works/release.md) |
-| pre-sdd-review | [contract](products/pre-sdd-review/contract.md) | [testing](products/pre-sdd-review/testing.md) | [compatibility](products/pre-sdd-review/compatibility.md) | [release](products/pre-sdd-review/release.md) |
-| sddx | [contract](products/sddx/contract.md) | [testing](products/sddx/testing.md) | [compatibility](products/sddx/compatibility.md) | [release](products/sddx/release.md) |
-| waygent | [contract](products/waygent/contract.md) | [testing](products/waygent/testing.md) | [compatibility](products/waygent/compatibility.md) | [release](products/waygent/release.md) |
 
 What each doc holds:
 
@@ -69,17 +65,3 @@ What each doc holds:
 - Testing: deterministic fixtures, commands, evidence limits
 - Compatibility: current hosts, capabilities, evidence bounds, rules for new support
 - Release: version source, SemVer examples, check/build/download, failure recovery
-
-Where products differ:
-
-- pre-sdd-review: the contract also covers authority order and verdicts. Testing
-  covers provider-free contract fixtures and the evidence limits of the optional live
-  run. Compatibility is measured Codex support, with other hosts `not_measured`.
-  Release keeps a no-publication boundary.
-- sddx: the contract covers the split between host and execution backend, and attempt
-  lookup (`status`). Testing uses provider-free identity fixtures. Compatibility
-  covers the Claude Code and Codex orchestrators; worker CLIs are not hosts. Release
-  keeps a no-publication boundary.
-- waygent: the contract lists only the `SKILL.md` promises that tests lock (trailers,
-  progress file, review count, branch, same model, line limit). Hosts are Claude Code,
-  Codex, and Cursor Agent; measured runs are in the waygent compatibility doc.

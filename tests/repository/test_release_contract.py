@@ -25,9 +25,6 @@ EXPECTED = {
     "korean-writing-editor": "2.0.7",
     "image-workbench": "2.1.1",
     "how-it-works": "3.0.3",
-    "pre-sdd-review": "6.1.3",
-    "sddx": "8.2.0",
-    "waygent": "0.4.0",
 }
 REGISTRY = load_registry(ROOT / "products.toml")
 
@@ -52,11 +49,6 @@ class ProductReleaseTests(unittest.TestCase):
         self.assertEqual(product.tag, "how-it-works-v3.0.3")
         self.assertEqual(product.artifact_name, "how-it-works-v3.0.3.zip")
 
-    def test_pre_sdd_review_current_archive_identity(self) -> None:
-        product = load_product_release(ROOT / "skills/pre-sdd-review")
-        self.assertEqual(product.version, "6.1.3")
-        self.assertEqual(product.tag, "pre-sdd-review-v6.1.3")
-        self.assertEqual(product.artifact_name, "pre-sdd-review-v6.1.3.zip")
 
     def test_each_product_owns_an_independent_release_manifest(self) -> None:
         self.assertEqual(set(self.registry.names), set(EXPECTED))
@@ -91,17 +83,6 @@ class ProductReleaseTests(unittest.TestCase):
             skill_md = copy / "SKILL.md"
             skill_md.write_text(skill_md.read_text(encoding="utf-8") + "\n", encoding="utf-8")
             self.assertNotEqual(before, payload_sha256(copy))
-
-    def test_pre_sdd_evidence_sources_remain_non_executable(self) -> None:
-        from scripts.lib.product_contract import payload_entries
-
-        entries = {
-            entry["path"]: entry
-            for entry in payload_entries(ROOT / "skills/pre-sdd-review")
-        }
-        self.assertEqual(entries["evidence/evidence.py"]["mode"], "0644")
-        self.assertEqual(entries["evidence/README.md"]["mode"], "0644")
-        self.assertNotIn("evidence/install.py", entries)
 
 
 class ProductReleaseRejectionTests(unittest.TestCase):
@@ -162,14 +143,14 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         self.assertIn(f"missing {english}", errors)
 
     def test_english_first_product_requires_korean_copy_and_rejects_readme_en(self) -> None:
-        root = self._copy("waygent")
+        root = self._copy("how-it-works")
         self.assertEqual(validate_product(root, REGISTRY), [])
         (root / "README.ko.md").unlink()
         errors = "\n".join(validate_product(root, REGISTRY))
         self.assertIn("missing README.ko.md", errors)
         shutil.rmtree(root)
-        root = self._copy("waygent")
-        (root / "README.fr.md").write_text("# Waygent\n", encoding="utf-8")
+        root = self._copy("how-it-works")
+        (root / "README.fr.md").write_text("# How It Works\n", encoding="utf-8")
         errors = "\n".join(validate_product(root, REGISTRY))
         self.assertIn("unexpected top-level file: README.fr.md", errors)
 
@@ -269,22 +250,8 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         errors = "\n".join(validate_product(root, REGISTRY))
         self.assertIn("default_prompt must mention the skill", errors)
 
-    def test_sddx_openai_yaml_must_be_explicit_only(self) -> None:
-        root = self._copy("sddx")
-        path = root / "agents" / "openai.yaml"
-        path.write_text(
-            'interface:\n'
-            '  display_name: "SDDx"\n'
-            '  short_description: "Run Superpowers SDD with an external implementer"\n'
-            '  default_prompt: "Use $sddx to execute this implementation plan with an external implementer."\n'
-            "policy:\n"
-            "  allow_implicit_invocation: true\n",
-            encoding="utf-8",
-        )
-        errors = "\n".join(validate_product(root, REGISTRY))
-        self.assertIn("sddx invocation policy must be explicit-only", errors)
 
-    def test_non_sddx_openai_yaml_must_stay_implicit(self) -> None:
+    def test_implicit_openai_yaml_must_stay_implicit(self) -> None:
         root = self._copy("how-it-works")
         path = root / "agents" / "openai.yaml"
         path.write_text(

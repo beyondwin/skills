@@ -4,13 +4,10 @@
 from __future__ import annotations
 
 import argparse
-import json
 import os
-import stat
 import subprocess
 import sys
 import tempfile
-import zipfile
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -49,40 +46,6 @@ SHARED_RELEASE_PATHS = (
     "scripts/lib/archive.py",
     "scripts/lib/product_contract.py",
     "scripts/lib/product_registry.py",
-)
-SDDX_PAYLOAD_FILES = frozenset(
-    {
-        "CHANGELOG.md",
-        "LICENSE.txt",
-        "README.ko.md",
-        "README.md",
-        "SKILL.md",
-        "agents/openai.yaml",
-        "references/current-state.md",
-        "references/dispatch.md",
-        "references/worker-prompt.md",
-        "release.toml",
-        "scripts/extract_task.py",
-        "scripts/observed_model.py",
-        "scripts/prepare_grok_sandbox.py",
-        "scripts/resolve_backend.py",
-        "scripts/run_worker.py",
-    }
-)
-PRE_SDD_REVIEW_PAYLOAD_FILES = frozenset(
-    {
-        "CHANGELOG.md",
-        "LICENSE.txt",
-        "README.ko.md",
-        "README.md",
-        "SKILL.md",
-        "agents/openai.yaml",
-        "evidence/README.md",
-        "evidence/evidence.py",
-        "references/campaign.md",
-        "references/reviewer-protocol.md",
-        "release.toml",
-    }
 )
 REGISTRY = load_registry(ROOT / "products.toml")
 
@@ -191,10 +154,6 @@ def verify_product_download(root: Path, name: str, directory: Path) -> list[str]
     archive_errors = verify_product_archive(archive, name)
     if archive_errors:
         return archive_errors
-    if name == "pre-sdd-review":
-        archive_errors = _pre_sdd_review_archive_errors(archive)
-        if archive_errors:
-            return archive_errors
     with tempfile.TemporaryDirectory() as tmp:
         destination = Path(tmp)
         extract_errors = extract_archive(archive, destination)
@@ -327,136 +286,7 @@ def _run_product_smoke(root: Path, name: str, skill_root: Path) -> list[str]:
         return errors
     if name == "how-it-works":
         return _smoke_how_it_works(skill_root)
-    if name == "pre-sdd-review":
-        return _smoke_pre_sdd_review(skill_root)
-    if name == "sddx":
-        return _smoke_sddx(skill_root)
     return [f"unlisted skill is not accepted: {name}"]
-
-
-def _smoke_sddx(skill_root: Path) -> list[str]:
-    present = {
-        path.relative_to(skill_root).as_posix()
-        for path in skill_root.rglob("*")
-        if path.is_file()
-    }
-    errors = [
-        f"sddx: missing payload member: {relative}"
-        for relative in sorted(SDDX_PAYLOAD_FILES - present)
-    ]
-    errors.extend(
-        f"sddx: unexpected payload member: {relative}"
-        for relative in sorted(present - SDDX_PAYLOAD_FILES)
-    )
-    if errors:
-        return errors
-    skill = (skill_root / "SKILL.md").read_text(encoding="utf-8")
-    dispatch = (skill_root / "references" / "dispatch.md").read_text(encoding="utf-8")
-    if "--model grok-4.7" not in skill or "end in `-fast`" not in skill:
-        errors.append("sddx: SKILL.md does not pin non-fast Grok 4.7")
-    if "not pass a `-fast` id." not in dispatch:
-        errors.append("sddx: dispatch.md does not refuse a -fast model")
-    return errors
-
-
-def _smoke_pre_sdd_review(skill_root: Path) -> list[str]:
-    present = {
-        path.relative_to(skill_root).as_posix()
-        for path in skill_root.rglob("*")
-        if path.is_file()
-    }
-    errors = [
-        f"pre-sdd-review: missing payload member: {relative}"
-        for relative in sorted(PRE_SDD_REVIEW_PAYLOAD_FILES - present)
-    ]
-    for relative in sorted(present - PRE_SDD_REVIEW_PAYLOAD_FILES):
-        if relative == "scripts" or relative.startswith("scripts/"):
-            errors.append(
-                "pre-sdd-review: unexpected runtime/scripts payload member: "
-                f"{relative}"
-            )
-        else:
-            errors.append(f"pre-sdd-review: unexpected payload member: {relative}")
-    if errors:
-        return errors
-
-    expected_version = {"cli_version": "6.1.3", "schema": 5, "skill_name": "pre-sdd-review"}
-    expected_bytes = b'{"cli_version":"6.1.3","schema":5,"skill_name":"pre-sdd-review"}\n'
-    with tempfile.TemporaryDirectory(prefix="pre-sdd-review-smoke-") as directory:
-        evidence_home = Path(directory) / "evidence-home-must-stay-absent"
-        environ = os.environ.copy()
-        environ["PRE_SDD_REVIEW_HOME"] = str(evidence_home)
-        environ["PYTHONDONTWRITEBYTECODE"] = "1"
-        try:
-            completed = subprocess.run(
-                [sys.executable, str(skill_root / "evidence" / "evidence.py"), "--version"],
-                cwd=skill_root,
-                env=environ,
-                check=False,
-                capture_output=True,
-            )
-        except OSError:
-            return ["pre-sdd-review: extracted evidence recorder could not execute"]
-        if completed.returncode != 0:
-            errors.append("pre-sdd-review: extracted evidence recorder --version failed")
-        if completed.stdout != expected_bytes or completed.stderr != b"":
-            errors.append("pre-sdd-review: extracted evidence recorder version bytes differ")
-        try:
-            version = json.loads(completed.stdout)
-        except (UnicodeError, json.JSONDecodeError):
-            version = None
-        if version != expected_version:
-            errors.append("pre-sdd-review: extracted evidence recorder version object differs")
-        if evidence_home.exists():
-            errors.append("pre-sdd-review: extracted evidence recorder --version touched evidence home")
-    return errors
-
-
-def _pre_sdd_review_archive_errors(archive: Path) -> list[str]:
-    expected = {
-        f"pre-sdd-review/{relative}"
-        for relative in PRE_SDD_REVIEW_PAYLOAD_FILES
-    }
-    with zipfile.ZipFile(archive) as source:
-        infos = list(source.infolist())
-    present = {info.filename for info in infos}
-    errors = [
-        f"pre-sdd-review: missing archive member: {name}"
-        for name in sorted(expected - present)
-    ]
-    errors.extend(
-        f"pre-sdd-review: unexpected archive member: {name}"
-        for name in sorted(present - expected)
-    )
-    for info in infos:
-        file_type = (info.external_attr >> 16) & 0o170000
-        is_directory = info.filename.endswith("/") or file_type == stat.S_IFDIR
-        if is_directory:
-            errors.append(
-                f"pre-sdd-review: directory archive member: {info.filename}"
-            )
-        if info.filename in expected and info.create_system != 3:
-            errors.append(
-                "pre-sdd-review: archive member creator/type mismatch: "
-                f"{info.filename} requires Unix creator system 3 "
-                "with regular-file mode"
-            )
-        if info.filename in expected and file_type != stat.S_IFREG:
-            errors.append(
-                "pre-sdd-review: archive member type mismatch: "
-                f"{info.filename} is not a regular file"
-            )
-        unix_mode = (info.external_attr >> 16) & 0o777
-        if (
-            info.filename in expected
-            and file_type == stat.S_IFREG
-            and unix_mode & 0o111
-        ):
-            errors.append(
-                "pre-sdd-review: unexpected executable archive member: "
-                f"{info.filename}"
-            )
-    return errors
 
 
 def _smoke_how_it_works(skill_root: Path) -> list[str]:
