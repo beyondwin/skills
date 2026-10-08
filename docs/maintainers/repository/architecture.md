@@ -88,6 +88,10 @@ Repository only, never installed:
 | `docs/history/` | Work-in-progress designs and plans. Does not define the current contract |
 | `docs/research/` | Measured studies of skills and workflows, including retired products, and their harnesses. Does not define the current contract. Live-call code is not verified |
 | `docs/learning/` | Durable decision cases and conditional insights. See [learning](../../learning/README.md). Historical names are evidence, not supported products or aliases |
+
+The learning index, cases, insights, and templates are Korean originals. They have
+no parallel English copy; product and maintainer documentation keep their existing
+language rules.
 | `scripts/verify.py` | Model-free checks |
 | `scripts/changed_targets.py` | Picks the CI check scope from changed paths |
 | `scripts/release.py` | Product check, build, verify-download. See [release](release.md) |

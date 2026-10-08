@@ -1,70 +1,65 @@
-# Why did three workflow skills leave the tree?
+# 작업 흐름 스킬 세 개를 왜 삭제했을까?
 
-Decision date: 2026-10-09. Recorded on: 2026-10-09.
-Related work: pre-sdd-review, sddx, waygent.
-Outcome: removal confirmed; personal reasons remain unknown in reviewed sources.
-Evidence basis: deletion and registry commits plus retained research. The original
-deletion conversation was not reviewed. This case is closed as a factual record
-with an explicit gap, not as a complete explanation of intent.
+결정일: 2026-10-09. 기록일: 2026-10-09.
+관련 작업: pre-sdd-review, sddx, waygent.
+결과: 삭제 사실은 확인했습니다. 개인적 이유는 검토한 자료에서 확인하지 못했습니다.
+근거 성격: 삭제·등록 목록 변경 커밋과 남아 있는 연구입니다. 원래 삭제를 요청한 대화는
+검토하지 않았습니다. 의도를 완전히 설명하는 기록이 아니라 빈칸을 명시한 사실 기록으로
+마무리합니다.
 
-## Starting problem
+## 시작한 문제
 
-Unknown. The [removal commit](https://github.com/beyondwin/skills/commit/c5a0251fe4ab9b2e052b410c70594d70e2d0f0fa)
-states the action and affected scope, but does not explain what problem motivated
-removing the three skills. A joint commit does not prove a shared reason.
+미확인입니다. [삭제 커밋](https://github.com/beyondwin/skills/commit/c5a0251fe4ab9b2e052b410c70594d70e2d0f0fa)은
+행동과 범위를 설명하지만, 어떤 문제 때문에 세 스킬을 삭제했는지는 설명하지 않습니다.
+하나의 커밋으로 삭제했다는 사실이 이유도 같았음을 증명하지는 않습니다.
 
-## Conditions
+## 당시 조건
 
-The three products existed immediately before removal. The repository separately
-held research about waygent and pre-sdd-review. Those experiments describe specific
-tasks and conditions; they cannot substitute for the user's retirement decision.
-No inference about dissatisfaction, maintenance burden, or replacement is recorded
-as an established personal reason.
+세 제품은 삭제 직전까지 존재했습니다. 저장소에는 waygent와 pre-sdd-review에 관한
+연구도 있었습니다. 해당 실험은 특정 작업과 조건을 다루므로 사용자의 삭제 결정을
+대신 설명할 수 없습니다. 불만, 관리 부담, 대체 수단에 관한 추정을 확인된 개인적
+이유처럼 기록하지 않습니다.
 
-## Alternatives and choice
+## 대안과 선택
 
-Known choice: remove all three skill payloads, their product tests, and their
-maintainer docs from the current tree, retaining their Git history.
-Alternatives actually considered, the decision maker's rationale, and any intended
-replacement are unknown from the reviewed commits.
+확인된 선택은 현재 트리에서 세 스킬의 배포 파일, 제품 테스트, 관리 문서를 삭제하고
+Git 이력을 보존한 것입니다. 실제 검토한 대안, 결정자의 이유, 의도한 대체 수단은
+검토한 커밋에서 확인하지 못했습니다.
 
-## Implementation approach
+## 구현 방법
 
-The removal was followed by a [registry and documentation correction](https://github.com/beyondwin/skills/commit/9974e73f5cd84bbadd566c134f75550a2cad30bc),
-which aligned product lists, checks, and install guides with the remaining products.
-For source recovery, the following files exist at the full pre-removal revision:
+삭제 뒤 [제품 목록과 문서 수정](https://github.com/beyondwin/skills/commit/9974e73f5cd84bbadd566c134f75550a2cad30bc)이
+이어져 제품 목록, 검사, 설치 안내를 남은 제품에 맞췄습니다.
+삭제 전 리비전에는 다음 파일이 실제로 남아 있어 원문을 확인할 수 있습니다.
 
-- [pre-sdd-review payload](https://github.com/beyondwin/skills/blob/7ebdf1af53fdbee4e0628d250e6778102dbc8691/skills/pre-sdd-review/SKILL.md)
-- [sddx payload](https://github.com/beyondwin/skills/blob/7ebdf1af53fdbee4e0628d250e6778102dbc8691/skills/sddx/SKILL.md)
-- [waygent payload](https://github.com/beyondwin/skills/blob/7ebdf1af53fdbee4e0628d250e6778102dbc8691/skills/waygent/SKILL.md)
+- [pre-sdd-review 배포 파일](https://github.com/beyondwin/skills/blob/7ebdf1af53fdbee4e0628d250e6778102dbc8691/skills/pre-sdd-review/SKILL.md)
+- [sddx 배포 파일](https://github.com/beyondwin/skills/blob/7ebdf1af53fdbee4e0628d250e6778102dbc8691/skills/sddx/SKILL.md)
+- [waygent 배포 파일](https://github.com/beyondwin/skills/blob/7ebdf1af53fdbee4e0628d250e6778102dbc8691/skills/waygent/SKILL.md)
 
-These are historical citations, not installation or restoration instructions.
+과거 근거를 가리키는 인용이며 설치나 복원 안내가 아닙니다.
 
-## Observed result
+## 확인한 결과
 
-The removal diff and following registry revision establish what left the tree.
-The retained [pre-sdd-review report](../../research/2026-10-pre-sdd-review-eval/README.md#decision)
-explicitly says its experiment does not justify deleting the skill. It found no
-added discoveries on the tested small plans and described traceability benefits
-and unmeasured larger cases. Treating this as proof of the user's deletion motive
-would overstate both the experiment and the historical record.
+삭제 diff와 이후 제품 목록 리비전으로 무엇이 사라졌는지 확인할 수 있습니다.
+남아 있는 [pre-sdd-review 보고서](../../research/2026-10-pre-sdd-review-eval/README.md#decision)는
+해당 실험이 스킬 삭제를 정당화하지 않는다고 명시합니다. 실험한 작은 계획에서는 추가
+결함 발견이 없었고, 추적 가능한 기록의 이점과 더 큰 사례는 측정하지 않았다는 한계를
+설명합니다. 이를 사용자의 삭제 동기를 증명하는 자료로 쓰면 실험과 과거 기록 모두를
+과장하게 됩니다.
 
-The [waygent record](2026-09-27-light-implementation-workflow.md) likewise preserves
-specific benefits, costs, and rejected changes. Neither record demonstrates that
-all three products failed or became universally unnecessary.
-No runtime or quality test was run for this historical reconstruction.
+[waygent 기록](2026-09-27-light-implementation-workflow.md)에도 구체적인 이점, 비용,
+기각한 변경이 남아 있습니다. 어느 기록도 세 제품이 모두 실패했거나 모든 상황에서
+불필요해졌음을 입증하지 않습니다. 이번 이력 복원을 위해 실행·품질 테스트를 하지 않았습니다.
 
-## Disposition
+## 유지와 종료 판단
 
-Retired from this repository. Research and Git history remain useful evidence;
-there is no supported alias or compatibility shim. An intended replacement and
-conditions for reconsideration are unknown. If the user later supplies a reason,
-append a dated recollection with its source and specify whether it applies to one
-product or all three. Keep the distinction from evidence recorded at deletion time.
+이 저장소에서는 삭제됐습니다. 연구와 Git 이력은 근거로 남아 있으며 지원 별칭이나
+호환용 코드는 없습니다. 의도한 대체 수단과 재검토 조건은 미확인입니다. 나중에 사용자가
+이유를 알려 주면 날짜와 출처를 붙여 회고로 추가하고, 한 제품에 대한 이유인지 세 제품
+모두에 대한 이유인지 명시합니다. 삭제 당시 기록과의 구분은 유지합니다.
 
-## Reusable lesson
+## 다음에 쓸 배움
 
-Inferred now: preserve the retirement decision separately from nearby performance
-studies. Record the reason before removing the product's working documentation;
-leave unknowns explicit when reconstructing older work. See
-[the insight](../insights.md#retirement-and-experimental-results-are-different-claims).
+현재의 해석: 삭제 결정은 가까운 시기의 성능 연구와 따로 보존합니다. 제품의 작업
+문서를 지우기 전에 이유를 적고, 과거 작업을 복원할 때는 모르는 부분을 명시합니다.
+[관련 인사이트](../insights.md#삭제-결정과-실험-결과는-다른-주장이다)를 참고합니다.

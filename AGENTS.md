@@ -4,14 +4,14 @@
 - If a skill's instructions make you stop, name the file, the exact wording, and why it applies. Do not run the procedure of a `SKILL.md` you are editing as if it applied to the current task.
 - Check the relevant contracts before you start, and keep any changes already in the working tree.
 - Report to the user in Korean, briefly: what changed, what verification actually ran, and what is left.
-- Docs are English. Only user-facing READMEs and user guides get a Korean copy (`README.ko.md`, `docs/users/ko/`). Legacy is not supported: delete old paths, names, and shims instead of keeping them working.
+- Docs are English except `docs/learning/`, whose index, cases, insights, and templates are Korean originals with no English duplicate. User-facing READMEs and user guides get a Korean copy (`README.ko.md`, `docs/users/ko/`). Legacy is not supported: delete old paths, names, and shims instead of keeping them working.
 
 ## Repository
 
 - How the tree is split: [Architecture](docs/maintainers/repository/architecture.md).
 - Products and owned paths: [products.toml](products.toml). Contribution scope: [CONTRIBUTING.md](CONTRIBUTING.md).
 - Before you create or improve a skill, read [Skill practices](docs/maintainers/repository/skill-practices.md): measured rules for writing a skill and measuring a change. Add a rule there only with its evidence.
-- For a meaningful design, behavior, cost, support, or retirement decision, read related [learning cases](docs/learning/README.md), then create or update one case as part of the work. Record intent and alternatives while available; close with actual results, limits, and evidence. Keep unknown reasons unknown, without blocking routine work. Include the case link in the handoff. Typos and mechanical version updates need no case.
+- For a meaningful design, behavior, cost, support, or retirement decision, read related [learning cases](docs/learning/README.md), then create or update one case in Korean as part of the work. Record intent and alternatives while available; close with actual results, limits, and evidence. Keep unknown reasons unknown, without blocking routine work. Include the case link in the handoff. Typos and mechanical version updates need no case.
 - When you edit `skills/<name>/`, check the contracts in `tests/products/<name>/` and `docs/maintainers/products/<name>/`.
 - When an installed product file changes, update `skills/<name>/release.toml`, `metadata.version` in `SKILL.md`, and the `Unreleased` section of `CHANGELOG.md` together, per [Versioning](docs/maintainers/repository/versioning.md).
 - A supported-host change goes into the product list, the docs, and the tests together.

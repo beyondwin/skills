@@ -1,71 +1,67 @@
-# How much orchestration should an implementation skill add?
+# 구현 스킬에 작업 관리 절차를 얼마나 넣을까?
 
-Decision date: 2026-09-27, with revisions through 2026-10-07.
-Recorded on: 2026-10-09. Related work: waygent.
-Outcome: a lightweight workflow was built, evaluated, and revised; later retired.
-Evidence basis: retrospective synthesis of committed research and product changes.
+결정일: 2026-09-27. 이후 2026-10-07까지 수정했습니다.
+기록일: 2026-10-09. 관련 작업: waygent.
+결과: 가벼운 작업 절차를 구현·평가·수정했고 이후 삭제했습니다.
+근거 성격: 커밋된 연구와 제품 변경을 사후에 종합했습니다.
 
-## Starting problem
+## 시작한 문제
 
-The [design and evaluation record](../../research/2026-09-waygent-eval/README.md)
-links the design to an agent-workflow comparison, the user's earlier workflow
-comparison, and independent model proposals. The aim reflected in those sources
-was to retain useful implementation and review structure with less orchestration
-overhead. This is a synthesis of the record, not a verbatim statement of intent.
+[설계와 평가 기록](../../research/2026-09-waygent-eval/README.md)은 에이전트 작업 흐름
+비교, 사용자의 이전 작업 흐름 비교, 독립적인 모델 제안을 설계의 출발점으로 연결합니다.
+이 자료에 드러난 목표는 유용한 구현·리뷰 구조를 유지하면서 절차의 부가 비용을 줄이는
+것이었습니다. 이는 기록을 종합한 설명이며 의도에 관한 발언 원문은 아닙니다.
 
-## Conditions
+## 당시 조건
 
-The research's inclusion table explicitly attributes tests-first implementation
-and a review per task without re-review to user requirements. Its measured tasks
-and models bound the conclusions; the simple initial job did not represent every
-large implementation plan. Progress recovery and a main agent's judgment about
-review findings mattered alongside hidden-test scores.
+연구의 채택 항목 표는 테스트 우선 구현, 작업별 리뷰, 재리뷰를 하지 않는다는 조건을
+사용자 요구로 명시합니다. 결론은 측정한 작업과 모델에 한정됩니다. 처음의 단순한
+작업이 모든 대규모 구현 계획을 대표하지는 않았습니다. 숨겨진 테스트 점수뿐 아니라
+중단 후 재개와 메인 에이전트가 리뷰 지적을 판단하는 방식도 중요했습니다.
 
-## Alternatives and choice
+## 대안과 선택
 
-- Plain execution provided the baseline and nearly matched structured workflows
-  on the initial task, while retaining a particular hidden defect.
-- Final-review-only was measured as cheaper at similar quality on that task.
-  The default still retained review per task, as requested. Measurement and product
-  preference therefore supported different parts of the final choice.
-- The selected design used a fresh implementer per task, a short brief plus shared
-  guide, one review and fix, and a final full review.
-- Per-task report files, re-review loops, parallel implementers, and repeated human
-  confirmations were left out. These are recorded exclusions, not missing features
-  inferred from the final code.
+- 일반 실행을 기준선으로 삼았습니다. 초기 작업에서는 구조화된 절차와 비슷한 결과를
+  냈지만 특정 숨겨진 결함이 남았습니다.
+- 최종 리뷰만 하는 방식은 해당 작업에서 비슷한 품질에 더 저렴했습니다. 그래도 요청에
+  따라 기본값에는 작업별 리뷰를 유지했습니다. 측정과 제품 선호가 선택의 서로 다른
+  부분을 뒷받침한 셈입니다.
+- 선택한 설계는 작업마다 새 구현 에이전트, 짧은 작업 설명과 공통 안내, 리뷰와 수정
+  한 번, 마지막 전체 리뷰를 사용했습니다.
+- 작업별 보고서 파일, 재리뷰 반복, 병렬 구현, 매 작업의 사용자 확인은 제외했습니다.
+  이는 기록된 제외 결정이며 최종 코드만 보고 누락됐다고 추정한 기능이 아닙니다.
 
-## Implementation approach
+## 구현 방법
 
-The [initial implementation](https://github.com/beyondwin/skills/commit/6a99573fdc991076a7b2dc3649241f0cdc8a2414)
-used progress records and commit trailers for resume, and one written cause and
-retry for failure. Later revisions changed record placement and model routing;
-the [routing record](../../research/2026-09-waygent-eval/model-routing.md) owns that
-history. These historical mechanisms are not instructions to run the retired skill.
+[초기 구현](https://github.com/beyondwin/skills/commit/6a99573fdc991076a7b2dc3649241f0cdc8a2414)은
+진행 기록과 커밋 메타데이터로 재개를 지원했고, 실패 시 원인을 적고 한 번 재시도했습니다.
+이후 기록 위치와 역할별 모델 선택이 바뀌었습니다. 그 이력은
+[모델 선택 기록](../../research/2026-09-waygent-eval/model-routing.md)이 관리합니다.
+이는 과거 방식의 설명이며 삭제된 스킬을 실행하라는 지시가 아닙니다.
 
-## Observed result
+## 확인한 결과
 
-The research reports 22 initial runs across 13 condition-model cells on one job,
-followed by separate app and routing studies. It records both gains and limits:
-finding a defect did not ensure the main agent accepted and fixed it, and the
-cheaper final-only result was bounded to the measured task.
+연구는 한 작업을 대상으로 조건·모델 조합 13개에서 초기 실행 22회를 수행했다고
+보고합니다. 이후 앱과 모델 선택에 관한 별도 연구가 이어졌습니다. 이점과 한계를 모두
+기록했습니다. 결함을 발견해도 메인 에이전트가 받아들여 고친다는 보장은 없었고,
+최종 리뷰만 할 때 더 저렴했다는 결과도 측정한 작업에 한정됐습니다.
 
-One later [decision probe and resulting change](https://github.com/beyondwin/skills/commit/3c4cf9ac02a426bd399538d602970dd80784503f)
-is particularly reusable. Added wording failed to stop incorrect reversals of a
-correct ruling; stronger wording also parked a correct task. The rule was dropped
-and the remaining failure mode acknowledged. Full measurements stay in the
-[results](../../research/2026-09-waygent-eval/results.md), not duplicated here.
-No experiment was rerun for this reconstruction.
+이후의 [판단 실험과 변경](https://github.com/beyondwin/skills/commit/3c4cf9ac02a426bd399538d602970dd80784503f)은
+재사용할 가치가 있습니다. 문구를 추가해도 올바른 판단을 잘못 뒤집는 행동을 막지 못했고,
+더 강한 문구는 올바른 작업까지 보류시켰습니다. 해당 규칙은 제외하고 남은 실패 가능성을
+인정했습니다. 전체 측정치는 [결과 문서](../../research/2026-09-waygent-eval/results.md)에
+유지하며 여기에는 중복하지 않습니다. 이번 복원을 위해 실험을 다시 실행하지 않았습니다.
 
-## Disposition
+## 유지와 종료 판단
 
-The skill was removed on 2026-10-09. Its creation and measured revisions do not
-establish why the user later removed it. That separate question is recorded in
-the [retirement case](2026-10-09-retire-workflow-skills.md). Research, fixtures, and
-design lessons remain; this record does not recommend reinstalling it.
+스킬은 2026-10-09에 삭제됐습니다. 생성 과정과 측정된 개선만으로 사용자가 나중에
+삭제한 이유를 확정할 수는 없습니다. 그 질문은 [삭제 사례](2026-10-09-retire-workflow-skills.md)에
+따로 남겼습니다. 연구, 테스트 사례, 설계 교훈은 남아 있으며 이 기록이 재설치를
+권장하는 것은 아닙니다.
 
-## Reusable lesson
+## 다음에 쓸 배움
 
-Inferred now: evaluate orchestration components separately and retain the reason
-for each choice, including preferences that a small benchmark cannot settle.
-A stricter instruction must be checked for newly blocked correct work as well as
-the failure it targets. See [the insight](../insights.md#more-procedure-needs-a-specific-benefit).
+현재의 해석: 작업 관리 절차의 구성 요소를 나눠 평가하고, 작은 벤치마크만으로
+결정할 수 없는 선호까지 선택 이유로 남깁니다. 지시를 강화할 때는 겨냥한 실패뿐
+아니라 올바른 작업이 새로 막히는지도 확인해야 합니다.
+[관련 인사이트](../insights.md#추가-절차에는-구체적인-효용이-필요하다)를 참고합니다.

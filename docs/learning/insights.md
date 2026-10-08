@@ -1,53 +1,51 @@
-# Insights to check before reusing
+# 다시 쓰기 전에 확인할 인사이트
 
-Recorded on 2026-10-09 from the linked cases. These are conditional lessons, not
-new product contracts. Each entry distinguishes historical evidence from today's
-interpretation. None is promoted to skill practices by this initial reconstruction.
-Keep stable headings for links. When evidence changes, add a dated qualification
-and follow-up case; do not silently rewrite what an old decision was based on.
+연결된 사례를 바탕으로 2026-10-09에 정리했습니다. 조건이 있는 교훈이며 새로운
+제품 계약이 아닙니다. 각 항목은 당시 근거와 현재의 해석을 구분합니다.
+이번 정리만으로 스킬 작성 원칙에 승격한 항목은 없습니다. 제목은 링크가 유지되도록
+안정적으로 관리합니다. 근거가 달라지면 날짜가 있는 한정 설명과 후속 사례를 붙이고,
+과거 결정이 무엇에 근거했는지 몰래 바꾸지 않습니다.
 
-## More procedure needs a specific benefit
+## 추가 절차에는 구체적인 효용이 필요하다
 
-- **Claim:** added orchestration should earn its cost through a named outcome;
-  stricter wording can also stop correct work.
-- **Basis:** [waygent case](cases/2026-09-27-light-implementation-workflow.md), its
-  linked component comparisons, and the decision probe that rejected a stricter rule.
-- **Scope:** those measured implementation jobs and the failure addressed by that
-  probe. This is a synthesis of bounded results, not a universal model ranking.
-- **Exception:** independent closure or durable traceability may be an explicit
-  requirement even without extra defect discoveries. A user preference is a distinct
-  reason, not an experimental win.
-- **Next action:** compare the existing approach with the added component. Define
-  the intended benefit and inspect regressions, especially newly blocked correct work.
+- **주장:** 작업 관리 절차를 추가할 때는 비용을 감수할 만큼 구체적인 성과가 있어야 합니다.
+  더 엄격한 문구가 올바른 작업까지 중단시킬 수도 있습니다.
+- **근거:** [waygent 사례](cases/2026-09-27-light-implementation-workflow.md)에 연결된
+  구성 요소 비교와, 더 엄격한 규칙을 기각한 판단 실험입니다.
+- **범위:** 해당 실험의 구현 작업과 겨냥했던 실패에 한정됩니다.
+  제한된 결과를 종합한 해석이며 보편적인 모델 순위가 아닙니다.
+- **예외:** 추가 결함을 찾지 못해도 독립적인 종료 검토나 오래 보관할 추적 기록이 명시적인
+  요구일 수 있습니다. 사용자 선호는 별도의 이유이며 실험상의 우위를 뜻하지 않습니다.
+- **다음 행동:** 기존 방식과 절차를 추가한 방식을 비교합니다. 기대 효과를 먼저 정하고,
+  특히 올바른 작업이 새로 막히는지 등 부작용을 확인합니다.
 
-## Defaults can remove an unnecessary turn
+## 기본값으로 불필요한 질문을 줄일 수 있다
 
-- **Claim:** a disclosed, reversible default can remove a low-value clarification
-  step from a bounded explanation.
-- **Basis:** [how-it-works case](cases/2026-09-12-explain-before-depth-question.md).
-  This is a design interpretation; that change did not measure learning outcomes.
-- **Scope:** presentation depth when the mechanism is already identified and an
-  explicit user choice remains authoritative.
-- **Exception:** missing subjects, conflicting requirements, consequential choices,
-  and high-stakes constraints can still require clarification.
-- **Next action:** identify whether the question changes the substance or merely
-  delays a safe first answer. If choosing a default, disclose it and preserve overrides.
+- **주장:** 범위가 정해진 설명에서는 사용자가 바꿀 수 있는 기본값을 알리고 적용해
+  가치가 낮은 확인 질문을 줄일 수 있습니다.
+- **근거:** [how-it-works 사례](cases/2026-09-12-explain-before-depth-question.md)입니다.
+  설계에 대한 해석이며 당시 변경에서는 학습 효과를 측정하지 않았습니다.
+- **범위:** 설명할 메커니즘이 이미 정해져 있고 사용자의 명시적 선택을 우선하는 상황에서의
+  표현 깊이 선택에 적용합니다.
+- **예외:** 주제가 없거나 요구가 충돌하거나 결과에 큰 영향을 주는 선택과 고위험 제약이
+  있다면 여전히 확인이 필요할 수 있습니다.
+- **다음 행동:** 질문이 답변의 본질을 바꾸는지, 안전하게 할 수 있는 첫 설명만 늦추는지
+  구분합니다. 기본값을 택하면 이를 알리고 명시적 선택을 존중합니다.
 
-## Retirement and experimental results are different claims
+## 삭제 결정과 실험 결과는 다른 주장이다
 
-- **Claim:** a study's limited result does not establish a user's reason for
-  retiring the subject of that study.
-- **Basis:** [retirement case](cases/2026-10-09-retire-workflow-skills.md). The reviewed
-  commits specify removal, while the nearby report explicitly limits a deletion inference.
-- **Scope:** reconstructing intent from code, experiments, and commit history.
-  The missing source is a limit of this reconstruction, not proof that no reason existed.
-- **Exception:** a decision record may explicitly cite the study as its reason;
-  a later user recollection can also supply a reason if labeled as retrospective.
-- **Next action:** record the actual disposition and known reason separately. When
-  the reason is unavailable, leave it unknown and retain a place for dated follow-up.
+- **주장:** 제한된 실험 결과만으로 사용자가 해당 제품을 삭제한 이유를 확정할 수 없습니다.
+- **근거:** [삭제 사례](cases/2026-10-09-retire-workflow-skills.md)입니다. 검토한 커밋은
+  삭제 사실을 적고, 가까운 시기의 보고서는 그 실험으로 삭제를 정당화할 수 없다고 명시합니다.
+- **범위:** 코드, 실험, 커밋 이력으로 의도를 복원하는 작업에 적용합니다.
+  출처가 빠진 것은 이번 복원의 한계이며 이유가 없었다는 증거가 아닙니다.
+- **예외:** 의사결정 기록이 실험을 삭제 이유로 직접 인용할 수 있습니다.
+  나중의 사용자 설명도 사후 회고임을 표시하면 이유를 보충할 수 있습니다.
+- **다음 행동:** 실제 처리 결과와 확인된 이유를 따로 적습니다. 이유를 알 수 없으면
+  미확인으로 두고 날짜가 있는 후속 설명을 추가할 수 있게 합니다.
 
-## Pending process hypothesis
+## 아직 확인할 운영 가설
 
-The [adoption case](cases/2026-10-09-preserve-decision-context.md) proposes that short
-records at task closure improve reuse. Assess this after real use; do not cite the
-existence of these documents as proof that the workflow saves time.
+[도입 사례](cases/2026-10-09-preserve-decision-context.md)는 작업 종료 시 짧게
+기록하면 다음 작업에 재사용하기 쉬워진다는 가설을 제안합니다. 실제 사용 후 평가해야
+하며, 문서가 생겼다는 사실만으로 시간이 절약됐다고 주장하지 않습니다.

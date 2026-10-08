@@ -37,6 +37,6 @@ the tree is split is in [architecture](maintainers/repository/architecture.md).
 - [`docs/history/`](history/): designs still in progress.
 - [`docs/research/`](research/README.md): measured runs of skills and workflows.
 - [`docs/learning/`](learning/README.md): why work began, decisions and outcomes,
-  retirement reasons, and reusable insights.
+  retirement reasons, and reusable insights, written in Korean.
 
 These records do not define the current product contract.

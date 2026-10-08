@@ -39,7 +39,8 @@ Before any merge, run `python3 scripts/verify.py`.
 - `docs/history/` holds only work-in-progress designs and plans. It does not define
   the current contract.
 - `docs/learning/` keeps decision context after work ships or a product retires.
-  Follow its [recording workflow](../learning/README.md#working-cycle). Historical
+  Its index, cases, insights, and templates are Korean originals, without English
+  duplicates. Follow its [recording workflow](../learning/README.md). Historical
   cases do not change current product contracts or support claims.
 
 ## Repository docs

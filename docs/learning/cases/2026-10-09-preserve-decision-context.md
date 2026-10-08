@@ -1,86 +1,97 @@
-# How should decision context survive completed work?
+# 작업이 끝나도 판단의 맥락을 어떻게 남길까?
 
-Decision date: 2026-10-09. Recorded on: 2026-10-09.
-Related work: repository documentation and verification.
-Outcome: minimal recording workflow adopted; ongoing usefulness unmeasured.
-Evidence basis: the user requested durable insight from creation, implementation,
-choices, and deletion, and approved this approach in the current task. This is a
-summary of the approved scope, not a published raw conversation.
+결정일: 2026-10-09. 기록일: 2026-10-09.
+관련 작업: 저장소 문서와 검증.
+결과: 최소 기록 체계를 도입했습니다. 지속적인 효용은 아직 측정하지 않았습니다.
+근거 성격: 사용자는 생성·구현·선택·삭제에서 배운 내용을 오래 남기기를 요청했고,
+해당 작업에서 이 접근을 승인했습니다. 승인 범위를 요약한 것이며 대화 원문은 싣지 않습니다.
 
-## Starting problem
+## 시작한 문제
 
-Working plans were deleted on completion, while changes remained recoverable in
-Git. Research and skill practices already held valuable evidence, but readers
-needed a way to find intent, rejected choices, and retirement reasons across them.
-The recent retirement case demonstrates a specific missing reason, not proof that
-all prior work lacked records.
+완료된 작업 계획서는 삭제되고 변경 사항은 Git에서 찾을 수 있었습니다. 연구와 스킬
+작성 원칙에는 좋은 근거가 있었지만, 의도·기각한 대안·삭제 이유를 연결해서 찾는
+경로가 필요했습니다. 최근 삭제 사례는 특정 이유가 기록에 빠졌음을 보여 줍니다.
+모든 과거 작업에 기록이 없었다는 뜻은 아닙니다.
 
-## Conditions
+## 당시 조건
 
-Keep the system lightweight and in the repository. Preserve existing work and
-current product boundaries. Internal documents are English. No new skill, service,
-provider call, or legacy runtime is needed. Historical facts, later interpretation,
-and personal preferences must remain distinguishable.
+가볍게 운영하고 저장소 안에서 관리합니다. 기존 작업과 현재 제품의 범위를 보존합니다.
+처음 도입할 당시에는 내부 문서의 영어 작성 규칙을 따랐습니다. 이후 기록 언어에 관한
+사용자 요청은 아래 후속 결정에 남겼습니다. 새 스킬, 서비스, 제공업체 호출, 레거시
+실행 코드는 필요하지 않습니다. 과거 사실, 사후 해석, 개인적 선호를 구분해야 합니다.
 
-## Alternatives and choice
+## 대안과 선택
 
-- Git and changelogs alone: inexpensive, but require knowing which revision to
-  inspect and do not ensure intent or outcomes are written down.
-- Repository case records with evidence links: selected so reasoning can be
-  reviewed beside changes and survive product deletion.
-- An external notes system as the primary record: left out to avoid separating
-  decision history from code and verification. Later publication can reuse cases.
+- Git과 변경 이력만 사용: 부담은 작지만 어떤 리비전을 봐야 하는지 알아야 하고,
+  의도나 결과가 기록됐다는 보장도 없습니다.
+- 저장소 안에 근거 링크를 포함한 사례 기록: 변경과 함께 판단을 검토할 수 있고
+  제품 삭제 후에도 남기기 위해 선택했습니다.
+- 외부 노트를 기준 기록으로 사용: 코드·검증과 판단 이력이 떨어지는 것을 피하려고
+  채택하지 않았습니다. 나중에 외부로 글을 발행할 때 사례를 재사용할 수 있습니다.
 
-Start with Markdown and the existing link checker. Defer a schema, dashboards,
-automatic reason inference, and missing-case enforcement until actual use shows
-a need. No additional approval procedure is introduced.
+Markdown과 기존 링크 검사부터 시작합니다. 스키마, 대시보드, 이유 자동 추론,
+누락 기록의 강제 검사는 실제로 필요가 확인될 때까지 미룹니다. 추가 승인 절차는 없습니다.
 
-## Implementation approach
+## 구현 방법
 
-The [learning index and workflow](../README.md) owns when and how to record a case.
-Three historical cases cover an interaction change, workflow design, and retirement.
-This fourth case records the adoption decision itself. AGENTS.md connects recording
-to normal work; history cleanup first preserves significant decisions. Documentation
-indexes and the contribution guide provide discovery paths. The existing Markdown
-collector includes nested learning documents in provider-free link checks.
+[기록 목록과 작성 흐름](../README.md)이 언제 어떻게 사례를 적는지 안내합니다.
+초기 과거 사례 세 개는 상호작용 변경, 작업 흐름 설계, 삭제를 다룹니다. 네 번째인
+이 사례는 체계 자체의 도입 결정을 남깁니다. AGENTS.md가 기록을 일반 작업에 연결하고,
+진행 중 문서를 정리할 때 먼저 중요한 판단을 보존하도록 했습니다. 문서 목록과 기여
+안내로 찾아갈 수 있으며 기존 Markdown 수집기가 중첩된 사례까지 외부 호출 없는
+링크 검사에 포함합니다.
 
-## Observed result
+## 확인한 결과
 
-Initial reconstruction recovered explicit design trade-offs for two cases and a
-documented absence of rationale in the reviewed retirement commits. It did not
-recover the user's private deletion reasoning. No live model quality claim follows
-from the checks below.
+처음 복원할 때 두 사례에서 명시적인 설계의 장단점을 찾았습니다. 삭제 커밋에는
+이유가 적혀 있지 않았다는 점도 확인했습니다. 사용자의 개인적 삭제 이유는 복원하지
+못했습니다. 아래 검사가 실제 모델 품질을 입증하는 것은 아닙니다.
 
-Verification on 2026-10-09:
+초기 도입 시 2026-10-09에 실행한 검증:
 
-- Local public-document suite: 65 tests passed, including a regression that detects
-  a broken link in a nested learning case and passes after the target is supplied.
-- All 11 historical commit/file citations resolved against local Git objects.
-  Current documentation links and `git diff --check` passed.
-- `python3 scripts/verify.py` passed on macOS with Python 3.14.7 in a disposable
-  clone containing tracked files plus this change, staged for index-based package
-  checks: 641 unit tests, 35 Korean and 32 image cases, mutation checks, a provider-free
-  live-runner dry-run, and compilation. No provider calls ran.
-- The original checkout's full command stopped before tests because ignored `.pyc`
-  files kept five retired product directories present. Those files and an unrelated
-  untracked research folder were left untouched; the disposable clone excluded them.
-- A stock macOS Python 3.9 helper-test attempt could not import the existing registry
-  module because it requires `tomllib`. This does not establish Python 3.9 execution
-  support. No installed product runtime changed.
+- 로컬 공개 문서 테스트 65개가 통과했습니다. 하위 사례의 깨진 링크를 찾고 대상 파일이
+  생기면 통과하는 회귀 테스트를 포함합니다.
+- 과거 커밋·파일 인용 11개를 로컬 Git 객체로 확인했습니다.
+  현재 문서 링크와 `git diff --check`도 통과했습니다.
+- macOS의 Python 3.14.7에서 추적 파일과 이번 변경을 담은 임시 복사본으로
+  `python3 scripts/verify.py`를 통과했습니다. 인덱스 기반 패키지 검사를 위해 변경을
+  스테이징했습니다. 단위 테스트 641개, 한국어 사례 35개, 이미지 사례 32개, 변이 검사,
+  실제 실행 도구의 외부 호출 없는 dry-run, 컴파일을 포함합니다. 제공업체 호출은 없었습니다.
+- 원래 작업 폴더에서는 무시되는 `.pyc` 파일 때문에 삭제 제품 디렉터리 다섯 개가 남아
+  전체 명령이 테스트 전에 중단됐습니다. 이 파일과 별도의 미추적 연구 폴더는 건드리지
+  않았고 임시 복사본에서 제외했습니다.
+- macOS 기본 Python 3.9로 보조 테스트를 시도했지만 기존 제품 목록 모듈이 `tomllib`을
+  요구해 가져오지 못했습니다. Python 3.9 실행 지원을 입증한 것은 아니며 설치되는 제품
+  실행 코드는 바꾸지 않았습니다.
 
-The full run preceded the final documentation-only scope clarification and this
-verification note. The final focused document/governance suite passed 80 tests;
-code and test bytes match the full-run snapshot.
+전체 검증 후 기여 범위 설명과 검증 기록만 보완했습니다. 최종 문서·운영 규칙 테스트
+80개가 통과했고 코드·테스트 파일은 전체 검증 때의 바이트와 같았습니다.
+이는 초기 도입 검증 기록이며 이후의 모든 수정까지 검증됐다는 주장은 아닙니다.
 
-## Disposition
+## 유지와 종료 판단
 
-Adopt the small workflow and review its usefulness after the next three significant
-tasks, as described in the [review criteria](../README.md#review-and-verification).
-There is no scheduled background job. Simplify recording if it is repeatedly deferred;
-add tooling only for observed retrieval or consistency problems.
+작은 체계를 도입하고 [검토 기준](../README.md#검토와-검증)에 따라 다음 중요한 작업
+세 건을 마친 뒤 효용을 살펴봅니다. 예약된 백그라운드 작업은 없습니다. 기록을 반복해서
+미루면 먼저 간소화하고, 검색이나 일관성 문제가 관찰된 경우에만 도구를 추가합니다.
 
-## Reusable lesson
+### 후속 결정 — 2026-10-09: 기록은 한국어로 작성
 
-Hypothesis to assess in subsequent work: a short case attached to normal task closure
-can preserve usable reasoning without retaining every plan or conversation. This
-is an approved process choice, not yet a measured skill-writing rule.
+사용자가 영어로 된 기록을 한국어로 읽고 싶다고 요청했습니다. 이에 `docs/learning/`의
+목록·사례·인사이트·작성 양식을 한국어 원본으로 전환하고 향후 작성 규칙도 바꿨습니다.
+영어 사본을 병행하는 대안은 같은 내용을 두 번 관리해야 하므로 채택하지 않았습니다.
+코드 식별자, 명령, 경로, 모델명, 해시처럼 정확성이 필요한 표기는 유지합니다.
+다른 제품·관리 문서의 언어 정책은 유지합니다.
+
+이유는 사용자가 기록을 읽고 다시 쓰기 편하게 하려는 선호입니다. 한국어가 에이전트의
+수행 능력이나 검색 품질을 높인다는 실험 결과는 아닙니다. 초기 영어 선택을 없던 일로
+고치지 않고 이 후속 결정으로 변경 이유를 남깁니다.
+
+이번 언어 변경은 문서·운영 규칙 테스트 80개와 링크·diff 검사를 통과했습니다.
+번역 전후 외부 근거 URL이 같은지 비교했고, 과거 Git 참조 11개가 여전히 존재함을
+확인했습니다. 문서만 바뀌었으므로 초기 도입의 전체 실행·제품 검증은 반복하지 않았습니다.
+
+## 다음에 쓸 배움
+
+앞으로 확인할 가설: 일반 작업을 마칠 때 짧게 사례를 남기면 모든 계획과 대화를
+보관하지 않고도 쓸 만한 판단 근거를 유지할 수 있습니다. 승인된 운영 선택이며
+아직 측정으로 검증된 스킬 작성 규칙은 아닙니다.

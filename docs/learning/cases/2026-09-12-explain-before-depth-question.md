@@ -1,69 +1,67 @@
-# Ask for depth first or explain immediately?
+# 깊이를 먼저 물을까, 바로 설명할까?
 
-Decision date: 2026-09-12. Recorded on: 2026-10-09.
-Related work: how-it-works (formerly the unpublished working name graspic).
-Outcome: picture default implemented in the 3.0.0 change.
-Evidence basis: retrospective reconstruction from a contemporaneous approved design,
-implementation commits, and changelog; no new user interview or model run.
+결정일: 2026-09-12. 기록일: 2026-10-09.
+관련 작업: how-it-works. 공개 전 작업 이름은 graspic이었습니다.
+결과: 3.0.0 변경에서 기본 그림 설명을 구현했습니다.
+근거 성격: 당시 승인된 설계, 구현 커밋, 변경 이력을 나중에 복원했습니다.
+추가 사용자 인터뷰나 모델 실행은 하지 않았습니다.
 
-## Starting problem
+## 시작한 문제
 
-The [approved design](https://github.com/beyondwin/skills/blob/e9de3a1aed94f69d9e7018df837c2210ff375a73/docs/history/specs/2026-09-12-how-it-works-first-picture-design.md)
-records that a mechanism request without an explicit explanation depth consumed a
-turn asking for that depth. Its context reports user dissatisfaction with the effort
-needed to invoke the skill and the resulting explanation. This is the design's account,
-not a newly recovered user quotation or a measured quality comparison.
+[승인된 설계](https://github.com/beyondwin/skills/blob/e9de3a1aed94f69d9e7018df837c2210ff375a73/docs/history/specs/2026-09-12-how-it-works-first-picture-design.md)에
+따르면, 메커니즘 설명을 요청하면서 깊이를 지정하지 않으면 깊이를 묻는 데 한 턴을
+썼습니다. 설계의 배경에는 호출의 번거로움과 설명 결과에 대한 사용자 불만이
+기록되어 있습니다. 이는 해당 문서의 보고이며, 사용자 발언 원문을 새로 찾았거나
+품질 비교를 측정했다는 뜻은 아닙니다.
 
-## Conditions
+## 당시 조건
 
-The choice had to preserve the skill's identity: explaining the same mechanism at
-different depths, keeping the picture truthful, and respecting an explicit depth.
-The approved scope excluded live quality evaluation and host-support expansion.
-The terminal could show Mermaid source without rendering it, so first-screen
-readability could not depend on a diagram renderer.
+같은 메커니즘을 여러 깊이로 설명하고, 그림을 사실에 맞게 유지하며, 명시한 깊이를
+존중한다는 스킬의 정체성을 지켜야 했습니다. 승인 범위에는 실제 모델 품질 평가나
+지원 호스트 확대가 없었습니다. 터미널에서 Mermaid가 그림 대신 소스로 보일 수
+있으므로 첫 화면의 가독성이 렌더러에 의존해서는 안 됐습니다.
 
-## Alternatives and choice
+## 대안과 선택
 
-- Keep asking when depth is missing: the existing behavior, rejected for this
-  bounded mechanism request because it postponed the explanation.
-- Fill an absent depth with picture and announce it: selected in the design.
-  Explicit depth, explicit aliases, and named jargon defaults still took precedence.
-- Convert the skill into an ELI5 tool or remove required outputs: explicitly out
-  of scope. Easier invocation did not authorize changing that identity.
+- 깊이가 없을 때 계속 질문하기: 기존 동작입니다. 범위가 정해진 메커니즘 요청에서는
+  설명을 미룬다는 이유로 채택하지 않았습니다.
+- 깊이가 없으면 그림을 적용하고 알리기: 설계에서 선택했습니다. 사용자가 명시한 깊이,
+  명시적 별칭, 정해진 전문어 기본값은 계속 우선했습니다.
+- ELI5 도구로 바꾸거나 필수 산출물을 없애기: 명시적으로 범위에서 제외했습니다.
+  호출을 쉽게 만드는 결정이 스킬의 정체성 변경까지 허용하지는 않았습니다.
 
-The design retained questions for missing subjects or meaningful conflicts, and
-retained narrowing for topics too broad to explain as one mechanism.
+주제가 없거나 의미 있는 충돌이 있을 때의 질문은 유지했습니다. 하나의 메커니즘으로
+설명하기에 너무 넓은 주제는 범위를 좁히도록 했습니다.
 
-## Implementation approach
+## 구현 방법
 
-[Implementation](https://github.com/beyondwin/skills/commit/730f6785b03a114c3061cdc4817b007ba0702144)
-changed the missing-depth gate and precedence. Picture output put numbered hops
-before Mermaid and avoided walking the same hops again in the body. Fixtures,
-contract text, references, and guides changed together. The
-[version change](https://github.com/beyondwin/skills/commit/6eb353a4f3a065c77655a0cc3e6dcc843587c7b0)
-recorded 3.0.0 because defaults and required-input behavior changed.
+[구현 커밋](https://github.com/beyondwin/skills/commit/730f6785b03a114c3061cdc4817b007ba0702144)에서
+깊이가 없을 때 설명을 막던 조건과 우선순위를 바꿨습니다. 그림 출력에서는 번호가
+있는 단계를 Mermaid 앞에 두고 본문에서 같은 단계를 다시 설명하지 않도록 했습니다.
+테스트 사례, 계약 문구, 참조 문서, 안내를 함께 바꿨습니다.
+[버전 변경](https://github.com/beyondwin/skills/commit/6eb353a4f3a065c77655a0cc3e6dcc843587c7b0)은
+기본값과 필수 입력 동작이 달라졌으므로 3.0.0으로 기록했습니다.
 
-## Observed result
+## 확인한 결과
 
-The [recorded changelog](https://github.com/beyondwin/skills/blob/6eb353a4f3a065c77655a0cc3e6dcc843587c7b0/skills/how-it-works/CHANGELOG.md)
-confirms the one-turn picture default and the output-order change. It explicitly
-leaves live model quality unmeasured and claims no tag or GitHub Release. The
-design's proposed test commands are not treated here as execution receipts.
-This case establishes an implemented interaction choice, not that users learned
-more or that generated explanations became better.
+[당시 변경 이력](https://github.com/beyondwin/skills/blob/6eb353a4f3a065c77655a0cc3e6dcc843587c7b0/skills/how-it-works/CHANGELOG.md)에서
+한 턴의 기본 그림 설명과 출력 순서 변경을 확인할 수 있습니다. 실제 모델 품질은
+미측정으로 남겼고 태그나 GitHub Release를 만들었다고 주장하지 않습니다.
+설계에 적힌 테스트 명령은 실행 증거로 취급하지 않았습니다. 이 사례가 확인하는 것은
+상호작용 선택의 구현이며, 사용자가 더 잘 이해했거나 생성된 설명의 품질이 좋아졌다는
+결론은 아닙니다.
 
-## Disposition
+## 유지와 종료 판단
 
-The change was implemented; the working spec was subsequently deleted. Its pinned
-source above preserves the reasoning without restoring the obsolete plan. For
-today's behavior use the [current contract](../../maintainers/products/how-it-works/contract.md).
-No historical reopening threshold was found. A proposed reason to revisit the
-choice is evidence that the default repeatedly produces the wrong level of detail.
+변경은 구현됐고 작업용 설계서는 나중에 삭제됐습니다. 위의 고정된 리비전으로
+폐기된 계획을 되살리지 않고 판단 근거를 찾을 수 있습니다. 현재 동작은
+[현재 계약](../../maintainers/products/how-it-works/contract.md)을 따릅니다.
+당시에 정한 재검토 기준은 찾지 못했습니다. 기본값이 반복해서 부적절한 설명 깊이를
+만든다는 근거가 나오면 재검토하자는 것은 현재의 제안입니다.
 
-## Reusable lesson
+## 다음에 쓸 배움
 
-Inferred now: for a bounded explanation with a reversible presentation choice,
-announce a default and provide value in the same turn. Preserve explicit choices
-and ask when the subject or consequential constraints are missing. This is a design
-lesson from this case, not a measured rule for every ambiguous request. See
-[the scoped insight](../insights.md#defaults-can-remove-an-unnecessary-turn).
+현재의 해석: 범위가 정해진 설명에서 표현 방식을 되돌릴 수 있다면 기본값을 알리고
+같은 턴에 설명을 제공합니다. 명시적 선택을 존중하고, 주제나 결과에 큰 영향을 주는
+제약이 빠졌을 때는 질문합니다. 이 사례에서 얻은 설계 교훈이며 모든 모호한 요청에
+대해 측정한 규칙은 아닙니다. [적용 조건이 있는 인사이트](../insights.md#기본값으로-불필요한-질문을-줄일-수-있다)를 참고합니다.

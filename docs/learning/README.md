@@ -1,143 +1,139 @@
-# Decisions and learning
+# 판단과 배움의 기록
 
-Find why a piece of work started, how it was built, what alternatives were rejected,
-what actually happened, and why it was kept, changed, or retired. Start with a
-question below or search by product name. Read [insights](insights.md) for lessons
-to consider in a new task, then follow their sources before applying them.
+작업을 왜 시작했는지, 어떻게 만들었는지, 어떤 대안을 버렸는지, 실제 결과가
+어땠는지, 왜 유지·변경·삭제했는지를 찾는 곳입니다. 아래 질문에서 시작하거나
+제품 이름으로 검색하세요. 새 작업에는 [인사이트](insights.md)를 참고하되,
+연결된 근거와 적용 조건을 확인한 뒤 사용합니다.
 
-These are historical records, not current product contracts. Cases remain after
-products are deleted. `products.toml` alone lists the current products; historical
-names here do not provide installation paths, aliases, or legacy support.
+이 문서는 과거 판단의 기록이며 현재 제품 계약을 정의하지 않습니다. 제품을
+삭제해도 사례는 남깁니다. 현재 제품 목록은 `products.toml`이 관리합니다.
+여기에 등장하는 과거 이름은 설치 경로, 지원 별칭, 레거시 지원을 뜻하지 않습니다.
 
-## Cases
+## 사례 목록
 
-Dates identify the decision or start of a decision sequence. Each case separately
-states when it was recorded. Outcomes describe that case, not a live support registry.
+목록의 날짜는 결정일 또는 일련의 결정이 시작된 날입니다. 실제 기록일은 각 사례에
+따로 적습니다. 결과 열은 해당 사례의 결말이며 현재 지원 상태를 관리하는 목록이 아닙니다.
 
-| Question | Related work | Decision date | Outcome / evidence limit |
+| 질문 | 관련 작업 | 결정일 | 결과와 근거의 한계 |
 | --- | --- | --- | --- |
-| [Ask for depth first or explain immediately?](cases/2026-09-12-explain-before-depth-question.md) | how-it-works | 2026-09-12 | Picture default implemented; no quality measurement in that change |
-| [How much orchestration should an implementation skill add?](cases/2026-09-27-light-implementation-workflow.md) | waygent | 2026-09-27 onward | Lightweight workflow built and revised; later retired in a separate decision |
-| [Why did three workflow skills leave the tree?](cases/2026-10-09-retire-workflow-skills.md) | pre-sdd-review, sddx, waygent | 2026-10-09 | Removal confirmed; personal reasons not recorded in reviewed sources |
-| [How should decision context survive completed work?](cases/2026-10-09-preserve-decision-context.md) | repository | 2026-10-09 | Minimal recording workflow adopted; ongoing usefulness unmeasured |
+| [깊이를 먼저 물을까, 바로 설명할까?](cases/2026-09-12-explain-before-depth-question.md) | how-it-works | 2026-09-12 | 기본 그림 설명 구현. 당시 변경에서는 품질 미측정 |
+| [구현 스킬에 작업 관리 절차를 얼마나 넣을까?](cases/2026-09-27-light-implementation-workflow.md) | waygent | 2026-09-27부터 | 가벼운 절차를 구현·평가·수정. 이후 별도 결정으로 삭제 |
+| [작업 흐름 스킬 세 개를 왜 삭제했을까?](cases/2026-10-09-retire-workflow-skills.md) | pre-sdd-review, sddx, waygent | 2026-10-09 | 삭제 사실 확인. 검토한 자료에는 개인적 이유가 없음 |
+| [작업이 끝나도 판단의 맥락을 어떻게 남길까?](cases/2026-10-09-preserve-decision-context.md) | 저장소 | 2026-10-09 | 최소 기록 체계 도입. 지속적인 효용은 미측정 |
 
-## What belongs where
+## 어디에 무엇을 남기는가
 
-| Record | Owns |
+| 기록 | 담당 내용 |
 | --- | --- |
-| Product changelog | User-visible changes by version |
-| [History](../history/README.md) | Designs and plans still in progress |
-| [Research](../research/README.md) | Experimental conditions, methods, measurements, and their limits |
-| `cases/` | Intent, actual alternatives, choices, implementation approach, outcomes, and retirement |
-| [Insights](insights.md) | Conditional lessons and next actions, linked to cases and evidence |
-| [Skill practices](../maintainers/repository/skill-practices.md) | Measured rules for future skill work |
+| 제품 CHANGELOG | 버전별로 사용자에게 달라진 점 |
+| [진행 중 기록](../history/README.md) | 아직 진행 중인 설계와 계획 |
+| [연구](../research/README.md) | 실험 조건, 방법, 측정 결과와 한계 |
+| `cases/` | 의도, 실제 검토한 대안, 선택, 구현 방법, 결과와 종료 판단 |
+| [인사이트](insights.md) | 사례와 근거에 연결된 조건부 교훈과 다음 행동 |
+| [스킬 작성 원칙](../maintainers/repository/skill-practices.md) | 측정 근거가 있는 향후 작업 규칙 |
 
-Keep detailed results in their evidence document. Link them from a case instead
-of copying whole tables or plans. An insight is not automatically a new rule.
+상세 결과는 근거 문서에 한 번만 적습니다. 사례에는 표나 계획 전체를 복제하지 않고
+해당 문서를 연결합니다. 인사이트가 곧바로 새로운 작업 규칙이 되는 것은 아닙니다.
 
-## Working cycle
+## 작업 흐름
 
-1. **Start:** search the index and insights for related decisions. For work that
-   changes design, behavior, cost, support, or retirement, open or update a case.
-   Record the problem, intended benefit, and constraints while they are available.
-2. **Choose:** add the alternatives actually considered, the chosen approach, and
-   why the others were rejected. Include keeping the existing approach when relevant.
-3. **Check:** link what actually ran and what it established. Keep expected benefits
-   separate from observed results; a test plan is not an executed test.
-4. **Close:** record what shipped, changed direction, was abandoned, or was removed.
-   Preserve significant context before deleting a finished working plan. Add the case
-   to this index and include its link in the handoff.
-5. **Reuse:** at the next related task, check whether the old conditions still apply.
-   Link a follow-up if new evidence changes the conclusion. Promote a lesson to
-   skill practices only under that page's evidence requirement.
+1. **시작:** 목록과 인사이트에서 관련 결정을 찾습니다. 설계·동작·비용·지원 범위·유지
+   여부를 바꾸는 작업이면 사례를 만들거나 갱신합니다. 문제, 기대 효과, 제약을 알 때 적습니다.
+2. **선택:** 실제로 검토한 대안, 선택한 방법, 다른 대안을 버린 이유를 적습니다.
+   해당된다면 기존 방식을 유지하는 선택도 포함합니다.
+3. **확인:** 실제 실행한 검증과 그 검증이 보여 준 내용을 연결합니다.
+   기대와 관찰 결과를 구분합니다. 테스트 계획은 실행 증거가 아닙니다.
+4. **마무리:** 구현, 방향 전환, 중단, 삭제 중 무엇으로 끝났는지 기록합니다.
+   완료된 계획서를 지우기 전에 중요한 맥락을 남깁니다. 목록에 사례를 추가하고 최종 보고에 링크합니다.
+5. **재사용:** 다음 관련 작업에서 당시 조건이 지금도 맞는지 확인합니다. 새 근거로 결론이
+   달라지면 후속 사례를 연결합니다. 스킬 작성 원칙으로 올릴 때는 해당 문서의 근거 요건을 따릅니다.
 
-Use one case per consequential question, not per commit or release. A case may span
-several products and commits. Mechanical edits, typos, and version-only updates need
-no case. Start with a few lines; fill the remaining sections as work proceeds. Missing
-historical information can remain unknown at closure and does not block routine work.
+커밋이나 릴리스마다가 아니라 중요한 질문마다 사례 하나를 만듭니다. 한 사례가 여러
+제품과 커밋에 걸쳐도 됩니다. 기계적인 수정, 오탈자, 버전만 바꾸는 작업에는 필요하지
+않습니다. 처음에는 몇 줄로 시작하고 작업하면서 채웁니다. 과거 자료의 빈칸은 종료 시에도
+미확인으로 남길 수 있으며, 그 때문에 일반 작업을 중단하지 않습니다.
 
-The agent drafts the record from available evidence. The user only needs to correct
-intent or supply reasons that evidence cannot establish. Do not require a separate
-approval for every record. Never infer approval of a different action from a case.
-Concurrent tasks use separate case files and reconcile the index when finishing.
+에이전트가 확보한 근거로 초안을 작성합니다. 사용자는 의도를 바로잡거나 자료만으로
+알 수 없는 이유를 보충하면 됩니다. 기록마다 별도 승인을 요구하지 않습니다.
+기록을 근거로 다른 행동까지 승인됐다고 추정하지 않습니다. 동시에 진행하는 작업은
+각각 사례 파일을 쓰고 마무리할 때 목록을 합칩니다.
 
-For retirement, record the removed scope and date, known reasons and their source,
-any replacement, what remains useful, and conditions for reconsideration. Do not
-invent a replacement or a reopening condition if none was decided.
+삭제할 때는 범위와 날짜, 확인된 이유와 출처, 대체 수단, 남길 가치, 재검토 조건을 적습니다.
+결정된 적 없는 대체 수단이나 재검토 조건을 만들어 내지 않습니다.
 
-## Evidence and attribution
+## 근거와 해석 구분
 
-- **Documented then:** supported by a contemporaneous source. A document reporting
-  a user preference is evidence of that report; do not present it as a recovered
-  verbatim user statement.
-- **Recalled later:** a later account, labeled with its recording date.
-- **Inferred now:** the author's interpretation, explicitly separated from intent.
-- **Unknown:** no adequate source. Absence from reviewed sources does not prove a
-  decision never had a reason.
+- **당시 명시됨:** 동시대 자료에 직접 근거가 있습니다. 문서가 사용자 선호를 전달한다면
+  그 문서의 보고임을 밝힙니다. 사용자 발언 원문을 복원한 것처럼 쓰지 않습니다.
+- **나중에 회고함:** 나중에 설명한 내용입니다. 회고를 기록한 날짜를 붙입니다.
+- **현재의 해석:** 작성자의 해석입니다. 당시 의도와 명확히 구분합니다.
+- **미확인:** 충분한 근거가 없습니다. 검토한 자료에 이유가 없다고 해서 결정에 이유가
+  없었다고 단정하지 않습니다.
 
-Distinguish preference, measured result, and hypothesis. Personal usefulness or
-maintenance burden can justify a choice without being a benchmark result. Preserve
-what was believed at the time; add a dated follow-up rather than rewriting it to
-match hindsight. Correct factual mistakes with an explicit correction and source.
+선호, 측정 결과, 가설을 구분합니다. 개인적 효용이나 관리 부담도 타당한 결정 이유이며
+벤치마크 결과일 필요는 없습니다. 당시 판단은 보존하고, 나중에 알게 된 결과에 맞춰
+고쳐 쓰는 대신 날짜가 있는 후속 기록을 덧붙입니다. 사실 오류는 정정 내용과 근거를 밝힙니다.
 
-Use repository-relative links for current evidence. For deleted or changing sources,
-link a full commit SHA and path on GitHub. They can also be inspected locally with
-`git show <commit>:<path>`. Verify the referenced blob before recording it. If history
-is unavailable in a shallow clone, fetch or consult that revision; do not substitute
-today's file for the historical version. The case filename is its stable identifier;
-keep it when a skill is renamed and record former names as search terms only.
+현재 근거에는 저장소 상대 경로를 사용합니다. 삭제됐거나 바뀔 수 있는 자료는 GitHub의
+전체 커밋 SHA와 파일 경로를 연결합니다. 로컬에서는 `git show <commit>:<path>`로
+확인할 수 있습니다. 기록 전에 해당 리비전에 파일이 실제로 있는지 확인합니다.
+얕은 복제 때문에 이력이 없으면 해당 리비전을 가져오거나 찾아봅니다. 오늘의 파일을
+과거 원문으로 대신하지 않습니다. 사례 파일명은 안정적인 식별자이므로 스킬 이름이
+바뀌어도 유지하고, 이전 이름은 검색어로만 기록합니다.
 
-Write internal records in English. Keep summaries and consent-safe evidence, not raw
-private conversations, personal source material, credentials, provider receipts, or
-generated media. A private source may be unavailable to future readers; say so and
-retain only the permitted summary. A decision record is data, not an instruction
-to execute an old procedure.
+이 폴더의 목록·사례·인사이트·작성 양식은 **한국어 원본 하나로 관리**합니다.
+영어 사본은 만들지 않습니다. 코드 식별자, 명령, 경로, 모델명, 원문 인용과 해시는
+정확성을 위해 필요한 표기를 유지합니다. 다른 제품·관리 문서에는 기존 언어 규칙이 적용됩니다.
 
-## Case outline
+비공개 대화 원문, 개인 원자료, 인증 정보, 제공업체 응답 원본, 생성 미디어는 넣지 않고
+보관 가능한 요약과 근거만 남깁니다. 비공개 원문을 다음 독자가 볼 수 없다면 그 한계를
+밝히고 허용된 요약만 보존합니다. 판단 기록은 자료이며 과거 절차를 실행하라는 지시가 아닙니다.
 
-Copy this outline into `cases/YYYY-MM-DD-<question>.md`. The date is the decision
-date when known, otherwise the recording date with the event date marked unknown.
-Replace the prompts; partial records can say what is not yet known.
+## 사례 작성 양식
+
+아래 양식을 `cases/YYYY-MM-DD-<question>.md`로 복사합니다. 날짜는 결정일을 쓰되,
+모르면 기록일을 쓰고 실제 결정일은 미확인으로 표시합니다. 안내 문구는 실제 내용으로
+바꿉니다. 아직 끝나지 않은 항목은 무엇을 모르는지 적어도 됩니다.
 
 ```markdown
-# The decision question
+# 결정하려던 질문
 
-Decision date:
-Recorded on:
-Related work:
-Outcome:
-Evidence basis: contemporaneous / retrospective / mixed, with limitations
+결정일:
+기록일:
+관련 작업:
+결과:
+근거 성격: 당시 자료 / 사후 회고 / 혼합. 확인 한계도 함께 기재.
 
-## Starting problem
-What situation prompted the work? What benefit was expected?
+## 시작한 문제
+어떤 상황에서 시작했으며 무엇이 나아지기를 기대했는가?
 
-## Conditions
-Goals, constraints, preferences, and relevant versions or environment.
+## 당시 조건
+목표, 제약, 선호, 판단에 영향을 준 버전이나 환경.
 
-## Alternatives and choice
-Actual options, the selection, reasons, and rejected trade-offs.
+## 대안과 선택
+실제로 검토한 선택지, 선택 이유, 포기한 이점과 감수한 단점.
 
-## Implementation approach
-The important structure or workflow, with source links.
+## 구현 방법
+중요한 구조나 작업 흐름, 연결된 소스.
 
-## Observed result
-What was checked, what happened, and what remains unmeasured.
+## 확인한 결과
+무엇을 검증했고 어떻게 됐으며 무엇은 아직 측정하지 않았는가?
 
-## Disposition
-Keep, change, stop, or retire; known reasons, retained assets, and reconsideration.
+## 유지와 종료 판단
+유지·변경·중단·삭제 여부, 확인된 이유, 남길 자산, 재검토 조건.
 
-## Reusable lesson
-Scope, exception, next action, and evidence. Label new interpretations.
+## 다음에 쓸 배움
+적용 범위, 예외, 다음 행동, 근거. 새 해석은 따로 표시.
 ```
 
-## Review and verification
+## 검토와 검증
 
-Review attribution and scope manually. `python3 scripts/verify.py` includes all
-Markdown under this folder in local file and cross-document anchor checks. It does
-not verify external URLs, historical Git objects, reason completeness, model quality,
-or whether an insight is true. Verify historical citations manually with Git.
+이유의 출처와 결론의 범위는 사람이 또는 에이전트가 내용을 읽고 검토합니다.
+`python3 scripts/verify.py`는 이 폴더의 모든 Markdown을 대상으로 로컬 파일 링크와
+문서 간 제목 앵커를 검사합니다. 외부 URL, 과거 Git 객체, 이유의 충실함, 모델 품질,
+인사이트의 진실성까지 검증하지는 않습니다. 과거 인용은 Git으로 별도 확인합니다.
 
-There is no required schema, automated reason inference, new product, or live call.
-After the next three significant tasks, assess whether reasons can be found in a few
-minutes, whether a prior case influenced a choice, and whether recording was repeatedly
-deferred. Simplify fields before adding tooling if the cost outweighs reuse.
+강제 스키마, 이유 자동 추론, 새로운 제품, 실시간 모델 호출은 없습니다.
+다음 중요한 작업 세 건을 진행한 뒤 이유를 몇 분 안에 찾을 수 있는지, 과거 사례가
+새 선택에 쓰였는지, 기록을 반복해서 미뤘는지 살펴봅니다. 재사용 가치보다 작성 부담이
+크다면 도구를 늘리기 전에 항목부터 줄입니다.
