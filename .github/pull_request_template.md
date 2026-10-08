@@ -1,6 +1,10 @@
 ## Summary
 
-Describe the change for `korean-writing-editor`, `image-workbench`, and/or `how-it-works` only.
+Describe the change for `korean-writing-editor`, `image-workbench`, and/or `how-it-works`,
+or repository documentation and tooling. Historical records do not restore retired products.
+
+For a significant decision, link its learning case and note any unknown reason or
+unmeasured result. Mechanical edits need no case. See `docs/learning/README.md`.
 
 ## Change type
 

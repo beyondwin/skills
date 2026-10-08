@@ -191,6 +191,7 @@ ACTIVE_USER_DOCS = (
     README_PATHS + PRODUCT_README_PATHS + USER_GUIDES + (DOCS_INDEX, DOCS_INDEX_KO)
 )
 PUBLIC_DOC_PATHS = ACTIVE_USER_DOCS + MAINTAINER_DOCS + (HISTORY_README,)
+LEARNING_DOC_PATHS = tuple(sorted((ROOT / "docs" / "learning").rglob("*.md")))
 UNSAFE_INSTALL = (
     "curl | sh",
     "curl|sh",
@@ -1019,11 +1020,25 @@ class RegistryDrivenPublicDocTests(unittest.TestCase):
     def test_active_markdown_paths_match_public_doc_inventory(self) -> None:
         self.assertEqual(
             {path.resolve() for path in active_markdown_paths(ROOT)},
-            {path.resolve() for path in PUBLIC_DOC_PATHS},
+            {path.resolve() for path in PUBLIC_DOC_PATHS + LEARNING_DOC_PATHS},
         )
 
 
 class MarkdownLinkHelperTests(unittest.TestCase):
+    def test_nested_learning_case_broken_link_is_checked(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            shutil.copyfile(ROOT / "products.toml", root / "products.toml")
+            case = root / "docs/learning/cases/example.md"
+            case.parent.mkdir(parents=True)
+            case.write_text("[evidence](missing.md)\n", encoding="utf-8")
+            self.assertEqual(
+                broken_markdown_links(root, active_markdown_paths(root)),
+                ["broken relative link in docs/learning/cases/example.md: missing.md"],
+            )
+            (case.parent / "missing.md").write_text("# Evidence\n", encoding="utf-8")
+            self.assertEqual(broken_markdown_links(root, active_markdown_paths(root)), [])
+
     def test_markdown_links_extract_relative_angle_bracket_and_fragments(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "doc.md"

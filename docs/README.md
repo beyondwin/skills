@@ -32,9 +32,11 @@ Each skill README covers install, first call, and limits.
 Contracts, tests, and release rules are in [`docs/maintainers/`](maintainers/). How
 the tree is split is in [architecture](maintainers/repository/architecture.md).
 
-## History and research
+## History, research, and learning
 
 - [`docs/history/`](history/): designs still in progress.
-- [`docs/research/`](research/README.md): hands-on runs of other repos' skills.
+- [`docs/research/`](research/README.md): measured runs of skills and workflows.
+- [`docs/learning/`](learning/README.md): why work began, decisions and outcomes,
+  retirement reasons, and reusable insights.
 
-Neither defines the current contract.
+These records do not define the current product contract.

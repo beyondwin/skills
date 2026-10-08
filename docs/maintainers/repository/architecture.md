@@ -86,7 +86,8 @@ Repository only, never installed:
 | `docs/users/` | Shared install, compatibility, safety, and verification guides |
 | `docs/maintainers/` | Architecture, registry, versioning, release, product rules |
 | `docs/history/` | Work-in-progress designs and plans. Does not define the current contract |
-| `docs/research/` | Measured studies of outside skills and their harness. Does not define the current contract. Live-call code is not verified |
+| `docs/research/` | Measured studies of skills and workflows, including retired products, and their harnesses. Does not define the current contract. Live-call code is not verified |
+| `docs/learning/` | Durable decision cases and conditional insights. See [learning](../../learning/README.md). Historical names are evidence, not supported products or aliases |
 | `scripts/verify.py` | Model-free checks |
 | `scripts/changed_targets.py` | Picks the CI check scope from changed paths |
 | `scripts/release.py` | Product check, build, verify-download. See [release](release.md) |

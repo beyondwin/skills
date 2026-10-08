@@ -31,6 +31,7 @@
 ## 기록과 조사
 
 - [`docs/history/`](history/): 아직 진행 중인 설계
-- [`docs/research/`](research/README.md): 다른 저장소 스킬을 직접 돌려 본 조사
+- [`docs/research/`](research/README.md): 스킬과 작업 흐름을 실제로 측정한 조사
+- [`docs/learning/`](learning/README.md): 작업을 시작한 이유, 선택과 결과, 삭제 이유와 재사용할 인사이트(영어)
 
-둘 다 현재 계약을 정의하지 않습니다.
+이 기록들은 현재 제품 계약을 정의하지 않습니다.

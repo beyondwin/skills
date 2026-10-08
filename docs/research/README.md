@@ -1,8 +1,12 @@
 # Research
 
-Records of hands-on runs of skills and workflows from other repositories. They do not define
+Records of hands-on runs of skills and workflows, including this repository's retired products. They do not define
 any contract for this repository's products. Each conclusion is tied to the date, versions, and
 models it was measured with.
+
+For the decisions around a study and later product changes, see
+[learning cases](../learning/README.md). A study's result is not automatically the
+reason a product was created or retired.
 
 | Study | Date | What |
 | --- | --- | --- |

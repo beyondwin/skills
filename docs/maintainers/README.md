@@ -15,7 +15,8 @@ Install help for users lives in each product README and in `docs/users/`.
 | Register a product | `products.toml` | `skills/<name>/`, `tests/products/<name>/`, `docs/maintainers/products/<name>/`. Steps: [products registry](repository/products-registry.md) | `python3 scripts/verify.py` |
 | Bump a version | `skills/<name>/release.toml` | `SKILL.md` `metadata.version`, `CHANGELOG.md`. Rules: [versioning](repository/versioning.md) | `python3 scripts/verify.py --skill <name>` |
 | Release a product | Finalize `Unreleased` in `skills/<name>/CHANGELOG.md` | That product's `release.md`. Steps: [release](repository/release.md) | `python3 scripts/release.py check --product <name>` (on a clean tree) |
-| Work-in-progress design or plan | `docs/history/` | Delete it when done. See [history](../history/) | None |
+| Work-in-progress design or plan | [History](../history/) | Preserve significant decisions in a [learning case](../learning/README.md), then delete it when done | Content and source review |
+| Record a decision or retirement | `docs/learning/` | Link the case from its index; connect relevant insights and evidence | Content, sources, and local links through `python3 scripts/verify.py` |
 
 Before any merge, run `python3 scripts/verify.py`.
 
@@ -37,6 +38,9 @@ Before any merge, run `python3 scripts/verify.py`.
 - Product behavior changes follow the contract's files-to-change-together list.
 - `docs/history/` holds only work-in-progress designs and plans. It does not define
   the current contract.
+- `docs/learning/` keeps decision context after work ships or a product retires.
+  Follow its [recording workflow](../learning/README.md#working-cycle). Historical
+  cases do not change current product contracts or support claims.
 
 ## Repository docs
 

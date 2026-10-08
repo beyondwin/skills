@@ -39,6 +39,9 @@ def active_markdown_paths(root: pathlib.Path) -> tuple[pathlib.Path, ...]:
     repository_docs = root / "docs" / "maintainers" / "repository"
     if repository_docs.is_dir():
         candidates.extend(repository_docs.glob("*.md"))
+    learning_docs = root / "docs" / "learning"
+    if learning_docs.is_dir():
+        candidates.extend(learning_docs.rglob("*.md"))
     unique: dict[pathlib.Path, pathlib.Path] = {}
     for path in candidates:
         if path.is_file():

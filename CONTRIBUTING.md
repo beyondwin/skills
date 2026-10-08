@@ -24,13 +24,17 @@ Host-support changes must update `products.toml`, the matching docs, and tests t
 
 ## What we accept
 
-Focused fixes for the current standalone products only:
+Product changes are limited to focused fixes for the current standalone products:
 
 - behavior defects
 - documentation corrections
 - security fixes
 - measured compatibility evidence
 - synthetic, non-personal regression fixtures
+
+Repository documentation and verification tooling are also in scope, including
+evidence-backed learning records about retired products. These records do not
+reopen product support.
 
 Live provider results are not enough on their own. Include a reproducible case, runtime identity, consent-safe artifacts, and a passing offline check.
 
@@ -41,6 +45,8 @@ Live provider results are not enough on their own. Include a reproducible case, 
 - Prefer deterministic, provider-free evidence.
 - Do not include a private prompt, personal Korean text, a private image, credentials, provider receipts, or generated media.
 - Do not add telemetry, a required provider call, or a new skill.
+- Significant decisions should include a [learning case](docs/learning/README.md)
+  or an update to an existing one.
 
 ## Verification
 
