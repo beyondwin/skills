@@ -1,0 +1,378 @@
+{
+  "schema_version": 1,
+  "experiment": "offline-boundaries-15",
+  "executed_at_utc": "2026-10-08T23:15:42.498671+00:00",
+  "runtime": {
+    "executable": "/Library/Developer/CommandLineTools/usr/bin/python3",
+    "python": "3.9.6",
+    "platform": "Darwin",
+    "release": "25.5.0",
+    "machine": "arm64",
+    "git": "git version 2.50.1 (Apple Git-155)"
+  },
+  "policy": {
+    "provider_calls": 0,
+    "source_tool_hashes_unchanged": true,
+    "synthetic_only": true,
+    "source_text_embedded": false,
+    "purpose": "Boundary discovery, not pass-rate estimation or model quality evidence"
+  },
+  "source_hashes": {
+    "tools/writing_guard.py": "cef22da192d8bb7d78df740656af816e3df8f1e1c849d7492249018b453bc6c7",
+    "tools/preflight.py": "e026d105a730b704617b2fb77fce42ac6c390255ad9585080652021ef25eba18",
+    "tools/git_snapshot.py": "edcdfea2379cbdb1a40b6387fcd8794757b4af627a380e3ef11ccf0a0c5abfa0"
+  },
+  "harness_sha256": "91caee4412f62ccc04ffaef416446a7fad380c13acd0fd55db2b2ba975227311",
+  "summary": {
+    "probes": 15,
+    "expectation_met": 6,
+    "expectation_not_met": 9
+  },
+  "probes": [
+    {
+      "id": "G01",
+      "classification": "positive_control",
+      "rationale": "Confirm literal mutation detection before interpreting negative probes.",
+      "method": {
+        "source": "최대 10 MB",
+        "output": "최대 10 GB",
+        "contract": {
+          "version": 1,
+          "protected_spans": [
+            "10 MB"
+          ]
+        }
+      },
+      "expected": "blocked",
+      "observed": {
+        "literal_contract": "mismatch",
+        "semantic_status": "not_evaluated",
+        "decision": "blocked",
+        "error_count": 1,
+        "errors": [
+          {
+            "code": "protected_span_changed",
+            "detail": "protected_spans[0] has a different occurrence count."
+          }
+        ]
+      },
+      "expectation_met": true
+    },
+    {
+      "id": "G02",
+      "classification": "defect",
+      "rationale": "Digits adjacent to Korean are common technical prose; numeric-token protection should detect the edit.",
+      "method": {
+        "source": "최대10회 재시도",
+        "output": "최대20회 재시도",
+        "contract": {
+          "version": 1,
+          "preserve_numbers": true
+        }
+      },
+      "expected": "blocked",
+      "observed": {
+        "literal_contract": "matched",
+        "semantic_status": "not_evaluated",
+        "decision": "review_required",
+        "error_count": 0,
+        "errors": []
+      },
+      "expectation_met": false
+    },
+    {
+      "id": "G03",
+      "classification": "boundary_gap",
+      "rationale": "Scientific notation is numeric technical content, but no supported numeric grammar is documented.",
+      "method": {
+        "source": "임계값 1e3",
+        "output": "임계값 1e4",
+        "contract": {
+          "version": 1,
+          "preserve_numbers": true
+        }
+      },
+      "expected": "blocked",
+      "observed": {
+        "literal_contract": "matched",
+        "semantic_status": "not_evaluated",
+        "decision": "review_required",
+        "error_count": 0,
+        "errors": []
+      },
+      "expectation_met": false
+    },
+    {
+      "id": "G04",
+      "classification": "documented_limit",
+      "rationale": "The bounded recognizer explicitly excludes full Markdown parsing; multiline spans require an explicit protected span.",
+      "method": {
+        "source": "값은 `alpha\nbeta`입니다.",
+        "output": "값은 `alpha\ngamma`입니다.",
+        "contract": {
+          "version": 1,
+          "preserve_inline_code": true
+        }
+      },
+      "expected": "review_required",
+      "observed": {
+        "literal_contract": "matched",
+        "semantic_status": "not_evaluated",
+        "decision": "review_required",
+        "error_count": 0,
+        "errors": []
+      },
+      "expectation_met": true
+    },
+    {
+      "id": "G05",
+      "classification": "defect",
+      "rationale": "A Boolean is not schema version integer 1.",
+      "method": {
+        "contract": {
+          "version": true
+        }
+      },
+      "expected": {
+        "exit_code": 2,
+        "traceback": false,
+        "input_error": true
+      },
+      "observed": {
+        "exit_code": 0,
+        "traceback": false,
+        "input_error": false
+      },
+      "expectation_met": false
+    },
+    {
+      "id": "G06",
+      "classification": "defect",
+      "rationale": "Malformed format values must take the documented input-error path.",
+      "method": {
+        "contract": {
+          "version": 1,
+          "format": []
+        }
+      },
+      "expected": {
+        "exit_code": 2,
+        "traceback": false,
+        "input_error": true
+      },
+      "observed": {
+        "exit_code": 1,
+        "traceback": true,
+        "input_error": false
+      },
+      "expectation_met": false
+    },
+    {
+      "id": "G07",
+      "classification": "defect",
+      "rationale": "Malformed JSON field types must take the documented input-error path.",
+      "method": {
+        "contract": {
+          "version": 1,
+          "json_shape": {
+            "types": {
+              "x": []
+            }
+          }
+        }
+      },
+      "expected": {
+        "exit_code": 2,
+        "traceback": false,
+        "input_error": true
+      },
+      "observed": {
+        "exit_code": 1,
+        "traceback": true,
+        "input_error": false
+      },
+      "expectation_met": false
+    },
+    {
+      "id": "G08",
+      "classification": "defect",
+      "rationale": "A duplicate contract key silently deletes a reviewed protection while output duplicate keys are rejected.",
+      "method": {
+        "source": "retry=3",
+        "output": "retry=8",
+        "contract_json": "{\"version\":1,\"protected_spans\":[\"retry=3\"],\"protected_spans\":[]}"
+      },
+      "expected": {
+        "exit_code": 2
+      },
+      "observed": {
+        "exit_code": 0,
+        "result": {
+          "literal_contract": "matched",
+          "semantic_status": "not_evaluated",
+          "decision": "review_required",
+          "error_count": 0,
+          "errors": []
+        }
+      },
+      "expectation_met": false
+    },
+    {
+      "id": "G09",
+      "classification": "positive_control",
+      "rationale": "Confirm JSON output type checks distinguish Boolean and integer.",
+      "method": {
+        "source": "",
+        "output": "{\"count\":true}",
+        "contract": {
+          "version": 1,
+          "format": "json",
+          "json_shape": {
+            "types": {
+              "count": "integer"
+            }
+          }
+        }
+      },
+      "expected": "blocked",
+      "observed": {
+        "literal_contract": "mismatch",
+        "semantic_status": "not_evaluated",
+        "decision": "blocked",
+        "error_count": 1,
+        "errors": [
+          {
+            "code": "json_type_changed",
+            "detail": "A contracted field has a missing or incorrect type."
+          }
+        ]
+      },
+      "expectation_met": true
+    },
+    {
+      "id": "P01",
+      "classification": "positive_control",
+      "rationale": "Confirm the synthetic canonical configuration is accepted.",
+      "method": {
+        "fixture": "canonical files"
+      },
+      "expected": {
+        "has_error": false
+      },
+      "observed": {
+        "scope": "root-files-only; not user/global/nested/team rules",
+        "agent_execution": "not_run",
+        "claude_mode": "CLAUDE.md import plus direct reading of canonical skill; no native / command installed",
+        "findings": [],
+        "error_count": 0,
+        "warning_count": 0,
+        "skill_sha256": "e6f38f4ebcfd30b71d4f14496502fa1e83954396214077115e9a52f288327a8c"
+      },
+      "expectation_met": true
+    },
+    {
+      "id": "P02",
+      "classification": "defect",
+      "rationale": "A directory called AGENTS.md is not an instruction file.",
+      "method": {
+        "fixture": "AGENTS.md directory"
+      },
+      "expected": {
+        "has_error": true
+      },
+      "observed": {
+        "scope": "root-files-only; not user/global/nested/team rules",
+        "agent_execution": "not_run",
+        "claude_mode": "CLAUDE.md import plus direct reading of canonical skill; no native / command installed",
+        "findings": [],
+        "error_count": 0,
+        "warning_count": 0,
+        "skill_sha256": "e6f38f4ebcfd30b71d4f14496502fa1e83954396214077115e9a52f288327a8c"
+      },
+      "expectation_met": false
+    },
+    {
+      "id": "P03",
+      "classification": "defect",
+      "rationale": "An empty YAML array is not a nonempty string description; manual splitting cannot validate metadata types.",
+      "method": {
+        "fixture": "description: []"
+      },
+      "expected": {
+        "has_error": true
+      },
+      "observed": {
+        "scope": "root-files-only; not user/global/nested/team rules",
+        "agent_execution": "not_run",
+        "claude_mode": "CLAUDE.md import plus direct reading of canonical skill; no native / command installed",
+        "findings": [],
+        "error_count": 0,
+        "warning_count": 0,
+        "skill_sha256": "1a18bc555f3ce9627b05677e61e0e4f7c83eee2d97d6f599f8c6d57078ffdfd1"
+      },
+      "expectation_met": false
+    },
+    {
+      "id": "S01",
+      "classification": "positive_control",
+      "rationale": "Confirm staged evidence excludes a later unstaged edit.",
+      "method": {
+        "baseline": 1,
+        "staged": 3,
+        "unstaged": 99
+      },
+      "expected": {
+        "staged_retry_present": true,
+        "unstaged_retry_absent": true
+      },
+      "observed": {
+        "staged_retry_present": true,
+        "unstaged_retry_absent": true
+      },
+      "expectation_met": true
+    },
+    {
+      "id": "S02",
+      "classification": "defect",
+      "rationale": "A valid local display setting can hide staged submodule updates from a purported index snapshot.",
+      "method": {
+        "setting": "diff.ignoreSubmodules=all",
+        "staged_change": "gitlink commit changes"
+      },
+      "expected": {
+        "configured_empty": false,
+        "configured_staged_paths": [
+          "module"
+        ]
+      },
+      "observed": {
+        "default_empty": false,
+        "configured_empty": true,
+        "configured_staged_paths": [],
+        "actual_staged_names": [
+          "module"
+        ]
+      },
+      "expectation_met": false
+    },
+    {
+      "id": "S03",
+      "classification": "evidence_limit",
+      "rationale": "Default Git diffs identify binary changes without furnishing their contents; do not infer behavior from this snapshot alone.",
+      "method": {
+        "staged_change": "new synthetic binary file"
+      },
+      "expected": {
+        "path_present": true,
+        "payload_visible": false,
+        "binary_summary": true
+      },
+      "observed": {
+        "path_present": true,
+        "payload_visible": false,
+        "binary_summary": true
+      },
+      "expectation_met": true
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "retry_of": "judge-cache-race-forward--judge",
+  "retry_id": "judge-cache-race-forward-retry--judge",
+  "reason": "503 capacity before answer; one identical-input retry from predeclared reserve",
+  "same_prompt_sha256": "a7bf6ee8e3480d8956637b01c39e56af49b3d14efda11145e18505f876fb14e6",
+  "input_file_sha256": {
+    "source.md": "c0b4deb5f75260e12449a9e1c7620bcd4ac4b9f37140a3210b7e55e78fb36392",
+    "questions.json": "51caff9cd993c0a8056e791413cdd87ef7c8713e8c1e4a3e1da33f272f3c392c",
+    "README.md": "93a5e0e9531519dfacfb6b4a75ce589107674e3f4730d32e78144269c0fa0a40",
+    "C.txt": "f3c8c95da9e650646b127cf8256364fa0f5709d6ad456e6330e1c7cb4dd8b74a",
+    "B.txt": "7e8ea5fa929d157469a701fed0b5b235d52a7bd461e56bbd48a978d800667c41",
+    "A.txt": "f9da4198a757c13a358b385d5649200e5f69c25d3f824a339826e02096943c72",
+    "request.txt": "959fa8faee7271324a8cc795ca6648d035e5160a69cbd70c50d5272142851868"
+  },
+  "scorer_control": "Not dispatched. Reserved call used for actual transport failure; main 40-dispatch cap preserved.",
+  "second_transport_failure": {
+    "job": "regression-commit--candidate",
+    "reason": "503modelcapacity; no response",
+    "replacement": "regression-commit-retry--candidate",
+    "allocation": "Use original installed-smoke slot for identical commit retry; original40cap retained."
+  }
+}

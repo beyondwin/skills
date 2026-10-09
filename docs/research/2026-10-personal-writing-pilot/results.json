@@ -1,0 +1,971 @@
+{
+  "date": "2026-10-09",
+  "dispatches": 21,
+  "completed": 20,
+  "personal_pilot_gate_pass": true,
+  "semantic_reviewer": "author; not independent",
+  "groups": [
+    {
+      "arm": "baseline",
+      "dispatches": 8,
+      "completed": 8,
+      "primary_pass": 8,
+      "median_seconds": 26.2565,
+      "output_characters": 1836,
+      "input_tokens": 213336,
+      "cached_input_tokens": 106112,
+      "output_tokens": 1775
+    },
+    {
+      "arm": "candidate",
+      "dispatches": 8,
+      "completed": 8,
+      "primary_pass": 8,
+      "median_seconds": 23.4745,
+      "output_characters": 2179,
+      "input_tokens": 301675,
+      "cached_input_tokens": 187776,
+      "output_tokens": 3367
+    }
+  ],
+  "runs": [
+    {
+      "id": "handoff--baseline",
+      "case": "handoff",
+      "arm": "baseline",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 14.931,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 20522,
+          "cached_input_tokens": 8320,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 158,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "8db8108c0438df30b3b2f9a77592bcec3f7f27d5be50885458d8a4a8de7d1b9c",
+      "response_sha256": "1227a63f046517bd44943e88d901baec662ca67c040f241918855e439c491d81",
+      "canonical_case": "handoff",
+      "retry": false,
+      "stream_command_count": 1,
+      "rollout_tool_call_count": 1,
+      "rollout_sha256": [
+        "bff5340dfbbc8ab60d949e161e5177fe6022831835ea24e84e957b1b1abcd08c"
+      ],
+      "candidate_read": false,
+      "reference_read": false,
+      "grade": {
+        "semantic_pass": true,
+        "format_pass": true,
+        "scope_pass": true,
+        "source_read_verified": true,
+        "reviewer": "author",
+        "rationale": "Local tenant key change, 23/3 test counts, missing skip-reason evidence and explicit non-deployment preserved."
+      },
+      "output_characters": 185,
+      "primary_pass": true
+    },
+    {
+      "id": "english--candidate",
+      "case": "english",
+      "arm": "candidate",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 18.669,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 34316,
+          "cached_input_tokens": 18432,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 393,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "0807924a50d2ebe818bdfc93f374b2ea7408add114954617c9ee462111ba0330",
+      "response_sha256": "c1445c3f3f30a2518e37c7ea0645f85b42e8fe6fa5bae259e7a9c5b188835da9",
+      "canonical_case": "english",
+      "retry": false,
+      "stream_command_count": 4,
+      "rollout_tool_call_count": 2,
+      "rollout_sha256": [
+        "aae1f7184ab78ee15315eecd43159d69b21540a203c55a8327bc5b23fb44dbe1"
+      ],
+      "candidate_read": true,
+      "reference_read": true,
+      "grade": {
+        "semantic_pass": true,
+        "format_pass": true,
+        "scope_pass": true,
+        "source_read_verified": true,
+        "reviewer": "author",
+        "rationale": "English nested rule followed; install and dry-run commands exact; dry run does not save; Windows remains untested."
+      },
+      "output_characters": 343,
+      "primary_pass": true
+    },
+    {
+      "id": "freshness--candidate",
+      "case": "freshness",
+      "arm": "candidate",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 30.696,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 34104,
+          "cached_input_tokens": 27520,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 421,
+          "reasoning_output_tokens": 23
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "8f867aeed206c58d8e29fe658ce99c2e84f11bd8403d8ce0447178be866f7655",
+      "response_sha256": "be4b65200f9bae866c6d4179ec9abecd6696d297188150a7cc3b56dfcb95700f",
+      "canonical_case": "freshness",
+      "retry": false,
+      "stream_command_count": 3,
+      "rollout_tool_call_count": 2,
+      "rollout_sha256": [
+        "db1c94917ce4cb9a019afb990c548df62e45cb4d0a9d18c028c97c97be39db90"
+      ],
+      "candidate_read": true,
+      "reference_read": true,
+      "grade": {
+        "semantic_pass": true,
+        "format_pass": true,
+        "scope_pass": true,
+        "source_read_verified": true,
+        "reviewer": "author",
+        "rationale": "18 test passes remain scoped to revision A; B result unknown, deployment only proposed. Neither answer asserts that B tests were not run."
+      },
+      "output_characters": 393,
+      "primary_pass": true
+    },
+    {
+      "id": "translation--candidate",
+      "case": "translation",
+      "arm": "candidate",
+      "kind": "negative",
+      "status": "completed",
+      "wall_seconds": 6.609,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 10220,
+          "cached_input_tokens": 8320,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 36,
+          "reasoning_output_tokens": 20
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "53a53823c42d339b6cfb3f46c14bb0dfc44334e9585f18188f8f85fb85d4c160",
+      "response_sha256": "cb0f429bec41aec3e2cb0100e92c2810f796cbfa8274fbe49597cbb85c0c7184",
+      "canonical_case": "translation",
+      "retry": false,
+      "stream_command_count": 0,
+      "rollout_tool_call_count": 0,
+      "rollout_sha256": [
+        "6a9d0642fd19dc51f89f9f96ad1fe3f9abc23c3bf86213cce50d3c552943af2b"
+      ],
+      "candidate_read": false,
+      "reference_read": null,
+      "grade": {
+        "semantic_pass": true,
+        "format_pass": true,
+        "scope_pass": true,
+        "source_read_verified": null,
+        "reviewer": "author",
+        "rationale": "Two retries translated; no writer activation."
+      },
+      "output_characters": 15,
+      "primary_pass": true
+    },
+    {
+      "id": "submodule--candidate",
+      "case": "submodule",
+      "arm": "candidate",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 31.988,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 49202,
+          "cached_input_tokens": 31744,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 494,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "07ea27eba99fc3e2d06a0de0f4efad18c5f6c7215c8a064b5172ef5b09ba7662",
+      "response_sha256": "90b844bc85e225b6b8de62a2e8623a6ab3736acd8076c5c5cc848392a28c94a8",
+      "canonical_case": "submodule",
+      "retry": false,
+      "stream_command_count": 7,
+      "rollout_tool_call_count": 3,
+      "rollout_sha256": [
+        "515f6dbabd3d5310b38f766f03180aa71d7cc250818edfaa1470fcaceeccee2b"
+      ],
+      "candidate_read": true,
+      "reference_read": true,
+      "grade": {
+        "semantic_pass": true,
+        "format_pass": true,
+        "scope_pass": true,
+        "source_read_verified": true,
+        "reviewer": "author",
+        "rationale": "Correct staged gitlink change with actual abbreviated hashes; no invented parser behavior. Baseline recovered hidden diff using --ignore-submodules=none, visible in rollout despite missing final command in stream events."
+      },
+      "output_characters": 59,
+      "primary_pass": true
+    },
+    {
+      "id": "code-review--candidate",
+      "case": "code-review",
+      "arm": "candidate",
+      "kind": "negative",
+      "status": "completed",
+      "wall_seconds": 11.224,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 10240,
+          "cached_input_tokens": 8320,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 202,
+          "reasoning_output_tokens": 135
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "3823a8611164ab248e1e5caf72d38ad3089f862a0f40123e752fdb2fd2451848",
+      "response_sha256": "cfc2baf6f0b74688349d09588b2926112912f6d779cf59f67cf3511fdcbcab95",
+      "canonical_case": "code-review",
+      "retry": false,
+      "stream_command_count": 0,
+      "rollout_tool_call_count": 0,
+      "rollout_sha256": [
+        "a61d87eedf4c0371bebff866024a8f1b865044910602570e8539a22dcb7ccd4f"
+      ],
+      "candidate_read": false,
+      "reference_read": null,
+      "grade": {
+        "semantic_pass": true,
+        "format_pass": true,
+        "scope_pass": true,
+        "source_read_verified": null,
+        "reviewer": "author",
+        "rationale": "Conditional division-by-zero issue reported without drafting workflow."
+      },
+      "output_characters": 119,
+      "primary_pass": true
+    },
+    {
+      "id": "runbook--candidate",
+      "case": "runbook",
+      "arm": "candidate",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 23.882,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 33367,
+          "cached_input_tokens": 10112,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 745,
+          "reasoning_output_tokens": 135
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "2127acc18e64fc6fcf9086e31966223cf0911bd71e5996408149798ee33773d8",
+      "response_sha256": "e212048b636183554ac6c4b9c44cd517911849f01436e4a10225df5daa81f0ae",
+      "canonical_case": "runbook",
+      "retry": false,
+      "stream_command_count": 3,
+      "rollout_tool_call_count": 2,
+      "rollout_sha256": [
+        "196cd42ddd15c68bfe46e7a57fd0a9c93d47498bff8e5184e4217c21218d99dc"
+      ],
+      "candidate_read": true,
+      "reference_read": true,
+      "grade": {
+        "semantic_pass": true,
+        "format_pass": true,
+        "scope_pass": true,
+        "source_read_verified": true,
+        "reviewer": "author",
+        "rationale": "Inclusive 12 limit, AND condition, null unknown, stop/no-retry branch and success-only notification preserved. Candidate adds explicit notes about missing operational details; no measured readability advantage."
+      },
+      "output_characters": 734,
+      "primary_pass": true
+    },
+    {
+      "id": "pr--baseline",
+      "case": "pr",
+      "arm": "baseline",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 54.999,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 33921,
+          "cached_input_tokens": 11392,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 294,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "eb54bdc81c6d8062867db1d352431044ace84abe485a1d319fe77cdf9d39614f",
+      "response_sha256": "07701969c4cf9fd053d7c5fa74ae05b5d684c4906803ab84212144e893a52a78",
+      "canonical_case": "pr",
+      "retry": false,
+      "stream_command_count": 3,
+      "rollout_tool_call_count": 2,
+      "rollout_sha256": [
+        "6d023a892c5c9f113f77522ad27b77d98f92f5896d06fd3a6d0f453931227115"
+      ],
+      "candidate_read": false,
+      "reference_read": false,
+      "grade": {
+        "semantic_pass": true,
+        "format_pass": true,
+        "scope_pass": true,
+        "source_read_verified": true,
+        "reviewer": "author",
+        "rationale": "Committed blank-ID validation only; staged timeout and untracked notes excluded; four unit passes and integration non-execution accurately qualified."
+      },
+      "output_characters": 255,
+      "primary_pass": true
+    },
+    {
+      "id": "handoff--candidate",
+      "case": "handoff",
+      "arm": "candidate",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 17.44,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 33262,
+          "cached_input_tokens": 26752,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 322,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "8db8108c0438df30b3b2f9a77592bcec3f7f27d5be50885458d8a4a8de7d1b9c",
+      "response_sha256": "955a782f8ab1ee480be50483d5c15e9159bd2e31e4cc68341129decd4b4c3bbb",
+      "canonical_case": "handoff",
+      "retry": false,
+      "stream_command_count": 3,
+      "rollout_tool_call_count": 2,
+      "rollout_sha256": [
+        "7fed1e62fec082ade169b012e236c606a156f48fc83135df4a41f455a6d1b9b9"
+      ],
+      "candidate_read": true,
+      "reference_read": true,
+      "grade": {
+        "semantic_pass": true,
+        "format_pass": true,
+        "scope_pass": true,
+        "source_read_verified": true,
+        "reviewer": "author",
+        "rationale": "Local tenant key change, 23/3 test counts, missing skip-reason evidence and explicit non-deployment preserved."
+      },
+      "output_characters": 237,
+      "primary_pass": true
+    },
+    {
+      "id": "casual--candidate",
+      "case": "casual",
+      "arm": "candidate",
+      "kind": "negative",
+      "status": "failed",
+      "wall_seconds": 20.059,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [],
+      "workspace_unchanged": true,
+      "prompt_sha256": "5a6f6d1c2a02e995f9f85410d5285c702a2c291e30656cbff14068f7df74f0a8",
+      "response_sha256": null,
+      "canonical_case": "casual",
+      "retry": false,
+      "stream_command_count": 0,
+      "rollout_tool_call_count": 0,
+      "rollout_sha256": [
+        "f9060f546e7e1b096511264e34d845af128838721899237af27eefb9f33a670a"
+      ],
+      "candidate_read": false,
+      "reference_read": null,
+      "grade": {
+        "semantic_pass": null,
+        "format_pass": null,
+        "scope_pass": null,
+        "source_read_verified": null,
+        "reviewer": "author",
+        "rationale": "HTTP 503 / capacity failure before any answer; unavailable, not a writing failure."
+      },
+      "primary_pass": null
+    },
+    {
+      "id": "json--candidate",
+      "case": "json",
+      "arm": "candidate",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 13.89,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 33235,
+          "cached_input_tokens": 21248,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 272,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "aec0aea5f102e0f47f20c22f19a2097f1b69f72a5dc7a28c3f52db79736fed3e",
+      "response_sha256": "75ce9220f106ef7825f75b63c94e78d7a4debd19da0d13ef1c8dd7b4f083f04a",
+      "canonical_case": "json",
+      "retry": false,
+      "stream_command_count": 3,
+      "rollout_tool_call_count": 2,
+      "rollout_sha256": [
+        "33462d36272a902d0ffd944fa9e61c928e1101f2809d8e9edfa4174999f3afb1"
+      ],
+      "candidate_read": true,
+      "reference_read": true,
+      "grade": {
+        "semantic_pass": true,
+        "format_pass": true,
+        "scope_pass": true,
+        "source_read_verified": true,
+        "reviewer": "author",
+        "rationale": "Four requested keys; null and false preserved; local deduplication change and unknown speed effect; measurement next action."
+      },
+      "output_characters": 152,
+      "json_shape_pass": true,
+      "primary_pass": true
+    },
+    {
+      "id": "english--baseline",
+      "case": "english",
+      "arm": "baseline",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 39.195,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 31885,
+          "cached_input_tokens": 14848,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 241,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "0807924a50d2ebe818bdfc93f374b2ea7408add114954617c9ee462111ba0330",
+      "response_sha256": "15c8f39648821edad3690de5a133e849e7cdbf13757a7fa8b5f040571ec11386",
+      "canonical_case": "english",
+      "retry": false,
+      "stream_command_count": 3,
+      "rollout_tool_call_count": 2,
+      "rollout_sha256": [
+        "7bb537e46f0583c4850e3bea6ab7f8affb17b27ff9bf3f612cdf4465b17e8692"
+      ],
+      "candidate_read": false,
+      "reference_read": false,
+      "grade": {
+        "semantic_pass": true,
+        "format_pass": true,
+        "scope_pass": true,
+        "source_read_verified": true,
+        "reviewer": "author",
+        "rationale": "English nested rule followed; install and dry-run commands exact; dry run does not save; Windows remains untested."
+      },
+      "output_characters": 318,
+      "primary_pass": true
+    },
+    {
+      "id": "pr--candidate",
+      "case": "pr",
+      "arm": "candidate",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 51.472,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 36307,
+          "cached_input_tokens": 20864,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 392,
+          "reasoning_output_tokens": 36
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "eb54bdc81c6d8062867db1d352431044ace84abe485a1d319fe77cdf9d39614f",
+      "response_sha256": "7f4586751db676ef6ed5335c21388db7bbe5d1434f59176bb20c5efd84330f65",
+      "canonical_case": "pr",
+      "retry": false,
+      "stream_command_count": 3,
+      "rollout_tool_call_count": 2,
+      "rollout_sha256": [
+        "d664083f29a3beb4cbf81a320e3b0ccd91028fe44ef15a0c158acd11c498a0dd"
+      ],
+      "candidate_read": true,
+      "reference_read": true,
+      "grade": {
+        "semantic_pass": true,
+        "format_pass": true,
+        "scope_pass": true,
+        "source_read_verified": true,
+        "reviewer": "author",
+        "rationale": "Committed blank-ID validation only; staged timeout and untracked notes excluded; four unit passes and integration non-execution accurately qualified."
+      },
+      "output_characters": 239,
+      "primary_pass": true
+    },
+    {
+      "id": "proofread--candidate",
+      "case": "proofread",
+      "arm": "candidate",
+      "kind": "negative",
+      "status": "completed",
+      "wall_seconds": 30.756,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 23059,
+          "cached_input_tokens": 8320,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 99,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "95e31a821b421cb4b0d9eb31c1c78c0233446c3aa739fe236a95b78eaf3245d2",
+      "response_sha256": "b8281f5e789834f8209d7b8dcbfa1576a675d785c5a57eb56c14b615b96995ce",
+      "canonical_case": "proofread",
+      "retry": false,
+      "stream_command_count": 1,
+      "rollout_tool_call_count": 1,
+      "rollout_sha256": [
+        "a315fd490363d221dd93d00b794ae3c121d25e7e2e146960cc861808ed758594"
+      ],
+      "candidate_read": false,
+      "reference_read": null,
+      "grade": {
+        "semantic_pass": true,
+        "format_pass": true,
+        "scope_pass": true,
+        "source_read_verified": null,
+        "reviewer": "author",
+        "rationale": "Existing korean-writing-editor loaded; typo corrected without writer activation."
+      },
+      "output_characters": 11,
+      "primary_pass": true
+    },
+    {
+      "id": "commit--candidate",
+      "case": "commit",
+      "arm": "candidate",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 23.067,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 47882,
+          "cached_input_tokens": 31104,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 328,
+          "reasoning_output_tokens": 36
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "36fe93c88cb25ab9738bf6ab4dcde12ea281ea3ee3f54be5b17ffab339509d16",
+      "response_sha256": "9a85a322a378e3fc88e2be56aedfda855afb78743bf16370aaafdfa002ab7756",
+      "canonical_case": "commit",
+      "retry": false,
+      "stream_command_count": 4,
+      "rollout_tool_call_count": 3,
+      "rollout_sha256": [
+        "02404fb332b5e8e607054e9a54b17341cfd77f33996bcfaea359e66e4586239d"
+      ],
+      "candidate_read": true,
+      "reference_read": true,
+      "grade": {
+        "semantic_pass": true,
+        "format_pass": true,
+        "scope_pass": true,
+        "source_read_verified": true,
+        "reviewer": "author",
+        "rationale": "Only staged retry cap 2 to 4 described; unstaged timeout and unchanged OAuth omitted; one-line output."
+      },
+      "output_characters": 22,
+      "primary_pass": true
+    },
+    {
+      "id": "commit--baseline",
+      "case": "commit",
+      "arm": "baseline",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 11.797,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 20764,
+          "cached_input_tokens": 18304,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 81,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "36fe93c88cb25ab9738bf6ab4dcde12ea281ea3ee3f54be5b17ffab339509d16",
+      "response_sha256": "9a85a322a378e3fc88e2be56aedfda855afb78743bf16370aaafdfa002ab7756",
+      "canonical_case": "commit",
+      "retry": false,
+      "stream_command_count": 1,
+      "rollout_tool_call_count": 1,
+      "rollout_sha256": [
+        "72bb3c0dc326d5a2020522c00121aa02e6e42d1427063579c5d28d55b4071259"
+      ],
+      "candidate_read": false,
+      "reference_read": false,
+      "grade": {
+        "semantic_pass": true,
+        "format_pass": true,
+        "scope_pass": true,
+        "source_read_verified": true,
+        "reviewer": "author",
+        "rationale": "Only staged retry cap 2 to 4 described; unstaged timeout and unchanged OAuth omitted; one-line output."
+      },
+      "output_characters": 22,
+      "primary_pass": true
+    },
+    {
+      "id": "freshness--baseline",
+      "case": "freshness",
+      "arm": "baseline",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 18.657,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 20645,
+          "cached_input_tokens": 9984,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 249,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "8f867aeed206c58d8e29fe658ce99c2e84f11bd8403d8ce0447178be866f7655",
+      "response_sha256": "806b0d84bb961b9ef1b0e143b00f5072738606cf76b88adc69f5fc20320d3e12",
+      "canonical_case": "freshness",
+      "retry": false,
+      "stream_command_count": 2,
+      "rollout_tool_call_count": 1,
+      "rollout_sha256": [
+        "96307d41e127d5a32351244bc53434b90871324da6dd7b4245b02a3424562c9c"
+      ],
+      "candidate_read": false,
+      "reference_read": false,
+      "grade": {
+        "semantic_pass": true,
+        "format_pass": true,
+        "scope_pass": true,
+        "source_read_verified": true,
+        "reviewer": "author",
+        "rationale": "18 test passes remain scoped to revision A; B result unknown, deployment only proposed. Neither answer asserts that B tests were not run."
+      },
+      "output_characters": 289,
+      "primary_pass": true
+    },
+    {
+      "id": "runbook--baseline",
+      "case": "runbook",
+      "arm": "baseline",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 39.556,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 20562,
+          "cached_input_tokens": 8320,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 368,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "2127acc18e64fc6fcf9086e31966223cf0911bd71e5996408149798ee33773d8",
+      "response_sha256": "0b64f0356f48a1a471b1bc8a88c2391464c7132f08d501f3caaec4087e9c7af6",
+      "canonical_case": "runbook",
+      "retry": false,
+      "stream_command_count": 1,
+      "rollout_tool_call_count": 1,
+      "rollout_sha256": [
+        "2eae6d5e8d7b5c7f321b3290218bb666fe1e7d1a669e90b0fc78aa1f298b331b"
+      ],
+      "candidate_read": false,
+      "reference_read": false,
+      "grade": {
+        "semantic_pass": true,
+        "format_pass": true,
+        "scope_pass": true,
+        "source_read_verified": true,
+        "reviewer": "author",
+        "rationale": "Inclusive 12 limit, AND condition, null unknown, stop/no-retry branch and success-only notification preserved. Candidate adds explicit notes about missing operational details; no measured readability advantage."
+      },
+      "output_characters": 565,
+      "primary_pass": true
+    },
+    {
+      "id": "submodule--baseline",
+      "case": "submodule",
+      "arm": "baseline",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 25.641,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 43743,
+          "cached_input_tokens": 26624,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 267,
+          "reasoning_output_tokens": 11
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "07ea27eba99fc3e2d06a0de0f4efad18c5f6c7215c8a064b5172ef5b09ba7662",
+      "response_sha256": "ceb74107d34f8e5df2acc09c4742c136c746f3177734c0f3992e4cb4f5bb2efe",
+      "canonical_case": "submodule",
+      "retry": false,
+      "stream_command_count": 2,
+      "rollout_tool_call_count": 3,
+      "rollout_sha256": [
+        "693b36020e0fb587fe4a49a9187b983d8b25f18c511646631251ccee45772e68"
+      ],
+      "candidate_read": false,
+      "reference_read": false,
+      "grade": {
+        "semantic_pass": true,
+        "format_pass": true,
+        "scope_pass": true,
+        "source_read_verified": true,
+        "reviewer": "author",
+        "rationale": "Correct staged gitlink change with actual abbreviated hashes; no invented parser behavior. Baseline recovered hidden diff using --ignore-submodules=none, visible in rollout despite missing final command in stream events."
+      },
+      "output_characters": 63,
+      "primary_pass": true
+    },
+    {
+      "id": "json--baseline",
+      "case": "json",
+      "arm": "baseline",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 26.872,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 21294,
+          "cached_input_tokens": 8320,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 117,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "aec0aea5f102e0f47f20c22f19a2097f1b69f72a5dc7a28c3f52db79736fed3e",
+      "response_sha256": "3b05858aa8407a542155a307129808950ed658d40ee68a83202e6adfe51e41f0",
+      "canonical_case": "json",
+      "retry": false,
+      "stream_command_count": 1,
+      "rollout_tool_call_count": 1,
+      "rollout_sha256": [
+        "72db2ac2eee3962791132f104e1e6d7c8c546f30de865c26a49555d0152a6340"
+      ],
+      "candidate_read": false,
+      "reference_read": false,
+      "grade": {
+        "semantic_pass": true,
+        "format_pass": true,
+        "scope_pass": true,
+        "source_read_verified": true,
+        "reviewer": "author",
+        "rationale": "Four requested keys; null and false preserved; local deduplication change and unknown speed effect; measurement next action."
+      },
+      "output_characters": 139,
+      "json_shape_pass": true,
+      "primary_pass": true
+    },
+    {
+      "id": "casual-retry--candidate",
+      "case": "casual-retry",
+      "arm": "candidate",
+      "kind": "negative",
+      "status": "completed",
+      "wall_seconds": 5.33,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 10235,
+          "cached_input_tokens": 0,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 20,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "5a6f6d1c2a02e995f9f85410d5285c702a2c291e30656cbff14068f7df74f0a8",
+      "response_sha256": "177b8b088065bbca6ee3fc3cd4a744587451c895da292e8d2a3b1613e1ba2238",
+      "canonical_case": "casual",
+      "retry": true,
+      "stream_command_count": 0,
+      "rollout_tool_call_count": 0,
+      "rollout_sha256": [
+        "5f401da0f3c3c7886628bca0b66c61864c49fdbcad1c65079fa0652d9a2fd476"
+      ],
+      "candidate_read": false,
+      "reference_read": null,
+      "grade": {
+        "semantic_pass": true,
+        "format_pass": true,
+        "scope_pass": true,
+        "source_read_verified": null,
+        "reviewer": "author",
+        "rationale": "Brief natural response; no skill read. Single retry after transport failure, unchanged prompt and candidate."
+      },
+      "output_characters": 22,
+      "primary_pass": true
+    }
+  ]
+}

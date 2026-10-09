@@ -1,0 +1,148 @@
+{
+  "dispatches": 7,
+  "completed": 7,
+  "author_passes": 7,
+  "protocol_sha256": "001a052ef105a9ed3deca55259fad1102eea3bc3e98afd3699bcc27440972d3c",
+  "grades_sha256": "778029ca4522355e4ff9661c92334b5b3ff434caeca33256222040ba141353bc",
+  "scope": "Targeted development regression, not blinded superiority or human assessment.",
+  "runs": [
+    {
+      "id": "accepted-job-codex--candidate",
+      "host": "codex",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "response_sha256": "d1f1af48712e5746eee12ef4d8c28675d7072f3a344ed8464b4c4e206ae83fec",
+      "wall_seconds": 23.083,
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "author_grade": {
+        "pass": true,
+        "rationale": "Opening distinguishes new and existing jobs; uses 인가, retains queued/waiting/current-state boundaries without unrelated lifecycle details."
+      }
+    },
+    {
+      "id": "accepted-job-opus--candidate",
+      "host": "opus",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "response_sha256": "2f051e67190e5382f2f81a894bb8d3672d2a0fe729ff97588ff855274bc6c6a0",
+      "wall_seconds": 25.177,
+      "workspace_unchanged": null,
+      "native_reads": {},
+      "author_grade": {
+        "pass": true,
+        "rationale": "Authorization is now 인가; new/existing202 branches and no start guarantee are preserved. Extra headings remain a style limitation, not an accuracy error."
+      }
+    },
+    {
+      "id": "accepted-job-grok--candidate",
+      "host": "grok",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "response_sha256": "866c9fed0063d28319873e25082c8b21a757dfed695f52bb4bd13e3098cdea96",
+      "wall_seconds": 109.819,
+      "workspace_unchanged": null,
+      "native_reads": {},
+      "author_grade": {
+        "pass": true,
+        "rationale": "Uses 인가, distinguishes new versus reused job and preserves key/payload/time boundary and current-state lookup."
+      }
+    },
+    {
+      "id": "sample-scope-codex--candidate",
+      "host": "codex",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "response_sha256": "f75fe23e0f4bb98423123facc47ec6f3bb51e2214736aa621322f11c6b9feb9a",
+      "wall_seconds": 26.357,
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "author_grade": {
+        "pass": true,
+        "rationale": "Explicitly says neither improvement nor absence can be concluded; preserves population, missingness, pairing and percentile limits."
+      }
+    },
+    {
+      "id": "sample-scope-opus--candidate",
+      "host": "opus",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "response_sha256": "b784f8ce9fcfb9b56b9e4fddbc9a705d05c8f4e4270e50444f0e6d5f8d7908df",
+      "wall_seconds": 25.209,
+      "workspace_unchanged": null,
+      "native_reads": {},
+      "author_grade": {
+        "pass": true,
+        "rationale": "Explicitly preserves unknown improvement/worsening/no change, correctly interprets distribution boundaries and distinguishes old survey from current evidence."
+      }
+    },
+    {
+      "id": "sample-scope-grok--candidate",
+      "host": "grok",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "response_sha256": "b1f1a9e22d11c41baa27cd0d5063614caae7d2735a0cea0b54e6bfd10b7d4feb",
+      "wall_seconds": 118.289,
+      "workspace_unchanged": null,
+      "native_reads": {},
+      "author_grade": {
+        "pass": true,
+        "rationale": "Opening now states both that improvement is unestablished and that absence is unestablished; preserves sample representativeness uncertainty and recorded-request population. Some Korean phrasing remains awkward."
+      }
+    },
+    {
+      "id": "regression-json--candidate",
+      "host": "codex",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "response_sha256": "18d72cb6f5c5434c5151af71954dfa967326ede2429643685a4b804c613c450b",
+      "wall_seconds": 16.686,
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "author_grade": {
+        "pass": true,
+        "rationale": "Exact four requested keys, measured_ms null and deployed false; no claimed measured speed gain."
+      }
+    }
+  ]
+}

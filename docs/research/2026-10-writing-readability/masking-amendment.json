@@ -1,0 +1,8 @@
+{
+  "date": "2026-10-09",
+  "timing": "After generation started, before any judge or source-blind reader dispatch. Some generation outputs already inspected.",
+  "reason": "A generated source citation contained an absolute synthetic work path with --candidate. Sending it unchanged would unblind the judge.",
+  "change": "Replace archive/job/work/ prefixes with /source/ identically for all arms; preserve text, file basename, original raw responses and all score/acceptance rules.",
+  "wrapper_sha256": "8d04add6cd235dc0a749e0c566cd62654681fea9d6da80c756841fe712be07f3",
+  "protocol_sha256": "a0c16586720b61fae79ee45e3f32258c6c79b6478e0f854c233712cabed44a61"
+}

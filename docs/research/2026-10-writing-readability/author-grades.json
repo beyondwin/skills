@@ -1,0 +1,106 @@
+{
+  "reviewer": "author of candidate; not independent",
+  "timing": "After generation, before judging completed",
+  "cases": [
+    {
+      "case": "cache-race",
+      "response_sha256": "c8be8107a9a165d1932fb83c016fd664cc2c6beec33fd5a4f21443fc00031c98",
+      "material_meaning_pass": true,
+      "author_ready_to_use": true,
+      "rationale": "Pre-fetch generation and atomic check/write preserved; original caller may receive old DB value; tenant bypass/retry scope, TTL and staging-only evidence preserved. Mechanism explained through R/W sequence."
+    },
+    {
+      "case": "async-acceptance",
+      "response_sha256": "42d57467634bddd62f2cff369a226c4679a00ad47e587453444216a0841526da",
+      "material_meaning_pass": true,
+      "author_ready_to_use": true,
+      "rationale": "202 means committed acceptance; worker/outbox duplicate boundary, status URLs, account key scope and24h no-refresh,409 and failed-job non-rerun preserved. Coherent flow then client decision tables."
+    },
+    {
+      "case": "pagination",
+      "response_sha256": "fbf9fdd6d3602fa051e65dacde75c69cd2da49f8679aceba8c10cba35cb4f013",
+      "material_meaning_pass": true,
+      "author_ready_to_use": true,
+      "rationale": "Frozen IDs/order distinguished from live fields; deletes, filter mismatch,403,410,null and15min no-extension preserved. Lead answers what stays fixed."
+    },
+    {
+      "case": "migration",
+      "response_sha256": "da3bd64f32d01792b16d42c807303426a2374974a8663a9331fd7b17441b8974",
+      "material_meaning_pass": true,
+      "author_ready_to_use": true,
+      "rationale": "B current, C conjunctive gate unmet, zero not null, all writersv2, batch resume,18rejects and CI scope preserved. B vsD rollback conditions intact. Some details repeated but usable."
+    },
+    {
+      "case": "measurement",
+      "response_sha256": "d3c256ab6e1907b5c657fcd6c023dd5dcb6774a40d3b02ee8cbca3d672e266cd",
+      "material_meaning_pass": true,
+      "author_ready_to_use": true,
+      "rationale": "p50/p95 divergence, successful-only denominators,70%ofreads, error ratios, order/repetition limits and unmeasured cost/correctness preserved. Proposed follow-up stays a proposal. Closing repeats decision; local edit opportunity."
+    },
+    {
+      "case": "recovery",
+      "response_sha256": "6c0aa9b77bc876eb747e6bff58f09ea4195b9713a1506ef878d2cc28ecb00b6e",
+      "material_meaning_pass": true,
+      "author_ready_to_use": true,
+      "rationale": "Before<=12 vs after=0; all AND conditions, unknowns, pause/status/restart/resume order, failure stop/no-retry and queue scope preserved. Commands copied exactly; minor repeated threshold explanation justified by operator risk."
+    }
+  ],
+  "regression": [
+    {
+      "job": "regression-proofread--candidate",
+      "response_sha256": "b8281f5e789834f8209d7b8dcbfa1576a675d785c5a57eb56c14b615b96995ce",
+      "pass": true
+    },
+    {
+      "job": "regression-json--candidate",
+      "response_sha256": "ce21f941f6256f51978c8f3ca6ce27fe9ecc8a602fde8b8ce5c57670ed56f4dd",
+      "pass": true
+    },
+    {
+      "job": "regression-submodule--candidate",
+      "response_sha256": "d65eeaf59b1c911551b55a89da97cc0a1c75000711ef1205b17a77ae14e8b300",
+      "pass": true
+    },
+    {
+      "job": "regression-commit-retry--candidate",
+      "response_sha256": "9a85a322a378e3fc88e2be56aedfda855afb78743bf16370aaafdfa002ab7756",
+      "pass": true
+    }
+  ],
+  "reader": [
+    {
+      "job": "reader-async-acceptance-candidate--reader",
+      "response_sha256": "88820ef5718228e5e405774787cb2a6ecca03e1de165d75595d7a7dd67272280",
+      "correct_answers": 3,
+      "question_count": 3
+    },
+    {
+      "job": "reader-pagination-candidate--reader",
+      "response_sha256": "44f37f6542936e9cc93db61d71e955be7158a0261ea37cc5c1309e1c8270fd55",
+      "correct_answers": 3,
+      "question_count": 3
+    },
+    {
+      "job": "reader-async-acceptance-previous--reader",
+      "response_sha256": "3394f47afa1ff5cfc84ccb39bdcbfd51cb728a5a799ea2c41759e75e68ca5234",
+      "correct_answers": 3,
+      "question_count": 3
+    }
+  ],
+  "limitations": [
+    "No human reading trial",
+    "No claim that preserved facts prove readability gains"
+  ],
+  "reader_missing": [
+    "reader-pagination-previous--reader:503modelcapacity,noanswer"
+  ],
+  "judge_adjudication": [
+    {
+      "job": "judge-migration-forward--judge",
+      "arm": "baseline",
+      "raw_material_error_count": 1,
+      "confirmed_material_error_count": 0,
+      "reason": "Judge flagged /source/notes.md as unsupported. This path was introduced by our masking wrapper; original baseline citation points to its actual source file. Harness-induced false positive, not model factual error. Do not use that preference to claim candidate advantage."
+    }
+  ]
+}

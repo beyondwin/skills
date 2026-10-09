@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-09",
+  "question": "Does a compact policy preserve meaning and reduce writing overhead compared with no added policy and the supplied full kit?",
+  "conditions": [
+    "baseline",
+    "core",
+    "full"
+  ],
+  "cases": 8,
+  "repetitions": 1,
+  "max_calls_per_host": 24,
+  "hosts": [
+    "codex",
+    "cursor-grok-4.7",
+    "claude-opus"
+  ],
+  "primary_gate": "No new material semantic or output-contract failure relative to baseline on matched cases. Any failure blocks a quality-superiority claim.",
+  "secondary": "Blinded task-level ratings for readability and unnecessary overhead; paired output characters, wall seconds and available usage. Shorter is not automatically better.",
+  "adoption_rule": "Prefer smallest instruction set only if no observed material regression; call this a bounded pilot, never statistical equivalence or reader comprehension proof. Full skill adoption requires independent discovery and workflow tests.",
+  "grading": "Agent review against frozen invariants; output labels shuffled before first review. No human reader study. Author-agent review is not independent validation.",
+  "isolation": "Fresh sessions, no memories, no native user skill injection; no tools for content study. Full instructions directly supplied, so file discovery is not measured.",
+  "source_files": {
+    "fragments/AGENTS.fragment.md": "0d127ffe1970775c46905b64678843fc4dd4aba98550fd9c3cb13d70ae191f3e",
+    ".agents/skills/ko-clear-writing/SKILL.md": "cf799d845197a175002ac9d6b5e092444ff24e1794c47bf61ef3e14a094cc8e5",
+    ".agents/skills/ko-clear-writing/references/commits.md": "15bc61afa420d8c0442ebea0493871232c44caf6a5d225584f0eb2a02288b891",
+    ".agents/skills/ko-clear-writing/references/documents.md": "fa240963238c251ad1b0d293195567488fb40a59452f45e3966bd81ac8072db4",
+    ".agents/skills/ko-clear-writing/references/responses.md": "81ea40f913bd81ab92cfcb530808230253f1b6e7a9834926bfb6c0e000fbcadf"
+  },
+  "core_sha256": "72249405a47f11559031dea81f1e6e54fdf57a69a6ee617bbf246e5b33313df7",
+  "cases_sha256": "996649989e8605b63896fd4196da2ad975253d7276835e2ba63795c5d100b96e"
+}

@@ -1,0 +1,7 @@
+{
+  "timing": "Scoring implementation fixed before any model judge dispatch. Generation is underway; some author inspection of outputs has occurred. Decision rule was frozen before generation and is unchanged.",
+  "files": {
+    "summarize.py": "00caedcbb69b595284b3e86553217a44668c74cc98bbe069238900fb3e0093f7",
+    "test_summary.py": "03fa841b107c8a96085813bc876761cba4d181c60240c4c0305109c21976a1ad"
+  }
+}

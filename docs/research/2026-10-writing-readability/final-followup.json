@@ -1,0 +1,11 @@
+{
+  "reason": "FinalGrok replica-rejoin timed out at240seconds without finalanswer.",
+  "allocation": "One reserve retry; final round total remains<=10 including installed smoke.",
+  "same_input": true,
+  "same_payload": true,
+  "same_model": "grok-4.7-medium",
+  "timeout_seconds": 480,
+  "comparison_limit": "Changed timeout. Count original timeout and report latency; do not treat it as a content failure or hide it.",
+  "runner_sha256": "31c7f0059518e3f08195d1e33a67ef5880483bd6350156cd7722a6bc10694b9a",
+  "local_preflight_repair": "First retry launcher looked for prompt_sha256 in summary instead of request receipt and stopped before auth lookup/provider dispatch. Corrected lookup, released that unexecuted reservation, no model call occurred."
+}

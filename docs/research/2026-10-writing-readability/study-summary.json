@@ -1,0 +1,38 @@
+{
+  "cli_versions": {
+    "codex": "0.160.1",
+    "claude": "2.1.292",
+    "cursor_agent": "2026.10.01-e373342"
+  },
+  "actual_models": {
+    "codex": "gpt-6-astra/high from turn_context",
+    "opus": "claude-opus-5-5 from assistant messages;requested high effort not reported",
+    "grok_high": "Grok4.7 256K High from init;first generation timedout",
+    "grok_medium": "Grok4.7 256K Medium from init;backend immutable identifier unavailable"
+  },
+  "phase_totals": {
+    "codex_0.2.0": {
+      "dispatches": 40,
+      "completed": 37
+    },
+    "external_0.2.0": {
+      "dispatches": 39,
+      "completed": 37
+    },
+    "repair_0.2.1": {
+      "dispatches": 8,
+      "completed": 8
+    },
+    "final_0.2.2": {
+      "dispatches": 10,
+      "completed": 9
+    }
+  },
+  "total_dispatches": 97,
+  "total_completed_answers": 91,
+  "all_provider_raw_material_outside_git": true,
+  "comparison_caveat": "CLI dispatches, not HTTP requests. Counts include judges/readers/controls, not97independentwriting tasks.",
+  "final_version": "0.2.2",
+  "personal_codex_installed": true,
+  "verification": "verification.md"
+}

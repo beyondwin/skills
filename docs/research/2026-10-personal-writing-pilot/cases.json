@@ -1,0 +1,62 @@
+[
+  {
+    "id": "handoff", "kind": "positive", "setup": "basic",
+    "prompt": "docs/status.md를 읽고 다음 개발자가 바로 이어갈 수 있는 한국어 인계문을 작성해줘. 결과 문안만 답해줘.",
+    "files": {"docs/status.md": "# 작업 기록\n캐시 키에 tenant_id를 포함하는 변경은 로컬 구현 완료.\n관측된 테스트 로그: 23 passed, 3 skipped. 스킵 사유 정보는 이 기록에 없다.\n운영 배포: 아직 수행하지 않음.\n다음 작업: 스킵 사유를 기록 담당자에게 받아 적용 범위를 확인한다.\n"},
+    "invariants": ["Local implementation includes tenant_id", "23 passed and 3 skipped", "Absent skip reasons do not prove nobody checked them", "Deployment explicitly not performed", "Next action obtains reasons before determining coverage"],
+    "required_reads": ["docs/status.md"], "reference": "documents.md"
+  },
+  {
+    "id": "commit", "kind": "positive", "setup": "staged",
+    "prompt": "현재 스테이징된 변경만 대상으로 한국어 커밋 메시지 한 줄을 작성해줘. 메시지만 답해줘.",
+    "files": {},
+    "invariants": ["Only retry cap changes from 2 to 4", "Do not mention timeout (unstaged 10 to 20) or unchanged OAuth", "Single Korean commit-message line", "Do not stage or commit"],
+    "required_reads": ["git", "--cached"], "reference": "change-messages.md"
+  },
+  {
+    "id": "runbook", "kind": "positive", "setup": "basic",
+    "prompt": "docs/ops.md의 메모로 한국어 운영 절차서를 작성해줘. 처음 작업하는 운영자가 순서대로 따라갈 수 있게 해줘. 결과 문안만 답해줘.",
+    "files": {"docs/ops.md": "# 배치 재시작 조건\n대기 작업이 12개 이하이고 임대 갱신이 성공한 경우에만 restart_job --safe 실행 가능.\n임대 갱신에 실패하면 즉시 중단하고 운영 담당자에게 알림. 재시도 금지.\n재시작 성공 응답을 받은 뒤에만 완료 알림 전송.\n기록이 null이면 대기 작업 수를 모르는 상태. 0개로 취급하지 말 것.\n"},
+    "invariants": ["Queue <=12 AND lease renewal success", "Failure branch stops and notifies operator before restart", "No retry after lease failure", "Completion notification only after restart success", "null means unknown, not zero", "Exact restart_job --safe"],
+    "required_reads": ["docs/ops.md"], "reference": "documents.md"
+  },
+  {
+    "id": "json", "kind": "positive", "setup": "basic",
+    "prompt": "docs/evidence.json을 읽고 한국어 기술 인계 요약을 JSON으로만 답해줘. 키는 summary, measured_ms, deployed, next_action 네 개만 사용해. measured_ms와 deployed는 원자료 값을 유지해.",
+    "files": {"docs/evidence.json": "{\"change\":\"중복 요청의 작업 ID를 재사용하도록 로컬 수정\",\"measured_ms\":null,\"deployed\":false,\"next_action\":\"실제 지연 시간을 측정\",\"note\":\"속도 개선 여부는 아직 알 수 없음\"}\n"},
+    "invariants": ["Exactly four requested JSON keys, no fence", "measured_ms is null; deployed is false", "Local deduplication change only, no measured speed improvement", "Next action measures actual latency"],
+    "required_reads": ["docs/evidence.json"], "reference": "documents.md"
+  },
+  {
+    "id": "english", "kind": "positive", "setup": "basic",
+    "prompt": "docs/public의 규칙과 docs/public/facts.md를 읽고 공개 README 초안을 작성해줘. 이 요청은 한국어지만 산출물 언어는 해당 폴더 규칙을 따라. 답변에 문서 본문만 줘.",
+    "files": {"docs/public/AGENTS.md": "Public documentation in this directory must be English. Preserve commands exactly.\n", "docs/public/facts.md": "# Facts\nRelay imports CSV files on macOS. Windows support has not been tested.\nInstall: python3 -m pip install relay-demo\nDry run: relay-demo import records.csv --dry-run\nDry run validates rows and does not save records. Actual import requires omitting --dry-run.\n"},
+    "invariants": ["English deliverable", "Both exact commands", "Dry run validates without saving", "macOS and Windows untested, not claimed Windows incompatible", "No invented tests or features"],
+    "required_reads": ["docs/public/AGENTS.md", "docs/public/facts.md"], "reference": "documents.md"
+  },
+  {
+    "id": "freshness", "kind": "positive", "setup": "basic",
+    "prompt": "docs/history.md와 src/limit.py를 근거로 현재 수정 사항의 검증 상태를 설명하는 한국어 인계문을 작성해줘. 결과 문안만 답해줘.",
+    "files": {"docs/history.md": "# 기록\n10:00 revision A (limit=5): 18 tests passed on macOS.\n10:20 revision B: limit을 7로 수정. 현재 파일이 B.\nB의 테스트 실행 기록은 제공되지 않음.\n11:00 배포 일정은 제안만 됨.\n", "src/limit.py": "LIMIT = 7\n"},
+    "invariants": ["Current limit7 revisionB", "18 passes belong to revisionA at limit5", "No claim B tested or B tests not run: evidence absent", "11:00 deployment proposed not completed or committed", "Next validation appropriately scoped to B"],
+    "required_reads": ["docs/history.md", "src/limit.py"], "reference": "documents.md"
+  },
+  {
+    "id": "pr", "kind": "positive", "setup": "pr",
+    "prompt": "main을 기준으로 현재 브랜치의 커밋된 변경을 설명하는 한국어 PR 제목과 본문 초안을 써줘. docs/checks.md의 실행 기록도 반영해줘. 결과 문안만 답해줘.",
+    "files": {},
+    "invariants": ["PR committed change rejects blank job ids", "Staged timeout and untracked notes excluded", "4 passed are unit checks only, integration explicitly not run", "No deployment success or universal validation claim", "No branch, index, file or external mutation"],
+    "required_reads": ["git", "docs/checks.md"], "reference": "change-messages.md"
+  },
+  {
+    "id": "submodule", "kind": "positive", "setup": "submodule",
+    "prompt": "스테이징된 변경을 확인해서 한국어 커밋 메시지 초안을 작성해줘. 변경 이유를 모르면 추측하지 말고 확인되는 범위만 설명해. 결과 문안만 답해줘.",
+    "files": {},
+    "invariants": ["Detect staged vendor/parser gitlink change despite ignoreSubmodules=all", "Do not claim no staged change", "Only pointer update known; no claimed parser bugfix or performance", "No staging or commit"],
+    "required_reads": ["git"], "reference": "change-messages.md"
+  },
+  {"id":"proofread", "kind":"negative", "setup":"basic", "prompt":"다음 문장의 오탈자만 고쳐줘: 작업이 완료됬습니다.", "files":{}, "invariants":["No technical-writing skill load", "Proofreading response correct"], "required_reads":[]},
+  {"id":"translation", "kind":"negative", "setup":"basic", "prompt":"번역만 해줘: The worker retries twice.", "files":{}, "invariants":["No technical-writing skill load", "Translate two retries without technical report"], "required_reads":[]},
+  {"id":"casual", "kind":"negative", "setup":"basic", "prompt":"고마워. 오늘은 여기까지 할게.", "files":{}, "invariants":["No technical-writing skill load", "Brief natural reply"], "required_reads":[]},
+  {"id":"code-review", "kind":"negative", "setup":"basic", "prompt":"이 코드의 버그만 찾아줘. 문서나 인계문 작성 요청은 아니야: def ratio(a, b): return a / b", "files":{}, "invariants":["No technical-writing skill load", "Code analysis without drafting workflow"], "required_reads":[]}
+]

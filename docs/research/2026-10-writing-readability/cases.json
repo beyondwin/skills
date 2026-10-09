@@ -1,0 +1,140 @@
+[
+  {
+    "id": "cache-race",
+    "prompt": "notes.md를 읽고 이 시스템에 처음 합류한 백엔드 개발자를 위한 한국어 기술 설명을 써줘. 갱신 직후에도 이전 값이 다시 캐시에 들어가는 문제를 현재 구현이 어떻게 막는지 이해할 수 있어야 해.",
+    "questions": [
+      {
+        "q": "R의 오래된 캐시 쓰기는 막혔다. R의 최초 호출자도 반드시 최신 값을 받는가?",
+        "a": "아니오. R은 이미 읽은 DB 값을 최초 호출자에게 반환하며 해당 요청을 다시 시작하지 않는다."
+      },
+      {
+        "q": "DB 반영 후 세대 증가가 실패하면 무엇을 재시도하고 읽기는 어떻게 처리하는가?",
+        "a": "세대 증가를 재시도한다. 성공할 때까지 해당 테넌트는 캐시를 우회하며 DB 커밋을 재시도하지 않는다."
+      },
+      {
+        "q": "세대가 바뀌면 예전 키는 즉시 삭제되는가?",
+        "a": "아니오. 세대 불일치로 사용하지 않을 뿐이며 TTL은 60초로 유지된다."
+      }
+    ],
+    "kind": "positive",
+    "setup": "files",
+    "files": {
+      "notes.md": "Current implementation notes, synthetic project.\nEach tenant has a monotonically increasing generation in Redis. Cache key=(tenant_id, item_id); cached object contains value and generation. Database is authoritative. TTL=60 seconds, unchanged. Reads compare the cached generation with the current tenant generation. Equal means return cached value; different or missing means fetch database.\nRace: worker R reads database old value at generation 41. Worker W commits new DB value, then increments generation to 42. R attempts to cache old result after W. New code uses an atomic Redis script: write result only if current generation equals generation observed BEFORE fetching DB. Thus the stale R cache write is discarded. R still returns the database value it already fetched to its original caller. New code does not restart that original request. A later request sees generation mismatch/miss and fetches again.\nDB commit and Redis increment are not one transaction. If increment fails, tenant cache reads are bypassed until the increment retry succeeds. This bypass is a tenant flag checked before cache lookup. Worker retries increment, not DB commit. Only this failure branch bypasses cache. This is deployed to staging, not production. Test: forced R/W interleaving passed 40/40. No production load measurement.\nImplementation uses a Lua script; SET alone was used before. Cache hit metric is not a correctness proof. A generation is a tenant-wide change counter, not wall clock time. Generation increment invalidates all older entries for that tenant logically; it does not delete their keys."
+    }
+  },
+  {
+    "id": "async-acceptance",
+    "prompt": "notes.md를 근거로 새 API 연동 개발자가 읽을 한국어 설명 문서를 작성해줘. 요청 수락, 실제 처리, 재요청의 관계를 알 수 있어야 해.",
+    "questions": [
+      {
+        "q": "202를 받았는데 다운로드 URL이 없다. 오류인가?",
+        "a": "그 자체는 오류가 아니다. 202는 수락이며 GET의 succeeded 상태에서만 URL이 제공된다."
+      },
+      {
+        "q": "실패한 작업에 같은 유효 키와 같은 본문으로 POST하면 재실행되는가?",
+        "a": "아니오. 같은 job_id를 반환하므로 GET으로 상태를 확인한다."
+      },
+      {
+        "q": "같은 키에 다른 본문을 보내거나 24시간이 지난 뒤 같은 키를 쓰면?",
+        "a": "유효 기간 내 다른 본문은409. 최초 수락부터24시간이 지나면 새 작업을 만들 수 있다."
+      }
+    ],
+    "kind": "positive",
+    "setup": "files",
+    "files": {
+      "notes.md": "Synthetic asynchronous export API. Current version.\nPOST /exports takes Idempotency-Key. Within one DB transaction, API inserts export job(state=queued) and outbox row. Only after commit returns 202 with job_id. 202 means durably accepted, not file ready. If DB transaction fails, neither row persists and API returns 503. Outbox dispatcher later publishes message to queue; publishing and marking row sent are not atomic. It can publish the same message again after a crash. Queue delivery is at least once. Worker claims queued job with conditional state update; only winner processes it. Result file stored before job changes to succeeded. GET /exports/{job_id} returns state and download URL only for succeeded. Failed includes error_code, no URL. Queued and running include no URL.\nKey scope=(account_id, Idempotency-Key), retention24h measured from first accepted request, not refreshed by replay. Identical payload with same unexpired key returns same job_id and202, even if job already succeeded. Different payload with same unexpired key returns409. After24h a reused key can create new job. Another account may use same string independently. This does not promise exactly-once delivery. A failed job is not rerun by repeating POST with the same unexpired key and identical payload; the same job_id is returned. Client fetches GET for latest state.\nAn old design note proposed caching202 in gateway; that approach was not implemented. Polling interval/backoff is not specified. Current worker claim prevents simultaneous duplicate processing; crash recovery of an already-running worker is outside this note and must not be presented as solved."
+    }
+  },
+  {
+    "id": "pagination",
+    "prompt": "notes.md를 바탕으로 프런트엔드 개발자에게 전달할 페이지네이션 동작 설명을 한국어로 작성해줘. 목록이 변할 때 사용자가 보는 결과와 앱이 처리할 상황을 설명해줘.",
+    "questions": [
+      {
+        "q": "첫 페이지 이후 생긴 로그와 기존 로그의 수정된 필드는 다음 페이지에 어떻게 반영되는가?",
+        "a": "새 로그 ID는 같은 탐색에 추가되지 않지만 기존 로그 필드의 최신 값은 읽는다."
+      },
+      {
+        "q": "필터를 바꾸려면 기존 커서를 그대로 써도 되는가?",
+        "a": "아니오. 커서 없이 새로 시작해야 하며 불일치 커서는400이다."
+      },
+      {
+        "q": "15분 동안 계속 다음 페이지를 요청하면 스냅샷은 연장되는가?",
+        "a": "아니오. 생성부터15분이며 만료 시410, 커서를 버리고 새 탐색을 시작한다."
+      }
+    ],
+    "kind": "positive",
+    "setup": "files",
+    "files": {
+      "notes.md": "Synthetic audit-log API, implemented v2.\nDefault order=(created_at DESC, id DESC), id breaks timestamp ties. First GET /logs creates snapshot of IDs matching filters and their order, retained15 minutes from creation. Response20 rows max + next_cursor. Cursor is opaque, signed token containing snapshot reference and position, not page number. Cursor request must reuse original filter values; changed filters with cursor gives400 FILTER_MISMATCH. To change filters start without cursor. Offset parameter not supported in v2.\nNew records after snapshot creation do not appear in that traversal; start a new first request to include them. ID set and order are frozen, field values are NOT frozen: for each response current row fields are read. A row deleted after snapshot is skipped; server scans further IDs until20 surviving rows or snapshot exhausted. Cursor advances past every scanned ID, including deleted ones. A page can have fewer than20 rows at exhaustion. No duplicates from equal timestamps within same traversal. This is not a historical archive. Permission is checked on every request, not frozen in snapshot; revoked access can cause403. Expired/unknown snapshot =>410 CURSOR_EXPIRED; client must discard cursor and start new traversal. Next_cursor=null means exhausted, not permission failure. Snapshot TTL is not extended by page requests.\nStaging acceptance confirmed ties/deletes/filter mismatch/expiration; no offline export guarantee. Documentation draft used the phrase frozen data; it is misleading and must be reconciled with above implementation facts."
+    }
+  },
+  {
+    "id": "migration",
+    "prompt": "notes.md를 읽고 다음 배포 담당자가 사용할 한국어 인계 문서를 써줘. 현재 단계와 진행 조건, 되돌릴 수 있는 범위를 분명히 해줘.",
+    "questions": [
+      {
+        "q": "현재 C 단계로 진행해도 되는가?",
+        "a": "아니오. 남은 배치가 있고18건 반려 및 정합성 비교 미실행. 모든 배치 완료 AND 반려0 AND 전행 정합성 일치가 필요하다."
+      },
+      {
+        "q": "total_minor=0이면 이전 문자열 값으로 대체하는가?",
+        "a": "아니오. null일 때만 대체한다."
+      },
+      {
+        "q": "D 이후 v1 실행 파일만 배포해서 롤백할 수 있는가?",
+        "a": "아니오. 이전 열을 제거한 뒤에는 데이터 복구나 마이그레이션이 필요하다."
+      }
+    ],
+    "kind": "positive",
+    "setup": "files",
+    "files": {
+      "notes.md": "Synthetic migration from orders.total_text to orders.total_minor integer cents. USD only, no exchange conversion. PhaseA adds nullable total_minor; app v1 reads/writes total_text. PhaseB app v2 dual-writes both in SAME DB transaction, reads total_minor when non-null ELSE parses total_text; zero is valid and must not take fallback. Backfill processes IDs in ascending batches500; skips rows where total_minor already non-null; parsing invalid text records row in rejects, does not guess zero. B can coexist with v1 readers but all writers must be v2 BEFORE backfill starts, or old writers can update text without minor value. Current: schemaA and appv2 deployed; all writer instances confirmedv2; backfill paused after batch120. 60,000 rows scanned, 59,982 filled,18 rejects. Logs confirm rejects have invalid currency text. No data repairs yet. Remaining IDs exist after batch120; completion not established by60,000 count.\nResume command: python tools/backfill.py --after-batch 120 --batch-size 500 --resume\nPhaseC switches app reads to total_minor only. Gate: all batches completed AND reject count zero AND parity comparison agrees for all rows. Current parity check has NOT run. Do not advance toC now. Repair rejected original values requires finance-owner confirmation, then rerun affected rows; supplied note gives no repair command. App rollback from B to v1 is possible while total_text is preserved and v2 dual writes continue until rollback completed. Do not drop total_text in B/C. PhaseD column removal only after separate approval; afterD, rollback to v1 needs restore/migration, not just binary rollback. No PhaseD date or approval exists.\nUser task is handoff only, not execute commands. Last CI72passes applies appv2, not backfill completion or parity."
+    }
+  },
+  {
+    "id": "measurement",
+    "prompt": "notes.md를 근거로 캐시 도입 결과를 팀에 공유할 한국어 기술 보고를 작성해줘. 비전문가 PM도 결과와 남은 판단을 이해할 수 있어야 해.",
+    "questions": [
+      {
+        "q": "전체 요청이 빨라졌다고 결론 낼 수 있는가?",
+        "a": "아니오. 성공 요청의p50은120→70ms지만p95는600→650ms로 악화했고 오류 요청은 지연 통계에서 제외됐다."
+      },
+      {
+        "q": "캐시 적중률70%의 분모는 무엇인가?",
+        "a": "전체10000요청이 아닌 읽기9000건이다. 적중6300건."
+      },
+      {
+        "q": "DB 호출 감소만으로 비용 절감과 정합성이 검증됐는가?",
+        "a": "아니오. Redis비용/메모리와 동시 갱신 시 무효화 정합성은 측정되지 않았다."
+      }
+    ],
+    "kind": "positive",
+    "setup": "files",
+    "files": {
+      "notes.md": "Synthetic replay benchmark, not production rollout. Two versions same single8core machine; 10,000 HTTP requests EACH, serial runs; baseline first then cache version. Identical request sequence,90% reads/10% writes. Backend errors: baseline20/10000, cache10/10000; both HTTP5xx. Latency percentiles calculated ONLY successful requests: baseline9980, cache9990. Baseline p50=120ms,p95=600ms; cache p50=70ms,p95=650ms. Lowerp50 but higherp95. Do not call all requests faster. No repeated trials or confidence intervals. Load fixed100requests/sec; not throughput limit measured. No production data or multicore scaling benchmark.\nCache hits6300 among9000 reads=70%; not70%ofall10000requests. No cache lookups for writes. Database calls baseline9000, cache2700 for read path only. DB-call count is not total infrastructure cost. Redis cost and memory usage not measured. Cache TTL30s. Writes invalidate relevant cache entry after DB commit; invalidation failure count not captured. Dataset has no concurrent overwrite tests, so correctness of invalidation not established by low5xxrate. Improvement could depend on request order/warming; no randomized order. PM nextdecision is whether to run a production-like repeated benchmark, not approve rollout based on current evidence. Benchmark author proposed followup with concurrent writes and cost measurement; not yet performed. Do not invent expected savings or confidence."
+    }
+  },
+  {
+    "id": "recovery",
+    "prompt": "notes.md를 근거로 새 당직자를 위한 한국어 복구 절차서를 작성해줘. 화면에서 확인한 값에 따라 어떤 행동을 해야 하는지 따라갈 수 있게 해줘.",
+    "questions": [
+      {
+        "q": "재시작 전 pending_count=12, lease=true, dead=0이면 재시작 가능한가?",
+        "a": "가능하다. 사전 조건은12이하이다."
+      },
+      {
+        "q": "재시작 뒤 pending_count=1, lease=true, dead=0이면 intake를 재개하는가?",
+        "a": "아니오. 사후 성공은0건. 일시중지를 유지하고 중단 후 담당자에게 알린다."
+      },
+      {
+        "q": "pending_count=null이거나 명령이 실패하면 자동 재시도하는가?",
+        "a": "아니오. 중단 후 담당자에게 알리고 성공을 가정하거나 자동 재시도하지 않는다."
+      }
+    ],
+    "kind": "positive",
+    "setup": "files",
+    "files": {
+      "notes.md": "Synthetic worker recovery policy, current approved procedure.\nBegin by pausing intake: relayctl intake pause --queue image\nThen inspect: relayctl status --queue image --json\nFields: pending_count integer or null; lease_renewal_ok boolean or null; dead_workers integer. pending_count null means telemetry unavailable, NOT0. lease_renewal_ok null means unknown, NOTfalse. Restart is allowed ONLY pending_count<=12 AND lease_renewal_ok=true AND dead_workers=0. If any required value unknown, keep intake paused, stop procedure, notify on-call lead. If known values fail any condition, keep intake paused, stop, notify on-call lead; no restart or automatic retry in this branch. Contact channel not specified.\nAllowed restart command: relayctl workers restart --queue image --graceful\nAfter restart inspect same status command. Recovery success ONLY pending_count=0 AND lease_renewal_ok=true AND dead_workers=0. Before restart <=12 threshold is NOT after-restart success threshold. If success, relayctl intake resume --queue image then record recovery complete. If not success or required values unknown, keep intake paused, stop and notify lead; do not repeat restart. A successful restart command exit is not recovery success. Resume before checking recovery is forbidden. If pause or status or restart command fails, stop and notify lead, do not assume the command took effect; no additional recovery command supplied.\nThe role reading this doc knows how to use shell and JSON, not relay internals. For numeric example boundary, pending12 qualifies before restart with other conditions; pending1 after restart is not success. This is one queue only. Do not claim all service recovery."
+    }
+  }
+]

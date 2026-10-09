@@ -1,0 +1,149 @@
+{
+  "scope": "Author inspection of all12 candidate drafts against sources. Not independent human assessment. Material error veto is conservative; model judgments remain unchanged.",
+  "rows": [
+    {
+      "case": "lease-fencing",
+      "arm": "candidate",
+      "material_error": false,
+      "source_checks_reviewed": [
+        "expiry exact boundary rejects",
+        "old worker can compute but cannot publish",
+        "duplicate outbox possible and event_id dedup",
+        "external side effects not protected; staging only"
+      ],
+      "rationale": "Owner, epoch and strict database-time gate retained; local computation and publication distinguished; outbox duplicates and staging scope retained."
+    },
+    {
+      "case": "index-alias",
+      "arm": "candidate",
+      "material_error": false,
+      "source_checks_reviewed": [
+        "pre and post freeze all three gates",
+        "<=2 inclusive",
+        "rollback failure keep freeze",
+        "unknown not zero and no invented retry"
+      ],
+      "rationale": "Both three-part checks, inclusive mismatch threshold, rollback failure freeze and unfreeze escalation retained. Unspecified switch failure marked, not invented."
+    },
+    {
+      "case": "parser-handoff",
+      "arm": "candidate",
+      "material_error": false,
+      "source_checks_reviewed": [
+        "old pass not current validation",
+        "missing None empty string distinguish",
+        "tabs unresolved not invent",
+        "test command and scope staged+unstaged accurate"
+      ],
+      "rationale": "Historical checks separated from current untested edit; staged/unstaged scope, tabs uncertainty and exact next test command retained."
+    },
+    {
+      "case": "retry-metrics",
+      "arm": "candidate",
+      "material_error": false,
+      "source_checks_reviewed": [
+        "logical vs attempt denominators",
+        "B99% exact but two gates fail",
+        "success-only latency no individual tail claim",
+        "time/load limits and no monetary savings"
+      ],
+      "rationale": "Correct operation denominators, B gate failures, success-only latency and single-run limits. Additional measurement advice is labeled recommendation."
+    },
+    {
+      "case": "key-rotation",
+      "arm": "candidate",
+      "material_error": false,
+      "source_checks_reviewed": [
+        "K1 retirement independent token exp",
+        "age120 allowed >120 fail",
+        "503 refresh failure vs401 unknown",
+        "polling not immediate invalidation"
+      ],
+      "rationale": "Strict key retirement, exp, >120s stale gate, refresh failure503 versus unknown401 and non-idempotent retry limit retained."
+    },
+    {
+      "case": "batch-resume",
+      "arm": "candidate",
+      "material_error": false,
+      "source_checks_reviewed": [
+        "start2401 checkpoint not published",
+        "null owner allowed pending null not",
+        "ambiguous resume no repeat",
+        "finish dynamic expectedsequence AND finished"
+      ],
+      "rationale": "Checkpoint/publication counters, field-specific null semantics, ambiguous timeout and dynamic completion gate retained. Closing no-release sentence should be scoped explicitly to post-resume monitoring; earlier precheck-failure release is stated."
+    },
+    {
+      "case": "sdk-handoff",
+      "arm": "candidate",
+      "material_error": false,
+      "source_checks_reviewed": [
+        "SDK implemented UI remains",
+        "null vs missing error",
+        "23 macOS local CI pending",
+        "next labels and exact command no invented release"
+      ],
+      "rationale": "SDK versus UI completion, null versus missing DecodeError, exact labels and command, pending CI and unapproved publication/telemetry retained."
+    },
+    {
+      "case": "cache-cohorts",
+      "arm": "candidate",
+      "material_error": false,
+      "source_checks_reviewed": [
+        "overall up within cohorts down",
+        "success-only p50better p95worse",
+        "stale sample not production estimate",
+        "backend traffic and cost unmeasured target unknown"
+      ],
+      "rationale": "Counts and derived rates correct; descriptive workload mixture explains aggregate reversal. Headline says sample is nonrepresentative where source establishes only unknown representativeness. Repeated next steps and caveats weaken economy."
+    },
+    {
+      "case": "delete-tombstone",
+      "arm": "candidate",
+      "material_error": true,
+      "source_checks_reviewed": [
+        "204 logical delete not purge",
+        "searchlag details404 revision order",
+        "restore purge_started boundary not just24h",
+        "legalhold no access expansion backupunknown"
+      ],
+      "rationale": "Opening says204 means a tombstone was committed without limiting this to an existing active object. The next paragraph correctly states the missing/already-deleted exception. Opening is an overbroad claim; must be repaired before adoption. Recovery detail also forms an overloaded final paragraph."
+    },
+    {
+      "case": "certificate-cutover",
+      "arm": "candidate",
+      "material_error": false,
+      "source_checks_reviewed": [
+        "three candidate gates",
+        "staged vs live",
+        "rollback validate old samegate",
+        "no restart no delete and unknown blocks"
+      ],
+      "rationale": "Thresholds, staging/live distinction, expected-cert guard, rollback check and clear-stage failure retained. No restart interpreted as procedure boundary; unspecified failure branches identified."
+    },
+    {
+      "case": "schema-handoff",
+      "arm": "candidate",
+      "material_error": false,
+      "source_checks_reviewed": [
+        "W2 current2% oldread",
+        "freshsample <=2 gate oldsampleinvalid",
+        "allthree readgates unknownrehearsal",
+        "rollback disableswrites not deletes; testunknown"
+      ],
+      "rationale": "W2, 2percent rollout, fresh sample, unknown rehearsal, three read-switch gates and write-only rollback preserved."
+    },
+    {
+      "case": "routing-metrics",
+      "arm": "candidate",
+      "material_error": false,
+      "source_checks_reviewed": [
+        "population1000 timeoutfail not excluded",
+        "aggregate not pairedchanges",
+        "both fail gate R2twofail",
+        "cost estimate notbill latency nontimeout modelqualitynot human"
+      ],
+      "rationale": "All denominators, pairwise-outcome absence, failed adoption gates, estimated cost and non-timeout latency preserved."
+    }
+  ]
+}

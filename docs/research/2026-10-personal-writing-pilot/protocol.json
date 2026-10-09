@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-09",
+  "status": "frozen before generation",
+  "scope": "Personal Codex skill; no repository product addition or global policy edit",
+  "authorization": "User requested implementation and iteration until satisfactory quality; announced initial maximum 24 live model dispatches",
+  "calls": {
+    "planned": 20,
+    "reserved_for_targeted_followup": 4,
+    "max_total": 24
+  },
+  "design": "8 unseen synthetic workflow cases paired baseline/candidate; 4 candidate-only near misses; single repetition. Candidate available through native discovery, not prompt inlining. Existing Korean editor available in both arms.",
+  "model_requested": "gpt-6-astra",
+  "effort_requested": "high",
+  "environment": "macOS; isolated HOME/CODEX_HOME per call; memories disabled; only target and editor user skills; no superpowers; read-only synthetic repository",
+  "primary_gate": "All candidate positive cases preserve every material invariant, output format and source scope. No workspace mutation or invented validation. Any failure requires correction and separate held-out verification before installation. No superiority claim if baseline also passes.",
+  "discovery_gate": "8/8 candidate positives read SKILL.md and appropriate reference; 0/4 near misses read candidate. Inspect completed command output, not mentions alone.",
+  "grading": "Author reviews every response against frozen invariants and tool evidence. JSON and workspace checks deterministic; semantic judgment not independent or human comprehension evidence. No LLM judge disguised as independent.",
+  "secondary": "Per-case duration, tokens, output length and unnecessary prose; descriptive only, not cross-model or statistical conclusions.",
+  "payload_sha256": {
+    "README.ko.md": "d834d966be16676aac947449754780d96650a681eed1840c2fe07b03f58ed56d",
+    "README.md": "08328fdcdb14358a097fa017722e44d0e1600183679edd570904ce94d3275a22",
+    "SKILL.md": "e4556cecb457be132d566b924b6a520503bf47733029c4b63c7ed035da436361",
+    "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+    "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+    "references/documents.md": "3de46e8906efb294bb8b30d2a7d00db6bf7b2d523b5da91e7d84d716f7a9c5be"
+  },
+  "cases_sha256": "1b4e844773dcb2fcec85a37f89302046766895d5cfbac5fab765cfa212af3ab1",
+  "harness_sha256": "0fb0ecbab5dbf9ed0ec96ec6bf31939a1b9880377c150998143e07160fc113cd",
+  "competing_editor_sha256": {
+    "CHANGELOG.md": "417c20d2e15f067ff622606438324186a5be9247f32949146e62ac76229821ab",
+    "LICENSE.txt": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "README.ko.md": "d396be3ccf51f3d4e1c96c0a970e0447d9d306e27e0cc8ab6d889bd8ca4ee435",
+    "README.md": "2a3c54fc2ab8c9bca944422c87074194b72dda092ced144cef92f2ead1e096ef",
+    "SKILL.md": "d8ccefa5cb92b9eab984e83e5ae0ba680ad91a294912365fdbf437c34e94027a",
+    "agents/openai.yaml": "33a3581920cbd05f3c556bacf4eb75549576dc749edb720f5017f0685a191e81",
+    "references/editorial-guide.md": "d807d7a09c8f0629664c5c709d6a7623c018d7c8fb974a3adf085676c630a5d2",
+    "references/sources.md": "019ddb40539a794275c72f48f36be36f0872b3c387a01ec7c7b19a1260c94574",
+    "release.toml": "e6f439c88e12b5ba4f9b0edfe7953d92a7d90a3f2d6bf512b6f9fdf900b4744c"
+  },
+  "stop": "Stop on passing stated gates; keep failures and unavailable runs visible. At 24 calls report remaining limitations rather than repeating until a pass."
+}

@@ -1,0 +1,139 @@
+{
+  "runs": [
+    {
+      "id": "index-alias--baseline",
+      "workspace_unchanged": true,
+      "native_reads": {},
+      "recorded_tool_calls": 1,
+      "stdout_command_count": 1,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "index-alias--candidate",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "index-alias--previous",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "lease-fencing--baseline",
+      "workspace_unchanged": true,
+      "native_reads": {},
+      "recorded_tool_calls": 1,
+      "stdout_command_count": 1,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "lease-fencing--candidate",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "lease-fencing--previous",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "parser-handoff--baseline",
+      "workspace_unchanged": true,
+      "native_reads": {},
+      "recorded_tool_calls": 1,
+      "stdout_command_count": 1,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "parser-handoff--candidate",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "parser-handoff--previous",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "retry-metrics--baseline",
+      "workspace_unchanged": true,
+      "native_reads": {},
+      "recorded_tool_calls": 1,
+      "stdout_command_count": 1,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "retry-metrics--candidate",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "retry-metrics--previous",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    }
+  ],
+  "all_workspaces_unchanged": true,
+  "all_required_reads_observed": true,
+  "all_auth_removed": true
+}

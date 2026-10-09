@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-09",
+  "version": "0.2.0",
+  "candidate_sha256": {
+    "README.ko.md": "43c4bc14df50e6995796638e03a4b04d42366fc91d66463b849b96bc283dbda9",
+    "README.md": "358e4e770594085ed3b9b021a09e8e797bc0e7a3f3a2e1662b04f703787676bf",
+    "SKILL.md": "5ca54e37392de47dd15440133fe0aedcefacc018941c8420ba30173ec507d732",
+    "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+    "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+    "references/documents.md": "a89bd6d09f963bd0306e5c613c32b29c38f2e2e5c92278aa2258a25b8c396dad"
+  },
+  "previous_sha256": {
+    "README.ko.md": "d834d966be16676aac947449754780d96650a681eed1840c2fe07b03f58ed56d",
+    "README.md": "08328fdcdb14358a097fa017722e44d0e1600183679edd570904ce94d3275a22",
+    "SKILL.md": "e4556cecb457be132d566b924b6a520503bf47733029c4b63c7ed035da436361",
+    "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+    "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+    "references/documents.md": "3de46e8906efb294bb8b30d2a7d00db6bf7b2d523b5da91e7d84d716f7a9c5be"
+  },
+  "cases_sha256": "f354ac737c28f3f485d6514db163fed042e9ee08ca51037040181d63ccf9f52d",
+  "harness_sha256": "d11cb6cf44ee6c5828b2495863dd15a10ed315a7e043e0d571e2e9cb51e17422",
+  "study_sha256": "9d206b8239fde14d1cadd22d607003b64614a5d4b75254eb12699ea23bdbb4ff",
+  "competitor_sha256": {
+    "CHANGELOG.md": "417c20d2e15f067ff622606438324186a5be9247f32949146e62ac76229821ab",
+    "LICENSE.txt": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "README.ko.md": "d396be3ccf51f3d4e1c96c0a970e0447d9d306e27e0cc8ab6d889bd8ca4ee435",
+    "README.md": "2a3c54fc2ab8c9bca944422c87074194b72dda092ced144cef92f2ead1e096ef",
+    "SKILL.md": "d8ccefa5cb92b9eab984e83e5ae0ba680ad91a294912365fdbf437c34e94027a",
+    "agents/openai.yaml": "33a3581920cbd05f3c556bacf4eb75549576dc749edb720f5017f0685a191e81",
+    "references/editorial-guide.md": "d807d7a09c8f0629664c5c709d6a7623c018d7c8fb974a3adf085676c630a5d2",
+    "references/sources.md": "019ddb40539a794275c72f48f36be36f0872b3c387a01ec7c7b19a1260c94574",
+    "release.toml": "e6f439c88e12b5ba4f9b0edfe7953d92a7d90a3f2d6bf512b6f9fdf900b4744c"
+  },
+  "max_dispatches": 40,
+  "planned": {
+    "generation": 18,
+    "masked_judging": 12,
+    "regression": 4,
+    "source_blind_reader": 4,
+    "installed_smoke": 1,
+    "transport_retry_reserve": 1
+  },
+  "requested_runtime": {
+    "model": "gpt-6-astra",
+    "effort": "high",
+    "parallelism": 2,
+    "sandbox": "read-only",
+    "identity_source": "rollout turn_context"
+  },
+  "decision": {
+    "install": [
+      "Author source audit: all 6 candidate drafts preserve decision-critical meaning; no unsupported material claims.",
+      "Both masked judgments: candidate scores at least 3/4 on every dimension for all 6 cases.",
+      "No more than one case with a stable preference excluding candidate and including previous across both orders.",
+      "All four targeted regression cases pass their original contracts.",
+      "Both source-blind candidate reader probes answer all 3 questions correctly.",
+      "Installed native invocation smoke reads current SKILL.md and document reference and preserves source meaning."
+    ],
+    "preference_claim": "Only report observed preference gain if candidate is a unique winner in both orders on at least 4 of 6 cases, with zero stable losses to previous. Otherwise report no clear preference gain. Never infer human comprehension benefit or cross-model generality.",
+    "revision": "Do not tune frozen candidate or reuse case outputs to claim held-out gains. If gates fail, record failure and diagnose; a revised candidate needs a separate frozen evaluation.",
+    "missing": "A transport failure is missing, not a semantic loss. One identical retry is allowed within 40 total; incomplete acceptance evidence prevents upgrade.",
+    "scores": "1 hard to use;2 material reorganization;3 minor local improvement;4 ready to use. No length/format proxy as readability outcome."
+  },
+  "privacy": "Only authored synthetic fixtures and aggregate grades enter Git. Prompts, responses, transcripts and copied auth remain outside Git; copied auth deleted after each run.",
+  "limits": [
+    "Single generator and judge model family; correlated preferences remain.",
+    "Author audit is not independent.",
+    "Order reversal checks position sensitivity, not sampling uncertainty.",
+    "Small synthetic sample; no human readers, actual reading times or comprehension study."
+  ],
+  "source_basis": [
+    {
+      "url": "https://www.asd-ste100.org/about.html",
+      "use": "Purpose and consistent terminology; Korean implementation is an adaptation, not compliance."
+    },
+    {
+      "url": "https://asd-ste100.org/STE_faq.html",
+      "use": "Procedural/descriptive scope and transferable principles; not English vocabulary or fixed word limits."
+    }
+  ]
+}

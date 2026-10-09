@@ -1,0 +1,37 @@
+{
+  "main": {
+    "dispatches": 62,
+    "completed": 61,
+    "version": "0.3.0",
+    "adopted": false
+  },
+  "first_correction": {
+    "dispatches": 9,
+    "completed": 9,
+    "author_passes": 7,
+    "version": "0.3.1",
+    "adopted": false
+  },
+  "second_correction": {
+    "dispatches": 7,
+    "completed": 7,
+    "author_passes": 7,
+    "version": "0.3.2",
+    "adopted": false
+  },
+  "total_dispatches": 78,
+  "total_completed": 77,
+  "installed_version": "0.2.2",
+  "superiority_established": false,
+  "human_results": 0,
+  "reason": "Frozen preference thresholds not met, one judgment missing, source/scorer issues observed. Final correction has only targeted regression evidence. No transfer of earlier preference scores.",
+  "scope": "CLI dispatches including writers, judges, controls and regressions, not78 independent writing tasks.",
+  "evidence": {
+    "results.json": "7451e4b08ae6e78a3e74b0f331220aabf440c1d58622917c75428a952b25deab",
+    "revision-results.json": "0f65263e05e7706f630baf1b55451a1517b43e316c0d7333383c0aa9551d33d1",
+    "final-results.json": "199d4dfe171f935637673ec6e1f87686e483da004ce60f4a14a30442ff2662aa",
+    "author-audit.json": "14ec0532d56756d1c07a4da71bd1bfb53cdf72e5901c475e89f47b3fa4ff9d07",
+    "adjudication.md": "7923187cd261c031338406ca1500277d976b403fe411dcafe3fb727253b388ac",
+    "installation-status.json": "3b7c44deb00d0970292351da8c37031c2f3c3e7e1dddbf4356dfcb59da77d3fc"
+  }
+}

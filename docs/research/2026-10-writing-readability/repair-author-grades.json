@@ -1,0 +1,64 @@
+{
+  "version": "0.2.1",
+  "reviewer": "author;notindependent",
+  "accepted": false,
+  "reason": "Numeric table contradiction in Grok output violates predeclared all6meaning gate.",
+  "runs": [
+    {
+      "id": "json-regression--codex",
+      "response_sha256": "3f76011bb8c0a701113c917d888055ebe66e627b706d8779d4f150814aa752ed",
+      "meaning_pass": true,
+      "targeted_clarity_pass": true,
+      "reason": "Reviewed source conditions, numeric scope and action placement; targeted obligations preserved."
+    },
+    {
+      "id": "measurement-replay--opus",
+      "response_sha256": "3f0da2021272f554fe3e3af23e1851eb9b1717f714f9be86348f28161b6b14f9",
+      "meaning_pass": true,
+      "targeted_clarity_pass": true,
+      "reason": "Reviewed source conditions, numeric scope and action placement; targeted obligations preserved."
+    },
+    {
+      "id": "replica-rejoin--codex",
+      "response_sha256": "22fe5065815b3428b6bab8b87efeba5662a14bd782eaff7ced678c3e807af1ed",
+      "meaning_pass": true,
+      "targeted_clarity_pass": true,
+      "reason": "Reviewed source conditions, numeric scope and action placement; targeted obligations preserved."
+    },
+    {
+      "id": "replica-rejoin--grok-medium",
+      "response_sha256": "6e881f6bc73ad796a506b8f4424189866a99cadbe72c2ed7a91c301138c6cdce",
+      "meaning_pass": true,
+      "targeted_clarity_pass": true,
+      "reason": "Reviewed source conditions, numeric scope and action placement; targeted obligations preserved."
+    },
+    {
+      "id": "replica-rejoin--opus",
+      "response_sha256": "3b24debfa9156905fcf2aff347ff4670e6f7a00c03f55a6b2288cba3209fccbd",
+      "meaning_pass": true,
+      "targeted_clarity_pass": true,
+      "reason": "Reviewed source conditions, numeric scope and action placement; targeted obligations preserved."
+    },
+    {
+      "id": "tail-metric--codex",
+      "response_sha256": "5fc7bc8250014fba3363639aef508f35dd1f67211a6b8af91496924a1fc6d042",
+      "meaning_pass": true,
+      "targeted_clarity_pass": true,
+      "reason": "Reviewed source conditions, numeric scope and action placement; targeted obligations preserved."
+    },
+    {
+      "id": "tail-metric--grok-medium",
+      "response_sha256": "b93807b11cdb999ee22663a8e9c1e82489d9969df73654a1b2cf32d0902bb140",
+      "meaning_pass": false,
+      "targeted_clarity_pass": false,
+      "reason": "B success table cell incorrectly borrows A error exclusion; prose B1000does not repair contradicting cell."
+    },
+    {
+      "id": "tail-metric--opus",
+      "response_sha256": "e802e007dca5b31ed5306b293b921144a58d76345c6738d3ac52f6584c15dfa9",
+      "meaning_pass": true,
+      "targeted_clarity_pass": true,
+      "reason": "Reviewed source conditions, numeric scope and action placement; targeted obligations preserved."
+    }
+  ]
+}

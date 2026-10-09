@@ -1,0 +1,21 @@
+{
+  "dispatch_cap": 7,
+  "payload": {
+    "README.ko.md": "69aea1eee24fe41447d9d3214d5a1cba00d0add4e4b20329398ca85ba64527c2",
+    "README.md": "91207eb7bef6b6e7347412f9038d13d87df00c280b10fdc20f19bf26bd6e8471",
+    "SKILL.md": "64c0abcd123a268bc202174fa68b030a5991e7d3510e557f7d213bd72c4cda6f",
+    "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+    "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+    "references/documents.md": "ea05255258b78c5176dcc3e9da72c96cba760e5cadb87781fb8caf6beec630ff"
+  },
+  "files": {
+    "final_repair.py": "a12e9c377a584df88323bb639119bd4f31cf97aa47414756800c6fddc814ab34",
+    "revision-cases.json": "75e98524336f8cd6696ef58bd0a087130eb9dc311f197b4ec3d982c1671c545e",
+    "run.py": "301b7f1943ed1af272fcb2452a224c83f0d6587f1f2b490ce3bfb8d9252a60b4",
+    "../2026-10-writing-readability/harness.py": "d11cb6cf44ee6c5828b2495863dd15a10ed315a7e043e0d571e2e9cb51e17422",
+    "../2026-10-ko-clear-writing-eval/harness/opus_runner.py": "b16d06f627fa140657c7592d8e114ef73bfe9bf9775ba2743b9f7dc1989b0211",
+    "../2026-10-ko-clear-writing-eval/harness/grok_runner.py": "63fbb7e7f49828f12f5e0d1ae32a4eafac1f6da68751e16d98a63a6727db1723"
+  },
+  "reason": "0.3.1 Opus mistranslated authorization as authentication; Grok changed inability to establish an effect into language asserting no relationship. Correct these adjacent-concept and epistemic distinctions. All prior artifacts retained.",
+  "acceptance": "Six targeted replays must preserve scope, technical roles and uncertainty under author source review; native exact JSON contract retained. Development regression only. No superiority or human-readability claim, and no installation based only on these replays."
+}

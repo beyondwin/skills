@@ -1,0 +1,75 @@
+{
+  "experiment": "E1",
+  "date": "2026-10-09",
+  "checksum_manifest_sha256": "c7020034826fd83988e16c6c6814b7cb7af01dc0d5a602ce26156677922c1dda",
+  "checksums_checked": 57,
+  "checksum_mismatches": 0,
+  "source_mutated": false,
+  "execution_target": "temporary copy",
+  "runtime": "macOS arm64 /usr/bin/python3 3.9.6",
+  "research": {
+    "before": {
+      "chars": 1538,
+      "eojeol": 384,
+      "sentences": 14,
+      "mean_eojeol": 27.429,
+      "max_eojeol": 39,
+      "over20": 11
+    },
+    "after": {
+      "chars": 1537,
+      "eojeol": 359,
+      "sentences": 61,
+      "mean_eojeol": 5.885,
+      "max_eojeol": 12,
+      "over20": 0
+    },
+    "anchor_pass": 68,
+    "anchor_total": 68,
+    "protected_pass": 12,
+    "case_count": 12,
+    "sentence_mean_change_pct": -78.54,
+    "char_change_pct": -0.07,
+    "zero_warning_mutants": 8,
+    "mutant_count": 8,
+    "selftest": "selftest OK",
+    "upstream_blob_sha1": "73423022df33492fbcf18aa33cc4d3eafe036064",
+    "probe_expectations_met": 24,
+    "probe_count": 24,
+    "benchmark_macro_reported_pct": 81.278,
+    "benchmark_generations_arithmetic": 144,
+    "benchmark_judge_pairs_arithmetic": 72
+  },
+  "kit": {
+    "as_of": "2026-10-09 Asia/Seoul",
+    "test_kind": "Offline synthetic regression + local temporary Git integration. NOT agent/model A/B.",
+    "python": "3.9.6",
+    "git": "git version 2.50.1 (Apple Git-155)",
+    "unit_test_methods_run": 41,
+    "unit_test_failures": 0,
+    "unit_test_errors": 0,
+    "unit_test_skipped": 0,
+    "synthetic_pairs": 26,
+    "candidate_outputs": 52,
+    "reference_candidates_literal_matched": 26,
+    "contract_mismatch_probes": 18,
+    "contract_mismatch_probes_blocked": 18,
+    "semantically_acceptable_but_literal_blocked": 1,
+    "semantic_blindspot_probes": 8,
+    "semantic_blindspot_probes_unblocked": 8,
+    "independent_model_calls": 0,
+    "human_readability_experiment": false,
+    "agent_file_loading_measured": false
+  },
+  "logs": {
+    "research.stdout.txt": "e5c58e5b685f396caff27955d8bd5b4ccc32b6ce380a008550b91c59be81795c",
+    "research.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "kit.stdout.txt": "2604a5536f0f5a67bbd778dcd588f32da6e0467962c2d324db7cb3e3844f515f",
+    "kit.stderr.txt": "8d28b23d6bb4471c9e24c35468339c553fb96cb473b42cd6f20801297797309c"
+  },
+  "limits": [
+    "Inherited synthetic fixtures are not independent model outputs.",
+    "The 41 tests include the 26-pair corpus test; do not add denominators.",
+    "Local code checks do not measure Korean comprehension."
+  ]
+}

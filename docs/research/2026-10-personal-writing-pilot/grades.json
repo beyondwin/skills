@@ -1,0 +1,170 @@
+{
+  "casual--candidate": {
+    "semantic_pass": null,
+    "format_pass": null,
+    "scope_pass": null,
+    "source_read_verified": null,
+    "reviewer": "author",
+    "rationale": "HTTP 503 / capacity failure before any answer; unavailable, not a writing failure."
+  },
+  "casual-retry--candidate": {
+    "semantic_pass": true,
+    "format_pass": true,
+    "scope_pass": true,
+    "source_read_verified": null,
+    "reviewer": "author",
+    "rationale": "Brief natural response; no skill read. Single retry after transport failure, unchanged prompt and candidate."
+  },
+  "code-review--candidate": {
+    "semantic_pass": true,
+    "format_pass": true,
+    "scope_pass": true,
+    "source_read_verified": null,
+    "reviewer": "author",
+    "rationale": "Conditional division-by-zero issue reported without drafting workflow."
+  },
+  "commit--baseline": {
+    "semantic_pass": true,
+    "format_pass": true,
+    "scope_pass": true,
+    "source_read_verified": true,
+    "reviewer": "author",
+    "rationale": "Only staged retry cap 2 to 4 described; unstaged timeout and unchanged OAuth omitted; one-line output."
+  },
+  "commit--candidate": {
+    "semantic_pass": true,
+    "format_pass": true,
+    "scope_pass": true,
+    "source_read_verified": true,
+    "reviewer": "author",
+    "rationale": "Only staged retry cap 2 to 4 described; unstaged timeout and unchanged OAuth omitted; one-line output."
+  },
+  "english--baseline": {
+    "semantic_pass": true,
+    "format_pass": true,
+    "scope_pass": true,
+    "source_read_verified": true,
+    "reviewer": "author",
+    "rationale": "English nested rule followed; install and dry-run commands exact; dry run does not save; Windows remains untested."
+  },
+  "english--candidate": {
+    "semantic_pass": true,
+    "format_pass": true,
+    "scope_pass": true,
+    "source_read_verified": true,
+    "reviewer": "author",
+    "rationale": "English nested rule followed; install and dry-run commands exact; dry run does not save; Windows remains untested."
+  },
+  "freshness--baseline": {
+    "semantic_pass": true,
+    "format_pass": true,
+    "scope_pass": true,
+    "source_read_verified": true,
+    "reviewer": "author",
+    "rationale": "18 test passes remain scoped to revision A; B result unknown, deployment only proposed. Neither answer asserts that B tests were not run."
+  },
+  "freshness--candidate": {
+    "semantic_pass": true,
+    "format_pass": true,
+    "scope_pass": true,
+    "source_read_verified": true,
+    "reviewer": "author",
+    "rationale": "18 test passes remain scoped to revision A; B result unknown, deployment only proposed. Neither answer asserts that B tests were not run."
+  },
+  "handoff--baseline": {
+    "semantic_pass": true,
+    "format_pass": true,
+    "scope_pass": true,
+    "source_read_verified": true,
+    "reviewer": "author",
+    "rationale": "Local tenant key change, 23/3 test counts, missing skip-reason evidence and explicit non-deployment preserved."
+  },
+  "handoff--candidate": {
+    "semantic_pass": true,
+    "format_pass": true,
+    "scope_pass": true,
+    "source_read_verified": true,
+    "reviewer": "author",
+    "rationale": "Local tenant key change, 23/3 test counts, missing skip-reason evidence and explicit non-deployment preserved."
+  },
+  "json--baseline": {
+    "semantic_pass": true,
+    "format_pass": true,
+    "scope_pass": true,
+    "source_read_verified": true,
+    "reviewer": "author",
+    "rationale": "Four requested keys; null and false preserved; local deduplication change and unknown speed effect; measurement next action."
+  },
+  "json--candidate": {
+    "semantic_pass": true,
+    "format_pass": true,
+    "scope_pass": true,
+    "source_read_verified": true,
+    "reviewer": "author",
+    "rationale": "Four requested keys; null and false preserved; local deduplication change and unknown speed effect; measurement next action."
+  },
+  "pr--baseline": {
+    "semantic_pass": true,
+    "format_pass": true,
+    "scope_pass": true,
+    "source_read_verified": true,
+    "reviewer": "author",
+    "rationale": "Committed blank-ID validation only; staged timeout and untracked notes excluded; four unit passes and integration non-execution accurately qualified."
+  },
+  "pr--candidate": {
+    "semantic_pass": true,
+    "format_pass": true,
+    "scope_pass": true,
+    "source_read_verified": true,
+    "reviewer": "author",
+    "rationale": "Committed blank-ID validation only; staged timeout and untracked notes excluded; four unit passes and integration non-execution accurately qualified."
+  },
+  "proofread--candidate": {
+    "semantic_pass": true,
+    "format_pass": true,
+    "scope_pass": true,
+    "source_read_verified": null,
+    "reviewer": "author",
+    "rationale": "Existing korean-writing-editor loaded; typo corrected without writer activation."
+  },
+  "runbook--baseline": {
+    "semantic_pass": true,
+    "format_pass": true,
+    "scope_pass": true,
+    "source_read_verified": true,
+    "reviewer": "author",
+    "rationale": "Inclusive 12 limit, AND condition, null unknown, stop/no-retry branch and success-only notification preserved. Candidate adds explicit notes about missing operational details; no measured readability advantage."
+  },
+  "runbook--candidate": {
+    "semantic_pass": true,
+    "format_pass": true,
+    "scope_pass": true,
+    "source_read_verified": true,
+    "reviewer": "author",
+    "rationale": "Inclusive 12 limit, AND condition, null unknown, stop/no-retry branch and success-only notification preserved. Candidate adds explicit notes about missing operational details; no measured readability advantage."
+  },
+  "submodule--baseline": {
+    "semantic_pass": true,
+    "format_pass": true,
+    "scope_pass": true,
+    "source_read_verified": true,
+    "reviewer": "author",
+    "rationale": "Correct staged gitlink change with actual abbreviated hashes; no invented parser behavior. Baseline recovered hidden diff using --ignore-submodules=none, visible in rollout despite missing final command in stream events."
+  },
+  "submodule--candidate": {
+    "semantic_pass": true,
+    "format_pass": true,
+    "scope_pass": true,
+    "source_read_verified": true,
+    "reviewer": "author",
+    "rationale": "Correct staged gitlink change with actual abbreviated hashes; no invented parser behavior. Baseline recovered hidden diff using --ignore-submodules=none, visible in rollout despite missing final command in stream events."
+  },
+  "translation--candidate": {
+    "semantic_pass": true,
+    "format_pass": true,
+    "scope_pass": true,
+    "source_read_verified": null,
+    "reviewer": "author",
+    "rationale": "Two retries translated; no writer activation."
+  }
+}

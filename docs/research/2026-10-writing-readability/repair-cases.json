@@ -1,0 +1,30 @@
+[
+  {
+    "id": "tail-metric",
+    "kind": "positive",
+    "setup": "files",
+    "prompt": "notes.md를 바탕으로 제품 담당자에게 보낼 한국어 성능 검증 결과를 써줘. 수치가 의미하는 것과 지금 결정할 수 있는 것을 설명해줘.",
+    "files": {
+      "notes.md": "Authored synthetic holdout. Two scheduler versions, A then B, one run each on same machine. 1000 requests per version. A:990success,10error. B:1000success,0error. Latency is successful requests only. Mean A200ms B150ms; p99 A800ms B900ms. No raw per-request times and no matched request pairs retained; median unrecorded. p99 is a percentile threshold, not the average of the slowest1%. It increased, but distribution within slowest1% is not known. No repetitions, confidence intervals, production rollout or cost measurement. Same offered load50requests/sec; maximum throughput not measured. Queue code change exists locally. Next proposal: repeat with interleaved order and record raw successful and failed request times before deciding rollout. Proposal not executed. No cause for the higherp99 established."
+    },
+    "checks": [
+      "Mean200to150andp99800to900preserved with successful-only populations990/1000.",
+      "No claim every slow-tail member slower, no tail average or unmeasured median invented.",
+      "No deployment or causal certainty; useful nextdecision stated without repeated recap."
+    ]
+  },
+  {
+    "id": "replica-rejoin",
+    "kind": "positive",
+    "setup": "files",
+    "prompt": "notes.md를 근거로 처음 맡는 당직자가 따라 할 한국어 복귀 절차를 써줘.",
+    "files": {
+      "notes.md": "Authored synthetic holdout: shard violet replica rejoin. Current approved policy. First pause writes: shardctl writes pause --shard violet. Then inspect: shardctl inspect --shard violet --json. Fields lag_ms integer or null, snapshot_verified boolean or null, active_writers integer. Rejoin allowed ONLY lag_ms<=250 AND snapshot_verified=true AND active_writers=0. Unknown required value: keep writes paused, stop and notify duty lead; never treat null as0orfalse. Known condition fails: same stop, no rejoin or automatic retry. Allowed command shardctl replica rejoin --shard violet. After successful command inspect again with same inspect command. Success ONLY lag_ms=0 AND snapshot_verified=true AND active_writers=0. Rejoin command exit success not enough. If success resume writes with shardctl writes resume --shard violet, then record this shard recovered. Otherwise including unknown keep paused, stop notifylead, no repeat rejoin. Pause/inspect/rejoin command failure: stop notifylead, do not assume effect; no extra recovery command given. Resume failure handling and lead channel not supplied. Operator knows shell/JSON, not thisservice. No other shard/global recovery claim."
+    },
+    "checks": [
+      "Pause inspect conditionalrejoin reinspect conditionalresume sequence preserved.",
+      "Before<=250andafter=0andallANDconditions occur at respective decisionstep without requiring earlier table lookup.",
+      "Unknown/failure stopnotify/noauto-retry; commands exact; no repeated overview of allsteps."
+    ]
+  }
+]

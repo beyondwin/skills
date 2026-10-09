@@ -1,0 +1,362 @@
+{
+  "version": "0.2.2",
+  "dispatches": 10,
+  "completed": 9,
+  "protocol_sha256": "66cb3e81723cfae55f877565b93611be1ce652ca7bd13848632611a1d9c8c6b9",
+  "runs": [
+    {
+      "id": "tail-metric--codex",
+      "folder": "tail-metric-codex--candidate",
+      "host": "codex",
+      "case": "tail-metric-codex",
+      "status": "completed",
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "response_sha256": "4a53912eef71fe4951263e2b2d1b69655d8d0d8e15d2d269ac889b5ea7dd80b2",
+      "wall_seconds": 33.926,
+      "response_characters": 1173,
+      "workspace_unchanged": true,
+      "skill_read_evidence": true,
+      "reference_read_evidence": true,
+      "receipt_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T10-36-04-01a11e4d-9765-7f61-b55b-72fabdb4517e.jsonl": "d990ca6656a149fdce571cbb2c8eed6b48c63097ab36a62a09c2f53b034fb6b6"
+      },
+      "usage": [
+        {
+          "input_tokens": 34684,
+          "cached_input_tokens": 10112,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1017,
+          "reasoning_output_tokens": 130
+        }
+      ]
+    },
+    {
+      "id": "tail-metric--opus",
+      "folder": "tail-metric--opus",
+      "host": "opus",
+      "case": "tail-metric",
+      "status": "ok",
+      "actual_identity": [
+        "claude-opus-5-5"
+      ],
+      "response_sha256": "1bdc00900ec3858b2a1413cfd95af15644e3872e02d008021024f7a8acf3f28e",
+      "wall_seconds": 35.961,
+      "response_characters": 1593,
+      "tool_calls": 0,
+      "receipt_sha256": {
+        "stdout.jsonl": "7afc9f6337b9868ae2b264dab0f80584fadc55b599a705e08854d3609a971d05"
+      },
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 3634,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 3719,
+        "output_tokens_details": {
+          "thinking_tokens": 2187
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 3634,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 3719,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 3634,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 3634
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      }
+    },
+    {
+      "id": "tail-metric--grok-medium",
+      "folder": "tail-metric--grok-medium",
+      "host": "grok-medium",
+      "case": "tail-metric",
+      "status": "ok",
+      "actual_identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "response_sha256": "70a814cfb0cdce57fe16abcc260afd234373dbcd39a9ffdbebc180afec7789dd",
+      "wall_seconds": 172.963,
+      "response_characters": 940,
+      "tool_calls": 0,
+      "receipt_sha256": {
+        "stream.jsonl": "6d7d601b9f287d722df809d29c55d109d9bb254fa0a93b7f076a4108235a2cb4"
+      },
+      "usage": {
+        "inputTokens": 13776,
+        "outputTokens": 8965,
+        "cacheReadTokens": 1152,
+        "cacheWriteTokens": 0
+      }
+    },
+    {
+      "id": "replica-rejoin--codex",
+      "folder": "replica-rejoin-codex--candidate",
+      "host": "codex",
+      "case": "replica-rejoin-codex",
+      "status": "completed",
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "response_sha256": "03b1dcaad1b3ac9dc4c79e9ba31edd63f8b4691a6f993f0ac5a80b716b44e746",
+      "wall_seconds": 37.566,
+      "response_characters": 1571,
+      "workspace_unchanged": true,
+      "skill_read_evidence": true,
+      "reference_read_evidence": true,
+      "receipt_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T10-35-26-01a11e4d-0453-75f3-b805-56da9ed607a6.jsonl": "5596605194d9a7b5929cb37dff7feeeb52cb0b9f85f65a0252ee0ad1a0a71173"
+      },
+      "usage": [
+        {
+          "input_tokens": 35539,
+          "cached_input_tokens": 27520,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1114,
+          "reasoning_output_tokens": 152
+        }
+      ]
+    },
+    {
+      "id": "replica-rejoin--opus",
+      "folder": "replica-rejoin--opus",
+      "host": "opus",
+      "case": "replica-rejoin",
+      "status": "ok",
+      "actual_identity": [
+        "claude-opus-5-5"
+      ],
+      "response_sha256": "fae40fec4f35a687caa737cfa8ac084a151c6d9ae207bdabe092a47a8ffef256",
+      "wall_seconds": 40.909,
+      "response_characters": 2063,
+      "tool_calls": 0,
+      "receipt_sha256": {
+        "stdout.jsonl": "8faa08a634d8f455fae5027d4bd8fb76889bbaea770feb162a9725fb9f4b743d"
+      },
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 3765,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 4386,
+        "output_tokens_details": {
+          "thinking_tokens": 2706
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 3765,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 4386,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 3765,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 3765
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      }
+    },
+    {
+      "id": "replica-rejoin--grok-medium",
+      "folder": "replica-rejoin--grok-medium",
+      "host": "grok-medium",
+      "case": "replica-rejoin",
+      "status": "timeout",
+      "actual_identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "response_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "wall_seconds": 240.095,
+      "response_characters": 0,
+      "tool_calls": 0,
+      "receipt_sha256": {
+        "stream.jsonl": "398aa0dd1c0064ca2d0ad9c8aa7f9acdbebd9d507b28d1e88120ef2684de7160"
+      },
+      "usage": null
+    },
+    {
+      "id": "measurement-replay--opus",
+      "folder": "measurement-replay--opus",
+      "host": "opus",
+      "case": "measurement-replay",
+      "status": "ok",
+      "actual_identity": [
+        "claude-opus-5-5"
+      ],
+      "response_sha256": "4f73c32af79ab0eef973ec80c99bb8a5646538f2e3c0cc54ec417435ec6fe647",
+      "wall_seconds": 57.265,
+      "response_characters": 2123,
+      "tool_calls": 0,
+      "receipt_sha256": {
+        "stdout.jsonl": "7cd8672ed9c412d074724a970c4169bac6ad5edea45d285955b69aa03c329ac4"
+      },
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 3880,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 6283,
+        "output_tokens_details": {
+          "thinking_tokens": 4196
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 3880,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 6283,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 3880,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 3880
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      }
+    },
+    {
+      "id": "json-regression--codex",
+      "folder": "json-regression-codex--candidate",
+      "host": "codex",
+      "case": "json-regression-codex",
+      "status": "completed",
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "response_sha256": "92386223f251ec8b102a62245a390e0f8d9a072fb5595e949c132ed08fa84943",
+      "wall_seconds": 16.338,
+      "response_characters": 158,
+      "workspace_unchanged": true,
+      "skill_read_evidence": true,
+      "reference_read_evidence": true,
+      "receipt_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T10-35-10-01a11e4c-c35f-7590-be2b-3d4ecd78d5e0.jsonl": "cc6bb59acff01f859ffb8601d8adaf15497c2880bb663fbedefe5c5777dc59a2"
+      },
+      "usage": [
+        {
+          "input_tokens": 34410,
+          "cached_input_tokens": 29824,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 338,
+          "reasoning_output_tokens": 55
+        }
+      ],
+      "json_contract_pass": true
+    },
+    {
+      "id": "replica-rejoin-retry--grok-medium",
+      "folder": "replica-rejoin-retry--grok-medium",
+      "host": "grok-medium",
+      "case": "replica-rejoin",
+      "status": "ok",
+      "actual_identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "response_sha256": "5b0409da4015c79c40967020a11743c0268777c2bc3e8a0f7e77847604a21855",
+      "wall_seconds": 151.952,
+      "response_characters": 2201,
+      "tool_calls": 0,
+      "receipt_sha256": {
+        "stream.jsonl": "fe102df1459bc63a4c5a06bd1c4b4000b983ec919579a67a8c8ebe1d602aadde"
+      },
+      "usage": {
+        "inputTokens": 13914,
+        "outputTokens": 11106,
+        "cacheReadTokens": 1152,
+        "cacheWriteTokens": 0
+      }
+    },
+    {
+      "id": "installed-smoke--installed",
+      "folder": "installed-smoke-installed--installed",
+      "host": "installed",
+      "case": "installed-smoke-installed",
+      "status": "completed",
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "response_sha256": "dfedc5574c1acfef457d9389591022372a006a046881f5b5b74c9ecef60724f0",
+      "wall_seconds": 34.491,
+      "response_characters": 1254,
+      "workspace_unchanged": true,
+      "skill_read_evidence": true,
+      "reference_read_evidence": true,
+      "receipt_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T10-46-02-01a11e56-b7ed-7910-b52f-8a2f8bd47db2.jsonl": "c77cd68897e60642c8e5d0de9e70995e2b35327a2c81e633701015b746bd38e0"
+      },
+      "usage": [
+        {
+          "input_tokens": 24946,
+          "cached_input_tokens": 19456,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1019,
+          "reasoning_output_tokens": 141
+        }
+      ]
+    }
+  ]
+}

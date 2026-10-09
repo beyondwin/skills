@@ -1,0 +1,192 @@
+{
+  "dispatches": 9,
+  "completed": 9,
+  "author_passes": 7,
+  "protocol_sha256": "0c9d9ae28e058e58509d4c4b6fac145192b8c1f8466cadc0f32d2b57ceb49457",
+  "grades_sha256": "57db8f001fb5773286885492bd0479ebaf305df6c7c3427d7e5439ab6240452a",
+  "scope": "Targeted development regression, not blinded superiority or human assessment.",
+  "runs": [
+    {
+      "id": "accepted-job-codex--candidate",
+      "host": "codex",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "response_sha256": "8a5d1474fde6e8eed58c15dff1e19e0e1bb36f353f4ed1f37d5a1181608baf64",
+      "wall_seconds": 27.927,
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "author_grade": {
+        "pass": true,
+        "rationale": "Preserves new and existing job branches in the opening; correct waiting and state-query boundaries; leaves unrelated billing/archive material out."
+      }
+    },
+    {
+      "id": "accepted-job-opus--candidate",
+      "host": "opus",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "response_sha256": "54f0f8b7334ef75af66fd255c3f4ec36bebcad0ef3e958685f00893ffd93d9e2",
+      "wall_seconds": 28.208,
+      "workspace_unchanged": null,
+      "native_reads": {},
+      "author_grade": {
+        "pass": false,
+        "rationale": "Repairs202 scope and selects relevant lifecycle details, but translates authorization as authentication (인증), changing a technical prerequisite."
+      }
+    },
+    {
+      "id": "accepted-job-grok--candidate",
+      "host": "grok",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "response_sha256": "2c87a9612ecedafe99f01f4636a0f1b5d00a27396bfa2e30a501c9d58a044694",
+      "wall_seconds": 130.825,
+      "workspace_unchanged": null,
+      "native_reads": {},
+      "author_grade": {
+        "pass": true,
+        "rationale": "Preserves new/existing job scope, uses 인가, keeps waiting and idempotency semantics; no unrelated lifecycle inventory."
+      }
+    },
+    {
+      "id": "sample-scope-codex--candidate",
+      "host": "codex",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "response_sha256": "df79cbbb69969da08ab1d9476df3de3cfafb1161c2d044937895f9883934c923",
+      "wall_seconds": 26.769,
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "author_grade": {
+        "pass": true,
+        "rationale": "Keeps missing telemetry distinct from failures and unknown representativeness distinct from established bias; correct aggregate/individual and proposal boundaries."
+      }
+    },
+    {
+      "id": "sample-scope-opus--candidate",
+      "host": "opus",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "response_sha256": "52809a4dbd4f54cc81bf97b33cac30bbfdc0fb27d18b948c214d488d4b4b4a33",
+      "wall_seconds": 25.878,
+      "workspace_unchanged": null,
+      "native_reads": {},
+      "author_grade": {
+        "pass": true,
+        "rationale": "Correct population, missingness, uncertainty, percentile boundary and historical survey separation."
+      }
+    },
+    {
+      "id": "sample-scope-grok--candidate",
+      "host": "grok",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "response_sha256": "d5e8c3f99c0bfcaac2b56b5dcc8c937e4611d0f082790a24e12b7e94a7cffd5b",
+      "wall_seconds": 91.405,
+      "workspace_unchanged": null,
+      "native_reads": {},
+      "author_grade": {
+        "pass": false,
+        "rationale": "Correctly preserves unknown representativeness later, but the opening says recorded latency does not lead to subjective/all-user speed change. Source only says the evidence cannot establish that relationship."
+      }
+    },
+    {
+      "id": "regression-commit--candidate",
+      "host": "codex",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "response_sha256": "9a85a322a378e3fc88e2be56aedfda855afb78743bf16370aaafdfa002ab7756",
+      "wall_seconds": 20.584,
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/change-messages.md": true
+      },
+      "author_grade": {
+        "pass": true,
+        "rationale": "One-line Korean message names staged retry limit2to4 only, excluding unstaged timeout and unchanged OAuth."
+      }
+    },
+    {
+      "id": "regression-json--candidate",
+      "host": "codex",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "response_sha256": "6b7f4f76cbd5570ae8b72eb6427c062cf382585504fc0ecd7821cbe107cb2813",
+      "wall_seconds": 15.506,
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "author_grade": {
+        "pass": true,
+        "rationale": "Exact four keys; null and false retained; local change and unmeasured speed stated."
+      }
+    },
+    {
+      "id": "regression-submodule--candidate",
+      "host": "codex",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "response_sha256": "f3e46ba3b575e9795e0c6f6687f3a69c50a60f9e6f9dd1806024a16d2f52541b",
+      "wall_seconds": 22.416,
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/change-messages.md": true
+      },
+      "author_grade": {
+        "pass": true,
+        "rationale": "Detects gitlink despite ignoreSubmodules=all; describes pointer change only; no invented internal bugfix or reason."
+      }
+    }
+  ]
+}

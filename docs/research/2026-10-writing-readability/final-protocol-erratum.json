@@ -1,0 +1,5 @@
+{
+  "timing": "After generation, before native installation smoke",
+  "original_protocol_sha256": "d39a6077649a1b371576e237c875a739831daaf01dcf8f838f191bb23739a1c0",
+  "correction": "Copied acceptance sentence still said0.2.1; corrected to0.2.2, already named by version field and payload manifest. No task, payload, metric or threshold change."
+}

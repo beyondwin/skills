@@ -1,0 +1,21 @@
+{
+  "dispatch_cap": 9,
+  "payload": {
+    "README.ko.md": "116d62f2e15c92d71c9e08e1f3dd2bbefe1b58fa24f9d2dbe6a706b33325f2ae",
+    "README.md": "4b8e54f76a339e7b5caba30ab3474301e860611683a8a58ca3f652e29af91de7",
+    "SKILL.md": "8f0445372bd82ac2cfd632129673319902af42cc25afe533a2ab903c4232ab28",
+    "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+    "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+    "references/documents.md": "4cddd542ecc1bc0e3927aacfba885d5a2bcb6bd0e69656e5739102f4dcdbfc74"
+  },
+  "files": {
+    "repair.py": "a07e2932c3c48487e187d859e09e54bb3fb00b50c13dd26f067afd50b1a12596",
+    "revision-cases.json": "75e98524336f8cd6696ef58bd0a087130eb9dc311f197b4ec3d982c1671c545e",
+    "revision-notes.md": "0bf03795bfa3a54f293965b499ee5fefbe65855c59f163c427c477d51a30ff52",
+    "run.py": "301b7f1943ed1af272fcb2452a224c83f0d6587f1f2b490ce3bfb8d9252a60b4",
+    "../2026-10-writing-readability/harness.py": "d11cb6cf44ee6c5828b2495863dd15a10ed315a7e043e0d571e2e9cb51e17422",
+    "../2026-10-ko-clear-writing-eval/harness/opus_runner.py": "b16d06f627fa140657c7592d8e114ef73bfe9bf9775ba2743b9f7dc1989b0211",
+    "../2026-10-ko-clear-writing-eval/harness/grok_runner.py": "63fbb7e7f49828f12f5e0d1ae32a4eafac1f6da68751e16d98a63a6727db1723"
+  },
+  "acceptance": "All six transfer generations preserve scoped status and uncertainty; author review of source checks. Native commit, JSON and gitlink regressions pass. No comparative or human-quality claim; no installation on this evidence alone."
+}

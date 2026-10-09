@@ -1,0 +1,38 @@
+{
+  "accepted-job-codex--candidate": {
+    "pass": true,
+    "rationale": "Preserves new and existing job branches in the opening; correct waiting and state-query boundaries; leaves unrelated billing/archive material out."
+  },
+  "accepted-job-opus--candidate": {
+    "pass": false,
+    "rationale": "Repairs202 scope and selects relevant lifecycle details, but translates authorization as authentication (인증), changing a technical prerequisite."
+  },
+  "accepted-job-grok--candidate": {
+    "pass": true,
+    "rationale": "Preserves new/existing job scope, uses 인가, keeps waiting and idempotency semantics; no unrelated lifecycle inventory."
+  },
+  "sample-scope-codex--candidate": {
+    "pass": true,
+    "rationale": "Keeps missing telemetry distinct from failures and unknown representativeness distinct from established bias; correct aggregate/individual and proposal boundaries."
+  },
+  "sample-scope-opus--candidate": {
+    "pass": true,
+    "rationale": "Correct population, missingness, uncertainty, percentile boundary and historical survey separation."
+  },
+  "sample-scope-grok--candidate": {
+    "pass": false,
+    "rationale": "Correctly preserves unknown representativeness later, but the opening says recorded latency does not lead to subjective/all-user speed change. Source only says the evidence cannot establish that relationship."
+  },
+  "regression-commit--candidate": {
+    "pass": true,
+    "rationale": "One-line Korean message names staged retry limit2to4 only, excluding unstaged timeout and unchanged OAuth."
+  },
+  "regression-json--candidate": {
+    "pass": true,
+    "rationale": "Exact four keys; null and false retained; local change and unmeasured speed stated."
+  },
+  "regression-submodule--candidate": {
+    "pass": true,
+    "rationale": "Detects gitlink despite ignoreSubmodules=all; describes pointer change only; no invented internal bugfix or reason."
+  }
+}

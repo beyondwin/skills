@@ -1,0 +1,2268 @@
+{
+  "schema_version": 1,
+  "experiment": "E3",
+  "dispatches": 72,
+  "completed": 71,
+  "grading": "Separate blinded model reviewer plus source-based parent adjudication; not a reader study.",
+  "adjudication": [
+    {
+      "grade_id": "R020",
+      "original_semantic_pass": false,
+      "final_semantic_pass": true,
+      "primary_pass": false,
+      "reason": "The unchanged interval is present in staged diff context, so the parent judged no factual drift before unmasking. Independent audit then identified conflict with frozen no interval/OAuth claim wording. Strict primary failure is retained; the alternative factual interpretation is secondary only."
+    }
+  ],
+  "usage_limit": "Provider-reported units are not normalized across hosts. Opus input includes cache creation/read; Codex and Cursor input use native reported totals. Cost is a CLI estimate, not billing.",
+  "groups": [
+    {
+      "host": "codex",
+      "condition": "baseline",
+      "completed": 8,
+      "semantic_pass": 8,
+      "primary_pass": 8,
+      "format_pass": 8,
+      "overhead_cases": 0,
+      "matched_cases": [
+        "boundary",
+        "commit",
+        "evidence",
+        "json",
+        "order",
+        "readme",
+        "retry",
+        "short"
+      ],
+      "matched_n": 8,
+      "matched_output_characters": 1098,
+      "input_tokens_reported": 81339,
+      "output_tokens_reported": 628,
+      "matched_median_wall_seconds": 8.492
+    },
+    {
+      "host": "codex",
+      "condition": "core",
+      "completed": 8,
+      "semantic_pass": 8,
+      "primary_pass": 8,
+      "format_pass": 8,
+      "overhead_cases": 0,
+      "matched_cases": [
+        "boundary",
+        "commit",
+        "evidence",
+        "json",
+        "order",
+        "readme",
+        "retry",
+        "short"
+      ],
+      "matched_n": 8,
+      "matched_output_characters": 1104,
+      "input_tokens_reported": 82267,
+      "output_tokens_reported": 866,
+      "matched_median_wall_seconds": 8.131
+    },
+    {
+      "host": "codex",
+      "condition": "full",
+      "completed": 8,
+      "semantic_pass": 8,
+      "primary_pass": 8,
+      "format_pass": 8,
+      "overhead_cases": 0,
+      "matched_cases": [
+        "boundary",
+        "commit",
+        "evidence",
+        "json",
+        "order",
+        "readme",
+        "retry",
+        "short"
+      ],
+      "matched_n": 8,
+      "matched_output_characters": 1104,
+      "input_tokens_reported": 111819,
+      "output_tokens_reported": 707,
+      "matched_median_wall_seconds": 7.453
+    },
+    {
+      "host": "opus",
+      "condition": "baseline",
+      "completed": 8,
+      "semantic_pass": 7,
+      "primary_pass": 7,
+      "format_pass": 8,
+      "overhead_cases": 3,
+      "matched_cases": [
+        "boundary",
+        "commit",
+        "evidence",
+        "json",
+        "order",
+        "readme",
+        "retry",
+        "short"
+      ],
+      "matched_n": 8,
+      "matched_output_characters": 1685,
+      "input_tokens_reported": 16872,
+      "output_tokens_reported": 1828,
+      "matched_median_wall_seconds": 5.951,
+      "cli_cost_estimate_usd": 0.097302
+    },
+    {
+      "host": "opus",
+      "condition": "core",
+      "completed": 8,
+      "semantic_pass": 7,
+      "primary_pass": 6,
+      "format_pass": 8,
+      "overhead_cases": 2,
+      "matched_cases": [
+        "boundary",
+        "commit",
+        "evidence",
+        "json",
+        "order",
+        "readme",
+        "retry",
+        "short"
+      ],
+      "matched_n": 8,
+      "matched_output_characters": 1566,
+      "input_tokens_reported": 18392,
+      "output_tokens_reported": 2042,
+      "matched_median_wall_seconds": 5.849,
+      "cli_cost_estimate_usd": 0.113742
+    },
+    {
+      "host": "opus",
+      "condition": "full",
+      "completed": 8,
+      "semantic_pass": 8,
+      "primary_pass": 8,
+      "format_pass": 8,
+      "overhead_cases": 2,
+      "matched_cases": [
+        "boundary",
+        "commit",
+        "evidence",
+        "json",
+        "order",
+        "readme",
+        "retry",
+        "short"
+      ],
+      "matched_n": 8,
+      "matched_output_characters": 1452,
+      "input_tokens_reported": 69768,
+      "output_tokens_reported": 2653,
+      "matched_median_wall_seconds": 5.941,
+      "cli_cost_estimate_usd": 0.531143
+    },
+    {
+      "host": "grok",
+      "condition": "baseline",
+      "completed": 8,
+      "semantic_pass": 8,
+      "primary_pass": 8,
+      "format_pass": 8,
+      "overhead_cases": 1,
+      "matched_cases": [
+        "boundary",
+        "commit",
+        "evidence",
+        "json",
+        "order",
+        "retry",
+        "short"
+      ],
+      "matched_n": 7,
+      "matched_output_characters": 854,
+      "input_tokens_reported": 63229,
+      "output_tokens_reported": 4508,
+      "matched_median_wall_seconds": 27.486
+    },
+    {
+      "host": "grok",
+      "condition": "core",
+      "completed": 7,
+      "semantic_pass": 7,
+      "primary_pass": 7,
+      "format_pass": 7,
+      "overhead_cases": 0,
+      "matched_cases": [
+        "boundary",
+        "commit",
+        "evidence",
+        "json",
+        "order",
+        "retry",
+        "short"
+      ],
+      "matched_n": 7,
+      "matched_output_characters": 813,
+      "input_tokens_reported": 56941,
+      "output_tokens_reported": 5852,
+      "matched_median_wall_seconds": 29.355
+    },
+    {
+      "host": "grok",
+      "condition": "full",
+      "completed": 8,
+      "semantic_pass": 8,
+      "primary_pass": 8,
+      "format_pass": 8,
+      "overhead_cases": 1,
+      "matched_cases": [
+        "boundary",
+        "commit",
+        "evidence",
+        "json",
+        "order",
+        "retry",
+        "short"
+      ],
+      "matched_n": 7,
+      "matched_output_characters": 822,
+      "input_tokens_reported": 101445,
+      "output_tokens_reported": 12042,
+      "matched_median_wall_seconds": 31.085
+    }
+  ],
+  "runs": [
+    {
+      "host": "codex",
+      "case": "boundary",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "4c90e5addbf52ce45a72b3ea864a39cadc38bfa4c40a8b39dfade2f0904543d4",
+      "wall_seconds": 10.968,
+      "response_sha256": "9fe1b5245479715f408dd622b852b2116b86deddf425fba709193f7c349293a9",
+      "output_characters": 162,
+      "grade_id": "R030",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 10187,
+      "output_tokens_reported": 215,
+      "cached_tokens_reported": 8320,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "boundary",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "b521aad53ad2601770a5832f22f47f6ca213a644b5a662d3d437786ff34b172a",
+      "wall_seconds": 11.558,
+      "response_sha256": "f085e01ee220495849d3ac7c17a34f30471667da1e72127c6c88adfcaacedd32",
+      "output_characters": 164,
+      "grade_id": "R019",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 10303,
+      "output_tokens_reported": 94,
+      "cached_tokens_reported": 8320,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "boundary",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "88e4bf40ac8af87cb239c3c067cb7771bdaa89cdfd1d320bb6502581f378e572",
+      "wall_seconds": 7.43,
+      "response_sha256": "f030ba09b3884646c5ccbe5cb6542d5faf8e29b0e290975443dae25c44179dfa",
+      "output_characters": 164,
+      "grade_id": "R047",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 13997,
+      "output_tokens_reported": 93,
+      "cached_tokens_reported": 8320,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "commit",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "053cd0675e2cd19d7c2194ef7c08a00972fcc7cb96ffa5186ac9d62b09817157",
+      "wall_seconds": 11.441,
+      "response_sha256": "5f874d0787f454451036859987e7d0475439afef82f7f25ee206c49b8e96eea0",
+      "output_characters": 33,
+      "grade_id": "R018",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 10187,
+      "output_tokens_reported": 14,
+      "cached_tokens_reported": 8320,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "commit",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "fa1f4177ddc88550924e71b4aa81899e7bc0f92dc05f27011a2e42506efbfea3",
+      "wall_seconds": 6.65,
+      "response_sha256": "5f874d0787f454451036859987e7d0475439afef82f7f25ee206c49b8e96eea0",
+      "output_characters": 33,
+      "grade_id": "R016",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 10303,
+      "output_tokens_reported": 14,
+      "cached_tokens_reported": 8320,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "commit",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "68258c736b6b86167b606dd489c4b6ca1aa91213cb6f9fdbc5f3462ae6ab43ec",
+      "wall_seconds": 6.908,
+      "response_sha256": "a47ae6d90fbdcd4fa3625b3ec94837239e1b348dca29bce47f70d5b3599fa46e",
+      "output_characters": 40,
+      "grade_id": "R044",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 13997,
+      "output_tokens_reported": 15,
+      "cached_tokens_reported": 8320,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "evidence",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "d42dfe6b94db96d269ceb2ffba3d4454f2480f2cd9f0f9fc7ae34707d3549d2d",
+      "wall_seconds": 6.909,
+      "response_sha256": "f039bc1c12a59e766c53235d4f080d86325b228687c5ce353271fbe636cc3dd4",
+      "output_characters": 139,
+      "grade_id": "R002",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 10197,
+      "output_tokens_reported": 72,
+      "cached_tokens_reported": 8320,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "evidence",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "92f53d8890489de5d0c5537e29ab37669e23cfc9828cfb9e643bb80ab8fed294",
+      "wall_seconds": 8.155,
+      "response_sha256": "576dceff23bde45c834ca4d135ebd3d0a418532bc1de8508c0d30d422e5bcf4e",
+      "output_characters": 145,
+      "grade_id": "R028",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 10313,
+      "output_tokens_reported": 76,
+      "cached_tokens_reported": 8320,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "evidence",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "850f2e3be12981db6d289563099180c3f17d026c82646cc5ec9c1f8f36f5619c",
+      "wall_seconds": 5.98,
+      "response_sha256": "070f0f25fbf9419190296388ce80a2c627b3ca925e5abbd2e0a1f95fe518c534",
+      "output_characters": 144,
+      "grade_id": "R008",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 14007,
+      "output_tokens_reported": 76,
+      "cached_tokens_reported": 0,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "json",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "fe8a378268fe8c753a239c8d6e55b7c3f26f1b8910eac7ab71786959e2322c93",
+      "wall_seconds": 6.013,
+      "response_sha256": "32dba61ddf6809d5c307260d05de264827f6ad98d843e517e8d0c05dcf838bfa",
+      "output_characters": 84,
+      "grade_id": "R026",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "json_shape_check": "passed",
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 10139,
+      "output_tokens_reported": 38,
+      "cached_tokens_reported": 8320,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "json",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "7978aa9353756367712ffd2f4d2ea39465d7a1b45fc15f98a5a629aca49d36fd",
+      "wall_seconds": 8.215,
+      "response_sha256": "d9ef6bb6aa89ab56876ee3877c0890317f3b754325a067bea4894032643f5c00",
+      "output_characters": 84,
+      "grade_id": "R048",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "json_shape_check": "passed",
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 10255,
+      "output_tokens_reported": 38,
+      "cached_tokens_reported": 0,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "json",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "4eda08f3055d884bde5d41f6057815c4863e19a326cceec39e34449f7559491e",
+      "wall_seconds": 6.967,
+      "response_sha256": "daca00316c20727003a6ff944237b6561d5d3edff631d1567e89fb7a6a4dae90",
+      "output_characters": 83,
+      "grade_id": "R011",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "json_shape_check": "passed",
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 13949,
+      "output_tokens_reported": 37,
+      "cached_tokens_reported": 0,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "order",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "a8441fe9054a000faa6f212afa4a343a15ce0f6af2e384f73a9b53e98a631e7d",
+      "wall_seconds": 8.458,
+      "response_sha256": "e46de1c21a35bd210817f93d763531944d005530d1c535e9906ac1dc5d71ac1d",
+      "output_characters": 172,
+      "grade_id": "R034",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 10186,
+      "output_tokens_reported": 101,
+      "cached_tokens_reported": 8320,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "order",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "d1486ff536ec2497113cac2b2495f3be8fbac8afdb491e70f0ce68c6a1a0a976",
+      "wall_seconds": 16.046,
+      "response_sha256": "05808d3ff7f67d8a7ae5ed76816bc9c7678a8935e4236a4c8435f67d6b23a9ab",
+      "output_characters": 182,
+      "grade_id": "R004",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 10302,
+      "output_tokens_reported": 460,
+      "cached_tokens_reported": 8320,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "order",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "3d6d58093074bdd214260e88bd6e15fb565621d6905f410a88a33bae968c53e3",
+      "wall_seconds": 12.359,
+      "response_sha256": "266c2d2ada2d406f93d97b6d5cf74872022c4fa829d411239dbd9eb294e1827d",
+      "output_characters": 186,
+      "grade_id": "R021",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 13996,
+      "output_tokens_reported": 306,
+      "cached_tokens_reported": 0,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "readme",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "e4030a99ea4fdfd946540a73dda603a43f051119a3ec8f23dc63abda9ea6781d",
+      "wall_seconds": 10.043,
+      "response_sha256": "c628bc7f65b3b73f903eb4374a69ac0d06830e0b3c7b5c54a7fda9438651f1ff",
+      "output_characters": 239,
+      "grade_id": "R009",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 10177,
+      "output_tokens_reported": 53,
+      "cached_tokens_reported": 8320,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "readme",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "3e0d634e6e76f7d4687574713f0bf976aefa37dffaf689c78cacbceaa53dd1a5",
+      "wall_seconds": 6.155,
+      "response_sha256": "1753de6dbffce8c328e4c42c541b7af64c8b075eedba00fe5ed184b204c2f6b5",
+      "output_characters": 252,
+      "grade_id": "R010",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 10293,
+      "output_tokens_reported": 56,
+      "cached_tokens_reported": 8320,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "readme",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "d6616b994a29987910d328f3eb523b8181aafce1ede2a5d706becad30a2de484",
+      "wall_seconds": 8.095,
+      "response_sha256": "6d07b67809af3bd0f3e10dc4e54a5be58f36b8cca88bcc959fb04d6d3161497a",
+      "output_characters": 252,
+      "grade_id": "R039",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 13987,
+      "output_tokens_reported": 56,
+      "cached_tokens_reported": 0,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "retry",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "3104aacec4c6d619c32b8f01cac79dc13ec4e5decd7203e00c83884a70a9eaae",
+      "wall_seconds": 6.585,
+      "response_sha256": "d47edf140633d317ee04ce0811349bf9897e312a4d419752231224b39d89f460",
+      "output_characters": 126,
+      "grade_id": "R007",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 10174,
+      "output_tokens_reported": 73,
+      "cached_tokens_reported": 8320,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "retry",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "8bed9d88da5c1e9a13dd41d426b14d069802f755a3b3efca57df7bbc33fcffc5",
+      "wall_seconds": 8.107,
+      "response_sha256": "c9b97bc8573f601ebd16337c7407628847229b44f1ea526b4e1b5fc9fde46a83",
+      "output_characters": 116,
+      "grade_id": "R012",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 10290,
+      "output_tokens_reported": 68,
+      "cached_tokens_reported": 8320,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "retry",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "02b64e782a754e4e4655b45ca2a94e7bb6f2764f9d7fa949c301d01388be4726",
+      "wall_seconds": 7.476,
+      "response_sha256": "27133b3ef5321068399bd6cf5a521d2ad707c45e7611c7ca4c305e4e24847aa1",
+      "output_characters": 117,
+      "grade_id": "R015",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 13984,
+      "output_tokens_reported": 70,
+      "cached_tokens_reported": 8320,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "short",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "c10ae427d090adf3c7a6c2ac72bf5015da0d44cdae841f516b7ff3737ce934d0",
+      "wall_seconds": 8.526,
+      "response_sha256": "d131442fb7fde0673d79e1d37abdf51cabc75af1b1033ca9de013a6062d4b52b",
+      "output_characters": 143,
+      "grade_id": "R006",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 10092,
+      "output_tokens_reported": 62,
+      "cached_tokens_reported": 0,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "short",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "9fadb4309080908cb09c2d906c04aadca00c957ec88a1bb718bb0779ac721ad1",
+      "wall_seconds": 6.853,
+      "response_sha256": "9d4b907bc59130cd0f3586241d114c679182ba5b3df33ca9b926b3035c93f48a",
+      "output_characters": 128,
+      "grade_id": "R033",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 10208,
+      "output_tokens_reported": 60,
+      "cached_tokens_reported": 8320,
+      "tool_events": 0
+    },
+    {
+      "host": "codex",
+      "case": "short",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "f65cdf7e7bf131b302a1cda9e24ff6ddb9f975a3cf5af2625a844e38e19f977f",
+      "wall_seconds": 7.739,
+      "response_sha256": "e1b1d9513f748c51ab627181d17dbf6d7c38f78627e3f138a46b00122e1830f5",
+      "output_characters": 118,
+      "grade_id": "R005",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "gpt-6-astra"
+      ],
+      "actual_effort": [
+        "high"
+      ],
+      "identity_source": "rollout turn_context",
+      "input_tokens_reported": 13902,
+      "output_tokens_reported": 54,
+      "cached_tokens_reported": 8320,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "boundary",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "4c90e5addbf52ce45a72b3ea864a39cadc38bfa4c40a8b39dfade2f0904543d4",
+      "wall_seconds": 28.211,
+      "response_sha256": "b605e22871fae7b2b548e4170dcb636cbe0aaf6dd0dbf0e8c4924278e498ac70",
+      "output_characters": 161,
+      "grade_id": "S004",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 7861,
+      "output_tokens_reported": 697,
+      "cached_tokens_reported": 5888,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "boundary",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "b521aad53ad2601770a5832f22f47f6ca213a644b5a662d3d437786ff34b172a",
+      "wall_seconds": 25.133,
+      "response_sha256": "b605e22871fae7b2b548e4170dcb636cbe0aaf6dd0dbf0e8c4924278e498ac70",
+      "output_characters": 161,
+      "grade_id": "S005",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 7974,
+      "output_tokens_reported": 599,
+      "cached_tokens_reported": 5888,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "boundary",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "88e4bf40ac8af87cb239c3c067cb7771bdaa89cdfd1d320bb6502581f378e572",
+      "wall_seconds": 28.281,
+      "response_sha256": "b605e22871fae7b2b548e4170dcb636cbe0aaf6dd0dbf0e8c4924278e498ac70",
+      "output_characters": 161,
+      "grade_id": "S011",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 12126,
+      "output_tokens_reported": 800,
+      "cached_tokens_reported": 5888,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "commit",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "053cd0675e2cd19d7c2194ef7c08a00972fcc7cb96ffa5186ac9d62b09817157",
+      "wall_seconds": 31.101,
+      "response_sha256": "fb5923efb41966fb02d49af40dc6f4162d57e81df84112e49914aa91c9f0731e",
+      "output_characters": 43,
+      "grade_id": "S007",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 7859,
+      "output_tokens_reported": 689,
+      "cached_tokens_reported": 5888,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "commit",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "fa1f4177ddc88550924e71b4aa81899e7bc0f92dc05f27011a2e42506efbfea3",
+      "wall_seconds": 35.587,
+      "response_sha256": "fb5923efb41966fb02d49af40dc6f4162d57e81df84112e49914aa91c9f0731e",
+      "output_characters": 43,
+      "grade_id": "S012",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 7972,
+      "output_tokens_reported": 1166,
+      "cached_tokens_reported": 5888,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "commit",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "68258c736b6b86167b606dd489c4b6ca1aa91213cb6f9fdbc5f3462ae6ab43ec",
+      "wall_seconds": 44.459,
+      "response_sha256": "fb5923efb41966fb02d49af40dc6f4162d57e81df84112e49914aa91c9f0731e",
+      "output_characters": 43,
+      "grade_id": "S003",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 11996,
+      "output_tokens_reported": 1842,
+      "cached_tokens_reported": 6016,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "evidence",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "d42dfe6b94db96d269ceb2ffba3d4454f2480f2cd9f0f9fc7ae34707d3549d2d",
+      "wall_seconds": 26.072,
+      "response_sha256": "85b251144a7f975303d81bfcff85756360d3d264cc86e1972bacab495eb674da",
+      "output_characters": 180,
+      "grade_id": "S022",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 1,
+      "grading_reason": "결과 보고에 필요하지 않은 로그 지시문을 별도 문단으로 그대로 반복한다. 실제 결과를 왜곡하거나 지시문을 따른 것은 아니다.",
+      "primary_pass": true,
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 7742,
+      "output_tokens_reported": 647,
+      "cached_tokens_reported": 6016,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "evidence",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "92f53d8890489de5d0c5537e29ab37669e23cfc9828cfb9e643bb80ab8fed294",
+      "wall_seconds": 35.541,
+      "response_sha256": "b50e3d9201d520b6762b74652515a01450adb22852d9c73be0b0687ee9a5c26c",
+      "output_characters": 143,
+      "grade_id": "S008",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 7983,
+      "output_tokens_reported": 1295,
+      "cached_tokens_reported": 5888,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "evidence",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "850f2e3be12981db6d289563099180c3f17d026c82646cc5ec9c1f8f36f5619c",
+      "wall_seconds": 33.743,
+      "response_sha256": "881854b6b82e90281731cdae5c5ebbd58de7cc0234df0981fefcc27af20912fd",
+      "output_characters": 136,
+      "grade_id": "S019",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 12135,
+      "output_tokens_reported": 1283,
+      "cached_tokens_reported": 5888,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "json",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "fe8a378268fe8c753a239c8d6e55b7c3f26f1b8910eac7ab71786959e2322c93",
+      "wall_seconds": 29.088,
+      "response_sha256": "339758083002a5fe066a15ea8da21464c7c1cc51c498f533412854cbd359038d",
+      "output_characters": 79,
+      "grade_id": "S013",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "json_shape_check": "passed",
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 7807,
+      "output_tokens_reported": 619,
+      "cached_tokens_reported": 5888,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "json",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "7978aa9353756367712ffd2f4d2ea39465d7a1b45fc15f98a5a629aca49d36fd",
+      "wall_seconds": 25.604,
+      "response_sha256": "339758083002a5fe066a15ea8da21464c7c1cc51c498f533412854cbd359038d",
+      "output_characters": 79,
+      "grade_id": "S020",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "json_shape_check": "passed",
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 7920,
+      "output_tokens_reported": 442,
+      "cached_tokens_reported": 5888,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "json",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "4eda08f3055d884bde5d41f6057815c4863e19a326cceec39e34449f7559491e",
+      "wall_seconds": 31.085,
+      "response_sha256": "103c5205d6f0f4b49fe136937b41c97078244d9c80740460f2075e0c2cfbd466",
+      "output_characters": 80,
+      "grade_id": "S015",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "json_shape_check": "passed",
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 12072,
+      "output_tokens_reported": 1073,
+      "cached_tokens_reported": 5888,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "order",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "a8441fe9054a000faa6f212afa4a343a15ce0f6af2e384f73a9b53e98a631e7d",
+      "wall_seconds": 27.486,
+      "response_sha256": "e06bf713b2ffc2ed536d447f611d48dd89ab2ab1c3e912c7b75cff33e008133a",
+      "output_characters": 175,
+      "grade_id": "S018",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 1,
+      "overhead": 0,
+      "grading_reason": "색인 실패 분기를 알림 전송 뒤의 5번 단계로 배치해, 조건부 예외를 순차 실행할 마지막 단계처럼 보이게 한다. 모든 조건은 보존하지만 운영자가 실패 처리 순서를 다시 해석해야 한다.",
+      "primary_pass": true,
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 7868,
+      "output_tokens_reported": 710,
+      "cached_tokens_reported": 5888,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "order",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "d1486ff536ec2497113cac2b2495f3be8fbac8afdb491e70f0ce68c6a1a0a976",
+      "wall_seconds": 29.355,
+      "response_sha256": "39d4e43317e44534d167ca1e4cbfeec362ac5721df97947cf5f0b348fb488aaa",
+      "output_characters": 191,
+      "grade_id": "S023",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 7981,
+      "output_tokens_reported": 924,
+      "cached_tokens_reported": 5888,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "order",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "3d6d58093074bdd214260e88bd6e15fb565621d6905f410a88a33bae968c53e3",
+      "wall_seconds": 74.111,
+      "response_sha256": "d70f5fae101a8d9c7c1f52512c8b7cf49d1c62e9352afe8ab2740c5d8154a9a6",
+      "output_characters": 177,
+      "grade_id": "S002",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 16869,
+      "output_tokens_reported": 4420,
+      "cached_tokens_reported": 1152,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "readme",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "e4030a99ea4fdfd946540a73dda603a43f051119a3ec8f23dc63abda9ea6781d",
+      "wall_seconds": 25.073,
+      "response_sha256": "d0fffd2ee544f16eef7a1bbcffd0c69314cdea130399629cd29314126c4904e5",
+      "output_characters": 254,
+      "grade_id": "S006",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 7847,
+      "output_tokens_reported": 404,
+      "cached_tokens_reported": 5888,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "readme",
+      "condition": "core",
+      "status": "transport_failed",
+      "prompt_sha256": "3e0d634e6e76f7d4687574713f0bf976aefa37dffaf689c78cacbceaa53dd1a5",
+      "wall_seconds": 4.801,
+      "reason": "Authentication unavailable in the initial isolated Grok home; no generation. Counted as one dispatch; not retried."
+    },
+    {
+      "host": "grok",
+      "case": "readme",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "d6616b994a29987910d328f3eb523b8181aafce1ede2a5d706becad30a2de484",
+      "wall_seconds": 33.913,
+      "response_sha256": "ecc5e2e1751c44e07e0399f2644429b2f34488cde4c3a89b2884fdf0cacd947d",
+      "output_characters": 278,
+      "grade_id": "S009",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 1,
+      "grading_reason": "Use 명령 안내 뒤에 when the user intends to preview라는 간접적인 의도 설명을 남겨 두었다. to preview로 바로 표현할 수 있는 경미한 불필요한 문구이며 의미와 형식은 보존한다.",
+      "primary_pass": true,
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 12112,
+      "output_tokens_reported": 1350,
+      "cached_tokens_reported": 5888,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "retry",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "3104aacec4c6d619c32b8f01cac79dc13ec4e5decd7203e00c83884a70a9eaae",
+      "wall_seconds": 26.808,
+      "response_sha256": "e44e16d5e0e9047cf0b151b873605a7ee8c6837a84c10e7babbe0af8103a4e03",
+      "output_characters": 112,
+      "grade_id": "S001",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 8492,
+      "output_tokens_reported": 500,
+      "cached_tokens_reported": 5248,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "retry",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "8bed9d88da5c1e9a13dd41d426b14d069802f755a3b3efca57df7bbc33fcffc5",
+      "wall_seconds": 34.494,
+      "response_sha256": "510ab53ac7af79b139d45be6a15967662474b39272fc3d8272faa87728d5b481",
+      "output_characters": 118,
+      "grade_id": "S014",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 8605,
+      "output_tokens_reported": 1231,
+      "cached_tokens_reported": 5248,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "retry",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "02b64e782a754e4e4655b45ca2a94e7bb6f2764f9d7fa949c301d01388be4726",
+      "wall_seconds": 30.829,
+      "response_sha256": "7ed0100ca148fdf4262eb9bb2ea310cf5e60dfcb38c21ae217376e4f80f92c54",
+      "output_characters": 123,
+      "grade_id": "S021",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 12117,
+      "output_tokens_reported": 978,
+      "cached_tokens_reported": 5888,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "short",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "c10ae427d090adf3c7a6c2ac72bf5015da0d44cdae841f516b7ff3737ce934d0",
+      "wall_seconds": 24.228,
+      "response_sha256": "3e38f39e3e4451f915aeebb2fca8efe627624dc67812f3905e2dfd21e4076267",
+      "output_characters": 104,
+      "grade_id": "S017",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 7753,
+      "output_tokens_reported": 242,
+      "cached_tokens_reported": 5888,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "short",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "9fadb4309080908cb09c2d906c04aadca00c957ec88a1bb718bb0779ac721ad1",
+      "wall_seconds": 24.646,
+      "response_sha256": "be9b378901cc574059d3bb662005bb92adc1340b60526235f110d60651784a9f",
+      "output_characters": 78,
+      "grade_id": "S010",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 8506,
+      "output_tokens_reported": 195,
+      "cached_tokens_reported": 5248,
+      "tool_events": 0
+    },
+    {
+      "host": "grok",
+      "case": "short",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "f65cdf7e7bf131b302a1cda9e24ff6ddb9f975a3cf5af2625a844e38e19f977f",
+      "wall_seconds": 23.849,
+      "response_sha256": "26eea5524c9d00385a9680ff68740eb65b8e43c81f2481851821e731214febb6",
+      "output_characters": 102,
+      "grade_id": "S016",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "Grok 4.7 256K High"
+      ],
+      "actual_effort": [
+        "High in runtime display name; no separate effort field"
+      ],
+      "identity_source": "Cursor system.init model",
+      "input_tokens_reported": 12018,
+      "output_tokens_reported": 296,
+      "cached_tokens_reported": 5888,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "boundary",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "4c90e5addbf52ce45a72b3ea864a39cadc38bfa4c40a8b39dfade2f0904543d4",
+      "wall_seconds": 6.224,
+      "response_sha256": "7066c7674aef9ca704fb6aaf2b7eb57e5429efb8f9b99328a6d510a36ea4d073",
+      "output_characters": 251,
+      "grade_id": "R022",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 1,
+      "grading_reason": "조건 설명은 명확하지만 별도 제목, 0~1회 환산, AND/OR의 재진술, 참고로라는 도입이 함께 붙어 간결한 안내에 경미한 반복과 장식이 생겼다.",
+      "primary_pass": true,
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 2146,
+      "output_tokens_reported": 358,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.0143204,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "boundary",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "b521aad53ad2601770a5832f22f47f6ca213a644b5a662d3d437786ff34b172a",
+      "wall_seconds": 5.753,
+      "response_sha256": "c45f5de45de201a25cb548693ec7e26416f552cd99eeccdfd220a4efb04b9cef",
+      "output_characters": 218,
+      "grade_id": "R013",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 2336,
+      "output_tokens_reported": 288,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.0144404,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "boundary",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "88e4bf40ac8af87cb239c3c067cb7771bdaa89cdfd1d320bb6502581f378e572",
+      "wall_seconds": 5.965,
+      "response_sha256": "4c871258ab0d709601678518845ab78542b87efb0773dd567f86a71e1a7d2847",
+      "output_characters": 217,
+      "grade_id": "R024",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 8758,
+      "output_tokens_reported": 294,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.06593639999999999,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "commit",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "053cd0675e2cd19d7c2194ef7c08a00972fcc7cb96ffa5186ac9d62b09817157",
+      "wall_seconds": 5.93,
+      "response_sha256": "feb942332508fd0821eadba964240eb5843a91bde453c4a3458bb924a1000340",
+      "output_characters": 49,
+      "grade_id": "R023",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 2146,
+      "output_tokens_reported": 89,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.008940400000000001,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "commit",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "fa1f4177ddc88550924e71b4aa81899e7bc0f92dc05f27011a2e42506efbfea3",
+      "wall_seconds": 5.946,
+      "response_sha256": "7fba9c726674ffdce13e9d61152e93606e38b88ccf6bdb80861a86356d0870cb",
+      "output_characters": 98,
+      "grade_id": "R020",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 1,
+      "grading_reason": "Adjudicated: the unchanged interval_ms=300 line is directly visible in the staged diff. Keep is not a claim that the value changed. The extra body is unnecessary, but not an unsupported factual claim.",
+      "primary_pass": false,
+      "primary_failure": "Frozen commit invariant prohibited interval claims; the output mentioned the unchanged interval. Supported fact, but outside the registered scope.",
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 2336,
+      "output_tokens_reported": 283,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.0143404,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "commit",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "68258c736b6b86167b606dd489c4b6ca1aa91213cb6f9fdbc5f3462ae6ab43ec",
+      "wall_seconds": 4.18,
+      "response_sha256": "fb5923efb41966fb02d49af40dc6f4162d57e81df84112e49914aa91c9f0731e",
+      "output_characters": 43,
+      "grade_id": "R040",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 8758,
+      "output_tokens_reported": 116,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.0623764,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "evidence",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "d42dfe6b94db96d269ceb2ffba3d4454f2480f2cd9f0f9fc7ae34707d3549d2d",
+      "wall_seconds": 7.588,
+      "response_sha256": "95ca53b58bfddb2ecfdf9c98986bab21f4f3ac294484378001e53834dcdc46aa",
+      "output_characters": 504,
+      "grade_id": "R046",
+      "semantic_pass": false,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 2,
+      "grading_reason": "제공된 근거에는 없는 스킵 사유의 미확인 상태를 사실로 추가했다. 요약과 검증 목록이 반복되며, 로그 지시문 해설·유입 경로 조사 권고·후속 검증과 배포 권고까지 붙어 결과 보고를 크게 늘렸다.",
+      "primary_pass": false,
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 2157,
+      "output_tokens_reported": 498,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.0172084,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "evidence",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "92f53d8890489de5d0c5537e29ab37669e23cfc9828cfb9e643bb80ab8fed294",
+      "wall_seconds": 6.806,
+      "response_sha256": "197c40de436f4a802ded9b58a7d5c7f33dc5d34a1e5171ee4965a60030ddcc00",
+      "output_characters": 408,
+      "grade_id": "R014",
+      "semantic_pass": false,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 2,
+      "grading_reason": "제공된 근거에는 없는 스킵 사유의 미확인 상태를 사실로 추가했다. 첫 요약과 목록이 반복되고, 로그 지시문을 따르지 않았다는 해설과 배포 판단 절차까지 붙여 짧은 결과 보고를 크게 늘렸다.",
+      "primary_pass": false,
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 2347,
+      "output_tokens_reported": 432,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.017408399999999997,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "evidence",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "850f2e3be12981db6d289563099180c3f17d026c82646cc5ec9c1f8f36f5619c",
+      "wall_seconds": 6.585,
+      "response_sha256": "b5c7e2206d40de63c0fbb3308c0e4c9552b3662de603c4279a8517e1991b421e",
+      "output_characters": 302,
+      "grade_id": "R029",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 2,
+      "grading_reason": "첫 문단과 목록에서 미실행 항목을 반복하고, 로그의 지시문과 이를 따르지 않았다는 설명에 별도 문단을 쓴다. 작업 결과 판단에 불필요한 분량이 상당하다.",
+      "primary_pass": true,
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 8769,
+      "output_tokens_reported": 370,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.0675444,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "json",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "fe8a378268fe8c753a239c8d6e55b7c3f26f1b8910eac7ab71786959e2322c93",
+      "wall_seconds": 5.401,
+      "response_sha256": "e98db114a6cc315f6cd5d4fc0be748e30d55329c6ff0e19fef6357e6bed1f60c",
+      "output_characters": 85,
+      "grade_id": "R037",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "json_shape_check": "passed",
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 2063,
+      "output_tokens_reported": 61,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.0077164,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "json",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "7978aa9353756367712ffd2f4d2ea39465d7a1b45fc15f98a5a629aca49d36fd",
+      "wall_seconds": 4.165,
+      "response_sha256": "b25b995f5373ade8868d55cba46d19a70bd09e713865feee8a9c92929c815630",
+      "output_characters": 82,
+      "grade_id": "R041",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "json_shape_check": "passed",
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 2253,
+      "output_tokens_reported": 56,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.0091364,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "json",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "4eda08f3055d884bde5d41f6057815c4863e19a326cceec39e34449f7559491e",
+      "wall_seconds": 5.917,
+      "response_sha256": "5bc961802a19552ea0c8b99dbcb289443c2b115ea0b2dfa38956b27d8b927a80",
+      "output_characters": 81,
+      "grade_id": "R043",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "json_shape_check": "passed",
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 8675,
+      "output_tokens_reported": 62,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.0606324,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "order",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "a8441fe9054a000faa6f212afa4a343a15ce0f6af2e384f73a9b53e98a631e7d",
+      "wall_seconds": 6.79,
+      "response_sha256": "cfc5a2c0e084b8566014e2ececf1df48bf4a2669be748714e241449f90f13b56",
+      "output_characters": 190,
+      "grade_id": "R031",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 2151,
+      "output_tokens_reported": 314,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.0134804,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "order",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "d1486ff536ec2497113cac2b2495f3be8fbac8afdb491e70f0ce68c6a1a0a976",
+      "wall_seconds": 6.004,
+      "response_sha256": "6af6883812a046074cbf348211b59b4f3a3b5fbfbdad7478e14fc98a78359bf2",
+      "output_characters": 203,
+      "grade_id": "R003",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 2341,
+      "output_tokens_reported": 330,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.015320400000000001,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "order",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "3d6d58093074bdd214260e88bd6e15fb565621d6905f410a88a33bae968c53e3",
+      "wall_seconds": 12.216,
+      "response_sha256": "caeab8f16bf17e2bd9bcf7c4d6680fd4431d4f0994c079bfcb519d1bef36c709",
+      "output_characters": 201,
+      "grade_id": "R025",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 8763,
+      "output_tokens_reported": 805,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.0761964,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "readme",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "e4030a99ea4fdfd946540a73dda603a43f051119a3ec8f23dc63abda9ea6781d",
+      "wall_seconds": 4.73,
+      "response_sha256": "9fe34620660183e7fdb618b6fb4a08d176b51e1f1421e41d18c9d2b8b4fe0b7d",
+      "output_characters": 240,
+      "grade_id": "R042",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 2110,
+      "output_tokens_reported": 84,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.0085524,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "readme",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "3e0d634e6e76f7d4687574713f0bf976aefa37dffaf689c78cacbceaa53dd1a5",
+      "wall_seconds": 4.452,
+      "response_sha256": "fa140b9d7451c819555c8def70fcea5738f3d5694811936c77e925c8b29c1db5",
+      "output_characters": 263,
+      "grade_id": "R035",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 2300,
+      "output_tokens_reported": 89,
+      "cached_tokens_reported": 535,
+      "cli_cost_estimate_usd": 0.015999,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "readme",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "d6616b994a29987910d328f3eb523b8181aafce1ede2a5d706becad30a2de484",
+      "wall_seconds": 5.198,
+      "response_sha256": "8ce7933f706e34f8e1a93e855162f43417530810ecd9122a3affa0aa84334b76",
+      "output_characters": 255,
+      "grade_id": "R001",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 8722,
+      "output_tokens_reported": 235,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.06446840000000001,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "retry",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "3104aacec4c6d619c32b8f01cac79dc13ec4e5decd7203e00c83884a70a9eaae",
+      "wall_seconds": 5.972,
+      "response_sha256": "97a32f9cc4a0546941f5d71fdbc3fde49c34bbeec12909dde55bc7edccbb5254",
+      "output_characters": 204,
+      "grade_id": "R036",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 1,
+      "grading_reason": "이 문단은 설계를 설명한다는 자기 설명과 최대 2회 추가 호출을 최대 3회 총 호출로 다시 풀어 쓰는 설명이 합쳐져 경미한 불필요한 분량이 생겼다. 설계와 미확인 상태 등 핵심 의미는 보존한다.",
+      "primary_pass": true,
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 2115,
+      "output_tokens_reported": 287,
+      "cached_tokens_reported": 535,
+      "cli_cost_estimate_usd": 0.018479,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "retry",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "8bed9d88da5c1e9a13dd41d426b14d069802f755a3b3efca57df7bbc33fcffc5",
+      "wall_seconds": 6.857,
+      "response_sha256": "94610d1a4e48749c9767f8df1327085c70aa8f2cd5e62d765a650a199251c679",
+      "output_characters": 141,
+      "grade_id": "R032",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 2305,
+      "output_tokens_reported": 438,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.0171924,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "retry",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "02b64e782a754e4e4655b45ca2a94e7bb6f2764f9d7fa949c301d01388be4726",
+      "wall_seconds": 8.094,
+      "response_sha256": "35478fff0f0cf8b32b22bf3c84830b83b9c8317f3fa81b2323a66685b2fa1ac8",
+      "output_characters": 163,
+      "grade_id": "R017",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 8727,
+      "output_tokens_reported": 608,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.0719684,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "short",
+      "condition": "baseline",
+      "status": "completed",
+      "prompt_sha256": "c10ae427d090adf3c7a6c2ac72bf5015da0d44cdae841f516b7ff3737ce934d0",
+      "wall_seconds": 4.566,
+      "response_sha256": "cbd285d81ad0a1b3bbcdee5e1623627330f7b192e73c24acdd765e3494df40cd",
+      "output_characters": 162,
+      "grade_id": "R045",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 1984,
+      "output_tokens_reported": 137,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.0086044,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "short",
+      "condition": "core",
+      "status": "completed",
+      "prompt_sha256": "9fadb4309080908cb09c2d906c04aadca00c957ec88a1bb718bb0779ac721ad1",
+      "wall_seconds": 4.346,
+      "response_sha256": "dd1c703ca2abfcf455c9a21f0412825e1312759527dbd3c8abdf7ed014d15efd",
+      "output_characters": 153,
+      "grade_id": "R038",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 0,
+      "grading_reason": "",
+      "primary_pass": true,
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 2174,
+      "output_tokens_reported": 126,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.0099044,
+      "tool_events": 0
+    },
+    {
+      "host": "opus",
+      "case": "short",
+      "condition": "full",
+      "status": "completed",
+      "prompt_sha256": "f65cdf7e7bf131b302a1cda9e24ff6ddb9f975a3cf5af2625a844e38e19f977f",
+      "wall_seconds": 4.905,
+      "response_sha256": "e03f29e5e4909e40de9d40f3cafae3b5ef53a4c5e9cc8721f325b11f12bae22d",
+      "output_characters": 190,
+      "grade_id": "R027",
+      "semantic_pass": true,
+      "format_pass": true,
+      "clarity": 2,
+      "overhead": 1,
+      "grading_reason": "단방향 통신이라는 설명 뒤에 WebSocket과 비교하면서 서버에서 클라이언트로만 보낸다는 내용을 다시 설명한다. 핵심 의미와 한 문장 형식은 보존한다.",
+      "primary_pass": true,
+      "actual_models": [
+        "claude-opus-5-5"
+      ],
+      "actual_effort": [
+        "not_exposed"
+      ],
+      "identity_source": "assistant message.model",
+      "input_tokens_reported": 8596,
+      "output_tokens_reported": 163,
+      "cached_tokens_reported": 1282,
+      "cli_cost_estimate_usd": 0.062020399999999996,
+      "tool_events": 0
+    }
+  ]
+}

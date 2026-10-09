@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-09",
+  "version": "0.2.1",
+  "basis": [
+    "Observed Opus report inferred every slowest5%request slowed fromp95increase.",
+    "Observed Grok recovery procedure sent reader back to earlier conditions.",
+    "Observed repeated state/gate/summary across Opus handoff."
+  ],
+  "payload_sha256": {
+    "README.ko.md": "4610cee7c1d1c5f9c9fd85b1547715f6272ba533ca133b26260bef3a99431d40",
+    "README.md": "832df34491a7815bc8213714194c7ab240ab4a28584769baac77ea4faede8fe5",
+    "SKILL.md": "dee59ad6828edc72c4e3e5dd8c0f282520e5932921dbaaac5691fa5b98a70925",
+    "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+    "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+    "references/documents.md": "ba680b8c925aeffab3acc280841f599839d28ce67faf8e92d6d193e2386ab09f"
+  },
+  "cases_sha256": "ce87e3a80e3b4ea48d2529d89d419e1d3694c6f31a98adb968ab1983f046beef",
+  "runner_sha256": "c006d1437950a747840edfd260cc9ba98d46d7c25d0f383711bdc4f5c3900c45",
+  "max_dispatches": 10,
+  "planned": {
+    "new_tasks_two_times_three_providers": 6,
+    "opus_failed_case_replay": 1,
+    "codex_json_regression": 1,
+    "installed_codex_smoke": 1,
+    "reserve": 1
+  },
+  "acceptance": [
+    "All6newdrafts pass authored source checks with no material error.",
+    "New recovery decisions give applicable condition and branch action locally; no need to navigate to earlier table.",
+    "No final version interprets a percentile as evidence every member of tail worsened.",
+    "Opus measurement replay removes observed false tail inference.",
+    "JSON keys/types/null/false contract preserved.",
+    "Installed native Codex invocation reads matching0.2.1skill and reference and produces correctdraft."
+  ],
+  "grading": "Author source audit and observable conditions. No independent masked quality score for0.2.1; do not transfer0.2.0scores.",
+  "limits": [
+    "New synthetic tasks test transfer of targeted repairs, not independent human comprehension.",
+    "Original failed case replay is regression evidence, not held-out improvement.",
+    "Timing across hosts is descriptive only."
+  ],
+  "isolation": "Same provider isolation as original studies; Codex native payload, Opus/Grokinlinepayload.",
+  "protocol_scope": "New explicitly announced repair round, separate from original40andexternal40dispatch caps; no unbounded retry."
+}

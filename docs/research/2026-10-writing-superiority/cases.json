@@ -1,0 +1,194 @@
+[
+  {
+    "id": "lease-fencing",
+    "host": "codex",
+    "kind": "explanation",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 새로 합류한 백엔드 개발자에게, 작업 임대가 끝난 뒤 이전 작업자의 완료 요청을 왜 거부하는지 설명하는 문서를 작성하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "Relay completion design, implemented in staging.\nQueue message carries job_id only. Claim transaction increments jobs.epoch, sets owner and lease_until using database time, returns epoch. Worker keeps this epoch. Renew needs matching owner and epoch and database now < lease_until. At exactly lease_until renewal fails. An expired worker may continue local computation; no process-kill guarantee. Another worker can claim after expiry and gets larger epoch. Complete updates result and status in one transaction only when owner and epoch match and now < lease_until. Rejected completion writes no result and sends no completion event. Completion event is an outbox row in that transaction; dispatcher may deliver duplicate notifications. Consumer deduplicates event_id. Fence prevents stale database publication, not duplicate computation. External payment call before completion is not fenced by this design; this service currently has no payment integration. Five staging cases exercised stale epoch, expiry boundary, valid completion, renewal failure, duplicate outbox delivery. No production run is recorded. Historical prototype used wall clock from worker and stored owner only; deployed staging implementation no longer does. Future proposal: cancel local computation on lost renewal; not implemented."
+    },
+    "checks": [
+      "expiry exact boundary rejects",
+      "old worker can compute but cannot publish",
+      "duplicate outbox possible and event_id dedup",
+      "external side effects not protected; staging only"
+    ]
+  },
+  {
+    "id": "index-alias",
+    "host": "codex",
+    "kind": "procedure",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 교대 운영자가 검색 인덱스 별칭을 새 버전으로 전환할 수 있도록 운영 절차를 작성하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "Command names and order are contractual. Current read alias catalog-live points to idx-v41; new idx-v42 exists. No change to writes during this procedure. First run indexctl inspect idx-v42. Require build_state=ready AND missing_docs=0 AND checksum_ok=true. null in any required field is unknown and blocks transition. If precheck fails, stop; fix/build process is outside this procedure. Run indexctl compare --from idx-v41 --to idx-v42 --sample 500. Require mismatches<=2; at 2 continue; missing report blocks. Then indexctl freeze-alias catalog-live. If freeze fails stop without switching. Re-run indexctl inspect idx-v42 after freeze with the same ready/0/true gate. If this second check fails, indexctl unfreeze-alias catalog-live and stop, no switch. If gate passes, indexctl switch catalog-live idx-v42 --expected idx-v41. If expected alias differs, switch rejects; unfreeze and stop, do not force. Successful switch must be followed by indexctl probe catalog-live; require errors=0 on 100 queries. Failure or missing probe means rollback: indexctl switch catalog-live idx-v41 --expected idx-v42, then unfreeze, then stop and escalate to search on-call. Successful probe: unfreeze, finish. If rollback itself fails, keep freeze, escalate; do not unfreeze. Unfreeze failure is escalated without further actions. Commands shown do not delete either index."
+    },
+    "checks": [
+      "pre and post freeze all three gates",
+      "<=2 inclusive",
+      "rollback failure keep freeze",
+      "unknown not zero and no invented retry"
+    ]
+  },
+  {
+    "id": "parser-handoff",
+    "host": "codex",
+    "kind": "handoff",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 다음 개발자가 작업을 이어갈 수 있는 인계문을 작성하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "Working tree: branch fix/header-parser, HEAD 71b4c20. src/header.py changed after last test, unstaged. tests/test_header.py staged includes empty-value case. README.md unstaged is unrelated spelling fix, don't include it in this handoff's implementation scope. Goal: preserve empty header values as empty string, distinguish missing header (None). 09:10 unit output on old src/header.py: 18 passed, 1 skipped; skip reason not in supplied log. 09:35 src/header.py edited for whitespace-only value; no test execution occurred after this edit. Current code returns empty string for all-whitespace value, keeps None for missing header. 08:40 staging integration on earlier HEAD: failed on an unrelated TLS certificate expiry; this log does not test current local code. Patch is not committed or deployed. Next: inspect diff of src/header.py and tests/test_header.py, then run python3 -m unittest tests.test_header after checking intended trim behavior with existing contract docs/header-format.md. That document says surrounding ASCII spaces are trimmed; internal spaces preserved. Tabs policy is unspecified and not resolved. Don't change behavior for tabs without resolving the contract. Need include targeted test's exact command. Optional future proposal add streaming parser benchmark, not part of current patch. Staging certificate renewal is platform team's separate task, no completion record supplied."
+    },
+    "checks": [
+      "old pass not current validation",
+      "missing None empty string distinguish",
+      "tabs unresolved not invent",
+      "test command and scope staged+unstaged accurate"
+    ]
+  },
+  {
+    "id": "retry-metrics",
+    "host": "codex",
+    "kind": "measurement",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 서비스 담당자가 다음 배포 판단에 쓸 수 있도록 실험 결과를 해석한 기술 메모를 작성하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "Synthetic test observations, not a deployment approval. A retry off: 8,000 logical operations, 7,600 eventually succeeded, 400 failed, 8,000 attempts, 400 ms mean end-to-end among successes. B one retry: 8,000 logical operations, 7,920 eventually succeeded, 80 failed, 8,450 total attempts, 440 ms mean end-to-end among successes. Same request mix replayed but no per-operation pairing is saved. A p95=900 ms, B p95=980 ms, both successful logical operations only and include retry delay when present. No latency for failed logical operations in aggregate. CPU total A=120 core-seconds B=144 core-seconds across all attempts. Daily production mix unknown. Sample was a single run for each variant, A at 10:00 B at 10:20 on shared hardware; concurrent load unrecorded. Required decision gate for promotion: success>=99% AND p95<=950 ms AND CPU<=140 core-seconds under this test setup. A success95%; B success99%. B meets success gate exactly but fails p95 and CPU. Neither variant satisfies all gates. Old proposal describes B as faster and cheaper; it predates these measurements. No cost in money measured, no causal proof that retry alone changed latency or CPU."
+    },
+    "checks": [
+      "logical vs attempt denominators",
+      "B99% exact but two gates fail",
+      "success-only latency no individual tail claim",
+      "time/load limits and no monetary savings"
+    ]
+  },
+  {
+    "id": "key-rotation",
+    "host": "opus",
+    "kind": "explanation",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 온콜에 처음 참여하는 개발자에게 키 교체 중에도 기존 토큰이 검증되는 원리와 그 한계를 설명하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "Auth verifier snapshot: signing key K2 is active since 14:00 UTC. K1 is verify-only until 14:30 UTC exclusive. Verification requires known kid, valid signature, aud=console, exp strictly greater than verification time. Token with exp=14:30 expires at 14:30 even if K2 signed it. K1 token with exp=14:45 fails after 14:30 because K1 retired. Each verifier polls keyset every 60 seconds; there is no push invalidation. Local keyset older than 120 seconds causes verification to fail closed (503 keyset_stale), not unauthorized. At age exactly120 seconds it is still usable. Unknown kid triggers one synchronous keyset refresh per request. If refresh fails return503 keyset_refresh_failed; if refresh succeeds and kid remains unknown return401 unknown_kid. This does not mean retrying application requests is safe; write API idempotency is separate. A K1 token cannot be re-signed by client; token issuer must issue a new token. Audit sample in test environment covers signed-token acceptance and both stale/refetch failure branches; no production success rate available. Proposed future cache push is not implemented. No private key material is in this note."
+    },
+    "checks": [
+      "K1 retirement independent token exp",
+      "age120 allowed >120 fail",
+      "503 refresh failure vs401 unknown",
+      "polling not immediate invalidation"
+    ]
+  },
+  {
+    "id": "batch-resume",
+    "host": "opus",
+    "kind": "procedure",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 중단된 정산 배치를 재개하는 절차를 교대 운영자용으로 작성하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "Batch B73 paused, checkpoint=2400, last published sequence=2390; these are different counters. Recompute must start checkpoint+1=2401, not published+1. Commands: ledgerctl status B73 reports paused, lock_owner, pending_transfers. Precondition paused=true AND lock_owner=null AND pending_transfers=0. For lock_owner only, null explicitly means no owner and is allowed; missing field is unknown. For pending_transfers, null is unknown and blocks. If any precondition not met, stop and contact settlement on-call. ledgerctl verify B73 --checkpoint 2400 must return checksum=match and gap_count=0; otherwise stop, don't repair. ledgerctl acquire B73 --owner shift9; if acquisition denied, stop; no forced release. Once acquired rerun ledgerctl status B73; require lock_owner=shift9 AND paused=true AND pending_transfers=0. Failure releases own lock via ledgerctl release B73 --owner shift9 then stops. Success: ledgerctl resume B73 --after 2400. If resume returns ambiguous timeout, do not repeat it. Run ledgerctl status B73. If running=true, monitor; if running=false or unknown, leave lock and escalate. Monitoring endpoint status; successful finish requires finished=true AND last_published_sequence=expected_last_sequence. Values of expected_last_sequence are supplied by status, not assumed2400. Release lock after confirmed finish only. Lock expiry automatic after30minutes does not prove batch stopped. On release failure escalate without retry in this runbook."
+    },
+    "checks": [
+      "start2401 checkpoint not published",
+      "null owner allowed pending null not",
+      "ambiguous resume no repeat",
+      "finish dynamic expectedsequence AND finished"
+    ]
+  },
+  {
+    "id": "sdk-handoff",
+    "host": "opus",
+    "kind": "handoff",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 SDK 담당자에게 수정 작업의 현재 상태와 다음 작업을 인계하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "Feature fix: stop converting server unknown values to false. Current branch sdk/null-state, local commit b8d9a12, ahead of origin by1. src/status.ts now models enabled:boolean|null; decoder returns null for JSON null. Missing enabled key throws DecodeError; it is not null. UI consumer ui/settings.ts still uses if (!status.enabled), so false and null still share disabled badge; not fixed. Local SDK tests after commit: 23passed; test environment Node22 macOS. Browser UI tests not executed. Old branch record 25passed belongs to removed coercion variant and doesn't validate this patch. Publication not performed. PR draft title supplied: Preserve unknown enabled state. No PR was created. Next task: change UI to three distinct badges true=enabled false=disabled null=unknown; use exact labels from docs/status-labels.md, where Korean labels are 사용, 중지, 확인 불가. Missing field should continue error, not badge. Then add UI cases for true,false,null and missing field and run pnpm test:ui. CI Linux job pending; no result. Release note may say SDK preserves null but must not claim UI displays unknown until UI patch verified. Version bump not decided. Future proposal telemetry event for unknown is not approved."
+    },
+    "checks": [
+      "SDK implemented UI remains",
+      "null vs missing error",
+      "23 macOS local CI pending",
+      "next labels and exact command no invented release"
+    ]
+  },
+  {
+    "id": "cache-cohorts",
+    "host": "opus",
+    "kind": "measurement",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 캐시 도입 여부를 검토하는 팀에게 측정 결과와 판단할 수 없는 부분을 설명하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "Two replay sets each 10,000 logical reads. A: reads7,000 hot-tenant and3,000 cold-tenant; hits6,300 hot and300 cold. B: reads9,000 hot and1,000 cold; hits7,650 hot and80 cold. Overall hit A66%, B77.3%. Within hot hit A90% B85%; within cold A10% B8%. Workload proportions differ, so overall increase does not establish per-cohort improvement. Successful-read latency only: A9,800 successes p50=45ms p95=180ms; B9,950successes p50=38ms p95=190ms. Failed reads excluded; no count-by-cohort latency. Cache writes are asynchronous with max observed lag A100ms B130ms in this sample; no bound guarantee. Correctness audit examined100 cached responses per variant, found0 stale in A and1stale in B; selection method unrecorded, not enough to estimate production stale rate or causal effect. Costs and eviction counts not measured. No random assignment, one replay each, source dataset differs; deployment decision requires a matched replay and explicitly chosen acceptable staleness target; target value not yet agreed. Old slide says global hit rate improvement proves lower backend traffic, but no backend request count is recorded because misses can coalesce."
+    },
+    "checks": [
+      "overall up within cohorts down",
+      "success-only p50better p95worse",
+      "stale sample not production estimate",
+      "backend traffic and cost unmeasured target unknown"
+    ]
+  },
+  {
+    "id": "delete-tombstone",
+    "host": "grok",
+    "kind": "explanation",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 신규 개발자가 삭제 직후 검색 결과에 항목이 보이는 이유를 이해하도록 문서를 작성하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "Asset API delete uses tombstones. DELETE /assets/a first checks access; missing or already tombstoned returns204 without inserting another deletion event. Existing active object: transaction sets deleted_at and inserts outbox event. Response204 after commit, not after blob removal. GET detail consults primary database and returns404 for tombstoned object immediately after that commit. Search index updated asynchronously by id+revision; older update with lower revision is rejected. Search can list tombstoned object until indexing catches up; no maximum delay guaranteed. Detail link then404 is expected consistency boundary. Blob purge scheduled24hours after deleted_at; purge worker may run later. During retention authorized recovery POST /assets/a/restore allowed only before purge_started=true. Clock under24hours alone does not establish recovery availability; legal_hold=true prevents purge indefinitely but doesn't extend API access to unauthorized callers. Restore increments revision and creates outbox event; stale delete index event cannot override newer revision. Purge_started true permanently blocks restore even if blob still physically exists. Backup deletion schedule unspecified. Historical screenshot shows delayed search but does not measure current delay. No guarantee that204means irreversible erase."
+    },
+    "checks": [
+      "204 logical delete not purge",
+      "searchlag details404 revision order",
+      "restore purge_started boundary not just24h",
+      "legalhold no access expansion backupunknown"
+    ]
+  },
+  {
+    "id": "certificate-cutover",
+    "host": "grok",
+    "kind": "procedure",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 인증서 교체 당직자가 바로 실행할 수 있는 절차서를 작성하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "Target service ingress-a, existing cert c17, candidate c18. First certctl inspect c18: require chain_ok=true AND days_left>=21 AND hostname=api.example.invalid. null/missing means unknown and blocks. At days_left21 proceed. certctl stage ingress-a c18 does not activate; after stage run certctl probe ingress-a --staged. Require handshake_errors=0 AND checked_regions=3. If fail or missing report, certctl discard-stage ingress-a then stop. If pass, certctl activate ingress-a c18 --expect c17. Concurrent active certificate change causes rejection; discard stage and stop, don't force. After successful activation, certctl probe ingress-a --live, require handshake_errors=0 AND checked_regions=3. If fail/unknown, run certctl activate ingress-a c17 --expect c18. If rollback succeeds, run certctl probe ingress-a --live to validate old cert with same errors0/regions3 gate. Failed rollback or failed/unknown old-cert probe: contact network on-call and leave state as is. No instructions to restart service. If initial new-cert liveprobe passes, certctl clear-stage ingress-a then finish. Failure of clear-stage escalated without repeating activation. Never delete c17 in this procedure. Rollback-supported window ends only in separate future retirement task, not21days."
+    },
+    "checks": [
+      "three candidate gates",
+      "staged vs live",
+      "rollback validate old samegate",
+      "no restart no delete and unknown blocks"
+    ]
+  },
+  {
+    "id": "schema-handoff",
+    "host": "grok",
+    "kind": "handoff",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 야간 담당자에게 데이터 스키마 전환 작업을 인계하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "Migration account.locale stage W2. Column exists nullable. Dual-write enabled for2% tenants only; old reads remain source of truth. Backfill 18,000of20,000eligible rows done at02:10. This count excludes accounts archived before migration; archived total not provided. At02:15 backfill paused because mismatch sample7of500; threshold for resume is<=2of500 after fixing parser and taking a new sample. Prior02:00 sample1of500 predates parser discovery and cannot authorize resume. Fix src/locale_normalize.py drafted locally, not committed; test logs not supplied (does not imply tests never ran). New sample not yet taken. Flag account_locale_read_v2 must remainfalse until backfill20,000of20,000 AND new mismatch<=2of500 AND rollback rehearsal=passed, all required. Rehearsal status unknown. Next: review parser diff against docs/locale-contract.md, obtain current test evidence or run focused tests, take fresh500-row sample, then decide whether backfill resumes. Resume command dbmove resume account-locale; if sample>2/500 or unknown remain paused. Completing backfill doesn't authorize read flag without other gates. Rollback command flagctl set account_locale_dual_write false; disables new writes to nullable column but leaves column and rows, old path intact. Don't claim row deletion or reversal. Read switch not performed. A dashboard title says W3 planned, not current state."
+    },
+    "checks": [
+      "W2 current2% oldread",
+      "freshsample <=2 gate oldsampleinvalid",
+      "allthree readgates unknownrehearsal",
+      "rollback disableswrites not deletes; testunknown"
+    ]
+  },
+  {
+    "id": "routing-metrics",
+    "host": "grok",
+    "kind": "measurement",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 라우팅 정책 실험의 결과를 제품 엔지니어가 이해할 수 있는 보고서로 작성하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "Offline replay R1 vs R2. Dataset contains400complex queries and600simple queries (same1000query IDs both runs). Quality judged by a single automated grader that knows neither variant label; no human evaluation. Pass counts R1complex280/400 simple570/600 total850/1000; R2complex320/400 simple558/600 total878/1000. Overall +2.8percentage points, complex+10pp, simple-2pp. Paired per-query outcomes not retained, so cannot compute how many exact individual queries improved/regressed from aggregates. Timeout queries count as quality failure, not excluded: R1timeouts20 R2timeouts35. Latency p50 R1=1.2s R2=1.0s p95R1=4.0s R2=5.5s among non-timeouts only. Cost total provider estimate R1=$12.00 R2=$10.50 for all1000queries, not reconciled bill; same prices assumed. Required adoption gate before rollout: total quality>=87% AND simple quality>=94% AND timeouts<=25. R2total87.8% passes, simple93% fails, timeout35fails. R1total85%fails although simple95%/timeout20pass. No tested policy meets all gates. Context-cache warmness not logged; runtime cause unknown. Don't equate model grader pass with human satisfaction."
+    },
+    "checks": [
+      "population1000 timeoutfail not excluded",
+      "aggregate not pairedchanges",
+      "both fail gate R2twofail",
+      "cost estimate notbill latency nontimeout modelqualitynot human"
+    ]
+  }
+]

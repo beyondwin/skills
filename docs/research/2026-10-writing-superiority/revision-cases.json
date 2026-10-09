@@ -1,0 +1,32 @@
+[
+  {
+    "id": "accepted-job",
+    "kind": "explanation",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 신규 백엔드 개발자에게 202 응답을 받았는데도 작업이 아직 시작되지 않은 이유를 설명하세요. 자료에 없는 사실을 추가하지 마세요.",
+    "files": {
+      "notes.md": "POST /renders accepts a job for asynchronous execution. Authorization and schema validation happen first; rejected validation returns422 and stores no job. Valid request without an existing idempotency key: transaction inserts job in queued state and outbox row, then returns202 with job_id. Valid request with same key and same payload within12hours: return202 with existing job_id and current state; no new job or event is inserted. Same key with different payload returns409. Therefore202 does not distinguish a newly queued job from an existing job, whose state can already be running or finished. Queue dispatcher reads outbox; delivery may duplicate, worker claims each job using current state and does not execute a finished job again. Queued job may wait for free worker; no upper bound on start delay. GET /renders/{id} returns current state and completed artifact URL only for finished state. Request receipt is not start confirmation. Archive policy retains completed artifacts7days; billing invoices monthly; neither changes job-start behavior. Cancellation is a separate proposed endpoint and not implemented. Logs show job r52 queued at09:00 and worker claim09:03 in staging; not a start-time guarantee or production sample."
+    },
+    "checks": [
+      "202 new versus existing branches",
+      "queued not started no upper bound",
+      "no irrelevant billing/archive detail",
+      "staging example not guarantee"
+    ]
+  },
+  {
+    "id": "sample-scope",
+    "kind": "measurement",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 기술 담당자에게 이 자료만으로 체감 속도 개선을 결론낼 수 있는지 설명하세요. 자료에 없는 사실을 추가하지 마세요.",
+    "files": {
+      "notes.md": "Telemetry report compares client versions A and B. A recorded latency on480/500requests, B recorded latency on495/500requests. Missing values are telemetry loss, not known success or failure. Recorded-request p50: A120ms B100ms; p95:A400ms B430ms. No per-request pairing, no satisfaction survey, no random assignment. Recorded request latency population includes whichever requests emitted telemetry; success/failure breakdown absent. Sampling selection process not documented; representativeness unknown, not established to be biased or unrepresentative. One15minute window per variant, at different times on same weekday; user and device mix not recorded. Observed change: recorded median down20ms and95thpercentile boundary up30ms. Cannot say all users faster/slower, or that every slowest5percent request regressed. A separate old survey84percent satisfaction belongs to a previous product release and cannot establish current satisfaction. Report storage encrypted at rest, audit retention90days, monthly invoice automatic; these implementation facts do not change interpretation of speed. Next useful measurement proposal: define a shared population and collect comparable repeated windows plus paired outcomes if individual changes are needed; no experiment has yet been run under that proposal."
+    },
+    "checks": [
+      "missing telemetry not failure/success",
+      "measured population not successful requests",
+      "representativeness unknown not categorical negative",
+      "aggregate not individuals and proposal not performed"
+    ]
+  }
+]

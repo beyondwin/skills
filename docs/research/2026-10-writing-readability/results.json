@@ -1,0 +1,1971 @@
+{
+  "dispatch_count": 40,
+  "completed": 37,
+  "unchanged_workspaces": 40,
+  "protocol_sha256": "a0c16586720b61fae79ee45e3f32258c6c79b6478e0f854c233712cabed44a61",
+  "runs": [
+    {
+      "id": "cache-race--baseline",
+      "case": "cache-race",
+      "arm": "baseline",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 34.848,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 20796,
+          "cached_input_tokens": 8320,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 984,
+          "reasoning_output_tokens": 111
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "959fa8faee7271324a8cc795ca6648d035e5160a69cbd70c50d5272142851868",
+      "response_sha256": "7e8ea5fa929d157469a701fed0b5b235d52a7bd461e56bbd48a978d800667c41",
+      "command_count": 1,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-45-58-01a11e1f-b944-7c52-acfd-e04c54944e0d.jsonl": "eba0af5fc05bb1fffb411e73966b24d278f989fc8e7094699d8e3a77cf96dcd7"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 1534,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "cache-race--previous",
+      "case": "cache-race",
+      "arm": "previous",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 45.79,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 34605,
+          "cached_input_tokens": 18432,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1032,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "959fa8faee7271324a8cc795ca6648d035e5160a69cbd70c50d5272142851868",
+      "response_sha256": "f3c8c95da9e650646b127cf8256364fa0f5709d6ad456e6330e1c7cb4dd8b74a",
+      "command_count": 3,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-45-12-01a11e1f-05bc-7d61-88f6-de415c307a67.jsonl": "b8d0fb79d3527335c879e9b40b4b909102cdf3db5507f9756d1783667c71ed7d"
+      },
+      "rollout_tool_call_count": 2,
+      "response_characters": 1526,
+      "skill_read_evidence": true,
+      "documents_read_evidence": true,
+      "payload_in_home_sha256": {
+        "README.ko.md": "d834d966be16676aac947449754780d96650a681eed1840c2fe07b03f58ed56d",
+        "README.md": "08328fdcdb14358a097fa017722e44d0e1600183679edd570904ce94d3275a22",
+        "SKILL.md": "e4556cecb457be132d566b924b6a520503bf47733029c4b63c7ed035da436361",
+        "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+        "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+        "references/documents.md": "3de46e8906efb294bb8b30d2a7d00db6bf7b2d523b5da91e7d84d716f7a9c5be"
+      }
+    },
+    {
+      "id": "cache-race--candidate",
+      "case": "cache-race",
+      "arm": "candidate",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 50.354,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 35300,
+          "cached_input_tokens": 18432,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1207,
+          "reasoning_output_tokens": 76
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "959fa8faee7271324a8cc795ca6648d035e5160a69cbd70c50d5272142851868",
+      "response_sha256": "c8be8107a9a165d1932fb83c016fd664cc2c6beec33fd5a4f21443fc00031c98",
+      "command_count": 3,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-43-37-01a11e1d-9218-7051-be90-4cd5223d1886.jsonl": "4d4054b2022a16571954a97532e7cb15c941c04f87e065eb2b40673a470b1480"
+      },
+      "rollout_tool_call_count": 2,
+      "response_characters": 1755,
+      "skill_read_evidence": true,
+      "documents_read_evidence": true,
+      "payload_in_home_sha256": {
+        "README.ko.md": "43c4bc14df50e6995796638e03a4b04d42366fc91d66463b849b96bc283dbda9",
+        "README.md": "358e4e770594085ed3b9b021a09e8e797bc0e7a3f3a2e1662b04f703787676bf",
+        "SKILL.md": "5ca54e37392de47dd15440133fe0aedcefacc018941c8420ba30173ec507d732",
+        "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+        "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+        "references/documents.md": "a89bd6d09f963bd0306e5c613c32b29c38f2e2e5c92278aa2258a25b8c396dad"
+      }
+    },
+    {
+      "id": "async-acceptance--baseline",
+      "case": "async-acceptance",
+      "arm": "baseline",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 46.827,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 20807,
+          "cached_input_tokens": 18304,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1053,
+          "reasoning_output_tokens": 113
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "da3e506d24b83d7da5bab60ac8b1275d1d478ef25abb4c23d9373c385f1c9bc2",
+      "response_sha256": "a7cf8485c5c2270d8744fb588b014d0073954d24939f8455096e523dec42b120",
+      "command_count": 1,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-42-50-01a11e1c-da91-79f1-813e-4bbb4f98a41b.jsonl": "16d34f7604587d6825aa9d1283d8c0dc4f4b6f6d575f1c6dcb537960f440d823"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 1795,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "async-acceptance--previous",
+      "case": "async-acceptance",
+      "arm": "previous",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 80.744,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 35412,
+          "cached_input_tokens": 22272,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1294,
+          "reasoning_output_tokens": 111
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "da3e506d24b83d7da5bab60ac8b1275d1d478ef25abb4c23d9373c385f1c9bc2",
+      "response_sha256": "ea549b245c9ae65a9b89854c1675e60c871decebf5c7af485f2bf5789d809875",
+      "command_count": 3,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-40-31-01a11e1a-baf8-7f63-9468-7b03df2c7cb9.jsonl": "6ac729857126462a660c5053b256f026f5ff963a11024674d7fcf7aa6fc1dde3"
+      },
+      "rollout_tool_call_count": 2,
+      "response_characters": 1975,
+      "skill_read_evidence": true,
+      "documents_read_evidence": true,
+      "payload_in_home_sha256": {
+        "README.ko.md": "d834d966be16676aac947449754780d96650a681eed1840c2fe07b03f58ed56d",
+        "README.md": "08328fdcdb14358a097fa017722e44d0e1600183679edd570904ce94d3275a22",
+        "SKILL.md": "e4556cecb457be132d566b924b6a520503bf47733029c4b63c7ed035da436361",
+        "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+        "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+        "references/documents.md": "3de46e8906efb294bb8b30d2a7d00db6bf7b2d523b5da91e7d84d716f7a9c5be"
+      }
+    },
+    {
+      "id": "async-acceptance--candidate",
+      "case": "async-acceptance",
+      "arm": "candidate",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 55.928,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 35337,
+          "cached_input_tokens": 27520,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1231,
+          "reasoning_output_tokens": 111
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "da3e506d24b83d7da5bab60ac8b1275d1d478ef25abb4c23d9373c385f1c9bc2",
+      "response_sha256": "42d57467634bddd62f2cff369a226c4679a00ad47e587453444216a0841526da",
+      "command_count": 3,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-46-00-01a11e1f-bfd1-74b2-b2b0-5aa05287b50a.jsonl": "e5fef46f2c1b66126c9581dc7890c239c6526c8facd437afb8d75f9f9542b877"
+      },
+      "rollout_tool_call_count": 2,
+      "response_characters": 1835,
+      "skill_read_evidence": true,
+      "documents_read_evidence": true,
+      "payload_in_home_sha256": {
+        "README.ko.md": "43c4bc14df50e6995796638e03a4b04d42366fc91d66463b849b96bc283dbda9",
+        "README.md": "358e4e770594085ed3b9b021a09e8e797bc0e7a3f3a2e1662b04f703787676bf",
+        "SKILL.md": "5ca54e37392de47dd15440133fe0aedcefacc018941c8420ba30173ec507d732",
+        "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+        "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+        "references/documents.md": "a89bd6d09f963bd0306e5c613c32b29c38f2e2e5c92278aa2258a25b8c396dad"
+      }
+    },
+    {
+      "id": "pagination--baseline",
+      "case": "pagination",
+      "arm": "baseline",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 51.285,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 20760,
+          "cached_input_tokens": 18304,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 981,
+          "reasoning_output_tokens": 116
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "5268b3485be56395668a542d11fba24023b3b1edeca096a0cb42a313f58702e5",
+      "response_sha256": "a6fc5889e62e6e0ebf3ba137c2bbadaf495504d1996e59606e73ca38effaf119",
+      "command_count": 1,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-39-49-01a11e1a-12de-7fa2-b516-9d5f3b38c0e4.jsonl": "f4451c6aa7a07d8e91a4c82f38d07d684b3614061b079d81539929d297be6c6c"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 1546,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "pagination--previous",
+      "case": "pagination",
+      "arm": "previous",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 63.213,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 34540,
+          "cached_input_tokens": 27520,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1151,
+          "reasoning_output_tokens": 91
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "5268b3485be56395668a542d11fba24023b3b1edeca096a0cb42a313f58702e5",
+      "response_sha256": "9f5f07cff28f3d367db3482b30b0c6c06b4692b2913f391306c4f3cc7193d159",
+      "command_count": 3,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-43-38-01a11e1d-94b0-7382-b40f-dea5f9992c56.jsonl": "da738e637c7973103baef9472febbd81830b6a22be662de23b750f8c92810e59"
+      },
+      "rollout_tool_call_count": 2,
+      "response_characters": 1622,
+      "skill_read_evidence": true,
+      "documents_read_evidence": true,
+      "payload_in_home_sha256": {
+        "README.ko.md": "d834d966be16676aac947449754780d96650a681eed1840c2fe07b03f58ed56d",
+        "README.md": "08328fdcdb14358a097fa017722e44d0e1600183679edd570904ce94d3275a22",
+        "SKILL.md": "e4556cecb457be132d566b924b6a520503bf47733029c4b63c7ed035da436361",
+        "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+        "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+        "references/documents.md": "3de46e8906efb294bb8b30d2a7d00db6bf7b2d523b5da91e7d84d716f7a9c5be"
+      }
+    },
+    {
+      "id": "pagination--candidate",
+      "case": "pagination",
+      "arm": "candidate",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 44.303,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 34467,
+          "cached_input_tokens": 30080,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1213,
+          "reasoning_output_tokens": 128
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "5268b3485be56395668a542d11fba24023b3b1edeca096a0cb42a313f58702e5",
+      "response_sha256": "fbf9fdd6d3602fa051e65dacde75c69cd2da49f8679aceba8c10cba35cb4f013",
+      "command_count": 3,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-44-28-01a11e1e-5896-72a1-932a-65ad58998b24.jsonl": "79c1dfb6ae861627a90044711c102b59754b4803024eb48129931c2584bec27a"
+      },
+      "rollout_tool_call_count": 2,
+      "response_characters": 1726,
+      "skill_read_evidence": true,
+      "documents_read_evidence": true,
+      "payload_in_home_sha256": {
+        "README.ko.md": "43c4bc14df50e6995796638e03a4b04d42366fc91d66463b849b96bc283dbda9",
+        "README.md": "358e4e770594085ed3b9b021a09e8e797bc0e7a3f3a2e1662b04f703787676bf",
+        "SKILL.md": "5ca54e37392de47dd15440133fe0aedcefacc018941c8420ba30173ec507d732",
+        "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+        "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+        "references/documents.md": "a89bd6d09f963bd0306e5c613c32b29c38f2e2e5c92278aa2258a25b8c396dad"
+      }
+    },
+    {
+      "id": "migration--baseline",
+      "case": "migration",
+      "arm": "baseline",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 35.148,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 20820,
+          "cached_input_tokens": 18304,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1122,
+          "reasoning_output_tokens": 196
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "67397a4704ba2292f6d437beb9205c00f25cca4746e64b2fe42afc9e5e1c6f93",
+      "response_sha256": "0fd2f0a485944bbabb263f026beb7611d28090b12f55c85e5fda80a6b69d5fbf",
+      "command_count": 1,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-42-22-01a11e1c-6bd1-74b2-b022-31ec3118c5e2.jsonl": "907f06fd6aa7962eada6b1cb97d55c261a5d628230d43adaa9b8041df8c871c9"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 1764,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "migration--previous",
+      "case": "migration",
+      "arm": "previous",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 35.757,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 33915,
+          "cached_input_tokens": 21504,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1134,
+          "reasoning_output_tokens": 95
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "67397a4704ba2292f6d437beb9205c00f25cca4746e64b2fe42afc9e5e1c6f93",
+      "response_sha256": "a5450a4d1b787098a4a3e7a3165b631369c34dff645ef7155540599d3dfd98ca",
+      "command_count": 3,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-42-15-01a11e1c-4dee-7a93-a172-bea12cfa098d.jsonl": "67f4a8b2469e98d69e28ff830a7fc027ed24280f84a5909ec89c2e64e28bc4c3"
+      },
+      "rollout_tool_call_count": 2,
+      "response_characters": 1645,
+      "skill_read_evidence": true,
+      "documents_read_evidence": true,
+      "payload_in_home_sha256": {
+        "README.ko.md": "d834d966be16676aac947449754780d96650a681eed1840c2fe07b03f58ed56d",
+        "README.md": "08328fdcdb14358a097fa017722e44d0e1600183679edd570904ce94d3275a22",
+        "SKILL.md": "e4556cecb457be132d566b924b6a520503bf47733029c4b63c7ed035da436361",
+        "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+        "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+        "references/documents.md": "3de46e8906efb294bb8b30d2a7d00db6bf7b2d523b5da91e7d84d716f7a9c5be"
+      }
+    },
+    {
+      "id": "migration--candidate",
+      "case": "migration",
+      "arm": "candidate",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 36.131,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 34610,
+          "cached_input_tokens": 21888,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1251,
+          "reasoning_output_tokens": 98
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "67397a4704ba2292f6d437beb9205c00f25cca4746e64b2fe42afc9e5e1c6f93",
+      "response_sha256": "da3bd64f32d01792b16d42c807303426a2374974a8663a9331fd7b17441b8974",
+      "command_count": 3,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-44-42-01a11e1e-8cff-7b51-ac18-6a3fe89790f4.jsonl": "5aefa5ae66c83957197a5a6de39e60237316ddddfb3fc320ec4a68c6c4ceff29"
+      },
+      "rollout_tool_call_count": 2,
+      "response_characters": 1827,
+      "skill_read_evidence": true,
+      "documents_read_evidence": true,
+      "payload_in_home_sha256": {
+        "README.ko.md": "43c4bc14df50e6995796638e03a4b04d42366fc91d66463b849b96bc283dbda9",
+        "README.md": "358e4e770594085ed3b9b021a09e8e797bc0e7a3f3a2e1662b04f703787676bf",
+        "SKILL.md": "5ca54e37392de47dd15440133fe0aedcefacc018941c8420ba30173ec507d732",
+        "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+        "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+        "references/documents.md": "a89bd6d09f963bd0306e5c613c32b29c38f2e2e5c92278aa2258a25b8c396dad"
+      }
+    },
+    {
+      "id": "measurement--baseline",
+      "case": "measurement",
+      "arm": "baseline",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 40.599,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 20757,
+          "cached_input_tokens": 8320,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1144,
+          "reasoning_output_tokens": 147
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "75e40c8c9511611a53ea522cdb8a45aab7246bb59f70a2e2c3bc325e1b4d447c",
+      "response_sha256": "df0323190e5f85079cfe8547a4e1540c4504492d366c765ce41e8cd37b8436dc",
+      "command_count": 1,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-42-57-01a11e1c-f59e-75d0-9844-80a870963f2c.jsonl": "e967425eec1e4d0c1b9db1cdd204d670add723aa18a4b1218e5bb4a674d43602"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 1714,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "measurement--previous",
+      "case": "measurement",
+      "arm": "previous",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 42.902,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 33739,
+          "cached_input_tokens": 18432,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1274,
+          "reasoning_output_tokens": 120
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "75e40c8c9511611a53ea522cdb8a45aab7246bb59f70a2e2c3bc325e1b4d447c",
+      "response_sha256": "c395e02c5555bb71a8463b01d7b3cc2a448fc5a6d157f2b159fd917120b8131a",
+      "command_count": 3,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-39-48-01a11e1a-12dc-74f1-afb0-04c6d8a2b8f6.jsonl": "b0bf0e03171b224662aad7f629f932da840d96078bbfbe49bb4bac42a369238e"
+      },
+      "rollout_tool_call_count": 2,
+      "response_characters": 1707,
+      "skill_read_evidence": true,
+      "documents_read_evidence": true,
+      "payload_in_home_sha256": {
+        "README.ko.md": "d834d966be16676aac947449754780d96650a681eed1840c2fe07b03f58ed56d",
+        "README.md": "08328fdcdb14358a097fa017722e44d0e1600183679edd570904ce94d3275a22",
+        "SKILL.md": "e4556cecb457be132d566b924b6a520503bf47733029c4b63c7ed035da436361",
+        "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+        "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+        "references/documents.md": "3de46e8906efb294bb8b30d2a7d00db6bf7b2d523b5da91e7d84d716f7a9c5be"
+      }
+    },
+    {
+      "id": "measurement--candidate",
+      "case": "measurement",
+      "arm": "candidate",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 48.185,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 35230,
+          "cached_input_tokens": 0,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1338,
+          "reasoning_output_tokens": 108
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "75e40c8c9511611a53ea522cdb8a45aab7246bb59f70a2e2c3bc325e1b4d447c",
+      "response_sha256": "d3c256ab6e1907b5c657fcd6c023dd5dcb6774a40d3b02ee8cbca3d672e266cd",
+      "command_count": 3,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-40-39-01a11e1a-dba3-73e2-91e4-7d3ca7c37ca8.jsonl": "92a5f00315c3f4338e5972e6e70ebb1363780bb6bc44c57331ae5176e3c9bce2"
+      },
+      "rollout_tool_call_count": 2,
+      "response_characters": 1869,
+      "skill_read_evidence": true,
+      "documents_read_evidence": true,
+      "payload_in_home_sha256": {
+        "README.ko.md": "43c4bc14df50e6995796638e03a4b04d42366fc91d66463b849b96bc283dbda9",
+        "README.md": "358e4e770594085ed3b9b021a09e8e797bc0e7a3f3a2e1662b04f703787676bf",
+        "SKILL.md": "5ca54e37392de47dd15440133fe0aedcefacc018941c8420ba30173ec507d732",
+        "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+        "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+        "references/documents.md": "a89bd6d09f963bd0306e5c613c32b29c38f2e2e5c92278aa2258a25b8c396dad"
+      }
+    },
+    {
+      "id": "recovery--baseline",
+      "case": "recovery",
+      "arm": "baseline",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 41.982,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 20786,
+          "cached_input_tokens": 18304,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1181,
+          "reasoning_output_tokens": 288
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "97b4ff1a732efbf3046b709d98ec64d10bb40380fca4ff53bccad1f345f02228",
+      "response_sha256": "f190ada44d39509ea734ab04c9f0ba37004a5f3ca8880bdaaeab7e201aaf2602",
+      "command_count": 1,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-45-18-01a11e1f-1b32-7fd0-a17f-b471d12c5678.jsonl": "b87390da7c76dafc4c44714978823738d210a941f450dcc1026db4177429416b"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 1744,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "recovery--previous",
+      "case": "recovery",
+      "arm": "previous",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 29.666,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 33816,
+          "cached_input_tokens": 10112,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1335,
+          "reasoning_output_tokens": 163
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "97b4ff1a732efbf3046b709d98ec64d10bb40380fca4ff53bccad1f345f02228",
+      "response_sha256": "9415c5c40d4c25f2f612e7d16faa35d73140f1ad78c2838c8b0299f497a34336",
+      "command_count": 3,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-41-52-01a11e1b-f6ed-7100-9a5b-bd2ae48ff044.jsonl": "1cc3bfccf28b0e6773388d4ca44e763a085b4341a2e8ba48c389444377cd421b"
+      },
+      "rollout_tool_call_count": 2,
+      "response_characters": 2036,
+      "skill_read_evidence": true,
+      "documents_read_evidence": true,
+      "payload_in_home_sha256": {
+        "README.ko.md": "d834d966be16676aac947449754780d96650a681eed1840c2fe07b03f58ed56d",
+        "README.md": "08328fdcdb14358a097fa017722e44d0e1600183679edd570904ce94d3275a22",
+        "SKILL.md": "e4556cecb457be132d566b924b6a520503bf47733029c4b63c7ed035da436361",
+        "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+        "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+        "references/documents.md": "3de46e8906efb294bb8b30d2a7d00db6bf7b2d523b5da91e7d84d716f7a9c5be"
+      }
+    },
+    {
+      "id": "recovery--candidate",
+      "case": "recovery",
+      "arm": "candidate",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 46.291,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 35296,
+          "cached_input_tokens": 19200,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1186,
+          "reasoning_output_tokens": 150
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "97b4ff1a732efbf3046b709d98ec64d10bb40380fca4ff53bccad1f345f02228",
+      "response_sha256": "6c0aa9b77bc876eb747e6bff58f09ea4195b9713a1506ef878d2cc28ecb00b6e",
+      "command_count": 3,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-41-28-01a11e1b-9864-78c0-aae2-dcc0b6fc5478.jsonl": "11d3276a700659ca24d6167e85a7a015a3b1999e0d668dd49954562704a783c2"
+      },
+      "rollout_tool_call_count": 2,
+      "response_characters": 1762,
+      "skill_read_evidence": true,
+      "documents_read_evidence": true,
+      "payload_in_home_sha256": {
+        "README.ko.md": "43c4bc14df50e6995796638e03a4b04d42366fc91d66463b849b96bc283dbda9",
+        "README.md": "358e4e770594085ed3b9b021a09e8e797bc0e7a3f3a2e1662b04f703787676bf",
+        "SKILL.md": "5ca54e37392de47dd15440133fe0aedcefacc018941c8420ba30173ec507d732",
+        "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+        "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+        "references/documents.md": "a89bd6d09f963bd0306e5c613c32b29c38f2e2e5c92278aa2258a25b8c396dad"
+      }
+    },
+    {
+      "id": "judge-cache-race-forward--judge",
+      "case": "judge-cache-race-forward",
+      "arm": "judge",
+      "kind": "judge",
+      "status": "failed",
+      "wall_seconds": 18.341,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [],
+      "workspace_unchanged": true,
+      "prompt_sha256": "a7bf6ee8e3480d8956637b01c39e56af49b3d14efda11145e18505f876fb14e6",
+      "response_sha256": null,
+      "command_count": 0,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-56-04-01a11e28-f845-7433-a5d4-1d8d19276d9e.jsonl": "a91b1babf47ca69e4980b3ee7f04336d3609371b8e517b78fc4672d803ec56b0"
+      },
+      "rollout_tool_call_count": 0,
+      "response_characters": 0,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "judge-cache-race-reverse--judge",
+      "case": "judge-cache-race-reverse",
+      "arm": "judge",
+      "kind": "judge",
+      "status": "completed",
+      "wall_seconds": 70.636,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 24967,
+          "cached_input_tokens": 17408,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1192,
+          "reasoning_output_tokens": 167
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "a7bf6ee8e3480d8956637b01c39e56af49b3d14efda11145e18505f876fb14e6",
+      "response_sha256": "c072b6f66008eb99a44cb5a3b4e218fb7332639b46be497831be1d28963c6448",
+      "command_count": 1,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-55-15-01a11e28-391b-7542-8a50-c17a1c8a38b6.jsonl": "dd22b932f275806c9f5f9cb04277d8762ac4956390aaa24bfe638fd598e05639"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 2130,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "judge-async-acceptance-forward--judge",
+      "case": "judge-async-acceptance-forward",
+      "arm": "judge",
+      "kind": "judge",
+      "status": "completed",
+      "wall_seconds": 50.443,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 25121,
+          "cached_input_tokens": 13184,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1324,
+          "reasoning_output_tokens": 171
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "a7bf6ee8e3480d8956637b01c39e56af49b3d14efda11145e18505f876fb14e6",
+      "response_sha256": "91bf042eafdafe2375b13673eb3f05d517b35173cd393464e3a80b7ac465fddf",
+      "command_count": 1,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-56-23-01a11e29-408d-74f0-b801-771833390fab.jsonl": "f085d63d546d8392328e4e1b2b8a157943274c182d1f6dbe19dd7fbe41f95590"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 2280,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "judge-async-acceptance-reverse--judge",
+      "case": "judge-async-acceptance-reverse",
+      "arm": "judge",
+      "kind": "judge",
+      "status": "completed",
+      "wall_seconds": 51.606,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 25559,
+          "cached_input_tokens": 17408,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1282,
+          "reasoning_output_tokens": 219
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "a7bf6ee8e3480d8956637b01c39e56af49b3d14efda11145e18505f876fb14e6",
+      "response_sha256": "c9c150406d1f52ce8e59c6808ef2a3b0fe3ab8f571514cadc994ae52ba1fff75",
+      "command_count": 6,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-51-52-01a11e25-20c0-78e2-8e27-bcbdebf77008.jsonl": "87c3718f106385b8de5df124ffbf26513a267368642c1f04b5905e88e8d92532"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 2023,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "judge-pagination-forward--judge",
+      "case": "judge-pagination-forward",
+      "arm": "judge",
+      "kind": "judge",
+      "status": "completed",
+      "wall_seconds": 54.195,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 24976,
+          "cached_input_tokens": 12160,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1559,
+          "reasoning_output_tokens": 496
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "a7bf6ee8e3480d8956637b01c39e56af49b3d14efda11145e18505f876fb14e6",
+      "response_sha256": "bf45185529d787f9f850fe332bda3964927a7d2bd87557c377d18c57bccf3c0d",
+      "command_count": 1,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-53-26-01a11e26-9046-7960-8123-59539288e571.jsonl": "3b9a0fe93041383062c30460be3cb2528477a01e4ca11b99e546bbc687efe47c"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 2296,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "judge-pagination-reverse--judge",
+      "case": "judge-pagination-reverse",
+      "arm": "judge",
+      "kind": "judge",
+      "status": "completed",
+      "wall_seconds": 43.929,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 24162,
+          "cached_input_tokens": 10368,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1312,
+          "reasoning_output_tokens": 234
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "a7bf6ee8e3480d8956637b01c39e56af49b3d14efda11145e18505f876fb14e6",
+      "response_sha256": "e3a2aa1a1fb261186c3894cf0bfce590ec99ff0c25f24ee080c246fba54ff6b2",
+      "command_count": 1,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-52-50-01a11e26-0397-74b3-93fa-6cea43fe941d.jsonl": "8d9f5b0ecceca221c2fa315215b4c78438d546f651f120fda4faa8e33371c3d5"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 2141,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "judge-migration-forward--judge",
+      "case": "judge-migration-forward",
+      "arm": "judge",
+      "kind": "judge",
+      "status": "completed",
+      "wall_seconds": 54.213,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 25078,
+          "cached_input_tokens": 17408,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1263,
+          "reasoning_output_tokens": 371
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "a7bf6ee8e3480d8956637b01c39e56af49b3d14efda11145e18505f876fb14e6",
+      "response_sha256": "3e6515d55c78cdadb10f8d8703b0dcb123e9779c90cdddf2fada50778318fbce",
+      "command_count": 1,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-54-21-01a11e27-64ae-7f21-8ef8-af71d72f9dcf.jsonl": "90ee3c63dcca11e64e2a10014dbd3b5764ae2116095cb50574cacabf81c3c4db"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 1771,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "judge-migration-reverse--judge",
+      "case": "judge-migration-reverse",
+      "arm": "judge",
+      "kind": "judge",
+      "status": "completed",
+      "wall_seconds": 40.398,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 24307,
+          "cached_input_tokens": 8320,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1225,
+          "reasoning_output_tokens": 240
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "a7bf6ee8e3480d8956637b01c39e56af49b3d14efda11145e18505f876fb14e6",
+      "response_sha256": "44af3d5434a15153fae18e7e6ae6a8bff02b84cb13197918c14f8abc578094e1",
+      "command_count": 1,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-55-24-01a11e28-59e3-76d1-b579-7f41f4cf81c2.jsonl": "18702328c05eddf7502b68e960b2ee27a406ed3909fab5a75103211c7f9b707e"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 2080,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "judge-measurement-forward--judge",
+      "case": "judge-measurement-forward",
+      "arm": "judge",
+      "kind": "judge",
+      "status": "completed",
+      "wall_seconds": 51.474,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 24540,
+          "cached_input_tokens": 18688,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1235,
+          "reasoning_output_tokens": 267
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "a7bf6ee8e3480d8956637b01c39e56af49b3d14efda11145e18505f876fb14e6",
+      "response_sha256": "000f90585784a7fb6ed9494faa2c363b73dd28995676b433bbade6fcdbf2b4b6",
+      "command_count": 1,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-53-34-01a11e26-afa4-7953-b150-dfbc13fef0bb.jsonl": "8328f3518c30c176f79733c2afe74945bebb53e0c82af55bd1fa01498ae94158"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 1855,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "judge-measurement-reverse--judge",
+      "case": "judge-measurement-reverse",
+      "arm": "judge",
+      "kind": "judge",
+      "status": "completed",
+      "wall_seconds": 57.35,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 25330,
+          "cached_input_tokens": 17408,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1420,
+          "reasoning_output_tokens": 584
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "a7bf6ee8e3480d8956637b01c39e56af49b3d14efda11145e18505f876fb14e6",
+      "response_sha256": "4bc026c77afb115e7026af5ef50378a4c8eca7061a42d84c5b082e63c56ba3b4",
+      "command_count": 1,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-54-26-01a11e27-7932-7a42-9a97-60e504fbe40f.jsonl": "83c52ccefca7f97aa851d18076b99a21c25deea7447e966235fbd7facdef7b4d"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 1568,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "judge-recovery-forward--judge",
+      "case": "judge-recovery-forward",
+      "arm": "judge",
+      "kind": "judge",
+      "status": "completed",
+      "wall_seconds": 42.051,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 24194,
+          "cached_input_tokens": 0,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1191,
+          "reasoning_output_tokens": 160
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "a7bf6ee8e3480d8956637b01c39e56af49b3d14efda11145e18505f876fb14e6",
+      "response_sha256": "22f370fc09108967aa429549f19a4352d41ffe98bae3729c5bd7dc424dba333c",
+      "command_count": 1,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-52-44-01a11e25-eb49-7541-87c8-73d7e5956e4d.jsonl": "d71db788e6a79a80a7ce1e575a4066ff04d309fe526acbcbc971068963987268"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 1969,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "judge-recovery-reverse--judge",
+      "case": "judge-recovery-reverse",
+      "arm": "judge",
+      "kind": "judge",
+      "status": "completed",
+      "wall_seconds": 57.71,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 25234,
+          "cached_input_tokens": 17408,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1328,
+          "reasoning_output_tokens": 287
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "a7bf6ee8e3480d8956637b01c39e56af49b3d14efda11145e18505f876fb14e6",
+      "response_sha256": "d9b1faf9d0ae0399d40756dc34d5b672c6337c96b9bcaf79cfc57353cbe2ccd8",
+      "command_count": 1,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-51-52-01a11e25-20c0-7833-8fa4-707c83d50e5c.jsonl": "9588e8a9a5af37f1b95e5877c52c3f94a3ec8fb7e91fe73d9aec76c3c65df448"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 2161,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "judge-cache-race-forward-retry--judge",
+      "case": "judge-cache-race-forward-retry",
+      "arm": "judge",
+      "kind": "judge",
+      "status": "completed",
+      "wall_seconds": 57.882,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 24949,
+          "cached_input_tokens": 17408,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1163,
+          "reasoning_output_tokens": 161
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "a7bf6ee8e3480d8956637b01c39e56af49b3d14efda11145e18505f876fb14e6",
+      "response_sha256": "abfd5f1a4a7e0518b7ec162c3af6b7f435ed8d7e23fd75aa81660b1a94b90bb7",
+      "command_count": 1,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-58-16-01a11e2a-fc44-70a2-9b37-734a57c511b8.jsonl": "b12a789496235f780a5da8e90aa85aa93285f840fbc08be45b9593805a1e76d5"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 1951,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "regression-commit--candidate",
+      "case": "regression-commit",
+      "arm": "candidate",
+      "kind": "positive",
+      "status": "failed",
+      "wall_seconds": 39.896,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [],
+      "workspace_unchanged": true,
+      "prompt_sha256": "36fe93c88cb25ab9738bf6ab4dcde12ea281ea3ee3f54be5b17ffab339509d16",
+      "response_sha256": null,
+      "command_count": 2,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-59-51-01a11e2c-705a-7892-98a5-47f5f7a28487.jsonl": "a74c47869d108ac9131feac771c2e7f2122ded2bc951fc32aca0f460d23a0e1a"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 0,
+      "skill_read_evidence": true,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": {
+        "README.ko.md": "43c4bc14df50e6995796638e03a4b04d42366fc91d66463b849b96bc283dbda9",
+        "README.md": "358e4e770594085ed3b9b021a09e8e797bc0e7a3f3a2e1662b04f703787676bf",
+        "SKILL.md": "5ca54e37392de47dd15440133fe0aedcefacc018941c8420ba30173ec507d732",
+        "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+        "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+        "references/documents.md": "a89bd6d09f963bd0306e5c613c32b29c38f2e2e5c92278aa2258a25b8c396dad"
+      }
+    },
+    {
+      "id": "regression-json--candidate",
+      "case": "regression-json",
+      "arm": "candidate",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 43.366,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 34726,
+          "cached_input_tokens": 18432,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 268,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "aec0aea5f102e0f47f20c22f19a2097f1b69f72a5dc7a28c3f52db79736fed3e",
+      "response_sha256": "ce21f941f6256f51978c8f3ca6ce27fe9ecc8a602fde8b8ce5c57670ed56f4dd",
+      "command_count": 3,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T10-00-25-01a11e2c-f3d5-7d10-8cc4-2ed7536144ef.jsonl": "f9942d0a39efe00a831941b7415c7070227ee9cf7c568de0f1188a14afcbf4de"
+      },
+      "rollout_tool_call_count": 2,
+      "response_characters": 158,
+      "skill_read_evidence": true,
+      "documents_read_evidence": true,
+      "payload_in_home_sha256": {
+        "README.ko.md": "43c4bc14df50e6995796638e03a4b04d42366fc91d66463b849b96bc283dbda9",
+        "README.md": "358e4e770594085ed3b9b021a09e8e797bc0e7a3f3a2e1662b04f703787676bf",
+        "SKILL.md": "5ca54e37392de47dd15440133fe0aedcefacc018941c8420ba30173ec507d732",
+        "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+        "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+        "references/documents.md": "a89bd6d09f963bd0306e5c613c32b29c38f2e2e5c92278aa2258a25b8c396dad"
+      }
+    },
+    {
+      "id": "regression-submodule--candidate",
+      "case": "regression-submodule",
+      "arm": "candidate",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 70.412,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 50338,
+          "cached_input_tokens": 34048,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 423,
+          "reasoning_output_tokens": 14
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "07ea27eba99fc3e2d06a0de0f4efad18c5f6c7215c8a064b5172ef5b09ba7662",
+      "response_sha256": "d65eeaf59b1c911551b55a89da97cc0a1c75000711ef1205b17a77ae14e8b300",
+      "command_count": 5,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-59-14-01a11e2b-dff0-7a81-adc3-4400fbc5e1ed.jsonl": "d4391f82bf26d085406896ddf3c63ee98aea121b0d570ab9652f585b7f746eab"
+      },
+      "rollout_tool_call_count": 3,
+      "response_characters": 60,
+      "skill_read_evidence": true,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": {
+        "README.ko.md": "43c4bc14df50e6995796638e03a4b04d42366fc91d66463b849b96bc283dbda9",
+        "README.md": "358e4e770594085ed3b9b021a09e8e797bc0e7a3f3a2e1662b04f703787676bf",
+        "SKILL.md": "5ca54e37392de47dd15440133fe0aedcefacc018941c8420ba30173ec507d732",
+        "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+        "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+        "references/documents.md": "a89bd6d09f963bd0306e5c613c32b29c38f2e2e5c92278aa2258a25b8c396dad"
+      }
+    },
+    {
+      "id": "regression-proofread--candidate",
+      "case": "regression-proofread",
+      "arm": "candidate",
+      "kind": "negative",
+      "status": "completed",
+      "wall_seconds": 36.885,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 23060,
+          "cached_input_tokens": 12288,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 110,
+          "reasoning_output_tokens": 10
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "95e31a821b421cb4b0d9eb31c1c78c0233446c3aa739fe236a95b78eaf3245d2",
+      "response_sha256": "b8281f5e789834f8209d7b8dcbfa1576a675d785c5a57eb56c14b615b96995ce",
+      "command_count": 1,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T09-59-14-01a11e2b-df69-71d3-97e8-3ef9b8be1553.jsonl": "ce535f07bfa88bc1d05f82086a1ba2cc83741b48ff4f9db4e43bf92e6ea6d0a4"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 11,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": {
+        "README.ko.md": "43c4bc14df50e6995796638e03a4b04d42366fc91d66463b849b96bc283dbda9",
+        "README.md": "358e4e770594085ed3b9b021a09e8e797bc0e7a3f3a2e1662b04f703787676bf",
+        "SKILL.md": "5ca54e37392de47dd15440133fe0aedcefacc018941c8420ba30173ec507d732",
+        "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+        "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+        "references/documents.md": "a89bd6d09f963bd0306e5c613c32b29c38f2e2e5c92278aa2258a25b8c396dad"
+      }
+    },
+    {
+      "id": "reader-async-acceptance-previous--reader",
+      "case": "reader-async-acceptance-previous",
+      "arm": "reader",
+      "kind": "reader",
+      "status": "completed",
+      "wall_seconds": 37.648,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 22539,
+          "cached_input_tokens": 17408,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 407,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "256e634d8aabcdeba73059ab70e944f57c2ba413a4eb1bf9eb6d263ec791c40d",
+      "response_sha256": "3394f47afa1ff5cfc84ccb39bdcbfd51cb728a5a799ea2c41759e75e68ca5234",
+      "command_count": 2,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T10-01-25-01a11e2d-df5f-7e23-9898-6d79ad703113.jsonl": "ba719b1587977f6987bacff6ef7c246fa2eccf2d59769744fe997ef944e0cbda"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 635,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "reader-async-acceptance-candidate--reader",
+      "case": "reader-async-acceptance-candidate",
+      "arm": "reader",
+      "kind": "reader",
+      "status": "completed",
+      "wall_seconds": 33.767,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 22473,
+          "cached_input_tokens": 17408,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 433,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "256e634d8aabcdeba73059ab70e944f57c2ba413a4eb1bf9eb6d263ec791c40d",
+      "response_sha256": "88820ef5718228e5e405774787cb2a6ecca03e1de165d75595d7a7dd67272280",
+      "command_count": 2,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T10-01-29-01a11e2d-edf3-75d1-ba1f-1c18a0f294c2.jsonl": "a2f1dc43bf3ed0086fa354aba5e648a7622b53fbc66c57881e2cd7f714d8a6fc"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 662,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "reader-pagination-previous--reader",
+      "case": "reader-pagination-previous",
+      "arm": "reader",
+      "kind": "reader",
+      "status": "failed",
+      "wall_seconds": 20.257,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [],
+      "workspace_unchanged": true,
+      "prompt_sha256": "256e634d8aabcdeba73059ab70e944f57c2ba413a4eb1bf9eb6d263ec791c40d",
+      "response_sha256": null,
+      "command_count": 0,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T10-01-09-01a11e2d-9e42-7731-8bcc-4c7bb6480d7f.jsonl": "79d9a2e5315906b1e369c4c28c754dc56e1e354a7b30fadedae84e14855c669b"
+      },
+      "rollout_tool_call_count": 0,
+      "response_characters": 0,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "reader-pagination-candidate--reader",
+      "case": "reader-pagination-candidate",
+      "arm": "reader",
+      "kind": "reader",
+      "status": "completed",
+      "wall_seconds": 16.561,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 21621,
+          "cached_input_tokens": 9984,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 299,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "256e634d8aabcdeba73059ab70e944f57c2ba413a4eb1bf9eb6d263ec791c40d",
+      "response_sha256": "44f37f6542936e9cc93db61d71e955be7158a0261ea37cc5c1309e1c8270fd55",
+      "command_count": 2,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T10-01-09-01a11e2d-9e2a-7311-9903-729fb64cb5c4.jsonl": "5e697123e440c934014b1424a2be0f4abde4c4afdeea7a3713f742d9e331cb68"
+      },
+      "rollout_tool_call_count": 1,
+      "response_characters": 368,
+      "skill_read_evidence": false,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": null
+    },
+    {
+      "id": "regression-commit-retry--candidate",
+      "case": "regression-commit-retry",
+      "arm": "candidate",
+      "kind": "positive",
+      "status": "completed",
+      "wall_seconds": 20.549,
+      "actual_identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "usage": [
+        {
+          "input_tokens": 47803,
+          "cached_input_tokens": 29952,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 346,
+          "reasoning_output_tokens": 37
+        }
+      ],
+      "workspace_unchanged": true,
+      "prompt_sha256": "36fe93c88cb25ab9738bf6ab4dcde12ea281ea3ee3f54be5b17ffab339509d16",
+      "response_sha256": "9a85a322a378e3fc88e2be56aedfda855afb78743bf16370aaafdfa002ab7756",
+      "command_count": 5,
+      "rollout_sha256": {
+        "home/.codex/sessions/2026/10/09/rollout-2026-10-09T10-20-24-01a11e3f-3e68-7173-b4ac-e24c4cc32096.jsonl": "15d93ade63ec58792d119b63c68f7ffd60b89c9fd1e0e8f9e5ffe018ae1c50b2"
+      },
+      "rollout_tool_call_count": 3,
+      "response_characters": 22,
+      "skill_read_evidence": true,
+      "documents_read_evidence": false,
+      "payload_in_home_sha256": {
+        "README.ko.md": "43c4bc14df50e6995796638e03a4b04d42366fc91d66463b849b96bc283dbda9",
+        "README.md": "358e4e770594085ed3b9b021a09e8e797bc0e7a3f3a2e1662b04f703787676bf",
+        "SKILL.md": "5ca54e37392de47dd15440133fe0aedcefacc018941c8420ba30173ec507d732",
+        "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+        "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+        "references/documents.md": "a89bd6d09f963bd0306e5c613c32b29c38f2e2e5c92278aa2258a25b8c396dad"
+      }
+    }
+  ],
+  "masked_judgments": [
+    {
+      "job": "judge-cache-race-reverse--judge",
+      "mapping": {
+        "A": "previous",
+        "B": "baseline",
+        "C": "candidate"
+      },
+      "scores": {
+        "previous": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "baseline": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "candidate": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        }
+      },
+      "error_counts": {
+        "previous": 0,
+        "baseline": 0,
+        "candidate": 0
+      },
+      "preferred": [
+        "previous",
+        "baseline",
+        "candidate"
+      ],
+      "raw_response_sha256": "c072b6f66008eb99a44cb5a3b4e218fb7332639b46be497831be1d28963c6448"
+    },
+    {
+      "job": "judge-async-acceptance-forward--judge",
+      "mapping": {
+        "A": "candidate",
+        "B": "previous",
+        "C": "baseline"
+      },
+      "scores": {
+        "candidate": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "previous": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "baseline": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        }
+      },
+      "error_counts": {
+        "candidate": 0,
+        "previous": 0,
+        "baseline": 0
+      },
+      "preferred": [
+        "candidate",
+        "previous",
+        "baseline"
+      ],
+      "raw_response_sha256": "91bf042eafdafe2375b13673eb3f05d517b35173cd393464e3a80b7ac465fddf"
+    },
+    {
+      "job": "judge-async-acceptance-reverse--judge",
+      "mapping": {
+        "A": "baseline",
+        "B": "previous",
+        "C": "candidate"
+      },
+      "scores": {
+        "baseline": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "previous": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "candidate": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        }
+      },
+      "error_counts": {
+        "baseline": 0,
+        "previous": 0,
+        "candidate": 0
+      },
+      "preferred": [
+        "baseline",
+        "previous",
+        "candidate"
+      ],
+      "raw_response_sha256": "c9c150406d1f52ce8e59c6808ef2a3b0fe3ab8f571514cadc994ae52ba1fff75"
+    },
+    {
+      "job": "judge-pagination-forward--judge",
+      "mapping": {
+        "A": "previous",
+        "B": "baseline",
+        "C": "candidate"
+      },
+      "scores": {
+        "previous": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "baseline": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "candidate": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        }
+      },
+      "error_counts": {
+        "previous": 0,
+        "baseline": 0,
+        "candidate": 0
+      },
+      "preferred": [
+        "previous",
+        "baseline",
+        "candidate"
+      ],
+      "raw_response_sha256": "bf45185529d787f9f850fe332bda3964927a7d2bd87557c377d18c57bccf3c0d"
+    },
+    {
+      "job": "judge-pagination-reverse--judge",
+      "mapping": {
+        "A": "candidate",
+        "B": "baseline",
+        "C": "previous"
+      },
+      "scores": {
+        "candidate": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "baseline": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "previous": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        }
+      },
+      "error_counts": {
+        "candidate": 0,
+        "baseline": 0,
+        "previous": 0
+      },
+      "preferred": [
+        "candidate",
+        "baseline",
+        "previous"
+      ],
+      "raw_response_sha256": "e3a2aa1a1fb261186c3894cf0bfce590ec99ff0c25f24ee080c246fba54ff6b2"
+    },
+    {
+      "job": "judge-migration-forward--judge",
+      "mapping": {
+        "A": "previous",
+        "B": "candidate",
+        "C": "baseline"
+      },
+      "scores": {
+        "previous": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "candidate": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "baseline": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 3,
+          "economy": 3
+        }
+      },
+      "error_counts": {
+        "previous": 0,
+        "candidate": 0,
+        "baseline": 1
+      },
+      "preferred": [
+        "previous",
+        "candidate"
+      ],
+      "raw_response_sha256": "3e6515d55c78cdadb10f8d8703b0dcb123e9779c90cdddf2fada50778318fbce"
+    },
+    {
+      "job": "judge-migration-reverse--judge",
+      "mapping": {
+        "A": "baseline",
+        "B": "candidate",
+        "C": "previous"
+      },
+      "scores": {
+        "baseline": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "candidate": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "previous": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        }
+      },
+      "error_counts": {
+        "baseline": 0,
+        "candidate": 0,
+        "previous": 0
+      },
+      "preferred": [
+        "baseline",
+        "candidate",
+        "previous"
+      ],
+      "raw_response_sha256": "44af3d5434a15153fae18e7e6ae6a8bff02b84cb13197918c14f8abc578094e1"
+    },
+    {
+      "job": "judge-measurement-forward--judge",
+      "mapping": {
+        "A": "baseline",
+        "B": "previous",
+        "C": "candidate"
+      },
+      "scores": {
+        "baseline": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "previous": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "candidate": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        }
+      },
+      "error_counts": {
+        "baseline": 0,
+        "previous": 0,
+        "candidate": 0
+      },
+      "preferred": [
+        "baseline",
+        "previous",
+        "candidate"
+      ],
+      "raw_response_sha256": "000f90585784a7fb6ed9494faa2c363b73dd28995676b433bbade6fcdbf2b4b6"
+    },
+    {
+      "job": "judge-measurement-reverse--judge",
+      "mapping": {
+        "A": "candidate",
+        "B": "previous",
+        "C": "baseline"
+      },
+      "scores": {
+        "candidate": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "previous": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "baseline": {
+          "orientation": 4,
+          "connections": 3,
+          "naturalness": 4,
+          "economy": 4
+        }
+      },
+      "error_counts": {
+        "candidate": 0,
+        "previous": 0,
+        "baseline": 0
+      },
+      "preferred": [
+        "candidate",
+        "previous"
+      ],
+      "raw_response_sha256": "4bc026c77afb115e7026af5ef50378a4c8eca7061a42d84c5b082e63c56ba3b4"
+    },
+    {
+      "job": "judge-recovery-forward--judge",
+      "mapping": {
+        "A": "previous",
+        "B": "baseline",
+        "C": "candidate"
+      },
+      "scores": {
+        "previous": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "baseline": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "candidate": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        }
+      },
+      "error_counts": {
+        "previous": 0,
+        "baseline": 0,
+        "candidate": 0
+      },
+      "preferred": [
+        "previous",
+        "baseline",
+        "candidate"
+      ],
+      "raw_response_sha256": "22f370fc09108967aa429549f19a4352d41ffe98bae3729c5bd7dc424dba333c"
+    },
+    {
+      "job": "judge-recovery-reverse--judge",
+      "mapping": {
+        "A": "candidate",
+        "B": "baseline",
+        "C": "previous"
+      },
+      "scores": {
+        "candidate": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "baseline": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "previous": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 3
+        }
+      },
+      "error_counts": {
+        "candidate": 0,
+        "baseline": 0,
+        "previous": 0
+      },
+      "preferred": [
+        "candidate",
+        "baseline",
+        "previous"
+      ],
+      "raw_response_sha256": "d9b1faf9d0ae0399d40756dc34d5b672c6337c96b9bcaf79cfc57353cbe2ccd8"
+    },
+    {
+      "job": "judge-cache-race-forward-retry--judge",
+      "mapping": {
+        "A": "candidate",
+        "B": "baseline",
+        "C": "previous"
+      },
+      "scores": {
+        "candidate": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "baseline": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        },
+        "previous": {
+          "orientation": 4,
+          "connections": 4,
+          "naturalness": 4,
+          "economy": 4
+        }
+      },
+      "error_counts": {
+        "candidate": 0,
+        "baseline": 0,
+        "previous": 0
+      },
+      "preferred": [
+        "candidate",
+        "baseline",
+        "previous"
+      ],
+      "raw_response_sha256": "abfd5f1a4a7e0518b7ec162c3af6b7f435ed8d7e23fd75aa81660b1a94b90bb7"
+    }
+  ]
+}

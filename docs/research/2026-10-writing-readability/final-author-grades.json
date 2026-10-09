@@ -1,0 +1,87 @@
+{
+  "version": "0.2.2",
+  "reviewer": "author;notindependent",
+  "pre_install_gates_pass": true,
+  "runs": [
+    {
+      "id": "json-regression--codex",
+      "response_sha256": "92386223f251ec8b102a62245a390e0f8d9a072fb5595e949c132ed08fa84943",
+      "status": "completed",
+      "meaning_pass": true,
+      "targeted_readability_pass": true,
+      "reason": "Source quantities/populations and conditions preserved; table/prose agree; percentile boundary kept separate from individual-tail claims; recovery thresholds placed at decisions."
+    },
+    {
+      "id": "measurement-replay--opus",
+      "response_sha256": "4f73c32af79ab0eef973ec80c99bb8a5646538f2e3c0cc54ec417435ec6fe647",
+      "status": "ok",
+      "meaning_pass": true,
+      "targeted_readability_pass": true,
+      "reason": "Source quantities/populations and conditions preserved; table/prose agree; percentile boundary kept separate from individual-tail claims; recovery thresholds placed at decisions."
+    },
+    {
+      "id": "replica-rejoin--codex",
+      "response_sha256": "03b1dcaad1b3ac9dc4c79e9ba31edd63f8b4691a6f993f0ac5a80b716b44e746",
+      "status": "completed",
+      "meaning_pass": true,
+      "targeted_readability_pass": true,
+      "reason": "Source quantities/populations and conditions preserved; table/prose agree; percentile boundary kept separate from individual-tail claims; recovery thresholds placed at decisions."
+    },
+    {
+      "id": "replica-rejoin--grok-medium",
+      "response_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "status": "timeout",
+      "meaning_pass": null,
+      "targeted_readability_pass": null,
+      "reason": "Timeout before final answer; missing, not semantic failure."
+    },
+    {
+      "id": "replica-rejoin--opus",
+      "response_sha256": "fae40fec4f35a687caa737cfa8ac084a151c6d9ae207bdabe092a47a8ffef256",
+      "status": "ok",
+      "meaning_pass": true,
+      "targeted_readability_pass": true,
+      "reason": "Source quantities/populations and conditions preserved; table/prose agree; percentile boundary kept separate from individual-tail claims; recovery thresholds placed at decisions."
+    },
+    {
+      "id": "replica-rejoin-retry--grok-medium",
+      "response_sha256": "5b0409da4015c79c40967020a11743c0268777c2bc3e8a0f7e77847604a21855",
+      "status": "ok",
+      "meaning_pass": true,
+      "targeted_readability_pass": true,
+      "reason": "Source quantities/populations and conditions preserved; table/prose agree; percentile boundary kept separate from individual-tail claims; recovery thresholds placed at decisions."
+    },
+    {
+      "id": "tail-metric--codex",
+      "response_sha256": "4a53912eef71fe4951263e2b2d1b69655d8d0d8e15d2d269ac889b5ea7dd80b2",
+      "status": "completed",
+      "meaning_pass": true,
+      "targeted_readability_pass": true,
+      "reason": "Source quantities/populations and conditions preserved; table/prose agree; percentile boundary kept separate from individual-tail claims; recovery thresholds placed at decisions."
+    },
+    {
+      "id": "tail-metric--grok-medium",
+      "response_sha256": "70a814cfb0cdce57fe16abcc260afd234373dbcd39a9ffdbebc180afec7789dd",
+      "status": "ok",
+      "meaning_pass": true,
+      "targeted_readability_pass": true,
+      "reason": "Source quantities/populations and conditions preserved; table/prose agree; percentile boundary kept separate from individual-tail claims; recovery thresholds placed at decisions."
+    },
+    {
+      "id": "tail-metric--opus",
+      "response_sha256": "1bdc00900ec3858b2a1413cfd95af15644e3872e02d008021024f7a8acf3f28e",
+      "status": "ok",
+      "meaning_pass": true,
+      "targeted_readability_pass": true,
+      "reason": "Source quantities/populations and conditions preserved; table/prose agree; percentile boundary kept separate from individual-tail claims; recovery thresholds placed at decisions."
+    }
+  ],
+  "qualification": "Opus and Grok add a suggestion to consult the duty lead for unspecified resume failure, while explicitly marking that response undefined. Treated as clarification advice, not a claimed approved recovery command. No generated restart/rollback procedure added. Grok remains verbose and mixes sentence endings; targeted source and navigation gates do not prove human naturalness.",
+  "claim_limit": "Regression evidence only. Do not inherit0.2.0masked scores or claim human comprehension gain.",
+  "accepted_for_personal_codex": true,
+  "installed_smoke": {
+    "meaning_pass": true,
+    "native_skill_and_reference_read": true,
+    "response_sha256": "dfedc5574c1acfef457d9389591022372a006a046881f5b5b74c9ecef60724f0"
+  }
+}

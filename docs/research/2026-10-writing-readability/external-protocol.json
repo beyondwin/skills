@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-09",
+  "authorization": "User explicitly requested Claude CLI Opus and Cursor Agent Grok testing.",
+  "max_dispatches": 40,
+  "planned": {
+    "generation": 24,
+    "cross_provider_masked_judgments": 12,
+    "scorer_controls": 2,
+    "retry_reserve": 2
+  },
+  "runner_sha256": "94aafaf05fc11e3d1a771cf4942586ba85a3b751de5981a7c7383e8acd893774",
+  "candidate_sha256": {
+    "README.ko.md": "43c4bc14df50e6995796638e03a4b04d42366fc91d66463b849b96bc283dbda9",
+    "README.md": "358e4e770594085ed3b9b021a09e8e797bc0e7a3f3a2e1662b04f703787676bf",
+    "SKILL.md": "5ca54e37392de47dd15440133fe0aedcefacc018941c8420ba30173ec507d732",
+    "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+    "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+    "references/documents.md": "a89bd6d09f963bd0306e5c613c32b29c38f2e2e5c92278aa2258a25b8c396dad"
+  },
+  "cases_sha256": "f354ac737c28f3f485d6514db163fed042e9ee08ca51037040181d63ccf9f52d",
+  "upstream_runner_sha256": {
+    "opus_runner.py": "b16d06f627fa140657c7592d8e114ef73bfe9bf9775ba2743b9f7dc1989b0211",
+    "grok_runner.py": "63fbb7e7f49828f12f5e0d1ae32a4eafac1f6da68751e16d98a63a6727db1723"
+  },
+  "method": "Same6cases baseline vs0.2.0 in each host. Skill and document reference supplied inline. No native discovery claim. Opus judges Grok pairs and Grok judges Opus pairs, masked balancedA/B, no repeated-order claim.",
+  "requested": {
+    "opus": "Claude CLI --model opus --effort high; identity from assistant message.model; report effort missing if unavailable",
+    "grok": "Cursor Agent grok-4.7-high; identity evidence from stream model fields; no unreported backend ID inference"
+  },
+  "acceptance": [
+    "All6candidate drafts per host preserve decision-critical meaning in author audit.",
+    "Each cross-provider candidate score at least3/4 on each readability dimension.",
+    "Cross-provider judge material-error flags require source adjudication, not automatic acceptance."
+  ],
+  "preference_claim": "Report observed wins/ties/losses per host without statistical or human comprehension claims. No claim based on output length.",
+  "control_expectation": {
+    "A": "Unmodified candidate",
+    "B": "Flag false claim202means export completed",
+    "C": "Economy score<3for interleaved filler and full repetition"
+  },
+  "isolation": "Claude safe mode tools disabled no native skills/memory/session persistence; Cursor freshhome/config with tools denied and copied auth deleted. Server prompts/account cache remain.",
+  "limits": [
+    "User instruction and skill/reference are supplied inline, unlike native Codex workflow.",
+    "No independent human reader.",
+    "Cross-provider judging reduces same-model bias but does not remove model taste or position sensitivity.",
+    "Same authored6cases reused; not new held-out cases."
+  ]
+}

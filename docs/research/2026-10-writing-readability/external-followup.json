@@ -1,0 +1,10 @@
+{
+  "date": "2026-10-09",
+  "reason": "Grok4.7High first requested job timed out after240s with no final answer and no tool attempt; identity confirmed. Opus12jobscompleted.",
+  "scope": "Run all12Grok generation jobs as a separately labeled Medium condition; both arms have the same model and240s timeout. No completed High outputs selected or pooled. Cross-provider judges use Medium and Opus.",
+  "ledger": "Original24entries reserved in advance;11Grok jobs never dispatched after host gate failed. Preserve initial-reservations.json and undispatched.json, release only those11reservations, retain all13actualdispatches including High timeout.",
+  "max_actual_dispatches": 40,
+  "planned_total": 39,
+  "runner_sha256": "109d5f0e76040c63eadd43dc1cc76221812dc2eaa5a0a72f550d6e2ece8ea7f1",
+  "unchanged": "Candidate, source cases, question keys, quality thresholds, tool isolation, source-blind provider pairing."
+}

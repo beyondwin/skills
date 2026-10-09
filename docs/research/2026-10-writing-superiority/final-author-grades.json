@@ -1,0 +1,30 @@
+{
+  "accepted-job-codex--candidate": {
+    "pass": true,
+    "rationale": "Opening distinguishes new and existing jobs; uses 인가, retains queued/waiting/current-state boundaries without unrelated lifecycle details."
+  },
+  "accepted-job-opus--candidate": {
+    "pass": true,
+    "rationale": "Authorization is now 인가; new/existing202 branches and no start guarantee are preserved. Extra headings remain a style limitation, not an accuracy error."
+  },
+  "accepted-job-grok--candidate": {
+    "pass": true,
+    "rationale": "Uses 인가, distinguishes new versus reused job and preserves key/payload/time boundary and current-state lookup."
+  },
+  "sample-scope-codex--candidate": {
+    "pass": true,
+    "rationale": "Explicitly says neither improvement nor absence can be concluded; preserves population, missingness, pairing and percentile limits."
+  },
+  "sample-scope-opus--candidate": {
+    "pass": true,
+    "rationale": "Explicitly preserves unknown improvement/worsening/no change, correctly interprets distribution boundaries and distinguishes old survey from current evidence."
+  },
+  "sample-scope-grok--candidate": {
+    "pass": true,
+    "rationale": "Opening now states both that improvement is unestablished and that absence is unestablished; preserves sample representativeness uncertainty and recorded-request population. Some Korean phrasing remains awkward."
+  },
+  "regression-json--candidate": {
+    "pass": true,
+    "rationale": "Exact four requested keys, measured_ms null and deployed false; no claimed measured speed gain."
+  }
+}

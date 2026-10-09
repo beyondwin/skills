@@ -1,0 +1,30 @@
+{
+  "study_id": "KCW-20261009",
+  "date": "2026-10-09",
+  "cli_versions": {
+    "codex": "0.160.1",
+    "claude": "2.1.292",
+    "cursor": "2026.10.01-e373342"
+  },
+  "retained_harness_sha256": {
+    "codex_runner.py": "2b825d01f963e915d1dcc03a7f06f15a2746ab9d93a6aa179c9e83c1966864fc",
+    "grok_runner.py": "63fbb7e7f49828f12f5e0d1ae32a4eafac1f6da68751e16d98a63a6727db1723",
+    "offline_probes.py": "91caee4412f62ccc04ffaef416446a7fad380c13acd0fd55db2b2ba975227311",
+    "opus_runner.py": "b16d06f627fa140657c7592d8e114ef73bfe9bf9775ba2743b9f7dc1989b0211",
+    "prepare.py": "f394a48899328a2a1f23199ce5fd2c1d2734da3f56e846da79553665d76e3aa8",
+    "summarize.py": "1e75a40ae6e19a87f6aea74f534bad02d2ef596828d0ab8e6199367e4c36f211",
+    "validate_study.py": "c1c01cc723ec0906d18028a2e9bfeb0cea356e4654f2709623f49c8ac5b1f815"
+  },
+  "input_delivery": "All hosts received the same prepared prompts; Cursor strips final LF only.",
+  "identity": "Model identity is runtime-reported, not only requested model aliases.",
+  "adapter_limits": "Final runner versions include authentication recovery and verification bookkeeping developed during the run; they are retained reproducers, not pre-registered execution hashes.",
+  "grading_artifact_sha256": {
+    "blind-48.json": "8d036c36c0dd5400cefc1eed989f7450efb5b2710ff10e78c5487c8a503aa158",
+    "blind-map-48.json": "6c4b46ef549c4ad60a9560e440fca4a42030cc3a8242fd985d802374e5f84497",
+    "grades-48.json": "f33a04d82219b006296cac4cd1845052a624019b411df4e54a68c88f1feffe19",
+    "final-grades-48.json": "6e042b42b4adbed03e31b6ee1d489c8be52f1bb73c15d2deec73951f681a9564",
+    "blind-23.json": "6362bde21e2c3af2a4a3b2d12ccc17ee41438daae7a891a61b80be3b7a1c78cb",
+    "blind-map-23.json": "9ce4fdcb146ee2761bd18e13cca195cd794b8cf8f8840f7962acfdca9c7ebfd8",
+    "grades-23.json": "a5b663d8d015cf5d3237653ee664824b510c762f42714c9b99876b8dee963201"
+  }
+}
