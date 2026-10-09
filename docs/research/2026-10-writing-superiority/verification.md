@@ -34,10 +34,23 @@
 No candidate installation or installed smoke: the adoption gate failed. The
 rejected 0.3.0's conditional native regressions were skipped; the corrections have
 separate actual regression runs. No full product suite or merge, supported-host
-change, Claude/Cursor native-skill discovery test, human comparison, comprehension
+change, Claude/Cursor native-skill discovery test, controlled human comparison, comprehension
 speed measurement, or population-wide superiority claim. No additional runtime
 model calls were added to the skill. No superpowers skill or subagent was used.
 
 Author semantic checks and model judgments are different evidence sources. The
 export scripts verify records and declared grades, not the truth of a prose grade.
 Repeated developmental corrections are not extra independent confirmation samples.
+
+## Subsequent reader response
+
+The user submitted B / B / A for the three pairs. The local displayed sheet and
+archived sheet both match the mapping manifest SHA-256; all six source responses
+match that manifest. Original decoding gives one 0.2.2 selection and two no-skill
+selections. A subsequent direct clarification says all pairs were hard to distinguish
+and terminology across all texts felt unnatural. The clear-preference interpretation
+is withdrawn; original labels remain intact. No agent UI clicks or inferred itemwise
+reasons are counted. This post-hoc feedback does not measure comprehension or 0.3.2.
+The author inspected all six drafts for concrete terminology examples; those examples
+are hypotheses, not terms individually identified by the user. No new model calls or
+skill changes were made in response to this clarification.

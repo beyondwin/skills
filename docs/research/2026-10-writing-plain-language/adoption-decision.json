@@ -1,0 +1,16 @@
+{
+  "version": "0.5.1",
+  "personal_native_acceptance": true,
+  "comparative_criterion_passed": false,
+  "general_superiority_established": false,
+  "human_preference_measured": false,
+  "basis": "Separately preregistered personal-use acceptance on actual native Codex; does not replace failed 0.4.x comparison results.",
+  "evidence": {
+    "native-results.json": "69a6a38fe8f8e18f273d8b51d458620df91ef7c50def9b5dc5a90e49b3097b48",
+    "native-author-review.json": "5733051194c3c6cbc0942ea308d32559fa7608d411e7df648d393ef3dbc151a7",
+    "regression-results.json": "14095c293cd0c0dc1c25049f9ba250160f635881bc6740cee8e4a4756ae5b49e",
+    "installation-status.json": "7ae5ba106c32a10501a1bc31693301671d0b1793b769abf105f65ffa716dc038",
+    "native-audit-final.json": "a6ba6e20d6f3e5af828ddc92bc9b60290f19f050900aebd99d11e7cbcb1a7cdf",
+    "study-summary.json": "7832aa26c7f7c35303cb9ea3e9134552f1a8e3da4acbac1536f6e4a5c80e89f7"
+  }
+}

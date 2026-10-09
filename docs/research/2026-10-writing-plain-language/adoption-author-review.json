@@ -1,0 +1,67 @@
+{
+  "version": "0.4.3",
+  "reviewer": "implementing assistant; subjective, not independent or human",
+  "status": "reviewed before inspecting version 0.4.3 judgments",
+  "meaning_passes": 8,
+  "readability_passes": 8,
+  "rows": [
+    {
+      "case": "lease-fencing",
+      "meaning": "pass",
+      "readability": "pass",
+      "response_sha256": "1f8fa125653e0a8aff4b749823be703f94f0d0884a3ab1b6880e51dd15fccd35",
+      "note": "Epoch/owner/time conditions, strict expiry, renewal, duplicate notifications and computation limits retained. Outbox role explained."
+    },
+    {
+      "case": "sdk-handoff",
+      "meaning": "pass",
+      "readability": "pass",
+      "response_sha256": "2caefc2100bb0f13e761f6ea9048f4371364c49186d5720c115f0cbf20f16d83",
+      "note": "Current badge is only described as disabled; planned Korean labels are confined to the next task. Preserves null/missing and local tests versus pending UI/CI. Residual coercion phrasing is awkward in historical-test detail, but central screen behavior is plain."
+    },
+    {
+      "case": "resume-export",
+      "meaning": "pass",
+      "readability": "pass",
+      "response_sha256": "081e87c97443d3bee75551188c9b70ee7bc81cd8bc0778629560a06a6fbbf090",
+      "note": "All commands, inclusive threshold and unknown behavior retained; receipt distinct from running/completion."
+    },
+    {
+      "case": "permission-cache",
+      "meaning": "pass",
+      "readability": "pass",
+      "response_sha256": "6b48352552169bbac62bbb91834e521fe104be09779b113e1900aa1a621363b5",
+      "note": "Authentication versus authorization, stored-at expiry, session boundary and expired DB failure are correct. Some repeated explanation remains but no two-case before-expiry claim."
+    },
+    {
+      "case": "replica-read",
+      "meaning": "pass",
+      "readability": "pass",
+      "response_sha256": "85683362adfc01b544c5bed54fbdf6580323ecb9bb2262767f1909b25cc05cb7",
+      "note": "Primary commit and replica lag explained; header/auth scope and unknown lag retained."
+    },
+    {
+      "case": "upload-key",
+      "meaning": "pass",
+      "readability": "pass",
+      "response_sha256": "a42e06d8fdbce98a6c8d50d10cce50461ec30aefce7674fe5ca6080cbdae7a85",
+      "note": "Digest role explained, project/key/same-content and exact expiry retained; no safe recovery invented without ID/acceptance time."
+    },
+    {
+      "case": "search-latency",
+      "meaning": "pass",
+      "readability": "pass",
+      "response_sha256": "9e1af5785798464be85bf0f0de8c6cf45c4a1f47fda61d828e3f0019be8dad41",
+      "note": "Both variants explicitly fail adoption; table populations and p95 definition correct; unknown representativeness and individual/subjective limits preserved."
+    },
+    {
+      "case": "schema-handoff",
+      "meaning": "pass",
+      "readability": "pass",
+      "response_sha256": "3b31384279cb737233c630f48d18c0fdf233701399589b9ec7d84a40be7d4803",
+      "note": "Backfill and rollback rehearsal explained with original names retained; all three read gates are scannable. English labels remain after local explanations. Stage, counters, fresh sample boundary and write-only rollback scope preserved."
+    }
+  ],
+  "limits": "Pass means usable for the requested technical reader. Not every awkward phrase is gone; residual SDK historical-test jargon and Grok English labels are explicitly retained as limitations.",
+  "decision": "Author acceptance only; frozen comparative and regression/install gates still required."
+}

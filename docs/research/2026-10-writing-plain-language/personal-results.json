@@ -1,0 +1,779 @@
+{
+  "dispatches": 16,
+  "completed": 16,
+  "reviews_received": 8,
+  "model_audit_passes": 7,
+  "model_material_error_reports": 2,
+  "model_blocking_obstacles": 0,
+  "acceptance": "Requires source adjudication, native regressions and installed smoke; not comparative superiority.",
+  "reviews": [
+    {
+      "id": "review-lease-fencing--baseline",
+      "material_errors": [],
+      "reading_obstacles": [
+        {
+          "phrase": "아웃박스(outbox) 행을 같은 트랜잭션에 기록합니다",
+          "effect": "초안은 아웃박스 행이 완료 이벤트 전달용이라는 목적만 밝힙니다. 이 행을 나중에 별도 전달 과정이 읽어 보낸다는 점은 설명하지 않습니다. 그래서 같은 이벤트가 왜 중복으로 도착할 수 있는지 독자가 추측해야 합니다. 다만 핵심 동작인 '거부 시 기록 없음·이벤트 없음'은 이해할 수 있습니다.",
+          "severity": "minor"
+        },
+        {
+          "phrase": "소비자는 `event_id`로 중복을 제거합니다",
+          "effect": "'소비자'가 완료 이벤트를 받아 처리하는 쪽이라는 설명이 없습니다. 이 독자는 누가 중복 제거를 맡는지 바로 알기 어렵습니다. 하지만 주변 문맥으로 추측할 수 있습니다.",
+          "severity": "minor"
+        },
+        {
+          "phrase": "오래된 `epoch`, 만료 경계, 유효한 완료, 갱신 실패, 아웃박스 중복 전달의 다섯 사례",
+          "effect": "'만료 경계'는 명사를 직역해 이어 붙인 표현입니다. 앞 문단에서 설명한 '현재 시각이 lease_until과 정확히 같은 경우'를 가리킨다는 연결이 드러나지 않습니다. 확인된 범위를 나열하는 문장이라 이해에 큰 지장은 없습니다.",
+          "severity": "minor"
+        }
+      ],
+      "verdict": "pass",
+      "reason": "원 요청은 기한이 지난 뒤 이전 작업자의 완료 요청을 왜 거부하는지 설명하는 것입니다. 초안의 핵심 주장은 모두 notes.md와 일치합니다. 일치하는 내용은 데이터베이스 시간 기준의 기한, 작업을 맡을 때마다 커지는 epoch, owner·epoch 일치 조건, now < lease_until 조건과 정확히 같은 시각의 거부, 갱신에 같은 조건 적용, 거부 시 결과·이벤트 없음, 중복 알림과 event_id 기반 중복 제거입니다. 펜싱이 중복 계산은 막지 못한다는 점, 결제 호출은 보호 범위 밖이며 현재 결제 연동이 없다는 점, 스테이징 구현과 다섯 사례, 프로덕션 기록 없음도 원문대로 전달합니다. 초안이 생략한 과거 프로토타입과 미구현 제안은 요청과 무관한 배경이라 생략해도 됩니다. 핵심 용어인 epoch, lease_until, owner, 펜싱은 작업자의 행동이나 비교 조건으로 그 자리에서 설명되어 있습니다. 남은 문제는 아웃박스, 소비자, 만료 경계에 대한 부가 설명이 부족한 정도의 다듬기 수준입니다."
+    },
+    {
+      "id": "review-upload-key--baseline",
+      "material_errors": [
+        {
+          "phrase": "같은 키로 다시 보내는 요청은 새 요청이 아닙니다.",
+          "source_basis": "중복 생성을 막으려면 같은 project_id와 키, 일치하는 payload digest, 첫 접수 후 10분 미만이라는 조건이 필요합니다. 다른 프로젝트에서는 중복으로 처리하지 않으며, 정확히 10분이 되면 같은 키로도 새 import가 만들어질 수 있습니다.",
+          "effect": "뒤의 표에는 조건이 있지만, 이 단정은 같은 키만 쓰면 새 작업이 생기지 않는다는 잘못된 판단을 유도합니다."
+        },
+        {
+          "phrase": "재요청에서 `202`를 받았다면 기존 import의 `import_id`를 알게 된 것입니다.",
+          "source_basis": "자료는 첫 접수 후 10분 미만에 같은 프로젝트·키·digest로 재요청했을 때 202와 기존 import_id를 반환한다고 명시합니다. 모든 재요청의 202가 기존 작업을 뜻한다고 명시하지는 않습니다.",
+          "effect": "첫 접수 여부와 시점을 모르는 독자가 202만으로 이전 작업을 다시 찾았으며 중복 생성도 없었다고 오해할 수 있습니다."
+        }
+      ],
+      "reading_obstacles": [],
+      "verdict": "needs_revision",
+      "reason": "핵심 용어와 조회 방법은 이해할 수 있게 설명되어 있습니다. 다만 같은 키와 202 응답의 의미를 설명하는 두 문장에도 중복 방지가 성립하는 조건을 명시해야 합니다."
+    },
+    {
+      "id": "review-resume-export--baseline",
+      "material_errors": [],
+      "reading_obstacles": [
+        {
+          "phrase": "snapshot 교체",
+          "effect": "'snapshot'은 `--snapshot s8`과 `snapshot_ready`에서 쓰이는 실제 운영 이름이라 유지하는 것이 맞습니다. 다만 본문에서 무엇인지 설명하지 않아 이 독자는 마지막 문장의 의미를 정확히 알기 어려울 수 있습니다. 원문에도 정의가 없고 절차 수행에 꼭 필요한 개념은 아니므로 실행을 막지는 않습니다.",
+          "severity": "minor"
+        }
+      ],
+      "verdict": "pass",
+      "reason": "초안은 원문의 내용을 빠짐없이 순서대로 담았습니다. 현재 중지 상태, 두 조건의 동시 충족, 10건 포함 경계, null·누락 시 중지 유지, resume 1회 실행, accepted=true가 처리 완료가 아니라는 점, accepted=false 시 상태를 바꾸지 않고 담당자에게 전달, running/queued/failed별 조치, queued에서 resume 재실행 금지, 상태 확인 주기 미정, 삭제·교체 없음이 모두 들어 있습니다. 덧붙인 사실이나 빠진 조건도 없습니다. 생소할 수 있는 pending_count는 '아직 저장을 마치지 못한 항목 수'로 바로 설명했고, accepted=true는 '재개 요청 접수, 처리 완료 아님'으로 풀었습니다. 명령과 응답별 조치를 표로 정리해 기본 소프트웨어 지식만 있는 독자도 다음 행동을 판단할 수 있습니다."
+    },
+    {
+      "id": "review-search-latency--baseline",
+      "material_errors": [],
+      "reading_obstacles": [
+        {
+          "phrase": "중앙값은 A 180ms, B 150ms로 B가 더 짧습니다",
+          "effect": "'중앙값'은 설명 없이 쓰였습니다. 원문의 '시간 통계는 시간이 기록된 성공 요청에만 해당한다'는 범위가 p95 설명에만 붙어 있어, 독자가 중앙값을 실패를 포함한 1,000번 전체의 값으로 오해할 수 있습니다. '시간이 기록된 성공 요청 기준 가운데 값'처럼 짧게 덧붙이면 해결됩니다.",
+          "severity": "minor"
+        },
+        {
+          "phrase": "느린 5% 요청",
+          "effect": "p95를 '95% 위치에 있는 경계'로 설명했으므로 그 경계보다 느린 요청이라는 뜻은 추론할 수 있습니다. 다만 한 번 더 연결해 주면 읽기가 쉬워집니다.",
+          "severity": "minor"
+        }
+      ],
+      "verdict": "pass",
+      "reason": "초안의 주요 주장은 모두 원문과 일치합니다. 일치하는 내용은 실행·성공 횟수, 시간이 기록된 성공 요청 수(A 950, B 970), 각 방식에서 로그가 빠진 성공 10건, 중앙값과 p95 수치, 적용 기준(성공률 98% 이상과 p95 750ms 이하를 모두 만족)입니다. 두 방식 모두 적용 조건을 만족하지 못한다는 결론과 각각의 미달 이유도 원문과 같습니다. 모르는 점도 빠짐없이 옮겼습니다. 같은 요청끼리 비교한 기록이 없다는 점, 서로 다른 시간대에 한 번씩 실행했고 서버 부하를 기록하지 않았다는 점, 설문을 하지 않았고 표본 선정 방식이 없다는 점, 비용을 측정하지 않았다는 점, p95 증가 해석의 한계가 모두 들어 있습니다. '차이를 검색 방식 때문이라고 단정할 수 없다'는 문장은 원문에 그대로 있지는 않지만, 원문이 밝힌 한계에서 나오는 신중한 해석이며 새로운 사실을 덧붙이지 않습니다. 핵심 용어인 p95는 기록된 성공 요청을 시간 순으로 놓았을 때의 경계로 그 자리에서 설명되어, 이 독자가 무엇이 나아졌고 무엇을 아직 모르는지 이해할 수 있습니다. 남은 문제는 중앙값의 범위 표시 같은 사소한 다듬기뿐입니다."
+    },
+    {
+      "id": "review-schema-handoff--baseline",
+      "material_errors": [],
+      "reading_obstacles": [
+        {
+          "phrase": "02:10 기준 백필은 대상 20,000행 중 18,000행입니다",
+          "effect": "'완료' 같은 동사가 빠져 있어 18,000행이 끝난 수인지 남은 수인지 잠깐 헷갈릴 수 있습니다. 문맥상 완료 수로 읽히고 이후 판단에는 지장이 없습니다.",
+          "severity": "minor"
+        },
+        {
+          "phrase": "dual-write는 테넌트 2%에만 켜져 있고",
+          "effect": "'테넌트'에 설명이 없습니다. dual-write도 '이 컬럼으로 새로 쓰는'으로만 풀어서 기존 경로에도 계속 쓴다는 점이 드러나지 않습니다. 다만 이 독자가 할 일(재개 판단, 플래그 유지)은 이해할 수 있습니다.",
+          "severity": "minor"
+        },
+        {
+          "phrase": "`account_locale_read_v2`는 다음 세 가지가 모두 되기 전에는 false로 둡니다",
+          "effect": "이 플래그가 읽기를 새 컬럼으로 바꾸는 스위치라는 설명이 없어 앞 문장의 '읽기 전환'과 연결하려면 추론이 필요합니다. 그래도 false로 두라는 지시는 분명합니다.",
+          "severity": "minor"
+        }
+      ],
+      "verdict": "pass",
+      "reason": "현재 단계 W2와 W3이 예정 표시라는 점, 백필 수치(20,000행 중 18,000행, 보관 계정 제외, 보관 수 미제공), 02:15 중단 사유(7/500), 02:00 샘플(1/500)을 재개 근거로 쓸 수 없다는 점이 모두 자료와 맞습니다. 커밋되지 않은 수정안, 테스트 로그 부재의 의미, 새 샘플이 아직 없다는 점, 재개 조건(2/500 이하, 초과하거나 모르면 중단 유지)과 명령도 맞습니다. 플래그의 세 조건 모두 충족, 리허설 상태 미상, 백필 완료만으로는 플래그를 켜지 않는다는 점, dual-write 끄기 명령이 행을 지우거나 되돌리지 않는다는 범위도 자료와 일치합니다. 다음 확인 순서는 아직 할 일로 쓰여 있고 이미 한 일로 서술되지 않았습니다. 백필, nullable, 롤백 리허설 같은 핵심 용어도 행위로 풀어 설명되어 있습니다. 남은 문제는 다듬기 수준이라 독자가 현재 상태와 다음 행동을 이해하는 데 막힘이 없습니다."
+    },
+    {
+      "id": "review-sdk-handoff--baseline",
+      "material_errors": [],
+      "reading_obstacles": [
+        {
+          "phrase": "CI Linux 작업",
+          "effect": "원문처럼 대기 중이고 결과가 없다는 점은 정확하지만, CI가 자동으로 검사를 실행하는 절차라는 설명이 없어 어떤 검증이 남았는지 바로 이해하기 어렵습니다. 핵심 수정 내용과 다음 작업을 이해하는 데 지장을 주지는 않습니다.",
+          "severity": "minor"
+        }
+      ],
+      "verdict": "pass",
+      "reason": "현재 SDK 수정과 미완료 UI 작업을 구분하고, 정확한 배지 문구, 키 누락 시 오류 처리, 테스트 수와 검증 범위, 다음 작업 순서를 원문대로 전달합니다. 디코더의 역할과 null의 의미도 문맥에서 설명해 핵심 동작과 다음 행동을 이해할 수 있습니다."
+    },
+    {
+      "id": "review-replica-read--baseline",
+      "material_errors": [],
+      "reading_obstacles": [
+        {
+          "phrase": "복제 지연의 최대 시간은 보장되지 않으며",
+          "effect": "'복제 지연'을 따로 정의하지 않았습니다. 다만 앞 문단에서 복제본이 변경 사항을 저장 완료와 별개로 전달받아 반영하므로 그사이에 이전 내용이 나올 수 있다고 이미 설명했습니다. 그래서 독자는 이 말을 '복제본에 반영되기까지 걸리는 시간'으로 이해할 수 있습니다.",
+          "severity": "minor"
+        }
+      ],
+      "verdict": "pass",
+      "reason": "초안의 주요 주장은 모두 자료와 일치합니다. PUT 200은 주 데이터베이스 저장 확정을 뜻하고, GET은 보통 복제본에서 읽으며, 복제는 비동기로 이루어집니다. 예전 응답만으로 유실을 판단할 수 없고, 다시 저장할 필요가 없으며, 최대 지연은 보장되지 않고 측정값도 없습니다. X-Read-Primary는 로그인한 클라이언트만 쓸 수 있고 기존 권한 확인을 거치며 익명 호출자는 쓸 수 없습니다. 주 데이터베이스 조회도 실패할 수 있고 재시도 안전성은 보장되지 않습니다. 조건과 범위도 빠짐없이 지켰습니다. '모든 조회를 주 데이터베이스로' 하자는 미구현 제안은 생략했지만, 구현된 것처럼 쓰지 않았고 행동에 필요한 조건도 아니므로 허용됩니다. '비동기'는 '저장 완료와 별개로 전달받아 반영'으로, 복제본은 '읽기용 복제본'으로 풀어 설명했습니다. 따라서 이 독자도 동작 원리와 대응 방법을 이해할 수 있습니다."
+    },
+    {
+      "id": "review-permission-cache--baseline",
+      "material_errors": [],
+      "reading_obstacles": [],
+      "verdict": "pass",
+      "reason": "초안은 저장 시점부터 30초 미만인 캐시 사용 조건, 정확히 30초부터의 DB 재조회, 세션 만료와 DB 조회 실패 시 거절 동작을 원문대로 전달합니다. 검증 범위와 운영 비율의 미측정 상태, 개선안의 미구현 상태도 보존했습니다. 인증·인가·캐시를 구체적인 동작으로 설명해 독자가 권한 회수 후 잠시 다운로드가 가능한 이유를 이해할 수 있습니다."
+    }
+  ],
+  "anomalies": [],
+  "runs": [
+    {
+      "id": "lease-fencing--candidate",
+      "host": "codex",
+      "case": "lease-fencing",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 34.891,
+      "response_sha256": "b90d45b8169d11cc56b02579f02fd0d59829867ed9910d2f92687e94781f3222",
+      "response_characters": 1166,
+      "usage": [
+        {
+          "input_tokens": 35493,
+          "cached_input_tokens": 30464,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 920,
+          "reasoning_output_tokens": 94
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "upload-key--candidate",
+      "host": "opus",
+      "case": "upload-key",
+      "arm": "candidate",
+      "kind": "transfer",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 32.531,
+      "response_sha256": "edb75fc514b73fec6cec27bfea343e4218d95cba7f646f614fb6ebc1576f1e74",
+      "response_characters": 1434,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 4399,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 3347,
+        "output_tokens_details": {
+          "thinking_tokens": 2045
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 4399,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 3347,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 4399,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 4399
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.1023964,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "resume-export--candidate",
+      "host": "codex",
+      "case": "resume-export",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 23.957,
+      "response_sha256": "594fb4bd92f833c8d35ad7f3929bf7c2ea37b3cd8d038d8b2b780e2232cb2065",
+      "response_characters": 952,
+      "usage": [
+        {
+          "input_tokens": 35381,
+          "cached_input_tokens": 20224,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 612,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "search-latency--candidate",
+      "host": "grok",
+      "case": "search-latency",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "wall_seconds": 197.581,
+      "response_sha256": "c69456ca12e665fd6e7f6bdb3992e3f72aacd8c0ef7bbb91d3826abec8f3bb11",
+      "response_characters": 655,
+      "usage": {
+        "inputTokens": 10252,
+        "outputTokens": 13161,
+        "cacheReadTokens": 5248,
+        "cacheWriteTokens": 0
+      },
+      "cost_usd_estimate": null,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "schema-handoff--candidate",
+      "host": "grok",
+      "case": "schema-handoff",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "wall_seconds": 169.951,
+      "response_sha256": "7543689b4b03eedf2e9f1718faf57c6aa8f22319cb5c44389b24a266f0c28fcd",
+      "response_characters": 1171,
+      "usage": {
+        "inputTokens": 14319,
+        "outputTokens": 11460,
+        "cacheReadTokens": 1152,
+        "cacheWriteTokens": 0
+      },
+      "cost_usd_estimate": null,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "sdk-handoff--candidate",
+      "host": "opus",
+      "case": "sdk-handoff",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 27.976,
+      "response_sha256": "ee4c4e0e109301e30bd03a557de3de66e7802425ad14d09a2e5e5fffa86cb97d",
+      "response_characters": 1457,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 4481,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 2925,
+        "output_tokens_details": {
+          "thinking_tokens": 1692
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 4481,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 2925,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 4481,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 4481
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.0946124,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "replica-read--candidate",
+      "host": "codex",
+      "case": "replica-read",
+      "arm": "candidate",
+      "kind": "transfer",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 23.719,
+      "response_sha256": "32f57a32cb061c67aebc809e7b80c4aa8ace83d011421244b41c9eb00acd7e61",
+      "response_characters": 619,
+      "usage": [
+        {
+          "input_tokens": 35251,
+          "cached_input_tokens": 30336,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 527,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "permission-cache--candidate",
+      "host": "opus",
+      "case": "permission-cache",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 22.996,
+      "response_sha256": "1ef45a5408926e7dc68749c2eff5192f6dbe2158c7d1f730759a935e3f5566c0",
+      "response_characters": 864,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 4621,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 2191,
+        "output_tokens_details": {
+          "thinking_tokens": 1324
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 4621,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 2191,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 4621,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 4621
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.0810524,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "review-lease-fencing--baseline",
+      "host": "opus",
+      "case": "review-lease-fencing",
+      "arm": "baseline",
+      "kind": "review",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 21.948,
+      "response_sha256": "70155554ef978a5c22432372e480a9407c9626b8ee10bcd4ba7ce1d3cd7b465a",
+      "response_characters": 1216,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 2889,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 2253,
+        "output_tokens_details": {
+          "thinking_tokens": 1162
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 2889,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 2253,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 2889,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 2889
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.0684364,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "review-upload-key--baseline",
+      "host": "codex",
+      "case": "review-upload-key",
+      "arm": "baseline",
+      "kind": "review",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 35.671,
+      "response_sha256": "bd5151e1cffb335755b2a81583e9df4ac763e30d81295c49bb2ab330591bc5ef",
+      "response_characters": 816,
+      "usage": [
+        {
+          "input_tokens": 22051,
+          "cached_input_tokens": 18688,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 840,
+          "reasoning_output_tokens": 401
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "review-resume-export--baseline",
+      "host": "opus",
+      "case": "review-resume-export",
+      "arm": "baseline",
+      "kind": "review",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 13.932,
+      "response_sha256": "e7fabee9f5443a7457bb13ac49ee6c31622767db95171986f24edc2edd989bd2",
+      "response_characters": 738,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 2411,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 1216,
+        "output_tokens_details": {
+          "thinking_tokens": 615
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 2411,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 1216,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 2411,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 2411
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.043872400000000006,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "review-search-latency--baseline",
+      "host": "opus",
+      "case": "review-search-latency",
+      "arm": "baseline",
+      "kind": "review",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 23.615,
+      "response_sha256": "b0e72724748523713f52735367f5082a66339a7d3b9b25221f88bb2b43e66110",
+      "response_characters": 1026,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 2435,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 2421,
+        "output_tokens_details": {
+          "thinking_tokens": 1468
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 2435,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 2421,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 2435,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 2435
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.0681644,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "review-schema-handoff--baseline",
+      "host": "opus",
+      "case": "review-schema-handoff",
+      "arm": "baseline",
+      "kind": "review",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 26.315,
+      "response_sha256": "943d4175f571d87ddde8925deb9c0103f1518df2628d8a1f6aa5d42f00fe6869",
+      "response_characters": 1099,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 2846,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 2689,
+        "output_tokens_details": {
+          "thinking_tokens": 1731
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 2846,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 2689,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 2846,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 2846
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.0768124,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "review-sdk-handoff--baseline",
+      "host": "codex",
+      "case": "review-sdk-handoff",
+      "arm": "baseline",
+      "kind": "review",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 29.475,
+      "response_sha256": "08f4141cc32ad1355d1f67f3212403a5981f68a331f633565e35d3ef3ec2112f",
+      "response_characters": 449,
+      "usage": [
+        {
+          "input_tokens": 23956,
+          "cached_input_tokens": 18688,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 633,
+          "reasoning_output_tokens": 313
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "review-replica-read--baseline",
+      "host": "opus",
+      "case": "review-replica-read",
+      "arm": "baseline",
+      "kind": "review",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 15.192,
+      "response_sha256": "11fe3b5080dc17fba3273ea71fff66ac4ec9bf2958a3eac1dfa3a6a948019570",
+      "response_characters": 743,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 2126,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 1402,
+        "output_tokens_details": {
+          "thinking_tokens": 716
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 2126,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 1402,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 2126,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 2126
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.0453124,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "review-permission-cache--baseline",
+      "host": "codex",
+      "case": "review-permission-cache",
+      "arm": "baseline",
+      "kind": "review",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 17.376,
+      "response_sha256": "1646136661c4f5635e6934f0ae71bf82506110cd60d48b9eec0774646926f41a",
+      "response_characters": 267,
+      "usage": [
+        {
+          "input_tokens": 22102,
+          "cached_input_tokens": 10368,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 348,
+          "reasoning_output_tokens": 102
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    }
+  ],
+  "protocol_sha256": "ff31980c36a825f369706b6bd9008b9ff7156530376c342b7231d3443814dc77"
+}

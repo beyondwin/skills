@@ -1,0 +1,7 @@
+{
+  "files": {
+    "revision_summary.py": "effe67842168a25641d768d70c7252cfa1aeb397fc58ffe1c404447cf4ff8c53"
+  },
+  "frozen_before_judgments": true,
+  "reuse": "Six incumbent runs count as reused evidence, not new dispatches; paired task count remains six."
+}

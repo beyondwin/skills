@@ -23,7 +23,7 @@
   "total_completed": 77,
   "installed_version": "0.2.2",
   "superiority_established": false,
-  "human_results": 0,
+  "human_results": 3,
   "reason": "Frozen preference thresholds not met, one judgment missing, source/scorer issues observed. Final correction has only targeted regression evidence. No transfer of earlier preference scores.",
   "scope": "CLI dispatches including writers, judges, controls and regressions, not78 independent writing tasks.",
   "evidence": {
@@ -32,6 +32,11 @@
     "final-results.json": "199d4dfe171f935637673ec6e1f87686e483da004ce60f4a14a30442ff2662aa",
     "author-audit.json": "14ec0532d56756d1c07a4da71bd1bfb53cdf72e5901c475e89f47b3fa4ff9d07",
     "adjudication.md": "7923187cd261c031338406ca1500277d976b403fe411dcafe3fb727253b388ac",
-    "installation-status.json": "3b7c44deb00d0970292351da8c37031c2f3c3e7e1dddbf4356dfcb59da77d3fc"
-  }
+    "installation-status.json": "3b7c44deb00d0970292351da8c37031c2f3c3e7e1dddbf4356dfcb59da77d3fc",
+    "human-preferences.json": "8281b09a15b0a1e4d46e8b0adadd2834be5291aa83a134c520dc86a307200c24"
+  },
+  "human_respondents": 1,
+  "human_results_unit": "Three submitted labels, subsequently clarified as no clear perceived difference; not three decisive preferences",
+  "human_clear_preferences": 0,
+  "human_terminology_feedback": "All presented texts used terminology the reader found unnatural."
 }

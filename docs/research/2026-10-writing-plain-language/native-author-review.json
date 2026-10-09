@@ -1,0 +1,74 @@
+{
+  "version": "0.5.1",
+  "host": "native Codex",
+  "reviewer": "implementing assistant, not independent or human",
+  "reviewed_before_external_audits": true,
+  "rows": [
+    {
+      "case": "lease-fencing",
+      "meaning": "pass",
+      "readability": "pass",
+      "response_sha256": "73cd8e735dea46d93d1fe788c3258ef1e8234bac368a408105af1a4582234b19",
+      "note": "Explicit sender and receiver replace dispatcher/consumer labels; owner, epoch, database time, exact expiry and renewal conditions preserved. Duplicate computation and notification limits retained."
+    },
+    {
+      "case": "sdk-handoff",
+      "meaning": "pass",
+      "readability": "pass",
+      "response_sha256": "8591b86287b6308fc79f1c56164a4e3cc63f2f59a8d2b7c8c0674707ae46e975",
+      "note": "Current disabled state is distinct from planned labels. Local commit, SDK test counts, missing-key error, pending UI/CI, publication scope and next command are accurate. Coercion is explained as removed value-conversion implementation."
+    },
+    {
+      "case": "schema-handoff",
+      "meaning": "pass",
+      "readability": "pass",
+      "response_sha256": "8c9b193a5918a8852daf0c83a72d83c716f2c10ebbff73f2f2cd60897baa585a",
+      "note": "Paused state and next action lead; null is exact, dual-write names both old and new fields, backfill and rollback rehearsal are explained. Fresh sample, all three read gates and rollback scope are preserved."
+    },
+    {
+      "case": "resume-export",
+      "meaning": "pass",
+      "readability": "pass",
+      "response_sha256": "3d9830f112f9a876baf30e85544e9475257f9b9bb8bdf867623f7a45abeb3f9c",
+      "note": "All exact commands and inclusive/AND gates preserved; receipt versus running separated; no invented repeat, recovery or polling period."
+    },
+    {
+      "case": "permission-cache",
+      "meaning": "pass",
+      "readability": "pass",
+      "response_sha256": "152a94b4e21a7606a7728e7d750b3f46ac86e0bbee1db5107a1418b3b66e7f77",
+      "note": "Brief causal explanation defines cache through purpose; stored-at thirty-second boundary and session/auth distinction preserved; expired lookup error never reuses old allow result."
+    },
+    {
+      "case": "search-latency",
+      "meaning": "pass",
+      "readability": "pass",
+      "response_sha256": "830dafc7e4c15fc74b2a0dfd7801aceade085ca09bc7152ee6726b15125a969c",
+      "note": "Both variants explicitly fail the gate; median and p95 explained using recorded successful-request population. Counts and computed differences are correct; no individual, causality, representativeness or subjective-speed overclaim."
+    },
+    {
+      "case": "replica-read",
+      "meaning": "pass",
+      "readability": "pass",
+      "response_sha256": "d466b8ff4bf8fbc20df9f0f14b39c0929b485ecdb43b4e568e206c80c1563298",
+      "note": "Primary versus later-updated replica explained through actions. Old read is not proof of loss; no extra save, lag bound or unsafe retry invented; exact authenticated override preserved."
+    },
+    {
+      "case": "upload-key",
+      "meaning": "pass",
+      "readability": "pass",
+      "response_sha256": "d7d3d0892b81dc61daed3feccd9323df1d43fe2f4c226d06c549cd96e2713784",
+      "note": "No unconditional same-key or202 claim. Project/key/digest and strict ten-minute conditions appear together, existing-ID statement refers to qualifying duplicate only, missing acceptance/ID remains unknown."
+    }
+  ],
+  "author_meaning_passes": 8,
+  "author_readability_passes": 8,
+  "decision": "Accepted for personal native Codex use: eight author/source reviews and external audits, three native regressions and installed smoke passed. General superiority and human outcomes remain unestablished.",
+  "external_audits": {
+    "received": 8,
+    "passes": 8,
+    "reported_material_errors": 0,
+    "blocking_reading_obstacles": 0,
+    "adjudication": "All source-critical claims independently rechecked by the implementing assistant. Minor suggestions about staging, CI and terminology are not evidence of a blocker. Do not invent tenant or comparison-target definitions that the source omits."
+  }
+}

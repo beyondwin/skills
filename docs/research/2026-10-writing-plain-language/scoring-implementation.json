@@ -1,0 +1,13 @@
+{
+  "frozen_before_judgments": true,
+  "files": {
+    "summarize.py": "7eda3a51bc4bd01c9de51d335232efe34a2269cf2dd3cfb44cfa27f83662bec2",
+    "audit_native.py": "92eb8323031361160c4e5046ca637653753ca7b807917a9fb4eb5411773de451"
+  },
+  "checks": [
+    "swapped labels decode correctly",
+    "two matching votes required",
+    "missing vote remains undecided",
+    "invalid preferred label rejected"
+  ]
+}

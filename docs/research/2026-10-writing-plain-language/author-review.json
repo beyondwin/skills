@@ -1,0 +1,49 @@
+{
+  "status": "candidate 0.4.0 rejected by author before model judgments",
+  "reviewer": "implementing assistant, not independent and not human",
+  "rows": [
+    {
+      "case": "lease-fencing",
+      "arm": "candidate",
+      "meaning": "pass",
+      "readability": "pass",
+      "note": "Outbox role locally explained; receiver replaces consumer. Technical database boundary and epoch/owner/time conditions preserved. Some mechanism detail remains dense but justified for new backend colleague."
+    },
+    {
+      "case": "sdk-handoff",
+      "arm": "candidate",
+      "meaning": "pass",
+      "readability": "pass",
+      "note": "Settings screen replaces UI consumer. Exact labels, missing field error, tests and pending UI work preserved. Optional telemetry sentence remains jargon and is unnecessary to next action."
+    },
+    {
+      "case": "resume-export",
+      "arm": "candidate",
+      "meaning": "pass",
+      "readability": "pass",
+      "note": "Pending item count explained, all commands and inclusive threshold preserved. Both arms already readable; no assumed quality gain."
+    },
+    {
+      "case": "permission-cache",
+      "arm": "candidate",
+      "meaning": "pass",
+      "readability": "needs revision",
+      "note": "Terms are explained and facts preserved, but opening, mechanism paragraph and example repeat the same cache behavior. Example adds little beyond one timing clarification. Author does not consider the length justified."
+    },
+    {
+      "case": "schema-handoff",
+      "arm": "candidate",
+      "meaning": "pass",
+      "readability": "needs revision",
+      "note": "Still relies on unexplained backfill and rollback rehearsal passed. Null and dual-write were improved but terminology goal not met."
+    },
+    {
+      "case": "search-latency",
+      "arm": "candidate",
+      "meaning": "pass",
+      "readability": "needs revision",
+      "note": "Defines p95 using 95th-percentile boundary, which repeats a technical name rather than explaining it. Correct populations and uncertainty preserved."
+    }
+  ],
+  "decision": "Do not install. Skip the planned 12 judgments and downstream 4 calls because author acceptance already fails. This is a documented cost-saving deviation, not a preference result or favorable early stop."
+}

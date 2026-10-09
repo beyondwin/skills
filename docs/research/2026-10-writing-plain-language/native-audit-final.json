@@ -1,0 +1,151 @@
+{
+  "runs": [
+    {
+      "id": "installed-smoke--installed",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 1,
+      "stdout_command_count": 2,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "lease-fencing--candidate",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "permission-cache--candidate",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "regression-commit--candidate",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/change-messages.md": true
+      },
+      "recorded_tool_calls": 3,
+      "stdout_command_count": 5,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "regression-json--candidate",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "regression-submodule--candidate",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/change-messages.md": true
+      },
+      "recorded_tool_calls": 3,
+      "stdout_command_count": 7,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "replica-read--candidate",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "resume-export--candidate",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "schema-handoff--candidate",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "sdk-handoff--candidate",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "search-latency--candidate",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "upload-key--candidate",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    }
+  ],
+  "all_workspaces_unchanged": true,
+  "all_required_reads_observed": true,
+  "all_auth_removed": true
+}

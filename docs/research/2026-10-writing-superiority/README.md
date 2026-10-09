@@ -2,7 +2,10 @@
 
 [한국어](README.ko.md) · [Previous study](../2026-10-writing-readability/README.md)
 
-**Superiority was not established. The personal installation remains 0.2.2.**
+**Superiority was not established. The personal installation remained 0.2.2 when this study ended.**
+A [later personal-language revision](../2026-10-writing-plain-language/README.md)
+installed0.5.1 under separately declared personal-use criteria; it does not turn
+this comparison into a passed superiority test.
 The 0.3.0 candidate received more favorable comparisons than unfavorable ones, but
 failed both prespecified comparison thresholds. One of 24 planned judgments timed
 out. This is insufficient evidence of superiority, not evidence that the skill has
@@ -109,7 +112,24 @@ ledgers. Across all three rounds, 78 jobs produced 77 completed responses;
 A private three-pair reading sheet compares the **installed 0.2.2 with no skill**.
 It is for personal preference elicitation, selected after seeing results, with a
 simplified common Markdown rendering and links removed. It is not a blinded human
-benchmark. No human answers have been received; UI test clicks are not preferences.
+benchmark. The user initially submitted **1: B, 2: B, 3: A**, which decoded to
+one 0.2.2 selection and two no-skill selections. The same reader then clarified that
+all pairs were hard to distinguish and all texts used terminology that did not feel
+like terms people use. **The one-versus-two clear-preference interpretation is
+withdrawn.** [Human preferences](human-preferences.json) retains the original labels,
+artifact hashes and subsequent clarification. No formal itemwise tie ratings were
+collected, and UI test clicks remain excluded.
+
+The actionable observation is a lack of perceptible improvement and dissatisfaction
+with terminology in both arms. The reader did not identify individual words. Author
+inspection found candidates such as `UI 소비 코드`, `nullable이다`, and unexplained
+`dual-write`, `outbox`, `dispatcher`, and `consumer`; these are author hypotheses,
+not reader-attributed selections. A next revision should test familiar explanations
+of the concepts while retaining identifiers and technical meaning, rather than assume
+that translating every term or adding more rules establishes naturalness. Model
+fidelity scores and reader-perceived naturalness require separate evidence. This is
+one reader, three post-hoc pairs, no order reversal, no comprehension or timing test,
+and no evaluation of 0.3.2. Installation remains unchanged.
 The standalone file is in `/Users/kws/Downloads/ko_writing_reading_check_20261009/`.
 
 ## Reproduction

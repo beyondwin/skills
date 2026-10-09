@@ -1,0 +1,66 @@
+{
+  "version": "0.4.2",
+  "status": "complete; author read-through before inspecting judgments",
+  "reviewer": "implementing assistant, subjective, not independent and not human",
+  "rows": [
+    {
+      "case": "lease-fencing",
+      "meaning": "pass",
+      "readability": "pass",
+      "note": "Owner/epoch/time AND conditions and exact expiry boundary preserved. Outbox purpose explained; receiver role replaces consumer; duplicate computation and external side effects remain outside the DB guarantee."
+    },
+    {
+      "case": "sdk-handoff",
+      "meaning": "pass",
+      "readability": "pass",
+      "note": "Screen behavior, exact three labels and missing-key error preserved. Telemetry idea becomes recording an event when the value is unknown. Old test counts are not reused for current validation."
+    },
+    {
+      "case": "resume-export",
+      "meaning": "pass",
+      "readability": "pass",
+      "note": "Commands, AND precondition and inclusive threshold preserved. Accepted, queued and running distinguished; no invented retry or polling interval."
+    },
+    {
+      "case": "permission-cache",
+      "meaning": "pass",
+      "readability": "pass",
+      "note": "Authentication and authorization remain distinct. Stored-at time and expiry boundary are correct. Unlike 0.4.1, the text no longer says BOTH rejection cases occur before expiry: one session case is followed by an explicitly after-expiry DB failure. Separating these sentences into paragraphs would still help."
+    },
+    {
+      "case": "replica-read",
+      "meaning": "pass",
+      "readability": "pass",
+      "note": "Primary commit and later replica read explained. No promise of bounded lag; no redundant save instruction; exact authenticated header with normal authorization preserved."
+    },
+    {
+      "case": "upload-key",
+      "meaning": "pass",
+      "readability": "pass",
+      "note": "Digest is explained as the value used to compare content; project/key boundary, exact ten-minute expiry and unknown acceptance preserved. Existing ID is not completion; no safe-retry guarantee invented."
+    },
+    {
+      "case": "search-latency",
+      "meaning": "pass",
+      "readability": "pass",
+      "note": "p95 explained by ordered durations. Counts, success-only timed populations, both promotion conditions and unknown representativeness preserved. Table is easier to compare than the earlier numeric paragraph."
+    },
+    {
+      "case": "schema-handoff",
+      "meaning": "pass",
+      "readability": "pass",
+      "note": "Backfill and rollback rehearsal are explained through the actual work. Nullable is still reused after its Korean explanation and the three read-switch conditions are dense; residual polish is weaker than the other writers. The intended night-shift developer can identify the work, gates and exact commands without needing the removed backfill/rollback labels. All gates, old versus fresh sample and rollback scope preserved."
+    }
+  ],
+  "limits": "Some optional detail and minor repetition remain; pass means usable for the requested technical reader, not perfect prose or verified human preference.",
+  "meaning_passes": 8,
+  "readability_passes": 8,
+  "decision": "Author considers this a usable personal revision, with residual Grok phrasing explicitly retained as a limitation. Adoption still needs frozen paired comparison, regressions and installed smoke.",
+  "post_judgment_correction": {
+    "case": "sdk-handoff",
+    "meaning": "fail",
+    "finding": "Planned Korean badge text was presented as already displayed. Cross-provider judgment exposed an author miss.",
+    "decision": "Reject 0.4.2; do not install or inherit its preferences for a repaired candidate."
+  },
+  "final_meaning_passes": 7
+}

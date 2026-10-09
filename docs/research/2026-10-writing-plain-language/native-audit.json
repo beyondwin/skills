@@ -1,0 +1,55 @@
+{
+  "runs": [
+    {
+      "id": "lease-fencing--candidate",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "lease-fencing--previous",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "resume-export--candidate",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    },
+    {
+      "id": "resume-export--previous",
+      "workspace_unchanged": true,
+      "native_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "recorded_tool_calls": 2,
+      "stdout_command_count": 3,
+      "auth_removed": true,
+      "superpowers_present": false
+    }
+  ],
+  "all_workspaces_unchanged": true,
+  "all_required_reads_observed": true,
+  "all_auth_removed": true
+}

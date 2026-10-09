@@ -1,0 +1,1250 @@
+{
+  "dispatches": 20,
+  "reused_generations": 6,
+  "completed": 20,
+  "complete_primary_batch": true,
+  "comparisons": {
+    "undecided": 4,
+    "win": 2
+  },
+  "preference_gate": false,
+  "adoption": "requires author review, regression and installed smoke; not statistical superiority",
+  "per_case": [
+    {
+      "case": "lease-fencing",
+      "host": "codex",
+      "votes": [
+        0,
+        0
+      ],
+      "outcome": "undecided"
+    },
+    {
+      "case": "sdk-handoff",
+      "host": "opus",
+      "votes": [
+        1,
+        1
+      ],
+      "outcome": "win"
+    },
+    {
+      "case": "schema-handoff",
+      "host": "grok",
+      "votes": [
+        0,
+        1
+      ],
+      "outcome": "undecided"
+    },
+    {
+      "case": "resume-export",
+      "host": "codex",
+      "votes": [
+        0,
+        1
+      ],
+      "outcome": "undecided"
+    },
+    {
+      "case": "permission-cache",
+      "host": "opus",
+      "votes": [
+        0,
+        0
+      ],
+      "outcome": "undecided"
+    },
+    {
+      "case": "search-latency",
+      "host": "grok",
+      "votes": [
+        1,
+        1
+      ],
+      "outcome": "win"
+    }
+  ],
+  "review_counts": [
+    {
+      "id": "judge-resume-export-1",
+      "errors": {
+        "previous": 0,
+        "candidate": 0
+      },
+      "obstacles": {
+        "previous": 1,
+        "candidate": 0
+      }
+    },
+    {
+      "id": "judge-sdk-handoff-1",
+      "errors": {
+        "previous": 1,
+        "candidate": 0
+      },
+      "obstacles": {
+        "previous": 0,
+        "candidate": 0
+      }
+    },
+    {
+      "id": "judge-lease-fencing-0",
+      "errors": {
+        "previous": 0,
+        "candidate": 0
+      },
+      "obstacles": {
+        "previous": 2,
+        "candidate": 2
+      }
+    },
+    {
+      "id": "judge-lease-fencing-1",
+      "errors": {
+        "candidate": 0,
+        "previous": 0
+      },
+      "obstacles": {
+        "candidate": 1,
+        "previous": 2
+      }
+    },
+    {
+      "id": "judge-permission-cache-0",
+      "errors": {
+        "previous": 0,
+        "candidate": 0
+      },
+      "obstacles": {
+        "previous": 0,
+        "candidate": 0
+      }
+    },
+    {
+      "id": "judge-resume-export-0",
+      "errors": {
+        "candidate": 0,
+        "previous": 0
+      },
+      "obstacles": {
+        "candidate": 0,
+        "previous": 0
+      }
+    },
+    {
+      "id": "judge-permission-cache-1",
+      "errors": {
+        "candidate": 0,
+        "previous": 0
+      },
+      "obstacles": {
+        "candidate": 0,
+        "previous": 0
+      }
+    },
+    {
+      "id": "judge-schema-handoff-1",
+      "errors": {
+        "candidate": 0,
+        "previous": 0
+      },
+      "obstacles": {
+        "candidate": 2,
+        "previous": 4
+      }
+    },
+    {
+      "id": "judge-search-latency-0",
+      "errors": {
+        "candidate": 0,
+        "previous": 0
+      },
+      "obstacles": {
+        "candidate": 1,
+        "previous": 3
+      }
+    },
+    {
+      "id": "judge-search-latency-1",
+      "errors": {
+        "previous": 0,
+        "candidate": 0
+      },
+      "obstacles": {
+        "previous": 3,
+        "candidate": 2
+      }
+    },
+    {
+      "id": "judge-sdk-handoff-0",
+      "errors": {
+        "candidate": 1,
+        "previous": 1
+      },
+      "obstacles": {
+        "candidate": 1,
+        "previous": 0
+      }
+    },
+    {
+      "id": "judge-schema-handoff-0",
+      "errors": {
+        "previous": 0,
+        "candidate": 0
+      },
+      "obstacles": {
+        "previous": 3,
+        "candidate": 3
+      }
+    }
+  ],
+  "secondary": {
+    "codex-previous": {
+      "completed": 2,
+      "total_characters": 2223,
+      "median_seconds": 27.636
+    },
+    "codex-candidate": {
+      "completed": 2,
+      "total_characters": 2158,
+      "median_seconds": 31.368499999999997
+    },
+    "opus-previous": {
+      "completed": 2,
+      "total_characters": 2587,
+      "median_seconds": 23.896
+    },
+    "opus-candidate": {
+      "completed": 2,
+      "total_characters": 2324,
+      "median_seconds": 26.088
+    },
+    "grok-previous": {
+      "completed": 2,
+      "total_characters": 1964,
+      "median_seconds": 103.394
+    },
+    "grok-candidate": {
+      "completed": 2,
+      "total_characters": 1921,
+      "median_seconds": 147.589
+    }
+  },
+  "anomalies": [],
+  "runs": [
+    {
+      "id": "lease-fencing--candidate",
+      "host": "codex",
+      "case": "lease-fencing",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 38.842,
+      "response_sha256": "1f8fa125653e0a8aff4b749823be703f94f0d0884a3ab1b6880e51dd15fccd35",
+      "response_characters": 1255,
+      "usage": [
+        {
+          "input_tokens": 35008,
+          "cached_input_tokens": 18432,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 965,
+          "reasoning_output_tokens": 111
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "upload-key--candidate",
+      "host": "opus",
+      "case": "upload-key",
+      "arm": "candidate",
+      "kind": "transfer",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 39.406,
+      "response_sha256": "a42e06d8fdbce98a6c8d50d10cce50461ec30aefce7674fe5ca6080cbdae7a85",
+      "response_characters": 1337,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 3771,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 4053,
+        "output_tokens_details": {
+          "thinking_tokens": 2869
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 3771,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 4053,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 3771,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 3771
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.1114924,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "resume-export--candidate",
+      "host": "codex",
+      "case": "resume-export",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 23.895,
+      "response_sha256": "081e87c97443d3bee75551188c9b70ee7bc81cd8bc0778629560a06a6fbbf090",
+      "response_characters": 903,
+      "usage": [
+        {
+          "input_tokens": 34887,
+          "cached_input_tokens": 30208,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 589,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "search-latency--candidate",
+      "host": "grok",
+      "case": "search-latency",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "wall_seconds": 160.717,
+      "response_sha256": "9e1af5785798464be85bf0f0de8c6cf45c4a1f47fda61d828e3f0019be8dad41",
+      "response_characters": 706,
+      "usage": {
+        "inputTokens": 9212,
+        "outputTokens": 10079,
+        "cacheReadTokens": 5888,
+        "cacheWriteTokens": 0
+      },
+      "cost_usd_estimate": null,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "schema-handoff--candidate",
+      "host": "grok",
+      "case": "schema-handoff",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "wall_seconds": 134.461,
+      "response_sha256": "3b31384279cb737233c630f48d18c0fdf233701399589b9ec7d84a40be7d4803",
+      "response_characters": 1215,
+      "usage": {
+        "inputTokens": 9183,
+        "outputTokens": 9551,
+        "cacheReadTokens": 5888,
+        "cacheWriteTokens": 0
+      },
+      "cost_usd_estimate": null,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "sdk-handoff--candidate",
+      "host": "opus",
+      "case": "sdk-handoff",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 30.945,
+      "response_sha256": "2caefc2100bb0f13e761f6ea9048f4371364c49186d5720c115f0cbf20f16d83",
+      "response_characters": 1426,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 3853,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 3305,
+        "output_tokens_details": {
+          "thinking_tokens": 2132
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 3853,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 3305,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 3853,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 3853
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.09718840000000001,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "replica-read--candidate",
+      "host": "codex",
+      "case": "replica-read",
+      "arm": "candidate",
+      "kind": "transfer",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 25.365,
+      "response_sha256": "85683362adfc01b544c5bed54fbdf6580323ecb9bb2262767f1909b25cc05cb7",
+      "response_characters": 632,
+      "usage": [
+        {
+          "input_tokens": 34786,
+          "cached_input_tokens": 30208,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 534,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "permission-cache--candidate",
+      "host": "opus",
+      "case": "permission-cache",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 21.231,
+      "response_sha256": "6b48352552169bbac62bbb91834e521fe104be09779b113e1900aa1a621363b5",
+      "response_characters": 898,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 3993,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 2261,
+        "output_tokens_details": {
+          "thinking_tokens": 1357
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 3993,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 2261,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 3993,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 3993
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.0774284,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "judge-resume-export-1",
+      "host": "grok",
+      "case": "resume-export",
+      "arm": "masked",
+      "kind": "judge",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "wall_seconds": 294.919,
+      "response_sha256": "89a5e05ff6a813e4a5ee972da852c42e61b4107ce61dc8446c873a11ccc3fa72",
+      "response_characters": 529,
+      "usage": {
+        "inputTokens": 8551,
+        "outputTokens": 11529,
+        "cacheReadTokens": 5888,
+        "cacheWriteTokens": 0
+      },
+      "cost_usd_estimate": null,
+      "workspace_unchanged": null,
+      "mapping": {
+        "A": "previous",
+        "B": "candidate"
+      }
+    },
+    {
+      "id": "judge-sdk-handoff-1",
+      "host": "grok",
+      "case": "sdk-handoff",
+      "arm": "masked",
+      "kind": "judge",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "wall_seconds": 168.706,
+      "response_sha256": "3d700c92857b6c65581ed4a49532d6ed534f9ec62d5558dbe626cf3ab966d6eb",
+      "response_characters": 977,
+      "usage": {
+        "inputTokens": 9212,
+        "outputTokens": 10492,
+        "cacheReadTokens": 5888,
+        "cacheWriteTokens": 0
+      },
+      "cost_usd_estimate": null,
+      "workspace_unchanged": null,
+      "mapping": {
+        "A": "previous",
+        "B": "candidate"
+      }
+    },
+    {
+      "id": "judge-lease-fencing-0",
+      "host": "opus",
+      "case": "lease-fencing",
+      "arm": "masked",
+      "kind": "judge",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 25.028,
+      "response_sha256": "c2d39f34b691b6e2b336312eafc22ac78b03f528726e0bc2ef1252bf90e30df7",
+      "response_characters": 2826,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 4082,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 2377,
+        "output_tokens_details": {
+          "thinking_tokens": 1352
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 4082,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 2377,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 4082,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 4082
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.0804604,
+      "workspace_unchanged": null,
+      "mapping": {
+        "A": "previous",
+        "B": "candidate"
+      }
+    },
+    {
+      "id": "judge-lease-fencing-1",
+      "host": "opus",
+      "case": "lease-fencing",
+      "arm": "masked",
+      "kind": "judge",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 17.497,
+      "response_sha256": "2984d232aa2518a082d25f719d751484c86a788a33eff392386d42cf959c6ea4",
+      "response_characters": 2074,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 4082,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 1646,
+        "output_tokens_details": {
+          "thinking_tokens": 896
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 4082,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 1646,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 4082,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 4082
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.0658404,
+      "workspace_unchanged": null,
+      "mapping": {
+        "A": "candidate",
+        "B": "previous"
+      }
+    },
+    {
+      "id": "judge-permission-cache-0",
+      "host": "grok",
+      "case": "permission-cache",
+      "arm": "masked",
+      "kind": "judge",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "wall_seconds": 169.775,
+      "response_sha256": "445eca1df3176658a0116e2c7c23e453906e700caf7cfa554ee138a7b6965b15",
+      "response_characters": 888,
+      "usage": {
+        "inputTokens": 13857,
+        "outputTokens": 10190,
+        "cacheReadTokens": 1152,
+        "cacheWriteTokens": 0
+      },
+      "cost_usd_estimate": null,
+      "workspace_unchanged": null,
+      "mapping": {
+        "A": "previous",
+        "B": "candidate"
+      }
+    },
+    {
+      "id": "judge-resume-export-0",
+      "host": "grok",
+      "case": "resume-export",
+      "arm": "masked",
+      "kind": "judge",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "wall_seconds": 194.681,
+      "response_sha256": "be2ee7df56a59dd1c1f3cc6b4f0e7553479af927afd0801f1053187252b453fd",
+      "response_characters": 793,
+      "usage": {
+        "inputTokens": 8551,
+        "outputTokens": 10005,
+        "cacheReadTokens": 5888,
+        "cacheWriteTokens": 0
+      },
+      "cost_usd_estimate": null,
+      "workspace_unchanged": null,
+      "mapping": {
+        "A": "candidate",
+        "B": "previous"
+      }
+    },
+    {
+      "id": "judge-permission-cache-1",
+      "host": "grok",
+      "case": "permission-cache",
+      "arm": "masked",
+      "kind": "judge",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "wall_seconds": 169.928,
+      "response_sha256": "58bf0d48a5e6a9cea1c4785ceccfb6f9ed770c2332605fb148bb88198b969563",
+      "response_characters": 985,
+      "usage": {
+        "inputTokens": 9761,
+        "outputTokens": 10583,
+        "cacheReadTokens": 5248,
+        "cacheWriteTokens": 0
+      },
+      "cost_usd_estimate": null,
+      "workspace_unchanged": null,
+      "mapping": {
+        "A": "candidate",
+        "B": "previous"
+      }
+    },
+    {
+      "id": "judge-schema-handoff-1",
+      "host": "opus",
+      "case": "schema-handoff",
+      "arm": "masked",
+      "kind": "judge",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 31.607,
+      "response_sha256": "d55f2641f2906903305fc6309c65ffa7c6357025114516e62efb70665c54ea44",
+      "response_characters": 3007,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 3800,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 3035,
+        "output_tokens_details": {
+          "thinking_tokens": 1793
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 3800,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 3035,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 3800,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 3800
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.0913644,
+      "workspace_unchanged": null,
+      "mapping": {
+        "A": "candidate",
+        "B": "previous"
+      }
+    },
+    {
+      "id": "judge-search-latency-0",
+      "host": "opus",
+      "case": "search-latency",
+      "arm": "masked",
+      "kind": "judge",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 32.174,
+      "response_sha256": "1d0a504160d1fb0047bac80eecd804914a9bfa3b273f60887adc34585394db95",
+      "response_characters": 1425,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 2969,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 3234,
+        "output_tokens_details": {
+          "thinking_tokens": 1913
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 2969,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 3234,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 2969,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 2969
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.0886964,
+      "workspace_unchanged": null,
+      "mapping": {
+        "A": "candidate",
+        "B": "previous"
+      }
+    },
+    {
+      "id": "judge-search-latency-1",
+      "host": "opus",
+      "case": "search-latency",
+      "arm": "masked",
+      "kind": "judge",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 27.894,
+      "response_sha256": "5521b76559c4cbbea4281d94c2f198c52f0d3ee13e7c6488aad6b4e128ceb0bc",
+      "response_characters": 2778,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 2969,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 2591,
+        "output_tokens_details": {
+          "thinking_tokens": 1498
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 2969,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 2591,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 2969,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 2969
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.0758364,
+      "workspace_unchanged": null,
+      "mapping": {
+        "A": "previous",
+        "B": "candidate"
+      }
+    },
+    {
+      "id": "judge-sdk-handoff-0",
+      "host": "grok",
+      "case": "sdk-handoff",
+      "arm": "masked",
+      "kind": "judge",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "wall_seconds": 216.251,
+      "response_sha256": "b88f4d5579a1b9e2b28b42092a67773f4650bf6c5b249d3d822b322d8321cf03",
+      "response_characters": 990,
+      "usage": {
+        "inputTokens": 13948,
+        "outputTokens": 11070,
+        "cacheReadTokens": 1152,
+        "cacheWriteTokens": 0
+      },
+      "cost_usd_estimate": null,
+      "workspace_unchanged": null,
+      "mapping": {
+        "A": "candidate",
+        "B": "previous"
+      }
+    },
+    {
+      "id": "judge-schema-handoff-0",
+      "host": "opus",
+      "case": "schema-handoff",
+      "arm": "masked",
+      "kind": "judge",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 32.228,
+      "response_sha256": "0ea748731a8d490055f1e194ae8e55a2d808fe7094f8462f0675b59b0c8a529d",
+      "response_characters": 3297,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 3800,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 3035,
+        "output_tokens_details": {
+          "thinking_tokens": 1790
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 3800,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 3035,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 3800,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 3800
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.0913644,
+      "workspace_unchanged": null,
+      "mapping": {
+        "A": "previous",
+        "B": "candidate"
+      }
+    },
+    {
+      "id": "lease-fencing--previous",
+      "host": "codex",
+      "case": "lease-fencing",
+      "arm": "previous",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 34.388,
+      "response_sha256": "faea72283c16eaa71b70cf3c250e66f6c135fb066b359ec107e007e0e5a65d18",
+      "response_characters": 1330,
+      "usage": [
+        {
+          "input_tokens": 34718,
+          "cached_input_tokens": 21760,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 964,
+          "reasoning_output_tokens": 78
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "sdk-handoff--previous",
+      "host": "opus",
+      "case": "sdk-handoff",
+      "arm": "previous",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 22.247,
+      "response_sha256": "2c742b48b0bb0e5c53278356d05e1e64491b143277e5ac8c0cb255ccaf25b0ae",
+      "response_characters": 1463,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 3783,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 2259,
+        "output_tokens_details": {
+          "thinking_tokens": 1068
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 3783,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 2259,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 3783,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 3783
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.07570840000000001,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "schema-handoff--previous",
+      "host": "grok",
+      "case": "schema-handoff",
+      "arm": "previous",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "wall_seconds": 117.042,
+      "response_sha256": "5e8fb5ec702b141570c76f861045bea00e8bf7317e6542f6bf911fdf395054d0",
+      "response_characters": 1273,
+      "usage": {
+        "inputTokens": 9083,
+        "outputTokens": 7185,
+        "cacheReadTokens": 5888,
+        "cacheWriteTokens": 0
+      },
+      "cost_usd_estimate": null,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "resume-export--previous",
+      "host": "codex",
+      "case": "resume-export",
+      "arm": "previous",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 20.884,
+      "response_sha256": "136de8b67ee30aa7994abe526075f136ef51ed4006fd82539bc0ab8c69b591f6",
+      "response_characters": 893,
+      "usage": [
+        {
+          "input_tokens": 34597,
+          "cached_input_tokens": 30080,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 582,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "permission-cache--previous",
+      "host": "opus",
+      "case": "permission-cache",
+      "arm": "previous",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 25.545,
+      "response_sha256": "0a94cbfd93a3abfaa17be81254e07673ab1cf2d1aaa97267364fe7a62a8019e4",
+      "response_characters": 1124,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 4670,
+        "cache_read_input_tokens": 535,
+        "output_tokens": 2680,
+        "output_tokens_details": {
+          "thinking_tokens": 1563
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 4670,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 2680,
+            "cache_read_input_tokens": 535,
+            "cache_creation_input_tokens": 4670,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 4670
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.091075,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "search-latency--previous",
+      "host": "grok",
+      "case": "search-latency",
+      "arm": "previous",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "wall_seconds": 89.746,
+      "response_sha256": "1a3e85cd680fe7b5e4740d09a39856ca5e2b6a356e18a24fd5eff3ae8a6eb9e5",
+      "response_characters": 691,
+      "usage": {
+        "inputTokens": 9752,
+        "outputTokens": 4985,
+        "cacheReadTokens": 5248,
+        "cacheWriteTokens": 0
+      },
+      "cost_usd_estimate": null,
+      "workspace_unchanged": null,
+      "mapping": null
+    }
+  ],
+  "protocol_sha256": "71e2a3ddfa7473fbc36e33fd4999367a1388c54b42598bf0a9516cd0763390af"
+}

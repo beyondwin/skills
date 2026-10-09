@@ -1,0 +1,612 @@
+{
+  "dispatches": 8,
+  "reused_generations": 6,
+  "completed": 8,
+  "complete_primary_batch": false,
+  "comparisons": {
+    "undecided": 6
+  },
+  "preference_gate": false,
+  "adoption": "requires author review, regression and installed smoke; not statistical superiority",
+  "per_case": [
+    {
+      "case": "lease-fencing",
+      "host": "codex",
+      "votes": [
+        null,
+        null
+      ],
+      "outcome": "undecided"
+    },
+    {
+      "case": "sdk-handoff",
+      "host": "opus",
+      "votes": [
+        null,
+        null
+      ],
+      "outcome": "undecided"
+    },
+    {
+      "case": "schema-handoff",
+      "host": "grok",
+      "votes": [
+        null,
+        null
+      ],
+      "outcome": "undecided"
+    },
+    {
+      "case": "resume-export",
+      "host": "codex",
+      "votes": [
+        null,
+        null
+      ],
+      "outcome": "undecided"
+    },
+    {
+      "case": "permission-cache",
+      "host": "opus",
+      "votes": [
+        null,
+        null
+      ],
+      "outcome": "undecided"
+    },
+    {
+      "case": "search-latency",
+      "host": "grok",
+      "votes": [
+        null,
+        null
+      ],
+      "outcome": "undecided"
+    }
+  ],
+  "review_counts": [],
+  "secondary": {
+    "codex-previous": {
+      "completed": 2,
+      "total_characters": 2223,
+      "median_seconds": 27.636
+    },
+    "codex-candidate": {
+      "completed": 2,
+      "total_characters": 2188,
+      "median_seconds": 30.58
+    },
+    "opus-previous": {
+      "completed": 2,
+      "total_characters": 2587,
+      "median_seconds": 23.896
+    },
+    "opus-candidate": {
+      "completed": 2,
+      "total_characters": 2621,
+      "median_seconds": 26.967
+    },
+    "grok-previous": {
+      "completed": 2,
+      "total_characters": 1964,
+      "median_seconds": 103.394
+    },
+    "grok-candidate": {
+      "completed": 2,
+      "total_characters": 2020,
+      "median_seconds": 112.479
+    }
+  },
+  "anomalies": [],
+  "runs": [
+    {
+      "id": "lease-fencing--candidate",
+      "host": "codex",
+      "case": "lease-fencing",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 37.399,
+      "response_sha256": "e6e447f7ab393756245b99a713b4874e7d0633360f2170becfaaa23f1e9cebaf",
+      "response_characters": 1327,
+      "usage": [
+        {
+          "input_tokens": 35375,
+          "cached_input_tokens": 30464,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 994,
+          "reasoning_output_tokens": 94
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "upload-key--candidate",
+      "host": "opus",
+      "case": "upload-key",
+      "arm": "candidate",
+      "kind": "transfer",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 46.975,
+      "response_sha256": "47c4fdfdfe9e2618ae628b6236546efcb9fe9633a7fb63b05178aeb057dae18c",
+      "response_characters": 1467,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 4010,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 4567,
+        "output_tokens_details": {
+          "thinking_tokens": 3235
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 4010,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 4567,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 4010,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 4010
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.1236844,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "resume-export--candidate",
+      "host": "codex",
+      "case": "resume-export",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 23.761,
+      "response_sha256": "0d177c76f2d517c5b0c51a89501c6f7f789f9baec00faa7e31dc0c220177e4f1",
+      "response_characters": 861,
+      "usage": [
+        {
+          "input_tokens": 35237,
+          "cached_input_tokens": 30464,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 566,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "search-latency--candidate",
+      "host": "grok",
+      "case": "search-latency",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "wall_seconds": 110.062,
+      "response_sha256": "c65021dbb659a6625fc71e752d8510e3c214806f51567d808c71f6dd0b9052fe",
+      "response_characters": 813,
+      "usage": {
+        "inputTokens": 9398,
+        "outputTokens": 7412,
+        "cacheReadTokens": 5888,
+        "cacheWriteTokens": 0
+      },
+      "cost_usd_estimate": null,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "schema-handoff--candidate",
+      "host": "grok",
+      "case": "schema-handoff",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "wall_seconds": 114.896,
+      "response_sha256": "9df497be3f4e35e3ff0a0525b17dc47390d5e5e7261501f0512b3dac7ba0ae56",
+      "response_characters": 1207,
+      "usage": {
+        "inputTokens": 9369,
+        "outputTokens": 7884,
+        "cacheReadTokens": 5888,
+        "cacheWriteTokens": 0
+      },
+      "cost_usd_estimate": null,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "sdk-handoff--candidate",
+      "host": "opus",
+      "case": "sdk-handoff",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 25.206,
+      "response_sha256": "ffe69506230cb7fc179b00c24b056c8531bf844f24fc21bd34d7e6f7679b3380",
+      "response_characters": 1449,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 4092,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 2491,
+        "output_tokens_details": {
+          "thinking_tokens": 1245
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 4092,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 2491,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 4092,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 4092
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.0828204,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "replica-read--candidate",
+      "host": "codex",
+      "case": "replica-read",
+      "arm": "candidate",
+      "kind": "transfer",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 26.948,
+      "response_sha256": "ab5473d35ff04c593428f66bfd3a2f9c0cd3316fb05f5e11322f3a00792ac7e4",
+      "response_characters": 663,
+      "usage": [
+        {
+          "input_tokens": 35162,
+          "cached_input_tokens": 18432,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 548,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "permission-cache--candidate",
+      "host": "opus",
+      "case": "permission-cache",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 28.728,
+      "response_sha256": "9c76c5a916197b570d765490c575fe48d8218816e0500262d93d079f643d4348",
+      "response_characters": 1172,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 4232,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 3037,
+        "output_tokens_details": {
+          "thinking_tokens": 1858
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 4232,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 3037,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 4232,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 4232
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.0948604,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "lease-fencing--previous",
+      "host": "codex",
+      "case": "lease-fencing",
+      "arm": "previous",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 34.388,
+      "response_sha256": "faea72283c16eaa71b70cf3c250e66f6c135fb066b359ec107e007e0e5a65d18",
+      "response_characters": 1330,
+      "usage": [
+        {
+          "input_tokens": 34718,
+          "cached_input_tokens": 21760,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 964,
+          "reasoning_output_tokens": 78
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "sdk-handoff--previous",
+      "host": "opus",
+      "case": "sdk-handoff",
+      "arm": "previous",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 22.247,
+      "response_sha256": "2c742b48b0bb0e5c53278356d05e1e64491b143277e5ac8c0cb255ccaf25b0ae",
+      "response_characters": 1463,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 3783,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 2259,
+        "output_tokens_details": {
+          "thinking_tokens": 1068
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 3783,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 2259,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 3783,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 3783
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.07570840000000001,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "schema-handoff--previous",
+      "host": "grok",
+      "case": "schema-handoff",
+      "arm": "previous",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "wall_seconds": 117.042,
+      "response_sha256": "5e8fb5ec702b141570c76f861045bea00e8bf7317e6542f6bf911fdf395054d0",
+      "response_characters": 1273,
+      "usage": {
+        "inputTokens": 9083,
+        "outputTokens": 7185,
+        "cacheReadTokens": 5888,
+        "cacheWriteTokens": 0
+      },
+      "cost_usd_estimate": null,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "resume-export--previous",
+      "host": "codex",
+      "case": "resume-export",
+      "arm": "previous",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 20.884,
+      "response_sha256": "136de8b67ee30aa7994abe526075f136ef51ed4006fd82539bc0ab8c69b591f6",
+      "response_characters": 893,
+      "usage": [
+        {
+          "input_tokens": 34597,
+          "cached_input_tokens": 30080,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 582,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "permission-cache--previous",
+      "host": "opus",
+      "case": "permission-cache",
+      "arm": "previous",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 25.545,
+      "response_sha256": "0a94cbfd93a3abfaa17be81254e07673ab1cf2d1aaa97267364fe7a62a8019e4",
+      "response_characters": 1124,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 4670,
+        "cache_read_input_tokens": 535,
+        "output_tokens": 2680,
+        "output_tokens_details": {
+          "thinking_tokens": 1563
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 4670,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 2680,
+            "cache_read_input_tokens": 535,
+            "cache_creation_input_tokens": 4670,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 4670
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.091075,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "search-latency--previous",
+      "host": "grok",
+      "case": "search-latency",
+      "arm": "previous",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "wall_seconds": 89.746,
+      "response_sha256": "1a3e85cd680fe7b5e4740d09a39856ca5e2b6a356e18a24fd5eff3ae8a6eb9e5",
+      "response_characters": 691,
+      "usage": {
+        "inputTokens": 9752,
+        "outputTokens": 4985,
+        "cacheReadTokens": 5248,
+        "cacheWriteTokens": 0
+      },
+      "cost_usd_estimate": null,
+      "workspace_unchanged": null,
+      "mapping": null
+    }
+  ],
+  "protocol_sha256": "2d0bccea88a8275ee89cbecb49e223266a6702b29c9c5e7e8225c0253f5361b1"
+}

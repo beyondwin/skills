@@ -1,0 +1,36 @@
+{
+  "candidate": {
+    "README.ko.md": "aa1141c5aea2f76fd357614bab32684d5a0fcca8cc91c96eb1362d90948cecb8",
+    "README.md": "3ba01dbde75d4e6bcd592050bbcb7995edc5f7e6c38a2c1bb25962505bd21297",
+    "SKILL.md": "3265e2b893086041929db165c2a8ec6a07247527195b377d32395003a723a629",
+    "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+    "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+    "references/documents.md": "7f8e730d398c0716d981203873c7ef9078538f6cd008405c1f2c1b9f64fc6e09"
+  },
+  "incumbent": {
+    "README.ko.md": "adb06df305cde603a54d50a27d7eb20caaf2cec243ef4e3529599fe35d2cc3a9",
+    "README.md": "4b6fa973707e209693be474ff6a36fa0836bf070c93e72ced5de0961571a26b0",
+    "SKILL.md": "db151acd614e6982421f4827031f4d36d66f41a40a00e92be66c5ab369441bb9",
+    "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+    "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+    "references/documents.md": "ba680b8c925aeffab3acc280841f599839d28ce67faf8e92d6d193e2386ab09f"
+  },
+  "reused_responses": {
+    "lease-fencing": "faea72283c16eaa71b70cf3c250e66f6c135fb066b359ec107e007e0e5a65d18",
+    "sdk-handoff": "2c742b48b0bb0e5c53278356d05e1e64491b143277e5ac8c0cb255ccaf25b0ae",
+    "schema-handoff": "5e8fb5ec702b141570c76f861045bea00e8bf7317e6542f6bf911fdf395054d0",
+    "resume-export": "136de8b67ee30aa7994abe526075f136ef51ed4006fd82539bc0ab8c69b591f6",
+    "permission-cache": "0a94cbfd93a3abfaa17be81254e07673ab1cf2d1aaa97267364fe7a62a8019e4",
+    "search-latency": "1a3e85cd680fe7b5e4740d09a39856ca5e2b6a356e18a24fd5eff3ae8a6eb9e5"
+  },
+  "call_cap": 24,
+  "files": {
+    "run.py": "fc061c39aebc61cd8321b2b8ea070b1cb34dcce7722a7c67ba38d7f57b7ebebb",
+    "revision_run.py": "a40330ea3026778b1523e5b360bbb2bb1fcda8e5b1acd7767928bca5660ffeff",
+    "summarize.py": "7eda3a51bc4bd01c9de51d335232efe34a2269cf2dd3cfb44cfa27f83662bec2",
+    "audit_native.py": "92eb8323031361160c4e5046ca637653753ca7b807917a9fb4eb5411773de451",
+    "cases.json": "3c818712acf0ff00ef5f49d8250284373ad5d9cf43c2fcf36596f27abcdfe4c8",
+    "transfer-cases.json": "d04573135b9ec88b41c1077487ff848958a42c9540bb4b82bfb0dd68ee070394",
+    "revision-design.md": "64f776c5ebb6d5944754bc9bcf1db91f86b79b3eeb0c81ca07e9c602dddb87c7"
+  }
+}

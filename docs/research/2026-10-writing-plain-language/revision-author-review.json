@@ -1,0 +1,55 @@
+{
+  "version": "0.4.1",
+  "reviewer": "implementing assistant, not independent or human",
+  "rows": [
+    {
+      "case": "lease-fencing",
+      "meaning": "pass",
+      "readability": "pass",
+      "note": "Source meaning preserved; locally explained terms are sufficient for the requested technical audience."
+    },
+    {
+      "case": "sdk-handoff",
+      "meaning": "pass",
+      "readability": "pass",
+      "note": "Source meaning preserved; locally explained terms are sufficient for the requested technical audience."
+    },
+    {
+      "case": "schema-handoff",
+      "meaning": "pass",
+      "readability": "pass",
+      "note": "Backfill now explained as filling the new column with existing values; rollback check explained as return to prior behavior. Gates and unknown test evidence preserved."
+    },
+    {
+      "case": "search-latency",
+      "meaning": "pass",
+      "readability": "pass",
+      "note": "p95 explained through ordered observations; success and timed populations and limitations preserved."
+    },
+    {
+      "case": "resume-export",
+      "meaning": "pass",
+      "readability": "pass",
+      "note": "Source meaning preserved; locally explained terms are sufficient for the requested technical audience."
+    },
+    {
+      "case": "permission-cache",
+      "meaning": "fail",
+      "readability": "needs revision",
+      "note": "Heading says within the remaining cache-valid interval, but its second bullet applies after expiry. This is a contradictory condition; reject even though the individual branch description is correct. Mechanism still repeated."
+    },
+    {
+      "case": "replica-read",
+      "meaning": "pass",
+      "readability": "pass",
+      "note": "Source meaning preserved; locally explained terms are sufficient for the requested technical audience."
+    },
+    {
+      "case": "upload-key",
+      "meaning": "pass",
+      "readability": "needs revision",
+      "note": "Payload digest remains unexplained at first use and in a table; same four replay conditions repeated in bullets and table. No guarantee of safe retry was invented."
+    }
+  ],
+  "decision": "rejected before planned judgments and adoption checks; author found actual scope error and residual jargon. All 8 generations retained."
+}

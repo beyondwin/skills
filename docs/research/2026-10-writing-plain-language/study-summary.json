@@ -1,0 +1,329 @@
+{
+  "phases": [
+    {
+      "version": "0.4.0",
+      "dispatches": 12,
+      "completed": 12,
+      "protocol_sha256": "ba815cf294e0e0611285a5a5fc0405cd85656d026f476cc932c99ee4369f09d8"
+    },
+    {
+      "version": "0.4.1",
+      "dispatches": 8,
+      "completed": 8,
+      "protocol_sha256": "2d0bccea88a8275ee89cbecb49e223266a6702b29c9c5e7e8225c0253f5361b1"
+    },
+    {
+      "version": "0.4.2",
+      "dispatches": 20,
+      "completed": 20,
+      "protocol_sha256": "def4c968414b40d5a225d6e9957e4584a33a41afa2c156368cdd1ec0197ba4d5"
+    },
+    {
+      "version": "0.4.3",
+      "dispatches": 20,
+      "completed": 20,
+      "protocol_sha256": "71e2a3ddfa7473fbc36e33fd4999367a1388c54b42598bf0a9516cd0763390af"
+    },
+    {
+      "version": "0.5.0",
+      "dispatches": 16,
+      "completed": 16,
+      "protocol_sha256": "ff31980c36a825f369706b6bd9008b9ff7156530376c342b7231d3443814dc77"
+    },
+    {
+      "version": "0.5.1",
+      "dispatches": 20,
+      "completed": 20,
+      "protocol_sha256": "1732db0635470e2c02fe045c13052dd441cb2012a25e50047c75eba2e252d76b"
+    }
+  ],
+  "total_dispatches": 96,
+  "total_completed": 96,
+  "kinds": {
+    "generation": 44,
+    "transfer": 8,
+    "judge": 24,
+    "review": 16,
+    "regression": 3,
+    "smoke": 1
+  },
+  "unique_source_tasks": 8,
+  "native_runs": 31,
+  "native": [
+    {
+      "version": "0.4.0",
+      "id": "resume-export--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.4.0",
+      "id": "lease-fencing--previous",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.4.0",
+      "id": "lease-fencing--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.4.0",
+      "id": "resume-export--previous",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.4.1",
+      "id": "lease-fencing--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.4.1",
+      "id": "resume-export--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.4.1",
+      "id": "replica-read--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.4.2",
+      "id": "lease-fencing--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.4.2",
+      "id": "resume-export--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.4.2",
+      "id": "replica-read--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.4.3",
+      "id": "lease-fencing--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.4.3",
+      "id": "resume-export--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.4.3",
+      "id": "replica-read--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.5.0",
+      "id": "lease-fencing--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.5.0",
+      "id": "resume-export--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.5.0",
+      "id": "replica-read--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.5.0",
+      "id": "review-upload-key--baseline",
+      "skill_reads": {},
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.5.0",
+      "id": "review-sdk-handoff--baseline",
+      "skill_reads": {},
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.5.0",
+      "id": "review-permission-cache--baseline",
+      "skill_reads": {},
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.5.1",
+      "id": "lease-fencing--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.5.1",
+      "id": "upload-key--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.5.1",
+      "id": "resume-export--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.5.1",
+      "id": "search-latency--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.5.1",
+      "id": "schema-handoff--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.5.1",
+      "id": "sdk-handoff--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.5.1",
+      "id": "replica-read--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.5.1",
+      "id": "permission-cache--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.5.1",
+      "id": "regression-submodule--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/change-messages.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.5.1",
+      "id": "regression-commit--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/change-messages.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.5.1",
+      "id": "regression-json--candidate",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "version": "0.5.1",
+      "id": "installed-smoke--installed",
+      "skill_reads": {
+        "SKILL.md": true,
+        "references/documents.md": true
+      },
+      "workspace_unchanged": true
+    }
+  ],
+  "all_frozen_files_match": true,
+  "all_copied_auth_removed": true,
+  "all_native_workspaces_unchanged": true,
+  "all_required_skill_reads_observed": true,
+  "scope": "Distinct CLI dispatches, not independent tasks or HTTP/model-request count. Reused incumbent directories are not counted again."
+}

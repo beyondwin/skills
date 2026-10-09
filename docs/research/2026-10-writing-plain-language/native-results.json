@@ -1,0 +1,791 @@
+{
+  "dispatches": 20,
+  "completed": 20,
+  "reviews_received": 8,
+  "model_audit_passes": 8,
+  "model_material_error_reports": 0,
+  "model_blocking_obstacles": 0,
+  "acceptance": "Requires source adjudication, native regressions and installed smoke; not comparative superiority.",
+  "reviews": [
+    {
+      "id": "review-lease-fencing--baseline",
+      "material_errors": [],
+      "reading_obstacles": [
+        {
+          "phrase": "만료 시각 경계",
+          "effect": "This is a short noun stack in the list of staging tests. The reader can work it out from the earlier sentence that a request at exactly lease_until is rejected. Saying it outright, for example '현재 시간이 정확히 lease_until인 경우', would read more smoothly.",
+          "severity": "minor"
+        }
+      ],
+      "verdict": "pass",
+      "reason": "The draft's material claims match the source. Claiming increments epoch, sets owner and lease_until from database time, and returns the epoch. Completion and renewal both require owner and epoch to match and database now < lease_until, so a request at exactly lease_until fails. Expiry does not stop the old process. Fencing blocks stale database writes but not duplicate computation. A rejected completion writes no result and sends no event. The outbox row is written in the same transaction, delivery may be duplicated, and consumers deduplicate by event_id. The design is implemented in staging only, five cases were tested, and there is no production record. The omitted items are the queue payload, the historical prototype, the unimplemented cancellation proposal, and the unfenced external payment call. The service has no payment integration, so none of these omissions removes a condition the reader needs. The draft explains each central term by what it does: owner, lease_until, epoch, fencing, outbox and the dispatcher. It keeps the code identifiers. A reader with basic software knowledge can follow why late completions are rejected."
+    },
+    {
+      "id": "review-resume-export--baseline",
+      "material_errors": [],
+      "reading_obstacles": [],
+      "verdict": "pass",
+      "reason": "중지 상태, inspect의 snapshot_ready=true와 pending_count<=10(10건 포함), null·누락 시 중지 유지, resume은 한 번과 --snapshot s8, accepted의 접수와 완료 구분, status의 running·queued·failed 및 확인 실패 분기, 미정인 확인 주기, 파일 삭제·snapshot 교체 없음이 모두 유지된다. pending_count와 각 상태 판단이 행동으로 풀려 있어 다음 절차를 그대로 수행할 수 있다."
+    },
+    {
+      "id": "review-upload-key--baseline",
+      "material_errors": [],
+      "reading_obstacles": [],
+      "verdict": "pass",
+      "reason": "시간 초과는 거절이 아니라 접수 여부를 알 수 없는 상태로 두고, 같은 프로젝트·키의 10분 경계(같은 다이제스트 202, 다른 다이제스트 409, 만료 시 새 작업 가능), 접수 시각 기준, 다른 프로젝트 비적용, finished만 완료, 키 조회 불가, 새 키·10분 후 재요청을 안전하다고 보지 말 것이 모두 자료와 같다. 다이제스트와 상태 값은 동작으로 풀려 있어 이 독자가 재요청 해석을 읽을 수 있다."
+    },
+    {
+      "id": "review-search-latency--baseline",
+      "material_errors": [],
+      "reading_obstacles": [],
+      "verdict": "pass",
+      "reason": "성공·실패 건수, 성공률, 시간이 기록된 성공 요청만의 중앙값·p95, 둘 다 맞아야 하는 적용 기준, 그리고 부하·표본·설문·비용·동일 요청 비교가 없다는 한계가 자료와 같다. A·B 모두 적용할 수 없다는 점과 p95·중앙값의 뜻이 바로 풀려 있어, 이 독자가 결과와 아직 모르는 점을 읽을 수 있다."
+    },
+    {
+      "id": "review-schema-handoff--baseline",
+      "material_errors": [],
+      "reading_obstacles": [
+        {
+          "phrase": "테넌트의 2%에만 적용",
+          "effect": "'테넌트'(서비스를 쓰는 고객 단위)가 설명 없이 쓰여, 이 독자는 2%가 무엇의 비율인지 바로 알기 어려울 수 있습니다. 다만 다음 행동을 판단하는 데는 지장이 없습니다.",
+          "severity": "minor"
+        },
+        {
+          "phrase": "500행 중 7행에서 불일치가 확인되어",
+          "effect": "무엇과 무엇을 비교한 불일치인지(예: 새 열 값과 기존 값) 밝히지 않았습니다. 그래도 '2행 이하이면 재개'라는 판단 기준은 숫자만으로 따를 수 있습니다. 출처에도 비교 대상은 없으므로 사실을 덧붙이지 않는 짧은 풀이 정도만 가능합니다.",
+          "severity": "minor"
+        },
+        {
+          "phrase": "기존 필드와 새 필드에 함께 저장하는 방식",
+          "effect": "다른 곳에서는 '새 열'이라고 하는데 여기서만 '필드'라고 해서, 같은 대상인지 잠시 헷갈릴 수 있습니다.",
+          "severity": "minor"
+        },
+        {
+          "phrase": "현재 **W2 단계",
+          "effect": "W2가 무슨 단계인지 설명이 없습니다. 출처도 정의하지 않으며, 바로 뒤의 '백필 중단' 설명으로 현재 상태는 이해할 수 있습니다.",
+          "severity": "minor"
+        }
+      ],
+      "verdict": "pass",
+      "reason": "출처와 대조한 모든 핵심 주장이 일치합니다. W2 현재 상태와 'W3 planned' 예정 표시를 구분했고, dual-write 2%, 기존 읽기 기준과 읽기 전환 미수행, 02:10 기준 18,000/20,000(보관 계정 제외, 보관 계정 총수 미제공), 02:15 표본 7/500에 따른 중단을 모두 맞게 옮겼습니다. 02:00 표본 1/500을 재개 근거로 쓸 수 없다는 점, 수정안이 커밋되지 않았고 테스트 로그가 없어도 미실행으로 단정할 수 없다는 점, 새 표본을 아직 확인하지 않았다는 점, 재개 기준 2/500 이하와 결과를 모르면 중단 유지라는 조건, 읽기 플래그의 세 조건 모두 충족(리허설 결과 미확인 포함)과 백필 완료만으로는 부족하다는 점도 빠짐없이 반영했습니다. 롤백 명령이 열과 행, 기존 경로를 남긴다는 범위도 정확합니다. 1단계의 '수정을 마무리하세요'는 출처의 '파서 수정 후 새 표본' 조건에 포함되어 있어 새 사실을 추가한 것이 아닙니다. 백필, dual-write, 롤백 리허설은 각각 행위로 풀어 설명되어 있습니다. 남은 문제는 용어 설명과 표기 일관성 수준의 사소한 것이고, 이 독자도 다음 행동을 이해하는 데 막히지 않습니다."
+    },
+    {
+      "id": "review-sdk-handoff--baseline",
+      "material_errors": [],
+      "reading_obstacles": [
+        {
+          "phrase": "Linux CI 작업",
+          "effect": "CI는 무슨 작업인지 설명 없이 나와서, 대기 중이며 결과가 없다는 사실은 알 수 있어도 어떤 검사를 보면 되는지는 알기 어렵다.",
+          "severity": "minor"
+        }
+      ],
+      "verdict": "pass",
+      "reason": "SDK가 null을 유지하고 키 누락은 오류이며 화면은 false와 null을 아직 같은 비활성 표시로 둔다는 점, 다음 라벨(사용/중지/확인 불가)·UI 테스트·근거 한계·PR·릴리스 노트 제한이 자료와 같다. 주요 다음 작업은 이 설명만으로 이해할 수 있다."
+    },
+    {
+      "id": "review-replica-read--baseline",
+      "material_errors": [],
+      "reading_obstacles": [
+        {
+          "phrase": "재시도의 안전성은 보장되지 않습니다",
+          "effect": "독자는 '안전성'이 무엇을 뜻하는지 알기 어렵습니다. 예를 들어 다시 요청해도 결과나 부작용이 같다는 뜻인지 짐작해야 합니다. 그래도 '주 데이터베이스 조회도 실패할 수 있다'는 핵심 행동 정보는 그대로 전달됩니다.",
+          "severity": "minor"
+        },
+        {
+          "phrase": "저장하는 데이터베이스와 조회하는 데이터베이스가 다르기 때문입니다",
+          "effect": "첫 문장만 보면 조회가 항상 다른 데이터베이스로 간다고 읽힐 수 있습니다. 바로 다음 문장에서 '보통 조회용 복제본을 읽습니다'라고 범위를 바로잡기 때문에 오해는 금방 풀립니다.",
+          "severity": "minor"
+        }
+      ],
+      "verdict": "pass",
+      "reason": "초안의 주요 주장은 모두 자료와 일치합니다. 주 데이터베이스 저장 완료 의미의 HTTP 200, 보통 복제본에서 읽는 GET, 비동기 복제, 이전 응답만으로 데이터 손실을 단정할 수 없다는 점, 재저장이 필요 없다는 점, 지연 상한과 운영 측정값이 없다는 점, X-Read-Primary: 1 헤더의 사용 조건(로그인 필요, 기존 권한 확인 적용, 비로그인 불가), 주 데이터베이스 조회 실패 가능성과 재시도 안전성 미보장이 모두 정확합니다. 구현되지 않은 '모든 조회를 주 데이터베이스로' 제안은 생략됐지만, 현재 동작이나 행동 조건에 필요한 정보가 아니므로 허용됩니다. '복제본'과 '복제 지연'은 '변경 내용을 나중에 전달받아 반영'이라는 동작 설명으로 문맥 안에서 풀이되어, 일반 개발자 독자가 이유와 다음 행동을 이해할 수 있습니다."
+    },
+    {
+      "id": "review-permission-cache--baseline",
+      "material_errors": [],
+      "reading_obstacles": [
+        {
+          "phrase": "스테이징에서는",
+          "effect": "'스테이징'은 내부 배포 환경 용어인데 '운영 전 시험 환경'이라는 설명이 없습니다. 다만 이 문장은 검증 근거일 뿐 핵심 동작이나 다음 행동을 이해하는 데 필요하지 않습니다.",
+          "severity": "minor"
+        },
+        {
+          "phrase": "`403`으로 거절하고, DB 조회가 실패하면 `503`으로 거절합니다",
+          "effect": "숫자가 서버가 돌려주는 응답 코드라는 점을 밝히지 않았습니다. 그래도 각 코드 옆에 거절 이유(권한 없음, 조회 실패)가 붙어 있어 의미는 읽힙니다.",
+          "severity": "minor"
+        },
+        {
+          "phrase": "‘다운로드 허용’ 결과",
+          "effect": "작은따옴표 때문에 화면 문구나 저장되는 값의 정확한 이름처럼 보일 수 있습니다. 원본은 '허용 결과'라고만 하며 그런 표기를 정하지 않았습니다. 뜻은 그대로이므로 따옴표만 빼면 됩니다.",
+          "severity": "minor"
+        }
+      ],
+      "verdict": "pass",
+      "reason": "초안의 핵심 주장은 모두 원본과 일치합니다. 해당하는 내용은 세션 인증과 파일 권한 확인의 구분, 결과를 저장한 시점부터 30초 미만이면 캐시를 쓰고 정확히 30초부터 DB를 다시 확인한다는 경계, 권한 회수가 DB에는 즉시 반영되지만 캐시는 지우지 않는다는 현재 상태, 세션이 만료되면 캐시와 상관없이 거절한다는 점, 권한 없음은 403이고 DB 조회 실패는 503이며 이전 허용 결과를 대신 쓰지 않는다는 점, 스테이징에서 확인한 세 가지, 운영 비율을 측정하지 않았다는 점입니다. 30초를 저장 시점부터 센다는 강조도 원본의 '저장 후 경과 시간'과 맞습니다. 구현되지 않은 개선안을 뺀 것은 요청 범위상 허용되며, '현재는'이라는 표현으로 지금 상태임을 분명히 했습니다. 처음 보는 핵심 용어인 캐시는 '빠르게 조회하려고 쓰는 임시 저장소'로 그 자리에서 설명되어, 이 독자도 권한을 회수한 뒤 잠시 내려받을 수 있는 이유와 그 조건을 이해할 수 있습니다. 남은 것은 다듬기 수준의 사소한 문제뿐입니다."
+    }
+  ],
+  "anomalies": [],
+  "runs": [
+    {
+      "id": "lease-fencing--candidate",
+      "host": "codex",
+      "case": "lease-fencing",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 43.784,
+      "response_sha256": "73cd8e735dea46d93d1fe788c3258ef1e8234bac368a408105af1a4582234b19",
+      "response_characters": 1194,
+      "usage": [
+        {
+          "input_tokens": 35927,
+          "cached_input_tokens": 30464,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 965,
+          "reasoning_output_tokens": 136
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "upload-key--candidate",
+      "host": "codex",
+      "case": "upload-key",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 33.671,
+      "response_sha256": "d7d3d0892b81dc61daed3feccd9323df1d43fe2f4c226d06c549cd96e2713784",
+      "response_characters": 1007,
+      "usage": [
+        {
+          "input_tokens": 35794,
+          "cached_input_tokens": 22144,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 801,
+          "reasoning_output_tokens": 94
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "resume-export--candidate",
+      "host": "codex",
+      "case": "resume-export",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 27.837,
+      "response_sha256": "3d9830f112f9a876baf30e85544e9475257f9b9bb8bdf867623f7a45abeb3f9c",
+      "response_characters": 885,
+      "usage": [
+        {
+          "input_tokens": 35797,
+          "cached_input_tokens": 30464,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 577,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "search-latency--candidate",
+      "host": "codex",
+      "case": "search-latency",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 32.635,
+      "response_sha256": "830dafc7e4c15fc74b2a0dfd7801aceade085ca09bc7152ee6726b15125a969c",
+      "response_characters": 1068,
+      "usage": [
+        {
+          "input_tokens": 35966,
+          "cached_input_tokens": 28800,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 781,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "schema-handoff--candidate",
+      "host": "codex",
+      "case": "schema-handoff",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 35.395,
+      "response_sha256": "8c9b193a5918a8852daf0c83a72d83c716f2c10ebbff73f2f2cd60897baa585a",
+      "response_characters": 1328,
+      "usage": [
+        {
+          "input_tokens": 35955,
+          "cached_input_tokens": 30592,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 869,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "sdk-handoff--candidate",
+      "host": "codex",
+      "case": "sdk-handoff",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 30.056,
+      "response_sha256": "8591b86287b6308fc79f1c56164a4e3cc63f2f59a8d2b7c8c0674707ae46e975",
+      "response_characters": 1011,
+      "usage": [
+        {
+          "input_tokens": 35868,
+          "cached_input_tokens": 22144,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 746,
+          "reasoning_output_tokens": 69
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "replica-read--candidate",
+      "host": "codex",
+      "case": "replica-read",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 24.598,
+      "response_sha256": "d466b8ff4bf8fbc20df9f0f14b39c0929b485ecdb43b4e568e206c80c1563298",
+      "response_characters": 563,
+      "usage": [
+        {
+          "input_tokens": 35687,
+          "cached_input_tokens": 20224,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 503,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "permission-cache--candidate",
+      "host": "codex",
+      "case": "permission-cache",
+      "arm": "candidate",
+      "kind": "generation",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 26.175,
+      "response_sha256": "152a94b4e21a7606a7728e7d750b3f46ac86e0bbee1db5107a1418b3b66e7f77",
+      "response_characters": 679,
+      "usage": [
+        {
+          "input_tokens": 35992,
+          "cached_input_tokens": 30592,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 577,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "review-lease-fencing--baseline",
+      "host": "opus",
+      "case": "lease-fencing",
+      "arm": "baseline",
+      "kind": "review",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 18.728,
+      "response_sha256": "b8460274178ea2e926b1f0ad81a853135754cc5efd1c83cf2341dc880eca8314",
+      "response_characters": 1523,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 2912,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 1865,
+        "output_tokens_details": {
+          "thinking_tokens": 1375
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 2912,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 1865,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 2912,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 2912
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.060860399999999995,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "review-resume-export--baseline",
+      "host": "grok",
+      "case": "resume-export",
+      "arm": "baseline",
+      "kind": "review",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "wall_seconds": 138.759,
+      "response_sha256": "6b9bb8a49541031a2efb953876a4ec716196934adece14558259f0f7e89cb8b3",
+      "response_characters": 343,
+      "usage": {
+        "inputTokens": 8222,
+        "outputTokens": 7800,
+        "cacheReadTokens": 5888,
+        "cacheWriteTokens": 0
+      },
+      "cost_usd_estimate": null,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "review-upload-key--baseline",
+      "host": "grok",
+      "case": "upload-key",
+      "arm": "baseline",
+      "kind": "review",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "wall_seconds": 167.375,
+      "response_sha256": "7a96c97bfa2016d9951db4f836b896c65629dfb40ef04f29c8c3b907e18aea18",
+      "response_characters": 304,
+      "usage": {
+        "inputTokens": 9005,
+        "outputTokens": 10014,
+        "cacheReadTokens": 5248,
+        "cacheWriteTokens": 0
+      },
+      "cost_usd_estimate": null,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "review-search-latency--baseline",
+      "host": "grok",
+      "case": "search-latency",
+      "arm": "baseline",
+      "kind": "review",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "wall_seconds": 146.346,
+      "response_sha256": "788df5baa156d3ace692232bcee6332966c6b213063f6ebd435089e8aab09167",
+      "response_characters": 244,
+      "usage": {
+        "inputTokens": 13320,
+        "outputTokens": 8226,
+        "cacheReadTokens": 1152,
+        "cacheWriteTokens": 0
+      },
+      "cost_usd_estimate": null,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "review-schema-handoff--baseline",
+      "host": "opus",
+      "case": "schema-handoff",
+      "arm": "baseline",
+      "kind": "review",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 23.695,
+      "response_sha256": "06c701e00a0f38f1c51b7de0f759f4105dcdf11b7e193006283a0de1ddc17988",
+      "response_characters": 1278,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 2957,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 2310,
+        "output_tokens_details": {
+          "thinking_tokens": 1167
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 2957,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 2310,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 2957,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 2957
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.0701204,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "review-sdk-handoff--baseline",
+      "host": "grok",
+      "case": "sdk-handoff",
+      "arm": "baseline",
+      "kind": "review",
+      "status": "ok",
+      "identity": [
+        {
+          "event_type": "system",
+          "subtype": "init",
+          "model": "Grok 4.7 256K Medium"
+        }
+      ],
+      "wall_seconds": 282.257,
+      "response_sha256": "3f3683fb2565f9bc952c27653f33f30a4cc4d39122a908e3fd6deb450305e90b",
+      "response_characters": 347,
+      "usage": {
+        "inputTokens": 9010,
+        "outputTokens": 16730,
+        "cacheReadTokens": 5248,
+        "cacheWriteTokens": 0
+      },
+      "cost_usd_estimate": null,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "review-replica-read--baseline",
+      "host": "opus",
+      "case": "replica-read",
+      "arm": "baseline",
+      "kind": "review",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 12.951,
+      "response_sha256": "fd6a121984f2954bd89085f4c1af584142006333df4f0a10a462a231735d57f8",
+      "response_characters": 851,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 2077,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 1188,
+        "output_tokens_details": {
+          "thinking_tokens": 413
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 2077,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 1188,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 2077,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 2077
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.0406404,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "review-permission-cache--baseline",
+      "host": "opus",
+      "case": "permission-cache",
+      "arm": "baseline",
+      "kind": "review",
+      "status": "ok",
+      "identity": [
+        "claude-opus-5-5"
+      ],
+      "wall_seconds": 23.82,
+      "response_sha256": "afda892fdd760cda77e3e533750b626eaa61fc06ed456d8cd43f578d38f1b34f",
+      "response_characters": 1059,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 2538,
+        "cache_read_input_tokens": 1282,
+        "output_tokens": 2412,
+        "output_tokens_details": {
+          "thinking_tokens": 1433
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 2538,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "not_available",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 2412,
+            "cache_read_input_tokens": 1282,
+            "cache_creation_input_tokens": 2538,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 2538
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd_estimate": 0.0688084,
+      "workspace_unchanged": null,
+      "mapping": null
+    },
+    {
+      "id": "regression-submodule--candidate",
+      "host": "codex",
+      "case": "regression-submodule",
+      "arm": "candidate",
+      "kind": "regression",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 24.577,
+      "response_sha256": "4b78df8831e561b7d00cafeadecc2d0a3bee600365e90311241391b2d68b6de4",
+      "response_characters": 60,
+      "usage": [
+        {
+          "input_tokens": 49953,
+          "cached_input_tokens": 35584,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 434,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "regression-commit--candidate",
+      "host": "codex",
+      "case": "regression-commit",
+      "arm": "candidate",
+      "kind": "regression",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 23.12,
+      "response_sha256": "368f9c73d189acfb4a8a42009375b334aefd0d274ec39e26d1ec7da2b825d4f4",
+      "response_characters": 22,
+      "usage": [
+        {
+          "input_tokens": 48460,
+          "cached_input_tokens": 30976,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 365,
+          "reasoning_output_tokens": 30
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "regression-json--candidate",
+      "host": "codex",
+      "case": "regression-json",
+      "arm": "candidate",
+      "kind": "regression",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 16.324,
+      "response_sha256": "166bd5138ad94e1cfd5cd29ed4679ead07bbbe4b326b077d0b195e3c5a5454ec",
+      "response_characters": 171,
+      "usage": [
+        {
+          "input_tokens": 35526,
+          "cached_input_tokens": 30336,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 285,
+          "reasoning_output_tokens": 0
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    },
+    {
+      "id": "installed-smoke--installed",
+      "host": "codex",
+      "case": "installed-smoke",
+      "arm": "installed",
+      "kind": "smoke",
+      "status": "ok",
+      "identity": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "high"
+        }
+      ],
+      "wall_seconds": 30.674,
+      "response_sha256": "4c9e994506a469643f2ac96be045d3c90fb562a6d1be6658bbe429219fd43dd2",
+      "response_characters": 1090,
+      "usage": [
+        {
+          "input_tokens": 26562,
+          "cached_input_tokens": 19840,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 840,
+          "reasoning_output_tokens": 86
+        }
+      ],
+      "cost_usd_estimate": null,
+      "workspace_unchanged": true,
+      "mapping": null
+    }
+  ],
+  "protocol_sha256": "1732db0635470e2c02fe045c13052dd441cb2012a25e50047c75eba2e252d76b"
+}

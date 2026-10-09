@@ -1,0 +1,10 @@
+{
+  "files": {
+    "personal_summary.py": "3dc4d1093c3941d701b028fd5427e91ba695be04a47b0a2bbdec554cadb0646e"
+  },
+  "frozen_before_audits": true,
+  "checks": [
+    "valid review accepted",
+    "invalid severity rejected"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "public_doc_tests": {
+    "command": "python3 -m unittest discover -s tests/repository -p test_public_docs.py",
+    "passed": 65,
+    "failed": 0
+  },
+  "python_compile": {
+    "runtime": "/usr/bin/python3 3.9.6",
+    "scope": "all new study Python files",
+    "passed": true
+  },
+  "json_parse": "all new JSON files parsed",
+  "local_links": "all new study Markdown file targets exist; learning links also covered by public-doc suite",
+  "secret_pattern_scan": {
+    "hits": 0,
+    "scope": "new study text files; pattern scan is not a universal secret detector"
+  },
+  "tracked_diff_check": "passed",
+  "untracked_whitespace": {
+    "frozen_exception": "run.py:37 has one trailing space; retained to preserve six preregistered runner hashes",
+    "other_findings": 0
+  },
+  "payload_whitespace": "all six candidate payloads clean",
+  "full_product_suite": "not rerun; no registered product files changed",
+  "private_archives": "raw text, provider receipts and old-install backup remain outside Git"
+}

@@ -1,0 +1,139 @@
+[
+  {
+    "id": "lease-fencing",
+    "host": "codex",
+    "kind": "explanation",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 새로 합류한 백엔드 개발자에게, 작업 처리 기한이 지난 뒤 이전 작업자의 완료 요청을 왜 거부하는지 설명하는 문서를 작성하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "Relay completion design, implemented in staging.\nQueue message carries job_id only. Claim transaction increments jobs.epoch, sets owner and lease_until using database time, returns epoch. Worker keeps this epoch. Renew needs matching owner and epoch and database now < lease_until. At exactly lease_until renewal fails. An expired worker may continue local computation; no process-kill guarantee. Another worker can claim after expiry and gets larger epoch. Complete updates result and status in one transaction only when owner and epoch match and now < lease_until. Rejected completion writes no result and sends no completion event. Completion event is an outbox row in that transaction; dispatcher may deliver duplicate notifications. Consumer deduplicates event_id. Fence prevents stale database publication, not duplicate computation. External payment call before completion is not fenced by this design; this service currently has no payment integration. Five staging cases exercised stale epoch, expiry boundary, valid completion, renewal failure, duplicate outbox delivery. No production run is recorded. Historical prototype used wall clock from worker and stored owner only; deployed staging implementation no longer does. Future proposal: cancel local computation on lost renewal; not implemented."
+    },
+    "checks": [
+      "expiry exact boundary rejects",
+      "old worker can compute but cannot publish",
+      "duplicate outbox possible and event_id dedup",
+      "external side effects not protected; staging only"
+    ],
+    "origin": "previous human reading set; known development case",
+    "reviewer": "opus"
+  },
+  {
+    "id": "sdk-handoff",
+    "host": "codex",
+    "kind": "handoff",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 SDK 담당자에게 수정 작업의 현재 상태와 다음 작업을 인계하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "Feature fix: stop converting server unknown values to false. Current branch sdk/null-state, local commit b8d9a12, ahead of origin by1. src/status.ts now models enabled:boolean|null; decoder returns null for JSON null. Missing enabled key throws DecodeError; it is not null. UI consumer ui/settings.ts still uses if (!status.enabled), so false and null still share disabled badge; not fixed. Local SDK tests after commit: 23passed; test environment Node22 macOS. Browser UI tests not executed. Old branch record 25passed belongs to removed coercion variant and doesn't validate this patch. Publication not performed. PR draft title supplied: Preserve unknown enabled state. No PR was created. Next task: change UI to three distinct badges true=enabled false=disabled null=unknown; use exact labels from docs/status-labels.md, where Korean labels are 사용, 중지, 확인 불가. Missing field should continue error, not badge. Then add UI cases for true,false,null and missing field and run pnpm test:ui. CI Linux job pending; no result. Release note may say SDK preserves null but must not claim UI displays unknown until UI patch verified. Version bump not decided. Future proposal telemetry event for unknown is not approved."
+    },
+    "checks": [
+      "SDK implemented UI remains",
+      "null vs missing error",
+      "23 macOS local CI pending",
+      "next labels and exact command no invented release"
+    ],
+    "origin": "previous human reading set; known development case",
+    "reviewer": "grok"
+  },
+  {
+    "id": "schema-handoff",
+    "host": "codex",
+    "kind": "handoff",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 야간 담당자에게 데이터 스키마 전환 작업을 인계하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "Migration account.locale stage W2. Column exists nullable. Dual-write enabled for2% tenants only; old reads remain source of truth. Backfill 18,000of20,000eligible rows done at02:10. This count excludes accounts archived before migration; archived total not provided. At02:15 backfill paused because mismatch sample7of500; threshold for resume is<=2of500 after fixing parser and taking a new sample. Prior02:00 sample1of500 predates parser discovery and cannot authorize resume. Fix src/locale_normalize.py drafted locally, not committed; test logs not supplied (does not imply tests never ran). New sample not yet taken. Flag account_locale_read_v2 must remainfalse until backfill20,000of20,000 AND new mismatch<=2of500 AND rollback rehearsal=passed, all required. Rehearsal status unknown. Next: review parser diff against docs/locale-contract.md, obtain current test evidence or run focused tests, take fresh500-row sample, then decide whether backfill resumes. Resume command dbmove resume account-locale; if sample>2/500 or unknown remain paused. Completing backfill doesn't authorize read flag without other gates. Rollback command flagctl set account_locale_dual_write false; disables new writes to nullable column but leaves column and rows, old path intact. Don't claim row deletion or reversal. Read switch not performed. A dashboard title says W3 planned, not current state."
+    },
+    "checks": [
+      "W2 current2% oldread",
+      "freshsample <=2 gate oldsampleinvalid",
+      "allthree readgates unknownrehearsal",
+      "rollback disableswrites not deletes; testunknown"
+    ],
+    "origin": "previous human reading set; known development case",
+    "reviewer": "opus"
+  },
+  {
+    "id": "resume-export",
+    "host": "codex",
+    "kind": "procedure",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 운영 담당자에게 내보내기 작업을 다시 시작하는 절차를 작성하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "내보내기 작업 exports-night는 중지 상태다. exportctl inspect exports-night 결과에서 snapshot_ready=true, pending_count<=10을 모두 확인해야 한다. pending_count는 아직 저장을 마치지 못한 항목 수다. 10건이면 진행 가능하다. null이나 누락은 미확인이므로 중지 상태를 유지한다. 확인이 끝나면 exportctl resume exports-night --snapshot s8을 한 번 실행한다. 응답 accepted=true는 재개 요청 접수이며 처리 완료가 아니다. accepted=false이면 상태를 바꾸지 않고 담당자에게 전달한다. accepted=true이면 exportctl status exports-night로 상태를 확인한다. state=running이면 재개됐다. state=queued이면 대기 중이다. queued에서 다시 resume을 실행하지 않는다. state=failed이거나 상태 확인이 실패하면 추가 명령을 실행하지 말고 담당자에게 전달한다. status 확인 주기는 정해지지 않았다. 이번 작업에는 파일 삭제나 snapshot 교체가 없다."
+    },
+    "checks": [
+      "inclusive pending<=10 AND ready; unknown blocks",
+      "accepted is request receipt not running",
+      "queued no resume repeat; failures escalate no invented interval"
+    ],
+    "origin": "fresh author-designed synthetic transfer case",
+    "reviewer": "grok"
+  },
+  {
+    "id": "permission-cache",
+    "host": "codex",
+    "kind": "explanation",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 서비스를 처음 맡은 개발자에게 권한을 없앴는데 잠시 파일을 내려받을 수 있는 이유를 설명하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "세션 인증은 사용자가 누구인지 확인하고, 파일 다운로드 인가는 해당 사용자가 그 파일을 읽을 권한이 있는지 확인한다. 로그인 세션이 유효해도 파일 권한은 없을 수 있다. 서비스는 파일별 권한 확인 결과를 최대 30초 동안 캐시에 둔다. 캐시는 조회 속도를 위해 이전 결과를 잠시 보관하는 저장소다. 저장 후 경과 시간이 30초 미만이면 그 결과를 사용하고, 정확히 30초부터는 원본 권한 DB를 다시 확인한다. 권한 회수는 원본 DB에 즉시 반영되지만 캐시를 즉시 지우는 기능은 아직 없다. 따라서 권한을 없애기 전에 저장된 허용 결과 때문에 30초가 되기 전까지 다운로드를 허용할 수 있다. 세션 만료는 이와 별도로 확인하므로 캐시가 남아 있어도 세션이 만료되면 거절한다. 캐시가 만료된 뒤 DB 조회가 실패하면 503으로 거절하며 이전 허용 결과를 대신 쓰지 않는다. 권한 없음은 403이다. 스테이징에서 29초 허용, 30초 재조회, DB 실패 시503을 확인했다. 운영에서의 비율은 측정하지 않았다. 개선안은 권한 회수 시 캐시도 지우는 것이며 아직 구현하지 않았다."
+    },
+    "checks": [
+      "authentication versus authorization",
+      "age30 exclusive, session independent",
+      "expired DB error503 not stale allow; proposal not implemented"
+    ],
+    "origin": "fresh author-designed synthetic transfer case",
+    "reviewer": "opus"
+  },
+  {
+    "id": "search-latency",
+    "host": "codex",
+    "kind": "measurement",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 제품 개발자가 검색 실험에서 무엇이 나아졌고 무엇을 아직 모르는지 이해할 수 있도록 결과를 설명하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "검색 방식 A와 B를 각각 1,000번 실행했다. A 성공960 실패40, B 성공980 실패20이다. 실행 시간이 기록된 성공 요청은 A950개, B970개다. 각 방식에서 성공10개는 로그가 빠졌다. 시간 통계는 시간이 기록된 성공 요청에만 해당한다. 중앙값 A180ms B150ms, p95 A700ms B760ms다. p95는 기록된 시간 분포의 95백분위 경계다. 동일 요청끼리 비교한 기록은 없다. 성공률 기준은98% 이상, p95 기준은750ms 이하여야 하며 둘 다 만족해야 적용한다. B는 성공률98%로 기준을 맞췄지만 p95가760ms여서 적용 조건을 만족하지 못한다. A도 성공률96%로 조건을 만족하지 못한다. 각 방식은 한 번씩 다른 시간대에 실행했고 당시 서버 부하는 기록하지 않았다. 이용자 설문은 하지 않았고 표본을 고른 방식도 기록되지 않아 전체 이용자를 대표하는지는 모른다. 비용은 측정하지 않았다. p95 증가만으로 느린5% 요청 전부가 느려졌거나 이용자의 체감 속도와 무관하다고 단정할 수 없다."
+    },
+    "checks": [
+      "success denominators1000 versus timed950970",
+      "both gates; B98 exact p95fails",
+      "unknown representativeness not biased; no individual or subjective certainty"
+    ],
+    "origin": "fresh author-designed synthetic transfer case",
+    "reviewer": "grok"
+  },
+  {
+    "id": "replica-read",
+    "host": "codex",
+    "kind": "explanation",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 제품 개발자가 저장 성공 후 새 내용이 바로 보이지 않는 이유를 이해할 수 있도록 한국어로 설명하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "Writes go to the primary database. HTTP200 from PUT /profile means the new profile was committed there. GET /profile normally reads a read replica, which copies committed changes asynchronously. Replication lag has no promised upper bound. A successful write followed by an old GET response does not by itself prove write loss. The next write is not needed to make replication happen. Logged-in clients may request GET /profile with X-Read-Primary: 1 to read from primary; the normal authorization check still applies. Anonymous callers cannot use this override. Primary reads can fail and no retry safety is promised. No production lag measurement is supplied. A proposal to make all reads use primary has not been implemented."
+    },
+    "checks": [
+      "200 commit only primary, delayed replica no bound",
+      "no re-save instruction; old read not proof loss",
+      "exact header authenticated and authorized not anonymous; no proposal as implementation"
+    ],
+    "reviewer": "opus"
+  },
+  {
+    "id": "upload-key",
+    "host": "codex",
+    "kind": "explanation",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 처음 맡은 개발자가 업로드 요청이 시간 초과됐을 때 재요청을 어떻게 해석해야 하는지 한국어로 설명하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "POST /imports requires an Idempotency-Key. Dedupe scope is project_id plus this key, and payload digest must match. For 10 minutes after first acceptance, repeating that pair with the same digest returns202 and the existing import_id, no second import. At exactly10 minutes the key record expires and the same key may create a new import. Same project/key with a different digest before expiry returns409, no new import. The same key in another project does not deduplicate. A timeout is an unknown acceptance outcome, not proof of rejection; no HTTP response is available to the timed-out client. GET /imports/{import_id} reports queued/running/finished; only finished confirms work completed. Without a known import_id, no lookup-by-key endpoint exists. This note specifies behavior, not a guaranteed safe recovery for clients that lack both an ID and the time of first acceptance. Do not recommend a new key or assume retry is safe after10 minutes. A future lookup-by-key endpoint is only proposed."
+    },
+    "checks": [
+      "sameproject/key/digest within10min, exact10 expires",
+      "timeout unknown not rejected;202 not finished",
+      "cannot promise safe retry without first acceptance time or ID; no new key advice"
+    ],
+    "reviewer": "grok"
+  }
+]

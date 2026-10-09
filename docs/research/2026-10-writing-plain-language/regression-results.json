@@ -1,0 +1,21 @@
+{
+  "version": "0.5.1",
+  "checks": [
+    {
+      "case": "commit",
+      "pass_check": true,
+      "response_sha256": "368f9c73d189acfb4a8a42009375b334aefd0d274ec39e26d1ec7da2b825d4f4"
+    },
+    {
+      "case": "json",
+      "pass_check": true,
+      "response_sha256": "166bd5138ad94e1cfd5cd29ed4679ead07bbbe4b326b077d0b195e3c5a5454ec"
+    },
+    {
+      "case": "submodule",
+      "pass_check": true,
+      "response_sha256": "4b78df8831e561b7d00cafeadecc2d0a3bee600365e90311241391b2d68b6de4"
+    }
+  ],
+  "author_review": "All three inspected against actual index and source. JSON preserves null/false, staged message excludes unstaged timeout, submodule message claims pointer change only."
+}

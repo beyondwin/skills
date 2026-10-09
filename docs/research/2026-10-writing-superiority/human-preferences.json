@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-09",
+  "source": "Direct user messages: initial 1: B; 2: B; 3: A, followed by clarification that all pairs were hard to distinguish and terminology in all texts felt unlike terms people use. Agent UI test clicks excluded.",
+  "respondents": 1,
+  "pairwise_choices": 3,
+  "arms": {
+    "baseline": "No technical-writing skill",
+    "previous": "Installed ko-technical-writing 0.2.2"
+  },
+  "rows": [
+    {
+      "item": 1,
+      "case_id": "lease-fencing",
+      "selection": "B",
+      "mapping": {
+        "A": "baseline",
+        "B": "previous"
+      },
+      "reason": null,
+      "initial_decoded_arm": "previous",
+      "preference_status": "No clear difference perceived, according to subsequent overall clarification"
+    },
+    {
+      "item": 2,
+      "case_id": "sdk-handoff",
+      "selection": "B",
+      "mapping": {
+        "A": "previous",
+        "B": "baseline"
+      },
+      "reason": null,
+      "initial_decoded_arm": "baseline",
+      "preference_status": "No clear difference perceived, according to subsequent overall clarification"
+    },
+    {
+      "item": 3,
+      "case_id": "schema-handoff",
+      "selection": "A",
+      "mapping": {
+        "A": "baseline",
+        "B": "previous"
+      },
+      "reason": null,
+      "initial_decoded_arm": "baseline",
+      "preference_status": "No clear difference perceived, according to subsequent overall clarification"
+    }
+  ],
+  "sheet_sha256": "44b19ff5169c65f27032c6b5d18bc3b6b874b5dff993059397b4ac932f50729b",
+  "mapping_sha256": "0358ab89ed2b9c9f23986a0eb711b39b012a37c8dcd4f83a4de0c7df32eadcc7",
+  "source_response_hashes": {
+    "1A": "a3298d29ecbe78cd1babb1487191c18d27e8757b9af16515b15737e0c04bd296",
+    "1B": "bba780088a832c2aa90c338f4e962cca15cecf4b60aa623abb618d4990b09093",
+    "2A": "bd54c6867cc1ef9f5a0b00001a799c92b8a654be2d8f0a9f8fc9dc7dea6e4910",
+    "2B": "7d322422394ff79809531d4ed8649dd0c2e642c989c0aed2ea99e6a49a27fa28",
+    "3A": "029f430a28e953b85f6ed41ee1b524422371ba834159c73638c8b772cac0f900",
+    "3B": "38bd652835586ff0551cf5a329cf8ab13a51917a4fd86d1bca7c79d6d1a633a8"
+  },
+  "limitations": [
+    "Post-hoc case selection; one reader, three pairs, one response per pair.",
+    "Version labels hidden on the sheet; no repeated order reversal or independent population sample.",
+    "No comprehension accuracy or reading time collected. Qualitative terminology criticism covers all texts; no individual terms identified by the reader.",
+    "Does not evaluate 0.3.0, 0.3.1 or 0.3.2; does not establish general superiority or inferiority."
+  ],
+  "decision": "Withdraw the one-versus-two preference interpretation. Record lack of perceptible improvement and dissatisfaction with terminology across both arms. Inspect concrete prose and test familiar explanations of technical concepts; avoid arbitrary synonym replacement or new superiority claims.",
+  "initial_decoded_counts": {
+    "baseline": 2,
+    "previous": 1,
+    "tie": 0
+  },
+  "initial_counts_status": "Superseded as evidence of clear preference by the same respondent clarification; retained only as the original label decoding.",
+  "current_interpretation": {
+    "clear_pairwise_preferences": 0,
+    "pairs_without_clear_perceived_difference": 3,
+    "all_presented_texts_terminology": "Reader reported that terms did not feel like those people use.",
+    "item_specific_reasons": null,
+    "formal_tie_ratings_collected": false
+  }
+}

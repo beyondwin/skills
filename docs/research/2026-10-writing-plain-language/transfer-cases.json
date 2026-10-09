@@ -1,0 +1,32 @@
+[
+  {
+    "id": "replica-read",
+    "host": "codex",
+    "kind": "explanation",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 제품 개발자가 저장 성공 후 새 내용이 바로 보이지 않는 이유를 이해할 수 있도록 한국어로 설명하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "Writes go to the primary database. HTTP200 from PUT /profile means the new profile was committed there. GET /profile normally reads a read replica, which copies committed changes asynchronously. Replication lag has no promised upper bound. A successful write followed by an old GET response does not by itself prove write loss. The next write is not needed to make replication happen. Logged-in clients may request GET /profile with X-Read-Primary: 1 to read from primary; the normal authorization check still applies. Anonymous callers cannot use this override. Primary reads can fail and no retry safety is promised. No production lag measurement is supplied. A proposal to make all reads use primary has not been implemented."
+    },
+    "checks": [
+      "200 commit only primary, delayed replica no bound",
+      "no re-save instruction; old read not proof loss",
+      "exact header authenticated and authorized not anonymous; no proposal as implementation"
+    ]
+  },
+  {
+    "id": "upload-key",
+    "host": "opus",
+    "kind": "explanation",
+    "setup": "files",
+    "prompt": "notes.md를 읽고 처음 맡은 개발자가 업로드 요청이 시간 초과됐을 때 재요청을 어떻게 해석해야 하는지 한국어로 설명하세요. 자료에 없는 사실은 추가하지 마세요.",
+    "files": {
+      "notes.md": "POST /imports requires an Idempotency-Key. Dedupe scope is project_id plus this key, and payload digest must match. For 10 minutes after first acceptance, repeating that pair with the same digest returns202 and the existing import_id, no second import. At exactly10 minutes the key record expires and the same key may create a new import. Same project/key with a different digest before expiry returns409, no new import. The same key in another project does not deduplicate. A timeout is an unknown acceptance outcome, not proof of rejection; no HTTP response is available to the timed-out client. GET /imports/{import_id} reports queued/running/finished; only finished confirms work completed. Without a known import_id, no lookup-by-key endpoint exists. This note specifies behavior, not a guaranteed safe recovery for clients that lack both an ID and the time of first acceptance. Do not recommend a new key or assume retry is safe after10 minutes. A future lookup-by-key endpoint is only proposed."
+    },
+    "checks": [
+      "sameproject/key/digest within10min, exact10 expires",
+      "timeout unknown not rejected;202 not finished",
+      "cannot promise safe retry without first acceptance time or ID; no new key advice"
+    ]
+  }
+]

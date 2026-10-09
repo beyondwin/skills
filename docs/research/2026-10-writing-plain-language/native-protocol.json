@@ -1,0 +1,28 @@
+{
+  "candidate": {
+    "README.ko.md": "fa1c05f25e7e1287cc9bb67c2b9155bc81af72ec60e332e3ddeaba72bf1f8075",
+    "README.md": "4773c52f382b2df6471d0bf57680f77fa407f1ab71abf52f4d217dde632f63ea",
+    "SKILL.md": "2c97cb4cf0a0445093163b4675e2760ba2e90a57f12ca4077ba2f1dcef7b150b",
+    "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+    "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+    "references/documents.md": "5bb5d62597be07b95615c4a9135a79b97b738836268c0d98102c4e76ba640dd6"
+  },
+  "incumbent": {
+    "README.ko.md": "adb06df305cde603a54d50a27d7eb20caaf2cec243ef4e3529599fe35d2cc3a9",
+    "README.md": "4b6fa973707e209693be474ff6a36fa0836bf070c93e72ced5de0961571a26b0",
+    "SKILL.md": "db151acd614e6982421f4827031f4d36d66f41a40a00e92be66c5ab369441bb9",
+    "agents/openai.yaml": "55903aa55b836cb68c2ab4ec7cc86bbcd202180c9c018b2b8a030654af7d99b6",
+    "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+    "references/documents.md": "ba680b8c925aeffab3acc280841f599839d28ce67faf8e92d6d193e2386ab09f"
+  },
+  "call_cap": 20,
+  "files": {
+    "run.py": "fc061c39aebc61cd8321b2b8ea070b1cb34dcce7722a7c67ba38d7f57b7ebebb",
+    "native_run.py": "cb9211e7f92c67010afe178df41cb94393cd0d663b26707b45196596ca2ad9e1",
+    "native_summary.py": "1c7271e1281f87793e4495382f556a25ddb58be8f0de5f0be42584c95f3ff913",
+    "native_audit.py": "3ca29b8330fd9fe5b2eacafd3ba9969afb77e1aab6ce35fb665d70a8c7a6ec6f",
+    "native-cases.json": "b169097e5809d083aaf7932547276d6d3b188181c0e53da33e7c0b78ef5ab7a4",
+    "personal-rubric.txt": "59bf14c0495005bea22d6f52a0181e75df6414c6b36b48787ea110c79e55420f",
+    "native-design.md": "f0a4de6a356043891993a7cc8b02f63fd501b2d40fdc8a7ff1f2fde8d6736733"
+  }
+}
