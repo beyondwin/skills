@@ -2,6 +2,9 @@
 
 2026-10-09. [English](README.md).
 
+현재 개인용 스킬은 [Readable(리더블) 0.6.0](../2026-10-readable-rename/README.ko.md)이며
+`$readable`로 호출합니다. 아래 이름·경로·결과는 당시 실험 기록입니다.
+
 [앞선 실험](../2026-10-ko-clear-writing-eval/README.ko.md)을 바탕으로 개인용
 Codex 스킬을 만들고 실제 파일 읽기·작성 흐름을 확인하는 후속 작업입니다.
 0.1.0 후보가 정한 인수 기준을 통과해 `~/.codex/skills/ko-technical-writing`에

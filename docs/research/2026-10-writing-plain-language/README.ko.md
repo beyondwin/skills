@@ -2,6 +2,9 @@
 
 [English](README.md)
 
+현재 개인용 스킬은 [Readable(리더블) 0.6.0](../2026-10-readable-rename/README.ko.md)이며
+`$readable`로 호출합니다. 아래 이름·경로·결과는 당시 실험 기록입니다.
+
 **개인용 Codex 스킬을 0.5.1로 갱신하고 설치 후 호출까지 확인했습니다.**
 최종본은 합성 과제 8개 작성, Opus·Grok 검토 8개, 기존 기능 검사 3개, 설치 후 검사
 1개를 통과했습니다. 개인용 읽기·사실 보존 기준의 통과이며, 앞선 비교 실험의 우월성
@@ -74,6 +77,6 @@
 최종 개인용 사용 판단은 실제 Codex 출력에 한정합니다. 자료가 뜻을 정하지 않은 용어를
 임의로 바꾸지는 않았고, CI·스테이징 등 부수적인 표현에는 더 다듬을 여지가 있습니다.
 
-새 대화에서 `$ko-technical-writing`으로 사용하세요.
+새 대화에서는 이름을 바꾼 `$readable`로 사용하세요.
 실제 출력 발췌는 로컬 파일
 `/Users/kws/Downloads/ko_writing_plain_language_native_20261009/reading-examples.md`에 있습니다.

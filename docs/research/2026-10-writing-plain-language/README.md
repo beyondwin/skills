@@ -2,7 +2,10 @@
 
 [한국어](README.ko.md)
 
-**Personal Codex 0.5.1 is installed and verified.** Eight native drafts, eight
+Current personal skill: [Readable 0.6.0](../2026-10-readable-rename/README.md),
+invoked as `$readable`. Names, paths and results below describe the historical study.
+
+**This study installed and verified personal Codex 0.5.1.** Eight native drafts, eight
 external audits (four Opus/four Grok), three native regressions and one installed
 smoke passed the separately declared personal-use acceptance. The earlier comparative
 criterion did not pass; general superiority and human reading benefits remain unproven.

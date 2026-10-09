@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-09",
+  "version": "0.6.0",
+  "name": "readable",
+  "display_name": "Readable (리더블)",
+  "source_version": "0.5.1",
+  "source_path": "docs/research/2026-10-writing-plain-language/validated-candidate/ko-technical-writing",
+  "source_frozen_manifest_unchanged": true,
+  "writing_instructions_and_references_unchanged": true,
+  "trigger_description_and_invocation_policy_unchanged": true,
+  "source_comparison": "Exact SKILL.md equality after name/version/heading substitutions; exact UI equality after display-name/default-prompt substitutions; byte-identical references.",
+  "payload_manifest": {
+    "README.ko.md": "d43f9ce610d579560af66fde8eaed08d24caea2cdc5d594d8607032d45078b7c",
+    "README.md": "5e37db86c8c6304b7c3901e99e2580463320599e190192653ceee72e4fd450da",
+    "SKILL.md": "0a7d18eb5c7e203ef93eacd6bd5d9d85197f56860fdf9494a01bc9760d6355a1",
+    "agents/openai.yaml": "b3e3ec918134c12d57c367311d4d9e86255f4ca4d9a125cf8ffcc95ad9213f85",
+    "references/change-messages.md": "c0501582563f8590d52efeed7aec84ebccf0af083aeafb4c781f1628c757fdfc",
+    "references/documents.md": "5bb5d62597be07b95615c4a9135a79b97b738836268c0d98102c4e76ba640dd6"
+  },
+  "installation": {
+    "path": "/Users/kws/.codex/skills/readable",
+    "manifest_matches": true,
+    "previous_path_removed": true,
+    "previous_backup_manifest_matches_source": true,
+    "backup_outside_skill_discovery": true
+  },
+  "quick_validate": "passed",
+  "public_doc_tests": {
+    "passed": 65,
+    "failed": 0
+  },
+  "live_provider_calls": 0,
+  "native_discovery_under_new_name": "not measured",
+  "full_product_suite": "not rerun; no registered product or shared runtime changes",
+  "limits": "Offline rename verification is not new live quality, discovery or human readability evidence.",
+  "changed_and_new_markdown_links": {
+    "files_checked": 18,
+    "errors": 0
+  },
+  "new_files_whitespace": "passed"
+}

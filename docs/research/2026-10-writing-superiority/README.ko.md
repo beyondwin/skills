@@ -2,6 +2,9 @@
 
 [English](README.md) · [이전 실험](../2026-10-writing-readability/README.ko.md)
 
+현재 개인용 스킬은 [Readable(리더블) 0.6.0](../2026-10-readable-rename/README.ko.md)이며
+`$readable`로 호출합니다. 아래 이름·경로·결과는 당시 실험 기록입니다.
+
 **우월성은 입증하지 못했고, 이 실험 종료 시 설치본은 0.2.2를 유지했습니다.**
 이후 [개인용 말투 수정](../2026-10-writing-plain-language/README.ko.md)에서 별도로 정한
 사용 기준에 따라 0.5.1을 설치했습니다. 이 비교가 통과로 바뀐 것은 아닙니다. 새 후보가

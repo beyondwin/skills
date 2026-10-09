@@ -2,6 +2,9 @@
 
 [한국어](README.ko.md)
 
+Current personal skill: [Readable 0.6.0](../2026-10-readable-rename/README.md),
+invoked as `$readable`. Names, paths and results below describe the historical study.
+
 This study targets the user's actual product goal: a personal skill that helps a
 reader understand a technical explanation on the first read, while preserving meaning.
 The [previous pilot](../2026-10-personal-writing-pilot/README.md) measured evidence

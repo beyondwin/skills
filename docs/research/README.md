@@ -17,6 +17,7 @@ reason a product was created or retired.
 | [Personal Korean technical-writing pilot](2026-10-personal-writing-pilot/README.md) | 2026-10-09 | Personal skill candidate; native discovery and evidence-reading comparison on synthetic repositories |
 | [Korean writing readability revision](2026-10-writing-readability/README.md) | 2026-10-09 | Reader-centered revision, masked Codex comparison, Opus/Grok extension and observed-defect repair |
 | [Korean writing superiority comparison](2026-10-writing-superiority/README.md) | 2026-10-09 | Frozen three-arm comparison on 12 new tasks, evaluator false positives, two bounded corrections; superiority not established |
+| [Readable personal-skill rename](2026-10-readable-rename/README.md) | 2026-10-09 | Current personal name and installation: Readable 0.6.0; unchanged writing instructions, offline rename verification |
 | [Familiar Korean personal-writing revision](2026-10-writing-plain-language/README.md) | 2026-10-09 | Human terminology feedback, failed relative comparisons, separate personal-use criteria, native Codex0.5.1 with Opus/Grok audits and installed verification |
 | [Ponytail value investigation](../learning/cases/2026-10-09-ponytail-value.md) | 2026-10-09 | Pinned 5.1.0 source audit, published benchmark recalculation, scorer and hook probes; Korean record with evidence limits, no live model calls |
 

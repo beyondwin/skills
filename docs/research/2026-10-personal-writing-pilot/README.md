@@ -2,6 +2,9 @@
 
 2026-10-09. [한국어](README.ko.md).
 
+Current personal skill: [Readable 0.6.0](../2026-10-readable-rename/README.md),
+invoked as `$readable`. Names, paths and results below describe the historical study.
+
 This follow-up turns the [earlier study](../2026-10-ko-clear-writing-eval/README.md)
 into a personal Codex candidate. It does not register a new supported repository
 product or modify a global writing policy. The frozen 0.1.0 candidate passed the

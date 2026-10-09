@@ -2,6 +2,9 @@
 
 [한국어](README.ko.md) · [Previous study](../2026-10-writing-readability/README.md)
 
+Current personal skill: [Readable 0.6.0](../2026-10-readable-rename/README.md),
+invoked as `$readable`. Names, paths and results below describe the historical study.
+
 **Superiority was not established. The personal installation remained 0.2.2 when this study ended.**
 A [later personal-language revision](../2026-10-writing-plain-language/README.md)
 installed0.5.1 under separately declared personal-use criteria; it does not turn

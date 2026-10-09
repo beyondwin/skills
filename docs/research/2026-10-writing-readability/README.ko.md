@@ -2,6 +2,9 @@
 
 [English](README.md)
 
+현재 개인용 스킬은 [Readable(리더블) 0.6.0](../2026-10-readable-rename/README.ko.md)이며
+`$readable`로 호출합니다. 아래 이름·경로·결과는 당시 실험 기록입니다.
+
 목표는 독자가 기술 설명을 한 번 읽고 원인과 조건, 다음 행동을 이해하도록 돕는
 개인용 스킬입니다. [앞선 실험](../2026-10-personal-writing-pilot/README.ko.md)은
 근거 보존과 실제 스킬 사용을 확인했으며 사람의 이해도를 측정하지 않았습니다.
