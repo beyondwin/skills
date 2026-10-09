@@ -64,6 +64,12 @@ facts, and only bounded redacted excerpts.
 
 ## Offline Validation
 
+On 2026-10-09, `noop-repetition-voice` was strengthened with contextual
+technical language and an error outside the requested editing span. The
+manifest fingerprint changed; case counts, repeat schedule, and call budgets
+did not. The unit test checks the unchanged body and four prohibited edits.
+This fixture update does not authorize provider calls or prove model behavior.
+
 The offline command below does not call Codex, Cursor, or any provider and does
 not authorize or prove live execution; it verifies only the synthetic offline
 fixtures and their mutation contract.

@@ -494,6 +494,13 @@ GUIDE_PRIVACY_PARAGRAPH = (
     "`.evidence/korean-writing-editor/live`; reports contain hashes, status "
     "facts, and only bounded redacted excerpts."
 )
+GUIDE_PATTERN_CONTROL_PARAGRAPH = (
+    "On 2026-10-09, `noop-repetition-voice` was strengthened with contextual "
+    "technical language and an error outside the requested editing span. The "
+    "manifest fingerprint changed; case counts, repeat schedule, and call budgets "
+    "did not. The unit test checks the unchanged body and four prohibited edits. "
+    "This fixture update does not authorize provider calls or prove model behavior."
+)
 GUIDE_OFFLINE_PARAGRAPH = (
     "The offline command below does not call Codex, Cursor, or any provider and "
     "does not authorize or prove live execution; it verifies only the synthetic "
@@ -734,7 +741,7 @@ GUIDE_EXPECTED_SECTIONS = (
         ),
     ),
     ("Safety And Privacy", (GUIDE_PRIVACY_PARAGRAPH,)),
-    ("Offline Validation", (GUIDE_OFFLINE_PARAGRAPH,)),
+    ("Offline Validation", (GUIDE_PATTERN_CONTROL_PARAGRAPH, GUIDE_OFFLINE_PARAGRAPH)),
     (
         "Dry Run",
         (
@@ -1373,6 +1380,23 @@ class DeterministicEvaluationTests(unittest.TestCase):
             "김민수는 v2.1.0 배포를 보류했다."
         )
         self.assert_soft_partial(case, response, "attribution_not_measured")
+
+    def test_contextual_patterns_and_edit_scope_control(self) -> None:
+        case = case_by_id("noop-repetition-voice")
+        findings = live_matrix.evaluate_response(case, case.source)
+        self.assertEqual(live_matrix.case_status(case, findings), "verified")
+        for old, new in (
+            ("leverage", "영향력"),
+            ("오류가 아니라 경고입니다", "경고입니다"),
+            ("반환됩니다", "반환돼요"),
+            ("금새", "금세"),
+        ):
+            with self.subTest(edit=(old, new)):
+                findings = live_matrix.evaluate_response(
+                    case, case.source.replace(old, new)
+                )
+                self.assertEqual(live_matrix.case_status(case, findings), "failed")
+                self.assertIn("exact_output_mismatch", {f.code for f in findings})
 
     def test_reversed_polish_meaning_is_not_verified(self) -> None:
         case = case_by_id("polish-local-flow")

@@ -78,7 +78,7 @@ EXPECTED_REPEAT_IDS = {
     "structure-embedded-instruction",
     "near-detector-author",
 }
-APPROVED_CASES_SHA256 = "922670cf2e23f24b5f1cf9e9b0a5524b005561ea2dff82c1ad246f50e3195898"
+APPROVED_CASES_SHA256 = "047462897d3f17c8dda691d246f86d0b842478d17d14750608a1dd572612a431"
 ANSI_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 EDIT_NARRATION_MARKERS = (
     "korean-writing-editor",

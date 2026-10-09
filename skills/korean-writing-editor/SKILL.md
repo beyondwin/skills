@@ -4,8 +4,8 @@ description: Use only when the user asks to proofread, correct, or polish Korean
 license: Apache-2.0
 compatibility: Requires Korean source text and local Agent Skills file access. Uses the active model.
 metadata:
-  version: "2.0.7"
-  updated_at: "2026-10-02"
+  version: "2.0.8"
+  updated_at: "2026-10-09"
 ---
 
 # Korean Writing Editor
@@ -75,7 +75,8 @@ tool.
 
 For a valid request, in this order:
 
-1. Determine the mode and any explicit protected expressions. In `diagnose`,
+1. Determine the mode, requested editing span, and explicit protected expressions.
+   Keep text outside that span unchanged, even if it contains errors. In `diagnose`,
    name issues, decision class, and holds; skip steps 3–5 and 7, check the
    findings against the original at step 6, and return findings only.
 2. Note material propositions and invariants in working memory only, without
@@ -83,7 +84,10 @@ For a valid request, in this order:
 3. Apply normative local corrections and clearly required local grammar
    corrections (`correct` and `polish` only).
 4. Apply optional readability and local flow improvements, including ordinary
-   word swaps, only in `polish`.
+   word swaps, only in `polish`. A stock phrase, English term, contrast, or
+   repeated ending is not an error by itself; require a contextual problem
+   before changing it. Do not remove a technical term or meaningful distinction
+   to satisfy a word blacklist.
 5. Restore intentional voice features (repetition, fragments, endings, slang,
    indirectness, rhythm) when they are voice rather than errors.
 6. Compare with the original and revert any unsupported semantic change,

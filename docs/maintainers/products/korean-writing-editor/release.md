@@ -28,7 +28,7 @@ When installed files change, the version decision in `release.toml` and
 Release evidence must include all of:
 
 - runner 18 product verification
-- the thirty-five offline cases (`normative=10 preservation=8 noop=6 voice=4 trigger=7`)
+- the thirty-seven offline cases (`normative=10 preservation=9 noop=7 voice=4 trigger=7`)
 - a README relative-link check on a copied or unpacked standalone payload
 
 A pass on the repository source payload does not replace ZIP verification.

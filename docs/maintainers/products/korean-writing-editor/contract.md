@@ -16,6 +16,12 @@ in one short Korean line.
 
 A valid request defaults to conservative `polish`.
 
+The requested editing span bounds both correction and polish: even errors
+outside it remain unchanged. Style-pattern matches alone do not establish an
+error. Technical English, meaningful contrasts, repeated endings, and voice
+features need a contextual reason to change. These clarify existing scope and
+preservation rules; activation, modes, and output defaults remain the same.
+
 | Mode | User intent | Boundary |
 | --- | --- | --- |
 | `diagnose` | "Just tell me the problems; don't fix them." | Name issues, decision class, and holds. Do not rewrite. |

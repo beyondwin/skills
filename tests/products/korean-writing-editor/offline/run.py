@@ -31,8 +31,8 @@ ALLOWED_CATEGORIES = {"normative", "preservation", "noop", "voice", "trigger"}
 ALLOWED_MODES = {"diagnose", "correct", "polish", "none"}
 EXPECTED_CATEGORY_COUNTS = {
     "normative": 10,
-    "preservation": 8,
-    "noop": 6,
+    "preservation": 9,
+    "noop": 7,
     "voice": 4,
     "trigger": 7,
 }
@@ -519,6 +519,32 @@ def run_mutation_checks(cases: list[dict[str, object]]) -> list[str]:
             errors.append(
                 "mutation: fulfilling a translation near-miss produced no error"
             )
+
+    scoped = by_id.get("meaning-scoped-edit-09")
+    if scoped is None:
+        errors.append("mutation: missing meaning-scoped-edit-09")
+    else:
+        for candidate in (
+            scoped["source"],
+            str(scoped["candidate"]).replace("금새", "금세"),
+            str(scoped["candidate"]).replace("10월 12일", "10월 13일"),
+            "캐시가 비어 있으면 결과를 출력할 수 없다.",
+        ):
+            if not evaluate_candidate(dict(scoped, candidate=candidate)):
+                errors.append("mutation: scoped edit or preserved context escaped")
+
+    contextual = by_id.get("noop-context-patterns-07")
+    if contextual is None:
+        errors.append("mutation: missing noop-context-patterns-07")
+    else:
+        for old, new in (
+            ("leverage", "영향력"),
+            ("오류가 아니라 경고입니다", "경고입니다"),
+            ("반환됩니다", "반환돼요"),
+        ):
+            candidate = str(contextual["candidate"]).replace(old, new)
+            if not evaluate_candidate(dict(contextual, candidate=candidate)):
+                errors.append("mutation: context-free style edit escaped")
 
     return errors
 

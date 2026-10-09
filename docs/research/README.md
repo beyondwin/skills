@@ -21,6 +21,9 @@ reason a product was created or retired.
 | [Familiar Korean personal-writing revision](2026-10-writing-plain-language/README.md) | 2026-10-09 | Human terminology feedback, failed relative comparisons, separate personal-use criteria, native Codex0.5.1 with Opus/Grok audits and installed verification |
 | [Ponytail value investigation](../learning/cases/2026-10-09-ponytail-value.md) | 2026-10-09 | Pinned 5.1.0 source audit, published benchmark recalculation, scorer and hook probes; Korean record with evidence limits, no live model calls |
 
+- [Anti-slop skill source audit](2026-10-slop-skill-audit/README.md): pinned sources,
+  gate and lint counterexamples, and bounded Korean editor changes; no model calls.
+
 - Raw transcripts, provider receipts, and generated task repositories are not committed. Only
   aggregated numbers and grading results are kept.
 - The harnesses call live models. `scripts/verify.py` and CI do not run the code in this folder.

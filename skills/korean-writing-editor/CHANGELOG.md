@@ -4,6 +4,12 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- Local correction respects a user-selected editing span, including errors outside it.
+- Pattern matches alone do not justify edits: preserve contextual technical terms,
+  meaningful contrasts, and intentional repetition instead of applying a word blacklist.
+
 ### Changed
 
 - `SKILL.md` states the no-rewording list (negation, modality, obligation, possibility, quantity, and attribution, with the `말했다`/`밝혔다` example) once, in the Preservation Gate. Editing Pass steps 2 and 6 point to the gate instead of repeating the list. Behavior is unchanged.

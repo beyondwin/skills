@@ -52,6 +52,11 @@ and attribution wording stays as written; attribution covers the speaker, the
 quoted words, and the reporting verb. Keep paragraph order and claim order
 unless the user asked to restructure.
 
+Apply the Editing Pass's scope and contextual-pattern rules from `SKILL.md`.
+For example, an error in an excluded paragraph stays untouched. A technical
+use of `leverage`, a factual `X가 아니라 Y`, or deliberate repetition can be
+valid as written; classify an actual problem in context, not the token alone.
+
 Do not homogenize sentence length, vary wording to “sound human,” or rewrite
 every sentence into public-document prose. Readability heuristics are
 `editorial-suggestion`, not `normative-rule`. Length alone does not justify

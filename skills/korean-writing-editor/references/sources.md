@@ -2,7 +2,7 @@
 
 Authoritative links, evidence class, and reuse limits for
 `korean-writing-editor`. This skill cites these sources; it does not copy
-their corpora, datasets, or rule lists. Checked dates are `2026-08-22`.
+their corpora, datasets, or rule lists. Each entry records its check date.
 
 ## Sources
 
@@ -18,7 +18,7 @@ their corpora, datasets, or rule lists. Checked dates are `2026-08-22`.
 
 ## Related Projects
 
-Inspected on 2026-08-22 as design references, not dependencies. No code,
+Inspected on the dates below as design references, not dependencies. No code,
 corpus, or rule list was copied. Licenses below are the upstream LICENSE files
 at the pinned commits.
 
@@ -30,3 +30,19 @@ at the pinned commits.
 
 These projects are not runtime dependencies and were not cloned into this
 skill.
+
+### 2026-10-09 comparison
+
+- [no-ai-slop at 000650b](https://github.com/petergyang/no-ai-slop/tree/000650b156983f5159695b441477f4e63b25dc85),
+  [MIT license](https://github.com/petergyang/no-ai-slop/blob/000650b156983f5159695b441477f4e63b25dc85/LICENSE):
+  minimal edits and voice preservation agree with this skill. Reject its
+  unconditional word blacklist as a Korean editorial rule; a technical word or
+  contrast needs contextual review. No text or catalog copied.
+- [im-not-ai at 2f3d943](https://github.com/epoko77-ai/im-not-ai/tree/2f3d943d08056b612a92e12bfb72ea94dd2acd18),
+  [MIT license](https://github.com/epoko77-ai/im-not-ai/blob/2f3d943d08056b612a92e12bfb72ea94dd2acd18/LICENSE):
+  targeted editing reinforces the existing scope boundary. Its gate tests
+  passed 40/40 locally, but synthetic numeric deletion and negation reversal
+  both returned exit 0. Do not adopt its gate as proof of meaning preservation,
+  metrics targets, persisted-input workflow, or multi-agent pipeline. No code,
+  rule catalog, or corpus copied. This is a new inspection, not a replacement
+  for the older pinned observation above. No live model calls were made.

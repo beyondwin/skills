@@ -22,7 +22,7 @@ from scripts.lib.product_contract import (  # noqa: E402
 from scripts.lib.product_registry import load_registry, PRODUCT_README_NAMES  # noqa: E402
 
 EXPECTED = {
-    "korean-writing-editor": "2.0.7",
+    "korean-writing-editor": "2.0.8",
     "image-workbench": "2.1.1",
     "how-it-works": "3.0.3",
 }
@@ -102,7 +102,7 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         root = self._copy("korean-writing-editor")
         manifest = root / "release.toml"
         original = manifest.read_text(encoding="utf-8")
-        mutated = original.replace('version = "2.0.7"', 'version = "2.0"', 1)
+        mutated = original.replace('version = "2.0.8"', 'version = "2.0"', 1)
         self.assertNotEqual(mutated, original)
         manifest.write_text(mutated, encoding="utf-8")
         errors = "\n".join(validate_product(root, REGISTRY))

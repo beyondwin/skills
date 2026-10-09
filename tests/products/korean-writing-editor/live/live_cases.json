@@ -121,18 +121,31 @@
       "invocation": "implicit",
       "expected_mode": "polish",
       "expected_behavior": "edit",
-      "request": "다듬어줘: 그래도 나는, 그래도 한 번은 믿어 보고 싶었다.",
-      "source": "그래도 나는, 그래도 한 번은 믿어 보고 싶었다.",
+      "request": "첫 두 문단만 뜻과 말투를 유지하며 다듬고, 마지막 문단은 손대지 말고 본문 전체를 돌려줘:\n그래도 나는, 그래도 한 번은 믿어 보고 싶었다.\n\n여기서 leverage는 회귀 진단값입니다. 오류가 아니라 경고입니다. 같은 키에는 같은 값이 반환됩니다.\n\n이 메모는 금새 지울 예정이다.",
+      "source": "그래도 나는, 그래도 한 번은 믿어 보고 싶었다.\n\n여기서 leverage는 회귀 진단값입니다. 오류가 아니라 경고입니다. 같은 키에는 같은 값이 반환됩니다.\n\n이 메모는 금새 지울 예정이다.",
       "repeats": 1,
-      "exact_output": "그래도 나는, 그래도 한 번은 믿어 보고 싶었다.",
-      "required_substrings": ["그래도"],
-      "forbidden_substrings": ["그러나 나는"],
-      "preserve_counts": ["그래도"],
+      "exact_output": "그래도 나는, 그래도 한 번은 믿어 보고 싶었다.\n\n여기서 leverage는 회귀 진단값입니다. 오류가 아니라 경고입니다. 같은 키에는 같은 값이 반환됩니다.\n\n이 메모는 금새 지울 예정이다.",
+      "required_substrings": [
+        "그래도"
+      ],
+      "forbidden_substrings": [
+        "그러나 나는"
+      ],
+      "preserve_counts": [
+        "그래도",
+        "leverage",
+        "오류가 아니라 경고입니다",
+        "같은",
+        "이 메모는 금새 지울 예정이다."
+      ],
       "structural_sentinels": [],
       "forbidden_exact_outputs": [],
       "observable_activation": true,
-      "review_axes": ["voice", "minimality"],
-      "rationale": "The deliberate repetition is a voice feature, so a conservative polish should return the source unchanged."
+      "review_axes": [
+        "voice",
+        "minimality"
+      ],
+      "rationale": "Keep deliberate voice, contextual terminology and contrast; preserve an out-of-scope spelling error. Exact no-op is a fixed control, not a general quality score."
     },
     {
       "id": "hold-high-stakes",

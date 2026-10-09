@@ -1,8 +1,8 @@
 # korean-writing-editor testing
 
 Offline fixtures (fixed examples that lock the rules without a model) live in
-`tests/products/korean-writing-editor/offline/`. Keep the thirty-five property
-cases (`normative=10 preservation=8 noop=6 voice=4 trigger=7`) and the mutation
+`tests/products/korean-writing-editor/offline/`. Keep the thirty-seven property
+cases (`normative=10 preservation=9 noop=7 voice=4 trigger=7`) and the mutation
 checks in its `cases.json` and `run.py`. A mutation check confirms that a
 deliberately broken candidate fails.
 
@@ -62,6 +62,16 @@ They also check that the description is trigger-only: it starts with
   does not prove live model quality.
 
 ## Live evidence limits
+
+The 2.0.8 offline additions are `meaning-scoped-edit-09` and
+`noop-context-patterns-07`. The former repairs a selected paragraph while
+retaining an error elsewhere; mutations also test lost context and date drift.
+The latter rejects needless terminology, contrast, and register changes.
+The live `noop-repetition-voice` control now combines deliberate repetition,
+technical language, and a typo outside the requested span. Its unit test
+accepts the unchanged body and rejects four altered candidates. The existing
+14-case / 17-repeat plan and call budgets are unchanged. These are oracle
+checks and prepared live inputs, not before/after model measurements.
 
 The source of truth for the procedure is
 `tests/products/korean-writing-editor/live/README.md`. That document defines

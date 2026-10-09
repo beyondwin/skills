@@ -28,7 +28,7 @@ RUNNER = (
 )
 CASES = RUNNER.with_name("cases.json")
 EXPECTED_SUMMARY = (
-    "35 cases: normative=10 preservation=8 noop=6 voice=4 trigger=7"
+    "37 cases: normative=10 preservation=9 noop=7 voice=4 trigger=7"
 )
 PAYLOAD_FILES = (
     "SKILL.md",
@@ -170,7 +170,7 @@ class KoreanPackageTests(unittest.TestCase):
         self.assertTrue(CASES.is_file(), "cases.json is absent")
         payload = json.loads(CASES.read_text(encoding="utf-8"))
         self.assertEqual(payload["version"], "1")
-        self.assertEqual(len(payload["cases"]), 35)
+        self.assertEqual(len(payload["cases"]), 37)
         runner_text = RUNNER.read_text(encoding="utf-8")
         self.assertIn("--skill-root", runner_text)
         self.assertIn('with_name("cases.json")', runner_text)

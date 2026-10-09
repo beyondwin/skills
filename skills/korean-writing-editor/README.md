@@ -57,6 +57,10 @@ $korean-writing-editor Fix typos only: (Korean text)
 
 The reply is the edited text itself. `diagnose` returns only the findings.
 
+If you select a paragraph or sentence, the rest stays unchanged, including
+errors outside that selection. English technical terms, meaningful contrasts,
+and intentional repetition are not errors merely because they match a style pattern.
+
 ## See also
 
 - [Safety and privacy](https://github.com/beyondwin/skills/blob/main/docs/users/en/safety-and-privacy.md)

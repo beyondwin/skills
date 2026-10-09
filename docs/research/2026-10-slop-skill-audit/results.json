@@ -1,0 +1,60 @@
+{
+  "revisions": {
+    "no-ai-slop": "000650b156983f5159695b441477f4e63b25dc85",
+    "im-not-ai": "2f3d943d08056b612a92e12bfb72ea94dd2acd18",
+    "anti-slop": "c44ef22ca116d0ba62a3ff663a0bd13a3f3fa40b"
+  },
+  "python": "Python 3.9.6",
+  "node": "v24.18.0",
+  "model_calls": 0,
+  "humanize_gate": [
+    {
+      "case": "unchanged-control",
+      "exit_code": 0,
+      "change_rate": 0.0,
+      "numbers_dropped": [],
+      "golden_findings": 0,
+      "modality_lost_pairs": 0
+    },
+    {
+      "case": "number-loss",
+      "exit_code": 0,
+      "change_rate": 0.1212,
+      "numbers_dropped": [
+        "40"
+      ],
+      "golden_findings": 0,
+      "modality_lost_pairs": 0
+    },
+    {
+      "case": "negation-reversal",
+      "exit_code": 0,
+      "change_rate": 0.0345,
+      "numbers_dropped": [],
+      "golden_findings": 0,
+      "modality_lost_pairs": 0
+    }
+  ],
+  "anti_slop": {
+    "lint_cases": 5,
+    "eagerLog": [
+      "f1",
+      "f2",
+      "m1",
+      "m2"
+    ],
+    "lazyLog": [
+      "f1",
+      "m1",
+      "f2",
+      "m2"
+    ],
+    "eagerSparse": [
+      "1"
+    ],
+    "lazySparse": [
+      "undefined",
+      "1"
+    ]
+  }
+}

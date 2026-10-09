@@ -572,6 +572,54 @@
       "required_substrings": ["고칠 부분 없음"],
       "forbidden_substrings": ["오늘은 조금 늦을 것 같아요.", "Using the", "한국어 교정 스킬"],
       "rationale": "Diagnose on clean text returns one line, never the unchanged source."
+    },
+    {
+      "id": "meaning-scoped-edit-09",
+      "category": "preservation",
+      "request": "캐시가로 시작하는 문단의 띄어쓰기만 고치고 본문 전체를 돌려줘:\n제목: 캐시 점검\n\n메모는 금새 지울 예정이다.\n\n캐시가 비어 있으면 결과를 출력할수 없다.\n\n다음 검토는 10월 12일이다.",
+      "source": "제목: 캐시 점검\n\n메모는 금새 지울 예정이다.\n\n캐시가 비어 있으면 결과를 출력할수 없다.\n\n다음 검토는 10월 12일이다.",
+      "candidate": "제목: 캐시 점검\n\n메모는 금새 지울 예정이다.\n\n캐시가 비어 있으면 결과를 출력할 수 없다.\n\n다음 검토는 10월 12일이다.",
+      "candidate_trigger": true,
+      "candidate_mode": "correct",
+      "expected_trigger": true,
+      "expected_mode": "correct",
+      "expected_noop": false,
+      "must_preserve": [
+        "제목: 캐시 점검",
+        "메모는 금새 지울 예정이다.",
+        "캐시가 비어 있으면",
+        "없다",
+        "다음 검토는 10월 12일이다."
+      ],
+      "required_substrings": [
+        "출력할 수"
+      ],
+      "forbidden_substrings": [
+        "출력할수",
+        "금세"
+      ],
+      "rationale": "Repair only the requested paragraph; retain an intentional out-of-scope spelling error and all factual context."
+    },
+    {
+      "id": "noop-context-patterns-07",
+      "category": "noop",
+      "request": "뜻과 전문 용어를 유지하고 자연스럽게 다듬어줘: 여기서 leverage는 회귀 진단값입니다. 오류가 아니라 경고입니다. 같은 키에는 같은 값이 반환됩니다.",
+      "source": "여기서 leverage는 회귀 진단값입니다. 오류가 아니라 경고입니다. 같은 키에는 같은 값이 반환됩니다.",
+      "candidate": "여기서 leverage는 회귀 진단값입니다. 오류가 아니라 경고입니다. 같은 키에는 같은 값이 반환됩니다.",
+      "candidate_trigger": true,
+      "candidate_mode": "polish",
+      "expected_trigger": true,
+      "expected_mode": "polish",
+      "expected_noop": true,
+      "must_preserve": [
+        "leverage",
+        "오류가 아니라 경고입니다",
+        "같은",
+        "입니다"
+      ],
+      "required_substrings": [],
+      "forbidden_substrings": [],
+      "rationale": "A technical English term, meaningful contrast, and repeated formal endings are not errors by pattern match alone."
     }
   ]
 }

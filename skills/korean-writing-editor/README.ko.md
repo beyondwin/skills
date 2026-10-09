@@ -55,6 +55,9 @@ Codex에서는 `$korean-writing-editor`와 `/korean-writing-editor` 둘 다 됩�
 
 답은 고친 글 그 자체입니다. `diagnose`는 소견만 돌려줍니다.
 
+특정 문단이나 문장만 지정하면 나머지는 오류가 있어도 그대로 둡니다. 영어 전문 용어,
+의미 있는 대조, 의도적인 반복은 특정 문체 패턴과 닮았다는 이유만으로 고치지 않습니다.
+
 ## 더 보기
 
 - [안전과 개인정보](https://github.com/beyondwin/skills/blob/main/docs/users/ko/safety-and-privacy.md)
