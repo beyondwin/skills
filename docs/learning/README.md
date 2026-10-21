@@ -16,6 +16,7 @@
 
 | 질문 | 관련 작업 | 결정일 | 결과와 근거의 한계 |
 | --- | --- | --- | --- |
+| [이미지 검수는 언제 충분한가?](cases/2026-10-21-image-inspection-convergence.md) | image-workbench | 2026-10-21 | 새 생성 8턴 완료·실패/허용 크롭 대조 통과. 각 1회, 그림 품질 개선 미입증 |
 | [AI 티를 줄이는 네 스킬에서 무엇을 가져올까?](cases/2026-10-09-slop-skills-quality.md) | 외부 스킬 검토, korean-writing-editor | 2026-10-09 | 공개 후보 3개 검토·반례 실행, 1개 원본 미확인. 편집 범위·문맥 판단 보강, 모델 품질 미측정 |
 | [깊이를 먼저 물을까, 바로 설명할까?](cases/2026-09-12-explain-before-depth-question.md) | how-it-works | 2026-09-12 | 기본 그림 설명 구현. 당시 변경에서는 품질 미측정 |
 | [구현 스킬에 작업 관리 절차를 얼마나 넣을까?](cases/2026-09-27-light-implementation-workflow.md) | waygent | 2026-09-27부터 | 가벼운 절차를 구현·평가·수정. 이후 별도 결정으로 삭제 |

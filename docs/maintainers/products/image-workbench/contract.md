@@ -61,6 +61,12 @@ looking at the image. On Grok, results are JPEG without alpha; keep the `.jpg`
 extension, and hold or report an explicit conversion when acceptance needs
 transparency, PNG, or exact pixels.
 
+Inspection ends with a verdict once visual and file evidence is sufficient.
+A visible defect does not require a new pixel-analysis pipeline. Additional
+measurement needs an unresolved acceptance condition that could change the
+verdict; unavailable evidence produces a reported hold. This preserves
+required inspection and authorized correction, including exact requirements.
+
 Inspector rules:
 
 - Never write the result to the same file as the input image, including

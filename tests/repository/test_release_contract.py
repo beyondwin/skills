@@ -23,7 +23,7 @@ from scripts.lib.product_registry import load_registry, PRODUCT_README_NAMES  # 
 
 EXPECTED = {
     "korean-writing-editor": "2.0.8",
-    "image-workbench": "2.1.1",
+    "image-workbench": "2.1.2",
     "how-it-works": "3.0.3",
 }
 REGISTRY = load_registry(ROOT / "products.toml")

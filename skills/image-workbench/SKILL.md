@@ -4,8 +4,8 @@ description: Use when a raster image must fit this project, keep given constrain
 license: Apache-2.0
 compatibility: Requires Codex or Grok built-in image generation and local image viewing for generate or edit mode. Brief and audit modes can run read-only.
 metadata:
-  version: "2.1.1"
-  updated_at: "2026-10-01"
+  version: "2.1.2"
+  updated_at: "2026-10-21"
 ---
 
 # Image Workbench
@@ -100,7 +100,8 @@ where `<skill-root>` is the folder that holds this file. It reports format,
 dimensions, alpha when exposed, byte size, SHA-256, whether the extension
 matches the format, and trailing bytes. Confirm the destination path
 separately. Give `--output` an absolute report path outside the skill folder.
-Mechanical facts never replace visual inspection; apply the
+Run the inspector directly; read its source only when diagnosing an inspector
+failure or changing it. Mechanical facts never replace visual inspection; apply the
 [quality rubric](references/quality-rubric.md).
 
 The inspector verifies selected file facts and required parsed structure,
@@ -108,9 +109,25 @@ not complete bitstream decoding. Visual quality and rights remain separate
 checks. Its JSON output must not alias the input asset; an existing
 `--output` target must be a JSON report, never an image or other file.
 
+Once the image has been opened and the file facts checked, decide from that
+evidence. A clearly visible failure is enough to reject the candidate; do not
+build pixel-analysis scripts to prove it again. Additional measurement is
+useful only for an unresolved acceptance condition that could change the
+verdict, such as a required exact color or crop boundary. State that question
+before measuring. If the needed measurement is unavailable, report that
+condition as unverified and finish with a hold instead of searching for more
+decoders or building a new verification pipeline.
+
 ## Iterate And Stop
 
 Produce one useful first candidate by default. One tool call per explicitly requested distinct asset or variant. Ordinary requests never become unrequested batches. Make at most one clearly justified correction at a time. Repeat the ImageSpec invariants and candidate inspection after each correction. Hold when a critical condition cannot be verified instead of treating an aesthetic preference as a reason to keep generating.
+
+After inspection, finish with either an accepted candidate or a concise hold
+naming the failed or unverified critical condition. When a correction is
+within the authorized scope and remaining call budget, make the targeted
+correction and recheck; otherwise report the current candidate and stop.
+A rejected candidate still gets a final report. Do not keep investigating a
+known failure while withholding the handoff.
 
 ## Save And Integrate
 

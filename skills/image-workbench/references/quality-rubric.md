@@ -43,6 +43,14 @@ area, and required layout as explicit checks. If an exact requirement cannot be
 directly inspected or constructed deterministically, hold the handoff instead
 of inferring success.
 
+## Sufficient Evidence
+
+Use the stopping rule in `SKILL.md` under Inspect And Evaluate: distinguish a
+visible failure from a condition that still needs measurement. A failed
+critical condition rejects the candidate even when file checks pass. Report
+what was observed and what remains unverified; the evidence statuses do not
+turn a rejected candidate into an accepted one.
+
 ## Targeted Iteration
 
 Name one failed critical or acceptance condition, apply one justified correction,

@@ -46,8 +46,8 @@ does not run them. Record offline passes and live image results separately.
 ## Codex trigger eval, 2026-10-02
 
 Recorded in full in the [skill trigger eval](../../../research/2026-10-skill-trigger-eval/README.md). Codex gpt-6-astra/high with every installed skill and plugin,
-in a synthetic project with brand notes and PNG assets. SKILL.md was `95c1a397`, which is not
-edited, so the Grok smoke binding holds.
+in a synthetic project with brand notes and PNG assets. SKILL.md was `95c1a397`
+at the time; this is historical trigger evidence, not a binding for later edits.
 
 - **Positives.** The skill loaded for 24 of 24 project raster requests: replacing the hero
   image, a transparent logo, an App Store size, a thumbnail, comparing two heroes, auditing a
@@ -80,3 +80,19 @@ archive again by hand to repeat that check.
 
 CI does not require real image generation. It may need a login and may cost
 money. Do not describe an offline pass as "the image is good".
+
+## Inspection convergence, 2026-10-21
+
+Version 2.1.2 was checked with Grok 1.0.62 (`grok-4.7-build` in the
+transcript). A fresh generation completed in 8 turns with a correct hold for
+visible table crop, versus the historical 18-turn limit without a final
+report. Two audits of the same saved image rejected forbidden crop and
+accepted explicitly allowed crop, each in 4 turns, without pixel-analysis
+scripts or image calls. Explicit brief and a read-only casual-picture routing
+probe made no images or file changes. The latter read the skill boundary but
+did not execute its project workflow.
+
+These are single regression runs, not statistical quality or latency claims.
+Exact numerical acceptance, image edits, and Codex live behavior were not
+retested. See the [decision record](../../../learning/cases/2026-10-21-image-inspection-convergence.md)
+and current `live/smoke-record.json` for the scope and session identifiers.

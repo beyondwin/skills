@@ -4,6 +4,14 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- Finish visual inspection with a verdict once the evidence is sufficient.
+  A visible failure no longer calls for an improvised pixel-analysis pipeline;
+  extra measurement is reserved for unresolved acceptance conditions.
+- Run the file inspector directly, and report a hold when required evidence or
+  an authorized correction is unavailable instead of delaying the final handoff.
+
 ## 2.1.1 - 2026-10-01
 
 ### Fixed
