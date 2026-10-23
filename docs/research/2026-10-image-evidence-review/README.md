@@ -326,6 +326,7 @@ selection as well as retaining eligible images without dropping hard cases.
 
 ### Fresh paired development result
 
+The [safe aggregate](development-codex-g.json) records this development stage.
 Both arms completed six fresh Codex sessions on the same 22 historical originals.
 All 12 sessions and the final score bindings passed independent audits. The
 control classified 19/22 correctly versus G's 22/22; false accepts stayed at zero,

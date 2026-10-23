@@ -1,0 +1,153 @@
+{
+  "scope": "Fresh within-Codex baseline2.1.5 versus frozen G on all22 historical originals; fresh sessions in both arms; no fresh-pixel holdout or native activation claim.",
+  "reference_count": 22,
+  "pool_count_per_arm": 8,
+  "all_sessions_fresh": true,
+  "historical_baseline_reused": false,
+  "candidate": "frozen G",
+  "baseline": "2.1.5",
+  "arms": {
+    "baseline": {
+      "correct": 19,
+      "total": 22,
+      "false_accept": 0,
+      "false_reject": 3,
+      "missing": 0,
+      "unverified": 1,
+      "pool_correct": 7,
+      "pool_total": 8,
+      "categories": {
+        "count": {
+          "total": 2,
+          "clear": 2,
+          "correct": 2,
+          "errors": 0
+        },
+        "forbidden_surface_detail": {
+          "total": 1,
+          "clear": 1,
+          "correct": 1,
+          "errors": 0
+        },
+        "occlusion": {
+          "total": 4,
+          "clear": 4,
+          "correct": 4,
+          "errors": 0
+        },
+        "valid": {
+          "total": 14,
+          "clear": 14,
+          "correct": 11,
+          "errors": 3
+        },
+        "visible_feet": {
+          "total": 1,
+          "clear": 1,
+          "correct": 1,
+          "errors": 0
+        }
+      },
+      "completed_native_responses": 33,
+      "sum_run_seconds": 666.8728436669999,
+      "tokens": {
+        "input_tokens": 640097,
+        "cached_input_tokens": 490368,
+        "output_tokens": 20676,
+        "reasoning_output_tokens": 7666,
+        "total_tokens": 660773
+      },
+      "all_native_model_effort_match": true,
+      "all_auth_removed": true
+    },
+    "candidate": {
+      "correct": 22,
+      "total": 22,
+      "false_accept": 0,
+      "false_reject": 0,
+      "missing": 0,
+      "unverified": 0,
+      "pool_correct": 8,
+      "pool_total": 8,
+      "categories": {
+        "count": {
+          "total": 2,
+          "clear": 2,
+          "correct": 2,
+          "errors": 0
+        },
+        "forbidden_surface_detail": {
+          "total": 1,
+          "clear": 1,
+          "correct": 1,
+          "errors": 0
+        },
+        "occlusion": {
+          "total": 4,
+          "clear": 4,
+          "correct": 4,
+          "errors": 0
+        },
+        "valid": {
+          "total": 14,
+          "clear": 14,
+          "correct": 14,
+          "errors": 0
+        },
+        "visible_feet": {
+          "total": 1,
+          "clear": 1,
+          "correct": 1,
+          "errors": 0
+        }
+      },
+      "completed_native_responses": 31,
+      "sum_run_seconds": 644.5643777509999,
+      "tokens": {
+        "input_tokens": 596801,
+        "cached_input_tokens": 470016,
+        "output_tokens": 19468,
+        "reasoning_output_tokens": 6521,
+        "total_tokens": 616269
+      },
+      "all_native_model_effort_match": true,
+      "all_auth_removed": true
+    }
+  },
+  "gate": {
+    "all12_independently_verified": true,
+    "at_least20_of22": true,
+    "count_domain_improved_or_ceiling": true,
+    "occlusion_improved_or_ceiling": true,
+    "no_false_accept_increase": true,
+    "no_false_reject_increase": true,
+    "no_pool_regression": true,
+    "all_fail_pools_held": true,
+    "no_unverified_or_missing": true
+  },
+  "gate_pass": true,
+  "observed_correctness_gain": true,
+  "ceiling_tie": false,
+  "paired": {
+    "unique_population": 22,
+    "reviews_per_image_per_arm": 1,
+    "unique_improved": 3,
+    "unique_regressed": 0,
+    "unique_exact_paired_p": 0.25,
+    "unit_of_analysis": "unique source image; repetition is not another independent image"
+  },
+  "actual_model": "gpt-6-astra",
+  "actual_effort": "ultra",
+  "image_generation_calls": 0,
+  "usd": null,
+  "source_integrity_guard": true,
+  "limitations": [
+    "Historical originals and reference labels; not fresh-pixel holdout",
+    "One fresh review per image per arm; no general superiority inference from a small paired difference",
+    "Explicit skill body injection, not native activation",
+    "No plain arm or image generation/correction quality evidence in this stage"
+  ],
+  "comparison_commit": "6e9eef6",
+  "candidate_skill_sha256": "0682496b6ebe16bcba952ade8be5c740b20ed6f4b7ba891d638155391d43e429",
+  "candidate_rubric_sha256": "0360bef06fef0b89a8aefed83dca2adb66fcb47dc75d9af8a5fb47c889a9bb03"
+}
