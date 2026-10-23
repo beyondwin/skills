@@ -226,6 +226,18 @@ Its frozen experimental payload and patch remain private, and all running jobs u
 their pinned copies. The installed product remains the committed retention-only
 2.1.5 until a new candidate qualifies; no experimental 2.1.6 is released.
 
+F completed all six focused observations normally, but both decision sessions
+exhausted their remaining turns. Including observers, the boat block used exactly
+30 turns and 772.788 seconds; the table block used 30 turns and 786.194 seconds.
+The original observations were copied byte-for-byte and actually read by both
+decision sessions, with identical actual `grok-4.7-build/high` throughout. The
+boat decision also inspected enlarged diagnostics, violating the original-pixel
+inspection contract. Neither block qualifies for primary quality scoring. The
+table's unfinished report rejected all four candidates, including the three valid
+ones; it is diagnostic evidence only. F improved observation completion over E,
+not demonstrated perception accuracy or final review. Further prompt-only Grok
+review iterations stop here.
+
 ### Separate Codex review comparison
 
 Before any Codex quality result, prepare a distinct comparison of the same control
