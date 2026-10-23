@@ -153,6 +153,17 @@ the reads failed. The control wrote a path pointer into the shared temporary
 directory. Neither block earns verified primary decisions. Supplemental visual
 scores remain explicitly separate; no failed block is replaced by a retry.
 
+The D runtime audit found that CLI allowlists use different names from some
+transcript tools. Unknown names made the CLI retain its broad tool set. This also
+affected the original control/A queue, B and C: their actual image-call count was
+zero, but image tools were not structurally unavailable as intended. Both arms of
+the original comparison had the same broad availability. That distinction is
+retained in the results. D additionally exposed bundled skill descriptions in one
+observer, despite empty preparation-time discovery; its decisions are not
+dispatched and it cannot qualify a candidate. New dispatch pauses for corrected
+tool identifiers, bundled-skill exclusion and a minimal native-init canary. Static
+discovery alone did not establish the execution profile.
+
 The first runner check falsely rejected native records lacking a legacy memory
 metadata key. Its raw failure is preserved. The pinned CLI's local guide states
 that `GROK_MEMORY=0` forces memory off; the runner set that variable and both config
