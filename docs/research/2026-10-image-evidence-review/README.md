@@ -389,6 +389,24 @@ This distinguishes valid raster sources for a review experiment from a successfu
 generator output workflow. The omitted generator inspections cannot pass the
 original output-contract gate or support an end-to-end product claim.
 
+All 24 planned attempts subsequently finished, producing 24 unique originals and
+24 exact project copies, with no retry, replacement or corrective generation.
+The independent source/path/runtime audit passed. All 24 raw generation-contract
+failures remain recorded because the separate generator preview was omitted in
+every call. The [safe generation aggregate](fresh-generation.json) reports 98
+Grok turns, 983.204 summed seconds and $0.38495888 reported cost; it does not infer
+the image engine or separate image billing. Two new packet-only reviewers now
+inspect every original. The runtime auditor accidentally saw one creation prompt
+and is excluded from all quality judging; the two fresh judges received no
+creation intentions, previous results or treatment labels.
+
+The final relay assigns visual review to its Codex parent. Its Grok child only
+draws and returns source bytes, recording any child preview as an observation.
+This division is declared before relay calls. Every returned candidate, including
+an unselected one, still requires native original-byte inspection by the parent.
+A child preview cannot substitute for that check. The original holdout failures
+are not retrospectively normalized into workflow successes.
+
 ### End-to-end execution plan
 
 The final generation check uses the unchanged lamp, pebbles and carafes briefs
