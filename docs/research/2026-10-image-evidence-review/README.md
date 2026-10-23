@@ -1,6 +1,6 @@
 # Evidence-based image review redesign
 
-Started: 2026-10-23. Status: development in progress; no improvement claim yet.
+Started: 2026-10-23. Status: G passed historical development; fresh-image validation in progress. The installed product remains 2.1.5.
 
 The [preceding repair](../2026-10-image-review-repair/README.md) retained
 correction-condition preservation but failed to improve count, occlusion and
@@ -19,11 +19,27 @@ Object parts, background surfaces and independent props must not be conflated.
 Every rejection needs a requirement and localized image evidence; an unresolved
 critical condition remains unverified, not an invented failure or pass.
 
-Candidate A uses an instance inventory before count comparison, an explicit
-foreground-boundary check, and a check of the benign interpretation before a
-candidate is rejected. Aesthetic ranking happens only among eligible candidates.
-It adds no provider, helper, compulsory second agent, or image-generation budget.
-The previous crop-heavy variants are not revived.
+The current candidate G preserves the scope and strength of each original
+requirement. Framing the complete subject, visibly identifying its named parts,
+and requiring completely unobstructed outlines are different contracts. Count
+observed instances before comparing with the requested count. Reject a candidate
+only for evidence that contradicts the actual contract; do not strengthen a normal
+visibility request or weaken an explicit no-occlusion request. Choose by aesthetic
+quality only among eligible candidates. For correction, preserve the complete
+original drawing base and append one targeted change, then recheck every original
+condition. The goal is more usable deliveries with fewer erroneous rejections,
+missed defects and unnecessary redraws, not a longer prompt.
+
+The tested execution path is Codex planning/review plus the user's requested Grok
+CLI drawing. Control and candidate use the same hosts. Earlier Grok-only review
+experiments did not reliably count or interpret boundaries, even with more prose
+or separate observers. G adds no mandatory extra model, image transformation,
+helper or drawing budget. Its historical development improvement is specifically
+normal-candidate retention; fresh-image and delivery gains remain to be measured.
+
+Initial candidate A used an instance inventory, a foreground-boundary check and a
+benign-interpretation check. It and the subsequent failed variants remain below
+for an auditable account of why the strategy changed.
 
 ## Comparison fixed before candidate results
 
