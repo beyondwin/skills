@@ -258,3 +258,35 @@ tie into an improvement. Do not pool Codex and Grok judgments. Native delivery a
 configuration canaries are infrastructure checks without eligibility questions;
 their outputs cannot contribute to quality scores. A content-injection comparison
 does not establish native skill discovery or activation, which needs its own smoke.
+
+All four Codex screen runs passed independent execution and original-byte audits.
+Both arms classified 4/6 correctly, with zero false accepts, two false rejects and
+2/3 correct pool choices. B fails its 6/6 screen; no skill gain was observed.
+Control used 10 completed responses and 230.535 summed seconds; B used 13 and
+313.182 seconds. Both correctly identified the two hidden leaf boundaries. Both
+also explicitly counted four feet in two valid table candidates, then rejected
+them because a rear leg's full outline was not exposed. In these runs, the error
+was strengthening the requested visibility, not failing to perceive a fourth foot.
+
+An audit of the original task, original blind judging, later corpus and current
+Codex inputs found unchanged brief and compact-condition bytes. The original
+judges explicitly described the partial overlap while accepting the separately
+visible legs and feet. No reference labels are changed. Natural-language scope
+still permits disagreement; this historical screen cannot establish an infallible
+answer key or general quality advantage.
+
+Candidate G therefore replaces the broad full-visibility priming with a scoped
+requirement check: whole-subject framing, directly visible named parts, and
+explicitly unobstructed targets are distinct. It retains original qualifiers,
+counts observed instances, and grounds rejection at the strength actually asked
+for. It adds no witness table, observer stage, image transformation or generator
+change. The complete original correction base remains unchanged. Its private
+11-file pin is frozen before new calls; installed 2.1.5 stays unchanged.
+
+G first screens the same six originals with the same Codex profile and budgets.
+The existing control is a development comparator, not an independent replication.
+The candidate must classify all six correctly with grounded reasons and all three
+pool choices correct; in particular it must retain the actual occlusion and
+missing-part rejections. A pass permits a fresh paired 22-image development run
+with both arms, then the separately frozen fresh-pixel test. Failure remains in
+the record. Neither a screen win nor changing hosts alone qualifies adoption.
