@@ -476,3 +476,40 @@ first-candidate quality, chosen final quality, unnecessary correction, condition
 retention and failures separately. Initial drawing variation is not attributed
 to a review rule. Nine small tasks are an execution and regression check, not a
 general aesthetic-superiority study. No new scene or retry replaces a failure.
+
+## Repository adoption rule, fixed before inspecting fresh review results
+
+The comparative study keeps its original strict gates and the separately recorded
+pre-review amendment. A further necessary adoption gate implements the existing
+repository rule in `docs/maintainers/repository/skill-practices.md`: “A difference
+smaller than about two standard errors is ‘no measured difference’ and changes
+nothing.” Merely describing a small consistent effect cautiously does not satisfy
+this rule. The development result of three improved images in 22 is insufficient
+on this measure. The study's minimum of two gains in each repetition does not by
+itself satisfy it either.
+
+For each unique clear source image i, let d_i be the candidate's fraction of correct
+decisions across the two repetitions minus the corresponding control fraction.
+Compute mean(d), the sample SD of d using n−1, and SE = sample_SD/sqrt(n), where n
+is the number of unique clear source images. This gate passes only if n ≥ 2,
+mean(d) > 0, and mean(d) ≥ 2×SE. Missing or unverified observations are incorrect
+and retain their original denominator. Disputed reference labels stay in the total
+population but never supply a gain. Two reviews of an image do not make two
+independent images. A zero-effect tie fails even if SE is zero; a positive constant
+effect passes this arithmetic gate, subject to every other requirement.
+
+Compute the gate separately for candidate versus baseline and candidate versus
+plain. Both must pass for the planned dual improvement claim and adoption. This
+additional gate cannot turn a failed strict/amended study gate, execution audit,
+native activation check, or final delivery check into a success. Preserve and
+report each result separately. Exact paired p-values remain separately reported;
+no new p-value cutoff is introduced. The two-SE calculation is a normal-approximation
+decision rule and does not model dependence between images sharing a brief or
+review session, so it does not establish general superiority or human preference.
+
+The rule and source/tests are frozen before the owner inspects fresh comparative
+model outputs. It changes no review input, pin, label, pool, model, tool, schedule,
+budget, or existing strict/amended gate. If only a smaller effect is observed, G
+remains unadopted. A later revision or additional independent evaluation requires
+its own prospective design; selectively rerunning until a favorable result is not
+an adoption method.
