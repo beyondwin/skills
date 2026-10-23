@@ -4,7 +4,7 @@ description: Use when a raster image must fit this project, keep given constrain
 license: Apache-2.0
 compatibility: Requires Codex or Grok built-in image generation and local image viewing for generate or edit mode. Brief and audit modes can run read-only.
 metadata:
-  version: "2.1.6"
+  version: "2.1.7"
   updated_at: "2026-10-23"
 ---
 
@@ -136,7 +136,7 @@ decoders or building a new verification pipeline.
 
 ## Iterate And Stop
 
-Produce one useful first candidate by default. One tool call per explicitly requested distinct asset or variant. Ordinary requests never become unrequested batches. Make at most one clearly justified correction at a time. Start its drawing prompt with the complete fixed base, then append the targeted change; do not summarize the base or build on a shortened previous prompt. Check that subject, counts, visibility, framing, materials, light, exclusions, and canvas remain present before calling the tool. The change may refine an unspecified arrangement but may not override a user constraint. Reopen the result and recheck every original critical condition, including ones that passed before. Hold when a critical condition cannot be verified instead of treating an aesthetic preference as a reason to keep generating.
+Produce one useful first candidate by default. One tool call per explicitly requested distinct asset or variant. Ordinary requests never become unrequested batches. Make at most one clearly justified correction at a time. Start its drawing prompt with the complete fixed base, then append the targeted change; do not summarize the base or build on a shortened previous prompt. Check that subject, counts, visibility, framing, materials, light, exclusions, and canvas remain present before calling the tool. The change may refine an unspecified arrangement but may not override a user constraint. Reopen the result and recheck every original critical condition, including ones that passed before. Do not accept a candidate while a critical condition remains unverified, and do not treat an aesthetic preference as a reason to keep generating.
 
 Keep a candidate that passes the original critical conditions; do not spend a
 correction on an advisory preference or discard it when a later attempt fails.
@@ -144,6 +144,10 @@ After inspection, finish with either an accepted candidate or a concise hold
 naming the failed or unverified critical condition. When a correction is
 within the authorized scope and remaining call budget, make the targeted
 correction and recheck; otherwise report the current candidate and stop.
+A visible ambiguity in a required feature may itself justify that correction:
+make the feature clear within the remaining budget rather than stopping solely
+because the original cannot be verified. Do not relabel uncertainty as a missing
+part or a pass, and keep permission, rights, tool and measurement holds intact.
 A rejected candidate still gets a final report. Do not keep investigating a
 known failure while withholding the handoff.
 

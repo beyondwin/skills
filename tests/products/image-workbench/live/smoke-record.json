@@ -1,14 +1,14 @@
 {
-  "session_id": "cfc7ab77-6d40-48ee-9d1a-d4d8b5544ea2",
+  "session_id": "5d5c82ac-4227-41bd-9a01-778ec9525ea9",
   "other_session_ids": {
-    "explicit-brief": "9988c71f-fa0c-4ec8-993d-2f1bbf632f97",
-    "implicit-brief": "1c9fef62-1346-40f1-b93c-fee731e4f6da",
-    "casual-near-miss": "0df9ea24-858c-4bda-92d8-6702cc654a33"
+    "explicit-brief": "3b763f02-58fc-41f7-b25d-fda3c5c7c3d2",
+    "implicit-brief": "abd0fe88-fb29-4211-b966-c7280ef817c9",
+    "casual-near-miss": "c6f79db5-d92f-48b5-a458-e13ffba67967"
   },
-  "run_at": "2026-10-23T16:00:04.771206+09:00",
+  "run_at": "2026-10-23T16:42:46.171743+09:00",
   "grok_identity": "grok 1.0.67 (2fe064390d07) [stable]",
-  "skill_version": "2.1.6",
-  "skill_md_sha256": "8c1f6b0ca936596cbf82e9882ef951d82f1935a90009e64d665e1b86e3305d83",
+  "skill_version": "2.1.7",
+  "skill_md_sha256": "03669db1f76e4f5264bfa41a73a169ac0efd93dd2ff09e97d3bb394d17f23a71",
   "probe": "pass",
   "discovery": "pass",
   "explicit_brief": "pass",
@@ -19,5 +19,5 @@
     "width": 1248,
     "height": 832
   },
-  "notes": "Native discovery and three read-only activation/boundary probes used the identical final SKILL body. Their earlier rubric differs from the final rubric; output verification used the final rubric, exact native edit input, byte-identical project copy, direct project-file opening and inspector. A native trailing newline normalization was independently checked against the complete body rather than rerun. This smoke verifies tool routing and project output, not improved Grok autonomous visual judgment. Separate focused testing found Grok review errors; Codex requirement-scope regression and final image quality are recorded separately."
+  "notes": "Current full pin: native discovery, explicit brief expansion, implicit complete skill read, casual no activation/tool call, and actual project edit with exact supplied correction prompt, byte-identical project copy, reopen and inspector. Three probes are image-free; output smoke reuses the one development correction. This validates host routing, not Grok autonomous review. The four-request transfer comparison and one Codex stop-rule repair are recorded separately; no superiority over no-skill review was established."
 }

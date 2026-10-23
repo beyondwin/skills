@@ -179,10 +179,36 @@ count and occlusion failures. This is a targeted regression, not a statistical
 quality claim. Three final assets passed critical/composition checks; boat clay
 texture remains unverified. The drawing route was the user's explicit Grok choice.
 
-The current body-bound Grok smoke covers discovery, explicit/implicit read-only
+The 2.1.6 body-bound Grok smoke covered discovery, explicit/implicit read-only
 activation, casual boundary and actual project output. Activation probes precede
 the final rubric refinement; the output run read the final rubric. Native body
 expansion removed one trailing newline, independently matched without retries.
 All generated media and raw receipts stay private. Existing offline fixtures test
 routing, permissions, metadata and file facts; no string-matching vision test was
 added to imply that those fixtures prove model perception.
+
+## Fresh transfer and one stop-rule repair, 2.1.7
+
+The [fresh transfer record](../../../research/2026-10-image-fresh-transfer/README.md)
+compares four new requests with no skill versus pinned 2.1.6 using shared first
+images and equal per-request caps (one initial plus one conditional correction).
+Both retained all three verified valid originals. The skill held on an ambiguous
+key feature despite available repair authorization; no skill corrected it.
+Source count/occlusion failure denominators were zero, so no detection-rate gain
+can be inferred. The disputed key's exact fail/unverified label remains explicit.
+
+One 2.1.7 development retest separates an unverified acceptance state from an
+eligible targeted correction. It retains the three valid originals and corrects
+the key, restoring four usable final assets and tying the ordinary workflow.
+The retest is not a new transfer sample or proof of statistical superiority.
+The full actual drawing prompt, final files and independent visual checks are
+retained privately. Runtime SKILL/reference bytes match the tested candidate;
+README/CHANGELOG reporting changes follow the results.
+
+The refreshed native Grok smoke reuses the candidate's actual project edit and
+three image-free explicit/implicit/near-miss probes. No extra image is generated
+for host checking. The corrected renderer loads the skill for this smoke whereas
+the no-skill renderer does not; both send their supplied correction prompt exactly.
+Requested and measured ratios match, although only the no-skill edit explicitly
+sets the optional aspect_ratio argument. Provider-free checks remain separate
+from observed image quality.

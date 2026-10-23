@@ -14,6 +14,11 @@ All notable changes to this product are documented in this file.
 
 ### Fixed
 
+- Keep an unverified candidate unaccepted while using an authorized, budgeted
+  targeted correction to clarify an observed ambiguous feature. Preserve holds
+  for permissions, rights, tools and unavailable measurement. A four-request
+  follow-up found this avoidable stop; it did not establish superiority over
+  ordinary review.
 - Count directly located instances before comparing with the request. Distinguish
   framing, identifiable parts, and explicitly unobstructed outlines; do not reject
   a visible part solely for partial overlap. Preserve a passing candidate instead

@@ -98,6 +98,13 @@ measurement needs an unresolved acceptance condition that could change the
 verdict; unavailable evidence produces a reported hold. This preserves
 required inspection and authorized correction, including exact requirements.
 
+An unverified candidate cannot be accepted. An observed ambiguity in a required
+visual feature can still justify one targeted correction within the existing
+authorization and remaining call budget, followed by inspection of the new result.
+Do not stop solely because the original is unclear when that permitted correction
+can make it clear. Do not relabel uncertainty as absence or success; permission,
+rights, tool and unavailable-measurement holds remain unchanged.
+
 Inspector rules:
 
 - Never write the result to the same file as the input image, including
