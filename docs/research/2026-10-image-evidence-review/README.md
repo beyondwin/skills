@@ -313,3 +313,37 @@ resources. G versus 2.1.5 remains primary. G versus plain is a separate comparis
 and must meet the same prospective benefit gates before claiming a benefit over
 ordinary review. It cannot replace a failed primary comparison. Report both
 repetitions without treating repeated judgments as additional unique images.
+
+### End-to-end execution plan
+
+The final generation check uses the unchanged lamp, pebbles and carafes briefs
+from the preceding delivery study: one task per plain/control/G arm, nine tasks
+total, at most two image attempts each. Codex performs planning and review under
+the same pinned profile in all arms; the user's expressly requested Grok CLI
+performs drawing. This explicit provider choice is common to all arms, not a new
+silent-fallback rule in the product. Native skill activation is verified separately
+from the content-pinned comparison.
+
+A common relay leaves provider credentials outside the Codex workspace. It
+records each request once, reserves the two-attempt budget before dispatch, runs
+each drawing call in a fresh Grok home, and returns the unchanged original.
+Failures consume attempts. Submitted prompt and ratio are compared with actual
+native image-tool arguments; candidate and final-file hashes are traced to the
+provider original. All generated candidates must be opened and retained. A
+watchdog can detect an extra provider call after dispatch; it does not prove an
+extra call was physically impossible. Such a violation remains a protocol failure.
+
+Each task has at most 30 Codex responses and 900 total seconds including Grok
+waiting. Each nested Grok session has at most 12 turns and the smaller of 600
+seconds or the task's remaining time. Parent and nested response usage are reported
+separately without equating model turn definitions. Cancellation must terminate
+and reap every registered child and remove temporary authentication files.
+
+Two fresh blinded reviewers score every original against the unchanged brief.
+Usable delivery requires agreed hard compliance, matching canvas and mean craft
+of at least 4/5. G must not lose usable delivery or increase corrections of an
+already usable first candidate versus the control. Report all three tasks per arm,
+first-candidate quality, chosen final quality, unnecessary correction, condition
+retention and failures separately. Initial drawing variation is not attributed
+to a review rule. Nine small tasks are an execution and regression check, not a
+general aesthetic-superiority study. No new scene or retry replaces a failure.
