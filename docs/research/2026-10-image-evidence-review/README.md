@@ -43,6 +43,13 @@ decisions. All-failing pools must be held. Missing results and unresolved labels
 do not earn correct decisions; rejecting or holding a known valid candidate is
 a false rejection. Each revision and failed result is retained.
 
+Clarified before the first completed development verdict: the count domain
+includes total-object counts and required visible-part counts; both subtypes
+are also reported separately. If the concurrent control makes zero errors in a
+stratum, the candidate must retain zero errors there. Improvement below zero is
+impossible, and a ceiling tie is not described as improvement. The other gates
+remain unchanged.
+
 After a development candidate is frozen, generate 24 new originals across four
 scene families, with one image call each and no corrective retry. Each family
 includes three intended valid variations and three intended contrasts: incorrect
