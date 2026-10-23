@@ -225,3 +225,24 @@ The rejected B working-tree changes were removed from the active installed produ
 Its frozen experimental payload and patch remain private, and all running jobs use
 their pinned copies. The installed product remains the committed retention-only
 2.1.5 until a new candidate qualifies; no experimental 2.1.6 is released.
+
+### Separate Codex review comparison
+
+Before any Codex quality result, prepare a distinct comparison of the same control
+2.1.5 and frozen B content under Codex CLI 0.163.0, `gpt-6-astra/ultra` in both
+arms. That model/effort is verified in the current user's native host record.
+The first screen uses the same two boat and four table originals, original
+requirements and report contract. Each block allows 30 completed native model
+responses and 900 seconds, with zero image calls. Completed responses are counted
+by unique native response identity; they are not equated to Grok's turn field.
+Full skill content and resources are pinned explicitly, with matching tools,
+fresh homes, memories disabled and no current installed-copy injection.
+
+The screen needs all six candidate decisions correct, grounded final evidence and
+no false-accept or false-reject regression. It is still historical development
+data. A control ceiling tie is not a skill gain. The remaining development blocks
+may check whether that ceiling extends to other requirements; they cannot turn a
+tie into an improvement. Do not pool Codex and Grok judgments. Native delivery and
+configuration canaries are infrastructure checks without eligibility questions;
+their outputs cannot contribute to quality scores. A content-injection comparison
+does not establish native skill discovery or activation, which needs its own smoke.
