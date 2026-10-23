@@ -9,11 +9,18 @@ All notable changes to this product are documented in this file.
 - Explain the measured limits of generation and self-review in both user guides:
   no established aesthetic advantage and possible count/occlusion errors.
   Unsuccessful inventory, detail-view and sequencing revisions were not adopted.
-- Disclose the final selection audit's failed no-regression criterion; the
-  retained patch addresses correction-condition preservation only.
+- Disclose the earlier correction-only patch's failed selection audit and the
+  limits of autonomous visual review; separate those results from later repairs.
 
 ### Fixed
 
+- Count directly located instances before comparing with the request. Distinguish
+  framing, identifiable parts, and explicitly unobstructed outlines; do not reject
+  a visible part solely for partial overlap. Preserve a passing candidate instead
+  of spending a correction on an advisory preference.
+- Before accepting complete visibility, check each target's lower boundary against
+  the adjacent foreground surface. Limit unclear-part detail checks to one, then
+  retain uncertainty instead of repeatedly cropping or inferring a missing part.
 - Keep the complete original drawing brief on every correction call and append
   only the targeted change. Check subject, count, visibility, framing, materials,
   light, exclusions and canvas before calling, then recheck every original critical

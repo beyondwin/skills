@@ -16,11 +16,35 @@ composition/crop; style, palette, material, and light; stated invariants; exact
 visible copy or marks; and visible artifacts. Visual review remains required
 even when file facts are available.
 
-Check presence, count, and visibility separately. Three recognizable objects can
-still fail a requirement that all three be fully visible. Inspect the required
-outlines and extremities for overlap, rim occlusion, and frame crop; do not infer
-hidden parts. Judge against the original acceptance conditions, not a weaker
-condition introduced by the generated prompt or the image's attractive style.
+Use the original condition's referent and strength, not a stricter or weaker
+summary. For an exact count, first locate each directly visible instance once
+(for example, left rear, left front, right rear, right front), then compare the
+observed total with the requested total. Do not count a shadow or infer a hidden
+part from symmetry. A partly overlapping part can still be directly identifiable.
+If a small part is unclear, make one detail check that keeps its surrounding
+context. If it remains unclear, mark it unverified instead of repeatedly cropping
+or treating uncertainty as proof that the part is missing.
+
+Check the kind of visibility actually requested:
+
+- Whole-subject framing: the subject fits inside the frame with the requested margin.
+- Visible named parts: each part is directly identifiable, including any expressly
+  required endpoint or ground contact. Partial overlap alone does not fail this check.
+- Explicitly fully visible or unobstructed objects: trace each required outline and
+  extremity; another object, a container rim, or the frame must not cut it off.
+  A correct count does not establish this stronger condition.
+
+Before a complete-visibility pass, briefly name each target's lowest visible edge
+or endpoint and the foreground surface beside it. Check where those boundaries
+meet: if the foreground surface supplies the visible boundary instead of the
+target's own contour, it is occluded. "Countable" and "inside the frame" do not
+answer this check. Use one focused look at that junction, not another general review.
+
+Do not apply a whole subject's framing qualifier to every component's silhouette.
+Before rejecting, connect the original condition to a visible contradiction and
+its location. If a critical detail remains unclear, report it as unverified;
+uncertainty is neither proof of a defect nor a pass. Keep aesthetic preferences
+advisory unless the original request makes them critical.
 
 ## Mechanical Criteria
 

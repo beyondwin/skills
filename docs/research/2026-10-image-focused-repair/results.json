@@ -1,0 +1,242 @@
+{
+  "schema_version": 1,
+  "product": "image-workbench",
+  "version": "2.1.6",
+  "decision": "adopt focused requirement-scope fix and verified final-delivery workflow; no Grok autonomous-review improvement claim",
+  "design": "three known development sources; one paired Codex review per arm; final outputs verified; no population-level superiority estimate",
+  "runtime_hashes": {
+    "SKILL.md": "f85c655839b43b0f70272f1e86ed386c229e290b91eba2ae868b21d2001bddde",
+    "references/quality-rubric.md": "0c7e03ed5d02e14212707deb133b359eb2dc08d19b863589c2de3de60ebf6931",
+    "references/image-spec.md": "9619c5186753dbd2fbb653fd63f48b8dc7042b64fb18ddc930670925299143f0",
+    "scripts/inspect_asset.py": "9ec5608221f26c1be3e4e7bb81a6b8f0a1f97721d11602bc558a6fdd69d07e1a"
+  },
+  "codex": {
+    "cli": "0.163.0",
+    "actual_model": "gpt-6-astra",
+    "actual_effort": "ultra",
+    "native_activation_measured": false,
+    "content_pinned": true,
+    "rows": [
+      {
+        "arm": "baseline",
+        "runtime_pass": true,
+        "source_verdicts": [
+          "fail",
+          "fail",
+          "fail"
+        ],
+        "correct_cases": 2,
+        "total_cases": 3,
+        "false_accepts": 0,
+        "false_rejects": 1,
+        "responses": 4,
+        "sum_seconds_component": 60.243488
+      },
+      {
+        "arm": "candidate",
+        "runtime_pass": true,
+        "source_verdicts": [
+          "fail",
+          "fail",
+          "pass"
+        ],
+        "correct_cases": 3,
+        "total_cases": 3,
+        "false_accepts": 0,
+        "false_rejects": 0,
+        "responses": 3,
+        "sum_seconds_component": 97.930944
+      }
+    ],
+    "count_failure_detection": "1/1 both arms",
+    "occlusion_failure_detection": "1/1 both arms",
+    "valid_candidate_retention": "0/1 baseline; 1/1 candidate"
+  },
+  "grok": {
+    "cli": "1.0.67",
+    "actual_model": "grok-4.7-build",
+    "actual_effort": "high",
+    "image_engine_identity": "not established",
+    "rows": [
+      {
+        "run": "boat-render",
+        "runtime_pass": true,
+        "turns": 6,
+        "image_calls": 1,
+        "sum_seconds_component": 109.298,
+        "reported_orchestration_usd": 0.04354176
+      },
+      {
+        "run": "boat-shore-edit",
+        "runtime_pass": true,
+        "turns": 7,
+        "image_calls": 1,
+        "sum_seconds_component": 164.483,
+        "reported_orchestration_usd": 0.063546
+      },
+      {
+        "run": "c1-baseline",
+        "runtime_pass": true,
+        "turns": 7,
+        "image_calls": 1,
+        "sum_seconds_component": 178.019,
+        "reported_orchestration_usd": 0.0593606
+      },
+      {
+        "run": "c1-candidate",
+        "runtime_pass": true,
+        "turns": 8,
+        "image_calls": 1,
+        "sum_seconds_component": 200.188,
+        "reported_orchestration_usd": 0.06547108
+      },
+      {
+        "run": "c2-baseline",
+        "runtime_pass": true,
+        "turns": 8,
+        "image_calls": 0,
+        "sum_seconds_component": 98.481,
+        "reported_orchestration_usd": 0.04668404
+      },
+      {
+        "run": "c2-candidate",
+        "runtime_pass": true,
+        "turns": 5,
+        "image_calls": 0,
+        "sum_seconds_component": 95.308,
+        "reported_orchestration_usd": 0.03871512
+      },
+      {
+        "run": "c2-refined",
+        "runtime_pass": true,
+        "turns": 6,
+        "image_calls": 0,
+        "sum_seconds_component": 149.931,
+        "reported_orchestration_usd": 0.05553356
+      },
+      {
+        "run": "c3-baseline",
+        "runtime_pass": true,
+        "turns": 10,
+        "image_calls": 1,
+        "sum_seconds_component": 183.846,
+        "reported_orchestration_usd": 0.07341416
+      },
+      {
+        "run": "c3-candidate",
+        "runtime_pass": false,
+        "turns": 16,
+        "image_calls": 1,
+        "sum_seconds_component": 303.725,
+        "reported_orchestration_usd": 0.14795508
+      },
+      {
+        "run": "smoke-casual-near-miss",
+        "runtime_pass": true,
+        "turns": 1,
+        "image_calls": 0,
+        "sum_seconds_component": 7.561,
+        "reported_orchestration_usd": 0.00242216
+      },
+      {
+        "run": "smoke-explicit-brief",
+        "runtime_pass": true,
+        "turns": 2,
+        "image_calls": 0,
+        "sum_seconds_component": 38.923,
+        "reported_orchestration_usd": 0.01171912
+      },
+      {
+        "run": "smoke-implicit-brief",
+        "runtime_pass": true,
+        "turns": 4,
+        "image_calls": 0,
+        "sum_seconds_component": 52.58,
+        "reported_orchestration_usd": 0.0150042
+      }
+    ],
+    "runs": 12,
+    "turns": 80,
+    "image_calls": 6,
+    "summed_seconds": 1582.343,
+    "reported_orchestration_usd": 0.62336688,
+    "price_limit": "Not total cost: image billing, Codex and independent reviewer cost are not established here.",
+    "initial_review_result": "Control and first patch both missed rim occlusion and unnecessarily corrected the valid source; candidate exhausted16turns. Intermediate refined Grok review still missed occlusion."
+  },
+  "final_delivery": {
+    "assets": [
+      {
+        "case": "count",
+        "sha256": "8527c3ab737ac8097bd33489d9e5ce17394b54e4304b2a8772a390a628f71691",
+        "retained_original_bytes": false,
+        "critical_conditions": "pass",
+        "composition": "pass",
+        "file_facts": {
+          "format": "jpeg",
+          "width": 1280,
+          "height": 720,
+          "extension_matches": true,
+          "trailing_bytes": 0
+        }
+      },
+      {
+        "case": "occlusion",
+        "sha256": "f6da6a24359128290c49674f51eae88d1f674bbadb327ab1ddfb2f0f5dfd688e",
+        "retained_original_bytes": false,
+        "critical_conditions": "pass",
+        "composition": "pass",
+        "file_facts": {
+          "format": "jpeg",
+          "width": 1248,
+          "height": 832,
+          "extension_matches": true,
+          "trailing_bytes": 0
+        }
+      },
+      {
+        "case": "retain",
+        "sha256": "93209e9538fd87bee0632b8daded981398a4fc6e3cb8c196d0a33de13e6a80d1",
+        "retained_original_bytes": true,
+        "critical_conditions": "pass",
+        "composition": "pass",
+        "file_facts": {
+          "format": "jpeg",
+          "width": 1280,
+          "height": 720,
+          "extension_matches": true,
+          "trailing_bytes": 0
+        }
+      }
+    ],
+    "verified_critical_and_composition": 3,
+    "total": 3,
+    "actual_drawing_calls_used_for_delivered_outputs": 3,
+    "retained_originals": 1,
+    "clay_texture_status": "unverified visual style detail on boat; not a new regression from shore correction"
+  },
+  "deviations": [
+    "Queued intermediate Grok review was not cancelled; six turns, zero image calls and its cost retained. Incorrect cancellation marker preserved with correction.",
+    "Grok candidate valid-source run exhausted16turns without final handoff; kept as failed run.",
+    "That run attempted shared-temp cropping but failed importingPIL before the write; later diagnostics used runTMPDIR.",
+    "First independent occlusion reference missed lower outline; localized second look corrected it. Initial report retained.",
+    "Initial boat output passed four critical summary checks but moved distantshore to foreground; one complete-base shore edit repaired it.",
+    "SKILL native expansion omitted a final newline; exact complete body and arguments were independently matched without rerun."
+  ],
+  "limits": [
+    "Selected known sources are development regressions, not unseen evaluation or independent statistical samples.",
+    "Count and occlusion detection were already correct in both Codex arms.",
+    "A stochastic one-pair rendering outcome does not prove a causal count-generation advantage.",
+    "Original wording about visible legs and comfortable margins involves interpretation; reference reviewers are models.",
+    "Finalworkflow used Codex review and Grok drawing by explicit user choice; product default routes unchanged.",
+    "Clay texture remains visually unverified; no claim of perfect originalbrief or aesthetic superiority.",
+    "Full-file manifest pins retain pre-result user documentation; shipped runtimeSKILL and all references match the final evaluated pin."
+  ],
+  "evidence_hashes": {
+    "codex-review/runs/baseline/final.txt": "24f88424fbd1c5f14776eecf08da1ad3a141dc20d0a103b3e6fbad974bf01464",
+    "codex-review/runs/candidate/final.txt": "14775ee5646eb4c5d70dc78506d9d4622afd11fe3a67592d51c5586378aa328d",
+    "blind/source-review.json": "4a5ee336feaf302428d92a1f9ca13f0b8aa4ebec5fee51e03c3ab77af8259309",
+    "blind/source-review-followup.json": "40dedf6179cb2865ca7d920beaae1e3e119003a088ad2d0f4a2574b02a744605",
+    "blind/final-1-review.json": "c96d1e8de515d18e3df15e54995c63c825cf89327081ae80d25342340564b9f7",
+    "blind/final-3-review.json": "2775ddea4b0168680d0c511516e5aa5545b04a3e28854f600d71a84013ef77d7"
+  }
+}

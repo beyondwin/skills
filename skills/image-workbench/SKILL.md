@@ -4,7 +4,7 @@ description: Use when a raster image must fit this project, keep given constrain
 license: Apache-2.0
 compatibility: Requires Codex or Grok built-in image generation and local image viewing for generate or edit mode. Brief and audit modes can run read-only.
 metadata:
-  version: "2.1.5"
+  version: "2.1.6"
   updated_at: "2026-10-23"
 ---
 
@@ -56,8 +56,8 @@ brief is complex, an edit has several inputs, or integration matters.
 
 Keep the complete original drawing brief as the fixed base for every image call,
 separate from destination and other operational fields. Preserve a detailed brief
-for the first candidate rather than rewriting it to add camera or style instructions. Being countable is not the same as being fully
-visible. When inspection finds a spatial failure, use the ImageSpec reference
+for the first candidate rather than rewriting it to add camera or style instructions.
+When inspection finds a spatial failure, use the ImageSpec reference
 to choose one targeted camera or placement correction within the authorized budget.
 
 ## Execute The Authorized Route
@@ -115,7 +115,10 @@ matches the format, and trailing bytes. Confirm the destination path
 separately. Give `--output` an absolute report path outside the skill folder.
 Run the inspector directly; read its source only when diagnosing an inspector
 failure or changing it. Mechanical facts never replace visual inspection; apply the
-[quality rubric](references/quality-rubric.md).
+[quality rubric](references/quality-rubric.md) to count directly located instances
+and distinguish framing, identifiable parts, and explicitly unobstructed outlines.
+Reject only for an observed violation of the original condition at its stated
+strength. Do not turn partial overlap into a missing part or invent stricter conditions.
 
 The inspector verifies selected file facts and required parsed structure,
 not complete bitstream decoding. Visual quality and rights remain separate
@@ -135,6 +138,8 @@ decoders or building a new verification pipeline.
 
 Produce one useful first candidate by default. One tool call per explicitly requested distinct asset or variant. Ordinary requests never become unrequested batches. Make at most one clearly justified correction at a time. Start its drawing prompt with the complete fixed base, then append the targeted change; do not summarize the base or build on a shortened previous prompt. Check that subject, counts, visibility, framing, materials, light, exclusions, and canvas remain present before calling the tool. The change may refine an unspecified arrangement but may not override a user constraint. Reopen the result and recheck every original critical condition, including ones that passed before. Hold when a critical condition cannot be verified instead of treating an aesthetic preference as a reason to keep generating.
 
+Keep a candidate that passes the original critical conditions; do not spend a
+correction on an advisory preference or discard it when a later attempt fails.
 After inspection, finish with either an accepted candidate or a concise hold
 naming the failed or unverified critical condition. When a correction is
 within the authorized scope and remaining call budget, make the targeted

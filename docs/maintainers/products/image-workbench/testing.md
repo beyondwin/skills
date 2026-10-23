@@ -167,3 +167,22 @@ the final live pin and working tree; README/CHANGELOG updates are distinguished
 from that runtime binding. The output smoke uses final 2.1.5 generation, while
 the three image-free probes bind C's identical SKILL body only, with reference
 differences disclosed. No image-edit or Codex live execution was retested.
+
+
+## Focused requirement-scope repair, 2.1.6
+
+The [focused repair record](../../../research/2026-10-image-focused-repair/README.md)
+keeps the unsuccessful Grok review attempts, the content-pinned Codex comparison,
+and final delivery separate. On three known sources, Codex 2.1.5 rejected one
+valid partially overlapping leg; 2.1.6 retained it while both detected the actual
+count and occlusion failures. This is a targeted regression, not a statistical
+quality claim. Three final assets passed critical/composition checks; boat clay
+texture remains unverified. The drawing route was the user's explicit Grok choice.
+
+The current body-bound Grok smoke covers discovery, explicit/implicit read-only
+activation, casual boundary and actual project output. Activation probes precede
+the final rubric refinement; the output run read the final rubric. Native body
+expansion removed one trailing newline, independently matched without retries.
+All generated media and raw receipts stay private. Existing offline fixtures test
+routing, permissions, metadata and file facts; no string-matching vision test was
+added to imply that those fixtures prove model perception.

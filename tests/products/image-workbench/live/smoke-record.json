@@ -1,14 +1,14 @@
 {
-  "session_id": "30c398ef-1ddc-4b73-bdbe-56af82c19a02",
+  "session_id": "cfc7ab77-6d40-48ee-9d1a-d4d8b5544ea2",
   "other_session_ids": {
-    "brief-c": "06b1ddd6-a4ee-4bf9-a0d2-7d506ad91b94",
-    "implicit-c": "0c93bcc2-f797-4f58-8aed-c8e805820cf7",
-    "near-miss-c": "2df61834-1110-4c3b-b885-4f1c6caef79d"
+    "explicit-brief": "9988c71f-fa0c-4ec8-993d-2f1bbf632f97",
+    "implicit-brief": "1c9fef62-1346-40f1-b93c-fee731e4f6da",
+    "casual-near-miss": "0df9ea24-858c-4bda-92d8-6702cc654a33"
   },
-  "run_at": "2026-10-23T10:31:07.550021+09:00",
+  "run_at": "2026-10-23T16:00:04.771206+09:00",
   "grok_identity": "grok 1.0.67 (2fe064390d07) [stable]",
-  "skill_version": "2.1.5",
-  "skill_md_sha256": "9e3f7228ae4709dd7c24b44040b2a6eebe638e15acd2ebbe1839af29b01f23de",
+  "skill_version": "2.1.6",
+  "skill_md_sha256": "8c1f6b0ca936596cbf82e9882ef951d82f1935a90009e64d665e1b86e3305d83",
   "probe": "pass",
   "discovery": "pass",
   "explicit_brief": "pass",
@@ -16,8 +16,8 @@
   "output_contract": "pass",
   "inspector": {
     "format": "jpeg",
-    "width": 832,
-    "height": 1248
+    "width": 1248,
+    "height": 832
   },
-  "notes": "Final retention-only payload: project candidates opened and inspected; selected and final hashes match. Brief, implicit project planning and casual routing probes used development C with the identical SKILL body excluding metadata; C review references and its optional helper were rejected and are not adopted. Those probes were read-only. Output contract uses the final retention payload and two authorized generation calls. This body-bound smoke is not proof of image quality, count/occlusion repair, image-edit preservation, or Codex live behavior."
+  "notes": "Native discovery and three read-only activation/boundary probes used the identical final SKILL body. Their earlier rubric differs from the final rubric; output verification used the final rubric, exact native edit input, byte-identical project copy, direct project-file opening and inspector. A native trailing newline normalization was independently checked against the complete body rather than rerun. This smoke verifies tool routing and project output, not improved Grok autonomous visual judgment. Separate focused testing found Grok review errors; Codex requirement-scope regression and final image quality are recorded separately."
 }

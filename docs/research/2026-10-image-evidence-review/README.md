@@ -633,3 +633,10 @@ checks were independently verified without provider retries. The output inspecto
 used a shared `/tmp` report path whose earlier existence was not checked; do not
 claim isolated scratch ownership or OS read isolation. Temporary authentication
 was removed and children were reaped.
+
+
+## Subsequent focused repair
+
+The [2.1.6 focused repair](../2026-10-image-focused-repair/README.md) addresses a
+reproduced Codex requirement-scope defect and verifies final deliverables. It does
+not replace this study, recompute its gates, or turn G into an adopted result.
