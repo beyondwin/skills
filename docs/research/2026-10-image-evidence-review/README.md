@@ -407,6 +407,42 @@ an unselected one, still requires native original-byte inspection by the parent.
 A child preview cannot substitute for that check. The original holdout failures
 are not retrospectively normalized into workflow successes.
 
+### Pre-review scoring amendment
+
+After independent labeling but before any comparative review call, the reference
+set has 23 clear originals (10 positive, 13 negative) and one disputed original.
+Reviewers agree on 95/96 condition statuses. One pool contains only clear negatives
+and that disputed original. The original unresolved-pool gate would penalize a
+responsible hold while a known-negative selection could avoid the unresolved
+flag. Fix this scoring artifact prospectively without inventing a reference label.
+
+Report both the original strict result and a separately named amended result.
+For each repetition and each contrast, an unresolved pool is comparison-neutral
+only if the chosen value (including null) exactly matches the control in the same
+pool. This is a tie under every possible label assignment; it earns no correct
+choice or improvement. Different disputed choices, or null versus a disputed
+choice, do not qualify for neutrality. All unresolved counts and score bounds
+remain visible. The two net clear-image gains per repetition, 90% clear accuracy,
+FA/FR and actual-defect non-regression, no unverified or missing decisions, and
+all-clear-negative holds remain required.
+
+Apply the development ceiling principle prospectively to fresh failure detection:
+if a control verifies every clear negative correctly in both repetitions, the
+candidate must retain that ceiling in both. Missing and unverified negatives do
+not establish a ceiling even when false accepts are zero. Report this as
+`failure_detection_improvement: false` and `negative_ceiling_maintained: true`,
+not as a detection gain. Otherwise the original detection-improvement requirement
+remains. Apply this rule separately and identically to baseline and plain; retain
+the positive-retention improvement requirement. This is a declared design change,
+not a claim of passing the original strict preregistration.
+
+The candidate, images, reference labels, pools, prompts, host profiles, budgets,
+24 prepared request files and counterbalanced schedule remain unchanged. Preserve
+the pre-amendment freeze and scorer, and independently verify the new code and
+freeze before dispatch. Item-level defect-stratum correctness does not establish
+that every individual failed condition was identified; inspect reported reasons
+separately and disclose unsupported reasoning.
+
 ### End-to-end execution plan
 
 The final generation check uses the unchanged lamp, pebbles and carafes briefs
