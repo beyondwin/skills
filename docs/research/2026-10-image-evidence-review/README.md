@@ -136,6 +136,23 @@ permits expansion. External staged execution is a workflow hypothesis test, not
 evidence that the installed skill invokes a native independent observer; adoption
 also requires that actual execution path and summed child usage to be verified.
 
+Pilot C did not reach acceptance decisions. Both neutral observers exhausted
+their 12-turn allocation while exploring crop tools and image libraries, without
+producing a normal observation record; neither decision session was dispatched.
+The failures are retained and do not measure the perception hypothesis. The next
+pilot, D, gives the observer only `read_file` and `write_file`, restricting it to
+original images and a compact observation record. It uses the same six development
+images and the same cumulative block allowance. The restricted observer runner is
+frozen separately before execution. Tool restriction is part of this intervention,
+not an invisible shared harness improvement; an eventual comparison must give
+the control the same available capabilities and account for both stages.
+
+The original full development queue also exposed scope failures in both pebble
+blocks. A attempted reads at guessed paths outside its private temporary directory;
+the reads failed. The control wrote a path pointer into the shared temporary
+directory. Neither block earns verified primary decisions. Supplemental visual
+scores remain explicitly separate; no failed block is replaced by a retry.
+
 The first runner check falsely rejected native records lacking a legacy memory
 metadata key. Its raw failure is preserved. The pinned CLI's local guide states
 that `GROK_MEMORY=0` forces memory off; the runner set that variable and both config
