@@ -172,3 +172,51 @@ native v2=false, a missing or exactly false legacy key, empty agent/persona list
 and no memory data in the fresh home. It rejects missing v2 or contradictory
 values. This is a corrected evidence check, not a successful rerun or weakened
 visual scoring rule.
+
+### Completed A comparison and subsequent screens
+
+The complete A comparison does not qualify. The primary denominator stays 22:
+control has 9 correct, 4 incorrect and 9 unverified decisions; A has 12 correct,
+5 incorrect and 5 unverified. Besides the two pebble scope failures, the control's
+four carafe decisions are unverified because it inspected contrast, brightness and
+saturation transformations despite the original-pixel inspection contract.
+These unequal verified subsets are not a quality improvement comparison.
+
+For diagnosis only, scoring every raw report regardless of those scope failures
+gives the following results. This table cannot override the primary failures.
+
+| Supplemental raw-report measure | Control 2.1.5 | A |
+| --- | ---: | ---: |
+| Correct eligibility decisions | 16/22 | 17/22 |
+| False accepts | 2 | 2 |
+| False rejects | 4 | 3 |
+| Correct pool choices | 6/8 | 5/8 |
+| Actual turns | 108 | 121 |
+| Sum of run seconds | 2,705.750 | 3,182.866 |
+| Reported orchestration cost, USD | 1.2975182 | 1.74992696 |
+| Actual image calls | 0 | 0 |
+
+Even the supplemental result misses 20/22, retains both occlusion false accepts,
+regresses pool selection and costs more. A is rejected.
+
+After the corrected read-only canary, E isolated each original in its own neutral
+observation session, capped at three turns and 100 seconds with compact JSON.
+All six runs had the intended tool and skill profile, intact delivered originals
+and the same actual model/effort. Only two completed normally; four timed out, so
+neither decision stage ran. The two normal table observations still undercounted
+supports. A tuple/list representation mismatch in an additional model check is
+recorded separately from both the timeouts and visual errors. The common verifier
+now tests that representation, the empty-MCP meta-tool exception, actual tool
+calls, unexpected skills, CLI warnings, missing finals, JSON and timeout cases.
+
+F is the final focused Grok observation pilot before considering a separately
+controlled Codex review path. It asks one physical question per image, selected
+from the original request: table-support endpoints and their floor/attachment
+relations, or leaf boundaries at contacts. It provides no requested number,
+eligibility condition, prior verdict or known coordinates. Every image in a
+family gets the same question. The response is capped at 120 words; each observer
+has at most three turns and 200 seconds. Observation and decision still share
+30 turns and 900 seconds per block, with no additional correction or retry.
+Failure cannot qualify a candidate. A change of reviewing host would require a
+new same-host control/candidate comparison; gains across hosts cannot be called
+skill effects.
