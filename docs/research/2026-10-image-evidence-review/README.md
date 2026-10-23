@@ -220,3 +220,8 @@ has at most three turns and 200 seconds. Observation and decision still share
 Failure cannot qualify a candidate. A change of reviewing host would require a
 new same-host control/candidate comparison; gains across hosts cannot be called
 skill effects.
+
+The rejected B working-tree changes were removed from the active installed product.
+Its frozen experimental payload and patch remain private, and all running jobs use
+their pinned copies. The installed product remains the committed retention-only
+2.1.5 until a new candidate qualifies; no experimental 2.1.6 is released.
