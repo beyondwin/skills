@@ -290,3 +290,26 @@ pool choices correct; in particular it must retain the actual occlusion and
 missing-part rejections. A pass permits a fresh paired 22-image development run
 with both arms, then the separately frozen fresh-pixel test. Failure remains in
 the record. Neither a screen win nor changing hosts alone qualifies adoption.
+
+G passed that screen: 6/6 correct, zero false accepts or false rejects, and 3/3
+correct pool choices, against the historical control's 4/6 and 2/3. Its reasons
+identified the separately visible rear feet while retaining both leaf-rim and
+the missing-foot rejection. Both new runs passed independent runtime and original
+image audits, using nine completed responses and 180.276 summed seconds. These
+six reused images supply a development signal, not an independent replication
+or general superiority. The paired 22-image comparison now executes both arms
+afresh with unchanged G, budgets and input bytes.
+
+Before G scores were opened, the scoring adapter was strengthened to bind the
+on-disk report back to the already-audited native final and final-output file.
+The prior adapter and amendment hashes remain preserved; five negative checks,
+including report, final-file and rollout tampering, passed independently on
+macOS Python 3.9. No question, model run or eligibility criterion changed.
+
+The fresh-pixel comparison also includes a plain Codex review arm, as named in
+the frozen generation design. All three arms receive the same task, original
+pixels, schema, budgets and host profile; only plain omits skill content and
+resources. G versus 2.1.5 remains primary. G versus plain is a separate comparison
+and must meet the same prospective benefit gates before claiming a benefit over
+ordinary review. It cannot replace a failed primary comparison. Report both
+repetitions without treating repeated judgments as additional unique images.
