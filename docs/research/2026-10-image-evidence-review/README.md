@@ -117,6 +117,25 @@ same block budget. A failure stops B's full comparison; a pass permits the other
 frozen development blocks. The screen is not unseen evidence or an extra retry.
 Evidence claims are inspected against pixels as well as scoring the verdict.
 
+B's two-image screen completed normally at 1/2 correct. It still accepted and
+selected one image with a hidden required boundary, now claiming an unobstructed
+contact that the image does not show. B is rejected without dispatching its other
+five prepared blocks. A fresh independent reviewer, given only anonymous originals
+and the original conditions, confirmed both full-visibility failures. More detailed
+prose does not by itself make the observation reliable.
+
+The next development pilot separates observation from acceptance in fresh
+contexts. A neutral observer receives only images and physical inventory/contact
+questions, without the original request, expected count, eligibility task, skill,
+prior judgment or answer key. A decision context receives the unchanged original
+requirements, images and unedited observation record. The two stages share the
+original total 30-turn/900-second block allowance; both use the same pinned Grok
+model and no image calls. Screen the two occlusion negatives and four table images
+so retaining normal candidates remains necessary. Only a grounded 6/6 result
+permits expansion. External staged execution is a workflow hypothesis test, not
+evidence that the installed skill invokes a native independent observer; adoption
+also requires that actual execution path and summed child usage to be verified.
+
 The first runner check falsely rejected native records lacking a legacy memory
 metadata key. Its raw failure is preserved. The pinned CLI's local guide states
 that `GROK_MEMORY=0` forces memory off; the runner set that variable and both config
