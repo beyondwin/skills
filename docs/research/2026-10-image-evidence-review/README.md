@@ -324,6 +324,40 @@ construction rule. Record actual pool coverage; intended generation targets neve
 determine eligibility or pool membership. This stratification tests withholding
 selection as well as retaining eligible images without dropping hard cases.
 
+### Fresh paired development result
+
+Both arms completed six fresh Codex sessions on the same 22 historical originals.
+All 12 sessions and the final score bindings passed independent audits. The
+control classified 19/22 correctly versus G's 22/22; false accepts stayed at zero,
+false rejects fell from three to zero, and pool choices improved from 7/8 to 8/8.
+The control's three errors were two separately visible table-leg cases and one
+known-valid carafe held because surface detail could not be confirmed. This last
+hold counts as a false rejection under the fixed metric, not a missing run.
+Count, missing-foot and occlusion cases were already correct in both arms; their
+ceiling was maintained rather than improved. Unique paired improvements were
+three, regressions zero (exact two-sided paired p = 0.25).
+
+The control used 33 completed responses and 666.873 summed seconds; G used 31 and
+644.564 seconds. Actual model/effort matched, original bytes and final reports
+matched, temporary authentication was removed, and image-generation calls were
+zero. The development gate passes. These historical images do not establish
+fresh-image performance, ordinary-review superiority, native activation or image
+quality. G stays frozen for the already planned 24 fresh Grok generation attempts.
+
+Before fresh annotations are opened, disputed-reference scoring is fixed. A shared
+failed condition gives a clear negative only when no other condition has a
+pass/fail contradiction between reviewers; uncertainty on another condition is
+retained in the disagreement table but cannot cancel a shared demonstrated
+failure. A positive requires all four conditions to pass in both records and the
+canvas check to pass. Every other reference is disputed. Item scores report the
+clear denominator and pessimistic/optimistic bounds over all successful originals.
+A selected known-positive candidate is a correct pool choice even if another
+candidate is disputed. A selected disputed candidate is unresolved; withholding
+selection is correct only when every candidate is a clear negative, incorrect if
+a known positive exists, and otherwise unresolved. Report bounds and unresolved
+pools explicitly; they cannot be counted as a successful gate. Both repetitions
+and both comparisons retain the previously specified benefit gates.
+
 ### End-to-end execution plan
 
 The final generation check uses the unchanged lamp, pebbles and carafes briefs
