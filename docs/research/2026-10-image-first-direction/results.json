@@ -1,0 +1,156 @@
+{
+  "status": "not_adopted",
+  "intervention": "Complete at most two consequential open visual choices while preserving the entire original drawing brief.",
+  "comparison": "Four fresh requests, autonomous Grok, one first image per arm and request, no repairs or retries.",
+  "candidate_proposed_version": "2.1.8",
+  "installed_version_retained": "2.1.7",
+  "hashes": {
+    "cases.json": "a838bf048ceb60c1399af5710c2ce9beec2e2d97c542e7b6b4894e81e08fbca2",
+    "candidate-manifest.json": "7d677ce08a4b0cf35aec311953c160052201fe05962ea6c76e2445f20a078c1e",
+    "batch-freeze.json": "62642200a3950ed11a7da398d77181993e698b983eb5015eec974565147672a5",
+    "judgment-a.json": "fade3e6fc241d5f28d5e84cd6f33bcfa30542848186115dccb9aa27f7c2d61a7",
+    "judgment-b.json": "785869c2fa30a9aff17ea55747dc1cbda139b981b7ff5ab6aa2602023d8c5f18",
+    "runtime-audit.private.json": "c0be0238df9a01b17c36fc92205ef7a687f022a6b58c3850a177695646e6ad37"
+  },
+  "scores": {
+    "cases": [
+      {
+        "case": "product_speaker",
+        "baseline": {
+          "label": "v04",
+          "reviewer_scores": [
+            {"geometry": 4, "material_light": 4.5, "composition": 4.5, "coherence": 4.5},
+            {"geometry": 4.5, "material_light": 4.5, "composition": 4.5, "coherence": 4.5}
+          ],
+          "craft": 4.4375,
+          "critical_statuses": ["pass", "pass"],
+          "both_pass": true
+        },
+        "candidate": {
+          "label": "v07",
+          "reviewer_scores": [
+            {"geometry": 4.5, "material_light": 4.5, "composition": 4, "coherence": 4},
+            {"geometry": 4.5, "material_light": 4, "composition": 4.5, "coherence": 4}
+          ],
+          "craft": 4.25,
+          "critical_statuses": ["unverified", "unverified"],
+          "both_pass": false
+        },
+        "preferences": ["baseline", "baseline"],
+        "agreed_preference": "baseline",
+        "difference": -0.1875
+      },
+      {
+        "case": "editorial_snail",
+        "baseline": {
+          "label": "v01",
+          "reviewer_scores": [
+            {"geometry": 4, "material_light": 4.5, "composition": 4, "coherence": 4},
+            {"geometry": 4, "material_light": 4, "composition": 4, "coherence": 4}
+          ],
+          "craft": 4.0625,
+          "critical_statuses": ["pass", "pass"],
+          "both_pass": true
+        },
+        "candidate": {
+          "label": "v02",
+          "reviewer_scores": [
+            {"geometry": 4, "material_light": 4.5, "composition": 4.5, "coherence": 4.5},
+            {"geometry": 4, "material_light": 4, "composition": 4.5, "coherence": 4.5}
+          ],
+          "craft": 4.3125,
+          "critical_statuses": ["pass", "pass"],
+          "both_pass": true
+        },
+        "preferences": ["candidate", "candidate"],
+        "agreed_preference": "candidate",
+        "difference": 0.25
+      },
+      {
+        "case": "environment_seacave",
+        "candidate": {
+          "label": "v06",
+          "reviewer_scores": [
+            {"geometry": 4.5, "material_light": 4.5, "composition": 4.5, "coherence": 4.5},
+            {"geometry": 4.5, "material_light": 4, "composition": 4, "coherence": 4.5}
+          ],
+          "craft": 4.375,
+          "critical_statuses": ["pass", "pass"],
+          "both_pass": true
+        },
+        "baseline": {
+          "label": "v08",
+          "reviewer_scores": [
+            {"geometry": 4, "material_light": 4, "composition": 4, "coherence": 4},
+            {"geometry": 4.5, "material_light": 4.5, "composition": 4.5, "coherence": 4.5}
+          ],
+          "craft": 4.25,
+          "critical_statuses": ["pass", "pass"],
+          "both_pass": true
+        },
+        "preferences": ["candidate", "baseline"],
+        "agreed_preference": "disagreement",
+        "difference": 0.125
+      },
+      {
+        "case": "stilllife_utensils",
+        "baseline": {
+          "label": "v03",
+          "reviewer_scores": [
+            {"geometry": 4, "material_light": 4.5, "composition": 4.5, "coherence": 4.5},
+            {"geometry": 4.5, "material_light": 4.5, "composition": 4.5, "coherence": 4.5}
+          ],
+          "craft": 4.4375,
+          "critical_statuses": ["pass", "pass"],
+          "both_pass": true
+        },
+        "candidate": {
+          "label": "v05",
+          "reviewer_scores": [
+            {"geometry": 4, "material_light": 4, "composition": 4, "coherence": 4},
+            {"geometry": 4.5, "material_light": 4, "composition": 4, "coherence": 4}
+          ],
+          "craft": 4.0625,
+          "critical_statuses": ["pass", "pass"],
+          "both_pass": true
+        },
+        "preferences": ["baseline", "baseline"],
+        "agreed_preference": "baseline",
+        "difference": -0.375
+      }
+    ],
+    "baseline_craft": 4.296875,
+    "candidate_craft": 4.25,
+    "mean_difference": -0.046875,
+    "paired_standard_error": 0.14292107014596087,
+    "baseline_confirmed": 4,
+    "candidate_confirmed": 3,
+    "agreed_candidate_wins": 1,
+    "agreed_candidate_losses": 2,
+    "disagreements": 1,
+    "adopt": false
+  },
+  "runtime": {
+    "sessions": 8,
+    "image_calls": 8,
+    "turns": 45,
+    "summed_session_seconds": 436.068,
+    "reported_orchestration_usd": 0.188819,
+    "max_concurrent_host_processes": 2,
+    "codex_live_processes": 0,
+    "edits": 0,
+    "retries": 0
+  },
+  "by_arm": {
+    "baseline": {"sessions": 4, "turns": 21, "summed_seconds": 202.051, "reported_orchestration_usd": 0.06658424},
+    "candidate": {"sessions": 4, "turns": 24, "summed_seconds": 234.017, "reported_orchestration_usd": 0.12223476}
+  },
+  "limitations": [
+    "Four requests, one stochastic image each, no seed pairing or human preference evidence.",
+    "Reviewer A is the primary candidate author, blind to arm mapping and generated prompts; reviewer B independently scored the anonymous packet.",
+    "Candidate speaker low-view compliance is unverified, not a proven failure.",
+    "All four candidates omitted their required local inspector; separate auditor inspections do not repair host execution.",
+    "Native expansion differs by one trailing newline; the complete normalized body and task arguments match the pinned candidate.",
+    "No claim that the unchanged installed skill is worse: this compares a proposed unshipped first-direction change."
+  ]
+}

@@ -10,6 +10,7 @@ reason a product was created or retired.
 
 | Study | Date | What |
 | --- | --- | --- |
+| [First-image visual direction with Grok alone](2026-10-image-first-direction/README.md) | 2026-10-23 | Four fresh one-call pairs: candidate 1 win, 2 losses, 1 disagreement; craft 4.30 vs 4.25, confirmed compliance 4/4 vs 3/4; no product change |
 | [Fresh image transfer and one stop-rule repair](2026-10-image-fresh-transfer/README.md) | 2026-10-23 | Four new requests: no-skill 4/4, 2.1.6 3/4, development repair 2.1.7 4/4; valid retention ties, count/occlusion failure denominators zero; no superiority claim |
 | [Focused image repair and final delivery](2026-10-image-focused-repair/README.md) | 2026-10-23 | 2.1.6 fixes one reproduced Codex false rejection (2/3→3/3); three final assets pass critical/composition checks, clay texture unverified; Grok autonomous review still fails |
 | [Evidence-based image review redesign](2026-10-image-evidence-review/README.md) | 2026-10-23 | G not adopted: fresh supplemental scores improved from 21/23 to 23/23 twice, but adoption gates failed and one execution-scope failure closed the official score |
