@@ -314,6 +314,16 @@ and must meet the same prospective benefit gates before claiming a benefit over
 ordinary review. It cannot replace a failed primary comparison. Report both
 repetitions without treating repeated judgments as additional unique images.
 
+Before fresh generation or labels, fix the pool-construction rule as follows.
+Within each family, sort anonymous identifiers. If at least two originals have
+clear negative consensus, place the first two in one all-failing pool and every
+remaining original in a second pool; omit an empty remainder. Otherwise use one
+pool for that family. Every successful original, including disputed ones, appears
+exactly once per arm and repetition. The model sees neither labels nor this
+construction rule. Record actual pool coverage; intended generation targets never
+determine eligibility or pool membership. This stratification tests withholding
+selection as well as retaining eligible images without dropping hard cases.
+
 ### End-to-end execution plan
 
 The final generation check uses the unchanged lamp, pebbles and carafes briefs
