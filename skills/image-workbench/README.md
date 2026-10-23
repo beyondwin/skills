@@ -114,6 +114,54 @@ $image-workbench Make a landing-page hero image for this project.
 /image-workbench Make a landing-page hero image for this project.
 ```
 
+## Getting a usable first image
+
+Describe where the image will appear, the subject, the required empty space and
+what must remain fully visible. Then specify materials and light. For a hero,
+say which side carries HTML text and which side holds the subject. For several
+objects, say whether they only need to be countable or their complete outlines
+must be visible. A longer list of style adjectives does not resolve that difference.
+
+The skill preserves a detailed first prompt and checks the result against your
+original request. A spatial failure can be corrected through view or placement.
+It checks the tool's supported canvas
+values before generation. If your ratio needs a deterministic crop or pad, it
+reports that conversion and rechecks the final image; a conversion that breaks
+your constraints is not accepted.
+
+For refinement, name the visible failure and what must stay unchanged. Set an
+image-call budget when you want several attempts; rejected calls count toward
+an explicit tool-call budget. A file check or a polished-looking image alone
+does not prove all requirements were met.
+
+The skill organizes project delivery; it does not guarantee a better-looking
+image than the host's ordinary generation. In local comparisons, more instructions
+did not establish a consistent aesthetic advantage. The agent's own
+visual review also missed occlusion and miscounted visible parts. For a final asset
+whose count or completeness is essential, verify those parts yourself or have an
+independent reviewer inspect the actual image. Another confident answer from the
+same model is not independent confirmation.
+
+For a correction, the skill now keeps your complete original drawing brief and
+appends the specific change. It checks subject, count, visibility, framing,
+materials, light, exclusions and canvas before the call, then checks every
+original critical condition again. Keep a bounded call budget and preserve failed
+candidates. Additional attempts can introduce new defects; choose only among
+candidates that meet the original requirements.
+
+A paired Grok correction test preserved the original exclusions and produced a
+usable result where the previous workflow dropped the exclusions and added visible
+text. This is one measured repair, not a guarantee of better aesthetics. Three
+attempts to improve count and occlusion review through detail views and sequencing
+failed; those revisions are not installed. Use an independent visual review for
+acceptance-critical counts and complete outlines.
+
+The retained correction patch also failed the final selection audit's no-regression
+criterion: it wrongly rejected three of twelve new candidates, versus two for the
+previous version. Both rejected the two failing candidates correctly. This patch
+is retained for condition preservation; the overall review workflow has not earned
+an improvement claim.
+
 ## Expected result
 
 It first picks exactly one mode:

@@ -4,8 +4,25 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- Explain the measured limits of generation and self-review in both user guides:
+  no established aesthetic advantage and possible count/occlusion errors.
+  Unsuccessful inventory, detail-view and sequencing revisions were not adopted.
+- Disclose the final selection audit's failed no-regression criterion; the
+  retained patch addresses correction-condition preservation only.
+
 ### Fixed
 
+- Keep the complete original drawing brief on every correction call and append
+  only the targeted change. Check subject, count, visibility, framing, materials,
+  light, exclusions and canvas before calling, then recheck every original critical
+  condition, including previously passing ones.
+- Preserve a detailed first prompt; target a visible spatial failure with a
+  camera or placement correction. Inspect complete visibility separately from count.
+- Check the current tool's supported aspect ratios before a call, preserve the
+  requested canvas through an explicit valid conversion or hold, and count a
+  rejected call against an explicit tool-call budget.
 - Finish visual inspection with a verdict once the evidence is sufficient.
   A visible failure no longer calls for an improvised pixel-analysis pipeline;
   extra measurement is reserved for unresolved acceptance conditions.

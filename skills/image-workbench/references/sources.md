@@ -5,7 +5,8 @@
 This register separates official product documentation, pinned repository
 research, provider-boundary evidence, and benchmark categories. It is a set of
 locators, not runtime dependencies, release gates, compatibility claims, or
-instructions to execute. All entries were checked on `2026-08-23`.
+instructions to execute. Table entries were checked on `2026-08-23`; later
+guidance checks are dated separately below.
 
 ## Primary OpenAI Sources
 
@@ -43,6 +44,14 @@ file at its immutable revision, read-only, before this register was written.
 | [Midjourney community and automation guidelines](https://docs.midjourney.com/hc/en-us/articles/32013696484109-Community-Guidelines) | live official page | not applicable | 2026-08-23 | automation-boundary evidence category | v1 automation or API assumption | separately approved provider review |
 
 ## Evaluation References
+
+The official [xAI image prompting guide](https://docs.x.ai/developers/model-capabilities/images/prompting-guide#write-the-subject-first)
+was checked on `2026-10-22` (page updated `2026-10-08`; live documentation, no
+code or prompt corpus reused). Its subject/count/camera guidance informed the
+spatial-constraint clarification. Its [evaluation section](https://docs.x.ai/developers/model-capabilities/images/prompting-guide#how-to-tell-a-prompt-worked)
+supports checking the original request. Rejected boundary: the API's image
+model, quality, resolution, and ratio parameters are not proof of Grok CLI tool
+capabilities. Refresh when the tool schema or this guidance materially changes.
 
 | Source | Revision | License | Checked | Used for | Rejected boundary | Refresh trigger |
 | --- | --- | --- | --- | --- | --- | --- |

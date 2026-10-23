@@ -95,4 +95,75 @@ did not execute its project workflow.
 These are single regression runs, not statistical quality or latency claims.
 Exact numerical acceptance, image edits, and Codex live behavior were not
 retested. See the [decision record](../../../learning/cases/2026-10-21-image-inspection-convergence.md)
-and current `live/smoke-record.json` for the scope and session identifiers.
+for this historical scope; `live/smoke-record.json` now records the later run.
+
+## Image quality comparison, 2026-10-22
+
+The [quality study](../../../research/2026-10-image-quality/README.md) compares
+ordinary generation and 2.1.2 on three synthetic briefs repeated twice per arm.
+Two condition-blind model reviewers scored actual delivered images. Craft means
+were 3.98 and 4.17/5, below the predeclared improvement threshold; complete
+compliance was 2/6 in each arm. Four unsupported-ratio calls were rejected, and
+the resulting retries violated the one-call budget. Those failures remain visible.
+
+A six-image broad rewriting revision lost craft and regressed the tea case, so
+2.1.3 preserves detailed first prompts and confines spatial advice to a known
+failure. Read-only visibility/count audit controls and fresh brief/routing probes
+exercise the distinction; individual correction and unseen transfer generations
+are recorded separately from first-candidate statistics. Full pinned payload
+manifests, including later reference-only corrections, are retained locally.
+The current smoke record binds the adopted SKILL body, not every reference byte.
+This does not establish a general aesthetic advantage, human preference, image
+edit preservation, or Codex live behavior.
+
+## Delivery and selection follow-up, 2026-10-22
+
+The [two-call study](../../../research/2026-10-image-delivery/README.md) gave
+three unseen briefs to ordinary Grok and the unchanged 2.1.3 runtime, with at most
+two generation calls per run. Seven generated candidates produced usable delivery
+in 3/3 ordinary and 2/3 skill tasks under two independent model judges. The skill's
+only correction omitted original exclusions and introduced visible text; it held
+the result. This is a small comparison, not general superiority evidence.
+
+Five additional read-only selection sessions exposed count/occlusion mistakes.
+A reference-only spatial-inventory revision repeated them on development and
+held-out pools and was rejected. Version 2.1.4 updates user guidance and metadata;
+the tested SKILL body and runtime references are unchanged. The existing body-bound
+smoke remains applicable. The unsuccessful revision is not part of the payload.
+
+## Correction preservation and review repair, 2026-10-23
+
+The [repair study](../../../research/2026-10-image-review-repair/README.md) pins
+Grok CLI 1.0.67 and reruns all controls on `grok-4.7-build/high`. Version 2.1.5
+keeps the original drawing conditions for correction calls and rechecks every
+original critical condition afterward. In two final-payload correction calls,
+the entire first drawing prompt was retained verbatim as a prefix and all seven
+visual-condition categories survived. This does not prove verbatim preservation
+of the raw user brief, whose opening and operational wording were changed.
+
+Nine final-generation sessions produced 12 candidates. Two fresh blinded model
+reviewers scored every original: usable delivery was plain 2/3, baseline 3/3 and
+2.1.5 3/3. Selected craft was 3.83, 4.00 and 4.00/5, with four, three and five
+image calls respectively. The baseline made no correction in this matrix. The
+separate one-pair development correction supplies the direct exclusion-loss
+comparison; it is not merged into final-generation denominators.
+
+Three attempted count/occlusion review repairs failed: A tied baseline at 5/10,
+B exhausted its turn limit without a report, and C regressed to 4/10. Their
+visual rules and crop helper are not shipped. Count and occlusion self-review
+remain unresolved; independent model review is also not human preference evidence.
+
+A fresh selection audit of all 12 new images scored baseline 10/12 and 2.1.5
+9/12, with zero false accepts but two versus three false rejects. Both selected
+eligible images in 3/3 pools. The candidate failed the no-regression criterion;
+only the measured retention component is retained. The baseline also failed the
+strict JSON-receipt rule, while both intact reports remained scoreable. Temporary
+crop format defects and scorer normalization are disclosed in the study.
+
+The product-scoped provider-free check passed 32 cases, 17 mutations and 65 unit
+tests. The full repository check passed 642 unit tests and its other offline
+gates in a Git-listed working-file snapshot. Seven runtime/metadata hashes match
+the final live pin and working tree; README/CHANGELOG updates are distinguished
+from that runtime binding. The output smoke uses final 2.1.5 generation, while
+the three image-free probes bind C's identical SKILL body only, with reference
+differences disclosed. No image-edit or Codex live execution was retested.

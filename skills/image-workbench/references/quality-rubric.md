@@ -16,6 +16,12 @@ composition/crop; style, palette, material, and light; stated invariants; exact
 visible copy or marks; and visible artifacts. Visual review remains required
 even when file facts are available.
 
+Check presence, count, and visibility separately. Three recognizable objects can
+still fail a requirement that all three be fully visible. Inspect the required
+outlines and extremities for overlap, rim occlusion, and frame crop; do not infer
+hidden parts. Judge against the original acceptance conditions, not a weaker
+condition introduced by the generated prompt or the image's attractive style.
+
 ## Mechanical Criteria
 
 For a project-bound final file, record detected format, dimensions, alpha when
@@ -54,7 +60,7 @@ turn a rejected candidate into an accepted one.
 ## Targeted Iteration
 
 Name one failed critical or acceptance condition, apply one justified correction,
-then reopen the candidate and repeat the relevant invariant checks. Stop when
+preserving the complete original drawing brief, then reopen the candidate and repeat every original critical check, including previously passing ones. Stop when
 the acceptance conditions are satisfied or a material condition remains blocked.
 
 ## Final Handoff

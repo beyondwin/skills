@@ -10,6 +10,9 @@ reason a product was created or retired.
 
 | Study | Date | What |
 | --- | --- | --- |
+| [Image review and correction repair](2026-10-image-review-repair/README.md) | 2026-10-22–23 | Retention-only 2.1.5 ties baseline at 3/3 usable delivery; selection accuracy regresses 10/12 to 9/12, broader repair criteria fail |
+| [Image delivery within a two-call budget](2026-10-image-delivery/README.md) | 2026-10-22 | Three new briefs, all seven candidates judged, and five read-only selection probes; inventory correction rejected and self-review limits documented |
+| [Image generation quality comparison](2026-10-image-quality/README.md) | 2026-10-22 | Ordinary Grok versus image-workbench, blinded first-candidate judgments, rejected prompt expansion and targeted constraint repairs; no overall craft advantage established |
 | [Agent workflow comparison](2026-09-agent-workflow-comparison/README.md) | 2026-09-27 | 9 tools, including superpowers and dryforge, plus plain Claude Code, measured on the same 3 tasks |
 | [waygent design and evaluation](2026-09-waygent-eval/README.md) | 2026-09-27 | The `waygent` skill built from the study above, measured 22 times against plain Claude Code and superpowers on a 10-Task job |
 | [Pre-SDD Review versus ordinary review](2026-10-pre-sdd-review-eval/README.md) | 2026-10-08–09 | Frozen 6.1.2 versus ordinary review on Sol, Astra, Opus and Grok; protocol ablation, repair, process audit and a bounded 6.1.3 correction |

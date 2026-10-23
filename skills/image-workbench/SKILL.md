@@ -4,8 +4,8 @@ description: Use when a raster image must fit this project, keep given constrain
 license: Apache-2.0
 compatibility: Requires Codex or Grok built-in image generation and local image viewing for generate or edit mode. Brief and audit modes can run read-only.
 metadata:
-  version: "2.1.2"
-  updated_at: "2026-10-21"
+  version: "2.1.5"
+  updated_at: "2026-10-23"
 ---
 
 # Image Workbench
@@ -54,6 +54,12 @@ Compile an `ImageSpec` before execution and assign exactly one role to every
 input image. Use the [ImageSpec reference](references/image-spec.md) when the
 brief is complex, an edit has several inputs, or integration matters.
 
+Keep the complete original drawing brief as the fixed base for every image call,
+separate from destination and other operational fields. Preserve a detailed brief
+for the first candidate rather than rewriting it to add camera or style instructions. Being countable is not the same as being fully
+visible. When inspection finds a spatial failure, use the ImageSpec reference
+to choose one targeted camera or placement correction within the authorized budget.
+
 ## Execute The Authorized Route
 
 For authorized `generate` or `edit` work, use the current host's built-in image generation only.
@@ -86,6 +92,13 @@ condition. On Grok, do not pass n or count, and do not call image_to_video or
 reference_to_video. On Grok, single-image edit keeps the source aspect ratio.
 If ImageSpec canvas differs from the source, report that difference and
 follow the tool default unless a ratio change is explicit.
+
+Check the current tool's allowed values before sending aspect_ratio. For an
+unsupported requested ratio, use a supported canvas plus an explicit deterministic
+crop or pad only when it preserves the brief and invariants; inspect the converted
+file. Otherwise report a hold or an allowed approximation, never silently substitute
+a ratio. A rejected call still uses a tool-call budget; it does not prove an image
+was generated or billed.
 
 Grok image tools return JPEG without alpha, and Grok edit downscales
 references to about 768 px on the long side. Keep the `.jpg` extension when
@@ -120,7 +133,7 @@ decoders or building a new verification pipeline.
 
 ## Iterate And Stop
 
-Produce one useful first candidate by default. One tool call per explicitly requested distinct asset or variant. Ordinary requests never become unrequested batches. Make at most one clearly justified correction at a time. Repeat the ImageSpec invariants and candidate inspection after each correction. Hold when a critical condition cannot be verified instead of treating an aesthetic preference as a reason to keep generating.
+Produce one useful first candidate by default. One tool call per explicitly requested distinct asset or variant. Ordinary requests never become unrequested batches. Make at most one clearly justified correction at a time. Start its drawing prompt with the complete fixed base, then append the targeted change; do not summarize the base or build on a shortened previous prompt. Check that subject, counts, visibility, framing, materials, light, exclusions, and canvas remain present before calling the tool. The change may refine an unspecified arrangement but may not override a user constraint. Reopen the result and recheck every original critical condition, including ones that passed before. Hold when a critical condition cannot be verified instead of treating an aesthetic preference as a reason to keep generating.
 
 After inspection, finish with either an accepted candidate or a concise hold
 naming the failed or unverified critical condition. When a correction is

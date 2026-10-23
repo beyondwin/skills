@@ -52,6 +52,21 @@ Write an `ImageSpec` before running. Give each input image exactly one role:
 `edit_target`, `subject_reference`, `style_reference`, or
 `compositing_input`.
 
+Preserve a detailed first prompt. Use view or placement changes for an observed
+spatial failure within the authorized budget. Count and complete visibility are separate checks:
+recognizable objects can still fail because their required outlines are occluded.
+Keep the complete original drawing brief as a fixed base, excluding operational
+destination and rights fields. Every correction starts with that base and appends
+the targeted change; do not summarize or reuse a shortened prior prompt. Check
+subject, count, visibility, framing, materials, light, exclusions and canvas before
+the call. Recheck every original critical condition afterward, including previously
+passing ones. Correct prompt transmission does not prove image compliance.
+
+Use aspect ratios advertised by the current tool. An unsupported requested ratio
+needs an explicit deterministic conversion that preserves the brief and invariants,
+an allowed approximation, or a hold. Do not silently substitute a ratio. A rejected
+call consumes an explicit tool-call budget but does not establish generation or cost.
+
 For a final project file, run
 `python3 <skill-root>/scripts/inspect_asset.py <absolute-asset-path>` with an
 absolute asset path, and give `--output` an absolute path outside the skill
