@@ -513,3 +513,23 @@ budget, or existing strict/amended gate. If only a smaller effect is observed, G
 remains unadopted. A later revision or additional independent evaluation requires
 its own prospective design; selectively rerunning until a favorable result is not
 an adoption method.
+
+## Frozen G native activation check
+
+The [native support aggregate](native-activation.json) covers four fresh Grok
+sessions (explicit brief, implicit project brief, casual near-miss and one basic
+output task) plus one explicit Codex activation session. All five independent
+runtime audits passed. Grok used 15 turns, 170.388 summed seconds and one actual
+image call; Codex used three completed responses, 38.459 seconds and no image call.
+Actual model/effort were `grok-4.7-build/high` and `gpt-6-astra/ultra`. Full G
+resource discovery, exact native body delivery and original-byte inspection in
+the output probe were checked. These are support checks, not comparative image
+quality, image-edit preservation or permission to adopt G.
+
+The original parsers incorrectly required a separate body-file read despite native
+slash expansion, and looked for a final `channel` instead of the native `phase`.
+Raw failures remain preserved. Narrow exact-body/link-expansion and unique-final
+checks were independently verified without provider retries. The output inspector
+used a shared `/tmp` report path whose earlier existence was not checked; do not
+claim isolated scratch ownership or OS read isolation. Temporary authentication
+was removed and children were reaped.
