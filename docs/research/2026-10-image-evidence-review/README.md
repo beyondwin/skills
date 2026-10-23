@@ -358,6 +358,20 @@ a known positive exists, and otherwise unresolved. Report bounds and unresolved
 pools explicitly; they cannot be counted as a successful gate. Both repetitions
 and both comparisons retain the previously specified benefit gates.
 
+### Fresh generation inspection deviation
+
+The initial dispatcher stopped after two of the 24 planned calls. Both calls
+produced one native original and an exact project copy, but the generator omitted
+its separate `read_file` inspection. Both original protocol failures remain
+recorded. No image or annotation was opened before this amendment: continue only
+the 22 untouched jobs with unchanged prompts, model, budgets and runtime, without
+replacing either initial image. The continuation tolerates only this precise
+inspection omission; any other error halts dispatch. All originals still require
+independent source and path audits and direct inspection by the blind reviewers.
+This distinguishes valid raster sources for a review experiment from a successful
+generator output workflow. The omitted generator inspections cannot pass the
+original output-contract gate or support an end-to-end product claim.
+
 ### End-to-end execution plan
 
 The final generation check uses the unchanged lamp, pebbles and carafes briefs
