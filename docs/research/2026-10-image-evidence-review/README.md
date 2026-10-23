@@ -50,6 +50,13 @@ stratum, the candidate must retain zero errors there. Improvement below zero is
 impossible, and a ceiling tie is not described as improvement. The other gates
 remain unchanged.
 
+The equal budget is per contemporaneous control/candidate block: six fresh
+sessions allocate 180 turns and 5,400 seconds per arm. The earlier two combined
+studies allocated 60 turns and 1,800 seconds. Splitting context and increasing
+the total review allowance can improve the control too; do not attribute that
+shared procedural change to the new skill or compare elapsed time directly with
+the earlier study.
+
 After a development candidate is frozen, generate 24 new originals across four
 scene families, with one image call each and no corrective retry. Each family
 includes three intended valid variations and three intended contrasts: incorrect
@@ -90,3 +97,31 @@ Only aggregate methods, results and safe decision records are committed.
 Offline contracts establish packaging and authorization behavior, not visual
 accuracy. Product and full repository checks follow the final runtime change;
 they are separate from the live comparisons above.
+
+## Development decisions
+
+Candidate A's two boat blocks completed normally. Control and A each classified
+4/6 correctly, including two occlusion false accepts, and selected correctly in
+2/3 pools. A therefore fails the mandatory all-failing-pool hold criterion and
+is not eligible for adoption. The remaining frozen queue continues so its full
+results and cost are retained.
+
+Both A runs received the complete frozen SKILL and rubric text, and source image
+bytes were delivered intact. On the two missed occlusions the final report
+substituted countability and being inside the frame for the required complete
+boundary. This does not establish whether perception or applying the observation
+was the limiting step. Candidate B therefore requires a compact observation row
+for every critical condition before its status, including positive boundary
+evidence for a pass. It first screens the same two development failures under the
+same block budget. A failure stops B's full comparison; a pass permits the other
+frozen development blocks. The screen is not unseen evidence or an extra retry.
+Evidence claims are inspected against pixels as well as scoring the verdict.
+
+The first runner check falsely rejected native records lacking a legacy memory
+metadata key. Its raw failure is preserved. The pinned CLI's local guide states
+that `GROK_MEMORY=0` forces memory off; the runner set that variable and both config
+flags to false. The reviewed normalization additionally requires exact config,
+native v2=false, a missing or exactly false legacy key, empty agent/persona lists
+and no memory data in the fresh home. It rejects missing v2 or contradictory
+values. This is a corrected evidence check, not a successful rerun or weakened
+visual scoring rule.
