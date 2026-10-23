@@ -1,6 +1,6 @@
 # Evidence-based image review redesign
 
-Started: 2026-10-23. Status: G passed historical development; fresh-image validation in progress. The installed product remains 2.1.5.
+Started: 2026-10-23. Status: comparison completed; G not adopted. The installed product remains 2.1.5.
 
 The [preceding repair](../2026-10-image-review-repair/README.md) retained
 correction-condition preservation but failed to improve count, occlusion and
@@ -8,6 +8,105 @@ false-rejection errors. The user requested a redesigned review method, actual
 Grok comparisons, further improvement until useful, and incremental commits.
 The [decision case](../../learning/cases/2026-10-23-image-evidence-review.md)
 records the alternatives and adoption decision.
+
+## Decision and fresh-image result
+
+G recovered valid candidates in this sample, but did not meet the frozen adoption
+criteria. Keep 2.1.5, including its previously verified correction-base retention.
+Do not claim that counting, occlusion perception, final delivery or aesthetic
+quality is fixed. The prepared nine-task delivery comparison was not dispatched:
+G did not qualify. No additional large experiment or automatic retry is scheduled.
+
+The [safe diagnostic aggregate](fresh-diagnostic.json) records all 24 review
+sessions and both repetitions. These are **supplemental raw-report scores**:
+23/24 native execution audits passed, so the official complete-batch quality
+score remains `PROTOCOL_NOT_VERIFIED_QUALITY_CLOSED`. One plain boat session in
+repetition 2 wrote diagnostic crops outside its run-private temporary directory.
+The original pixels and native-final/report bindings remained intact; the crops
+were not resampled. Why its temporary-directory resolution used the shared
+directory is unknown. This is an execution-scope failure, not a visual error.
+It was neither waived nor replaced by a rerun.
+
+| Arm / repetition | Correct clear | False accept | False reject | Unverified / missing | Pool correct / unresolved | Protocol runs | Responses | Sum seconds |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Plain / 1 | 21/23 | 1 | 1 | 0 / 0 | 7/8 / 0 | 4/4 | 31 | 453.995 |
+| 2.1.5 / 1 | 21/23 | 0 | 2 | 0 / 0 | 7/8 / 1 | 4/4 | 26 | 486.910 |
+| G / 1 | 23/23 | 0 | 0 | 0 / 0 | 7/8 / 1 | 4/4 | 26 | 452.315 |
+| Plain / 2 | 22/23 | 0 | 1 | 0 / 0 | 7/8 / 1 | 3/4 | 31 | 547.646 |
+| 2.1.5 / 2 | 21/23 | 0 | 2 | 0 / 0 | 7/8 / 1 | 4/4 | 26 | 553.653 |
+| G / 2 | 23/23 | 0 | 0 | 0 / 0 | 7/8 / 1 | 4/4 | 27 | 519.817 |
+
+There are 24 unique originals: 23 clear model-reference labels (10 positive,
+13 negative) and one disputed label. Two repetitions do not make 48 independent
+images. The unverified count describes model reports; it does not erase the
+separate disputed reference. In plain repetition 1 the eighth pool was wrong;
+the other rows held that pool unresolved. Neither earns correct-pool credit.
+All review arms made zero image calls. The 24 sessions used 167 completed Codex
+responses; 143 native execution calls were audited. Run-time sums are not parallel
+wall-clock times, and no review dollar cost was established.
+
+| Diagnostic contrast | Unique gains / losses | Exact paired p | Strict / amended numeric gates | Mean gain / two SE | Repository gate |
+| --- | ---: | ---: | --- | ---: | --- |
+| G versus 2.1.5 | 3 / 0 | 0.25 | fail / pass | 8.70 / 10.24 percentage points | fail |
+| G versus plain | 2 / 0 | 0.50 | fail / fail | 6.52 / 9.54 percentage points | fail |
+
+These numeric gates do not override the execution failure. Both two-SE gates
+also fail independently of it. The original strict rule rejects unresolved pools
+and, versus 2.1.5, lacks a detection gain. The pre-review amendment allows the
+identical unresolved hold and verified negative ceiling versus 2.1.5. Versus
+plain it fails the unresolved-choice match in repetition 1 and the minimum
+two-image gain in repetition 2. Matching an unresolved choice is conservative:
+here it does not credit G's hold against plain's wrong negative selection. Keep
+that limitation without changing the frozen rule after seeing results. The
+potential disputed-item/unverified-counter concern did not trigger: every report
+had zero unverified items.
+
+### What the originals actually explain
+
+Focused inspection reopened nine originals: the four with changed decisions,
+all four count negatives, and one plant-plus-occlusion negative. It did not
+relabel the reference or create new adjudicated ground truth.
+
+- Two of G's three gains over 2.1.5 concern directly identifiable table feet with
+  normal perspective overlap. The old report counted four but demanded exposed
+  full leg outlines. This supports a requirement-strength interpretation error,
+  not better counting. Plain already accepted these two originals.
+- The remaining gain concerns a tight but nonzero framing margin. Both reference
+  reviewers accepted it, while plain and one baseline repetition rejected it.
+  The qualitative margin requirement makes this a judgment boundary, not an
+  objectively established perception correction.
+- Plain once accepted a boat whose front hull covers a leaf's lower outline;
+  baseline and G rejected it in both repetitions. Three identifiable leaves do
+  not imply three completely unobstructed outlines.
+- All methods explicitly counted all four count negatives correctly in both
+  repetitions. No counting gain was measured. Baseline and G also classified all
+  nine visibility-stratum negatives correctly, but that stratum includes framing
+  and required visible-part counts. On the plant-plus-occlusion image, G's reason
+  named only the prohibited plant; it does not demonstrate occlusion detection.
+
+The two reference reviewers agreed on 95/96 conditions, but are models rather
+than human ground truth. One reference explanation reverses which leaf overlaps
+which, although the shared failure label remains supported. The boat family has
+five clear negatives and one disputed image, with no clear positive; it cannot
+measure retention of valid boats. Shared scene/session dependence is not modeled
+by the frozen two-SE approximation. Development's 22 images remain separate from
+this fresh comparison. These limits prevent a general superiority claim.
+
+### Resulting strategy
+
+Keep the intervention small: preserve the original brief; separate count,
+identifiable parts and explicit full visibility; reject only for an observed
+contradiction; retain genuine uncertainty; make one targeted correction with the
+complete original base; recheck the original conditions. File inspection verifies
+file facts, not visual correctness. Extra observer stages and longer prose did
+not establish an advantage in the earlier A–F trials.
+
+This is a narrowed design direction, not an adopted G release. A future study
+would need a new prospective question, balanced valid/invalid examples in every
+family, and independent resolution of qualitative requirement boundaries. The
+current 24 originals are now development evidence and cannot be reused as unseen
+confirmation. Do not enlarge the harness or continue sampling merely until a
+favorable adoption result appears.
 
 ## Direction and target
 
@@ -34,8 +133,9 @@ The tested execution path is Codex planning/review plus the user's requested Gro
 CLI drawing. Control and candidate use the same hosts. Earlier Grok-only review
 experiments did not reliably count or interpret boundaries, even with more prose
 or separate observers. G adds no mandatory extra model, image transformation,
-helper or drawing budget. Its historical development improvement is specifically
-normal-candidate retention; fresh-image and delivery gains remain to be measured.
+helper or drawing budget. Its measured sample improvement is specifically
+normal-candidate retention; the fresh result did not qualify for adoption and
+delivery gains remain unmeasured.
 
 Initial candidate A used an instance inventory, a foreground-boundary check and a
 benign-interpretation check. It and the subsequent failed variants remain below

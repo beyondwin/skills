@@ -10,7 +10,7 @@ reason a product was created or retired.
 
 | Study | Date | What |
 | --- | --- | --- |
-| [Evidence-based image review redesign](2026-10-image-evidence-review/README.md) | 2026-10-23 | In progress: rejected prompt-only variants, isolated observation experiments, and a pending untouched comparison |
+| [Evidence-based image review redesign](2026-10-image-evidence-review/README.md) | 2026-10-23 | G not adopted: fresh supplemental scores improved from 21/23 to 23/23 twice, but adoption gates failed and one execution-scope failure closed the official score |
 | [Image review and correction repair](2026-10-image-review-repair/README.md) | 2026-10-22–23 | Retention-only 2.1.5 ties baseline at 3/3 usable delivery; selection accuracy regresses 10/12 to 9/12, broader repair criteria fail |
 | [Image delivery within a two-call budget](2026-10-image-delivery/README.md) | 2026-10-22 | Three new briefs, all seven candidates judged, and five read-only selection probes; inventory correction rejected and self-review limits documented |
 | [Image generation quality comparison](2026-10-image-quality/README.md) | 2026-10-22 | Ordinary Grok versus image-workbench, blinded first-candidate judgments, rejected prompt expansion and targeted constraint repairs; no overall craft advantage established |
