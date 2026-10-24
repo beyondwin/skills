@@ -1,5 +1,7 @@
 # 설치
 
+세 스킬 모두 `$스킬이름` 또는 `/스킬이름`으로 직접 호출해야 하며, 요청 내용만으로 자동 활성화하지 않습니다.
+
 [English](../en/installation.md) · [호환성](compatibility.md) · [안전과 개인정보](safety-and-privacy.md) · [검증](verification.md)
 
 설치 방법은 사용할 스킬과 실행 도구(호스트)에 따라 다릅니다. 아래 표에서

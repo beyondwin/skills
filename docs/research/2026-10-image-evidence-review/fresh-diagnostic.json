@@ -1,0 +1,489 @@
+{
+  "status": "SUPPLEMENTAL_RAW_REPORT_DIAGNOSIS_ONLY",
+  "official_quality_status": "PROTOCOL_NOT_VERIFIED_QUALITY_CLOSED",
+  "product_adoption": false,
+  "installed_version": "2.1.5",
+  "source_population": 24,
+  "clear_reference_population": 23,
+  "clear_positive_population": 10,
+  "clear_negative_population": 13,
+  "disputed_reference_population": 1,
+  "reviews_per_source_per_arm": 2,
+  "actual_review_host": {
+    "cli": "Codex 0.163.0",
+    "model": "gpt-6-astra",
+    "effort": "ultra"
+  },
+  "review_sessions": 24,
+  "native_protocol_passed_sessions": 23,
+  "native_exec_calls_audited": 143,
+  "completed_responses": 167,
+  "review_image_calls": 0,
+  "review_cost_usd": null,
+  "generation_originals": 24,
+  "generation_image_calls": 24,
+  "generation_original_preview_protocol_passed": 0,
+  "rows": [
+    {
+      "arm": "plain",
+      "replicate": 1,
+      "total": 24,
+      "clear": 23,
+      "disputed": 1,
+      "correct": 21,
+      "false_accept": 1,
+      "false_reject": 1,
+      "unverified": 0,
+      "missing": 0,
+      "positive_correct": 9,
+      "negative_correct": 12,
+      "defect_strata": {
+        "count": {
+          "total": 4,
+          "errors": 0
+        },
+        "visibility": {
+          "total": 9,
+          "errors": 1
+        },
+        "extra_object": {
+          "total": 4,
+          "errors": 0
+        },
+        "other": {
+          "total": 0,
+          "errors": 0
+        },
+        "unknown": {
+          "total": 0,
+          "errors": 0
+        }
+      },
+      "accuracy_bounds_successful_originals": {
+        "denominator": 24,
+        "pessimistic": 0.875,
+        "optimistic": 0.9166666666666666
+      },
+      "pools": {
+        "total": 8,
+        "correct": 7,
+        "incorrect": 1,
+        "unresolved": 0,
+        "all_clear_negative_pools": 4
+      },
+      "sessions": 4,
+      "protocol_passed_sessions": 4,
+      "completed_responses": 31,
+      "summed_run_seconds": 453.995,
+      "image_calls": 0
+    },
+    {
+      "arm": "baseline",
+      "replicate": 1,
+      "total": 24,
+      "clear": 23,
+      "disputed": 1,
+      "correct": 21,
+      "false_accept": 0,
+      "false_reject": 2,
+      "unverified": 0,
+      "missing": 0,
+      "positive_correct": 8,
+      "negative_correct": 13,
+      "defect_strata": {
+        "count": {
+          "total": 4,
+          "errors": 0
+        },
+        "visibility": {
+          "total": 9,
+          "errors": 0
+        },
+        "extra_object": {
+          "total": 4,
+          "errors": 0
+        },
+        "other": {
+          "total": 0,
+          "errors": 0
+        },
+        "unknown": {
+          "total": 0,
+          "errors": 0
+        }
+      },
+      "accuracy_bounds_successful_originals": {
+        "denominator": 24,
+        "pessimistic": 0.875,
+        "optimistic": 0.9166666666666666
+      },
+      "pools": {
+        "total": 8,
+        "correct": 7,
+        "incorrect": 0,
+        "unresolved": 1,
+        "all_clear_negative_pools": 4
+      },
+      "sessions": 4,
+      "protocol_passed_sessions": 4,
+      "completed_responses": 26,
+      "summed_run_seconds": 486.91,
+      "image_calls": 0
+    },
+    {
+      "arm": "candidate",
+      "replicate": 1,
+      "total": 24,
+      "clear": 23,
+      "disputed": 1,
+      "correct": 23,
+      "false_accept": 0,
+      "false_reject": 0,
+      "unverified": 0,
+      "missing": 0,
+      "positive_correct": 10,
+      "negative_correct": 13,
+      "defect_strata": {
+        "count": {
+          "total": 4,
+          "errors": 0
+        },
+        "visibility": {
+          "total": 9,
+          "errors": 0
+        },
+        "extra_object": {
+          "total": 4,
+          "errors": 0
+        },
+        "other": {
+          "total": 0,
+          "errors": 0
+        },
+        "unknown": {
+          "total": 0,
+          "errors": 0
+        }
+      },
+      "accuracy_bounds_successful_originals": {
+        "denominator": 24,
+        "pessimistic": 0.9583333333333334,
+        "optimistic": 1.0
+      },
+      "pools": {
+        "total": 8,
+        "correct": 7,
+        "incorrect": 0,
+        "unresolved": 1,
+        "all_clear_negative_pools": 4
+      },
+      "sessions": 4,
+      "protocol_passed_sessions": 4,
+      "completed_responses": 26,
+      "summed_run_seconds": 452.315,
+      "image_calls": 0
+    },
+    {
+      "arm": "plain",
+      "replicate": 2,
+      "total": 24,
+      "clear": 23,
+      "disputed": 1,
+      "correct": 22,
+      "false_accept": 0,
+      "false_reject": 1,
+      "unverified": 0,
+      "missing": 0,
+      "positive_correct": 9,
+      "negative_correct": 13,
+      "defect_strata": {
+        "count": {
+          "total": 4,
+          "errors": 0
+        },
+        "visibility": {
+          "total": 9,
+          "errors": 0
+        },
+        "extra_object": {
+          "total": 4,
+          "errors": 0
+        },
+        "other": {
+          "total": 0,
+          "errors": 0
+        },
+        "unknown": {
+          "total": 0,
+          "errors": 0
+        }
+      },
+      "accuracy_bounds_successful_originals": {
+        "denominator": 24,
+        "pessimistic": 0.9166666666666666,
+        "optimistic": 0.9583333333333334
+      },
+      "pools": {
+        "total": 8,
+        "correct": 7,
+        "incorrect": 0,
+        "unresolved": 1,
+        "all_clear_negative_pools": 4
+      },
+      "sessions": 4,
+      "protocol_passed_sessions": 3,
+      "completed_responses": 31,
+      "summed_run_seconds": 547.646,
+      "image_calls": 0
+    },
+    {
+      "arm": "baseline",
+      "replicate": 2,
+      "total": 24,
+      "clear": 23,
+      "disputed": 1,
+      "correct": 21,
+      "false_accept": 0,
+      "false_reject": 2,
+      "unverified": 0,
+      "missing": 0,
+      "positive_correct": 8,
+      "negative_correct": 13,
+      "defect_strata": {
+        "count": {
+          "total": 4,
+          "errors": 0
+        },
+        "visibility": {
+          "total": 9,
+          "errors": 0
+        },
+        "extra_object": {
+          "total": 4,
+          "errors": 0
+        },
+        "other": {
+          "total": 0,
+          "errors": 0
+        },
+        "unknown": {
+          "total": 0,
+          "errors": 0
+        }
+      },
+      "accuracy_bounds_successful_originals": {
+        "denominator": 24,
+        "pessimistic": 0.875,
+        "optimistic": 0.9166666666666666
+      },
+      "pools": {
+        "total": 8,
+        "correct": 7,
+        "incorrect": 0,
+        "unresolved": 1,
+        "all_clear_negative_pools": 4
+      },
+      "sessions": 4,
+      "protocol_passed_sessions": 4,
+      "completed_responses": 26,
+      "summed_run_seconds": 553.653,
+      "image_calls": 0
+    },
+    {
+      "arm": "candidate",
+      "replicate": 2,
+      "total": 24,
+      "clear": 23,
+      "disputed": 1,
+      "correct": 23,
+      "false_accept": 0,
+      "false_reject": 0,
+      "unverified": 0,
+      "missing": 0,
+      "positive_correct": 10,
+      "negative_correct": 13,
+      "defect_strata": {
+        "count": {
+          "total": 4,
+          "errors": 0
+        },
+        "visibility": {
+          "total": 9,
+          "errors": 0
+        },
+        "extra_object": {
+          "total": 4,
+          "errors": 0
+        },
+        "other": {
+          "total": 0,
+          "errors": 0
+        },
+        "unknown": {
+          "total": 0,
+          "errors": 0
+        }
+      },
+      "accuracy_bounds_successful_originals": {
+        "denominator": 24,
+        "pessimistic": 0.9583333333333334,
+        "optimistic": 1.0
+      },
+      "pools": {
+        "total": 8,
+        "correct": 7,
+        "incorrect": 0,
+        "unresolved": 1,
+        "all_clear_negative_pools": 4
+      },
+      "sessions": 4,
+      "protocol_passed_sessions": 4,
+      "completed_responses": 27,
+      "summed_run_seconds": 519.817,
+      "image_calls": 0
+    }
+  ],
+  "contrasts": {
+    "baseline": {
+      "strict_numeric_pass": false,
+      "amended_numeric_pass": true,
+      "unique_improved": 3,
+      "unique_regressed": 0,
+      "exact_paired_p": 0.25,
+      "two_se": {
+        "method_id": "unique-clear-paired-correct-fraction-two-se-v1",
+        "additional_necessary_gate_only": true,
+        "unit_of_analysis": "unique clear source image",
+        "reviews_per_source_per_arm": 2,
+        "source_population": 24,
+        "clear_source_population": 23,
+        "disputed_source_population": 1,
+        "mean_paired_correct_fraction_difference": 0.08695652173913043,
+        "sample_sd": 0.24551309505176552,
+        "standard_error": 0.051193019158057795,
+        "two_standard_errors": 0.10238603831611559,
+        "mean_minus_two_se": -0.015429516576985158,
+        "positive_mean": true,
+        "pass": false,
+        "p_value_rule": null,
+        "limits": [
+          "Normal-approximation decision rule, not a general superiority guarantee.",
+          "Does not model dependence across images sharing a brief or review session.",
+          "Study strict/amended gates, execution audits, and delivery checks remain separate requirements.",
+          "Repeated reviews are not independent source images."
+        ]
+      },
+      "strict_failed_gates_by_repetition": [
+        [
+          "candidate_no_unresolved_pool"
+        ],
+        [
+          "candidate_no_unresolved_pool"
+        ]
+      ],
+      "strict_failed_cross_stage_gates": [
+        "both_repetitions_pass",
+        "failure_detection_improved_somewhere"
+      ],
+      "amended_failed_gates_by_repetition": [
+        [],
+        []
+      ]
+    },
+    "plain": {
+      "strict_numeric_pass": false,
+      "amended_numeric_pass": false,
+      "unique_improved": 2,
+      "unique_regressed": 0,
+      "exact_paired_p": 0.5,
+      "two_se": {
+        "method_id": "unique-clear-paired-correct-fraction-two-se-v1",
+        "additional_necessary_gate_only": true,
+        "unit_of_analysis": "unique clear source image",
+        "reviews_per_source_per_arm": 2,
+        "source_population": 24,
+        "clear_source_population": 23,
+        "disputed_source_population": 1,
+        "mean_paired_correct_fraction_difference": 0.06521739130434782,
+        "sample_sd": 0.22884829364008002,
+        "standard_error": 0.04771816785632268,
+        "two_standard_errors": 0.09543633571264536,
+        "mean_minus_two_se": -0.030218944408297532,
+        "positive_mean": true,
+        "pass": false,
+        "p_value_rule": null,
+        "limits": [
+          "Normal-approximation decision rule, not a general superiority guarantee.",
+          "Does not model dependence across images sharing a brief or review session.",
+          "Study strict/amended gates, execution audits, and delivery checks remain separate requirements.",
+          "Repeated reviews are not independent source images."
+        ]
+      },
+      "strict_failed_gates_by_repetition": [
+        [
+          "candidate_no_unresolved_pool"
+        ],
+        [
+          "net_clear_correct_gain_at_least2",
+          "candidate_no_unresolved_pool"
+        ]
+      ],
+      "strict_failed_cross_stage_gates": [
+        "both_repetitions_pass"
+      ],
+      "amended_failed_gates_by_repetition": [
+        [
+          "unresolved_choices_exactly_match_control"
+        ],
+        [
+          "net_clear_correct_gain_at_least2"
+        ]
+      ]
+    }
+  },
+  "protocol_failure": {
+    "arm": "plain",
+    "replicate": 2,
+    "family": "boat",
+    "type": "diagnostic crops written outside run-private TMP",
+    "source_pixels_unchanged": true,
+    "crop_resampling": false,
+    "reports_bound_to_native_final": true,
+    "cause_of_tmpdir_resolution": "unknown",
+    "counts_as_visual_error": false,
+    "rerun": false
+  },
+  "focused_original_inspection": {
+    "originals": 9,
+    "changed_decision_originals": 4,
+    "count_negatives": 4,
+    "plant_and_occlusion_negative": 1,
+    "baseline_gain_mechanisms": {
+      "visible_part_requirement_strength": 2,
+      "qualitative_margin_boundary": 1
+    },
+    "reference_labels_changed": false,
+    "new_adjudicated_gold_created": false
+  },
+  "final_delivery_tasks_executed": 0,
+  "limits": [
+    "Supplemental diagnosis only; the official complete-batch score remains closed after one execution-scope failure.",
+    "Both frozen two-SE adoption contrasts fail; G remains unadopted even without the scope failure.",
+    "Reference labels come from two model reviewers, not independent human ground truth.",
+    "Count has only four negatives and all methods are at ceiling.",
+    "Visibility strata include framing and visible-part counts, not only occlusion; item correctness does not prove faithful detection of each failed condition.",
+    "Boat family has five clear negatives and one disputed image, with no clear positive.",
+    "One baseline recovery depends on a qualitative margin interpretation; another reference reason reverses overlap direction without changing the shared negative label.",
+    "Repeated images and images in shared brief/session contexts are not fully independent; the frozen two-SE approximation does not model that dependence.",
+    "Development and fresh results remain separate; final generation, correction and aesthetic gains are untested for G.",
+    "Reported seconds sum individual runs and are not parallel wall-clock time."
+  ],
+  "evidence_sha256": {
+    "raw_diagnostic": "427e22f55d8bc252cae9bb3f350cae8b0abc2e5874abd21451f6749f502c15cf",
+    "official_closed_result": "7bf9c62a54e4344ddb12c5c800699f2fb1b32c2e16dd333b7f49a56e4c6140ff",
+    "independent_native_audit": "3eea499c81135db53cd533063a84e7ee604263b5b3c9f1bcc38fd04349142e2c",
+    "batch_freeze": "5e2611ec88d3b4c9d21b2849e24999cf23bfae0b6080403ef961ffc940b492d0",
+    "reference": "cb6bba2124cad5aa3eb635199308a44c64bea48a8bb6472de9a81c9182e813ba",
+    "adoption_method_freeze": "2809d0a3850fd2ca96cf9314bae23e3edec3fe4052960c213f0d4790306b8a63"
+  }
+}

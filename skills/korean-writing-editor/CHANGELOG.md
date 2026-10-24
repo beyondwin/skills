@@ -4,6 +4,8 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+- Breaking: require explicit invocation; disable automatic skill selection.
+
 ### Fixed
 
 - Local correction respects a user-selected editing span, including errors outside it.

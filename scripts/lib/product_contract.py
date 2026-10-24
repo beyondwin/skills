@@ -34,7 +34,7 @@ ARCHIVE_MARKERS = ("SKILLS_ARCHIVE_CHECKOUT", "source/private")
 CREDENTIAL_MARKERS = ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "CURSOR_API_KEY")
 IGNORE_NAMES = frozenset({"__pycache__"})
 BYTECODE_SUFFIXES = {".pyc", ".pyo"}
-EXPLICIT_ONLY_SKILLS = frozenset()
+EXPLICIT_ONLY_SKILLS = frozenset({"how-it-works", "image-workbench", "korean-writing-editor"})
 
 
 @dataclasses.dataclass(frozen=True)
@@ -168,9 +168,14 @@ def validate_product(skill_root: Path, registry: ProductRegistry) -> list[str]:
     if frontmatter.get("name") != skill_root.name:
         errors.append("directory/frontmatter name mismatch")
     if len(product.supported_hosts) > 1:
-        extra = sorted(set(frontmatter) - PORTABLE_FRONTMATTER_FIELDS)
+        allowed = PORTABLE_FRONTMATTER_FIELDS
+        if "claude-code" in product.supported_hosts:
+            allowed = allowed | {"disable-model-invocation"}
+        extra = sorted(set(frontmatter) - allowed)
         for field in extra:
             errors.append(f"non-portable frontmatter field: {field}")
+    if "claude-code" in product.supported_hosts and frontmatter.get("disable-model-invocation") != "true":
+        errors.append("Claude Code invocation policy must be explicit-only")
     if frontmatter.get("license") != "Apache-2.0":
         errors.append("missing Apache declaration")
     metadata = frontmatter.get("metadata")
@@ -227,6 +232,8 @@ def validate_product(skill_root: Path, registry: ProductRegistry) -> list[str]:
             errors.append("missing Apache license")
 
     openai_path = skill_root / "agents" / "openai.yaml"
+    if not openai_path.is_file() and skill_root.name in EXPLICIT_ONLY_SKILLS:
+        errors.append("missing agents/openai.yaml")
     if openai_path.is_file():
         errors.extend(_validate_openai_yaml(openai_path, skill_root.name))
 

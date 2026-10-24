@@ -41,10 +41,10 @@
       "forbidden": ["host_tool_required"]
     },
     {
-      "id": "implicit-positive",
+      "id": "implicit-no-activation",
       "prompt": "DNS 요청이 브라우저에서 어디를 거쳐 주소가 되는지 길로 보여줘",
-      "must": ["activate"],
-      "forbidden": ["debug"]
+      "must": ["do_not_activate"],
+      "forbidden": ["activate"]
     },
     {
       "id": "near-miss-debug",
@@ -60,7 +60,7 @@
     },
     {
       "id": "jargon-rung",
-      "prompt": "rebase 쉽게 설명해줘",
+      "prompt": "/how-it-works rebase 쉽게 설명해줘",
       "must": ["picture_default"],
       "forbidden": ["skeleton_default"]
     },
@@ -78,61 +78,61 @@
     },
     {
       "id": "explicit-fracture-jargon",
-      "prompt": "Raft 허점으로 설명해줘",
+      "prompt": "/how-it-works Raft 허점으로 설명해줘",
       "must": ["fracture"],
       "forbidden": ["skeleton_default"]
     },
     {
       "id": "explicit-path-jargon",
-      "prompt": "rebase 길로 보여줘",
+      "prompt": "/how-it-works rebase 길로 보여줘",
       "must": ["path"],
       "forbidden": ["skeleton_default"]
     },
     {
       "id": "english-explicit-fracture",
-      "prompt": "Explain Raft at the fracture depth.",
+      "prompt": "/how-it-works Explain Raft at the fracture depth.",
       "must": ["fracture", "english"],
       "forbidden": ["korean_banner", "skeleton_default"]
     },
     {
       "id": "jargon-without-depth",
-      "prompt": "Raft 원리부터 설명해줘",
+      "prompt": "/how-it-works Raft 원리부터 설명해줘",
       "must": ["skeleton_default"],
       "forbidden": ["numeric_depth"]
     },
     {
       "id": "topic-number-is-not-depth",
-      "prompt": "Raft term 20의 원리부터 설명해줘",
+      "prompt": "/how-it-works Raft term 20의 원리부터 설명해줘",
       "must": ["skeleton_default"],
       "forbidden": ["fracture"]
     },
     {
       "id": "explicit-numeric-depth",
-      "prompt": "Raft를 깊이 5로 설명해줘",
+      "prompt": "/how-it-works Raft를 깊이 5로 설명해줘",
       "must": ["picture_default"],
       "forbidden": ["skeleton_default"]
     },
     {
       "id": "fracture-keeps-map",
-      "prompt": "Raft 허점",
+      "prompt": "/how-it-works Raft 허점",
       "must": ["baseline_mermaid", "numbered_hops", "body_regime_table"],
       "forbidden": ["table_only_map"]
     },
     {
       "id": "high-stakes-no-lookup",
-      "prompt": "계약 해지의 일반 원리를 길로 설명해줘. 검색하지 마",
+      "prompt": "/how-it-works 계약 해지의 일반 원리를 길로 설명해줘. 검색하지 마",
       "must": ["unverified_dependent_claim", "no_invented_statute"],
       "forbidden": ["verified_without_fetch"]
     },
     {
       "id": "high-stakes-english",
-      "prompt": "Explain compound interest as a path in English",
+      "prompt": "/how-it-works Explain compound interest as a path in English",
       "must": ["english_banner"],
       "forbidden": ["korean_banner"]
     },
     {
       "id": "high-stakes-comparison",
-      "prompt": "고정금리와 변동금리의 작동 차이를 그림으로 비교해줘",
+      "prompt": "/how-it-works 고정금리와 변동금리의 작동 차이를 그림으로 비교해줘",
       "must": ["conditional_tradeoff"],
       "forbidden": ["forced_personal_recommendation"]
     }

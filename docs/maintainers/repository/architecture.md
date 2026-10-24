@@ -108,6 +108,15 @@ Payload folder rules:
 
 Each product's `testing.md` owns its fixture path details.
 
+## Invocation policy
+
+All three products require explicit invocation. Codex requires
+`agents/openai.yaml` with `policy.allow_implicit_invocation: false`.
+For the supported Claude Code product, `disable-model-invocation: true` is the
+sole host-specific frontmatter exception. Other host-specific fields remain rejected
+for multi-host products. Grok follows the explicit-only description and body gate;
+no native Grok selection setting or live routing result is claimed.
+
 ## Interfaces
 
 - Skill identity: the folder name, `SKILL.md` `name`, and the product's `release.toml`

@@ -1,0 +1,403 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-23",
+  "baseline_commit": "7587bb6",
+  "skill_before": "2.1.6",
+  "candidate": "2.1.7",
+  "cases_digest": "1389de6533800d0bc30eb5faa5fdb366953a7ffc07b75a7850fc1641cfcc4271",
+  "initial_protocol_digest": "5ad8504ec7c96a4074ad1fb156b2087e4b662b1e8f2e9e5f815a81cb6b510191",
+  "limits": [
+    "Four new synthetic requests, shared first images; review/correction effect only.",
+    "Three agreed-valid sources; key teeth label disputed: root unverified, independent fail.",
+    "No source count or occlusion failures; no detection gain measurable.",
+    "One candidate revision uses these same sources as development data, not unseen evidence.",
+    "No human labels, seeds or repeated samples; no statistical or aesthetic superiority.",
+    "Native Grok skill loaded only for candidate renderer output smoke; exact drawing prompts audited separately.",
+    "Prior 2.1.6 final rerun skipped because no new image existed; its initial retain/hold decisions remain its outcome."
+  ],
+  "budgets": {
+    "requests": 4,
+    "logical_image_cap_per_request_per_arm": 2,
+    "initial_shared_images": 4,
+    "max_corrections_per_request_per_arm": 1,
+    "codex_sessions_initial_plan": 4,
+    "codex_sessions_actual_with_one_patch": 5,
+    "max_concurrent_host_processes": 2
+  },
+  "metrics": {
+    "no_skill": {
+      "valid_retained": 3,
+      "valid_denominator": 3,
+      "false_rejections": 0,
+      "count_failures_available": 0,
+      "occlusion_failures_available": 0,
+      "unresolved_source_corrected": 1,
+      "final_usable": 4,
+      "final_denominator": 4,
+      "actual_corrections": 1,
+      "logical_images_used_including_shared": 5
+    },
+    "skill_2_1_6": {
+      "valid_retained": 3,
+      "valid_denominator": 3,
+      "false_rejections": 0,
+      "count_failures_available": 0,
+      "occlusion_failures_available": 0,
+      "unresolved_source_corrected": 0,
+      "unresolved_source_held": 1,
+      "final_usable": 3,
+      "final_denominator": 4,
+      "actual_corrections": 0,
+      "logical_images_used_including_shared": 4
+    },
+    "candidate_development_2_1_7": {
+      "valid_retained": 3,
+      "valid_denominator": 3,
+      "false_rejections": 0,
+      "count_failures_available": 0,
+      "occlusion_failures_available": 0,
+      "unresolved_source_corrected": 1,
+      "final_usable": 4,
+      "final_denominator": 4,
+      "actual_corrections": 1,
+      "logical_images_used_including_shared": 5
+    }
+  },
+  "grok_runs": [
+    {
+      "id": "f1-initial",
+      "runtime_pass": true,
+      "actual_models": [
+        [
+          "grok-4.7-build",
+          "high"
+        ]
+      ],
+      "turns": 5,
+      "image_calls": 1,
+      "seconds": 27.799,
+      "reported_orchestration_usd": 0.01232636,
+      "native_activation": {
+        "complete_read": false,
+        "exact_slash_expansion": false
+      }
+    },
+    {
+      "id": "f2-initial",
+      "runtime_pass": true,
+      "actual_models": [
+        [
+          "grok-4.7-build",
+          "high"
+        ]
+      ],
+      "turns": 6,
+      "image_calls": 1,
+      "seconds": 26.305,
+      "reported_orchestration_usd": 0.01105816,
+      "native_activation": {
+        "complete_read": false,
+        "exact_slash_expansion": false
+      }
+    },
+    {
+      "id": "f2-no-skill-correction",
+      "runtime_pass": true,
+      "actual_models": [
+        [
+          "grok-4.7-build",
+          "high"
+        ]
+      ],
+      "turns": 5,
+      "image_calls": 1,
+      "seconds": 41.519,
+      "reported_orchestration_usd": 0.016898,
+      "native_activation": {
+        "complete_read": false,
+        "exact_slash_expansion": false
+      }
+    },
+    {
+      "id": "f2-patch-correction",
+      "runtime_pass": true,
+      "actual_models": [
+        [
+          "grok-4.7-build",
+          "high"
+        ]
+      ],
+      "turns": 8,
+      "image_calls": 1,
+      "seconds": 124.817,
+      "reported_orchestration_usd": 0.058956,
+      "native_activation": {
+        "complete_read": false,
+        "exact_slash_expansion": true
+      }
+    },
+    {
+      "id": "f3-initial",
+      "runtime_pass": true,
+      "actual_models": [
+        [
+          "grok-4.7-build",
+          "high"
+        ]
+      ],
+      "turns": 5,
+      "image_calls": 1,
+      "seconds": 24.239,
+      "reported_orchestration_usd": 0.01186328,
+      "native_activation": {
+        "complete_read": false,
+        "exact_slash_expansion": false
+      }
+    },
+    {
+      "id": "f4-initial",
+      "runtime_pass": true,
+      "actual_models": [
+        [
+          "grok-4.7-build",
+          "high"
+        ]
+      ],
+      "turns": 5,
+      "image_calls": 1,
+      "seconds": 24.737,
+      "reported_orchestration_usd": 0.01150084,
+      "native_activation": {
+        "complete_read": false,
+        "exact_slash_expansion": false
+      }
+    },
+    {
+      "id": "smoke-casual-near-miss",
+      "runtime_pass": true,
+      "actual_models": [
+        [
+          "grok-4.7-build",
+          "high"
+        ]
+      ],
+      "turns": 1,
+      "image_calls": 0,
+      "seconds": 7.072,
+      "reported_orchestration_usd": 0.00235688,
+      "native_activation": {
+        "complete_read": false,
+        "exact_slash_expansion": false
+      }
+    },
+    {
+      "id": "smoke-explicit-brief",
+      "runtime_pass": true,
+      "actual_models": [
+        [
+          "grok-4.7-build",
+          "high"
+        ]
+      ],
+      "turns": 2,
+      "image_calls": 0,
+      "seconds": 49.042,
+      "reported_orchestration_usd": 0.013379,
+      "native_activation": {
+        "complete_read": false,
+        "exact_slash_expansion": true
+      }
+    },
+    {
+      "id": "smoke-implicit-brief",
+      "runtime_pass": true,
+      "actual_models": [
+        [
+          "grok-4.7-build",
+          "high"
+        ]
+      ],
+      "turns": 4,
+      "image_calls": 0,
+      "seconds": 67.656,
+      "reported_orchestration_usd": 0.01856672,
+      "native_activation": {
+        "complete_read": true,
+        "exact_slash_expansion": false
+      }
+    }
+  ],
+  "codex_runs": [
+    {
+      "id": "codex/final-no-skill",
+      "runtime_pass": true,
+      "actual_contexts": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "ultra"
+        }
+      ],
+      "responses": 4,
+      "seconds": 94.945
+    },
+    {
+      "id": "codex/initial-no-skill",
+      "runtime_pass": true,
+      "actual_contexts": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "ultra"
+        }
+      ],
+      "responses": 7,
+      "seconds": 158.039
+    },
+    {
+      "id": "codex/initial-skill",
+      "runtime_pass": true,
+      "actual_contexts": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "ultra"
+        }
+      ],
+      "responses": 4,
+      "seconds": 230.513
+    },
+    {
+      "id": "patch-codex/final-skill",
+      "runtime_pass": true,
+      "actual_contexts": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "ultra"
+        }
+      ],
+      "responses": 4,
+      "seconds": 106.871
+    },
+    {
+      "id": "patch-codex/initial-skill",
+      "runtime_pass": true,
+      "actual_contexts": [
+        {
+          "model": "gpt-6-astra",
+          "effort": "ultra"
+        }
+      ],
+      "responses": 4,
+      "seconds": 164.792
+    }
+  ],
+  "source_files": [
+    {
+      "case": "f1",
+      "alpha": false,
+      "byte_size": 278618,
+      "extension_matches": true,
+      "format": "jpeg",
+      "height": 832,
+      "sha256": "f5871d17f24931bb1d3755ca24f4bb6e85fb706ab974124a2fe8a98ba27c4d73",
+      "trailing_bytes": 0,
+      "width": 1248
+    },
+    {
+      "case": "f2",
+      "alpha": false,
+      "byte_size": 310825,
+      "extension_matches": true,
+      "format": "jpeg",
+      "height": 832,
+      "sha256": "bf37f892799d904c5f84166652f8be4871aecc038d6813a66dfad2ad934253b8",
+      "trailing_bytes": 0,
+      "width": 1248
+    },
+    {
+      "case": "f3",
+      "alpha": false,
+      "byte_size": 316287,
+      "extension_matches": true,
+      "format": "jpeg",
+      "height": 832,
+      "sha256": "50ffec5dc42b63f0fbc23f3da93eff122f582c40eec70c491f6ed87c96d68d6c",
+      "trailing_bytes": 0,
+      "width": 1248
+    },
+    {
+      "case": "f4",
+      "alpha": false,
+      "byte_size": 209162,
+      "extension_matches": true,
+      "format": "jpeg",
+      "height": 832,
+      "sha256": "763995e9229fb5e0a6aa6e725724d5c840011ed829a3793a73bab2255779ccf6",
+      "trailing_bytes": 0,
+      "width": 1248
+    }
+  ],
+  "final_files": [
+    {
+      "case": "f2-no-skill-correction",
+      "alpha": false,
+      "byte_size": 287125,
+      "extension_matches": true,
+      "format": "jpeg",
+      "height": 832,
+      "sha256": "830d27af54456af7323abcc5209291085faf0d6983ce920a815559668537fe87",
+      "trailing_bytes": 0,
+      "width": 1248
+    },
+    {
+      "case": "f2-patch-correction",
+      "alpha": false,
+      "byte_size": 289633,
+      "extension_matches": true,
+      "format": "jpeg",
+      "height": 832,
+      "sha256": "4872b5e8041d5d1bf5f70c568bebd77edcfad9a840ae92101414f52924f21417",
+      "trailing_bytes": 0,
+      "width": 1248
+    }
+  ],
+  "runtime_pins": {
+    "release.toml": "bfb91ba8cb35624ccfa7480504d58597a84a307105d9f658911d390c278d657b",
+    "CHANGELOG.md": "54fe3bc0d02d541b9560e0bb64d6df1561c590cc3741343df74d9e95893d69fb",
+    "README.md": "6264018cc321a038117685552e6b3914938dcb9ac9d2cada27dc814a27be34d2",
+    "SKILL.md": "f85c655839b43b0f70272f1e86ed386c229e290b91eba2ae868b21d2001bddde",
+    "README.ko.md": "139bb41c5c0e32a31740413b759bacd31dbeeba93c24177e3d0c1e36e3e9555c",
+    "LICENSE.txt": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "references/sources.md": "7825b66a0caf834691fa6383f5cf251e9c93f263c610e2691d4fc2bee9d18807",
+    "references/image-spec.md": "9619c5186753dbd2fbb653fd63f48b8dc7042b64fb18ddc930670925299143f0",
+    "references/quality-rubric.md": "0c7e03ed5d02e14212707deb133b359eb2dc08d19b863589c2de3de60ebf6931",
+    "agents/openai.yaml": "8127d1f785ddd1bbba8b94621f3903322df66877bdfdb53fcaa0e59926a42065",
+    "scripts/inspect_asset.py": "9ec5608221f26c1be3e4e7bb81a6b8f0a1f97721d11602bc558a6fdd69d07e1a"
+  },
+  "totals": {
+    "grok_sessions": 9,
+    "grok_turns": 41,
+    "actual_image_calls": 6,
+    "grok_summed_seconds": 393.186,
+    "reported_grok_orchestration_usd": 0.15690524,
+    "codex_sessions": 5,
+    "codex_responses": 23,
+    "codex_summed_seconds": 755.161,
+    "cost_limit": "Image billing, Codex billing and independent reviewer costs unknown; not total cost. Summed seconds are not wall time or speed evidence."
+  },
+  "candidate_runtime_pins": {
+    "SKILL.md": "7e8a7f5f261ae641fe48eafc84b62ca996260aae8d2498c858ca677758a10c49",
+    "references/sources.md": "7825b66a0caf834691fa6383f5cf251e9c93f263c610e2691d4fc2bee9d18807",
+    "references/image-spec.md": "9619c5186753dbd2fbb653fd63f48b8dc7042b64fb18ddc930670925299143f0",
+    "references/quality-rubric.md": "0c7e03ed5d02e14212707deb133b359eb2dc08d19b863589c2de3de60ebf6931",
+    "scripts/inspect_asset.py": "9ec5608221f26c1be3e4e7bb81a6b8f0a1f97721d11602bc558a6fdd69d07e1a"
+  },
+  "decision": "Adopt only the observed premature-hold repair. Four final usable results tie no skill; no count/occlusion detection improvement or general superiority established.",
+  "independent_runtime_audit_sha256": "b23fe5650420cdf1f84fb0ddc9178916a60f272cc09b7d173aa950a71761b796",
+  "verification": {
+    "scoped": "pass",
+    "full": "pass",
+    "native_grok_smoke": "pass",
+    "independent_runtime_audit": "pass",
+    "gallery_render": "pass",
+    "initial_full_failure": "New user README version literals violated existing ownership contract; removed literals, test unchanged, final full run passed."
+  }
+}

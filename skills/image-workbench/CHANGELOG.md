@@ -4,6 +4,45 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+- Breaking: require explicit invocation; disable automatic skill selection.
+
+### Changed
+
+- Explain the measured limits of generation and self-review in both user guides:
+  no established aesthetic advantage and possible count/occlusion errors.
+  Unsuccessful inventory, detail-view and sequencing revisions were not adopted.
+- Disclose the earlier correction-only patch's failed selection audit and the
+  limits of autonomous visual review; separate those results from later repairs.
+
+### Fixed
+
+- Keep an unverified candidate unaccepted while using an authorized, budgeted
+  targeted correction to clarify an observed ambiguous feature. Preserve holds
+  for permissions, rights, tools and unavailable measurement. A four-request
+  follow-up found this avoidable stop; it did not establish superiority over
+  ordinary review.
+- Count directly located instances before comparing with the request. Distinguish
+  framing, identifiable parts, and explicitly unobstructed outlines; do not reject
+  a visible part solely for partial overlap. Preserve a passing candidate instead
+  of spending a correction on an advisory preference.
+- Before accepting complete visibility, check each target's lower boundary against
+  the adjacent foreground surface. Limit unclear-part detail checks to one, then
+  retain uncertainty instead of repeatedly cropping or inferring a missing part.
+- Keep the complete original drawing brief on every correction call and append
+  only the targeted change. Check subject, count, visibility, framing, materials,
+  light, exclusions and canvas before calling, then recheck every original critical
+  condition, including previously passing ones.
+- Preserve a detailed first prompt; target a visible spatial failure with a
+  camera or placement correction. Inspect complete visibility separately from count.
+- Check the current tool's supported aspect ratios before a call, preserve the
+  requested canvas through an explicit valid conversion or hold, and count a
+  rejected call against an explicit tool-call budget.
+- Finish visual inspection with a verdict once the evidence is sufficient.
+  A visible failure no longer calls for an improvised pixel-analysis pipeline;
+  extra measurement is reserved for unresolved acceptance conditions.
+- Run the file inspector directly, and report a hold when required evidence or
+  an authorized correction is unavailable instead of delaying the final handoff.
+
 ## 2.1.1 - 2026-10-01
 
 ### Fixed

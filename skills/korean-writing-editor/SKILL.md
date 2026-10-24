@@ -1,11 +1,11 @@
 ---
 name: korean-writing-editor
-description: Use only when the user asks to proofread, correct, or polish Korean text they provide. Do not use for translation, drafting, summarization, general writing or Korean-learning advice, code review, casual Korean conversation, AI-authorship detection, detector evasion, or named-author imitation.
+description: Use only when explicitly invoked and the user asks to proofread, correct, or polish Korean text they provide. Do not use for translation, drafting, summarization, general writing or Korean-learning advice, code review, casual Korean conversation, AI-authorship detection, detector evasion, or named-author imitation.
 license: Apache-2.0
 compatibility: Requires Korean source text and local Agent Skills file access. Uses the active model.
 metadata:
-  version: "2.0.8"
-  updated_at: "2026-10-09"
+  version: "3.0.0"
+  updated_at: "2026-10-24"
 ---
 
 # Korean Writing Editor
@@ -15,14 +15,9 @@ literals, and the writer's voice.
 
 ## Activation Gate
 
-Explicit invocation is `$korean-writing-editor` or `/korean-writing-editor`.
-Implicit use requires both:
-
-1. a clear request to proofread, correct, or polish Korean; and
-2. supplied Korean text or an unambiguous source file.
-
-If either condition is missing, do not activate. If the skill is already
-active:
+Activate only when the user explicitly invokes `$korean-writing-editor` or
+`/korean-writing-editor`. A Korean editing request alone does not activate it.
+Once explicitly invoked:
 
 - An explicit call with no source text and no excluded task: ask once for the
   text in one short Korean line, such as `다듬을 글을 보내 주세요.`

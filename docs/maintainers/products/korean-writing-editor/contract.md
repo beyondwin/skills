@@ -9,8 +9,7 @@ in the installed files.
 ## Trigger and defaults
 
 An explicit call is `$korean-writing-editor` or `/korean-writing-editor` with
-Korean source text. Implicit activation is allowed only when there is both a
-proofreading or polishing request and Korean text the user supplied. An
+Korean source text. Implicit activation is disabled, including clear editing requests with source text. An
 explicit call with no source text and no excluded task asks once for the text
 in one short Korean line.
 
@@ -28,8 +27,7 @@ preservation rules; activation, modes, and output defaults remain the same.
 | `correct` | "Fix typos only." | Apply normative corrections and clearly required local grammar only. |
 | `polish` | "Polish it naturally." | Apply the same required corrections, then optional readability and local flow edits that keep meaning and voice. |
 
-The Korean phrases that pick a mode are in `SKILL.md`. Activation comes from the
-English `description`, which has no Korean words.
+The Korean phrases that pick a mode are in `SKILL.md`. Activation requires an explicit call; the English `description` only describes scope.
 
 - `correct` and `polish` both fix normative errors and clear local grammar
   errors, such as a duplicated particle or clearly broken agreement.

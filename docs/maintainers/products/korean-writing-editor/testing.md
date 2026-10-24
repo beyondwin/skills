@@ -1,5 +1,9 @@
 # korean-writing-editor testing
 
+Current activation is explicit-only. Earlier implicit-activation results below are
+historical and do not validate the current policy. No live activation run was made
+for this change; current host behavior is `not_measured`.
+
 Offline fixtures (fixed examples that lock the rules without a model) live in
 `tests/products/korean-writing-editor/offline/`. Keep the thirty-seven property
 cases (`normative=10 preservation=9 noop=7 voice=4 trigger=7`) and the mutation

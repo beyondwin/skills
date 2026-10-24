@@ -14,6 +14,29 @@ Preserve a detailed user prompt rather than expanding it. Do not add characters,
 brands, slogans, or implied claims. Ask only one material question when an
 answer would change authorization, the deliverable route, or an invariant.
 
+## Correct A Spatial Failure
+
+For an observed spatial failure, change the physical arrangement that caused it
+instead of expanding the style description. A full object needs a pulled-back view and visible
+background beyond its extremities. Several required parts need a camera angle
+that separates them; repeating their count does not prevent occlusion. If every
+leaf in a container must be fully visible, expose the interior and separate the
+leaf outlines instead of hiding their lower edges behind the rim. A slightly
+raised side view can still hide the near edges: when complete contents matter
+and no viewpoint is fixed, prefer an overhead view that exposes the whole
+interior. If a nominal overhead attempt still tilts toward the rim, specify a
+camera looking straight down, perpendicular to the interior plane, with visible
+gaps between required outlines and the rim. Recheck the resulting pixels; naming
+a view does not establish visibility. Keep named empty regions free of subjects while allowing the requested
+light and texture.
+
+Append these decisions to the complete original drawing brief for a needed
+correction. Keep its positive requirements and exclusions verbatim; a correction
+is an addition, not a replacement brief. Do not add a longer style recipe, props,
+or invented numeric margins. Describe
+the subject, its arrangement and framing, then the requested materials and light.
+Keep operational fields such as destination and rights out of the drawing prompt.
+
 ## Input Image Roles
 
 Every image input has one enum role:

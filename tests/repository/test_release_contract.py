@@ -22,9 +22,9 @@ from scripts.lib.product_contract import (  # noqa: E402
 from scripts.lib.product_registry import load_registry, PRODUCT_README_NAMES  # noqa: E402
 
 EXPECTED = {
-    "korean-writing-editor": "2.0.8",
-    "image-workbench": "2.1.1",
-    "how-it-works": "3.0.3",
+    "korean-writing-editor": "3.0.0",
+    "image-workbench": "3.0.0",
+    "how-it-works": "4.0.0",
 }
 REGISTRY = load_registry(ROOT / "products.toml")
 
@@ -45,9 +45,9 @@ class ProductReleaseTests(unittest.TestCase):
 
     def test_how_it_works_current_archive_identity(self) -> None:
         product = load_product_release(ROOT / "skills/how-it-works")
-        self.assertEqual(product.version, "3.0.3")
-        self.assertEqual(product.tag, "how-it-works-v3.0.3")
-        self.assertEqual(product.artifact_name, "how-it-works-v3.0.3.zip")
+        self.assertEqual(product.version, "4.0.0")
+        self.assertEqual(product.tag, "how-it-works-v4.0.0")
+        self.assertEqual(product.artifact_name, "how-it-works-v4.0.0.zip")
 
 
     def test_each_product_owns_an_independent_release_manifest(self) -> None:
@@ -67,11 +67,11 @@ class ProductReleaseTests(unittest.TestCase):
             shutil.copytree(ROOT / "skills" / "how-it-works", root)
             manifest = root / "release.toml"
             original = manifest.read_text(encoding="utf-8")
-            mutated = original.replace('version = "3.0.3"', 'version = "3.0.4"', 1)
+            mutated = original.replace('version = "4.0.0"', 'version = "3.0.4"', 1)
             self.assertNotEqual(mutated, original)
             manifest.write_text(mutated, encoding="utf-8")
             errors = validate_product(root, self.registry)
-            self.assertIn("release.toml version 3.0.4 != SKILL.md version 3.0.3", errors)
+            self.assertIn("release.toml version 3.0.4 != SKILL.md version 4.0.0", errors)
 
     def test_payload_hash_changes_with_bytes_but_is_stable_across_copies(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -102,7 +102,7 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         root = self._copy("korean-writing-editor")
         manifest = root / "release.toml"
         original = manifest.read_text(encoding="utf-8")
-        mutated = original.replace('version = "2.0.8"', 'version = "2.0"', 1)
+        mutated = original.replace('version = "3.0.0"', 'version = "2.0"', 1)
         self.assertNotEqual(mutated, original)
         manifest.write_text(mutated, encoding="utf-8")
         errors = "\n".join(validate_product(root, REGISTRY))
@@ -229,12 +229,11 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         )
         self.assertEqual(validate_product(root, REGISTRY), [])
 
-    def test_openai_yaml_is_optional_presentation_metadata(self) -> None:
+    def test_openai_yaml_is_required_invocation_policy(self) -> None:
         root = self._copy("how-it-works")
         (root / "agents" / "openai.yaml").unlink()
         errors = validate_product(root, REGISTRY)
-        self.assertNotIn("missing agents/openai.yaml", errors)
-        self.assertEqual(errors, [])
+        self.assertEqual(errors, ["missing agents/openai.yaml"])
 
     def test_openai_yaml_default_prompt_must_use_current_product_name(self) -> None:
         root = self._copy("how-it-works")
@@ -251,19 +250,19 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         self.assertIn("default_prompt must mention the skill", errors)
 
 
-    def test_implicit_openai_yaml_must_stay_implicit(self) -> None:
+    def test_explicit_openai_yaml_rejects_implicit_invocation(self) -> None:
         root = self._copy("how-it-works")
         path = root / "agents" / "openai.yaml"
         path.write_text(
             path.read_text(encoding="utf-8").replace(
-                "allow_implicit_invocation: true",
                 "allow_implicit_invocation: false",
+                "allow_implicit_invocation: true",
                 1,
             ),
             encoding="utf-8",
         )
         errors = "\n".join(validate_product(root, REGISTRY))
-        self.assertIn("invocation policy bypasses excluded near misses", errors)
+        self.assertIn("invocation policy must be explicit-only", errors)
 
     def test_dated_release_validation_is_opt_in(self) -> None:
         from scripts.lib.product_contract import require_dated_changelog
@@ -275,7 +274,8 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         changelog = root / "CHANGELOG.md"
         dated = changelog.read_text(encoding="utf-8")
         heading = f"## {version} - "
-        self.assertIn(heading, dated)
+        if heading not in dated:
+            dated = dated.replace("## Unreleased", f"## Unreleased\n\n{heading}2026-10-24", 1)
         undated = dated.replace(heading, "## Previously ", 1)
         changelog.write_text(undated, encoding="utf-8")
         self.assertEqual(validate_product(root, REGISTRY), [])

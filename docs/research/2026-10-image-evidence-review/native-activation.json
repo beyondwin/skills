@@ -1,0 +1,63 @@
+{
+  "scope": "Frozen G native activation and basic output support; not quality/adoption evidence",
+  "candidate": "G (not installed)",
+  "skill_body_sha256_excluding_metadata": "6d1dcf7cfef0e387a22eb3de52a4985f92a7736acb62fc89c55a979a14e852fb",
+  "grok": {
+    "actual_model": "grok-4.7-build",
+    "actual_effort": "high",
+    "sessions": 4,
+    "turns": 15,
+    "summed_seconds": 170.388,
+    "image_calls": 1,
+    "reported_orchestration_cost_usd": 0.0708798,
+    "probes": [
+      {
+        "name": "explicit-brief",
+        "independent_runtime_audit_pass": true,
+        "turns": 3,
+        "seconds": 39.416,
+        "image_calls": 0
+      },
+      {
+        "name": "implicit-brief",
+        "independent_runtime_audit_pass": true,
+        "turns": 4,
+        "seconds": 50.903,
+        "image_calls": 0
+      },
+      {
+        "name": "casual-near-miss",
+        "independent_runtime_audit_pass": true,
+        "turns": 1,
+        "seconds": 7.436,
+        "image_calls": 0
+      },
+      {
+        "name": "output-contract",
+        "independent_runtime_audit_pass": true,
+        "turns": 7,
+        "seconds": 72.633,
+        "image_calls": 1
+      }
+    ]
+  },
+  "codex": {
+    "actual_model": "gpt-6-astra",
+    "actual_effort": "ultra",
+    "sessions": 1,
+    "completed_responses": 3,
+    "seconds": 38.459,
+    "image_calls": 0,
+    "independent_runtime_audit_pass": true
+  },
+  "provider_reruns": 0,
+  "product_adoption": false,
+  "evidence_sha256": "29600a10906447354ee6936911ae556a6f0e929d960545219547d5e4bb2dae76",
+  "limits": [
+    "Support/native activation only; excluded from review-quality and end-to-end generation denominators.",
+    "One image generation, no image editing or preservation test.",
+    "Inspector scratch used shared /tmp; prior existence was not checked. No claim that only a previously absent own file was removed, or that OS read isolation was established.",
+    "Frozen raw parser failures remain preserved; exact native slash expansion and final phase corrections were offline only, without model retries.",
+    "Native Grok reported costs only; image engine billing is not assumed included."
+  ]
+}

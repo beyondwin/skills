@@ -4,6 +4,8 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+- Breaking: require explicit invocation; disable automatic skill selection.
+
 ## 3.0.3 - 2026-10-02
 
 ### Fixed

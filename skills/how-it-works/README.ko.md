@@ -1,5 +1,8 @@
 # How It Works
 
+`$how-it-works` 또는 `/how-it-works`로 직접 호출할 때만 사용합니다.
+요청 내용이 맞아도 자동 활성화하지 않으며, Codex 자동 호출 설정은 꺼져 있습니다.
+
 [English](README.md)
 
 ## 목적

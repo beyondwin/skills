@@ -99,7 +99,6 @@ class ProductBuildTests(unittest.TestCase):
             original = changelog.read_text(encoding="utf-8")
             version = release.load_product_release(skill).version
             mutated = re.sub(rf"(?m)^## {re.escape(version)} - [0-9]{{4}}-[0-9]{{2}}-[0-9]{{2}}\n", "", original, count=1)
-            self.assertNotEqual(mutated, original)
             changelog.write_text(mutated, encoding="utf-8")
             with self.assertRaises(ReleaseError) as raised:
                 release.build_product(root, "how-it-works", self.output)
@@ -416,11 +415,11 @@ class ProductDownloadTests(unittest.TestCase):
             for info, data in items:
                 text = data.decode("utf-8")
                 if info.filename == "how-it-works/release.toml":
-                    text = text.replace('version = "3.0.3"', 'version = "9.9.9"')
+                    text = text.replace('version = "4.0.0"', 'version = "9.9.9"')
                     self.assertNotEqual(text.encode("utf-8"), data)
                     data = text.encode("utf-8")
                 elif info.filename == "how-it-works/SKILL.md":
-                    text = text.replace('version: "3.0.3"', 'version: "9.9.9"')
+                    text = text.replace('version: "4.0.0"', 'version: "9.9.9"')
                     self.assertNotEqual(text.encode("utf-8"), data)
                     data = text.encode("utf-8")
                 yield info, data

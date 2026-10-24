@@ -26,6 +26,10 @@ Offline fixtures prove only the routing, authorization, ImageSpec, handoff,
 and inspector contracts. They do not prove image quality, permission for
 commercial use, or an advantage over other providers.
 
+Current explicit-only host behavior is `not_measured`. The retained 2.1.7 smoke
+has a different body hash and is historical evidence only; it does not validate
+3.0.0 activation. Support scope is unchanged.
+
 ## Limits of live evidence
 
 Live image calls are local, explicit, and optional. They may cost money, and

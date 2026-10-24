@@ -1,5 +1,8 @@
 # Image Workbench
 
+Use this skill only by explicitly invoking `$image-workbench` or `/image-workbench`.
+Matching requests alone do not activate it. Codex automatic invocation is disabled.
+
 [한국어](README.ko.md)
 
 ## Purpose
@@ -113,6 +116,51 @@ Call it in your next conversation after install: `$image-workbench` in Codex,
 $image-workbench Make a landing-page hero image for this project.
 /image-workbench Make a landing-page hero image for this project.
 ```
+
+## Getting a usable first image
+
+Describe the consuming surface, subject, empty space, materials, light and canvas.
+Distinguish whole-subject framing, identifiable named parts, and fully unobstructed
+outlines. A visible part can overlap another part; an explicitly unobstructed object
+must expose its required outline. The skill locates visible instances before
+comparing their count, and ties a rejection to the original requirement.
+
+The skill preserves a detailed first prompt. It keeps a passing candidate and uses
+a correction for a failed critical condition or an observed ambiguity that an
+authorized correction can clarify within the remaining budget. An unverified
+candidate cannot be accepted. A correction starts with the
+complete original drawing brief and appends one targeted arrangement or view change.
+It then rechecks every original condition, including exclusions. Set an image-call
+budget; rejected calls also count. Failed later attempts do not replace a passing
+candidate.
+
+It checks the tool's supported canvas values. Any required deterministic crop or
+pad is reported and inspected again. File facts do not establish visual quality.
+An unclear critical detail stays unverified; it is not silently passed or invented
+as a defect. Advisory preferences alone do not require another image.
+
+This does not guarantee better aesthetics or perfect visual counting. Earlier
+comparisons found count/occlusion errors and false rejection of valid images; the
+condition-preservation fix and the review fix need separate evidence. The
+[focused repair record](https://github.com/beyondwin/skills/blob/main/docs/research/2026-10-image-focused-repair/README.md)
+records that comparison, actual final images and limits. Inspect originals
+when an exact count or complete outline is essential.
+
+In the focused Codex comparison, source decisions changed from 2/3 to 3/3 by keeping
+one valid candidate that the old instructions rejected. Count and occlusion checks
+were already correct in both arms. The final workflow used Codex review and the
+user-requested Grok CLI drawing route; three final assets passed critical and
+composition checks, with clay texture still visually unverified. Grok-only review
+continued to make errors. These selected examples establish a specific repair,
+not general quality superiority or a new automatic cross-host route.
+
+A [four-request follow-up](https://github.com/beyondwin/skills/blob/main/docs/research/2026-10-image-fresh-transfer/README.md)
+found no advantage over ordinary review: both retained all three valid originals,
+while the tested skill stopped on an ambiguous feature despite an available correction.
+The clarification restored that correction and four usable final results, tying
+ordinary review. This was one development repair after the fresh comparison;
+count/occlusion detection gains were not measurable because no source failed those
+conditions. The skill does not have established general quality superiority.
 
 ## Expected result
 

@@ -4,7 +4,7 @@
     {
       "id": "norm-spacing-can-01",
       "category": "normative",
-      "request": "오탈자만 고쳐줘: 이 기능은 사용할수 있지만 반드시 켤 필요는 없습니다.",
+      "request": "$korean-writing-editor 오탈자만 고쳐줘: 이 기능은 사용할수 있지만 반드시 켤 필요는 없습니다.",
       "source": "이 기능은 사용할수 있지만 반드시 켤 필요는 없습니다.",
       "candidate": "이 기능은 사용할 수 있지만 반드시 켤 필요는 없습니다.",
       "candidate_trigger": true,
@@ -26,7 +26,7 @@
     {
       "id": "norm-spacing-negation-02",
       "category": "normative",
-      "request": "맞춤법만 교정해줘: 회의록을 아직 정리하지않았다.",
+      "request": "$korean-writing-editor 맞춤법만 교정해줘: 회의록을 아직 정리하지않았다.",
       "source": "회의록을 아직 정리하지않았다.",
       "candidate": "회의록을 아직 정리하지 않았다.",
       "candidate_trigger": true,
@@ -42,7 +42,7 @@
     {
       "id": "norm-word-days-03",
       "category": "normative",
-      "request": "틀린 표기만 고쳐줘: 몇일 뒤에 다시 연락드릴게요.",
+      "request": "$korean-writing-editor 틀린 표기만 고쳐줘: 몇일 뒤에 다시 연락드릴게요.",
       "source": "몇일 뒤에 다시 연락드릴게요.",
       "candidate": "며칠 뒤에 다시 연락드릴게요.",
       "candidate_trigger": true,
@@ -58,7 +58,7 @@
     {
       "id": "norm-word-soon-04",
       "category": "normative",
-      "request": "맞춤법 교정: 금새 결과가 나올 거예요.",
+      "request": "$korean-writing-editor 맞춤법 교정: 금새 결과가 나올 거예요.",
       "source": "금새 결과가 나올 거예요.",
       "candidate": "금세 결과가 나올 거예요.",
       "candidate_trigger": true,
@@ -74,7 +74,7 @@
     {
       "id": "norm-word-what-05",
       "category": "normative",
-      "request": "틀린 단어만 고쳐줘: 왠일인지 연락이 없다.",
+      "request": "$korean-writing-editor 틀린 단어만 고쳐줘: 왠일인지 연락이 없다.",
       "source": "왠일인지 연락이 없다.",
       "candidate": "웬일인지 연락이 없다.",
       "candidate_trigger": true,
@@ -90,7 +90,7 @@
     {
       "id": "norm-contraction-06",
       "category": "normative",
-      "request": "오탈자만 고쳐줘: 그렇게 하면 되요.",
+      "request": "$korean-writing-editor 오탈자만 고쳐줘: 그렇게 하면 되요.",
       "source": "그렇게 하면 되요.",
       "candidate": "그렇게 하면 돼요.",
       "candidate_trigger": true,
@@ -106,7 +106,7 @@
     {
       "id": "norm-word-how-07",
       "category": "normative",
-      "request": "맞춤법만 교정해줘: 이제 어떻해?",
+      "request": "$korean-writing-editor 맞춤법만 교정해줘: 이제 어떻해?",
       "source": "이제 어떻해?",
       "candidate": "이제 어떡해?",
       "candidate_trigger": true,
@@ -122,7 +122,7 @@
     {
       "id": "norm-word-role-08",
       "category": "normative",
-      "request": "틀린 표기만 고쳐줘: 이번 프로젝트에서 내 역활은 조율이다.",
+      "request": "$korean-writing-editor 틀린 표기만 고쳐줘: 이번 프로젝트에서 내 역활은 조율이다.",
       "source": "이번 프로젝트에서 내 역활은 조율이다.",
       "candidate": "이번 프로젝트에서 내 역할은 조율이다.",
       "candidate_trigger": true,
@@ -138,7 +138,7 @@
     {
       "id": "norm-grammar-particle-correct-09",
       "category": "normative",
-      "request": "분명한 문법 오류만 고쳐줘: 나는 3월 4일에 김민수의 글을을 읽었지만, 다시 읽을지는 모르겠다.",
+      "request": "$korean-writing-editor 분명한 문법 오류만 고쳐줘: 나는 3월 4일에 김민수의 글을을 읽었지만, 다시 읽을지는 모르겠다.",
       "source": "나는 3월 4일에 김민수의 글을을 읽었지만, 다시 읽을지는 모르겠다.",
       "candidate": "나는 3월 4일에 김민수의 글을 읽었지만, 다시 읽을지는 모르겠다.",
       "candidate_trigger": true,
@@ -154,7 +154,7 @@
     {
       "id": "norm-grammar-particle-polish-10",
       "category": "normative",
-      "request": "뜻과 말투를 유지하고 자연스럽게 다듬어줘: 나는 3월 4일에 김민수의 글을을 읽었지만, 다시 읽을지는 모르겠다.",
+      "request": "$korean-writing-editor 뜻과 말투를 유지하고 자연스럽게 다듬어줘: 나는 3월 4일에 김민수의 글을을 읽었지만, 다시 읽을지는 모르겠다.",
       "source": "나는 3월 4일에 김민수의 글을을 읽었지만, 다시 읽을지는 모르겠다.",
       "candidate": "나는 3월 4일에 김민수의 글을 읽었지만, 다시 읽을지는 모르겠다.",
       "candidate_trigger": true,
@@ -170,7 +170,7 @@
     {
       "id": "meaning-negation-01",
       "category": "preservation",
-      "request": "자연스럽게 다듬어줘: 현재 계획으로는 출시하지 않을 수 있다.",
+      "request": "$korean-writing-editor 자연스럽게 다듬어줘: 현재 계획으로는 출시하지 않을 수 있다.",
       "source": "현재 계획으로는 출시하지 않을 수 있다.",
       "candidate": "현재 계획만 보면 출시하지 않을 수 있다.",
       "candidate_trigger": true,
@@ -186,7 +186,7 @@
     {
       "id": "meaning-modality-02",
       "category": "preservation",
-      "request": "다듬어줘. 뜻은 유지해: 일정에 지연 가능성이 있다.",
+      "request": "$korean-writing-editor 다듬어줘. 뜻은 유지해: 일정에 지연 가능성이 있다.",
       "source": "일정에 지연 가능성이 있다.",
       "candidate": "일정에는 지연 가능성이 있다.",
       "candidate_trigger": true,
@@ -202,7 +202,7 @@
     {
       "id": "meaning-quantity-03",
       "category": "preservation",
-      "request": "표현만 다듬어줘: 전환율은 12.5%와 12.5%로 같았고 응답자는 40명이었다.",
+      "request": "$korean-writing-editor 표현만 다듬어줘: 전환율은 12.5%와 12.5%로 같았고 응답자는 40명이었다.",
       "source": "전환율은 12.5%와 12.5%로 같았고 응답자는 40명이었다.",
       "candidate": "전환율은 12.5%와 12.5%로 동일했고 응답자는 40명이었다.",
       "candidate_trigger": true,
@@ -218,7 +218,7 @@
     {
       "id": "meaning-date-version-04",
       "category": "preservation",
-      "request": "문장만 부드럽게: 배포일은 2026-08-22이며 버전은 v2.1.0이다.",
+      "request": "$korean-writing-editor 문장만 부드럽게: 배포일은 2026-08-22이며 버전은 v2.1.0이다.",
       "source": "배포일은 2026-08-22이며 버전은 v2.1.0이다.",
       "candidate": "배포일은 2026-08-22이고 버전은 v2.1.0이다.",
       "candidate_trigger": true,
@@ -234,7 +234,7 @@
     {
       "id": "meaning-names-05",
       "category": "preservation",
-      "request": "기술 메모를 다듬어줘. 인물과 행위는 유지: 김민수가 state 전환 초안을 올렸고 박지영이 로그 검토를 마쳤다.",
+      "request": "$korean-writing-editor 기술 메모를 다듬어줘. 인물과 행위는 유지: 김민수가 state 전환 초안을 올렸고 박지영이 로그 검토를 마쳤다.",
       "source": "김민수가 state 전환 초안을 올렸고 박지영이 로그 검토를 마쳤다.",
       "candidate": "김민수가 state 전환 초안을 올렸고, 박지영이 로그 검토를 마쳤다.",
       "candidate_trigger": true,
@@ -250,7 +250,7 @@
     {
       "id": "meaning-url-06",
       "category": "preservation",
-      "request": "다듬어줘: 자세한 값은 https://example.com/a?x=1&y=2 를 본다.",
+      "request": "$korean-writing-editor 다듬어줘: 자세한 값은 https://example.com/a?x=1&y=2 를 본다.",
       "source": "자세한 값은 https://example.com/a?x=1&y=2 를 본다.",
       "candidate": "자세한 값은 https://example.com/a?x=1&y=2 를 참고한다.",
       "candidate_trigger": true,
@@ -266,7 +266,7 @@
     {
       "id": "meaning-quote-07",
       "category": "preservation",
-      "request": "문장만 정리해줘: 이서연은 “보류하겠습니다”라고 말했다.",
+      "request": "$korean-writing-editor 문장만 정리해줘: 이서연은 “보류하겠습니다”라고 말했다.",
       "source": "이서연은 “보류하겠습니다”라고 말했다.",
       "candidate": "이서연은 “보류하겠습니다”라고 말했다.",
       "candidate_trigger": true,
@@ -282,7 +282,7 @@
     {
       "id": "meaning-causality-08",
       "category": "preservation",
-      "request": "다듬어줘. 인과는 바꾸지 마: 당시 장애 로그에는 배포 작업과 관련이 있었다.",
+      "request": "$korean-writing-editor 다듬어줘. 인과는 바꾸지 마: 당시 장애 로그에는 배포 작업과 관련이 있었다.",
       "source": "당시 장애 로그에는 배포 작업과 관련이 있었다.",
       "candidate": "당시 장애 로그에는 배포 작업과 관련이 있었다.",
       "candidate_trigger": true,
@@ -298,7 +298,7 @@
     {
       "id": "noop-message-01",
       "category": "noop",
-      "request": "자연스럽게 다듬어줘: 오늘은 조금 늦을 것 같아요.",
+      "request": "$korean-writing-editor 자연스럽게 다듬어줘: 오늘은 조금 늦을 것 같아요.",
       "source": "오늘은 조금 늦을 것 같아요.",
       "candidate": "오늘은 조금 늦을 것 같아요.",
       "candidate_trigger": true,
@@ -314,7 +314,7 @@
     {
       "id": "noop-review-02",
       "category": "noop",
-      "request": "다듬어줘: 좋았지만, 선뜻 권하기는 어려운 책이었다.",
+      "request": "$korean-writing-editor 다듬어줘: 좋았지만, 선뜻 권하기는 어려운 책이었다.",
       "source": "좋았지만, 선뜻 권하기는 어려운 책이었다.",
       "candidate": "좋았지만, 선뜻 권하기는 어려운 책이었다.",
       "candidate_trigger": true,
@@ -330,7 +330,7 @@
     {
       "id": "noop-work-03",
       "category": "noop",
-      "request": "문장 다듬기: 검토 후 내일까지 의견을 보내겠습니다.",
+      "request": "$korean-writing-editor 문장 다듬기: 검토 후 내일까지 의견을 보내겠습니다.",
       "source": "검토 후 내일까지 의견을 보내겠습니다.",
       "candidate": "검토 후 내일까지 의견을 보내겠습니다.",
       "candidate_trigger": true,
@@ -346,7 +346,7 @@
     {
       "id": "noop-technical-04",
       "category": "noop",
-      "request": "다듬어줘: 캐시는 원본이 아니라 다시 만들 수 있는 색인입니다.",
+      "request": "$korean-writing-editor 다듬어줘: 캐시는 원본이 아니라 다시 만들 수 있는 색인입니다.",
       "source": "캐시는 원본이 아니라 다시 만들 수 있는 색인입니다.",
       "candidate": "캐시는 원본이 아니라 다시 만들 수 있는 색인입니다.",
       "candidate_trigger": true,
@@ -362,7 +362,7 @@
     {
       "id": "noop-fragment-05",
       "category": "noop",
-      "request": "자연스럽게 고쳐줘: 아무튼. 그때는 그게 최선이었다.",
+      "request": "$korean-writing-editor 자연스럽게 고쳐줘: 아무튼. 그때는 그게 최선이었다.",
       "source": "아무튼. 그때는 그게 최선이었다.",
       "candidate": "아무튼. 그때는 그게 최선이었다.",
       "candidate_trigger": true,
@@ -378,7 +378,7 @@
     {
       "id": "noop-repetition-06",
       "category": "noop",
-      "request": "다듬어줘: 그래도 나는, 그래도 한 번은 믿어 보고 싶었다.",
+      "request": "$korean-writing-editor 다듬어줘: 그래도 나는, 그래도 한 번은 믿어 보고 싶었다.",
       "source": "그래도 나는, 그래도 한 번은 믿어 보고 싶었다.",
       "candidate": "그래도 나는, 그래도 한 번은 믿어 보고 싶었다.",
       "candidate_trigger": true,
@@ -394,7 +394,7 @@
     {
       "id": "voice-personal-01",
       "category": "voice",
-      "request": "말투는 유지하고 조금만 다듬어줘: 나는 그날의 선택이 옳았다고 여전히 생각했다.",
+      "request": "$korean-writing-editor 말투는 유지하고 조금만 다듬어줘: 나는 그날의 선택이 옳았다고 여전히 생각했다.",
       "source": "나는 그날의 선택이 옳았다고 여전히 생각했다.",
       "candidate": "나는 그날의 선택이 옳았다고 여전히 생각했다.",
       "candidate_trigger": true,
@@ -410,7 +410,7 @@
     {
       "id": "voice-work-02",
       "category": "voice",
-      "request": "공손한 말투 유지하며 다듬기: 검토본을 3월 4일에 공유합니다.",
+      "request": "$korean-writing-editor 공손한 말투 유지하며 다듬기: 검토본을 3월 4일에 공유합니다.",
       "source": "검토본을 3월 4일에 공유합니다.",
       "candidate": "검토본을 3월 4일에 공유합니다.",
       "candidate_trigger": true,
@@ -426,7 +426,7 @@
     {
       "id": "voice-technical-03",
       "category": "voice",
-      "request": "기술 문장 다듬기. 코드 표기와 인과는 유지: `state.json` 손상은 재시작과 관련이 있었다.",
+      "request": "$korean-writing-editor 기술 문장 다듬기. 코드 표기와 인과는 유지: `state.json` 손상은 재시작과 관련이 있었다.",
       "source": "`state.json` 손상은 재시작과 관련이 있었다.",
       "candidate": "`state.json` 손상은 재시작과 관련이 있었다.",
       "candidate_trigger": true,
@@ -442,7 +442,7 @@
     {
       "id": "voice-review-04",
       "category": "voice",
-      "request": "서평 문장 다듬기. 평가는 유지: 재미있었지만 다시 읽을지는 모르겠다.",
+      "request": "$korean-writing-editor 서평 문장 다듬기. 평가는 유지: 재미있었지만 다시 읽을지는 모르겠다.",
       "source": "재미있었지만 다시 읽을지는 모르겠다.",
       "candidate": "재미있었지만 다시 읽을지는 모르겠다.",
       "candidate_trigger": true,
@@ -472,9 +472,9 @@
       "rationale": "Explicit skill invocation with Korean source triggers polish."
     },
     {
-      "id": "trigger-implicit-02",
+      "id": "trigger-explicit-source-02",
       "category": "trigger",
-      "request": "이 한국어 문장을 자연스럽게 다듬어줘: 검토가 끝나는 대로 공유할게요.",
+      "request": "$korean-writing-editor 이 한국어 문장을 자연스럽게 다듬어줘: 검토가 끝나는 대로 공유할게요.",
       "source": "검토가 끝나는 대로 공유할게요.",
       "candidate": "검토가 끝나는 대로 공유할게요.",
       "candidate_trigger": true,
@@ -485,7 +485,7 @@
       "must_preserve": ["검토가 끝나는 대로 공유할게요."],
       "required_substrings": ["검토가 끝나는 대로 공유할게요."],
       "forbidden_substrings": ["Draft a new"],
-      "rationale": "Clear Korean editing request plus source triggers polish."
+      "rationale": "Explicit Korean editing request plus source triggers polish."
     },
     {
       "id": "trigger-translation-03",
@@ -522,7 +522,7 @@
     {
       "id": "trigger-diagnose-05",
       "category": "trigger",
-      "request": "고치지 말고 어색한 부분만 알려줘: 지금 상태에선 배포할수 있다.",
+      "request": "$korean-writing-editor 고치지 말고 어색한 부분만 알려줘: 지금 상태에선 배포할수 있다.",
       "source": "지금 상태에선 배포할수 있다.",
       "candidate": "- 배포할수: 의존명사 수 앞 띄어쓰기가 필요합니다 (normative-rule).",
       "candidate_trigger": true,
@@ -560,7 +560,7 @@
     {
       "id": "trigger-diagnose-clean-07",
       "category": "trigger",
-      "request": "고치지 말고 문제만 알려줘: 오늘은 조금 늦을 것 같아요.",
+      "request": "$korean-writing-editor 고치지 말고 문제만 알려줘: 오늘은 조금 늦을 것 같아요.",
       "source": "오늘은 조금 늦을 것 같아요.",
       "candidate": "고칠 부분 없음",
       "candidate_trigger": true,
@@ -576,7 +576,7 @@
     {
       "id": "meaning-scoped-edit-09",
       "category": "preservation",
-      "request": "캐시가로 시작하는 문단의 띄어쓰기만 고치고 본문 전체를 돌려줘:\n제목: 캐시 점검\n\n메모는 금새 지울 예정이다.\n\n캐시가 비어 있으면 결과를 출력할수 없다.\n\n다음 검토는 10월 12일이다.",
+      "request": "$korean-writing-editor 캐시가로 시작하는 문단의 띄어쓰기만 고치고 본문 전체를 돌려줘:\n제목: 캐시 점검\n\n메모는 금새 지울 예정이다.\n\n캐시가 비어 있으면 결과를 출력할수 없다.\n\n다음 검토는 10월 12일이다.",
       "source": "제목: 캐시 점검\n\n메모는 금새 지울 예정이다.\n\n캐시가 비어 있으면 결과를 출력할수 없다.\n\n다음 검토는 10월 12일이다.",
       "candidate": "제목: 캐시 점검\n\n메모는 금새 지울 예정이다.\n\n캐시가 비어 있으면 결과를 출력할 수 없다.\n\n다음 검토는 10월 12일이다.",
       "candidate_trigger": true,
@@ -603,7 +603,7 @@
     {
       "id": "noop-context-patterns-07",
       "category": "noop",
-      "request": "뜻과 전문 용어를 유지하고 자연스럽게 다듬어줘: 여기서 leverage는 회귀 진단값입니다. 오류가 아니라 경고입니다. 같은 키에는 같은 값이 반환됩니다.",
+      "request": "$korean-writing-editor 뜻과 전문 용어를 유지하고 자연스럽게 다듬어줘: 여기서 leverage는 회귀 진단값입니다. 오류가 아니라 경고입니다. 같은 키에는 같은 값이 반환됩니다.",
       "source": "여기서 leverage는 회귀 진단값입니다. 오류가 아니라 경고입니다. 같은 키에는 같은 값이 반환됩니다.",
       "candidate": "여기서 leverage는 회귀 진단값입니다. 오류가 아니라 경고입니다. 같은 키에는 같은 값이 반환됩니다.",
       "candidate_trigger": true,

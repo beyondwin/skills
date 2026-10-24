@@ -1,5 +1,7 @@
 # Installation
 
+All three skills require an explicit `$skill-name` or `/skill-name` invocation; matching task text alone does not activate them.
+
 [한국어](../ko/installation.md) · [Compatibility](compatibility.md) · [Safety and privacy](safety-and-privacy.md) · [Verification](verification.md)
 
 Find your skill below and follow its guide. Each guide also covers update and uninstall. Which hosts each skill runs on is in [Compatibility](compatibility.md).

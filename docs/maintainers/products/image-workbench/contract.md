@@ -22,7 +22,7 @@ tool".
 
 ## Trigger and defaults
 
-Turn on when the project needs a bitmap. Explicit calls are `$image-workbench`
+Turn on only when explicitly invoked for a project bitmap. Explicit calls are `$image-workbench`
 or `/image-workbench`. The `SKILL.md` description carries the use line and the
 exclusions within its first 250 or so characters, because hosts truncate it.
 Do not turn on for a casual one-off picture (left to the host's own image
@@ -52,6 +52,37 @@ Write an `ImageSpec` before running. Give each input image exactly one role:
 `edit_target`, `subject_reference`, `style_reference`, or
 `compositing_input`.
 
+Preserve a detailed first prompt. Use view or placement changes for an observed
+spatial failure within the authorized budget. For an exact count, locate each
+directly visible instance once before comparing the observed and required totals;
+do not count shadows or infer hidden parts. Keep three visibility conditions
+distinct: whole-subject framing, directly identifiable named parts with any
+expressly required endpoints or contacts, and explicitly unobstructed outlines.
+Partial overlap alone does not make an identifiable part missing. Conversely,
+the correct count does not prove complete outlines are visible. Do not transfer a
+whole subject's framing qualifier to every component or invent stricter conditions.
+Every rejection must connect an original condition to an observed violation and
+its location. An unclear critical detail remains unverified, neither a proven
+defect nor a pass; aesthetic preferences remain advisory unless explicitly critical.
+For complete visibility, identify each target's lowest visible edge or endpoint
+and inspect its junction with the adjacent foreground surface. An unclear small
+part permits one detail check with context; repeated crops do not establish
+absence. Keep an unresolved condition unverified.
+Keep the complete original drawing brief as a fixed base, excluding operational
+destination and rights fields. Every correction starts with that base and appends
+the targeted change; do not summarize or reuse a shortened prior prompt. Check
+subject, count, visibility, framing, materials, light, exclusions and canvas before
+the call. Recheck every original critical condition afterward, including previously
+passing ones. Correct prompt transmission does not prove image compliance.
+Keep a candidate that passes the original critical conditions. Do not spend a
+correction on an advisory preference or discard a passing candidate when a later
+attempt fails.
+
+Use aspect ratios advertised by the current tool. An unsupported requested ratio
+needs an explicit deterministic conversion that preserves the brief and invariants,
+an allowed approximation, or a hold. Do not silently substitute a ratio. A rejected
+call consumes an explicit tool-call budget but does not establish generation or cost.
+
 For a final project file, run
 `python3 <skill-root>/scripts/inspect_asset.py <absolute-asset-path>` with an
 absolute asset path, and give `--output` an absolute path outside the skill
@@ -60,6 +91,19 @@ folder. It reports format, dimensions, alpha, byte size, SHA-256,
 looking at the image. On Grok, results are JPEG without alpha; keep the `.jpg`
 extension, and hold or report an explicit conversion when acceptance needs
 transparency, PNG, or exact pixels.
+
+Inspection ends with a verdict once visual and file evidence is sufficient.
+A visible defect does not require a new pixel-analysis pipeline. Additional
+measurement needs an unresolved acceptance condition that could change the
+verdict; unavailable evidence produces a reported hold. This preserves
+required inspection and authorized correction, including exact requirements.
+
+An unverified candidate cannot be accepted. An observed ambiguity in a required
+visual feature can still justify one targeted correction within the existing
+authorization and remaining call budget, followed by inspection of the new result.
+Do not stop solely because the original is unclear when that permitted correction
+can make it clear. Do not relabel uncertainty as absence or success; permission,
+rights, tool and unavailable-measurement holds remain unchanged.
 
 Inspector rules:
 
