@@ -132,8 +132,8 @@ class OpenAIMetadataTests(unittest.TestCase):
             self.assertIn("short_description:", text)
             self.assertIn("default_prompt:", text)
             self.assertIn(f"${skill.name}", text)
-            self.assertIn("allow_implicit_invocation: true", text)
-            self.assertNotIn("allow_implicit_invocation: false", text)
+            self.assertIn("allow_implicit_invocation: false", text)
+            self.assertNotIn("allow_implicit_invocation: true", text)
             lowered = text.lower()
             self.assertNotIn("translate", lowered)
             self.assertNotIn("detector", lowered)
@@ -179,14 +179,14 @@ class ValidateSkillRejectionTests(unittest.TestCase):
         def mutate(skill):
             path = skill / "SKILL.md"
             original = path.read_text(encoding="utf-8")
-            mutated = original.replace('version: "2.1.7"', 'version: "1.0.0"', 1)
+            mutated = original.replace('version: "3.0.0"', 'version: "1.0.0"', 1)
             self.assertNotEqual(mutated, original)
             path.write_text(mutated, encoding="utf-8")
 
         staged = self._mutated(source, mutate)
         errors = "\n".join(validate_product(staged, REGISTRY))
         self.assertIn(
-            "release.toml version 2.1.7 != SKILL.md version 1.0.0",
+            "release.toml version 3.0.0 != SKILL.md version 1.0.0",
             errors,
         )
 
@@ -316,7 +316,7 @@ class ValidateSkillRejectionTests(unittest.TestCase):
             'interface:\n  display_name: "Unrelated Helper"\n'
             '  short_description: "Not one of the curated skills"\n'
             '  default_prompt: "Use $unrelated-helper."\n'
-            "policy:\n  allow_implicit_invocation: true\n",
+            "policy:\n  allow_implicit_invocation: false\n",
             encoding="utf-8",
         )
         errors = "\n".join(validate_product(skill, REGISTRY))

@@ -47,8 +47,8 @@ temporary paths with spaces, not the real HOME.
 | Codex | `$how-it-works` | `~/.agents/skills/how-it-works` |
 | Claude Code | `/how-it-works` | `~/.claude/skills/how-it-works` |
 
-`agents/openai.yaml` is optional Codex display metadata, not a file the skill needs to
-run.
+`agents/openai.yaml` is required for the Codex explicit-only invocation policy.
+Claude Code uses `disable-model-invocation: true` in `SKILL.md`.
 
 ## Required host abilities
 
@@ -95,7 +95,7 @@ the same build:
 
 1. skill discovery
 2. explicit call
-3. intended implicit call, and no call on near-miss requests
+3. no call on implicit requests, and no call on near-miss requests
 4. output contract (markdown, mermaid source, numbered hop list)
 
 Don't add a host without real observed evidence and a separate support decision. Don't

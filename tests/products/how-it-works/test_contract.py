@@ -16,13 +16,13 @@ from scripts.lib.product_registry import load_registry  # noqa: E402
 
 SKILL = ROOT / "skills" / "how-it-works"
 CASES = ROOT / "tests" / "products" / "how-it-works" / "cases.json"
-PORTABLE_FIELDS = {"name", "description", "license", "compatibility", "metadata"}
+PORTABLE_FIELDS = {"name", "description", "license", "compatibility", "metadata", "disable-model-invocation"}
 CASE_IDS = [
     "broad-slice",
     "missing-rung",
     "default-dns-picture",
     "explicit-dns-path",
-    "implicit-positive",
+    "implicit-no-activation",
     "near-miss-debug",
     "near-miss-eli5",
     "jargon-rung",
@@ -191,7 +191,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
     def test_release_and_repeatable_install_contract(self) -> None:
         from scripts.lib.product_contract import load_product_release
 
-        self.assertEqual(load_product_release(SKILL).version, "3.0.3")
+        self.assertEqual(load_product_release(SKILL).version, "4.0.0")
         self.assertEqual(
             {path.name for path in SKILL.glob("README*.md")}, {"README.md", "README.ko.md"}
         )
@@ -204,12 +204,13 @@ class HowItWorksPayloadTests(unittest.TestCase):
             )
             self.assertNotIn("](../../docs/", text)
 
-    def test_frontmatter_uses_portable_intersection(self) -> None:
+    def test_frontmatter_uses_portable_fields_and_invocation_policy(self) -> None:
         frontmatter = parse_skill_frontmatter((SKILL / "SKILL.md").read_text(encoding="utf-8"))
         self.assertEqual(set(frontmatter), PORTABLE_FIELDS)
+        self.assertEqual(frontmatter["disable-model-invocation"], "true")
         self.assertEqual(frontmatter["name"], "how-it-works")
         self.assertEqual(frontmatter["license"], "Apache-2.0")
-        self.assertEqual(frontmatter["metadata"]["version"], "3.0.3")
+        self.assertEqual(frontmatter["metadata"]["version"], "4.0.0")
 
     def test_frontmatter_has_no_host_tool_requirement(self) -> None:
         frontmatter = parse_skill_frontmatter((SKILL / "SKILL.md").read_text(encoding="utf-8"))
@@ -438,8 +439,8 @@ class HowItWorksPayloadTests(unittest.TestCase):
             ["claim", "mermaid", "numbered_hops", "body", "adjacent_slices", "next_move"],
         )
         self.assertEqual(by_id["explicit-dns-path"]["forbidden"], ["host_tool_required"])
-        self.assertEqual(by_id["implicit-positive"]["must"], ["activate"])
-        self.assertEqual(by_id["implicit-positive"]["forbidden"], ["debug"])
+        self.assertEqual(by_id["implicit-no-activation"]["must"], ["do_not_activate"])
+        self.assertEqual(by_id["implicit-no-activation"]["forbidden"], ["activate"])
         self.assertEqual(by_id["near-miss-debug"]["must"], ["do_not_activate"])
         self.assertEqual(by_id["near-miss-eli5"]["prompt"], "/eli5 DNS")
         self.assertEqual(by_id["jargon-rung"]["must"], ["picture_default"])
@@ -452,7 +453,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
             by_id["explicit-fracture-jargon"],
             {
                 "id": "explicit-fracture-jargon",
-                "prompt": "Raft 허점으로 설명해줘",
+                "prompt": "/how-it-works Raft 허점으로 설명해줘",
                 "must": ["fracture"],
                 "forbidden": ["skeleton_default"],
             },
@@ -461,7 +462,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
             by_id["explicit-path-jargon"],
             {
                 "id": "explicit-path-jargon",
-                "prompt": "rebase 길로 보여줘",
+                "prompt": "/how-it-works rebase 길로 보여줘",
                 "must": ["path"],
                 "forbidden": ["skeleton_default"],
             },
@@ -470,7 +471,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
             by_id["english-explicit-fracture"],
             {
                 "id": "english-explicit-fracture",
-                "prompt": "Explain Raft at the fracture depth.",
+                "prompt": "/how-it-works Explain Raft at the fracture depth.",
                 "must": ["fracture", "english"],
                 "forbidden": ["korean_banner", "skeleton_default"],
             },
@@ -479,7 +480,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
             by_id["jargon-without-depth"],
             {
                 "id": "jargon-without-depth",
-                "prompt": "Raft 원리부터 설명해줘",
+                "prompt": "/how-it-works Raft 원리부터 설명해줘",
                 "must": ["skeleton_default"],
                 "forbidden": ["numeric_depth"],
             },
@@ -488,7 +489,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
             by_id["topic-number-is-not-depth"],
             {
                 "id": "topic-number-is-not-depth",
-                "prompt": "Raft term 20의 원리부터 설명해줘",
+                "prompt": "/how-it-works Raft term 20의 원리부터 설명해줘",
                 "must": ["skeleton_default"],
                 "forbidden": ["fracture"],
             },
@@ -497,7 +498,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
             by_id["explicit-numeric-depth"],
             {
                 "id": "explicit-numeric-depth",
-                "prompt": "Raft를 깊이 5로 설명해줘",
+                "prompt": "/how-it-works Raft를 깊이 5로 설명해줘",
                 "must": ["picture_default"],
                 "forbidden": ["skeleton_default"],
             },
@@ -506,7 +507,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
             by_id["fracture-keeps-map"],
             {
                 "id": "fracture-keeps-map",
-                "prompt": "Raft 허점",
+                "prompt": "/how-it-works Raft 허점",
                 "must": ["baseline_mermaid", "numbered_hops", "body_regime_table"],
                 "forbidden": ["table_only_map"],
             },
@@ -515,7 +516,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
             by_id["high-stakes-no-lookup"],
             {
                 "id": "high-stakes-no-lookup",
-                "prompt": "계약 해지의 일반 원리를 길로 설명해줘. 검색하지 마",
+                "prompt": "/how-it-works 계약 해지의 일반 원리를 길로 설명해줘. 검색하지 마",
                 "must": ["unverified_dependent_claim", "no_invented_statute"],
                 "forbidden": ["verified_without_fetch"],
             },
@@ -524,7 +525,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
             by_id["high-stakes-english"],
             {
                 "id": "high-stakes-english",
-                "prompt": "Explain compound interest as a path in English",
+                "prompt": "/how-it-works Explain compound interest as a path in English",
                 "must": ["english_banner"],
                 "forbidden": ["korean_banner"],
             },
@@ -533,7 +534,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
             by_id["high-stakes-comparison"],
             {
                 "id": "high-stakes-comparison",
-                "prompt": "고정금리와 변동금리의 작동 차이를 그림으로 비교해줘",
+                "prompt": "/how-it-works 고정금리와 변동금리의 작동 차이를 그림으로 비교해줘",
                 "must": ["conditional_tradeoff"],
                 "forbidden": ["forced_personal_recommendation"],
             },

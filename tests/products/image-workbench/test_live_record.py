@@ -113,7 +113,7 @@ def grok_claim_errors(
 
 
 class ImageWorkbenchLiveRecordTests(unittest.TestCase):
-    def test_grok_registry_claim_requires_four_pass_smoke_bound_to_skill_md(self) -> None:
+    def test_prior_grok_smoke_does_not_validate_explicit_only_payload(self) -> None:
         hosts = load_registry(ROOT / "products.toml").require("image-workbench").supported_hosts
         text = LIVE_RECORD.read_text(encoding="utf-8") if LIVE_RECORD.is_file() else None
         self.assertEqual(
@@ -122,7 +122,7 @@ class ImageWorkbenchLiveRecordTests(unittest.TestCase):
                 record_text=text,
                 skill_bytes=SKILL.read_bytes(),
             ),
-            (),
+            ("smoke-record skill_md_sha256 does not match SKILL.md",),
         )
 
     def test_missing_record_or_failed_item_or_stale_hash_is_rejected(self) -> None:

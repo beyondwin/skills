@@ -109,7 +109,7 @@ HOW_IT_WORKS_FIXTURE_IDS = (
     "missing-rung",
     "default-dns-picture",
     "explicit-dns-path",
-    "implicit-positive",
+    "implicit-no-activation",
     "near-miss-debug",
     "near-miss-eli5",
     "jargon-rung",

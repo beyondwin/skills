@@ -47,7 +47,7 @@ pass on the same build:
 
 1. skill discovery
 2. explicit call
-3. intended implicit call, and no call on a near-miss (a similar request that
+3. no call on implicit requests, and no call on a near-miss (a similar request that
    is out of scope)
 4. output contract (edited text or `diagnose` findings)
 

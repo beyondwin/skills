@@ -1,5 +1,8 @@
 # Image Workbench
 
+Use this skill only by explicitly invoking `$image-workbench` or `/image-workbench`.
+Matching requests alone do not activate it. Codex automatic invocation is disabled.
+
 [한국어](README.ko.md)
 
 ## Purpose

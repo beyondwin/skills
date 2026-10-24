@@ -4,7 +4,7 @@
     {
       "id": "route-project-hero",
       "category": "routing",
-      "request": "프로젝트 랜딩 페이지 hero 이미지를 만들어줘.",
+      "request": "$image-workbench 프로젝트 랜딩 페이지 hero 이미지를 만들어줘.",
       "candidate_trigger": true,
       "candidate_mode": "generate",
       "candidate_route": "raster_generate",
@@ -31,7 +31,7 @@
     {
       "id": "route-project-edit",
       "category": "routing",
-      "request": "이 상품 사진은 그대로 두고 배경만 바꿔줘.",
+      "request": "$image-workbench 이 상품 사진은 그대로 두고 배경만 바꿔줘.",
       "candidate_trigger": true,
       "candidate_mode": "edit",
       "candidate_route": "raster_edit",
@@ -58,7 +58,7 @@
     {
       "id": "route-brief",
       "category": "routing",
-      "request": "생성하지 말고 이미지 브리프만 정리해줘.",
+      "request": "$image-workbench 생성하지 말고 이미지 브리프만 정리해줘.",
       "candidate_trigger": true,
       "candidate_mode": "brief",
       "candidate_route": "brief",
@@ -85,7 +85,7 @@
     {
       "id": "route-audit",
       "category": "routing",
-      "request": "이 자산이 모바일 크롭과 다크 모드에 맞는지 검토해줘.",
+      "request": "$image-workbench 이 자산이 모바일 크롭과 다크 모드에 맞는지 검토해줘.",
       "candidate_trigger": true,
       "candidate_mode": "audit",
       "candidate_route": "audit",
@@ -220,7 +220,7 @@
     {
       "id": "auth-brief-no-tool",
       "category": "authorization",
-      "request": "생성하지 말고 hero 이미지 브리프만 정리해줘.",
+      "request": "$image-workbench 생성하지 말고 hero 이미지 브리프만 정리해줘.",
       "candidate_trigger": true,
       "candidate_mode": "brief",
       "candidate_route": "brief",
@@ -247,7 +247,7 @@
     {
       "id": "auth-audit-no-tool",
       "category": "authorization",
-      "request": "기존 이미지의 안전 영역을 감사해줘.",
+      "request": "$image-workbench 기존 이미지의 안전 영역을 감사해줘.",
       "candidate_trigger": true,
       "candidate_mode": "audit",
       "candidate_route": "audit",
@@ -274,7 +274,7 @@
     {
       "id": "auth-generate-tool",
       "category": "authorization",
-      "request": "프로젝트 블로그 헤더 이미지를 생성해줘.",
+      "request": "$image-workbench 프로젝트 블로그 헤더 이미지를 생성해줘.",
       "candidate_trigger": true,
       "candidate_mode": "generate",
       "candidate_route": "raster_generate",
@@ -301,7 +301,7 @@
     {
       "id": "auth-edit-target-tool",
       "category": "authorization",
-      "request": "제공한 사진의 배경만 교체해줘.",
+      "request": "$image-workbench 제공한 사진의 배경만 교체해줘.",
       "candidate_trigger": true,
       "candidate_mode": "edit",
       "candidate_route": "raster_edit",
@@ -328,7 +328,7 @@
     {
       "id": "auth-edit-missing-target-hold",
       "category": "authorization",
-      "request": "사진을 수정해줘.",
+      "request": "$image-workbench 사진을 수정해줘.",
       "candidate_trigger": true,
       "candidate_mode": "edit",
       "candidate_route": "hold",
@@ -355,7 +355,7 @@
     {
       "id": "spec-edit-target-role",
       "category": "spec",
-      "request": "첫 사진만 수정하고 두 번째 사진의 인물은 참고해줘.",
+      "request": "$image-workbench 첫 사진만 수정하고 두 번째 사진의 인물은 참고해줘.",
       "candidate_trigger": true,
       "candidate_mode": "edit",
       "candidate_route": "raster_edit",
@@ -382,7 +382,7 @@
     {
       "id": "spec-style-reference-role",
       "category": "spec",
-      "request": "첫 사진을 수정하되 두 번째 사진의 분위기만 참고해줘.",
+      "request": "$image-workbench 첫 사진을 수정하되 두 번째 사진의 분위기만 참고해줘.",
       "candidate_trigger": true,
       "candidate_mode": "edit",
       "candidate_route": "raster_edit",
@@ -409,7 +409,7 @@
     {
       "id": "spec-compositing-input-role",
       "category": "spec",
-      "request": "제품 사진에 제공한 질감 레이어를 합성해줘.",
+      "request": "$image-workbench 제품 사진에 제공한 질감 레이어를 합성해줘.",
       "candidate_trigger": true,
       "candidate_mode": "edit",
       "candidate_route": "raster_edit",
@@ -436,7 +436,7 @@
     {
       "id": "spec-identity-invariant",
       "category": "spec",
-      "request": "이 인물 사진의 배경만 바꿔줘.",
+      "request": "$image-workbench 이 인물 사진의 배경만 바꿔줘.",
       "candidate_trigger": true,
       "candidate_mode": "edit",
       "candidate_route": "raster_edit",
@@ -463,7 +463,7 @@
     {
       "id": "spec-exact-copy-field",
       "category": "spec",
-      "request": "포스터에 '2026년 9월 3일'을 정확히 넣어줘.",
+      "request": "$image-workbench 포스터에 '2026년 9월 3일'을 정확히 넣어줘.",
       "candidate_trigger": true,
       "candidate_mode": "generate",
       "candidate_route": "hybrid",
@@ -490,7 +490,7 @@
     {
       "id": "hybrid-korean-copy",
       "category": "hybrid",
-      "request": "프로젝트 행사 포스터에 '2026년 9월 3일'을 정확히 넣어줘.",
+      "request": "$image-workbench 프로젝트 행사 포스터에 '2026년 9월 3일'을 정확히 넣어줘.",
       "candidate_trigger": true,
       "candidate_mode": "generate",
       "candidate_route": "hybrid",
@@ -517,7 +517,7 @@
     {
       "id": "hybrid-data-infographic",
       "category": "hybrid",
-      "request": "프로젝트 통계를 인포그래픽으로 만들어줘.",
+      "request": "$image-workbench 프로젝트 통계를 인포그래픽으로 만들어줘.",
       "candidate_trigger": true,
       "candidate_mode": "generate",
       "candidate_route": "hybrid",
@@ -544,7 +544,7 @@
     {
       "id": "native-logo-icon",
       "category": "hybrid",
-      "request": "기존 로고를 앱 아이콘에 넣어줘.",
+      "request": "$image-workbench 기존 로고를 앱 아이콘에 넣어줘.",
       "candidate_trigger": true,
       "candidate_mode": "generate",
       "candidate_route": "deterministic",
@@ -598,7 +598,7 @@
     {
       "id": "save-preview-only",
       "category": "handoff",
-      "request": "결과를 미리보기로만 보여줘.",
+      "request": "$image-workbench 결과를 미리보기로만 보여줘.",
       "candidate_trigger": true,
       "candidate_mode": "generate",
       "candidate_route": "raster_generate",
@@ -625,7 +625,7 @@
     {
       "id": "save-project-sibling",
       "category": "handoff",
-      "request": "기존 hero 파일은 보존하고 새 결과를 저장해줘.",
+      "request": "$image-workbench 기존 hero 파일은 보존하고 새 결과를 저장해줘.",
       "candidate_trigger": true,
       "candidate_mode": "generate",
       "candidate_route": "raster_generate",
@@ -652,7 +652,7 @@
     {
       "id": "save-replacement-authorized",
       "category": "handoff",
-      "request": "기존 hero.png를 이 결과로 교체해줘.",
+      "request": "$image-workbench 기존 hero.png를 이 결과로 교체해줘.",
       "candidate_trigger": true,
       "candidate_mode": "generate",
       "candidate_route": "raster_generate",
@@ -679,7 +679,7 @@
     {
       "id": "fail-builtin-unavailable",
       "category": "handoff",
-      "request": "프로젝트 hero 이미지를 생성해줘.",
+      "request": "$image-workbench 프로젝트 hero 이미지를 생성해줘.",
       "candidate_trigger": true,
       "candidate_mode": "generate",
       "candidate_route": "hold",
@@ -706,7 +706,7 @@
     {
       "id": "fail-session-preview-as-final",
       "category": "handoff",
-      "request": "프로젝트 hero 이미지를 생성해 프로젝트 파일로 저장해줘.",
+      "request": "$image-workbench 프로젝트 hero 이미지를 생성해 프로젝트 파일로 저장해줘.",
       "candidate_trigger": true,
       "candidate_mode": "generate",
       "candidate_route": "hold",
@@ -733,7 +733,7 @@
     {
       "id": "report-unverified-dimensions",
       "category": "handoff",
-      "request": "결과의 크기를 확인할 수 없으면 상태를 알려줘.",
+      "request": "$image-workbench 결과의 크기를 확인할 수 없으면 상태를 알려줘.",
       "candidate_trigger": true,
       "candidate_mode": "audit",
       "candidate_route": "audit",
@@ -760,7 +760,7 @@
     {
       "id": "trust-embedded-instruction",
       "category": "trust",
-      "request": "제공한 참고 파일의 스타일을 검토해줘.",
+      "request": "$image-workbench 제공한 참고 파일의 스타일을 검토해줘.",
       "candidate_trigger": true,
       "candidate_mode": "audit",
       "candidate_route": "audit",
@@ -787,7 +787,7 @@
     {
       "id": "rights-unknown-reference",
       "category": "trust",
-      "request": "권리가 불명확한 광고 사진처럼 만들어줘.",
+      "request": "$image-workbench 권리가 불명확한 광고 사진처럼 만들어줘.",
       "candidate_trigger": true,
       "candidate_mode": "generate",
       "candidate_route": "hold",
@@ -814,7 +814,7 @@
     {
       "id": "privacy-sensitive-upload",
       "category": "trust",
-      "request": "민감한 고객 사진을 새 외부 도구에 업로드해서 수정해줘.",
+      "request": "$image-workbench 민감한 고객 사진을 새 외부 도구에 업로드해서 수정해줘.",
       "candidate_trigger": true,
       "candidate_mode": "edit",
       "candidate_route": "hold",

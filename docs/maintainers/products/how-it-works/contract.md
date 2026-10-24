@@ -11,11 +11,8 @@ they are the Korean words listed in `skills/how-it-works/SKILL.md`.
 
 ## Triggers and defaults
 
-Explicit calls are `$how-it-works` on Codex and `/how-it-works` on Claude Code. The
-skill also turns on for Korean requests like "start from the principle", "as a
-picture", "how does it run", or "I can't picture it" (the exact words are in the
-`SKILL.md` description). `/eli5` and "explain like I'm 5" belong to another skill;
-this skill does nothing for them.
+Only explicit calls (`$how-it-works` on Codex or `/how-it-works` on Claude Code) activate the skill. Matching explanation requests alone do not. ELI5 remains excluded.
+Codex policy disables implicit invocation; Claude Code uses `disable-model-invocation: true`.
 
 Before explaining, it fills four slots: `slice` (the piece to explain), `type` (kind
 of explanation), `rung` (depth), and `language` (reply language). It infers `type`
@@ -121,7 +118,7 @@ English banners. The skill does not call `korean-writing-editor`.
 
 ## Version and install
 
-The current product version is `3.0.3`. The source of truth is
+The current product version is `4.0.0`. The source of truth is
 `skills/how-it-works/release.toml`; `SKILL.md` `metadata.version` copies it.
 `metadata.updated_at` is the date of the latest installed-file change. None of this
 metadata means a tag, publication, or GitHub Release exists.

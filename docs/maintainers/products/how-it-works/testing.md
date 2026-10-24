@@ -1,5 +1,9 @@
 # how-it-works testing
 
+Current activation is explicit-only. Earlier implicit-activation results below are
+historical and do not validate the current policy. No live activation run was made
+for this change; current host behavior is `not_measured`.
+
 Keep provider-free rule checks apart from optional live runs that may cost money. Never
 commit user topics, provider conversations, or private logs as Git test fixtures.
 
@@ -25,7 +29,7 @@ Deterministic fixtures (rungs by English label):
   question.
 - `default-dns-picture`: `/how-it-works DNS` explains at default picture.
 - `explicit-dns-path`: the six chat parts appear and no host tool is required.
-- `implicit-positive`: activates as intended without being called by name (implicit).
+- `implicit-no-activation`: does not activate without being called by name (implicit).
 - `near-miss-debug`, `near-miss-eli5`: similar requests that must not activate
   (near-miss). `/eli5` is not this skill.
 - `jargon-rung`: an explicit "easy" alias beats jargon and selects picture.
@@ -166,7 +170,7 @@ a fresh repository's `.claude/skills/` with `--setting-sources project` (`SKILL.
 
 | Request | Skill tool called |
 | --- | --- |
-| `implicit-positive` from `cases.json` (DNS path, Korean) | 2/2, a path-rung reply |
+| Historical `implicit-positive` case (DNS path, Korean) | 2/2, a path-rung reply |
 | "I don't get how the TCP handshake works; start from the principle" (Korean, using two of the description's cue phrases) | 2/2, a picture-rung reply |
 | `near-miss-debug` from `cases.json` (fix a failing DNS resolver test) | 0/2; looked for the code instead |
 

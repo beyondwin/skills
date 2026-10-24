@@ -1,11 +1,12 @@
 ---
 name: how-it-works
-description: Use when the user wants to understand how a mechanism or flow works visually, asks for a diagram or step-by-step path, names 그림/길/뼈대/허점, or asks 원리부터, 그림으로, 어떻게 돌아가, or 감이 안 와. Do not use for debugging, implementation, review, translation, one-line factual lookup, child-register explanation, or ELI5 requests.
+description: Use when explicitly invoked and the user wants to understand how a mechanism or flow works visually, asks for a diagram or step-by-step path, names 그림/길/뼈대/허점, or asks 원리부터, 그림으로, 어떻게 돌아가, or 감이 안 와. Do not use for debugging, implementation, review, translation, one-line factual lookup, child-register explanation, or ELI5 requests.
+disable-model-invocation: true
 license: Apache-2.0
 compatibility: Requires an Agent Skills host that can read this directory and return Markdown text.
 metadata:
-  version: "3.0.3"
-  updated_at: "2026-10-02"
+  version: "4.0.0"
+  updated_at: "2026-10-24"
 ---
 
 # how-it-works
@@ -19,7 +20,9 @@ Do not activate on eli5, /eli5, or “explain like I’m 5”. That is a differe
 Do not use this explanation flow on debugging, implementation, review, translation, one-line lookup, or eli5 requests.
 </HARD-GATE>
 
-Prefer explicit invocation: `$how-it-works` on Codex and `/how-it-works` on Claude Code.
+Activate only on explicit invocation: `$how-it-works` on Codex and `/how-it-works` on Claude Code.
+
+Do not activate from a matching topic or request alone.
 
 ## Classify
 

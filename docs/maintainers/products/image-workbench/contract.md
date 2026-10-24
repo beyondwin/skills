@@ -22,7 +22,7 @@ tool".
 
 ## Trigger and defaults
 
-Turn on when the project needs a bitmap. Explicit calls are `$image-workbench`
+Turn on only when explicitly invoked for a project bitmap. Explicit calls are `$image-workbench`
 or `/image-workbench`. The `SKILL.md` description carries the use line and the
 exclusions within its first 250 or so characters, because hosts truncate it.
 Do not turn on for a casual one-off picture (left to the host's own image

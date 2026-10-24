@@ -1,5 +1,9 @@
 # image-workbench testing
 
+Current activation is explicit-only. Earlier implicit-activation results below are
+historical and do not validate the current policy. No live activation run was made
+for this change; current host behavior is `not_measured`.
+
 Fixtures live in `tests/products/image-workbench/`. To change the fixture
 format or a judging rule, first change the evaluator self-test and the
 fixtures (positive and near-miss cases). See the test fail, then implement.

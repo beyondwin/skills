@@ -4,6 +4,8 @@ All notable changes to this product are documented in this file.
 
 ## Unreleased
 
+- Breaking: require explicit invocation; disable automatic skill selection.
+
 ### Changed
 
 - Explain the measured limits of generation and self-review in both user guides:
