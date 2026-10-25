@@ -1,6 +1,6 @@
 ## Summary
 
-Describe the change for `korean-writing-editor`, `image-workbench`, and/or `how-it-works`,
+Describe the change for `korean-writing-editor`, `image-workbench`, `how-it-works`, `grok-video`, and/or `grok-image`,
 or repository documentation and tooling. Historical records do not restore retired products.
 
 For a significant decision, link its learning case and note any unknown reason or

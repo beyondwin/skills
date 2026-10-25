@@ -2,7 +2,7 @@
 
 [English](../en/install-local.md) · [설치](installation.md) · [호환성](compatibility.md) · [안전과 개인정보](safety-and-privacy.md) · [검증](verification.md)
 
-How It Works와 Grok에서 쓰는 Image Workbench는 복사하지 않습니다. 저장소를 한 번 클론하고, 각 호스트의 스킬 폴더에서 클론 안 스킬 폴더로 가는 링크(심볼릭 링크)를 겁니다. 그러면 클론에서 `git pull` 한 번으로 모든 호스트가 함께 갱신됩니다.
+How It Works와 Grok에서 쓰는 Image Workbench, Grok Video, Grok Image는 복사하지 않습니다. 저장소를 한 번 클론하고, 각 호스트의 스킬 폴더에서 클론 안 스킬 폴더로 가는 링크(심볼릭 링크)를 겁니다. 그러면 클론에서 `git pull` 한 번으로 모든 호스트가 함께 갱신됩니다.
 
 아래 절은 모두 같은 세 단계입니다.
 
@@ -115,6 +115,104 @@ print("linked")
 
 3. 첫 호출은 [`image-workbench` README](../../../skills/image-workbench/README.ko.md)를 보세요.
 
+## grok-video
+
+Grok용입니다. 공개 경로: https://github.com/beyondwin/skills/tree/main/skills/grok-video. `~/.agents/skills`에 링크 하나를 겁니다. `~/.grok`나 `~/.codex`에 복사본을 만들지 마세요.
+
+1. 클론하고 폴더를 만듭니다.
+
+```bash
+git clone https://github.com/beyondwin/skills.git
+cd skills
+mkdir -p ~/.agents/skills
+```
+
+2. 블록을 한 번 실행합니다.
+
+<!-- grok-video-local-links -->
+```python
+import os
+import sys
+from pathlib import Path
+
+if len(sys.argv) != 3:
+    raise SystemExit("usage: python3 - SOURCE TARGET")
+source = Path(sys.argv[1]).expanduser().resolve(strict=True)
+target = Path(os.path.abspath(os.path.expanduser(sys.argv[2])))
+if not source.is_dir() or not (source / "SKILL.md").is_file():
+    raise SystemExit("source must be a skill directory")
+if target.is_symlink():
+    try:
+        same = target.resolve(strict=True) == source
+    except (OSError, RuntimeError):
+        same = False
+    if same:
+        print("already linked")
+        raise SystemExit(0)
+    raise SystemExit("refusing different or dangling link")
+if target.exists():
+    raise SystemExit("refusing existing file or directory")
+target.parent.mkdir(parents=True, exist_ok=True)
+try:
+    target.symlink_to(source, target_is_directory=True)
+except FileExistsError:
+    raise SystemExit("target appeared during installation; inspect it before retrying")
+print("linked")
+```
+
+- Grok: `python3 - "$PWD/skills/grok-video" "$HOME/.agents/skills/grok-video" <<'PY'`
+
+3. 첫 호출은 [`grok-video` README](../../../skills/grok-video/README.ko.md)를 보세요.
+
+## grok-image
+
+Grok용입니다. 공개 경로: https://github.com/beyondwin/skills/tree/main/skills/grok-image. `~/.agents/skills`에 링크 하나를 겁니다. `~/.grok`나 `~/.codex`에 복사본을 만들지 마세요.
+
+1. 클론하고 폴더를 만듭니다.
+
+```bash
+git clone https://github.com/beyondwin/skills.git
+cd skills
+mkdir -p ~/.agents/skills
+```
+
+2. 블록을 한 번 실행합니다.
+
+<!-- grok-image-local-links -->
+```python
+import os
+import sys
+from pathlib import Path
+
+if len(sys.argv) != 3:
+    raise SystemExit("usage: python3 - SOURCE TARGET")
+source = Path(sys.argv[1]).expanduser().resolve(strict=True)
+target = Path(os.path.abspath(os.path.expanduser(sys.argv[2])))
+if not source.is_dir() or not (source / "SKILL.md").is_file():
+    raise SystemExit("source must be a skill directory")
+if target.is_symlink():
+    try:
+        same = target.resolve(strict=True) == source
+    except (OSError, RuntimeError):
+        same = False
+    if same:
+        print("already linked")
+        raise SystemExit(0)
+    raise SystemExit("refusing different or dangling link")
+if target.exists():
+    raise SystemExit("refusing existing file or directory")
+target.parent.mkdir(parents=True, exist_ok=True)
+try:
+    target.symlink_to(source, target_is_directory=True)
+except FileExistsError:
+    raise SystemExit("target appeared during installation; inspect it before retrying")
+print("linked")
+```
+
+- Grok: `python3 - "$PWD/skills/grok-image" "$HOME/.agents/skills/grok-image" <<'PY'`
+
+3. 첫 호출은 [`grok-image` README](../../../skills/grok-image/README.ko.md)를 보세요.
+
 ## 갱신과 제거
 
 갱신은 클론에서 `git pull`을 하면 됩니다. 링크가 바뀐 내용을 그대로 씁니다. 제거할 때는 `ls -ld`로 링크를 먼저 확인한 뒤 그 링크만 지웁니다.
@@ -128,6 +226,14 @@ unlink ~/.claude/skills/how-it-works
 # image-workbench
 ls -ld ~/.agents/skills/image-workbench
 unlink ~/.agents/skills/image-workbench
+
+# grok-video
+ls -ld ~/.agents/skills/grok-video
+unlink ~/.agents/skills/grok-video
+
+# grok-image
+ls -ld ~/.agents/skills/grok-image
+unlink ~/.agents/skills/grok-image
 ```
 
 상위 `skills` 폴더나 홈 폴더를 지우지 마세요. 원격 스크립트를 셸에 파이프하지 말고, 확인하지 않은 설치를 바꾸지 마세요.

@@ -20,17 +20,19 @@ With no arguments it runs every stage in this order and stops at the first failu
 - image-contract
 - image-inspector
 - how-it-works-contract
+- grok-video-contract
+- grok-image-contract
 - python-compile
 
 CI runs this verification on Ubuntu. An Ubuntu CI pass does not prove macOS support.
 
-To check one skill, pass its name. This runs `product-contract`, that skill's own stages, and `python-compile`. Any of the three names works, for example:
+To check one skill, pass its name. This runs `product-contract`, that skill's own stages, and `python-compile`. Any registered name works, for example:
 
 ```bash
 python3 scripts/verify.py --skill how-it-works
 ```
 
-Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md).
+Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`grok-video`](../../../skills/grok-video/README.md), [`grok-image`](../../../skills/grok-image/README.md).
 
 ## Shared evidence sentences
 

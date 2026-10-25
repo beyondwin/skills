@@ -4,7 +4,7 @@
 
 This project has no telemetry: it sends no usage data anywhere. Required CI and `python3 scripts/verify.py` use no credentials, call no model, and upload nothing. The optional installer `npx skills add beyondwin/skills --skill korean-writing-editor` is third-party and follows its own policy.
 
-Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md).
+Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`grok-video`](../../../skills/grok-video/README.md), [`grok-image`](../../../skills/grok-image/README.md).
 
 ## Korean source text
 
@@ -15,6 +15,10 @@ Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/
 `how-it-works` does not save your topics as fixtures or logs, on Codex or Claude Code. Citations are URLs you can see from the current turn, not a private corpus. Medical, legal, or financial slices explain how something works; they are not advice.
 
 ## Image references and consent
+
+`grok-video` asks before animating a named real person and does not treat a reference as permission to copy a person or a mark. Do not store its generated clips as Git fixtures.
+
+`grok-image` asks before drawing a named real person and does not treat a reference as permission to copy a person or a mark. Do not store its generated stills as Git fixtures.
 
 In `image-workbench`, every input image has exactly one role: `edit_target`, `subject_reference`, `style_reference`, or `compositing_input`. A reference image gives no right to copy a person, a mark, or a protected work. If consent for a person, mark, or example image is unknown, the work is held. Do not store private references, prompts, or generated outputs as Git fixtures.
 

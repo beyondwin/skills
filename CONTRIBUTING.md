@@ -1,16 +1,18 @@
 # Contributing
 
-This repository ships three standalone products. Where documents live is in
+This repository ships five standalone products. Where documents live is in
 [docs/README.md](docs/README.md). How the tree is split is in
 [architecture](docs/maintainers/repository/architecture.md).
 
 - `korean-writing-editor`
 - `image-workbench`
 - `how-it-works`
+- `grok-video`
+- `grok-image`
 
 ## Scope
 
-New skills are not accepted by default. A pull request that adds another skill is out of scope unless repository governance is changed first.
+New skills are not accepted by default. A pull request that adds a skill not listed above is out of scope unless repository governance is changed first.
 
 The supported OS is macOS only. Windows and Linux are unsupported. An Ubuntu CI pass is not OS support evidence.
 
@@ -19,6 +21,8 @@ Host support:
 - `how-it-works` currently claims Codex and Claude Code only.
 - Do not broaden host support for `korean-writing-editor`.
 - `image-workbench` claims Codex and Grok only after a recorded smoke on the current build.
+- `grok-video` claims Grok only. The pinned-frame procedure was checked on 2026-10-25. Automatic routing of the installed skill is not measured.
+- `grok-image` claims Grok only. The prompt procedure was checked on 2026-10-25. Automatic routing of the installed skill is not measured.
 
 Host-support changes must update `products.toml`, the matching docs, and tests together.
 
@@ -44,7 +48,7 @@ Live provider results are not enough on their own. Include a reproducible case, 
 - Provide exact reproduction steps.
 - Prefer deterministic, provider-free evidence.
 - Do not include a private prompt, personal Korean text, a private image, credentials, provider receipts, or generated media.
-- Do not add telemetry, a required provider call, or a new skill.
+- Do not add telemetry, a required provider call, or a skill that is not listed in `products.toml`.
 - Significant decisions should include a [learning case](docs/learning/README.md)
   or an update to an existing one.
 

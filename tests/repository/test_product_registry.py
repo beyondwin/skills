@@ -82,6 +82,8 @@ class RegistryParsingTests(unittest.TestCase):
                 "korean-writing-editor",
                 "image-workbench",
                 "how-it-works",
+                "grok-video",
+                "grok-image",
             ),
         )
 

@@ -286,6 +286,36 @@ def _run_product_smoke(root: Path, name: str, skill_root: Path) -> list[str]:
         return errors
     if name == "how-it-works":
         return _smoke_how_it_works(skill_root)
+    if name == "grok-video":
+        return _run_command(
+            "grok-video-contract",
+            [
+                sys.executable,
+                "-m",
+                "unittest",
+                "discover",
+                "-s",
+                str(root / "tests" / "products" / "grok-video"),
+                "-p",
+                "test_*.py",
+            ],
+            cwd=root,
+        )
+    if name == "grok-image":
+        return _run_command(
+            "grok-image-contract",
+            [
+                sys.executable,
+                "-m",
+                "unittest",
+                "discover",
+                "-s",
+                str(root / "tests" / "products" / "grok-image"),
+                "-p",
+                "test_*.py",
+            ],
+            cwd=root,
+        )
     return [f"unlisted skill is not accepted: {name}"]
 
 

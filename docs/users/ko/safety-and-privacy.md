@@ -4,7 +4,7 @@
 
 이 프로젝트는 텔레메트리를 넣지 않습니다. 사용 기록을 어디에도 보내지 않습니다. 필수 CI와 `python3 scripts/verify.py`는 자격 증명을 쓰지 않고, 모델을 부르지 않고, 아무것도 올리지 않습니다. 선택 설치기 `npx skills add beyondwin/skills --skill korean-writing-editor`는 제3자 도구이며 자체 정책을 따릅니다.
 
-제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`image-workbench`](../../../skills/image-workbench/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md).
+제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`image-workbench`](../../../skills/image-workbench/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md), [`grok-video`](../../../skills/grok-video/README.ko.md), [`grok-image`](../../../skills/grok-image/README.ko.md).
 
 ## 한국어 원문
 
@@ -15,6 +15,10 @@
 `how-it-works`는 Codex에서도 Claude Code에서도 사용자 주제를 픽스처나 로그로 저장하지 않습니다. 인용은 그 턴에서 볼 수 있는 URL이며, 비공개 자료 모음이 아닙니다. 의료·법률·금융 슬라이스(설명 범위)는 작동 방식만 설명하며 조언이 아닙니다.
 
 ## 이미지 참조와 동의
+
+`grok-video`는 실존 인물을 움직이기 전에 사진을 묻고, 참조가 있다고 사람이나 상표를 복제할 권리가 생긴다고 보지 않습니다. 그 생성 영상은 Git 픽스처로 저장하지 마세요.
+
+`grok-image`는 실존 인물을 그리기 전에 참조를 묻고, 참조가 있다고 사람이나 상표를 복제할 권리가 생긴다고 보지 않습니다. 그 생성 이미지는 Git 픽스처로 저장하지 마세요.
 
 `image-workbench`에서 입력 이미지마다 역할은 하나입니다. `edit_target`, `subject_reference`, `style_reference`, `compositing_input` 중 하나입니다. 참조 이미지가 있다고 사람, 상표, 보호된 작업을 복제할 권리가 생기지 않습니다. 인물·상표·예시 이미지의 consent(동의)를 모르면 작업을 보류합니다. 비공개 참조, 프롬프트, 생성 결과는 Git 픽스처로 저장하지 마세요.
 

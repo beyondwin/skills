@@ -131,6 +131,32 @@ def _stage_map(root: pathlib.Path) -> dict[str, Stage]:
             ),
             cwd=root,
         ),
+        "grok-video-contract": Stage(
+            "grok-video-contract",
+            _python(
+                "-m",
+                "unittest",
+                "discover",
+                "-s",
+                _posix("tests", "products", "grok-video"),
+                "-p",
+                "test_*.py",
+            ),
+            cwd=root,
+        ),
+        "grok-image-contract": Stage(
+            "grok-image-contract",
+            _python(
+                "-m",
+                "unittest",
+                "discover",
+                "-s",
+                _posix("tests", "products", "grok-image"),
+                "-p",
+                "test_*.py",
+            ),
+            cwd=root,
+        ),
     }
 
 

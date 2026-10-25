@@ -192,6 +192,8 @@ class TargetMappingTests(RegistryRoutingTestCase):
                 "korean-writing-editor",
                 "image-workbench",
                 "how-it-works",
+                "grok-video",
+                "grok-image",
             ),
         )
 

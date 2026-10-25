@@ -1,0 +1,6 @@
+interface:
+  display_name: "Grok Image"
+  short_description: "Make a Grok still from a concrete scene"
+  default_prompt: "Use $grok-image to make this still."
+policy:
+  allow_implicit_invocation: true

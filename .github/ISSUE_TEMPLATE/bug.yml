@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Report a defect in `korean-writing-editor`, `image-workbench`,
-        or `how-it-works` only. Host-support claims
+        `how-it-works`, `grok-video`, or `grok-image` only. Host-support claims
         must match `products.toml`, the docs, and the tests.
 
         Do not include personal Korean text, a private prompt, a private image,
@@ -23,6 +23,8 @@ body:
         - korean-writing-editor
         - image-workbench
         - how-it-works
+        - grok-video
+        - grok-image
     validations:
       required: true
   - type: textarea

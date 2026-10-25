@@ -82,10 +82,18 @@ IMAGE_SUPPORT = (
 HOW_IT_WORKS_SUPPORT = (
     "how-it-works: Codex and Claude Code supported for local or repository-based use."
 )
+GROK_IMAGE_SUPPORT = (
+    "grok-image: Grok supported; still generation uses the host's built-in image tool and local image viewing."
+)
+GROK_VIDEO_SUPPORT = (
+    "grok-video: Grok supported; a clip needs the host reference_to_video tool and a way to open the result."
+)
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
     "image-workbench": IMAGE_SUPPORT,
     "how-it-works": HOW_IT_WORKS_SUPPORT,
+    "grok-video": GROK_VIDEO_SUPPORT,
+    "grok-image": GROK_IMAGE_SUPPORT,
 }
 HOW_IT_WORKS_MKDIR = "mkdir -p ~/.agents/skills ~/.claude/skills"
 HOW_IT_WORKS_AGENTS_INVOCATION = (
@@ -148,12 +156,14 @@ USER_GUIDES = (
     ROOT / "docs" / "users" / "ko" / "compatibility.md",
     ROOT / "docs" / "users" / "ko" / "safety-and-privacy.md",
     ROOT / "docs" / "users" / "ko" / "verification.md",
+    ROOT / "docs" / "users" / "ko" / "grok-video-piece.md",
     ROOT / "docs" / "users" / "en" / "installation.md",
     ROOT / "docs" / "users" / "en" / "install-codex.md",
     ROOT / "docs" / "users" / "en" / "install-local.md",
     ROOT / "docs" / "users" / "en" / "compatibility.md",
     ROOT / "docs" / "users" / "en" / "safety-and-privacy.md",
     ROOT / "docs" / "users" / "en" / "verification.md",
+    ROOT / "docs" / "users" / "en" / "grok-video-piece.md",
 )
 CODEX_PRODUCTS = (
     "korean-writing-editor",
@@ -643,7 +653,7 @@ class UserGuideFactTests(unittest.TestCase):
             "safety-and-privacy.md": all_products,
             "verification.md": all_products,
             "install-codex.md": CODEX_PRODUCTS,
-            "install-local.md": ("how-it-works", "image-workbench"),
+            "install-local.md": ("how-it-works", "image-workbench", "grok-video", "grok-image"),
         }
         for language in ("ko", "en"):
             for filename, names in owned.items():
@@ -860,7 +870,7 @@ class UserGuideFactTests(unittest.TestCase):
 
 
 class DocumentationArchitectureTests(unittest.TestCase):
-    def test_six_user_guides_exist_per_language(self) -> None:
+    def test_user_guides_exist_per_language(self) -> None:
         expected = {
             "installation.md",
             "install-codex.md",
@@ -868,6 +878,7 @@ class DocumentationArchitectureTests(unittest.TestCase):
             "compatibility.md",
             "safety-and-privacy.md",
             "verification.md",
+            "grok-video-piece.md",
         }
         for language in ("ko", "en"):
             self.assertEqual(
@@ -1290,6 +1301,7 @@ class MaintainerStructureTests(unittest.TestCase):
             "korean-writing-editor": "tests/products/korean-writing-editor/offline/",
             "image-workbench": "tests/products/image-workbench/",
             "how-it-works": "tests/products/how-it-works/",
+            "grok-image": "tests/products/grok-image/",
         }
         for name, path in expected.items():
             text = _read(ROOT / "docs" / "maintainers" / "products" / name / "testing.md")

@@ -25,6 +25,8 @@ EXPECTED = {
     "korean-writing-editor": "3.0.0",
     "image-workbench": "3.0.0",
     "how-it-works": "4.0.0",
+    "grok-video": "1.0.0",
+    "grok-image": "1.0.0",
 }
 REGISTRY = load_registry(ROOT / "products.toml")
 

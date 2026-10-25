@@ -48,3 +48,31 @@ owned_paths = [
   "docs/maintainers/products/how-it-works/",
 ]
 verify_stages = ["product-contract", "how-it-works-contract", "python-compile"]
+
+[[products]]
+name = "grok-video"
+display_name = "Grok Video"
+skill_path = "skills/grok-video"
+test_path = "tests/products/grok-video"
+maintainer_docs = "docs/maintainers/products/grok-video"
+supported_hosts = ["grok"]
+owned_paths = [
+  "skills/grok-video/",
+  "tests/products/grok-video/",
+  "docs/maintainers/products/grok-video/",
+]
+verify_stages = ["product-contract", "grok-video-contract", "python-compile"]
+
+[[products]]
+name = "grok-image"
+display_name = "Grok Image"
+skill_path = "skills/grok-image"
+test_path = "tests/products/grok-image"
+maintainer_docs = "docs/maintainers/products/grok-image"
+supported_hosts = ["grok"]
+owned_paths = [
+  "skills/grok-image/",
+  "tests/products/grok-image/",
+  "docs/maintainers/products/grok-image/",
+]
+verify_stages = ["product-contract", "grok-image-contract", "python-compile"]

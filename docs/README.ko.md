@@ -14,6 +14,7 @@
 - [호환성](users/ko/compatibility.md)
 - [안전과 개인정보](users/ko/safety-and-privacy.md)
 - [검증](users/ko/verification.md)
+- [Grok 동영상으로 한 편 만들기](users/ko/grok-video-piece.md)
 
 ## 스킬 쓰기
 
@@ -22,6 +23,8 @@
 - [`korean-writing-editor`](../skills/korean-writing-editor/README.ko.md)
 - [`image-workbench`](../skills/image-workbench/README.ko.md)
 - [`how-it-works`](../skills/how-it-works/README.ko.md)
+- [`grok-video`](../skills/grok-video/README.ko.md)
+- [`grok-image`](../skills/grok-image/README.ko.md)
 
 ## 관리·변경·릴리스
 

@@ -20,17 +20,19 @@ python3 scripts/verify.py
 - image-contract
 - image-inspector
 - how-it-works-contract
+- grok-video-contract
+- grok-image-contract
 - python-compile
 
 CI는 Ubuntu에서 이 검증을 돌립니다. Ubuntu CI 통과는 macOS 지원을 증명하지 않습니다.
 
-스킬 하나만 검사하려면 이름을 넘깁니다. `product-contract`, 그 스킬의 단계, `python-compile`만 돕니다. 세 이름 모두 됩니다. 예:
+스킬 하나만 검사하려면 이름을 넘깁니다. `product-contract`, 그 스킬의 단계, `python-compile`만 돕니다. 등록된 이름이면 됩니다. 예:
 
 ```bash
 python3 scripts/verify.py --skill how-it-works
 ```
 
-제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`image-workbench`](../../../skills/image-workbench/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md).
+제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`image-workbench`](../../../skills/image-workbench/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md), [`grok-video`](../../../skills/grok-video/README.ko.md), [`grok-image`](../../../skills/grok-image/README.ko.md).
 
 ## 공유 증거 문장
 

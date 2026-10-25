@@ -38,6 +38,8 @@ FULL_STAGE_NAMES = (
     "image-contract",
     "image-inspector",
     "how-it-works-contract",
+    "grok-video-contract",
+    "grok-image-contract",
     "python-compile",
 )
 LIVE_TEST_PATH = (

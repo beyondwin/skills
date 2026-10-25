@@ -1,13 +1,13 @@
 # Repository architecture
 
-This repository holds three skills that install separately. This doc says where to look
+This repository holds five skills that install separately. This doc says where to look
 and what to check when you change something. Apache-2.0 applies to the root and to
 each skill.
 
 ## At a glance
 
 The current products are the ones in `products.toml`: `korean-writing-editor`,
-`image-workbench`, and `how-it-works`. Each has
+`image-workbench`, `how-it-works`, `grok-video`, and `grok-image`. Each has
 its own version and installs on its own from a GitHub path.
 
 ```mermaid
@@ -17,6 +17,8 @@ flowchart TB
     K[korean-writing-editor]
     I[image-workbench]
     H[how-it-works]
+    V[grok-video]
+    G[grok-image]
   end
   R --> live
   live --> SK["skills/ payload"]
@@ -82,8 +84,10 @@ Repository only, never installed:
 | `tests/products/korean-writing-editor/live/` | Synthetic live runner, unit tests, dry-run, operator notes |
 | `tests/products/image-workbench/` | Routing, permission, evidence, and inspector tests |
 | `tests/products/how-it-works/` | Synthetic DNS and rebase fixtures and payload tests |
+| `tests/products/grok-video/` | Planner questions, pins, and prompt-shape tests |
+| `tests/products/grok-image/` | Trigger, prompt-shape, and single-repair contract tests |
 | `docs/README.md` | Routes to install, use, maintain, and history |
-| `docs/users/` | Shared install, compatibility, safety, and verification guides |
+| `docs/users/` | Shared install, compatibility, safety, verification, and the finished Grok video guide |
 | `docs/maintainers/` | Architecture, registry, versioning, release, product rules |
 | `docs/history/` | Work-in-progress designs and plans. Does not define the current contract |
 | `docs/research/` | Measured studies of skills and workflows, including retired products, and their harnesses. Does not define the current contract. Live-call code is not verified |
@@ -110,12 +114,14 @@ Each product's `testing.md` owns its fixture path details.
 
 ## Invocation policy
 
-All three products require explicit invocation. Codex requires
-`agents/openai.yaml` with `policy.allow_implicit_invocation: false`.
-For the supported Claude Code product, `disable-model-invocation: true` is the
-sole host-specific frontmatter exception. Other host-specific fields remain rejected
-for multi-host products. Grok follows the explicit-only description and body gate;
-no native Grok selection setting or live routing result is claimed.
+`korean-writing-editor`, `image-workbench`, and `how-it-works` require explicit
+invocation. Codex requires `agents/openai.yaml` with
+`policy.allow_implicit_invocation: false` for those three.
+`grok-image` turns on for a Grok still request, and `grok-video` turns on for a
+Grok video request, so their Codex policy is `allow_implicit_invocation: true`. For the supported Claude Code product,
+`disable-model-invocation: true` is the sole host-specific frontmatter exception.
+Other host-specific fields remain rejected for multi-host products. No native Grok
+selection setting or live routing result is claimed.
 
 ## Interfaces
 
@@ -147,4 +153,6 @@ Korean live evaluation is an explicit local task.
 Product protocols:
 [korean-writing-editor](../products/korean-writing-editor/contract.md),
 [image-workbench](../products/image-workbench/contract.md),
-[how-it-works](../products/how-it-works/contract.md).
+[how-it-works](../products/how-it-works/contract.md),
+[grok-video](../products/grok-video/contract.md),
+[grok-image](../products/grok-image/contract.md).

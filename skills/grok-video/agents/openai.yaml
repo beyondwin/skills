@@ -1,0 +1,6 @@
+interface:
+  display_name: "Grok Video"
+  short_description: "Plan and generate one Grok video clip"
+  default_prompt: "Use $grok-video to make one video clip."
+policy:
+  allow_implicit_invocation: true

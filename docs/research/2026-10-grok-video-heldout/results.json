@@ -1,0 +1,71 @@
+{
+  "date": "2026-10-25",
+  "decision": "first-take rule met: 2 of 3 skill travels passed, bare apple missed",
+  "skill_sha256": {
+    "SKILL.md": "b257dd21c27e883423cdc653be00dc1190b15786f240494386950a2abd83e7af",
+    "scripts/plan_shot.py": "800cce1df6038a9f99f545446de761c5fee3850a523fab3a15a60a6105025bbc",
+    "references/shot-check.md": "f899b0623c0a3392cb83c08aa1b42c9f9c42ccc4bed5d345bbad7d8bfc749401"
+  },
+  "stills": {
+    "apple_start": {"file": "images/10.jpg", "width_fraction": 0.45, "cx": 0.1687},
+    "apple_edit_1": {"file": "images/14.jpg", "width_fraction": 0.2328, "cx": 0.6319, "width_gap": 0.2172},
+    "apple_edit_2": {"file": "images/15.jpg", "width_fraction": 0.2477, "cx": 0.6055, "width_gap": 0.2023, "kept": true},
+    "pitcher_start": {"file": "images/11.jpg", "width_fraction": 0.2797, "cx": 0.5966},
+    "pitcher_edit_1": {"file": "images/13.jpg", "width_fraction": 0.2945, "cx": 0.2484, "width_gap": 0.0148, "handle": "flipped"},
+    "pitcher_edit_2": {"file": "images/17.jpg", "width_fraction": 0.275, "cx": 0.2336, "width_gap": 0.0047, "handle": "flipped", "kept": true},
+    "balloon_start": {"file": "images/9.jpg", "width_fraction": 0.6028, "cx": 0.2655},
+    "balloon_edit_1": {"file": "images/12.jpg", "width_fraction": 0.5028, "cx": 0.7817, "width_gap": 0.1, "kept": true},
+    "balloon_edit_2": {"file": "images/16.jpg", "width_fraction": 0.4639, "cx": 0.7951, "width_gap": 0.1389}
+  },
+  "clips": [
+    {
+      "id": "apple-skill",
+      "file": "videos/22.mp4",
+      "dx": 0.4383,
+      "end_mae": 1.804,
+      "background_mae": 95.68,
+      "width_ratio": 0.5492,
+      "landmarks": "pass",
+      "gate": "pass",
+      "note": "Middle frame turned the stem sideways. Last frame matched the smaller end still."
+    },
+    {
+      "id": "pitcher-skill",
+      "file": "videos/21.mp4",
+      "dx": -0.3606,
+      "end_mae": 2.097,
+      "background_mae": 56.057,
+      "width_ratio": 0.9943,
+      "landmarks": "fail",
+      "gate": "fail",
+      "note": "Handle was on the right at 0s and 3s, and on the left at the end. Window edge stayed."
+    },
+    {
+      "id": "balloon-skill",
+      "file": "videos/24.mp4",
+      "dx": 0.5132,
+      "end_mae": 1.987,
+      "background_mae": 5.713,
+      "width_ratio": 0.8432,
+      "landmarks": "pass",
+      "gate": "pass",
+      "note": "Sky and the beige edge stayed. Ribbon stayed under the knot."
+    },
+    {
+      "id": "apple-bare",
+      "file": "videos/23.mp4",
+      "dx": 0.4719,
+      "end_mae": 47.03,
+      "background_mae": 85.487,
+      "width_ratio": 0.5621,
+      "landmarks": "fail",
+      "gate": "miss",
+      "note": "Moved right. Last frame is a different table, with a dark band along the top."
+    }
+  ],
+  "procedure": {
+    "cactus_hold": "fail",
+    "reason": "status plan, empty start_prompt, video line appends 'stays still.'"
+  },
+  "corrections_generated": 0
+}

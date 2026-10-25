@@ -63,6 +63,8 @@ change in one product never requires a version bump in another.
 | korean-writing-editor | [contract](products/korean-writing-editor/contract.md) | [testing](products/korean-writing-editor/testing.md) | [compatibility](products/korean-writing-editor/compatibility.md) | [release](products/korean-writing-editor/release.md) |
 | image-workbench | [contract](products/image-workbench/contract.md) | [testing](products/image-workbench/testing.md) | [compatibility](products/image-workbench/compatibility.md) | [release](products/image-workbench/release.md) |
 | how-it-works | [contract](products/how-it-works/contract.md) | [testing](products/how-it-works/testing.md) | [compatibility](products/how-it-works/compatibility.md) | [release](products/how-it-works/release.md) |
+| grok-video | [contract](products/grok-video/contract.md) | [testing](products/grok-video/testing.md) | [compatibility](products/grok-video/compatibility.md) | [release](products/grok-video/release.md) |
+| grok-image | [contract](products/grok-image/contract.md) | [testing](products/grok-image/testing.md) | [compatibility](products/grok-image/compatibility.md) | [release](products/grok-image/release.md) |
 
 What each doc holds:
 
