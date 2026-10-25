@@ -22,6 +22,15 @@ __pycache__/
 .evidence/
 receipts/
 generated-media/
+# Imagine clips and stills, and a copied Codex auth file
+*.mp4
+*.mov
+*.webm
+*.m4v
+*.jpg
+*.jpeg
+*.webp
+auth.json
 
 # Virtual environments
 .venv/
