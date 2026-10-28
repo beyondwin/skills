@@ -61,13 +61,6 @@ OUTPUT_CHROME = (
     "## 지금 다루지 않은 것",
     "다음: {exactly one move}",
 )
-RUNTIME_FLOW = (
-    "fill slice, type, rung, language",
-    "emit one intent line",
-    "read focused references",
-    "emit complete Markdown + Mermaid source + numbered hop list",
-    "offer one next move",
-)
 PAGE_CONTRACT_MARKERS = (
     "artifact" + "-design",
     "published" + " page",
@@ -141,10 +134,10 @@ LIVE_CASES_PAYLOAD = {
             "id": "implicit-dns-path",
             "prompt": "DNS 요청이 브라우저에서 어디를 거쳐 IP 주소가 되는지 길로 보여줘",
             "expect": {
-                "invocation": "implicit",
+                "invocation": "not_activated",
                 "dimensions": {
-                    "fence": "lexical", "hop_ids": "lexical",
-                    "skill_loading": "host_event",
+                    "fence": "not_measured", "hop_ids": "not_measured",
+                    "skill_loading": "not_measured",
                     "mermaid_syntax": "not_measured", "meaning": "not_measured",
                 },
             },
@@ -191,7 +184,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
     def test_release_and_repeatable_install_contract(self) -> None:
         from scripts.lib.product_contract import load_product_release
 
-        self.assertEqual(load_product_release(SKILL).version, "4.0.0")
+        self.assertEqual(load_product_release(SKILL).version, "4.0.1")
         self.assertEqual(
             {path.name for path in SKILL.glob("README*.md")}, {"README.md", "README.ko.md"}
         )
@@ -210,7 +203,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
         self.assertEqual(frontmatter["disable-model-invocation"], "true")
         self.assertEqual(frontmatter["name"], "how-it-works")
         self.assertEqual(frontmatter["license"], "Apache-2.0")
-        self.assertEqual(frontmatter["metadata"]["version"], "4.0.0")
+        self.assertEqual(frontmatter["metadata"]["version"], "4.0.1")
 
     def test_frontmatter_has_no_host_tool_requirement(self) -> None:
         frontmatter = parse_skill_frontmatter((SKILL / "SKILL.md").read_text(encoding="utf-8"))
@@ -553,12 +546,6 @@ class HowItWorksPayloadTests(unittest.TestCase):
         for forbidden in PAGE_CONTRACT_MARKERS:
             self.assertNotIn(forbidden, corpus)
 
-    def test_runtime_flow_emits_complete_markdown_in_chat(self) -> None:
-        text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
-        for phrase in RUNTIME_FLOW:
-            self.assertIn(phrase, text)
-        self.assertNotIn("## Deliverable", text)
-
     def test_optional_preview_is_non_fatal_enhancement(self) -> None:
         text = (SKILL / "SKILL.md").read_text(encoding="utf-8")
         preview = section(text, "## Optional preview", "## EXPLAIN")
@@ -594,8 +581,12 @@ class HowItWorksPayloadTests(unittest.TestCase):
 
     def test_sources_omit_citations_when_none_fetched(self) -> None:
         text = _reference("sources.md")
-        self.assertIn("only URLs fetched in the current turn may appear as verified sources", text)
+        self.assertIn("only urls fetched in the current turn may appear as verified sources", text.lower())
         self.assertIn("omit the citation heading", text)
+        self.assertIn("unverified claim note", text)
+        self.assertIn("primary sources", text)
+        for name in ("output.md", "stakes.md"):
+            self.assertIn("[Sources](sources.md)", _reference(name), name)
         self.assertNotIn("The page is the artifact", text)
         for forbidden in HOST_TOOL_MARKERS:
             self.assertNotIn(forbidden, text)
@@ -653,13 +644,11 @@ class HowItWorksPayloadTests(unittest.TestCase):
         visuals = _reference("visuals.md")
         self.assertIn("Keep the baseline Mermaid and numbered hops in Map at every rung", output)
         self.assertIn("Put the failure/regime table in Body at 허점", output)
-        self.assertIn(
-            "허점: keep the baseline Mermaid in Map; put the failure/regime table in Body",
-            visuals,
-        )
+        self.assertIn("[Output](output.md)", visuals)
+        self.assertIn("table placement", visuals)
         self.assertNotIn("The 한 줄 is a **recommendation**, not a tie", output)
         self.assertNotIn("Do not fetch sources unless", stakes)
-        self.assertIn("verified or explicitly unverified", stakes)
+        self.assertIn("[Sources](sources.md)", stakes)
         self.assertIn("verified or explicitly unverified", sources)
         self.assertIn("## 한국어", stakes)
         self.assertIn("## English", stakes)
@@ -675,7 +664,7 @@ class HowItWorksPayloadTests(unittest.TestCase):
         frontmatter = parse_skill_frontmatter(text)
         description = str(frontmatter["description"])
         self.assertIn("debugging", description.lower())
-        self.assertIn("Do not activate on eli5", text)
+        self.assertIn("ELI5 requests; `/eli5` belongs to a different skill", text)
         self.assertIn("Do not use this explanation flow on debugging", text)
 
     def test_explicit_easy_alias_precedes_jargon(self) -> None:
@@ -699,7 +688,8 @@ class HowItWorksPayloadTests(unittest.TestCase):
         visuals = _reference("visuals.md")
         box_rule = "4–6 boxes, one per hop; more than 6 means recut the slice"
         self.assertIn(box_rule, output)
-        self.assertIn(box_rule, visuals)
+        self.assertIn("[Output](output.md)", visuals)
+        self.assertNotIn(box_rule, visuals)
         for stale in ("5–7 boxes", "≤7 boxes", "hard cap 12"):
             self.assertNotIn(stale, output)
             self.assertNotIn(stale, visuals)
@@ -707,10 +697,10 @@ class HowItWorksPayloadTests(unittest.TestCase):
     def test_hop_ids_are_labels_and_branches_reuse_the_parent(self) -> None:
         output = _reference("output.md")
         visuals = _reference("visuals.md")
-        for text in (output, visuals):
-            self.assertNotIn("message numbers = hop IDs", text)
-            self.assertIn("each message label starts with its hop id (`H1: …`)", text)
-            self.assertIn("`H3a`", text)
+        self.assertNotIn("message numbers = hop IDs", output)
+        self.assertIn("each message label starts with its hop id (`H1: …`)", output)
+        self.assertIn("`H3a`", output)
+        self.assertIn("[Output](output.md)", visuals)
         self.assertIn(
             "The baseline is the 그림 hop list: deeper rungs may redraw the diagram type but keep the same H ids.",
             output,

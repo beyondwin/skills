@@ -8,13 +8,21 @@ All notable changes to this product are documented in this file.
 
 ### Fixed
 
+- Diagnosis shows decision classes; default corrections and polish keep them out
+  of the reply unless the user asks why. Normative support does not require a
+  visible citation in every edit, and permitted alternatives are not holds.
+
 - Local correction respects a user-selected editing span, including errors outside it.
 - Pattern matches alone do not justify edits: preserve contextual technical terms,
   meaningful contrasts, and intentional repetition instead of applying a word blacklist.
 
 ### Changed
 
-- `SKILL.md` states the no-rewording list (negation, modality, obligation, possibility, quantity, and attribution, with the `말했다`/`밝혔다` example) once, in the Preservation Gate. Editing Pass steps 2 and 6 point to the gate instead of repeating the list. Behavior is unchanged.
+- Consolidate duplicate hold, voice, genre, and preservation instructions. Diagnosis
+  has its own short branch instead of jumps between numbered editing steps.
+  Protected-wording rules live once in the Preservation Gate.
+  Keep the explicit invocation policy, modes, protected wording, concrete examples,
+  and offline candidate checks unchanged. No live quality improvement is claimed.
 
 ## 2.0.6 - 2026-10-01
 

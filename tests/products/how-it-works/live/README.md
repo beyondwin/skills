@@ -21,8 +21,9 @@ The three synthetic prompts are unchanged:
 
 - `explicit-dns-path`: judge explicit invocation; observe fence/hop IDs lexically
   and skill loading only from a host event.
-- `implicit-dns-path`: judge intended implicit invocation with the same separate
-  observations.
+- `implicit-dns-path`: judge non-invocation because no skill name was supplied.
+  All five output dimensions stay `not_measured/not_run`; ordinary assistant output
+  is not this skill's output contract.
 - `near-miss-debug`: judge only non-invocation. All five output dimensions stay
   `not_measured/not_run`; an explanation is not requested.
 
@@ -111,8 +112,11 @@ Reading the event streams:
   `how-it-works/SKILL.md`. A mention of the path in the reply text is not a loading
   event.
 - If the stream shows none of these, record `skill_loading` as `not_measured/not_run`.
-  For a near-miss case, the same events showing the skill was not loaded support an
-  invocation `pass`.
+  For either non-activation case, a complete event stream showing the skill was
+  not loaded supports an invocation `pass`. If loading is observed, invocation
+  is `fail`; do not turn a loaded skill or a matching answer into a passing result.
+  Leave all output dimensions `not_measured/not_run`. If event visibility is
+  incomplete, invocation stays `not_measured`.
 
 After scoring, delete the temporary directory only when it matches a `mktemp`
 path:
@@ -150,7 +154,7 @@ Each case has exactly `invocation` and `dimensions`. Invocation has one of the
 three statuses above; dimensions has exactly `fence`, `hop_ids`, `skill_loading`,
 `mermaid_syntax`, and `meaning`, each with the exact status/method shape above.
 Extra fields, missing dimensions, invalid evidence methods, case IDs not in
-`cases.json`, and a near-miss case (`not_activated`) with any output dimension other
+`cases.json`, and a non-activation case (`not_activated`) with any output dimension other
 than `not_measured` are rejected.
 Do not invent dates, models, client/runner versions, or successful observations.
 No new actual record is created by this implementation; synthetic unit fixtures

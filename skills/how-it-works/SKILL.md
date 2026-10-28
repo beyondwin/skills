@@ -5,29 +5,23 @@ disable-model-invocation: true
 license: Apache-2.0
 compatibility: Requires an Agent Skills host that can read this directory and return Markdown text.
 metadata:
-  version: "4.0.0"
-  updated_at: "2026-10-24"
+  version: "4.0.1"
+  updated_at: "2026-10-28"
 ---
 
 # how-it-works
 
-<HARD-GATE>
-Do not explain until `slice` is a cut mechanism.
-Fill `type` and `language` by inference and `rung` by the precedence in Slots.
-Announce the rung in the intent line. Explain in the same turn.
-If the noun is a civilization (인터넷, AI, 자본주의), do not explain — cut a slice first.
-Do not activate on eli5, /eli5, or “explain like I’m 5”. That is a different skill.
-Do not use this explanation flow on debugging, implementation, review, translation, one-line lookup, or eli5 requests.
-</HARD-GATE>
+Activate only on explicit invocation: `$how-it-works` on Codex and `/how-it-works` on Claude Code. Matching task text alone does not activate it.
 
-Activate only on explicit invocation: `$how-it-works` on Codex and `/how-it-works` on Claude Code.
-
-Do not activate from a matching topic or request alone.
+Do not use this explanation flow on debugging, implementation, review, translation, one-line lookup, child-register explanation, or ELI5 requests; `/eli5` belongs to a different skill.
 
 ## Classify
 
-Say one line before any question or explanation, so the user can redirect on the next turn.
-Use only the selected language. In Korean, use this intent line, picking 을/를 and
+Do not explain until `slice` is a cut mechanism. Announce the rung in the intent line. Explain in the same turn.
+
+For Direct, say one intent line before explaining, so the user can redirect on the next turn.
+For Ask one or Cut, ask about the unresolved scope or choice without inventing a slice,
+rung, or moving thing. Use only the selected language. In Korean, use this intent line, picking 을/를 and
 이/가 by the final consonant of the word before it:
 
 > {slice}을/를 **{rung}** 깊이로 설명할게요. {moving_thing}이/가 이동하는 순서를 따라가요.
@@ -41,7 +35,7 @@ Paths:
 | --- | --- | --- |
 | Direct | slice is a cut mechanism | Intent line, then explain in the same turn. |
 | Ask one | slice missing, conflicting rungs, or mixed KO/EN that would change the output | Ask one closed question. |
-| Cut | blob noun | Three slices + Other. No essay. |
+| Cut | broad topic such as 인터넷, AI, or 자본주의 | Three slices + Other. No essay. |
 
 How these paths apply to common requests:
 
@@ -53,7 +47,7 @@ Do not stack two questions. Do not re-ask a filled slot. Do not survey genre, au
 
 ## Slots
 
-Required before EXPLAIN: `slice`, `type`, `rung`, and `language`.
+Fill `slice`, `type`, `rung`, and `language` before explaining. Infer `language` from the request; select `rung` by the precedence below.
 
 Infer `type` when the verb is obvious (`vs` → 비교, `어떻게 고치냐` → 절차, `왜/원리` → 개념, `흐름` → 흐름). Ask type only if the guess would change the output. Type inference does not fill `rung`.
 
@@ -76,16 +70,6 @@ Rung precedence: explicit rung > explicit depth alias > existing jargon default 
 Medical, legal, or financial topic: read `references/stakes.md`, add its banner, and still explain in the same turn.
 
 ## Runtime
-
-```text
-request
-  -> fill slice, type, rung, language
-  -> missing rung → default 그림
-  -> emit one intent line
-  -> read focused references
-  -> emit complete Markdown + Mermaid source + numbered hop list
-  -> offer one next move
-```
 
 When the host can read files, read the references the EXPLAIN section lists, starting with `references/output.md`, before replying.
 Only when the host cannot read files this turn, emit the complete required deliverable from the skeleton in Required deliverable.
@@ -157,7 +141,7 @@ A host page, Canvas, or visual preview may be added only after the complete outp
 
 ## EXPLAIN
 
-Read `references/output.md`, then `references/visuals.md`. If Korean → `references/korean.md`. An analogy, including one the user asks for (동물로), is one analogy mapped per the Metaphor isomorphism section in `output.md`; the Map stays Mermaid plus the hop list. If medical/legal/financial → `references/stakes.md`. For claims that depend on date, jurisdiction, or material uncertainty, also read `references/sources.md`.
+Read `references/output.md`, then `references/visuals.md`. If Korean → `references/korean.md`. An analogy, including one the user asks for (동물로), is one analogy mapped per the Metaphor isomorphism section in `output.md`; the Map stays Mermaid plus the hop list. If medical/legal/financial → `references/stakes.md`. For citations or claims that depend on date, jurisdiction, or material uncertainty, also read `references/sources.md`.
 
 ## Red flags
 

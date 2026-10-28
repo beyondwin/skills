@@ -10,15 +10,22 @@ evidence does not belong here.
   "Use when …" and "Do not use for …" sentences that name the nearby requests other
   skills own. Do not summarize what the skill does; the body says that. Every product's
   contract test checks this. ([trigger eval](../../research/2026-10-skill-trigger-eval/README.md))
-- **Do not edit a description that already triggers correctly.** With every installed
-  skill present, the descriptions loaded on 96/96 (Claude Code) and 192/192 (Codex)
-  calls, and near-misses never loaded them. At that ceiling an edit can only make it
-  worse. Measure first with the trigger eval harness. ([trigger eval](../../research/2026-10-skill-trigger-eval/README.md))
-- **Say each rule once, plainly.** Current models follow a rule stated once; repeats,
-  capitals, and stacked warnings add nothing. Cutting them from how-it-works and
-  korean-writing-editor left behavior unchanged (how-it-works format 4/4 on opus, sonnet,
-  and haiku before and after; korean meaning kept 12/12 before and after). Before you
-  delete a repeat, check that another copy exists: one cut rule was the only copy.
+- **Avoid unnecessary changes to a description with measured routing.** The
+  2026-10-02 study loaded the pinned descriptions on 48/48 positive Claude Code
+  calls and 96/96 positive Codex calls, with 0/48 and 0/96 false triggers. The 96
+  and 192 total calls include the near-misses. That sample had no measured routing
+  problem to fix. It tested the earlier implicit policy, not the
+  [current explicit-only policy](../../learning/cases/2026-10-24-explicit-skill-invocation.md);
+  it does not freeze descriptions against requested contract changes or prove
+  current host behavior. ([trigger eval](../../research/2026-10-skill-trigger-eval/README.md))
+- **Say each rule once when the repeat has no separate job.** Removing repeated
+  rules from pinned how-it-works and korean-writing-editor versions caused no
+  measured regression in the 2026-10-02 probes: format 4/4 per model before and
+  after on opus, sonnet, and haiku; Korean invariants kept 12/12 in both versions.
+  These small samples do not prove that repetition never helps. The earlier
+  how-it-works probe found missing output parts when references were skipped,
+  which motivated its inlined skeleton. Before deleting a repeat, check that the
+  rule remains available where needed and that the copy has no distinct purpose.
   ([how-it-works testing](../products/how-it-works/testing.md), [korean-writing-editor testing](../products/korean-writing-editor/testing.md))
 - **Gotchas come from real failures.** A `## Gotchas` section lists mistakes a run
   actually made, with the symptom and the fix. Do not add guessed ones. Example: the
@@ -32,6 +39,10 @@ evidence does not belong here.
   tests. Grep the name and change every copy in one commit (`AGENTS.md`).
 
 ## Measuring a change
+
+These rules apply when live evaluation is separately authorized under `AGENTS.md`.
+Live runs are optional; the product testing guides distinguish offline contract
+checks from model quality, which remains unmeasured without a current live run.
 
 - **Compare before and after with live runs on a pinned skill text.** Record the
   SHA-256 of `SKILL.md` and every changed reference, or a full resource manifest.

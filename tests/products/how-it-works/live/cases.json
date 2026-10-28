@@ -20,11 +20,11 @@
       "id": "implicit-dns-path",
       "prompt": "DNS 요청이 브라우저에서 어디를 거쳐 IP 주소가 되는지 길로 보여줘",
       "expect": {
-        "invocation": "implicit",
+        "invocation": "not_activated",
         "dimensions": {
-          "fence": "lexical",
-          "hop_ids": "lexical",
-          "skill_loading": "host_event",
+          "fence": "not_measured",
+          "hop_ids": "not_measured",
+          "skill_loading": "not_measured",
           "mermaid_syntax": "not_measured",
           "meaning": "not_measured"
         }

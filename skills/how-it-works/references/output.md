@@ -10,9 +10,8 @@ Every rung fills the same slots. Empty slots are allowed. Contradictory fillings
 4. Parts (empty at 그림, labeled from 길)
 5. Couplings (from 뼈대)
 6. Boundaries (one hedge at 그림; regime at 허점)
-7. “This is not X”
-8. Optional handle (analogy), mapped, with a break line
-9. Optional footer check: if they pick “한 줄로 되말하기,” patch only the gaps
+7. Optional handle (analogy), mapped, with a break line
+8. Optional footer check: if they pick “한 줄로 되말하기,” patch only the gaps
 
 **Collapse test:** shrink 허점 to three sentences; you must get 그림, not a different movie.
 
@@ -69,14 +68,14 @@ English replies use the same skeleton with these labels: `# {slice} · {picture|
 | --- | --- | --- | --- |
 | **그림** | Numbered hops first, then a happy-path pipeline of 4–6 boxes, one per hop; more than 6 means recut the slice | Identity, use, ≤2-joint backbone. 그림 hops are the map; Body does not walk the hops again. Analogy, if used, comes after the hops, then the break line. | Baby talk, second metaphor, formulas, `여러분`, `답니다`, hop restatement |
 | **길** | `sequenceDiagram`, 4–6 actors, same hops; each message label starts with its hop id (`H1: …`) | Numbered hops: who holds it, what they hand off, where it stops on failure | New metaphor, architecture hairball |
-| **뼈대** | Same sequence + `alt`/`opt` (cache, error); a branch reuses its parent hop id (`H3a`) | Terms as labels on hops already seen. What happens if you change one part. Common mistakes. Optional second flowchart of the hidden decision | Restarting from 그림, pizza |
+| **뼈대** | Same sequence + `alt`/`opt` (cache, error); a branch reuses its parent hop id (`H3a`) | Terms as labels on hops already seen. What happens if you change one part. Common mistakes. Optional second flowchart of the hidden decision | Restarting from 그림 |
 | **허점** | Same baseline Mermaid and numbered hops | Failure/regime table: where the picture fails, where it applies, rivals mapped onto the same slots, and how to inspect. Collapse to the one-liner | Table-only map, re-teaching 그림, name-dropping without a one-line “what they showed” |
 
 ## Type recipes (body only; chrome stays)
 
 | Type | Body |
 | --- | --- |
-| **개념** | One relation → popular wrong picture → correction |
+| **개념** | Explain one relation; correct a misconception when it matters to that relation |
 | **흐름** | 그림: Map hops only; Body is identity and use. 길 walks the hops on a sequence diagram |
 | **비교** | Required GFM table with these four columns at every rung: what it optimizes / what it gives up / failure shape / how to undo. Rows are the options compared. State the tradeoff under the user's conditions. Do not require a personalized action recommendation for medical, legal, or financial topics |
 | **절차** | Start state → end state. Each step is one state change. Recover from failure. “What is rebase” is not a command list |
@@ -91,7 +90,8 @@ English replies use the same skeleton with these labels: `# {slice} · {picture|
 - 미확인: {claim} — {date/jurisdiction limitation}
 ```
 
-Use the equivalent English labels for an English reply. If nothing was fetched, omit the citation heading. Omitting that heading does not prohibit an unverified claim note in the body. Only a source fetched in the current turn may be labeled verified. Invented paper or statute identifiers are a failure. Stable general principles need no unnecessary lookup.
+Use the equivalent English labels for an English reply. Follow [Sources](sources.md)
+for verification and whether to include this section or an unverified claim note.
 
 ## Metaphor isomorphism
 

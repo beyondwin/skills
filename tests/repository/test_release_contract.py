@@ -22,8 +22,8 @@ from scripts.lib.product_contract import (  # noqa: E402
 from scripts.lib.product_registry import load_registry, PRODUCT_README_NAMES  # noqa: E402
 
 EXPECTED = {
-    "korean-writing-editor": "3.0.0",
-    "how-it-works": "4.0.0",
+    "korean-writing-editor": "3.0.1",
+    "how-it-works": "4.0.1",
 }
 REGISTRY = load_registry(ROOT / "products.toml")
 
@@ -44,9 +44,10 @@ class ProductReleaseTests(unittest.TestCase):
 
     def test_how_it_works_current_archive_identity(self) -> None:
         product = load_product_release(ROOT / "skills/how-it-works")
-        self.assertEqual(product.version, "4.0.0")
-        self.assertEqual(product.tag, "how-it-works-v4.0.0")
-        self.assertEqual(product.artifact_name, "how-it-works-v4.0.0.zip")
+        version = EXPECTED["how-it-works"]
+        self.assertEqual(product.version, version)
+        self.assertEqual(product.tag, f"how-it-works-v{version}")
+        self.assertEqual(product.artifact_name, f"how-it-works-v{version}.zip")
 
 
     def test_each_product_owns_an_independent_release_manifest(self) -> None:
@@ -66,11 +67,12 @@ class ProductReleaseTests(unittest.TestCase):
             shutil.copytree(ROOT / "skills" / "how-it-works", root)
             manifest = root / "release.toml"
             original = manifest.read_text(encoding="utf-8")
-            mutated = original.replace('version = "4.0.0"', 'version = "3.0.4"', 1)
+            version = load_product_release(root).version
+            mutated = original.replace(f'version = "{version}"', 'version = "3.0.4"', 1)
             self.assertNotEqual(mutated, original)
             manifest.write_text(mutated, encoding="utf-8")
             errors = validate_product(root, self.registry)
-            self.assertIn("release.toml version 3.0.4 != SKILL.md version 4.0.0", errors)
+            self.assertIn(f"release.toml version 3.0.4 != SKILL.md version {version}", errors)
 
     def test_payload_hash_changes_with_bytes_but_is_stable_across_copies(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -101,7 +103,8 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         root = self._copy("korean-writing-editor")
         manifest = root / "release.toml"
         original = manifest.read_text(encoding="utf-8")
-        mutated = original.replace('version = "3.0.0"', 'version = "2.0"', 1)
+        version = load_product_release(root).version
+        mutated = original.replace(f'version = "{version}"', 'version = "2.0"', 1)
         self.assertNotEqual(mutated, original)
         manifest.write_text(mutated, encoding="utf-8")
         errors = "\n".join(validate_product(root, REGISTRY))

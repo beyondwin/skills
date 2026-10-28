@@ -15,10 +15,10 @@ METHODS = {
 FIELDS = {"schema_version", "product", "product_version", "payload_sha256", "model",
           "host", "client_version", "runner_version", "executed_on", "cases"}
 HOSTS = {"codex", "claude-code"}
-# Case ids and near-miss cases come from the sibling cases.json, so there is one list.
+# Case ids and non-activation cases come from the sibling cases.json, so there is one list.
 _LIVE_CASES = json.loads((Path(__file__).resolve().parent / "cases.json").read_text(encoding="utf-8"))["cases"]
 CASE_IDS = {case["id"] for case in _LIVE_CASES}
-NEAR_MISS_IDS = {case["id"] for case in _LIVE_CASES if case["expect"]["invocation"] == "not_activated"}
+NON_ACTIVATION_IDS = {case["id"] for case in _LIVE_CASES if case["expect"]["invocation"] == "not_activated"}
 
 
 def observe_text(text: str) -> dict[str, dict[str, str]]:
@@ -75,8 +75,8 @@ def record_binding(record: dict, *, current_version: str, current_hash: str) -> 
             allowed = {"not_run"} if item["status"] == "not_measured" else METHODS[name]
             if not isinstance(item["method"], str) or item["method"] not in allowed:
                 raise ValueError("invalid evidence method")
-        if case_id in NEAR_MISS_IDS and any(item["status"] != "not_measured" for item in case["dimensions"].values()):
-            raise ValueError("near-miss case must keep every output dimension not_measured")
+        if case_id in NON_ACTIVATION_IDS and any(item["status"] != "not_measured" for item in case["dimensions"].values()):
+            raise ValueError("non-activation case must keep every output dimension not_measured")
     # A valid declaration binds metadata only, even when every dimension is unmeasured.
     if record["model"] is None:
         return "unbound"

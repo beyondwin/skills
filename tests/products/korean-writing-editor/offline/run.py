@@ -65,7 +65,6 @@ REQUIRED_HEADINGS = {
         "## Preservation Gate",
         "## Model",
         "## Output Contract",
-        "## Refuse Or Hold",
         "## References",
     ),
     "references/editorial-guide.md": (
@@ -73,9 +72,6 @@ REQUIRED_HEADINGS = {
         "## Decision Classes",
         "## Normative Pass",
         "## Grammar And Local Flow",
-        "## Voice Preservation",
-        "## Genre Boundaries",
-        "## Material Holds",
         "## Compact Examples",
     ),
 }

@@ -65,6 +65,20 @@ They also check that the description is trigger-only: it starts with
 - A fixture pass proves only the offline oracle (answer checker) contract. It
   does not prove live model quality.
 
+## Instruction cleanup, 2026-10-28
+
+Version 3.0.1 consolidates repeated hold, voice, and genre rules. Diagnosis has
+its own branch; the editorial guide defers to the main preservation rules and
+keeps the concrete examples. Decision classes are visible in diagnosis but only
+on request for edit output. An authoritative normative basis does not require a
+citation in every edit, and a permitted alternative is distinct from an uncertain
+norm that needs a hold.
+
+Source review checks those distinctions; package checks do not prove how a
+model follows them. The 37-case offline oracle, its mutation checks, live
+fixtures, runner identity, and budgets are unchanged. No before/after model
+run or quality measurement was performed for 3.0.1.
+
 ## Live evidence limits
 
 The 2.0.8 offline additions are `meaning-scoped-edit-09` and

@@ -16,6 +16,7 @@
 
 | 질문 | 관련 작업 | 결정일 | 결과와 근거의 한계 |
 | --- | --- | --- | --- |
+| [남은 두 스킬에서 어떤 규칙을 줄이고 무엇을 남길까?](cases/2026-10-28-simplify-active-skill-rules.md) | korean-writing-editor, how-it-works | 2026-10-28 | 중복·모순 정리와 전체 검증 완료. 호출 평가·릴리스 fixture 불일치 수정. 새 모델 품질 미측정 |
 | [이미지·동영상 스킬을 종료하고 저장소를 어떻게 줄였는가?](cases/2026-10-28-retire-image-workbench-and-simplify-repository.md) | image-workbench, grok-image, grok-video, 저장소 문서·검증 | 2026-10-28 | 사용자 요청으로 세 제품 제거. 남은 두 제품 기준으로 설치·검증 구성 정리, 과거 연구 보존 |
 | [어워드를 겨냥한 완성본 전략을 어디에 남길까?](cases/2026-10-25-grok-video-finished-piece.md) | grok-video | 2026-10-25 | 사용자 가이드로 남김. 스킬은 클립 하나. 새 생성 없음. 사람·대사·상영본은 미측정 |
 | [보트와 머그 밖에서도 고정 이동이 통하는가?](cases/2026-10-25-grok-video-heldout.md) | grok-video | 2026-10-25 | 새 이동 3건 중 2건 합격, 짧은 문장은 다른 탁자. 제자리 계획은 시작 문장이 비어 미생성. 사람·대사는 미측정 |

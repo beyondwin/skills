@@ -250,10 +250,25 @@ class ArchiveSafetyTests(unittest.TestCase):
 class ProductDownloadTests(unittest.TestCase):
     def setUp(self) -> None:
         self._tempdir = tempfile.TemporaryDirectory()
-        self.output = Path(self._tempdir.name)
-
-    def tearDown(self) -> None:
-        self._tempdir.cleanup()
+        self.addCleanup(self._tempdir.cleanup)
+        fixture = Path(self._tempdir.name)
+        self.output = fixture / "download"
+        self.output.mkdir()
+        # Builds read Git index blobs; snapshot the working payload without
+        # staging any changes in the contributor's real index.
+        index_environment = mock.patch.dict(
+            os.environ, {"GIT_INDEX_FILE": str(fixture / "index")}
+        )
+        index_environment.start()
+        self.addCleanup(index_environment.stop)
+        subprocess.run(
+            [
+                "git", "-C", str(ROOT), "add", "--",
+                *(str(product.skill_path) for product in release.REGISTRY.products),
+            ],
+            check=True,
+            capture_output=True,
+        )
 
     def _checksums(self, archive: Path) -> None:
         write_checksums((archive,), self.output / "SHA256SUMS")
@@ -406,16 +421,17 @@ class ProductDownloadTests(unittest.TestCase):
     def test_verify_product_download_rejects_metadata_version_mismatch(self) -> None:
         release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
         archive = self.output / release.load_product_release(ROOT / "skills" / "how-it-works").artifact_name
+        version = release.load_product_release(ROOT / "skills" / "how-it-works").version
 
         def bump_version(items):
             for info, data in items:
                 text = data.decode("utf-8")
                 if info.filename == "how-it-works/release.toml":
-                    text = text.replace('version = "4.0.0"', 'version = "9.9.9"')
+                    text = text.replace(f'version = "{version}"', 'version = "9.9.9"')
                     self.assertNotEqual(text.encode("utf-8"), data)
                     data = text.encode("utf-8")
                 elif info.filename == "how-it-works/SKILL.md":
-                    text = text.replace('version: "4.0.0"', 'version: "9.9.9"')
+                    text = text.replace(f'version: "{version}"', 'version: "9.9.9"')
                     self.assertNotEqual(text.encode("utf-8"), data)
                     data = text.encode("utf-8")
                 yield info, data

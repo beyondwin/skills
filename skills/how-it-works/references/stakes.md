@@ -14,4 +14,6 @@ This explains the general mechanism. It is not personalized medical, legal, or f
 
 Explain the mechanism only. Do not give a dose or personalized directive. 그림 still cannot turn 가능성이 있다 into 확실하다. For comparisons, state the tradeoff under the user's conditions. Do not require a personalized action recommendation.
 
-Stable general principles need no unnecessary lookup. Claims depending on date, jurisdiction, or material uncertainty must be verified or explicitly unverified. When host policy and user constraints allow, check primary sources for those claims. When lookup is unavailable or the user disallows it, label the dependent claim as unverified and state the date/jurisdiction limitation without inventing details. Only sources actually fetched in the current turn may be labeled verified. Never invent paper or statute identifiers. An unverified claim note is allowed even when no citation heading is emitted.
+For date-, jurisdiction-, or uncertainty-dependent claims, read and follow
+[Sources](sources.md). That policy owns verification, unverified claim notes, and
+citation rules, including when lookup is unavailable or disallowed.

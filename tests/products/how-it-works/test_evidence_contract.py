@@ -66,7 +66,17 @@ class EvidenceContractTests(unittest.TestCase):
         self.assertEqual(module.record_binding(record, current_version="2.0.0", current_hash="a"*64),
                          "current-bounded")
         record["cases"]["near-miss-debug"]["dimensions"]["fence"] = {"status": "fail", "method": "lexical"}
-        with self.assertRaisesRegex(ValueError, "near-miss"):
+        with self.assertRaisesRegex(ValueError, "non-activation"):
+            module.record_binding(record, current_version="2.0.0", current_hash="a"*64)
+
+    def test_implicit_request_cannot_claim_observed_activation_as_success(self):
+        record = synthetic_record()
+        case = record["cases"].pop("explicit-dns-path")
+        record["cases"]["implicit-dns-path"] = case
+        self.assertEqual(module.record_binding(record, current_version="2.0.0", current_hash="a"*64),
+                         "current-bounded")
+        case["dimensions"]["skill_loading"] = {"status": "pass", "method": "host_event"}
+        with self.assertRaisesRegex(ValueError, "non-activation"):
             module.record_binding(record, current_version="2.0.0", current_hash="a"*64)
 
     def test_different_payload_cannot_claim_current_build(self):

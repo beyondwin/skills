@@ -5,6 +5,16 @@ All notable changes to this product are documented in this file.
 ## Unreleased
 
 - Breaking: require explicit invocation; disable automatic skill selection.
+- Consolidate repeated activation, routing, and runtime instructions. Keep the
+  in-body reply skeleton and reference-reading fallback that address observed
+  formatting failures.
+- Clarify that a scope question does not invent the missing slice, depth, or moving
+  thing. Remove the forced negative-definition slot, isolated pizza prohibition,
+  and unused mind-map instruction; address misconceptions only when relevant.
+- Keep per-rung visual rules in `references/output.md` and source-verification
+  rules in `references/sources.md`; other references point to their owners.
+- Repair the optional live smoke's implicit-request expectation: no explicit
+  invocation means no activation. No live model run was made for this patch.
 
 ## 3.0.3 - 2026-10-02
 

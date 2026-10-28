@@ -61,9 +61,10 @@ What these checks prove and don't prove:
 - `test_description_is_trigger_only` keeps the description to trigger sentences: it
   starts with "Use when" and every sentence starts with "Use" or "Do not use".
 - `test_skill_skeleton_mirrors_output_chrome` keeps the reply skeleton in `SKILL.md`
-  equal to the one in `references/output.md`, and other pins keep the picture box rule
-  and the hop id label rules the same in `output.md` and `visuals.md`. That proves the
-  files agree, not that a model emits the skeleton or reads the references.
+  equal to the one in `references/output.md`. Per-rung map and hop rules are checked
+  at that owner; `visuals.md` links to it. Citation and stakes references likewise
+  link to the source-policy owner. These checks prove static agreement, not that a
+  model emits the skeleton or reads the references.
 - Whether a real model follows the depth precedence is `not_measured`. So are the
   truth of the explanation, real Korean register, English output quality, the model
   producing all six parts, and Mermaid parser/renderer results.
@@ -78,6 +79,29 @@ install counterexamples. It uses temporary source/target paths with spaces: firs
 install, repeating the same link, a real directory, a different link, a dangling link,
 and a race. First install and repeat must succeed; on refusal, source and target bytes
 and links must be unchanged.
+
+## Instruction cleanup, 2026-10-28
+
+Version 4.0.1 removes repeated routing/runtime prose, per-rung visual overlays,
+and source-policy paragraphs. The inline skeleton mirror remains: its presence
+addresses the recorded small-model formatting failures below. The six required
+parts, explicit-only policy, rung precedence, diagram counts, and same-turn default
+remain unchanged.
+
+A scope question no longer requires inventing unknown intent-template fields.
+The forced negative-definition slot, isolated pizza prohibition, and unused
+mind-map instruction are removed; misconceptions are explained only when relevant.
+Those instructions had no recorded regression evidence in the reviewed history.
+Static fixtures and reference-ownership checks do not establish a quality or cost
+improvement, or behavior equivalence on a live host.
+
+## Explicit-only fixture repair, 2026-10-28
+
+The live `implicit-dns-path` prompt now expects non-activation, matching the
+2026-10-24 explicit-only policy. Both that case and `near-miss-debug` keep all
+output dimensions unmeasured. A regression test rejects a record that marks
+implicit invocation as passing while claiming observed skill loading. This is
+validation of declared evidence, not a new host observation.
 
 ## Optional live smoke
 

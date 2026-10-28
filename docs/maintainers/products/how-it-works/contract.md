@@ -25,6 +25,8 @@ The Direct, Ask one, and Cut paths also cover three common request shapes:
 - A bundled ask that is not a mechanism (pending decisions, a recap) is answered after
   the next move as a short separate list.
 - More than one mechanism in one request goes to Ask one or Cut.
+- The intent template belongs to Direct, when the slice and rung are known.
+  A scope question does not invent a slice, rung, or moving thing.
 
 A medical, legal, or financial topic adds the stakes banner and is still explained in
 the same turn; it never pauses for confirmation.
@@ -75,7 +77,8 @@ Mermaid source. At picture, the Body does not walk the hops again.
   picture/path/skeleton/fracture. The next-move labels have Korean and English forms
   in `SKILL.md`.
 - The visual channel is mermaid. Hand-drawn HTML boxes are not a diagram. Picture
-  draws 4–6 boxes, one per hop; `output.md` and `visuals.md` state the same rule.
+  draws 4–6 boxes, one per hop. `output.md` owns per-rung visual rules;
+  `visuals.md` links to them and owns renderer-safe syntax and state/feedback guidance.
 - An analogy, including one the user asks for (animals, say), is a single analogy
   mapped per the Metaphor isomorphism rule in `output.md`, with a break line. It never
   replaces the Mermaid map or the hop list.
@@ -118,7 +121,7 @@ English banners. The skill does not call `korean-writing-editor`.
 
 ## Version and install
 
-The current product version is `4.0.0`. The source of truth is
+The current product version is `4.0.1`. The source of truth is
 `skills/how-it-works/release.toml`; `SKILL.md` `metadata.version` copies it.
 `metadata.updated_at` is the date of the latest installed-file change. None of this
 metadata means a tag, publication, or GitHub Release exists.
@@ -153,15 +156,17 @@ Don't put a behavior change in one file only.
   `skills/how-it-works/references/output.md`, the skeleton mirror in `SKILL.md`
   "Required deliverable", and the matching fixture ids.
 - Visual channel: `skills/how-it-works/references/visuals.md`. Every rung keeps the
-  baseline mermaid source and numbered hop list. The picture box rule and the per-rung
-  hop id rules appear in both `output.md` and `visuals.md`; change them together.
+  baseline mermaid source and numbered hop list. The picture box rule and per-rung
+  hop ID rules live in `output.md`; `visuals.md` refers to that owner.
 - Korean voice and the Korean picture examples:
   `skills/how-it-works/references/korean.md`. The Korean intent line lives only in
   `SKILL.md` "Classify". Do not call `korean-writing-editor`.
 - Stakes banner and high-stakes checks: the exact per-language banner bytes in
   `skills/how-it-works/references/stakes.md`.
-- Source or citation policy: `skills/how-it-works/references/sources.md`. Keep
-  verified and unverified apart; never invent paper or statute ids.
+- Source or citation policy: `skills/how-it-works/references/sources.md` is the
+  single owner. `output.md` owns citation display and `stakes.md` owns the banners;
+  both link to the source policy. Keep verified and unverified apart; never invent
+  paper or statute ids.
 - Version, install block, links inside and outside the installed files:
   `skills/how-it-works/release.toml`, `SKILL.md`, `CHANGELOG.md`, both product READMEs,
   and `tests/products/how-it-works/test_contract.py`. The integration owner keeps the

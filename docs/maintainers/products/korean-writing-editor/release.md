@@ -7,10 +7,11 @@ The version source is `skills/korean-writing-editor/release.toml`. The
 
 ## Version rules
 
-Bump the SemVer version when behavior changes. Do not bump when only doc
-wording changes and behavior stays the same. Changes to the live harness (the
-tool that evaluates with real model calls) or to dated reports alone do not
-bump the skill version.
+Follow the shared version rules for every installed-file change. Changes to
+`SKILL.md` or runtime references require at least a PATCH, including wording
+cleanup; installed README or package information changes also require a PATCH.
+Changes confined to tests, the live harness, dated reports, or maintainer docs
+are not installed and do not bump the skill version.
 
 - PATCH: fixing a broken relative link, correcting an installed README, or a
   defect fix that restores the documented `correct` branch

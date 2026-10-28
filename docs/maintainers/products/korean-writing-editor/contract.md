@@ -34,6 +34,12 @@ The Korean phrases that pick a mode are in `SKILL.md`. Activation requires an ex
 - Optional readability and local flow edits happen only in `polish`.
 - A grammar fix that needs a guess about the subject, register, or meaning is
   not applied; the hold rule applies instead.
+- A permitted alternative stays as written unless the user asks for consistency;
+  a valid form is not itself a hold. An uncertain norm does not justify an error
+  claim or a speculative correction.
+- Normative corrections require an authoritative Korean-language basis. That
+  does not require a visible citation in default edit output or authorize browsing.
+  Show the relevant normative source when the user asks why or requests sources.
 
 There is no model tier routing. The skill uses the active model; it does not
 chain rewrites, run a panel, call a classifier model, or launch an external
@@ -44,8 +50,9 @@ provider CLI, and it answers `routing unavailable` when asked about routing.
 - In `correct` and `polish`, the default output is the edited text only. The
   first character belongs to that text.
 - In `diagnose`, the default output is the findings only, never a rewritten
-  draft or the unchanged source. The first line names an issue, class, or
-  hold. Clean text gets a one-line "nothing to fix" reply.
+  draft or the unchanged source. Findings identify the issue and decision class
+  or hold. Clean text gets a one-line "nothing to fix" reply. In `correct` and
+  `polish`, class explanations remain on request only.
 - Do not attach a rubric, change list, score, routing receipt, or "using the
   skill" narration. Add the short hold line defined in `SKILL.md` only when a
   real hold is needed (the high-stakes line below is one); it comes after the
