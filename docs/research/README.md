@@ -8,6 +8,11 @@ For the decisions around a study and later product changes, see
 [learning cases](../learning/README.md). A study's result is not automatically the
 reason a product was created or retired.
 
+`image-workbench`, `grok-image`, and `grok-video` were retired on 2026-10-28.
+Their studies remain historical evidence; they do not provide an installation path
+or current support claim. The
+[retirement case](../learning/cases/2026-10-28-retire-image-workbench-and-simplify-repository.md) records the scope and decision.
+
 | Study | Date | What |
 | --- | --- | --- |
 | [grok-video held-out travel check](2026-10-grok-video-heldout/README.md) | 2026-10-25 | Three new travels and one bare apple: 2/3 pinned first takes passed, bare end difference 47; hold plan has no start prompt; no skill edit |

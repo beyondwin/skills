@@ -2,15 +2,12 @@
 
 [English](../en/compatibility.md) · [설치](installation.md)
 
-각 스킬이 어느 호스트에서 돌아가는지 정리합니다. 호스트는 스킬을 실행하는 에이전트 앱입니다. 제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`image-workbench`](../../../skills/image-workbench/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md), [`grok-video`](../../../skills/grok-video/README.ko.md), [`grok-image`](../../../skills/grok-image/README.ko.md).
+각 스킬이 어느 호스트에서 돌아가는지 정리합니다. 호스트는 스킬을 실행하는 에이전트 앱입니다. 제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md).
 
 | 스킬 | 지원 호스트 | 설치 방법 |
 | --- | --- | --- |
 | Korean Writing Editor | Codex | `$skill-installer` |
-| Image Workbench | Codex, Grok | Codex: `$skill-installer`. Grok: 로컬 링크 |
 | How It Works | Codex, Claude Code | 로컬 링크 |
-| Grok Video | Grok | 로컬 링크 |
-| Grok Image | Grok | 로컬 링크 |
 
 말 뜻:
 
@@ -22,13 +19,7 @@
 
 korean-writing-editor: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
 
-image-workbench: Codex and Grok supported; generate/edit requires the current host's built-in image generation and local image viewing.
-
 how-it-works: Codex and Claude Code supported for local or repository-based use.
-
-grok-video: Grok supported; a clip needs the host reference_to_video tool and a way to open the result.
-
-grok-image: Grok supported; still generation uses the host's built-in image tool and local image viewing.
 
 ## 무엇을 지원으로 보나
 
@@ -38,10 +29,7 @@ grok-image: Grok supported; still generation uses the host's built-in image tool
 
 ## 스킬별 메모
 
-- `image-workbench`는 지금 호스트에 자체 그림 도구가 있고 결과를 열어 볼 수 있을 때만 그림을 만들거나 고칩니다. 다른 호스트의 비슷한 도구는 치지 않습니다. Grok에서는 `~/.agents/skills/image-workbench` 링크를 씁니다.
 - `how-it-works`: 현재 설치 파일의 라이브 실행은 `not_measured`입니다.
-- `grok-video`는 `~/.agents/skills/grok-video` 링크를 씁니다. 그 설치의 자동 호출은 `not_measured`입니다. 프레임을 고정한 클립은 2026-10-25에 확인했습니다.
-- `grok-image`는 `~/.agents/skills/grok-image` 링크를 씁니다. 그 설치의 자동 호출은 `not_measured`입니다. 프롬프트 절차는 2026-10-25에 Grok 정지 이미지로 확인했습니다.
 
 ## 운영체제
 

@@ -1,5 +1,10 @@
 # Skill trigger eval (2026-10-02)
 
+Historical study: its implicit-activation policy predates the current explicit-only
+products. The harness includes retired products and does not run against the current
+catalog. See the [current registry](../../../products.toml) and
+[invocation decision](../../learning/cases/2026-10-24-explicit-skill-invocation.md).
+
 Does a plain request load the right skill, and only that skill, when the host has the user's
 whole skill set installed? This applies the eval-design advice in Anthropic's
 "Automating eval design and hillclimbing with Claude" (claude.dev, 2026-09-28): tasks that

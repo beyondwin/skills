@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import json
 import re
 import shutil
 import sys
 import tempfile
 import unittest
+from collections import Counter
 from pathlib import Path
 
 
@@ -76,24 +78,12 @@ INSTALLER_COMMANDS = {
 KOREAN_SUPPORT = (
     "korean-writing-editor: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke."
 )
-IMAGE_SUPPORT = (
-    "image-workbench: Codex and Grok supported; generate/edit requires the current host's built-in image generation and local image viewing."
-)
 HOW_IT_WORKS_SUPPORT = (
     "how-it-works: Codex and Claude Code supported for local or repository-based use."
 )
-GROK_IMAGE_SUPPORT = (
-    "grok-image: Grok supported; still generation uses the host's built-in image tool and local image viewing."
-)
-GROK_VIDEO_SUPPORT = (
-    "grok-video: Grok supported; a clip needs the host reference_to_video tool and a way to open the result."
-)
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
-    "image-workbench": IMAGE_SUPPORT,
     "how-it-works": HOW_IT_WORKS_SUPPORT,
-    "grok-video": GROK_VIDEO_SUPPORT,
-    "grok-image": GROK_IMAGE_SUPPORT,
 }
 HOW_IT_WORKS_MKDIR = "mkdir -p ~/.agents/skills ~/.claude/skills"
 HOW_IT_WORKS_AGENTS_INVOCATION = (
@@ -156,22 +146,18 @@ USER_GUIDES = (
     ROOT / "docs" / "users" / "ko" / "compatibility.md",
     ROOT / "docs" / "users" / "ko" / "safety-and-privacy.md",
     ROOT / "docs" / "users" / "ko" / "verification.md",
-    ROOT / "docs" / "users" / "ko" / "grok-video-piece.md",
     ROOT / "docs" / "users" / "en" / "installation.md",
     ROOT / "docs" / "users" / "en" / "install-codex.md",
     ROOT / "docs" / "users" / "en" / "install-local.md",
     ROOT / "docs" / "users" / "en" / "compatibility.md",
     ROOT / "docs" / "users" / "en" / "safety-and-privacy.md",
     ROOT / "docs" / "users" / "en" / "verification.md",
-    ROOT / "docs" / "users" / "en" / "grok-video-piece.md",
 )
 CODEX_PRODUCTS = (
     "korean-writing-editor",
-    "image-workbench",
 )
 DOCS_INDEX = ROOT / "docs" / "README.md"
 DOCS_INDEX_KO = ROOT / "docs" / "README.ko.md"
-HISTORY_README = ROOT / "docs" / "history" / "README.md"
 MAINTAINER_INDEX = ROOT / "docs" / "maintainers" / "README.md"
 REPOSITORY_DOCS = (
     ROOT / "docs" / "maintainers" / "repository" / "architecture.md",
@@ -200,7 +186,11 @@ MAINTAINER_DOCS = (MAINTAINER_INDEX,) + REPOSITORY_DOCS + tuple(
 ACTIVE_USER_DOCS = (
     README_PATHS + PRODUCT_README_PATHS + USER_GUIDES + (DOCS_INDEX, DOCS_INDEX_KO)
 )
-PUBLIC_DOC_PATHS = ACTIVE_USER_DOCS + MAINTAINER_DOCS + (HISTORY_README,)
+PUBLIC_DOC_PATHS = ACTIVE_USER_DOCS + MAINTAINER_DOCS
+ENTRY_DOC_PATHS = tuple(ROOT / name for name in (
+    "AGENTS.md", "CLAUDE.md", "CONTRIBUTING.md", "SECURITY.md", "CODE_OF_CONDUCT.md",
+    "docs/research/README.md",
+))
 LEARNING_DOC_PATHS = tuple(sorted((ROOT / "docs" / "learning").rglob("*.md")))
 UNSAFE_INSTALL = (
     "curl | sh",
@@ -218,15 +208,8 @@ FORBIDDEN_CLAIMS = (
     "available in the marketplace",
 )
 
-def unsupported_claims(text: str, *, allow_image_disclaimer: bool = False) -> tuple[str, ...]:
+def unsupported_claims(text: str) -> tuple[str, ...]:
     normalized = re.sub(r"\s+", " ", text).lower()
-    if allow_image_disclaimer:
-        normalized = normalized.replace(
-            "passing does not prove complete bitstream decoding, "
-            "visual quality, or rights clearance.",
-            "",
-            1,
-        )
     return tuple(claim for claim in FORBIDDEN_CLAIMS if claim in normalized)
 
 
@@ -653,7 +636,7 @@ class UserGuideFactTests(unittest.TestCase):
             "safety-and-privacy.md": all_products,
             "verification.md": all_products,
             "install-codex.md": CODEX_PRODUCTS,
-            "install-local.md": ("how-it-works", "image-workbench", "grok-video", "grok-image"),
+            "install-local.md": ("how-it-works",),
         }
         for language in ("ko", "en"):
             for filename, names in owned.items():
@@ -831,8 +814,26 @@ class UserGuideFactTests(unittest.TestCase):
         for language in ("ko", "en"):
             text = _read(ROOT / "docs" / "users" / language / "verification.md")
             self.assertNotIn("tests/products/korean-writing-editor/offline/", text)
-            self.assertNotIn("`tests/products/image-workbench/`", text)
             self.assertNotIn("tests/products/how-it-works/", text)
+
+    def test_verification_guides_match_current_korean_fixture_counts(self) -> None:
+        source = ROOT / "tests/products/korean-writing-editor/offline/cases.json"
+        cases = json.loads(source.read_text(encoding="utf-8"))["cases"]
+        category_counts = Counter(case["category"] for case in cases)
+        total_phrases = {
+            "en": f"{len(cases)} offline cases",
+            "ko": f"오프라인 {len(cases)}개",
+        }
+        for language, total_phrase in total_phrases.items():
+            with self.subTest(language=language):
+                text = _read(ROOT / "docs/users" / language / "verification.md")
+                lines = [line for line in text.splitlines()
+                         if line.startswith("- Korean Writing Editor:")]
+                self.assertEqual(len(lines), 1)
+                self.assertIn(total_phrase, lines[0])
+                documented = {name: int(count) for name, count
+                              in re.findall(r"([a-z]+)=(\d+)", lines[0])}
+                self.assertEqual(documented, dict(category_counts))
 
     def test_shared_guides_name_current_evidence_dimensions(self) -> None:
         for language in ("ko", "en"):
@@ -840,7 +841,7 @@ class UserGuideFactTests(unittest.TestCase):
                 base = ROOT / "docs/users" / language
                 verification = _read(base / "verification.md")
                 for phrase in (
-                    "35", "normative=10", "runner 18", "32", "17",
+                    "runner 18",
                     "14 cases / 17 repeats", "119 / 3 / 122 / 38 / 160",
                     "hard", "failed", "partially_verified", "fence/hop",
                     "loading", "syntax", "meaning",
@@ -870,7 +871,7 @@ class UserGuideFactTests(unittest.TestCase):
 
 
 class DocumentationArchitectureTests(unittest.TestCase):
-    def test_user_guides_exist_per_language(self) -> None:
+    def test_six_user_guides_exist_per_language(self) -> None:
         expected = {
             "installation.md",
             "install-codex.md",
@@ -878,7 +879,6 @@ class DocumentationArchitectureTests(unittest.TestCase):
             "compatibility.md",
             "safety-and-privacy.md",
             "verification.md",
-            "grok-video-piece.md",
         }
         for language in ("ko", "en"):
             self.assertEqual(
@@ -899,24 +899,12 @@ class DocumentationArchitectureTests(unittest.TestCase):
             "Product `README.md` is English and `README.ko.md` is Korean.",
             "update the test phrase and fact checks",
             "files-to-change-together",
-            "work-in-progress",
         ):
             self.assertIn(fact, normalized)
-        self.assertIn("docs/history/", text)
+        self.assertIn("docs/learning/", text)
 
-    def test_history_is_visibly_non_authoritative(self) -> None:
-        text = (ROOT / "docs/history/README.md").read_text(encoding="utf-8")
-        self.assertIn("do not define the current contract", " ".join(text.split()))
-        self.assertFalse((ROOT / "docs" / "superpowers").exists())
-        self.assertRegex(text, r"[A-Za-z]")
-        lowered = text.lower()
-        self.assertTrue("point-in-time" in lowered or "point in time" in lowered)
-        self.assertTrue("old" in lowered and ("name" in lowered or "path" in lowered))
-        self.assertNotIn("지금은 진행 중인 설계·계획이 없습니다", text)
-        self.assertNotIn("Nothing in progress", text)
-        self.assertNotIn("지금은 비어 있습니다", _read(DOCS_INDEX))
 
-    def test_docs_index_routes_install_use_maintain_and_history(self) -> None:
+    def test_docs_index_routes_install_use_maintain_and_research(self) -> None:
         _assert_exists(self, DOCS_INDEX)
         text = _read(DOCS_INDEX)
         self.assertIn("[한국어](README.ko.md)", text)
@@ -931,7 +919,7 @@ class DocumentationArchitectureTests(unittest.TestCase):
             for filename in PRODUCT_README_NAMES.values():
                 self.assertIn(f"{product.skill_path.as_posix()}/{filename})", text)
         self.assertIn("docs/maintainers/", text)
-        self.assertIn("docs/history/", text)
+        self.assertIn("docs/research/", text)
         self.assertIn(
             "The supported OS is macOS only. Windows and Linux are unsupported.",
             re.sub(r"\s+", " ", text),
@@ -992,7 +980,7 @@ class DocumentationArchitectureTests(unittest.TestCase):
             "products/",
             "repository/products-registry.md",
             "repository/release.md",
-            "../history/",
+            "../learning/",
         ):
             self.assertIn(href, index)
 
@@ -1031,7 +1019,7 @@ class RegistryDrivenPublicDocTests(unittest.TestCase):
     def test_active_markdown_paths_match_public_doc_inventory(self) -> None:
         self.assertEqual(
             {path.resolve() for path in active_markdown_paths(ROOT)},
-            {path.resolve() for path in PUBLIC_DOC_PATHS + LEARNING_DOC_PATHS},
+            {path.resolve() for path in PUBLIC_DOC_PATHS + LEARNING_DOC_PATHS + ENTRY_DOC_PATHS},
         )
 
 
@@ -1069,14 +1057,14 @@ class MarkdownLinkHelperTests(unittest.TestCase):
                 ),
             )
 
-    def test_broken_markdown_links_ignore_http_https_mailto_and_in_page(self) -> None:
+    def test_broken_markdown_links_ignore_remote_links_and_accept_valid_in_page_anchor(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "found.md").write_text("# Found\n", encoding="utf-8")
             doc = root / "doc.md"
             doc.write_text(
                 "[web](https://example.com/a) [plain](http://example.com) "
-                "[mail](mailto:a@b.com) [here](#missing) [ok](found.md)\n",
+                "[mail](mailto:a@b.com) [here](#local) [ok](found.md)\n# Local\n",
                 encoding="utf-8",
             )
             self.assertEqual(broken_markdown_links(root, [doc]), [])
@@ -1299,9 +1287,7 @@ class MaintainerStructureTests(unittest.TestCase):
     def test_product_testing_docs_own_fixture_paths(self) -> None:
         expected = {
             "korean-writing-editor": "tests/products/korean-writing-editor/offline/",
-            "image-workbench": "tests/products/image-workbench/",
             "how-it-works": "tests/products/how-it-works/",
-            "grok-image": "tests/products/grok-image/",
         }
         for name, path in expected.items():
             text = _read(ROOT / "docs" / "maintainers" / "products" / name / "testing.md")
@@ -1332,7 +1318,7 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("CHANGELOG.md", text)
         self.assertIn("release.toml", text)
         self.assertIn("docs/README.md", text)
-        self.assertIn("docs/history/", text)
+        self.assertIn("docs/research/", text)
         for product in REGISTRY.products:
             self.assertIn(product.name, text)
             self.assertIn(f"tests/products/{product.name}/", text)
@@ -1368,26 +1354,6 @@ class MaintainerProtocolTests(unittest.TestCase):
         self.assertIn("docs/maintainers/repository/release.md", release_text)
         self.assertIn("python3 scripts/release.py check --product korean-writing-editor", release_text)
 
-    def test_image_protocol_preserves_route_authorization_spec_and_inspector(self) -> None:
-        contract = ROOT / "docs" / "maintainers" / "products" / "image-workbench" / "contract.md"
-        testing = ROOT / "docs" / "maintainers" / "products" / "image-workbench" / "testing.md"
-        release = ROOT / "docs" / "maintainers" / "products" / "image-workbench" / "release.md"
-        for path in (contract, testing, release):
-            _assert_exists(self, path)
-        contract_text = _read(contract).lower()
-        testing_text = _read(testing).lower()
-        release_text = _read(release)
-        self.assertIn("route", contract_text)
-        self.assertIn("authorization", contract_text)
-        self.assertIn("imagespec", contract_text)
-        self.assertIn("rubric", contract_text)
-        self.assertIn("consent is unclear", contract_text)
-        self.assertIn("`hold`", _read(contract))
-        self.assertIn("inspector", testing_text)
-        self.assertIn("inspect_asset.py", testing_text)
-        self.assertIn("release.toml", release_text)
-        self.assertIn("docs/maintainers/repository/release.md", release_text)
-        self.assertIn("python3 scripts/release.py check --product image-workbench", release_text)
 
     def test_how_it_works_protocol_maps_contract_testing_compatibility_and_release(self) -> None:
         contract = ROOT / "docs" / "maintainers" / "products" / "how-it-works" / "contract.md"
@@ -1447,7 +1413,7 @@ class MaintainerProtocolTests(unittest.TestCase):
 
 class ChangelogPublicationTests(unittest.TestCase):
     def test_changelog_records_published_github_release(self) -> None:
-        for name in ("image-workbench", "korean-writing-editor"):
+        for name in ("korean-writing-editor",):
             path = ROOT / "skills" / name / "CHANGELOG.md"
             _assert_exists(self, path)
             text = _read(path)
@@ -1470,31 +1436,11 @@ class PublicClaimTests(unittest.TestCase):
         for document in PUBLIC_DOC_PATHS:
             _assert_exists(self, document)
             self.assertEqual(
-                unsupported_claims(
-                    _read(document),
-                    allow_image_disclaimer=document == ROOT / "skills/image-workbench/README.md",
-                ),
+                unsupported_claims(_read(document)),
                 (),
                 str(document),
             )
 
-    def test_image_disclaimer_exception_preserves_positive_claim_rejection(self) -> None:
-        disclaimer = (
-            "Passing does not prove complete bitstream decoding, "
-            "visual quality, or rights clearance."
-        )
-        self.assertEqual(unsupported_claims(disclaimer, allow_image_disclaimer=True), ())
-        self.assertIn("rights clearance", unsupported_claims(disclaimer))
-        for mutation in (
-            disclaimer.replace("does not ", ""),
-            disclaimer + " We guarantee rights clearance.",
-        ):
-            with self.subTest(mutation=mutation):
-                self.assertNotEqual(mutation, disclaimer)
-                self.assertIn(
-                    "rights clearance",
-                    unsupported_claims(mutation, allow_image_disclaimer=True),
-                )
 
     def test_public_docs_omit_personal_paths(self) -> None:
         for document in PUBLIC_DOC_PATHS:

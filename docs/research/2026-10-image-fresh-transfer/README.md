@@ -1,5 +1,9 @@
 # Fresh image review transfer, 2026-10-23
 
+Historical study. `image-workbench` was retired on 2026-10-28; the versions,
+commands, and support observations below describe the original study, not a
+currently installable product. See the [retirement decision](../../learning/cases/2026-10-28-retire-image-workbench-and-simplify-repository.md).
+
 Status: complete. Adopt only the observed premature-hold repair as **2.1.7**.
 No advantage over ordinary review was established. The initial protocol compared
 no skill with image-workbench 2.1.6 at commit `7587bb6` on four new synthetic

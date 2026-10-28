@@ -5,6 +5,7 @@ from __future__ import annotations
 import collections.abc
 import pathlib
 import re
+from urllib.parse import unquote
 
 from scripts.lib.product_registry import load_registry, PRODUCT_README_NAMES
 
@@ -21,10 +22,15 @@ def active_markdown_paths(root: pathlib.Path) -> tuple[pathlib.Path, ...]:
     candidates: list[pathlib.Path] = [
         root / "README.md",
         root / "README.ko.md",
+        root / "AGENTS.md",
+        root / "CLAUDE.md",
+        root / "CONTRIBUTING.md",
+        root / "SECURITY.md",
+        root / "CODE_OF_CONDUCT.md",
         root / "docs" / "README.md",
         root / "docs" / "README.ko.md",
         root / "docs" / "maintainers" / "README.md",
-        root / "docs" / "history" / "README.md",
+        root / "docs" / "research" / "README.md",
     ]
     for product in registry.products:
         for name in PRODUCT_README_NAMES.values():
@@ -95,9 +101,7 @@ def _link_error(
     if _SCHEME_RE.match(href):
         return None
     path_part, fragment = _split_href(href)
-    if not path_part:
-        return None
-    resolved = (document.parent / path_part).resolve()
+    resolved = (document.parent / path_part).resolve() if path_part else document.resolve()
     try:
         resolved.relative_to(root.resolve())
     except ValueError:
@@ -118,7 +122,7 @@ def _link_error(
 
 def _split_href(href: str) -> tuple[str, str]:
     path_part, _, fragment = href.partition("#")
-    return path_part.split("?", 1)[0], fragment
+    return unquote(path_part.split("?", 1)[0]), unquote(fragment)
 
 
 def _heading_ids(text: str) -> set[str]:

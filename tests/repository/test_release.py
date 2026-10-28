@@ -88,7 +88,7 @@ class ProductBuildTests(unittest.TestCase):
     def test_build_rejects_nonempty_output(self) -> None:
         (self.output / "keep.txt").write_text("keep\n", encoding="utf-8")
         with self.assertRaises(ReleaseError):
-            release.build_product(ROOT, "image-workbench", self.output, require_release_entry=False)
+            release.build_product(ROOT, "korean-writing-editor", self.output, require_release_entry=False)
 
     def test_build_requires_dated_changelog_by_default(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -126,14 +126,14 @@ class ReleaseReproducibilityTests(unittest.TestCase):
     def test_zip_members_are_sorted_epoch_stamped_and_mode_normalized(self) -> None:
         artifact, _checksums = release.build_product(
             ROOT,
-            "image-workbench",
+            "korean-writing-editor",
             self.one,
             require_release_entry=False,
         )
         with zipfile.ZipFile(artifact) as archive:
             names = archive.namelist()
             self.assertEqual(names, sorted(names))
-            self.assertTrue(all(name.startswith("image-workbench/") for name in names))
+            self.assertTrue(all(name.startswith("korean-writing-editor/") for name in names))
             self.assertNotIn("how-it-works/SKILL.md", names)
             for info in archive.infolist():
                 self.assertEqual(info.date_time, ZIP_EPOCH)
@@ -141,10 +141,7 @@ class ReleaseReproducibilityTests(unittest.TestCase):
                 mode = unix_mode(info)
                 file_type = (info.external_attr >> 16) & 0o170000
                 self.assertEqual(file_type, stat.S_IFREG)
-                if info.filename.endswith("scripts/inspect_asset.py"):
-                    self.assertEqual(mode, 0o755)
-                else:
-                    self.assertEqual(mode, 0o644)
+                self.assertEqual(mode, 0o644)
 
 
 class ArchiveSafetyTests(unittest.TestCase):
@@ -280,8 +277,8 @@ class ProductDownloadTests(unittest.TestCase):
         )
         self.assertEqual(release.verify_product_download(ROOT, "how-it-works", self.output), [])
 
-    def test_verify_product_download_runs_korean_and_image_smokes(self) -> None:
-        for name in ("korean-writing-editor", "image-workbench"):
+    def test_verify_product_download_runs_registered_product_smokes(self) -> None:
+        for name in release.REGISTRY.names:
             with self.subTest(name=name), tempfile.TemporaryDirectory() as directory:
                 output = Path(directory)
                 release.build_product(ROOT, name, output, require_release_entry=False)
@@ -292,7 +289,6 @@ class ProductDownloadTests(unittest.TestCase):
         mutations = (
             ("how-it-works", "references/output.md"),
             ("korean-writing-editor", "references/editorial-guide.md"),
-            ("image-workbench", "scripts/inspect_asset.py"),
         )
         for name, relative in mutations:
             with self.subTest(name=name), tempfile.TemporaryDirectory() as tmp:
@@ -354,9 +350,9 @@ class ProductDownloadTests(unittest.TestCase):
 
     def test_verify_product_download_rejects_another_products_zip(self) -> None:
         release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
-        (self.output / "image-workbench-v2.0.1.zip").write_bytes(b"not a zip")
+        (self.output / "korean-writing-editor-v2.0.1.zip").write_bytes(b"not a zip")
         errors = release.verify_product_download(ROOT, "how-it-works", self.output)
-        self.assertIn("unexpected zip in download directory: image-workbench-v2.0.1.zip", errors)
+        self.assertIn("unexpected zip in download directory: korean-writing-editor-v2.0.1.zip", errors)
 
     def test_verify_product_download_rejects_renamed_zip(self) -> None:
         release.build_product(ROOT, "how-it-works", self.output, require_release_entry=False)
@@ -445,22 +441,22 @@ class ProductDownloadTests(unittest.TestCase):
         self.assertIn("CHANGELOG", errors)
 
     def test_extract_archive_restores_executable_mode(self) -> None:
-        artifact, _checksums = release.build_product(
-            ROOT,
-            "image-workbench",
-            self.output,
-            require_release_entry=False,
-        )
+        artifact = self.output / "sample.zip"
+        write_zip(artifact, (
+            ArchiveMember("sample/scripts/run.py", b"#!/usr/bin/env python3\n", executable=True),
+            ArchiveMember("sample/README.md", b"# Sample\n", executable=False),
+        ))
         with zipfile.ZipFile(artifact) as archive:
-            info = archive.getinfo("image-workbench/scripts/inspect_asset.py")
-            self.assertTrue((info.external_attr >> 16) & 0o111)
+            self.assertEqual(unix_mode(archive.getinfo("sample/scripts/run.py")), 0o755)
+            self.assertEqual(unix_mode(archive.getinfo("sample/README.md")), 0o644)
         with tempfile.TemporaryDirectory() as directory:
             destination = Path(directory)
             self.assertEqual(extract_archive(artifact, destination), [])
-            inspector = destination / "image-workbench" / "scripts" / "inspect_asset.py"
-            self.assertTrue(inspector.is_file())
+            script = destination / "sample/scripts/run.py"
+            self.assertTrue(script.is_file())
             if os.name != "nt":
-                self.assertTrue(inspector.stat().st_mode & stat.S_IXUSR)
+                self.assertTrue(script.stat().st_mode & stat.S_IXUSR)
+                self.assertFalse((destination / "sample/README.md").stat().st_mode & stat.S_IXUSR)
 
     def test_verify_download_cli_requires_input_and_rejects_output(self) -> None:
         script = ROOT / "scripts" / "release.py"

@@ -22,20 +22,6 @@ verify_stages = [
 ]
 
 [[products]]
-name = "image-workbench"
-display_name = "Image Workbench"
-skill_path = "skills/image-workbench"
-test_path = "tests/products/image-workbench"
-maintainer_docs = "docs/maintainers/products/image-workbench"
-supported_hosts = ["codex", "grok"]
-owned_paths = [
-  "skills/image-workbench/",
-  "tests/products/image-workbench/",
-  "docs/maintainers/products/image-workbench/",
-]
-verify_stages = ["product-contract", "image-contract", "image-inspector", "python-compile"]
-
-[[products]]
 name = "how-it-works"
 display_name = "How It Works"
 skill_path = "skills/how-it-works"
@@ -48,31 +34,3 @@ owned_paths = [
   "docs/maintainers/products/how-it-works/",
 ]
 verify_stages = ["product-contract", "how-it-works-contract", "python-compile"]
-
-[[products]]
-name = "grok-video"
-display_name = "Grok Video"
-skill_path = "skills/grok-video"
-test_path = "tests/products/grok-video"
-maintainer_docs = "docs/maintainers/products/grok-video"
-supported_hosts = ["grok"]
-owned_paths = [
-  "skills/grok-video/",
-  "tests/products/grok-video/",
-  "docs/maintainers/products/grok-video/",
-]
-verify_stages = ["product-contract", "grok-video-contract", "python-compile"]
-
-[[products]]
-name = "grok-image"
-display_name = "Grok Image"
-skill_path = "skills/grok-image"
-test_path = "tests/products/grok-image"
-maintainer_docs = "docs/maintainers/products/grok-image"
-supported_hosts = ["grok"]
-owned_paths = [
-  "skills/grok-image/",
-  "tests/products/grok-image/",
-  "docs/maintainers/products/grok-image/",
-]
-verify_stages = ["product-contract", "grok-image-contract", "python-compile"]

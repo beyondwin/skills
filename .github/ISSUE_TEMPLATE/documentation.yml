@@ -6,8 +6,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Report a documentation issue for `korean-writing-editor`,
-        `image-workbench`, `how-it-works`, `grok-video`, or `grok-image` only.
+        Report a documentation issue for `korean-writing-editor`, `how-it-works`,
+        or repository documentation.
         Host-support claims must match `products.toml`, the docs, and the
         tests.
 
@@ -22,10 +22,7 @@ body:
       label: Area
       options:
         - korean-writing-editor
-        - image-workbench
         - how-it-works
-        - grok-video
-        - grok-image
         - repository docs
     validations:
       required: true

@@ -4,11 +4,10 @@
 
 ## Install with `$skill-installer`
 
-In Codex, install [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md) and [`image-workbench`](../../../skills/image-workbench/README.md) with `$skill-installer`:
+In Codex, install [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md) with `$skill-installer`:
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
-$skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
 ```
 
 Each skill lands in `$CODEX_HOME/skills/<skill-name>` (`~/.codex/skills` when `CODEX_HOME` is unset). If that folder already exists, the installer stops.
@@ -40,7 +39,7 @@ ls -ld "$SKILL_SOURCE"
 ls -ld "$SKILL_TARGET"
 ```
 
-Copy only if `$SKILL_TARGET` does not exist, or is a link you have confirmed points to this skill. If a real folder is already there, stop and do not copy over it. The same rule applies to `image-workbench`.
+Copy only if `$SKILL_TARGET` does not exist, or is a link you have confirmed points to this skill. If a real folder is already there, stop and do not copy over it.
 
 ## Update and uninstall
 
@@ -57,6 +56,6 @@ Check that:
 - it is the kind of entry you expect (a real folder or a link, and where a link points)
 - `name` and `metadata.version` in its `SKILL.md` are what you expect
 
-Only then remove that one path, and reinstall with `$skill-installer` if you are updating. Do the same for `.../skills/image-workbench`.
+Only then remove that one path, and reinstall with `$skill-installer` if you are updating.
 
 Never delete the parent `skills` folder or a home folder. Never pipe a remote script into a shell, and never replace an install you have not inspected.

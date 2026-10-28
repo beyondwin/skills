@@ -7,6 +7,7 @@ import dataclasses
 import importlib.util
 import inspect
 import io
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -35,11 +36,7 @@ FULL_STAGE_NAMES = (
     "korean-offline",
     "korean-live-unit",
     "korean-live-dry-run",
-    "image-contract",
-    "image-inspector",
     "how-it-works-contract",
-    "grok-video-contract",
-    "grok-image-contract",
     "python-compile",
 )
 LIVE_TEST_PATH = (
@@ -80,6 +77,20 @@ def load_verify() -> ModuleType:
 class VerifyModuleTests(unittest.TestCase):
     def test_verify_module_exists(self) -> None:
         self.assertTrue(VERIFY_PATH.is_file(), "scripts.verify does not exist")
+
+    def test_repository_clis_explain_the_python_requirement_before_importing_tools(self) -> None:
+        for name in ("verify.py", "release.py", "changed_targets.py"):
+            with self.subTest(script=name):
+                completed = subprocess.run(
+                    [sys.executable, "-c",
+                     "import runpy, sys; sys.version_info = (3, 9, 0); "
+                     "runpy.run_path(sys.argv[1], run_name='__main__')",
+                     str(ROOT / "scripts" / name)],
+                    capture_output=True, text=True, check=False,
+                )
+                self.assertNotEqual(completed.returncode, 0)
+                self.assertIn("Python 3.11 or newer", completed.stderr)
+                self.assertNotIn("Traceback", completed.stderr)
 
 
 class VerifyStageTests(unittest.TestCase):
@@ -152,18 +163,6 @@ class VerifyStageTests(unittest.TestCase):
         self.assertIn("--scope", stage.argv)
         self.assertIn("full", stage.argv)
 
-    def test_image_contract_runs_full_scope_evaluator(self) -> None:
-        stage = self._stage("image-contract")
-        self.assertTrue(stage.argv[1].replace("\\", "/").endswith(
-            "tests/products/image-workbench/run.py"
-        ))
-        self.assertIn("--scope", stage.argv)
-        self.assertIn("full", stage.argv)
-
-    def test_image_inspector_discovers_external_inspector_tests(self) -> None:
-        stage = self._stage("image-inspector")
-        self.assertEqual(stage.argv[1:4], ("-m", "unittest", "discover"))
-        self.assertIn("tests/products/image-workbench", stage.argv)
 
     def test_korean_live_unit_discovers_live_tests(self) -> None:
         stage = self._stage("korean-live-unit")
@@ -190,10 +189,12 @@ class VerifyStageTests(unittest.TestCase):
         paths = [part.replace("\\", "/") for part in stage.argv[3:]]
         self.assertTrue(any(part == "scripts" or part.endswith("/scripts") for part in paths))
         self.assertIn("tests", paths)
-        self.assertTrue(
-            any(part.endswith("skills/image-workbench/scripts") for part in paths),
-            paths,
-        )
+        expected_scripts = {
+            (product.skill_path / "scripts").as_posix()
+            for product in self.registry.products
+            if (ROOT / product.skill_path / "scripts").is_dir()
+        }
+        self.assertEqual({part for part in paths if part.startswith("skills/")}, expected_scripts)
         self.assertFalse(any("*" in part for part in stage.argv))
 
     def test_run_stage_returns_subprocess_exit_code(self) -> None:
@@ -272,19 +273,6 @@ class VerifyStageTests(unittest.TestCase):
             ],
         )
 
-    def test_image_selection_runs_only_shared_and_image_gates(self) -> None:
-        names = [
-            stage.name for stage in self._selected(skill="image-workbench")
-        ]
-        self.assertEqual(
-            names,
-            [
-                "product-contract",
-                "image-contract",
-                "image-inspector",
-                "python-compile",
-            ],
-        )
 
     def test_product_contract_runs_release_contract_module(self) -> None:
         stage = self._stage("product-contract", skill="how-it-works")
@@ -316,7 +304,7 @@ class VerifyStageTests(unittest.TestCase):
 
 
     def test_selected_stages_use_sys_executable_and_tuple_argv(self) -> None:
-        selections = ("how-it-works", "korean-writing-editor", "image-workbench", None)
+        selections = (*self.registry.names, None)
         for skill in selections:
             for stage in self._selected(skill=skill):
                 self.assertIsInstance(stage.argv, tuple)

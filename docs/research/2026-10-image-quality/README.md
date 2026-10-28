@@ -1,5 +1,9 @@
 # Image quality: ordinary generation and image-workbench
 
+Historical study. `image-workbench` was retired on 2026-10-28; the versions,
+commands, and support observations below describe the original study, not a
+currently installable product. See the [retirement decision](../../learning/cases/2026-10-28-retire-image-workbench-and-simplify-repository.md).
+
 Date: 2026-10-22. Environment: macOS, Grok CLI 1.0.62 (1474f9cbdd91).
 The observed agent model was `grok-4.7-build`, effort `high`; `grok-4.7` was
 the requested alias. The image tool did not identify its underlying image model.
@@ -133,8 +137,9 @@ The adopted/final SKILL body binding is
 `9b6eefa323753cde7458b1b24d77bcb7341859acd8b4aa14c90678ebc57b802a`.
 The final image-spec reference hash is
 `b555ec00c59f1c0a08e1b28e7214c6f829c4c47e8da3ccfe5134c14fad9828b3`.
-Final sessions are listed in the
-[smoke record](../../../tests/products/image-workbench/live/smoke-record.json).
+The linked [smoke record](https://github.com/beyondwin/skills/blob/6564ed5f039f3a7c1b1729d0652cc8015ab80f2d/tests/products/image-workbench/live/smoke-record.json) preserves the last
+pre-retirement record, which was updated after this study. It is not proof of
+this study's original sessions or resource hashes.
 The body smoke alone does not bind a changed reference.
 
 ## Practical strategy

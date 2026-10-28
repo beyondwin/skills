@@ -1,5 +1,9 @@
 # Image review and correction repair
 
+Historical study. `image-workbench` was retired on 2026-10-28; the versions,
+commands, and support observations below describe the original study, not a
+currently installable product. See the [retirement decision](../../learning/cases/2026-10-28-retire-image-workbench-and-simplify-repository.md).
+
 Started: 2026-10-22. Updated: 2026-10-23. Status: completed with a narrow retention patch; broader review-repair criteria failed.
 
 This follows the [two-call delivery study](../2026-10-image-delivery/README.md).

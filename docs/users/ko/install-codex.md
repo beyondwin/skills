@@ -2,17 +2,15 @@
 
 [English](../en/install-codex.md) · [설치](installation.md) · [호환성](compatibility.md) · [안전과 개인정보](safety-and-privacy.md) · [검증](verification.md)
 
-이 안내는 Codex에서 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md)와
-[`image-workbench`](../../../skills/image-workbench/README.ko.md)를 설치하는 방법입니다.
+이 안내는 Codex에서 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md)를 설치하는 방법입니다.
 How It Works는 [로컬 링크](install-local.md) 안내를 따르세요.
 
 ## `$skill-installer`로 설치
 
-Codex 대화에 아래에서 필요한 스킬의 설치 요청을 입력합니다.
+Codex 대화에 아래 설치 요청을 입력합니다.
 
 ```text
 $skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor
-$skill-installer https://github.com/beyondwin/skills/tree/main/skills/image-workbench
 ```
 
 스킬은 `$CODEX_HOME/skills/<skill-name>`에 설치됩니다. `CODEX_HOME`이 설정되지
@@ -46,8 +44,7 @@ ls -ld "$SKILL_SOURCE"
 ls -ld "$SKILL_TARGET"
 ```
 
-확인 결과에 따라 다음과 같이 진행하세요. `image-workbench`를 직접 복사할 때도
-같은 조건을 적용합니다.
+확인 결과에 따라 다음과 같이 진행하세요.
 
 - `$SKILL_TARGET`이 없으면 스킬 폴더를 복사할 수 있습니다.
 - 링크가 있으면 이 스킬을 가리키는지 확인한 경우에만 복사합니다.
@@ -56,8 +53,7 @@ ls -ld "$SKILL_TARGET"
 ## 갱신과 제거
 
 갱신과 제거 모두 기존 설치를 확인하는 것부터 시작합니다. 아래는
-`korean-writing-editor`의 예시입니다. `image-workbench`도 스킬 이름을 바꿔
-같은 순서로 진행합니다.
+`korean-writing-editor`의 예시입니다.
 
 ```bash
 SKILL_TARGET="${CODEX_HOME:-$HOME/.codex}/skills/korean-writing-editor"

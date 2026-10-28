@@ -22,10 +22,10 @@
 
 ## 구현 방법
 
-[SKILL.md](../../../skills/image-workbench/SKILL.md)의 Inspect And Evaluate와
+[SKILL.md](https://github.com/beyondwin/skills/blob/6564ed5f039f3a7c1b1729d0652cc8015ab80f2d/skills/image-workbench/SKILL.md)의 Inspect And Evaluate와
 Iterate And Stop을 수정했습니다. 기존 파일 검사·시각 검수·수정 권한은 유지하고,
 검사기 소스는 실행 오류 진단이나 수정 시에만 읽도록 했습니다.
-[rubric](../../../skills/image-workbench/references/quality-rubric.md)은 실패와
+[rubric](https://github.com/beyondwin/skills/blob/6564ed5f039f3a7c1b1729d0652cc8015ab80f2d/skills/image-workbench/references/quality-rubric.md)은 실패와
 미확인을 구분하며 같은 종료 규칙을 참조합니다. 출력 상태나 활성화 범위는 바꾸지
 않는 호환 수정이므로 PATCH 2.1.2를 사용합니다.
 
@@ -57,8 +57,8 @@ Grok CLI 1.0.62, 실행 기록상 grok-4.7-build에서 다음 결과를 확인�
 일회성 그림 경로 질문에서는 스킬의 경계를 읽었지만 ImageSpec·프로젝트 검사·복사는
 실행하지 않았습니다. 따라서 스킬 텍스트를 전혀 읽지 않았다는 증거는 아닙니다.
 
-실제 세션 식별자와 현재 본문 바인딩은
-[스모크 기록](../../../tests/products/image-workbench/live/smoke-record.json)에 있습니다.
+삭제 직전까지 유지되던 세션 식별자와 본문 바인딩 기록은
+[스모크 기록](https://github.com/beyondwin/skills/blob/6564ed5f039f3a7c1b1729d0652cc8015ab80f2d/tests/products/image-workbench/live/smoke-record.json)에 있습니다.
 원래 실패 세션은 `01a15ce2-b688-7243-89f9-d6b843dd1a84`입니다. 전체 리소스의
 변경 전후 해시와 원본 로그는 로컬 평가 폴더에만 있어, 저장소만으로 원본 실행을
 재채점할 수 없다는 한계가 있습니다. 실행 전후 설치 리소스 해시 일치를 확인했습니다.
@@ -85,3 +85,10 @@ Git 인덱스를 초기화했습니다. 그 복사본의 `python3 scripts/verify
 이 사례에서는 이미 보이는 실패를 다시 수치로 증명하는 분석이 종료를 늦췄습니다.
 검사를 생략하는 대신 어떤 미해결 조건이 판정을 바꾸는지 확인하는 좁은 종료 기준이
 도움이 됐습니다. 다른 작업에 보편적인 도구 횟수 제한을 적용할 근거는 아닙니다.
+
+## 2026-10-28 후속 기록
+
+image-workbench 전체를 [별도 결정](2026-10-28-retire-image-workbench-and-simplify-repository.md)으로 종료했습니다.
+위 결과와 유지 판단은 당시 기록이며 현재 설치·지원 안내가 아닙니다.
+삭제된 제품 파일을 가리키던 링크는 삭제 직전 커밋의 고정 경로로 바꿨습니다.
+이는 당시 실험의 원본 리소스나 해시 일치를 새로 입증하는 것이 아닙니다.

@@ -1,5 +1,9 @@
 # Image delivery within a two-call budget
 
+Historical study. `image-workbench` was retired on 2026-10-28; the versions,
+commands, and support observations below describe the original study, not a
+currently installable product. See the [retirement decision](../../learning/cases/2026-10-28-retire-image-workbench-and-simplify-repository.md).
+
 Date: 2026-10-22. Follow-up to the
 [first-candidate study](../2026-10-image-quality/README.md).
 The question is whether inspection, optional correction, and selection deliver a

@@ -24,13 +24,13 @@ selection also fails closed.
 | `skill_path` | product | Payload folder. Repository-relative; no `..` or absolute paths |
 | `test_path` | product | Product test folder |
 | `maintainer_docs` | product | Product maintainer docs folder |
-| `supported_hosts` | product | Allowed values: `codex`, `claude-code`, `cursor`, `grok` |
+| `supported_hosts` | product | Allowed values: `codex`, `claude-code` |
 | `owned_paths` | product | Change-routing prefixes. Folder entries end with `/` |
 | `verify_stages` | product | Stage IDs registered in code. Not shell commands |
 
 There are no `version`, `tag_prefix`, or `command` fields. The parser
-(`scripts/lib/product_registry.py`) enforces product order and rejects duplicate names
-and paths.
+(`scripts/lib/product_registry.py`) preserves the declared product order and rejects
+duplicate names and paths.
 
 When you change supported hosts, update that product's `compatibility.md`, product
 README, public guides, and tests in the same change.
@@ -48,7 +48,9 @@ and `README.md` for English.
 
 ## Registering a product
 
-To add a standalone product, do all of this in one change:
+Adding a product requires an explicit scope change first; see
+[Contributing](../../../CONTRIBUTING.md#scope). Once approved, do all of this in one
+change:
 
 1. Add the product entry to `products.toml`.
 2. Create `skills/<name>/`, `tests/products/<name>/`, and
@@ -61,6 +63,15 @@ To add a standalone product, do all of this in one change:
 These all fail verification: an unregistered folder under `skills/`,
 `tests/products/`, or `docs/maintainers/products/`; an unknown host or stage; a name
 mismatch.
+
+## Retiring a product
+
+Remove its registry entry, payload, tests, maintainer docs, verification stages,
+and active install and support guidance together. Update both user-guide languages.
+Do not keep aliases or compatibility shims. Preserve the decision and useful
+measurement evidence in [learning](../../learning/README.md) and
+[research](../../research/README.md); replace references to removed files with exact
+Git commit links when the evidence still needs them.
 
 ## Verification commands
 

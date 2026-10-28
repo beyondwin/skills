@@ -80,10 +80,7 @@ class RegistryParsingTests(unittest.TestCase):
             registry.names,
             (
                 "korean-writing-editor",
-                "image-workbench",
                 "how-it-works",
-                "grok-video",
-                "grok-image",
             ),
         )
 
@@ -180,6 +177,14 @@ class RegistryRejectionTests(unittest.TestCase):
             _registry(_product(extra='readme_primary_language = "en"')),
             "extra field readme_primary_language",
         )
+
+    def test_retired_host_values_are_rejected(self) -> None:
+        for host in ("grok", "cursor"):
+            with self.subTest(host=host):
+                self._reject(
+                    _registry(_product(supported_hosts=f'["{host}"]')),
+                    f"unknown host {host}",
+                )
 
     def test_malformed_registry_is_rejected(self) -> None:
         cases = (
@@ -377,8 +382,8 @@ class RegistryDocumentationTests(unittest.TestCase):
         extras = [
             path.relative_to(ROOT).as_posix()
             for path in active_markdown_paths(ROOT)
-            if path.relative_to(ROOT).as_posix().startswith("docs/history/")
-            and path.name != "README.md"
+            if path.relative_to(ROOT).as_posix().startswith("docs/research/")
+            and path != ROOT / "docs/research/README.md"
         ]
         self.assertEqual(extras, [])
 

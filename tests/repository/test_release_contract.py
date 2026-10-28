@@ -23,10 +23,7 @@ from scripts.lib.product_registry import load_registry, PRODUCT_README_NAMES  # 
 
 EXPECTED = {
     "korean-writing-editor": "3.0.0",
-    "image-workbench": "3.0.0",
     "how-it-works": "4.0.0",
-    "grok-video": "1.0.0",
-    "grok-image": "1.0.0",
 }
 REGISTRY = load_registry(ROOT / "products.toml")
 
@@ -77,8 +74,8 @@ class ProductReleaseTests(unittest.TestCase):
 
     def test_payload_hash_changes_with_bytes_but_is_stable_across_copies(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            original = ROOT / "skills" / "image-workbench"
-            copy = Path(directory) / "image-workbench"
+            original = ROOT / "skills" / "korean-writing-editor"
+            copy = Path(directory) / "korean-writing-editor"
             shutil.copytree(original, copy)
             self.assertEqual(payload_sha256(original), payload_sha256(copy))
             before = payload_sha256(copy)
@@ -111,11 +108,11 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         self.assertIn("invalid SemVer: 2.0", errors)
 
     def test_rejects_mismatched_directory_name(self) -> None:
-        root = self._copy("image-workbench")
+        root = self._copy("korean-writing-editor")
         manifest = root / "release.toml"
         manifest.write_text(
             manifest.read_text(encoding="utf-8").replace(
-                'name = "image-workbench"',
+                'name = "korean-writing-editor"',
                 'name = "other-skill"',
             ),
             encoding="utf-8",
@@ -138,7 +135,7 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         self.assertIn("missing README.md", errors)
 
     def test_rejects_missing_english_readme(self) -> None:
-        root = self._copy("image-workbench")
+        root = self._copy("korean-writing-editor")
         english = PRODUCT_README_NAMES["en"]
         (root / english).unlink()
         errors = "\n".join(validate_product(root, REGISTRY))
@@ -185,7 +182,7 @@ class ProductReleaseRejectionTests(unittest.TestCase):
         self.assertIn("broken relative link", errors)
 
     def test_rejects_unexpected_top_level_file(self) -> None:
-        root = self._copy("image-workbench")
+        root = self._copy("korean-writing-editor")
         (root / "notes.txt").write_text("not part of the product\n", encoding="utf-8")
         errors = "\n".join(validate_product(root, REGISTRY))
         self.assertIn("unexpected top-level file: notes.txt", errors)
@@ -291,10 +288,21 @@ class ProductReleaseRejectionTests(unittest.TestCase):
 
 
 class PayloadEntryTests(unittest.TestCase):
+    def test_payload_entries_normalize_synthetic_executable_and_data_files(self) -> None:
+        from scripts.lib.product_contract import payload_entries
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "run.py").write_bytes(b"#!/usr/bin/env python3\n")
+            (root / "README.md").write_text("# Sample\n", encoding="utf-8")
+            entries = {entry["path"]: entry for entry in payload_entries(root)}
+            self.assertEqual(entries["run.py"]["mode"], "0755")
+            self.assertEqual(entries["README.md"]["mode"], "0644")
+
     def test_payload_entries_are_sorted_with_normalized_modes(self) -> None:
         from scripts.lib.product_contract import payload_entries
 
-        entries = payload_entries(ROOT / "skills" / "image-workbench")
+        entries = payload_entries(ROOT / "skills" / "korean-writing-editor")
         paths = [entry["path"] for entry in entries]
         self.assertEqual(paths, sorted(paths))
         self.assertEqual(paths, sorted(set(paths)))
@@ -305,7 +313,6 @@ class PayloadEntryTests(unittest.TestCase):
             self.assertGreaterEqual(entry["size"], 0)
             self.assertRegex(entry["sha256"], r"^[0-9a-f]{64}$")
         by_path = {entry["path"]: entry for entry in entries}
-        self.assertEqual(by_path["scripts/inspect_asset.py"]["mode"], "0755")
         self.assertEqual(by_path["SKILL.md"]["mode"], "0644")
         self.assertIn("release.toml", by_path)
         self.assertIn("CHANGELOG.md", by_path)

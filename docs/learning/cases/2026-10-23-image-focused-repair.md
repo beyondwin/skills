@@ -61,3 +61,8 @@ Grok 단독 검수는 첫 수정 후에도 가림을 놓쳤고, 정상 원본에
 남는다. 기존 G 미채택 기준은 재계산하지 않으며, 이번 수정은 알려진 결함의
 제거와 최종 결과 확인으로 범위를 좁혀 채택했다. 모든 실행과 저장소 검증은
 [연구 기록](../../research/2026-10-image-focused-repair/README.md)에 둔다.
+
+## 2026-10-28 후속 기록
+
+image-workbench 전체를 [별도 결정](2026-10-28-retire-image-workbench-and-simplify-repository.md)으로 종료했습니다.
+위 결과와 유지 판단은 당시 기록이며 현재 설치·지원 안내가 아닙니다.

@@ -15,8 +15,13 @@ Install help for users lives in each product README and in `docs/users/`.
 | Register a product | `products.toml` | `skills/<name>/`, `tests/products/<name>/`, `docs/maintainers/products/<name>/`. Steps: [products registry](repository/products-registry.md) | `python3 scripts/verify.py` |
 | Bump a version | `skills/<name>/release.toml` | `SKILL.md` `metadata.version`, `CHANGELOG.md`. Rules: [versioning](repository/versioning.md) | `python3 scripts/verify.py --skill <name>` |
 | Release a product | Finalize `Unreleased` in `skills/<name>/CHANGELOG.md` | That product's `release.md`. Steps: [release](repository/release.md) | `python3 scripts/release.py check --product <name>` (on a clean tree) |
-| Work-in-progress design or plan | [History](../history/) | Preserve significant decisions in a [learning case](../learning/README.md), then delete it when done | Content and source review |
+| Plan a significant change | Start a [learning case](../learning/README.md) with the problem and alternatives | Update it with the decision and actual outcome; keep temporary plans in the working branch only | Content and source review |
 | Record a decision or retirement | `docs/learning/` | Link the case from its index; connect relevant insights and evidence | Content, sources, and local links through `python3 scripts/verify.py` |
+
+Repository verification and release tools require Python 3.11 or newer. They use
+standard-library `tomllib`; no package installation is needed. This development
+requirement is separate from product runtime scripts, which remain compatible
+with stock macOS Python 3.9.
 
 Before any merge, run `python3 scripts/verify.py`.
 
@@ -36,8 +41,9 @@ Before any merge, run `python3 scripts/verify.py`.
   change. Tests for maintainer and user docs check exact phrases, facts, lists, order,
   and structure (required sections). They never hash a whole doc or section.
 - Product behavior changes follow the contract's files-to-change-together list.
-- `docs/history/` holds only work-in-progress designs and plans. It does not define
-  the current contract.
+- Keep work-in-progress plans in the working branch. Preserve important choices
+  and outcomes in `docs/learning/`, then remove the temporary plan. Git history
+  retains its original text; a learning case can link its exact commit and path.
 - `docs/learning/` keeps decision context after work ships or a product retires.
   Its index, cases, insights, and templates are Korean originals, without English
   duplicates. Follow its [recording workflow](../learning/README.md). Historical
@@ -61,10 +67,7 @@ change in one product never requires a version bump in another.
 | Product | Contract | Testing | Compatibility | Release |
 | --- | --- | --- | --- | --- |
 | korean-writing-editor | [contract](products/korean-writing-editor/contract.md) | [testing](products/korean-writing-editor/testing.md) | [compatibility](products/korean-writing-editor/compatibility.md) | [release](products/korean-writing-editor/release.md) |
-| image-workbench | [contract](products/image-workbench/contract.md) | [testing](products/image-workbench/testing.md) | [compatibility](products/image-workbench/compatibility.md) | [release](products/image-workbench/release.md) |
 | how-it-works | [contract](products/how-it-works/contract.md) | [testing](products/how-it-works/testing.md) | [compatibility](products/how-it-works/compatibility.md) | [release](products/how-it-works/release.md) |
-| grok-video | [contract](products/grok-video/contract.md) | [testing](products/grok-video/testing.md) | [compatibility](products/grok-video/compatibility.md) | [release](products/grok-video/release.md) |
-| grok-image | [contract](products/grok-image/contract.md) | [testing](products/grok-image/testing.md) | [compatibility](products/grok-image/compatibility.md) | [release](products/grok-image/release.md) |
 
 What each doc holds:
 

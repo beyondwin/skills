@@ -56,24 +56,6 @@ def _stage_map(root: pathlib.Path) -> dict[str, Stage]:
             ),
             cwd=root,
         ),
-        "image-contract": Stage(
-            "image-contract",
-            _python(_posix("tests", "products", "image-workbench", "run.py"), "--scope", "full"),
-            cwd=root,
-        ),
-        "image-inspector": Stage(
-            "image-inspector",
-            _python(
-                "-m",
-                "unittest",
-                "discover",
-                "-s",
-                _posix("tests", "products", "image-workbench"),
-                "-p",
-                "test_*.py",
-            ),
-            cwd=root,
-        ),
         "korean-live-unit": Stage(
             "korean-live-unit",
             _python(
@@ -126,32 +108,6 @@ def _stage_map(root: pathlib.Path) -> dict[str, Stage]:
                 "discover",
                 "-s",
                 _posix("tests", "products", "how-it-works"),
-                "-p",
-                "test_*.py",
-            ),
-            cwd=root,
-        ),
-        "grok-video-contract": Stage(
-            "grok-video-contract",
-            _python(
-                "-m",
-                "unittest",
-                "discover",
-                "-s",
-                _posix("tests", "products", "grok-video"),
-                "-p",
-                "test_*.py",
-            ),
-            cwd=root,
-        ),
-        "grok-image-contract": Stage(
-            "grok-image-contract",
-            _python(
-                "-m",
-                "unittest",
-                "discover",
-                "-s",
-                _posix("tests", "products", "grok-image"),
                 "-p",
                 "test_*.py",
             ),

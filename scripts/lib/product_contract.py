@@ -34,7 +34,6 @@ ARCHIVE_MARKERS = ("SKILLS_ARCHIVE_CHECKOUT", "source/private")
 CREDENTIAL_MARKERS = ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "CURSOR_API_KEY")
 IGNORE_NAMES = frozenset({"__pycache__"})
 BYTECODE_SUFFIXES = {".pyc", ".pyo"}
-EXPLICIT_ONLY_SKILLS = frozenset({"how-it-works", "image-workbench", "korean-writing-editor"})
 
 
 @dataclasses.dataclass(frozen=True)
@@ -232,7 +231,7 @@ def validate_product(skill_root: Path, registry: ProductRegistry) -> list[str]:
             errors.append("missing Apache license")
 
     openai_path = skill_root / "agents" / "openai.yaml"
-    if not openai_path.is_file() and skill_root.name in EXPLICIT_ONLY_SKILLS:
+    if not openai_path.is_file():
         errors.append("missing agents/openai.yaml")
     if openai_path.is_file():
         errors.extend(_validate_openai_yaml(openai_path, skill_root.name))
@@ -318,14 +317,8 @@ def _validate_openai_yaml(path: Path, skill_name: str) -> list[str]:
     if default_prompt is None or f"${skill_name}" not in default_prompt:
         errors.append("default_prompt must mention the skill")
     implicit = _yaml_scalar(text, "allow_implicit_invocation")
-    if skill_name in EXPLICIT_ONLY_SKILLS:
-        if implicit != "false" or "allow_implicit_invocation: true" in text:
-            errors.append(f"{skill_name} invocation policy must be explicit-only")
-    else:
-        if "allow_implicit_invocation: true" not in text:
-            errors.append("invocation policy must match the skill activation gate")
-        if "allow_implicit_invocation: false" in text:
-            errors.append("invocation policy bypasses excluded near misses")
+    if implicit != "false" or "allow_implicit_invocation: true" in text:
+        errors.append(f"{skill_name} invocation policy must be explicit-only")
     return errors
 
 

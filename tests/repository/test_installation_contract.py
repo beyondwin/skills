@@ -192,10 +192,6 @@ LINKER_SURFACES = (
     ("skills/how-it-works/README.ko.md", "<!-- how-it-works-local-links -->"),
     ("docs/users/ko/install-local.md", "<!-- how-it-works-local-links -->"),
     ("docs/users/en/install-local.md", "<!-- how-it-works-local-links -->"),
-    ("skills/image-workbench/README.md", "<!-- image-workbench-local-links -->"),
-    ("skills/image-workbench/README.ko.md", "<!-- image-workbench-local-links -->"),
-    ("docs/users/ko/install-local.md", "<!-- image-workbench-local-links -->"),
-    ("docs/users/en/install-local.md", "<!-- image-workbench-local-links -->"),
 )
 
 

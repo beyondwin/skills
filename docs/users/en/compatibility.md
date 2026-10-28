@@ -2,16 +2,12 @@
 
 [한국어](../ko/compatibility.md) · [Installation](installation.md)
 
-This page says which hosts each skill runs on. A host is the agent app that runs the skill. Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`image-workbench`](../../../skills/image-workbench/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`grok-video`](../../../skills/grok-video/README.md), [`grok-image`](../../../skills/grok-image/README.md).
+This page says which hosts each skill runs on. A host is the agent app that runs the skill. Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`how-it-works`](../../../skills/how-it-works/README.md).
 
 | Skill | Supported hosts | How you install it |
 | --- | --- | --- |
 | Korean Writing Editor | Codex | `$skill-installer` |
-| Image Workbench | Codex, Grok | Codex: `$skill-installer`. Grok: local link |
 | How It Works | Codex, Claude Code | Local link |
-| Grok Video | Grok | Local link |
-| Grok Video | Grok | Local link |
-| Grok Image | Grok | Local link |
 
 Terms:
 
@@ -23,13 +19,7 @@ Terms:
 
 korean-writing-editor: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke.
 
-image-workbench: Codex and Grok supported; generate/edit requires the current host's built-in image generation and local image viewing.
-
 how-it-works: Codex and Claude Code supported for local or repository-based use.
-
-grok-video: Grok supported; a clip needs the host reference_to_video tool and a way to open the result.
-
-grok-image: Grok supported; still generation uses the host's built-in image tool and local image viewing.
 
 ## What counts as support
 
@@ -39,10 +29,7 @@ None of these skills works through Claude.ai, Cowork, or a Skills API upload, an
 
 ## Per-skill notes
 
-- `image-workbench` makes or edits an image only when the current host has its own image tool and you can open the result. A similar tool on another host does not count. On Grok it uses the `~/.agents/skills/image-workbench` link.
 - `how-it-works`: a live run of the current install files is `not_measured`.
-- `grok-video` uses the `~/.agents/skills/grok-video` link. Automatic routing of that install is `not_measured`. Pinned-frame clips were checked on 2026-10-25.
-- `grok-image` uses the `~/.agents/skills/grok-image` link. Automatic routing of that install is `not_measured`. The prompt procedure was checked with Grok stills on 2026-10-25.
 
 ## Operating system
 

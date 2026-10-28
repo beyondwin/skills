@@ -6,18 +6,15 @@ These add Claude Code facts to AGENTS.md. AGENTS.md wins on any conflict.
 
 ## Working tree
 
-- `~/.claude/skills/<name>` and `~/.agents/skills/<name>` are symlinks to `skills/<name>/` in this
-  checkout. An edit there changes every running session's skill at once.
-- Several sessions share this checkout and move `HEAD` without notice. For multi-commit work,
-  `git worktree add` a private checkout in your scratchpad, commit and verify there, and
-  fast-forward `main` at the end. Check `git rev-parse --abbrev-ref HEAD` before any commit in
-  the shared tree.
+- Inspect actual installation targets before changing them. A symlink from a host's skill
+  directory to this checkout makes edits visible to sessions that use that link.
+- Check the branch and working-tree state before editing or committing. Use an isolated
+  worktree when concurrent work would conflict, and integrate only within the user's scope.
 
 ## Models and subagents
 
-- Current models: Opus 5.5 (`claude-opus-5-5`, alias `opus`), Fable 5.1 (`claude-fable-5-1`,
-  alias `fable`), Sonnet 5.5 (`claude-sonnet-5-5`, alias `sonnet`), Haiku 4.5. Write model names
-  in docs and fixtures with these IDs.
+- Use the model selected for the task. Record the model and effort that actually ran from
+  the transcript; a static model list or local setting is not execution evidence.
 - Brief subagents with the files, the exact output shape, and the read-only or write scope.
   State limits once, plainly; capitals and repeated warnings add nothing.
 

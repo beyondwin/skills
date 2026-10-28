@@ -1,5 +1,9 @@
 # First-image visual direction, 2026-10-23
 
+Historical study. `image-workbench` was retired on 2026-10-28; the versions,
+commands, and support observations below describe the original study, not a
+currently installable product. See the [retirement decision](../../learning/cases/2026-10-28-retire-image-workbench-and-simplify-repository.md).
+
 Status: complete. The proposed change is not adopted; image-workbench remains 2.1.7.
 The original protocol below was frozen before all eight calls.
 

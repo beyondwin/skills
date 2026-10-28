@@ -100,14 +100,14 @@ class TargetMappingTests(RegistryRoutingTestCase):
         )
         self.assertEqual(
             targets_for_paths(
-                ["docs/maintainers/products/image-workbench/testing.md"],
+                ["docs/maintainers/products/korean-writing-editor/testing.md"],
                 self.registry,
             ),
-            ("image-workbench",),
+            ("korean-writing-editor",),
         )
         self.assertEqual(
-            targets_for_paths(["tests/products/image-workbench/run.py"], self.registry),
-            ("image-workbench",),
+            targets_for_paths(["tests/products/korean-writing-editor/offline/run.py"], self.registry),
+            ("korean-writing-editor",),
         )
         self.assertEqual(
             targets_for_paths(
@@ -190,10 +190,7 @@ class TargetMappingTests(RegistryRoutingTestCase):
             self.registry.names,
             (
                 "korean-writing-editor",
-                "image-workbench",
                 "how-it-works",
-                "grok-video",
-                "grok-image",
             ),
         )
 
@@ -421,7 +418,7 @@ class ChangedPathAndCliTests(RegistryRoutingTestCase):
             repository = Path(directory) / "repo"
             repository.mkdir()
             init_repository(repository)
-            skill = repository / "skills" / "image-workbench" / "SKILL.md"
+            skill = repository / "skills" / "korean-writing-editor" / "SKILL.md"
             skill.parent.mkdir(parents=True)
             skill.write_text("one\n", encoding="utf-8")
             run_git(repository, "add", "-A")
@@ -456,10 +453,10 @@ class ChangedPathAndCliTests(RegistryRoutingTestCase):
             payload = output.read_text(encoding="utf-8").splitlines()[0].split("=", 1)[1]
             self.assertEqual(
                 payload,
-                serialize_matrix(matrix_for_targets(("image-workbench",), self.registry)),
+                serialize_matrix(matrix_for_targets(("korean-writing-editor",), self.registry)),
             )
             matrix = json.loads(payload)
-            self.assertEqual({row["target"] for row in matrix["include"]}, {"image-workbench"})
+            self.assertEqual({row["target"] for row in matrix["include"]}, {"korean-writing-editor"})
             self.assertEqual(len(matrix["include"]), 1)
 
     def test_cli_returns_nonzero_on_registry_errors(self) -> None:

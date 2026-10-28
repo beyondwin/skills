@@ -72,9 +72,9 @@ Grok CLI 1.0.62, 실제 에이전트 모델 `grok-4.7-build/high`에서 일반 6
 
 ## 구현 방법
 
-[SKILL.md](../../../skills/image-workbench/SKILL.md)는 상세한 첫 요청을 보존하고,
-실제 결함을 본 뒤 [공간 보정 지침](../../../skills/image-workbench/references/image-spec.md)을
-적용하도록 좁혔다. [검수 기준](../../../skills/image-workbench/references/quality-rubric.md)은
+[SKILL.md](https://github.com/beyondwin/skills/blob/6564ed5f039f3a7c1b1729d0652cc8015ab80f2d/skills/image-workbench/SKILL.md)는 상세한 첫 요청을 보존하고,
+실제 결함을 본 뒤 [공간 보정 지침](https://github.com/beyondwin/skills/blob/6564ed5f039f3a7c1b1729d0652cc8015ab80f2d/skills/image-workbench/references/image-spec.md)을
+적용하도록 좁혔다. [검수 기준](https://github.com/beyondwin/skills/blob/6564ed5f039f3a7c1b1729d0652cc8015ab80f2d/skills/image-workbench/references/quality-rubric.md)은
 개수와 전체 윤곽의 가시성을 구분한다. 현재 도구의 지원 화면비를 먼저 확인하고,
 안전한 명시적 변환·허용된 근사·hold 중 실제 가능한 결과를 보고한다. 거절된 호출도
 사용자가 정한 도구 호출 예산에 포함한다. 버전은 PATCH 2.1.3이다.
@@ -99,3 +99,10 @@ Grok CLI 1.0.62, 실제 에이전트 모델 `grok-4.7-build/high`에서 일반 6
 달성 가능한 결과의 예시이지 평균 향상의 증거가 아니다. 더 긴 프롬프트나 반복 횟수
 자체를 품질 보증으로 삼지 않는다. 이 판단은 세 합성 과제와 제한된 후속 실험에
 근거하며, 편집 보존·시리즈 일관성·다른 호스트로 일반화하지 않는다.
+
+## 2026-10-28 후속 기록
+
+image-workbench 전체를 [별도 결정](2026-10-28-retire-image-workbench-and-simplify-repository.md)으로 종료했습니다.
+위 결과와 유지 판단은 당시 기록이며 현재 설치·지원 안내가 아닙니다.
+삭제된 제품 파일을 가리키던 링크는 삭제 직전 커밋의 고정 경로로 바꿨습니다.
+이는 당시 실험의 원본 리소스나 해시 일치를 새로 입증하는 것이 아닙니다.

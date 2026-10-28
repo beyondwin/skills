@@ -9,7 +9,7 @@ publishing. Current version numbers are not written here.
 
 ## Check, build, verify download
 
-Run on a clean tracked tree.
+Use Python 3.11 or newer and run on a clean tracked tree.
 
 ```bash
 python3 scripts/verify.py --skill <name>

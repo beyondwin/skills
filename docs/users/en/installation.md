@@ -1,6 +1,6 @@
 # Installation
 
-`korean-writing-editor`, `image-workbench`, and `how-it-works` require an explicit `$skill-name` or `/skill-name` invocation. `grok-video` turns on when you ask Grok for a video. `grok-image` also turns on when you ask Grok for a still.
+Both skills require an explicit `$skill-name` or `/skill-name` invocation; matching task text alone does not activate them.
 
 [한국어](../ko/installation.md) · [Compatibility](compatibility.md) · [Safety and privacy](safety-and-privacy.md) · [Verification](verification.md)
 
@@ -9,9 +9,6 @@ Find your skill below and follow its guide. Each guide also covers update and un
 | Skill | Method | Guide |
 | --- | --- | --- |
 | [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md) | Codex `$skill-installer` | [Codex install](install-codex.md) |
-| [`image-workbench`](../../../skills/image-workbench/README.md) | Codex `$skill-installer`; Grok local link | [Codex install](install-codex.md), [Local links](install-local.md) |
 | [`how-it-works`](../../../skills/how-it-works/README.md) | Local link | [Local links](install-local.md) |
-| [`grok-video`](../../../skills/grok-video/README.md) | Grok local link | [Local links](install-local.md) |
-| [`grok-image`](../../../skills/grok-image/README.md) | Grok local link | [Local links](install-local.md) |
 
 All skills are under the Apache-2.0 license.

@@ -4,12 +4,17 @@
 from __future__ import annotations
 
 import argparse
-import os
 import subprocess
 import sys
 import tempfile
 from collections.abc import Sequence
 from pathlib import Path
+
+if sys.version_info < (3, 11):
+    raise SystemExit(
+        "Repository tools require Python 3.11 or newer; "
+        "run this command with python3.11 or newer."
+    )
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -279,43 +284,8 @@ def _extracted_version_errors(skill_root: Path, expected: ProductRelease) -> lis
 def _run_product_smoke(root: Path, name: str, skill_root: Path) -> list[str]:
     if name == "korean-writing-editor":
         return _run_korean(root, skill_root)
-    if name == "image-workbench":
-        inspector = skill_root / "scripts" / "inspect_asset.py"
-        errors = _run_image(root, skill_root)
-        errors.extend(_run_inspector(root, inspector))
-        return errors
     if name == "how-it-works":
         return _smoke_how_it_works(skill_root)
-    if name == "grok-video":
-        return _run_command(
-            "grok-video-contract",
-            [
-                sys.executable,
-                "-m",
-                "unittest",
-                "discover",
-                "-s",
-                str(root / "tests" / "products" / "grok-video"),
-                "-p",
-                "test_*.py",
-            ],
-            cwd=root,
-        )
-    if name == "grok-image":
-        return _run_command(
-            "grok-image-contract",
-            [
-                sys.executable,
-                "-m",
-                "unittest",
-                "discover",
-                "-s",
-                str(root / "tests" / "products" / "grok-image"),
-                "-p",
-                "test_*.py",
-            ],
-            cwd=root,
-        )
     return [f"unlisted skill is not accepted: {name}"]
 
 
@@ -377,48 +347,10 @@ def _run_korean(root: Path, skill_root: Path) -> list[str]:
     )
 
 
-def _run_image(root: Path, skill_root: Path) -> list[str]:
-    return _run_command(
-        "image-contract",
-        [
-            sys.executable,
-            str(root / "tests" / "products" / "image-workbench" / "run.py"),
-            "--scope",
-            "full",
-            "--skill-root",
-            str(skill_root),
-        ],
-        cwd=root,
-    )
-
-
-def _run_inspector(root: Path, inspector: Path) -> list[str]:
-    if not inspector.is_file():
-        return [f"missing extracted inspector: {inspector}"]
-    env = os.environ.copy()
-    env["IMAGE_WORKBENCH_INSPECTOR"] = str(inspector)
-    return _run_command(
-        "image-inspector",
-        [
-            sys.executable,
-            "-m",
-            "unittest",
-            "discover",
-            "-s",
-            str(root / "tests" / "products" / "image-workbench"),
-            "-p",
-            "test_*.py",
-        ],
-        cwd=root,
-        env=env,
-    )
-
-
 def _run_command(
     stage: str,
     argv: list[str],
     cwd: Path,
-    env: dict[str, str] | None = None,
 ) -> list[str]:
     completed = subprocess.run(
         argv,
@@ -426,7 +358,6 @@ def _run_command(
         check=False,
         capture_output=True,
         text=True,
-        env=env,
     )
     if completed.returncode == 0:
         return []

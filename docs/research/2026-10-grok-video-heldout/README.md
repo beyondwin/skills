@@ -1,5 +1,9 @@
 # grok-video held-out travel check
 
+Historical study. `grok-video` was retired on 2026-10-28. The commands and
+support observations below describe the original study, not a currently
+installable product. See the [retirement decision](../../learning/cases/2026-10-28-retire-image-workbench-and-simplify-repository.md).
+
 Date: 2026-10-25. Environment: macOS, this Grok session, `reference_to_video`.
 The skill bytes are the hashes in [protocol.md](protocol.md). They were not
 edited after those hashes were written. Clips stay in the session folder and

@@ -8,6 +8,12 @@ import pathlib
 import sys
 
 
+if sys.version_info < (3, 11):
+    raise SystemExit(
+        "Repository tools require Python 3.11 or newer; "
+        "run this command with python3.11 or newer."
+    )
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))

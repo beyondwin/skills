@@ -1,6 +1,6 @@
 # 설치
 
-`korean-writing-editor`, `image-workbench`, `how-it-works`는 `$스킬이름` 또는 `/스킬이름`으로 직접 호출해야 합니다. `grok-video`는 Grok에게 동영상을 부탁하면 켜집니다. `grok-image`는 Grok에게 정지 이미지를 부탁하면 켜집니다.
+두 스킬 모두 `$스킬이름` 또는 `/스킬이름`으로 직접 호출해야 하며, 요청 내용만으로 자동 활성화하지 않습니다.
 
 [English](../en/installation.md) · [호환성](compatibility.md) · [안전과 개인정보](safety-and-privacy.md) · [검증](verification.md)
 
@@ -10,10 +10,7 @@
 | 스킬 | 사용할 도구와 설치 방법 | 안내 |
 | --- | --- | --- |
 | [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md) | Codex `$skill-installer` | [Codex 설치](install-codex.md) |
-| [`image-workbench`](../../../skills/image-workbench/README.ko.md) | Codex `$skill-installer`, Grok 로컬 링크 | [Codex 설치](install-codex.md), [로컬 링크](install-local.md) |
 | [`how-it-works`](../../../skills/how-it-works/README.ko.md) | Codex, Claude Code: 로컬 링크 | [로컬 링크](install-local.md) |
-| [`grok-video`](../../../skills/grok-video/README.ko.md) | Grok 로컬 링크 | [로컬 링크](install-local.md) |
-| [`grok-image`](../../../skills/grok-image/README.ko.md) | Grok 로컬 링크 | [로컬 링크](install-local.md) |
 
 로컬 링크는 저장소를 클론한 뒤, 실행 도구가 클론 안의 스킬 폴더를 읽도록 연결하는
 방법입니다. 설치가 끝나면 각 스킬 README의 첫 요청 예시로 사용을 시작하세요.

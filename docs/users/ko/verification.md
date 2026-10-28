@@ -2,7 +2,10 @@
 
 [English](../en/verification.md) · [호환성](compatibility.md) · [안전과 개인정보](safety-and-privacy.md)
 
-필수 검사는 자격 증명 없이 돌고 모델을 부르지 않습니다. 통과는 저장소가 자기 규칙을 지키고 있다는 뜻입니다. 모델이 글을 잘 고치거나 그림을 잘 만든다는 뜻은 아닙니다.
+필수 검사는 자격 증명 없이 돌고 모델을 부르지 않습니다. 통과는 저장소가 자기 규칙을 지키고 있다는 뜻입니다. 모델의 교정이나 설명 품질을 보장하지는 않습니다.
+
+저장소 도구는 표준 라이브러리 `tomllib`을 사용하므로 Python 3.11 이상이 필요합니다.
+이는 개발·검증 도구의 요구사항이며, 설치한 스킬을 읽고 쓰는 조건과는 별개입니다.
 
 말 뜻: 픽스처는 미리 만들어 둔 검사 예시입니다. smoke는 실제로 한 번 돌려 본 기록입니다. `not_measured`는 아직 이 환경에서 확인하지 않음, `current-bounded`는 버전과 hash만 기록에 묶였다는 뜻입니다.
 
@@ -17,22 +20,18 @@ python3 scripts/verify.py
 - korean-offline
 - korean-live-unit
 - korean-live-dry-run
-- image-contract
-- image-inspector
 - how-it-works-contract
-- grok-video-contract
-- grok-image-contract
 - python-compile
 
 CI는 Ubuntu에서 이 검증을 돌립니다. Ubuntu CI 통과는 macOS 지원을 증명하지 않습니다.
 
-스킬 하나만 검사하려면 이름을 넘깁니다. `product-contract`, 그 스킬의 단계, `python-compile`만 돕니다. 등록된 이름이면 됩니다. 예:
+스킬 하나만 검사하려면 이름을 넘깁니다. `product-contract`, 그 스킬의 단계, `python-compile`만 돕니다. 두 제품 이름 중 하나를 사용합니다. 예:
 
 ```bash
 python3 scripts/verify.py --skill how-it-works
 ```
 
-제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`image-workbench`](../../../skills/image-workbench/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md), [`grok-video`](../../../skills/grok-video/README.ko.md), [`grok-image`](../../../skills/grok-image/README.ko.md).
+제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md).
 
 ## 공유 증거 문장
 
@@ -44,8 +43,7 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 
 오프라인 검사는 고정된 계약만 증명합니다. 제품별 픽스처 경로는 각 제품 관리자 `testing.md`에 있습니다.
 
-- Korean Writing Editor: 오프라인 35개(`normative=10 preservation=8 noop=6 voice=4 trigger=7`). 새 라이브 증거는 runner 18을 쓰며, 예전 runner 영수증은 거절됩니다.
-- Image Workbench: 픽스처 32개와 mutation(일부러 망가뜨린 변형) 17개.
+- Korean Writing Editor: 오프라인 37개(`normative=10 preservation=9 noop=7 voice=4 trigger=7`). 새 라이브 증거는 runner 18을 쓰며, 예전 runner 영수증은 거절됩니다.
 - 한국어 후보: hard 검사(필수 검사)가 하나라도 실패하면 `failed`입니다. hard 검사를 통과해도 의미·귀속·요청한 편집이 관측되지 않으면 `partially_verified`입니다. 오프라인 통과만으로 라이브 상태가 되지 않습니다.
 - How It Works: fence/hop 유효성, loading, syntax, meaning은 각각 따로 증거가 필요합니다. 메타데이터가 맞는 것만으로 모델 실행을 증명하지 않습니다.
 
@@ -65,8 +63,8 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 - `blocked`: 실행 전에 막힘
 - `not_measured`: 아직 이 환경에서 확인하지 않음
 
-오프라인 통과를 `partially_verified`로, 공급자를 쓸 수 없는 상황을 통과로 보고하지 마세요. 사용자 한국어 원문, 공급자 응답, 비공개 참조 이미지, 생성 이미지, 자격 증명, receipt는 커밋하지 않습니다.
+오프라인 통과를 `partially_verified`로, 공급자를 쓸 수 없는 상황을 통과로 보고하지 마세요. 사용자 한국어 원문, 공급자 응답, 자격 증명, receipt는 커밋하지 않습니다.
 
 ## 한계
 
-측정한 지원과 픽스처 결과만 보고하세요. 플러그인 디렉터리 등록, 모든 호스트 지원, 일반 품질, 라이브 이미지 품질, 권리 확정, 공급자 우월을 주장하지 마세요.
+측정한 지원과 픽스처 결과만 보고하세요. 플러그인 디렉터리 등록, 모든 호스트 지원, 일반 품질, 권리 확정, 공급자 우월을 주장하지 마세요.

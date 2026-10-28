@@ -1,6 +1,0 @@
-interface:
-  display_name: "Image Workbench"
-  short_description: "Plan, generate, edit, or audit a project raster image"
-  default_prompt: "Use $image-workbench to plan or audit a project raster asset."
-policy:
-  allow_implicit_invocation: false

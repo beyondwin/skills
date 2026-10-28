@@ -2,9 +2,9 @@
 
 [한국어](../ko/install-local.md) · [Installation](installation.md) · [Compatibility](compatibility.md) · [Safety and privacy](safety-and-privacy.md) · [Verification](verification.md)
 
-How It Works, Image Workbench on Grok, Grok Video, and Grok Image are not copied. You clone this repo once and add a link (symlink) from each host's skill folder to the skill folder in your clone. A `git pull` in the clone then updates every host at once.
+How It Works uses a local link. You clone this repo once and add a link (symlink) from each host's skill folder to the skill folder in your clone. A `git pull` in the clone then updates every host at once.
 
-Every section below has the same three steps:
+Installation has three steps:
 
 1. Clone the repo and create the host folders.
 2. Run the Python block once per link.
@@ -12,13 +12,13 @@ Every section below has the same three steps:
 
 ## How to run the Python block
 
-The block is the same in every section. It takes two arguments: the skill folder (source) and where the link goes (target). It checks that the source is a skill folder, treats an identical link as success, and never replaces a different link, a broken link, a file, or a folder. If something appears at the target while it runs, it stops; look at the target, then run it again.
+The block takes two arguments: the skill folder (source) and where the link goes (target). It checks that the source is a skill folder, treats an identical link as success, and never replaces a different link, a broken link, a file, or a folder. If something appears at the target while it runs, it stops; look at the target, then run it again.
 
 In a terminal, type the first line given in the section (`python3 - ... <<'PY'`), paste the block unchanged on the next lines, and end with `PY` on its own line. Keep the quotes around both arguments.
 
 ## how-it-works
 
-For Codex and Claude Code. Public path: https://github.com/beyondwin/skills/tree/main/skills/how-it-works. You make two links: Codex reads `~/.agents/skills/how-it-works`, Claude Code reads `~/.claude/skills/how-it-works`. Do not add a copy under `~/.codex` or `~/.grok`.
+For Codex and Claude Code. Public path: https://github.com/beyondwin/skills/tree/main/skills/how-it-works. You make two links: Codex reads `~/.agents/skills/how-it-works`, Claude Code reads `~/.claude/skills/how-it-works`. Do not add a copy under `~/.codex`.
 
 1. Clone and create the folders.
 
@@ -66,153 +66,6 @@ print("linked")
 
 3. First calls are in the [`how-it-works` README](../../../skills/how-it-works/README.md).
 
-## image-workbench
-
-For Grok. Public path: https://github.com/beyondwin/skills/tree/main/skills/image-workbench. You make one link in `~/.agents/skills`. Codex reads that folder too, so if you use both hosts, this one link serves both; do not also install a Codex copy with `$skill-installer`. On Codex alone, use [Codex install](install-codex.md) instead. Do not add a copy under `~/.grok` or `~/.codex`.
-
-1. Clone and create the folder.
-
-```bash
-git clone https://github.com/beyondwin/skills.git
-cd skills
-mkdir -p ~/.agents/skills
-```
-
-2. Run the block once.
-
-<!-- image-workbench-local-links -->
-```python
-import os
-import sys
-from pathlib import Path
-
-if len(sys.argv) != 3:
-    raise SystemExit("usage: python3 - SOURCE TARGET")
-source = Path(sys.argv[1]).expanduser().resolve(strict=True)
-target = Path(os.path.abspath(os.path.expanduser(sys.argv[2])))
-if not source.is_dir() or not (source / "SKILL.md").is_file():
-    raise SystemExit("source must be a skill directory")
-if target.is_symlink():
-    try:
-        same = target.resolve(strict=True) == source
-    except (OSError, RuntimeError):
-        same = False
-    if same:
-        print("already linked")
-        raise SystemExit(0)
-    raise SystemExit("refusing different or dangling link")
-if target.exists():
-    raise SystemExit("refusing existing file or directory")
-target.parent.mkdir(parents=True, exist_ok=True)
-try:
-    target.symlink_to(source, target_is_directory=True)
-except FileExistsError:
-    raise SystemExit("target appeared during installation; inspect it before retrying")
-print("linked")
-```
-
-- Grok: `python3 - "$PWD/skills/image-workbench" "$HOME/.agents/skills/image-workbench" <<'PY'`
-
-3. First calls are in the [`image-workbench` README](../../../skills/image-workbench/README.md).
-
-## grok-video
-
-For Grok. Public path: https://github.com/beyondwin/skills/tree/main/skills/grok-video. You make one link in `~/.agents/skills`. Do not add a copy under `~/.grok` or `~/.codex`.
-
-1. Clone and create the folder.
-
-```bash
-git clone https://github.com/beyondwin/skills.git
-cd skills
-mkdir -p ~/.agents/skills
-```
-
-2. Run the block once.
-
-<!-- grok-video-local-links -->
-```python
-import os
-import sys
-from pathlib import Path
-
-if len(sys.argv) != 3:
-    raise SystemExit("usage: python3 - SOURCE TARGET")
-source = Path(sys.argv[1]).expanduser().resolve(strict=True)
-target = Path(os.path.abspath(os.path.expanduser(sys.argv[2])))
-if not source.is_dir() or not (source / "SKILL.md").is_file():
-    raise SystemExit("source must be a skill directory")
-if target.is_symlink():
-    try:
-        same = target.resolve(strict=True) == source
-    except (OSError, RuntimeError):
-        same = False
-    if same:
-        print("already linked")
-        raise SystemExit(0)
-    raise SystemExit("refusing different or dangling link")
-if target.exists():
-    raise SystemExit("refusing existing file or directory")
-target.parent.mkdir(parents=True, exist_ok=True)
-try:
-    target.symlink_to(source, target_is_directory=True)
-except FileExistsError:
-    raise SystemExit("target appeared during installation; inspect it before retrying")
-print("linked")
-```
-
-- Grok: `python3 - "$PWD/skills/grok-video" "$HOME/.agents/skills/grok-video" <<'PY'`
-
-3. First calls are in the [`grok-video` README](../../../skills/grok-video/README.md).
-
-## grok-image
-
-For Grok. Public path: https://github.com/beyondwin/skills/tree/main/skills/grok-image. You make one link in `~/.agents/skills`. Do not add a copy under `~/.grok` or `~/.codex`.
-
-1. Clone and create the folder.
-
-```bash
-git clone https://github.com/beyondwin/skills.git
-cd skills
-mkdir -p ~/.agents/skills
-```
-
-2. Run the block once.
-
-<!-- grok-image-local-links -->
-```python
-import os
-import sys
-from pathlib import Path
-
-if len(sys.argv) != 3:
-    raise SystemExit("usage: python3 - SOURCE TARGET")
-source = Path(sys.argv[1]).expanduser().resolve(strict=True)
-target = Path(os.path.abspath(os.path.expanduser(sys.argv[2])))
-if not source.is_dir() or not (source / "SKILL.md").is_file():
-    raise SystemExit("source must be a skill directory")
-if target.is_symlink():
-    try:
-        same = target.resolve(strict=True) == source
-    except (OSError, RuntimeError):
-        same = False
-    if same:
-        print("already linked")
-        raise SystemExit(0)
-    raise SystemExit("refusing different or dangling link")
-if target.exists():
-    raise SystemExit("refusing existing file or directory")
-target.parent.mkdir(parents=True, exist_ok=True)
-try:
-    target.symlink_to(source, target_is_directory=True)
-except FileExistsError:
-    raise SystemExit("target appeared during installation; inspect it before retrying")
-print("linked")
-```
-
-- Grok: `python3 - "$PWD/skills/grok-image" "$HOME/.agents/skills/grok-image" <<'PY'`
-
-3. First calls are in the [`grok-image` README](../../../skills/grok-image/README.md).
-
 ## Update and uninstall
 
 To update, run `git pull` in your clone; the links pick up the change. To remove a skill, inspect each link with `ls -ld`, then remove only that link.
@@ -222,18 +75,6 @@ To update, run `git pull` in your clone; the links pick up the change. To remove
 ls -ld ~/.agents/skills/how-it-works ~/.claude/skills/how-it-works
 unlink ~/.agents/skills/how-it-works
 unlink ~/.claude/skills/how-it-works
-
-# image-workbench
-ls -ld ~/.agents/skills/image-workbench
-unlink ~/.agents/skills/image-workbench
-
-# grok-video
-ls -ld ~/.agents/skills/grok-video
-unlink ~/.agents/skills/grok-video
-
-# grok-image
-ls -ld ~/.agents/skills/grok-image
-unlink ~/.agents/skills/grok-image
 ```
 
 Never delete the parent `skills` folder or a home folder. Never pipe a remote script into a shell, and never replace an install you have not inspected.

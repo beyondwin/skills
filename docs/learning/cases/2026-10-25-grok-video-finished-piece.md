@@ -11,13 +11,13 @@
 
 ## 당시 조건
 
-영상 도구는 `reference_to_video`뿐이다. 플래너는 비어 있으면 6초, 720p, 16:9를 채우고, 길이는 1초에서 15초까지 받는다. 초안은 480p다. 클립 절차의 근거는 [고정 샷 사례](2026-10-25-grok-video-pinned-shot.md), [샷 확인](../../../skills/grok-video/references/shot-check.md), 그리고 같은 날 채점된 [홀드아웃 이동](../../research/2026-10-grok-video-heldout/README.md)이다. 설치본은 `skills/grok-video/`만 담는다.
+영상 도구는 `reference_to_video`뿐이다. 플래너는 비어 있으면 6초, 720p, 16:9를 채우고, 길이는 1초에서 15초까지 받는다. 초안은 480p다. 클립 절차의 근거는 [고정 샷 사례](2026-10-25-grok-video-pinned-shot.md), [샷 확인](https://github.com/beyondwin/skills/blob/669edcf396e238e343dedc18f0faa7c0beb0e5f6/skills/grok-video/references/shot-check.md), 그리고 같은 날 채점된 [홀드아웃 이동](../../research/2026-10-grok-video-heldout/README.md)이다. 설치본은 `skills/grok-video/`만 담는다.
 
 ## 대안과 선택
 
 스타일 문장을 늘리는 안은 머그에서 방을 바꿨고, 배에서는 목적지를 비우면 주제가 끝에 닿지 못했다. 중간 키프레임은 포즈가 다른 스틸이 배를 돌렸다. 한 편의 샷 목록, 컷, 색, 소리를 `SKILL.md`의 필수 절차로 넣는 안은 측정이 없는 규칙을 클립 계약에 섞는다. 그 안을 두지 않았다.
 
-고른 곳은 저장소 사용자 가이드다. 영어는 [A finished Grok video](../../users/en/grok-video-piece.md), 한국어는 [Grok 동영상으로 한 편 만들기](../../users/ko/grok-video-piece.md)이다. 클립의 문장과 고정은 플래너가 그대로 담당한다. 가이드는 설치본에 들어가지 않는다. 호출하는 사람이 설치 폴더만 볼 때의 발견 경로는 이번 선택에서 좁다. 그 좁음을 감수하고, 측정되지 않은 마무리 절차가 모든 클립 요청에 붙는 쪽은 두지 않았다.
+고른 곳은 저장소 사용자 가이드다. 영어는 [A finished Grok video](https://github.com/beyondwin/skills/blob/669edcf396e238e343dedc18f0faa7c0beb0e5f6/docs/users/en/grok-video-piece.md), 한국어는 [Grok 동영상으로 한 편 만들기](https://github.com/beyondwin/skills/blob/669edcf396e238e343dedc18f0faa7c0beb0e5f6/docs/users/ko/grok-video-piece.md)이다. 클립의 문장과 고정은 플래너가 그대로 담당한다. 가이드는 설치본에 들어가지 않는다. 호출하는 사람이 설치 폴더만 볼 때의 발견 경로는 이번 선택에서 좁다. 그 좁음을 감수하고, 측정되지 않은 마무리 절차가 모든 클립 요청에 붙는 쪽은 두지 않았다.
 
 ## 구현 방법
 
@@ -34,3 +34,9 @@
 ## 다음에 쓸 배움
 
 한 편의 화면은 스틸에서 정하고, 클립은 그 스틸의 변화 하나만 고정해 맡긴다. 끝 스틸은 방향이 같을 때만 고정한다. 컷과 색과 소리는 파일이 생긴 뒤에 올린다. 스타일 단어를 늘리는 일은 이번 사물 샷에서 장면을 지키는 방법이 아니었다. 마지막 프레임 합격은 중간이 깨끗하다는 뜻이 아니다. 이 읽기는 2026-10-25의 사물 샷에 한정한다.
+
+## 2026-10-28 후속 기록
+
+grok-video 전체를 [별도 결정](2026-10-28-retire-image-workbench-and-simplify-repository.md)으로 종료했습니다.
+위 결과와 유지 판단은 당시 기록이며 현재 설치·지원 안내가 아닙니다.
+함께 삭제한 사용자 가이드와 샷 확인 문서는 삭제 전 커밋의 고정 링크로 보존합니다.

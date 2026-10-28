@@ -16,7 +16,6 @@ User guides live in [`docs/users/`](users/), in English (`en`) and Korean (`ko`)
 | Compatibility | [en](users/en/compatibility.md) | [ko](users/ko/compatibility.md) |
 | Safety and privacy | [en](users/en/safety-and-privacy.md) | [ko](users/ko/safety-and-privacy.md) |
 | Verification | [en](users/en/verification.md) | [ko](users/ko/verification.md) |
-| A finished Grok video | [en](users/en/grok-video-piece.md) | [ko](users/ko/grok-video-piece.md) |
 
 ## Use a skill
 
@@ -25,19 +24,15 @@ Each skill README covers install, first call, and limits.
 | Skill | English | Korean |
 | --- | --- | --- |
 | `korean-writing-editor` | [en](../skills/korean-writing-editor/README.md) | [ko](../skills/korean-writing-editor/README.ko.md) |
-| `image-workbench` | [en](../skills/image-workbench/README.md) | [ko](../skills/image-workbench/README.ko.md) |
 | `how-it-works` | [en](../skills/how-it-works/README.md) | [ko](../skills/how-it-works/README.ko.md) |
-| `grok-video` | [en](../skills/grok-video/README.md) | [ko](../skills/grok-video/README.ko.md) |
-| `grok-image` | [en](../skills/grok-image/README.md) | [ko](../skills/grok-image/README.ko.md) |
 
 ## Maintain, change, or release
 
 Contracts, tests, and release rules are in [`docs/maintainers/`](maintainers/). How
 the tree is split is in [architecture](maintainers/repository/architecture.md).
 
-## History, research, and learning
+## Research and decisions
 
-- [`docs/history/`](history/): designs still in progress.
 - [`docs/research/`](research/README.md): measured runs of skills and workflows.
 - [`docs/learning/`](learning/README.md): why work began, decisions and outcomes,
   retirement reasons, and reusable insights, written in Korean.

@@ -24,9 +24,9 @@ separated the mug skill take (about 2) from the bare mug take (about 50).
 
 | File | SHA-256 |
 | --- | --- |
-| `skills/grok-video/SKILL.md` | `b257dd21c27e883423cdc653be00dc1190b15786f240494386950a2abd83e7af` |
-| `skills/grok-video/scripts/plan_shot.py` | `800cce1df6038a9f99f545446de761c5fee3850a523fab3a15a60a6105025bbc` |
-| `skills/grok-video/references/shot-check.md` | `f899b0623c0a3392cb83c08aa1b42c9f9c42ccc4bed5d345bbad7d8bfc749401` |
+| [skills/grok-video/SKILL.md](https://github.com/beyondwin/skills/blob/669edcf396e238e343dedc18f0faa7c0beb0e5f6/skills/grok-video/SKILL.md) | `b257dd21c27e883423cdc653be00dc1190b15786f240494386950a2abd83e7af` |
+| [skills/grok-video/scripts/plan_shot.py](https://github.com/beyondwin/skills/blob/669edcf396e238e343dedc18f0faa7c0beb0e5f6/skills/grok-video/scripts/plan_shot.py) | `800cce1df6038a9f99f545446de761c5fee3850a523fab3a15a60a6105025bbc` |
+| [skills/grok-video/references/shot-check.md](https://github.com/beyondwin/skills/blob/669edcf396e238e343dedc18f0faa7c0beb0e5f6/skills/grok-video/references/shot-check.md) | `f899b0623c0a3392cb83c08aa1b42c9f9c42ccc4bed5d345bbad7d8bfc749401` |
 
 `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/products/grok-video -p 'test_*.py' -b` reported 13 tests, OK, before any generation.
 
@@ -122,3 +122,11 @@ end still from the opening with the same edit line and generate again. The
 correction is a separate result. It does not change the first-take count.
 
 No skill file changes in this study. Clips and stills stay out of git.
+
+## Historical source access (2026-10-28)
+
+`grok-video` was retired; the source links above now name its last pre-retirement
+repository snapshot. The preregistered hashes and results have not been changed.
+The three source hashes were checked against that Git snapshot and match the
+preregistered values. This verifies the archived source bytes, not a replay of
+the image or video runs. See the [retirement decision](../../learning/cases/2026-10-28-retire-image-workbench-and-simplify-repository.md).

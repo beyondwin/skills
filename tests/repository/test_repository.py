@@ -16,10 +16,12 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from scripts.lib.product_contract import (  # noqa: E402
+    load_product_release,
     stage_product,
     validate_product,
 )
 from scripts.lib.product_registry import load_registry  # noqa: E402
+from scripts.lib.documentation import broken_markdown_links  # noqa: E402
 
 REGISTRY = load_registry(ROOT / "products.toml")
 SKILLS = tuple(ROOT / "skills" / name for name in REGISTRY.names)
@@ -132,12 +134,8 @@ class OpenAIMetadataTests(unittest.TestCase):
             self.assertIn("short_description:", text)
             self.assertIn("default_prompt:", text)
             self.assertIn(f"${skill.name}", text)
-            if skill.name in ("grok-image", "grok-video"):
-                self.assertIn("allow_implicit_invocation: true", text)
-                self.assertNotIn("allow_implicit_invocation: false", text)
-            else:
-                self.assertIn("allow_implicit_invocation: false", text)
-                self.assertNotIn("allow_implicit_invocation: true", text)
+            self.assertIn("allow_implicit_invocation: false", text)
+            self.assertNotIn("allow_implicit_invocation: true", text)
             lowered = text.lower()
             self.assertNotIn("translate", lowered)
             self.assertNotIn("detector", lowered)
@@ -179,18 +177,19 @@ class ValidateSkillRejectionTests(unittest.TestCase):
 
     def test_rejects_version_mismatch(self) -> None:
         source = SKILLS[1]
+        version = load_product_release(source).version
 
         def mutate(skill):
             path = skill / "SKILL.md"
             original = path.read_text(encoding="utf-8")
-            mutated = original.replace('version: "3.0.0"', 'version: "1.0.0"', 1)
+            mutated = original.replace(f'version: "{version}"', 'version: "1.0.0"', 1)
             self.assertNotEqual(mutated, original)
             path.write_text(mutated, encoding="utf-8")
 
         staged = self._mutated(source, mutate)
         errors = "\n".join(validate_product(staged, REGISTRY))
         self.assertIn(
-            "release.toml version 3.0.0 != SKILL.md version 1.0.0",
+            f"release.toml version {version} != SKILL.md version 1.0.0",
             errors,
         )
 
@@ -424,6 +423,31 @@ class RepositoryContractTests(unittest.TestCase):
             "documentation.py",
         ):
             self.assertTrue((ROOT / "scripts/lib" / name).is_file(), name)
+
+
+class DocumentAnchorTests(unittest.TestCase):
+    def test_missing_same_page_anchor_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            document = root / "README.md"
+            document.write_text("# Guide\n\n[Missing](#missing)\n", encoding="utf-8")
+            self.assertEqual(
+                broken_markdown_links(root, [document]),
+                ["missing anchor in README.md: #missing"],
+            )
+
+    def test_local_and_cross_file_anchors_share_heading_rules(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            document = root / "README.md"
+            document.write_text(
+                "# Guide\n\n## 설치 방법\n\n## 설치 방법\n\n"
+                "[Local](#설치-방법-1)\n[Encoded](#%EC%84%A4%EC%B9%98-%EB%B0%A9%EB%B2%95)\n"
+                "[Other](Other%20Guide.md#details)\n",
+                encoding="utf-8",
+            )
+            (root / "Other Guide.md").write_text("# Details\n", encoding="utf-8")
+            self.assertEqual(broken_markdown_links(root, [document]), [])
 
 
 if __name__ == "__main__":

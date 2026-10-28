@@ -1,5 +1,9 @@
 # Focused image repair, 2026-10-23
 
+Historical study. `image-workbench` was retired on 2026-10-28; the versions,
+commands, and support observations below describe the original study, not a
+currently installable product. See the [retirement decision](../../learning/cases/2026-10-28-retire-image-workbench-and-simplify-repository.md).
+
 Status: complete. Adopt the focused requirement-scope fix as **2.1.6**. The
 verified delivery workflow used Codex review and Grok drawing by user request.
 Grok autonomous-review improvement is **not** established.

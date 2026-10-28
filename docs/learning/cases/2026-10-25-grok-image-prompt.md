@@ -20,7 +20,7 @@
 
 ## 구현 방법
 
-`skills/grok-image/SKILL.md`가 그 순서와 질문 기준, 한 번의 수정 후 중단을 적는다. 호스트는 Grok뿐이다. 맞는 정지 이미지 요청이면 켜지게 했다.
+[skills/grok-image/SKILL.md](https://github.com/beyondwin/skills/blob/669edcf396e238e343dedc18f0faa7c0beb0e5f6/skills/grok-image/SKILL.md)가 그 순서와 질문 기준, 한 번의 수정 후 중단을 적는다. 호스트는 Grok뿐이다. 맞는 정지 이미지 요청이면 켜지게 했다.
 
 ## 확인한 결과
 
@@ -37,3 +37,8 @@
 ## 다음에 쓸 배움
 
 정지 이미지는 보고 싶은 사물과 개수와 재질을 문장에 적는다. 8K나 masterpiece는 붙이지 않는다. 주제가 이미 있으면 빛과 카메라는 채운다. 이 판단은 Grok 정지 이미지와 위 세 주제에서만 확인했다.
+
+## 2026-10-28 후속 기록
+
+grok-image 전체를 [별도 결정](2026-10-28-retire-image-workbench-and-simplify-repository.md)으로 종료했습니다.
+위 결과와 유지 판단은 당시 기록이며 현재 설치·지원 안내가 아닙니다.

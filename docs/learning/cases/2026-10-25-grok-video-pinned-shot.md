@@ -21,7 +21,7 @@ Grok Build의 영상 도구는 `reference_to_video`뿐이다. 직전 비교는 �
 
 ## 구현 방법
 
-`skills/grok-video/scripts/plan_shot.py`가 질문, 프롬프트, 핀, 6초, 720p, 16:9를 정한다. 이동은 시작 스틸과 위치만 바꾼 끝 스틸을 고정한다. 제자리는 같은 스틸을 양 끝에 둔다. 중간 키프레임은 첫 테이크에 넣지 않는다.
+[skills/grok-video/scripts/plan_shot.py](https://github.com/beyondwin/skills/blob/669edcf396e238e343dedc18f0faa7c0beb0e5f6/skills/grok-video/scripts/plan_shot.py)가 질문, 프롬프트, 핀, 6초, 720p, 16:9를 정한다. 이동은 시작 스틸과 위치만 바꾼 끝 스틸을 고정한다. 제자리는 같은 스틸을 양 끝에 둔다. 중간 키프레임은 첫 테이크에 넣지 않는다.
 
 ## 확인한 결과
 
@@ -40,3 +40,8 @@ Grok Build의 영상 도구는 `reference_to_video`뿐이다. 직전 비교는 �
 이동 샷은 위치만 바꾼 끝 스틸을 고정한다. 스타일 단어만으로는 장면을 지키지 못한다. 끝 스틸의 크기가 바뀌면 영상도 그 크기를 따라간다.
 
 2026-10-25 후속: 보트·머그 밖의 세 장면은 [홀드아웃 사례](2026-10-25-grok-video-heldout.md)에 적었다. 이 사례의 유지 판단을 바꾸지 않는다.
+
+## 2026-10-28 후속 기록
+
+grok-video 전체를 [별도 결정](2026-10-28-retire-image-workbench-and-simplify-repository.md)으로 종료했습니다.
+위 결과와 유지 판단은 당시 기록이며 현재 설치·지원 안내가 아닙니다.

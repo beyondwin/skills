@@ -116,11 +116,14 @@
 
 ## 한 편의 완성도는 클립 절차 밖에 둔다
 
+2026-10-28 후속: 아래 두 인사이트는 종료된 grok-video의 관찰을 보존합니다.
+[종료 결정](cases/2026-10-28-retire-image-workbench-and-simplify-repository.md) 이후의 제품 지원이나 실행 지침을 뜻하지 않습니다.
+
 - **주장:** 여러 샷의 컷, 색, 소리는 클립 하나를 만드는 절차에 넣지 않습니다.
   측정된 것은 고정한 장면이 이동 뒤에 남는지입니다.
 - **근거:** [완성본 사례](cases/2026-10-25-grok-video-finished-piece.md)가 가이드로 남긴 판단입니다.
   장면 유지의 숫자는 [고정 샷 사례](cases/2026-10-25-grok-video-pinned-shot.md)와
-  [샷 확인](../../skills/grok-video/references/shot-check.md)에 있습니다.
+  [샷 확인](https://github.com/beyondwin/skills/blob/669edcf396e238e343dedc18f0faa7c0beb0e5f6/skills/grok-video/references/shot-check.md)에 있습니다.
 - **범위:** 2026-10-25의 사물 샷입니다. 사람, 대사, 빠른 동작, 상영본 비교는 그 측정에 없습니다.
   가이드가 마무리를 측정하지 않았다고 적은 것은 기록이며, 마무리가 효과 없다는 실험 결과는 아닙니다.
 - **예외:** 사용자가 여러 샷을 명시하면 샷마다 기존 클립 절차를 반복합니다.
