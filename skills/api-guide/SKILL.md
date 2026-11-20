@@ -44,7 +44,9 @@ the first such slot; otherwise use the default and say which default you used.
    diagramming skill.
 6. Run the checks in Verify. Fix the page, then check again.
 7. Publish with the Artifact tool. A revision publishes the same file to the same URL. The page
-   is private; tell the user it is shared from the page's Share menu.
+   is private; tell the user it is shared from the page's Share menu. Without the Artifact tool
+   (a headless `claude -p` session has none), save the page as an HTML file, give its absolute
+   path, and say it was not published. Do not offer other hosting.
 8. Report, per Report.
 
 ## Page skeleton
@@ -79,7 +81,8 @@ Before publishing, every item holds:
 - A field name used in two responses follows the same rule in both, or each card defines it.
 - Appendix models and examples agree with the field tables on names and nullability.
 - Each card's error table covers the throw sites reachable from that handler, request
-  validation, the auth layer, and body size limits.
+  validation, the auth layer, and body size limits. A code defined in a shared auth or error
+  library is listed only after tracing that it can fire for this endpoint's actual inputs.
 - A limit read from configuration names its default; deployed values are checked or the page
   says they were not.
 - An example is called captured only if a running server returned it; otherwise it is labeled
@@ -113,3 +116,10 @@ existed (12 endpoints in two services, 2026-11). No run of the skill itself is r
 - The page told callers to request a fresh upload URL after a timeout, which made a caller that
   had already finished the upload send the whole file again. The server could not see whether
   the upload had finished. Say what the server can and cannot observe at each step.
+- A 403 for accounts without a selected role was listed on every card because the auth library
+  defines it. The endpoints required a role that an unselected-role token also satisfied, so
+  the code never fired. The first run of the skill on another API caught it.
+
+From the first run of the skill (one new endpoint, app readers, headless `claude -p`,
+2026-11-20): the session had no Artifact tool, saved the page as a file, and then suggested
+publishing it to unrelated hosts.

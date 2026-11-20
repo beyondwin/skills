@@ -1,7 +1,7 @@
 # api-guide testing
 
-Activation is explicit-only. No live run of the current payload has been made; host
-behavior and page quality are `not_measured`.
+Activation is explicit-only. One headless live run is recorded below; artifact publishing
+and page quality beyond spot checks are `not_measured`.
 
 ## Provider-free evidence
 
@@ -22,5 +22,19 @@ that a published page is accurate.
 
 ## Live runs
 
-None yet. A useful first run is a scope the author did not see while writing the skill,
-checked by a developer who knows that server, with the result recorded here.
+### 2026-11-20, headless Claude Code, opus
+
+- Scope: one endpoint added that day in a private server repository, app developers as
+  readers, with the app repository for the to-do section. Not the scope the skill was
+  written from. Server and app contents stay out of this repository.
+- Launch: `claude -p "/api-guide ..." --permission-mode bypassPermissions --model opus` with
+  user settings, so the linked skill loaded. 46 tool calls, about 11 minutes.
+- The skill loaded and followed the steps: pinned both commits, read code rather than the
+  contract file, wrote the to-do section at behavior level, and reported four gaps between
+  the contract file and the code.
+- The session had no Artifact tool; it saved an HTML file. `SKILL.md` now says so.
+- Spot checks by the maintainer against the code: three claims held (a 403 code that cannot
+  fire, a limit shared by two kinds of rows, a 500 without the envelope). The 403 finding
+  also corrected an earlier hand-written guide.
+- Not measured: artifact publishing, a full review of the page by someone who owns the
+  server, other hosts.
