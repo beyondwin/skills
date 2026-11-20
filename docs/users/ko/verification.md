@@ -21,17 +21,18 @@ python3 scripts/verify.py
 - korean-live-unit
 - korean-live-dry-run
 - how-it-works-contract
+- api-guide-contract
 - python-compile
 
 CI는 Ubuntu에서 이 검증을 돌립니다. Ubuntu CI 통과는 macOS 지원을 증명하지 않습니다.
 
-스킬 하나만 검사하려면 이름을 넘깁니다. `product-contract`, 그 스킬의 단계, `python-compile`만 돕니다. 두 제품 이름 중 하나를 사용합니다. 예:
+스킬 하나만 검사하려면 이름을 넘깁니다. `product-contract`, 그 스킬의 단계, `python-compile`만 돕니다. 제품 이름 중 하나를 사용합니다. 예:
 
 ```bash
 python3 scripts/verify.py --skill how-it-works
 ```
 
-제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md).
+제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md), [`api-guide`](../../../skills/api-guide/README.ko.md).
 
 ## 공유 증거 문장
 
@@ -46,6 +47,7 @@ Live execution: local, explicit, optional, potentially billable, and never requi
 - Korean Writing Editor: 오프라인 37개(`normative=10 preservation=9 noop=7 voice=4 trigger=7`). 새 라이브 증거는 runner 18을 쓰며, 예전 runner 영수증은 거절됩니다.
 - 한국어 후보: hard 검사(필수 검사)가 하나라도 실패하면 `failed`입니다. hard 검사를 통과해도 의미·귀속·요청한 편집이 관측되지 않으면 `partially_verified`입니다. 오프라인 통과만으로 라이브 상태가 되지 않습니다.
 - How It Works: fence/hop 유효성, loading, syntax, meaning은 각각 따로 증거가 필요합니다. 메타데이터가 맞는 것만으로 모델 실행을 증명하지 않습니다.
+- API Guide: 계약 테스트는 파일 모양만 증명합니다. 실행이 코드를 바르게 읽는지, 올린 페이지가 정확한지는 증명하지 않습니다.
 
 통과는 일반 품질을 증명하지 않습니다.
 

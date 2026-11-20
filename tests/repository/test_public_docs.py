@@ -74,6 +74,7 @@ INSTALLER_COMMANDS = {
         f"{product.skill_path.as_posix()}"
     )
     for product in REGISTRY.products
+    if "codex" in product.supported_hosts
 }
 KOREAN_SUPPORT = (
     "korean-writing-editor: Codex supported; Agent Skills contract portable; other hosts only supported after a recorded smoke."
@@ -81,9 +82,13 @@ KOREAN_SUPPORT = (
 HOW_IT_WORKS_SUPPORT = (
     "how-it-works: Codex and Claude Code supported for local or repository-based use."
 )
+API_GUIDE_SUPPORT = (
+    "api-guide: Claude Code supported for local or repository-based use."
+)
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
     "how-it-works": HOW_IT_WORKS_SUPPORT,
+    "api-guide": API_GUIDE_SUPPORT,
 }
 HOW_IT_WORKS_MKDIR = "mkdir -p ~/.agents/skills ~/.claude/skills"
 HOW_IT_WORKS_AGENTS_INVOCATION = (
@@ -94,6 +99,10 @@ HOW_IT_WORKS_CLAUDE_INVOCATION = (
 )
 HOW_IT_WORKS_UNLINK_AGENTS = "unlink ~/.agents/skills/how-it-works"
 HOW_IT_WORKS_UNLINK_CLAUDE = "unlink ~/.claude/skills/how-it-works"
+API_GUIDE_CLAUDE_INVOCATION = (
+    'python3 - "$PWD/skills/api-guide" "$HOME/.claude/skills/api-guide" <<\'PY\''
+)
+API_GUIDE_UNLINK_CLAUDE = "unlink ~/.claude/skills/api-guide"
 HOW_IT_WORKS_EXPECTED_EN = (
     "one-sentence claim",
     "Mermaid",
@@ -516,7 +525,10 @@ class ProductReadmeOwnershipTests(unittest.TestCase):
                 path = ROOT / product.skill_path / filename
                 _assert_exists(self, path)
                 text = _read(path)
-                self.assertIn(INSTALLER_COMMANDS[product.name], text)
+                if "codex" in product.supported_hosts:
+                    self.assertIn(INSTALLER_COMMANDS[product.name], text)
+                else:
+                    self.assertNotIn("$skill-installer", text, product.name)
                 self.assertIn(SUPPORT_BY_PRODUCT[product.name], text)
                 self.assertIn("CHANGELOG.md", text)
                 maintainer = product.maintainer_docs.as_posix()
@@ -636,7 +648,7 @@ class UserGuideFactTests(unittest.TestCase):
             "safety-and-privacy.md": all_products,
             "verification.md": all_products,
             "install-codex.md": CODEX_PRODUCTS,
-            "install-local.md": ("how-it-works",),
+            "install-local.md": ("how-it-works", "api-guide"),
         }
         for language in ("ko", "en"):
             for filename, names in owned.items():
@@ -708,6 +720,8 @@ class UserGuideFactTests(unittest.TestCase):
             self.assertIn(HOW_IT_WORKS_CLAUDE_INVOCATION, text)
             self.assertIn(HOW_IT_WORKS_UNLINK_AGENTS, text)
             self.assertIn(HOW_IT_WORKS_UNLINK_CLAUDE, text)
+            self.assertIn(API_GUIDE_CLAUDE_INVOCATION, text)
+            self.assertIn(API_GUIDE_UNLINK_CLAUDE, text)
             self.assertNotIn("$skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor", text)
             for name in CODEX_PRODUCTS:
                 self.assertNotIn(INSTALLER_COMMANDS[name], text, rel)
@@ -1288,6 +1302,7 @@ class MaintainerStructureTests(unittest.TestCase):
         expected = {
             "korean-writing-editor": "tests/products/korean-writing-editor/offline/",
             "how-it-works": "tests/products/how-it-works/",
+            "api-guide": "tests/products/api-guide/",
         }
         for name, path in expected.items():
             text = _read(ROOT / "docs" / "maintainers" / "products" / name / "testing.md")

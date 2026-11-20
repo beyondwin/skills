@@ -1,13 +1,13 @@
 # Repository architecture
 
-This repository holds two skills that install separately. This doc says where to look
+This repository holds three skills that install separately. This doc says where to look
 and what to check when you change something. Apache-2.0 applies to the root and to
 each skill.
 
 ## At a glance
 
-The current products are the ones in `products.toml`: `korean-writing-editor`
-and `how-it-works`. Each has
+The current products are the ones in `products.toml`: `korean-writing-editor`,
+`how-it-works`, and `api-guide`. Each has
 its own version and installs on its own from a GitHub path.
 
 ```mermaid
@@ -16,6 +16,7 @@ flowchart TB
   subgraph live ["Current products"]
     K[korean-writing-editor]
     H[how-it-works]
+    A[api-guide]
   end
   R --> live
   live --> SK["skills/ payload"]
@@ -80,6 +81,7 @@ Repository only, never installed:
 | `tests/products/korean-writing-editor/offline/` | Deterministic trigger, mode, preservation, and output fixtures |
 | `tests/products/korean-writing-editor/live/` | Synthetic live runner, unit tests, dry-run, operator notes |
 | `tests/products/how-it-works/` | Synthetic DNS and rebase fixtures and payload tests |
+| `tests/products/api-guide/` | Payload contract tests for frontmatter, references, and the page skeleton |
 | `docs/README.md` | Routes to install, use, maintain, research, and decisions |
 | `docs/users/` | Shared install, compatibility, safety, and verification guides |
 | `docs/maintainers/` | Architecture, registry, versioning, release, product rules |
@@ -106,11 +108,11 @@ Each product's `testing.md` owns its fixture path details.
 
 ## Invocation policy
 
-Both products require explicit invocation. Codex requires
-`agents/openai.yaml` with `policy.allow_implicit_invocation: false`.
-For the supported Claude Code product, `disable-model-invocation: true` is the
-sole host-specific frontmatter exception. Other host-specific fields remain rejected
-for multi-host products.
+Every product requires explicit invocation. Each payload carries
+`agents/openai.yaml` with `policy.allow_implicit_invocation: false`, which Codex reads.
+For products that support Claude Code, `disable-model-invocation: true` is required
+and is the sole host-specific frontmatter exception. Other host-specific fields remain
+rejected for multi-host products.
 
 ## Interfaces
 
@@ -145,4 +147,5 @@ Korean live evaluation is an explicit local task.
 
 Product protocols:
 [korean-writing-editor](../products/korean-writing-editor/contract.md),
-[how-it-works](../products/how-it-works/contract.md).
+[how-it-works](../products/how-it-works/contract.md),
+[api-guide](../products/api-guide/contract.md).

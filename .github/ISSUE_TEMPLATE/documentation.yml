@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Report a documentation issue for `korean-writing-editor`, `how-it-works`,
-        or repository documentation.
+        `api-guide`, or repository documentation.
         Host-support claims must match `products.toml`, the docs, and the
         tests.
 
@@ -23,6 +23,7 @@ body:
       options:
         - korean-writing-editor
         - how-it-works
+        - api-guide
         - repository docs
     validations:
       required: true

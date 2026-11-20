@@ -286,7 +286,38 @@ def _run_product_smoke(root: Path, name: str, skill_root: Path) -> list[str]:
         return _run_korean(root, skill_root)
     if name == "how-it-works":
         return _smoke_how_it_works(skill_root)
+    if name == "api-guide":
+        return _smoke_api_guide(skill_root)
     return [f"unlisted skill is not accepted: {name}"]
+
+
+def _smoke_api_guide(skill_root: Path) -> list[str]:
+    errors: list[str] = []
+    skill_md = skill_root / "SKILL.md"
+    if skill_md.is_file():
+        text = skill_md.read_text(encoding="utf-8")
+        parts = text.split("---", 2)
+        frontmatter = parts[1] if len(parts) > 2 else ""
+        if "disable-model-invocation: true" not in frontmatter:
+            errors.append("api-guide: SKILL.md is not explicit-only")
+        if "Use when" not in frontmatter:
+            errors.append("api-guide: SKILL.md missing Use when")
+        if "/api-guide" not in text:
+            errors.append("api-guide: SKILL.md missing /api-guide")
+    for relative in (
+        "SKILL.md",
+        "LICENSE.txt",
+        "agents/openai.yaml",
+        "references/facts.md",
+        "references/consumer.md",
+        "references/page.html",
+    ):
+        if not (skill_root / relative).is_file():
+            errors.append(f"api-guide: missing {relative}")
+    names = {path.name for path in skill_root.rglob("*") if path.is_file()}
+    if "test_contract.py" in names:
+        errors.append("api-guide: payload includes test_contract.py")
+    return errors
 
 
 def _smoke_how_it_works(skill_root: Path) -> list[str]:

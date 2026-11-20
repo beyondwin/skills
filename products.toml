@@ -34,3 +34,17 @@ owned_paths = [
   "docs/maintainers/products/how-it-works/",
 ]
 verify_stages = ["product-contract", "how-it-works-contract", "python-compile"]
+
+[[products]]
+name = "api-guide"
+display_name = "API Guide"
+skill_path = "skills/api-guide"
+test_path = "tests/products/api-guide"
+maintainer_docs = "docs/maintainers/products/api-guide"
+supported_hosts = ["claude-code"]
+owned_paths = [
+  "skills/api-guide/",
+  "tests/products/api-guide/",
+  "docs/maintainers/products/api-guide/",
+]
+verify_stages = ["product-contract", "api-guide-contract", "python-compile"]

@@ -1,0 +1,305 @@
+<!--
+  Page template for api-guide. The API below is invented; replace every path, field, code,
+  and sentence with checked facts, written in the reader's language. Keep the tokens, the
+  components, the section order, and the card order (head, when, Request, Response, Errors,
+  Handling). The file is a page fragment: the publish step adds the document skeleton.
+  Components:
+    .m.get .m.post .m.put .m.del   method badge
+    .tag.new .tag.chg .tag.first   new, changed, breaks the caller now
+    td.f field  td.t type  td.c code   monospace table cells
+    article.ep > .ep-head, .ep-when, .ep-body > .blk   one API card
+    figure > .fig-box > svg   flow diagram, colors from currentColor and the tokens
+-->
+<title>Exports API Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root {
+  --bg: #f7f8fa; --surface: #ffffff; --fg: #1b2230; --muted: #5b6577; --line: #dde2ea;
+  --accent: #2f5bd3; --accent-soft: #e8eefc;
+  --get: #1f7a4d; --get-soft: #e3f3ea; --post: #b0561a; --post-soft: #fbeee3;
+  --warn: #a15c00; --warn-soft: #fff3df; --gone: #a32a2a; --gone-soft: #fbe7e7;
+  --code-bg: #f0f2f6;
+  --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161d; --surface: #1a1f28; --fg: #e6e9ef; --muted: #9aa4b5; --line: #2c3340;
+    --accent: #86a6ff; --accent-soft: #1f2a44;
+    --get: #6fd3a0; --get-soft: #17302a; --post: #f2a36b; --post-soft: #35251a;
+    --warn: #f0b85a; --warn-soft: #33281a; --gone: #f08a8a; --gone-soft: #3a1f22;
+    --code-bg: #222834; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161d; --surface: #1a1f28; --fg: #e6e9ef; --muted: #9aa4b5; --line: #2c3340;
+  --accent: #86a6ff; --accent-soft: #1f2a44;
+  --get: #6fd3a0; --get-soft: #17302a; --post: #f2a36b; --post-soft: #35251a;
+  --warn: #f0b85a; --warn-soft: #33281a; --gone: #f08a8a; --gone-soft: #3a1f22;
+  --code-bg: #222834; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  background: var(--bg); color: var(--fg); margin: 0;
+  font-family: var(--font-body); font-size: 15px; line-height: 1.65;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 80px;
+}
+.layout { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; }
+main { display: flex; flex-direction: column; gap: 48px; min-width: 0; }
+section, article { display: flex; flex-direction: column; gap: 14px; min-width: 0; scroll-margin-top: 16px; }
+h1 { font-size: 28px; line-height: 1.3; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+h2 { font-size: 22px; margin: 0; text-wrap: balance; padding-bottom: 8px; border-bottom: 2px solid var(--fg); }
+h3 { font-size: 16px; margin: 6px 0 0; }
+p { margin: 0; max-width: 72ch; }
+ul, ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+code, .mono { font-family: var(--font-mono); font-size: 0.86em; }
+code, pre, .mono, svg text { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
+:not(pre) > code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; word-break: break-all; }
+pre { margin: 0; background: var(--code-bg); border-radius: 8px; padding: 12px 14px; overflow-x: auto; font-size: 12.5px; line-height: 1.6; }
+pre code { background: none; padding: 0; font-size: inherit; }
+strong { font-weight: 600; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.lede, .muted { color: var(--muted); }
+.small { font-size: 13px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--muted); }
+nav.toc { font-size: 13.5px; display: flex; flex-direction: column; gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+nav.toc .grp { display: flex; flex-direction: column; gap: 2px; }
+nav.toc .grp > span { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 2px; }
+nav.toc a { color: var(--fg); text-decoration: none; display: flex; gap: 6px; align-items: baseline; padding: 2px 0; }
+nav.toc a:hover { color: var(--accent); }
+nav.toc a .m { min-width: 46px; font-size: 10px; padding: 1px 4px; }
+@media (min-width: 1100px) {
+  .layout { grid-template-columns: 250px minmax(0, 1fr); }
+  nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); max-height: calc(100vh - 32px); overflow-y: auto; align-self: start; }
+}
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+th { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.03em; background: color-mix(in srgb, var(--surface) 70%, var(--bg)); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td.f, td.t, td.c { font-family: var(--font-mono); font-size: 12.5px; white-space: nowrap; }
+td.t { color: var(--accent); }
+td.nw { white-space: nowrap; }
+.m { display: inline-block; min-width: 54px; text-align: center; font-family: var(--font-mono); font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
+.m.get { color: var(--get); background: var(--get-soft); }
+.m.post { color: var(--post); background: var(--post-soft); }
+.m.put { color: var(--accent); background: var(--accent-soft); }
+.m.del { color: var(--gone); background: var(--gone-soft); }
+.tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 4px; white-space: nowrap; }
+.tag.new { color: var(--accent); background: var(--accent-soft); }
+.tag.chg { color: var(--warn); background: var(--warn-soft); }
+.tag.first { color: var(--gone); background: var(--gone-soft); }
+.ep { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 0; gap: 0; overflow: hidden; }
+.ep-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 14px 18px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 80%, var(--bg)); }
+.ep-head code { font-size: 14px; font-weight: 600; background: none; padding: 0; word-break: break-all; }
+.ep-head .tag { margin-left: auto; }
+.ep-body { display: flex; flex-direction: column; }
+.ep-when { padding: 12px 18px 4px; font-size: 14px; }
+.blk { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; padding: 12px 18px; border-top: 1px dashed var(--line); }
+.blk:first-of-type { border-top: 0; }
+.blk > .lab { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: var(--muted); padding-top: 8px; }
+.blk > .lab.err { color: var(--gone); }
+.blk > div { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.blk .table-wrap { border-radius: 8px; }
+.tname { font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; color: var(--accent); }
+details { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; }
+details > summary { cursor: pointer; font-weight: 600; font-size: 13px; }
+details[open] > summary { margin-bottom: 8px; }
+details > div { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+figure { margin: 0; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+figcaption { font-size: 13px; color: var(--muted); max-width: 72ch; }
+.fig-box { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; overflow-x: auto; }
+.fig-box svg { display: block; width: 100%; height: auto; color: var(--fg); min-width: 560px; }
+@media (max-width: 640px) {
+  .blk { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .blk > .lab { padding-top: 0; }
+  .ep-head .tag { margin-left: 0; }
+  .table-wrap table { min-width: 560px; }
+}
+@media (max-width: 520px) {
+  body { padding-block: 24px 56px; }
+  h1 { font-size: 23px; }
+  .fig-box { padding: 12px; }
+}
+</style>
+
+<div class="layout">
+  <nav class="toc" aria-label="Contents">
+    <div class="grp"><span>Start</span>
+      <a href="#todo">To-do</a>
+      <a href="#common">Common rules</a>
+    </div>
+    <div class="grp"><span>Exports</span>
+      <a href="#api-list"><span class="m get">GET</span>List</a>
+      <a href="#api-create"><span class="m post">POST</span>Start</a>
+      <a href="#flow">Flow and results</a>
+    </div>
+    <div class="grp"><span>Appendix</span>
+      <a href="#refs">Checked files</a>
+    </div>
+  </nav>
+
+  <main>
+    <header style="display:flex;flex-direction:column;gap:14px">
+      <h1>Exports API Guide</h1>
+      <p class="lede">Everything a client needs to list and start exports. Every card has the same order: request, response type, the errors that endpoint returns, and what the client does. Examples are composed from the response types.</p>
+      <div class="meta">
+        <span class="chip">Exports <span class="mono">/api/v1</span></span>
+        <span class="chip">as of 2026-01-15, server <span class="mono">abc1234</span></span>
+      </div>
+    </header>
+
+    <!-- Optional: only with a consumer repository. Behavior level, no client file paths. -->
+    <section id="todo">
+      <h2>To-do</h2>
+      <p>The client lists exports today but starts them with a local stand-in. The <span class="tag first">first</span> row breaks the current client.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th></th><th>What to do</th><th>Card</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag first">first</span></td><td>The list status <code>PENDING</code> is gone and <code>QUEUED</code> replaces it. Accept unknown status values with a default instead of rejecting the list.</td><td class="nw"><a href="#api-list">List</a></td></tr>
+          <tr><td>2</td><td>Start exports through the server and follow them by polling the list.</td><td class="nw"><a href="#api-create">Start</a>, <a href="#flow">Flow</a></td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="common">
+      <h2>Common rules</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Item</th><th>Rule</th></tr></thead>
+        <tbody>
+          <tr><td class="nw">Auth</td><td><code>Authorization: Bearer {token}</code> on every request.</td></tr>
+          <tr><td class="nw">Body</td><td>Success <code>{ "code": "OK", "data": ... }</code>, failure <code>{ "code": String, "data": null }</code>. Branch on <code>code</code>. A proxy 502 or 504 may return a body without <code>code</code>; treat it as an unknown code.</td></tr>
+          <tr><td class="nw">Success</td><td>200 and 202 are both success with the same <code>data</code> shape.</td></tr>
+          <tr><td class="nw">Types</td><td><code>String?</code> may be null. A field without <code>?</code> is always present and not null.</td></tr>
+          <tr><td class="nw">Dates</td><td><code>date</code> is <code>"2026-01-15"</code>, <code>date-time</code> is UTC.</td></tr>
+          <tr><td class="nw">Enums</td><td>An unknown value must not reject the whole response.</td></tr>
+          <tr><td class="nw">Headers</td><td><code>Retry-After</code> comes only with 429 <code>EXPORT_4291</code>.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section>
+      <h2>Exports</h2>
+
+      <article class="ep" id="api-list">
+        <div class="ep-head"><span class="m get">GET</span><code>/api/v1/exports</code><span class="tag chg">changed</span></div>
+        <p class="ep-when">The exports screen. Call it when the screen opens and while polling.</p>
+        <div class="ep-body">
+          <div class="blk"><span class="lab">Request</span><div>
+            <div class="table-wrap"><table>
+              <thead><tr><th>query</th><th>Type</th><th>Notes</th></tr></thead>
+              <tbody>
+                <tr><td class="f">limit</td><td class="t">int?</td><td>1 to 50, default 20</td></tr>
+              </tbody>
+            </table></div>
+          </div></div>
+          <div class="blk"><span class="lab">Response</span><div>
+            <p class="small"><span class="tname">data: List&lt;Export&gt;</span>, newest first.</p>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+              <tbody>
+                <tr><td class="f">exportId</td><td class="t">String</td><td>Do not assume a format</td></tr>
+                <tr><td class="f">status</td><td class="t">ExportStatus</td><td><code>QUEUED</code>, <code>RUNNING</code>, <code>DONE</code>, <code>FAILED</code></td></tr>
+                <tr><td class="f">fileUrl</td><td class="t">String?</td><td>Only when <code>DONE</code></td></tr>
+              </tbody>
+            </table></div>
+            <details><summary>Example</summary><div>
+<pre>{ "code": "OK", "data": [
+  { "exportId": "ex_01", "status": "DONE", "fileUrl": "https://files.example/ex_01.csv" },
+  ... ] }</pre>
+            </div></details>
+          </div></div>
+          <div class="blk"><span class="lab err">Errors</span><div>
+            <div class="table-wrap"><table>
+              <thead><tr><th>HTTP</th><th>code</th><th>When</th><th>Client</th></tr></thead>
+              <tbody>
+                <tr><td>400</td><td class="c">EXPORT_4000</td><td><code>limit</code> outside 1 to 50</td><td>Client bug; drop the parameter</td></tr>
+                <tr><td>503</td><td class="c">EXPORT_5030</td><td>The list could not be read</td><td>Show a retry button</td></tr>
+              </tbody>
+            </table></div>
+          </div></div>
+          <div class="blk"><span class="lab">Handling</span><div>
+            <ol class="small">
+              <li>Draw each row from <code>status</code>.</li>
+              <li>Poll while any row is <code>QUEUED</code> or <code>RUNNING</code>.</li>
+            </ol>
+          </div></div>
+        </div>
+      </article>
+
+      <article class="ep" id="api-create">
+        <div class="ep-head"><span class="m post">POST</span><code>/api/v1/exports</code><span class="tag new">new</span></div>
+        <p class="ep-when">The start button. The server queues the export and returns at once.</p>
+        <div class="ep-body">
+          <div class="blk"><span class="lab">Request</span><div>
+            <p class="small">No body.</p>
+          </div></div>
+          <div class="blk"><span class="lab">Response</span><div>
+            <p class="small">202 <span class="tname">data: Export</span> with <code>status: QUEUED</code>.</p>
+          </div></div>
+          <div class="blk"><span class="lab err">Errors</span><div>
+            <div class="table-wrap"><table>
+              <thead><tr><th>HTTP</th><th>code</th><th>When</th><th>Client</th></tr></thead>
+              <tbody>
+                <tr><td>429</td><td class="c">EXPORT_4291</td><td>Three exports already running</td><td>Wait <code>Retry-After</code> seconds, then try once</td></tr>
+              </tbody>
+            </table></div>
+          </div></div>
+          <div class="blk"><span class="lab">Handling</span><div>
+            <ol class="small">
+              <li>Add the returned row to the list, then follow it by <a href="#flow">polling</a>.</li>
+            </ol>
+          </div></div>
+        </div>
+      </article>
+    </section>
+
+    <!-- Optional: multi-step operations. Say what the server can and cannot observe. -->
+    <section id="flow">
+      <h2>Flow and results</h2>
+      <figure>
+        <div class="fig-box">
+          <svg viewBox="0 0 560 90" role="img" aria-label="Export states from queued to done or failed">
+            <g fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="10" y="25" width="110" height="40" rx="8"/>
+              <rect x="200" y="25" width="110" height="40" rx="8"/>
+              <rect x="400" y="5" width="140" height="34" rx="8"/>
+              <rect x="400" y="51" width="140" height="34" rx="8"/>
+              <path d="M120 45 H196 M310 40 L396 22 M310 50 L396 68"/>
+            </g>
+            <g fill="currentColor" font-size="13" text-anchor="middle">
+              <text x="65" y="50">QUEUED</text>
+              <text x="255" y="50">RUNNING</text>
+              <text x="470" y="27">DONE</text>
+              <text x="470" y="73">FAILED</text>
+            </g>
+          </svg>
+        </div>
+        <figcaption>The server moves every state. The client only reads them from the list.</figcaption>
+      </figure>
+      <div class="table-wrap"><table>
+        <thead><tr><th>status</th><th>Meaning</th><th>Client</th></tr></thead>
+        <tbody>
+          <tr><td class="c">QUEUED, RUNNING</td><td>Still working, up to 10 minutes (default of <code>exports.timeout</code>; deployed value not checked)</td><td>Keep polling</td></tr>
+          <tr><td class="c">DONE</td><td><code>fileUrl</code> is set</td><td>Show the download</td></tr>
+          <tr><td class="c">FAILED</td><td>Final</td><td>Offer to start again</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="refs">
+      <h2>Checked files</h2>
+      <ul class="small">
+        <li><code>exports/ExportController.java</code>, <code>exports/ExportService.java</code> at <code>abc1234</code></li>
+      </ul>
+    </section>
+  </main>
+</div>

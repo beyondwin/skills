@@ -100,6 +100,19 @@ def _stage_map(root: pathlib.Path) -> dict[str, Stage]:
             ),
             cwd=root,
         ),
+        "api-guide-contract": Stage(
+            "api-guide-contract",
+            _python(
+                "-m",
+                "unittest",
+                "discover",
+                "-s",
+                _posix("tests", "products", "api-guide"),
+                "-p",
+                "test_*.py",
+            ),
+            cwd=root,
+        ),
         "how-it-works-contract": Stage(
             "how-it-works-contract",
             _python(

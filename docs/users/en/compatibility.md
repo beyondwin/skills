@@ -2,12 +2,13 @@
 
 [한국어](../ko/compatibility.md) · [Installation](installation.md)
 
-This page says which hosts each skill runs on. A host is the agent app that runs the skill. Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`how-it-works`](../../../skills/how-it-works/README.md).
+This page says which hosts each skill runs on. A host is the agent app that runs the skill. Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`api-guide`](../../../skills/api-guide/README.md).
 
 | Skill | Supported hosts | How you install it |
 | --- | --- | --- |
 | Korean Writing Editor | Codex | `$skill-installer` |
 | How It Works | Codex, Claude Code | Local link |
+| API Guide | Claude Code | Local link |
 
 Terms:
 
@@ -21,6 +22,8 @@ korean-writing-editor: Codex supported; Agent Skills contract portable; other ho
 
 how-it-works: Codex and Claude Code supported for local or repository-based use.
 
+api-guide: Claude Code supported for local or repository-based use.
+
 ## What counts as support
 
 A skill folder that another host can read is not support. A new host needs a recorded smoke on the current build and an explicit decision. Support scope and measurement status are separate: if the current files have not been run, the status is `not_measured`, and the support scope stays the same.
@@ -30,6 +33,7 @@ None of these skills works through Claude.ai, Cowork, or a Skills API upload, an
 ## Per-skill notes
 
 - `how-it-works`: a live run of the current install files is `not_measured`.
+- `api-guide`: a live run of the current install files is `not_measured`. It needs the Artifact tool and read access to the server source. Codex is not supported.
 
 ## Operating system
 

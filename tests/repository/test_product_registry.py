@@ -81,6 +81,7 @@ class RegistryParsingTests(unittest.TestCase):
             (
                 "korean-writing-editor",
                 "how-it-works",
+                "api-guide",
             ),
         )
 

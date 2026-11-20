@@ -3,7 +3,7 @@
 [English](../en/install-codex.md) · [설치](installation.md) · [호환성](compatibility.md) · [안전과 개인정보](safety-and-privacy.md) · [검증](verification.md)
 
 이 안내는 Codex에서 [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md)를 설치하는 방법입니다.
-How It Works는 [로컬 링크](install-local.md) 안내를 따르세요.
+How It Works와 API Guide는 [로컬 링크](install-local.md) 안내를 따르세요.
 
 ## `$skill-installer`로 설치
 

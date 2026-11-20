@@ -6,8 +6,8 @@
 [![Release](https://img.shields.io/github/v/release/beyondwin/skills)](https://github.com/beyondwin/skills/releases)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-한국어 글 교정과 그림을 곁들인 원리 설명을 돕는
-스킬 두 개를 제공합니다. 각 스킬은 독립적으로 동작하므로, 사용하는 AI 코딩
+한국어 글 교정, 그림을 곁들인 원리 설명, API 연동 안내 작성을 돕는
+스킬 세 개를 제공합니다. 각 스킬은 독립적으로 동작하므로, 사용하는 AI 코딩
 도구에서 지원하는 스킬 중 필요한 것만 골라 설치하세요.
 
 지원 OS는 macOS뿐입니다. Windows와 Linux는 지원하지 않습니다. CI Ubuntu 전체 검증
@@ -15,12 +15,13 @@
 
 ## 스킬
 
-현재 독립 제품 두 개와 각각 지원하는 도구(호스트)는 다음과 같습니다.
+현재 독립 제품 세 개와 각각 지원하는 도구(호스트)는 다음과 같습니다.
 
 | 스킬 | 하는 일 | 호스트 |
 | --- | --- | --- |
 | [`korean-writing-editor`](skills/korean-writing-editor/README.ko.md) | 작성된 한국어 글의 뜻을 유지하면서 맞춤법과 문장을 고칩니다. | Codex |
 | [`how-it-works`](skills/how-it-works/README.ko.md) | 작동 원리를 원하는 깊이로 그림과 함께 설명합니다. | Codex, Claude Code |
+| [`api-guide`](skills/api-guide/README.ko.md) | 새로 생기거나 바뀐 API 를 붙일 개발자용 안내를, 서버 코드와 대조해 Claude 아티팩트로 만듭니다. | Claude Code |
 
 스킬 이름을 누르면 자세한 사용법과 첫 요청 예시를 볼 수 있습니다.
 
@@ -39,6 +40,11 @@ How It Works를 쓰려면 저장소를 클론한 뒤,
 안내를 따르세요. How It Works의 공개 경로는 다음과 같습니다.
 
 - https://github.com/beyondwin/skills/tree/main/skills/how-it-works
+
+API Guide는 Claude Code에서만 씁니다. 설치도 같은
+[로컬 링크](docs/users/ko/install-local.md) 방식입니다. 공개 경로는 다음과 같습니다.
+
+- https://github.com/beyondwin/skills/tree/main/skills/api-guide
 
 설치 방법을 비교하거나 갱신·제거 안내를 찾으려면 [설치](docs/users/ko/installation.md)를 보세요.
 

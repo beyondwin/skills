@@ -21,17 +21,18 @@ With no arguments it runs every stage in this order and stops at the first failu
 - korean-live-unit
 - korean-live-dry-run
 - how-it-works-contract
+- api-guide-contract
 - python-compile
 
 CI runs this verification on Ubuntu. An Ubuntu CI pass does not prove macOS support.
 
-To check one skill, pass its name. This runs `product-contract`, that skill's own stages, and `python-compile`. Either product name works, for example:
+To check one skill, pass its name. This runs `product-contract`, that skill's own stages, and `python-compile`. Any product name works, for example:
 
 ```bash
 python3 scripts/verify.py --skill how-it-works
 ```
 
-Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`how-it-works`](../../../skills/how-it-works/README.md).
+Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`api-guide`](../../../skills/api-guide/README.md).
 
 ## Shared evidence sentences
 
@@ -46,6 +47,7 @@ Offline tests prove the fixed contract only. Each product's fixture paths are in
 - Korean Writing Editor: 37 offline cases (`normative=10 preservation=9 noop=7 voice=4 trigger=7`). New live evidence uses runner 18; older runner receipts are rejected.
 - Korean candidates: any hard failure makes the result `failed`. If hard checks pass but meaning, attribution, or the requested edit was not observed, the result is `partially_verified`. An offline pass alone is never a live status.
 - How It Works: fence/hop validity, loading, syntax, and meaning each need their own evidence. Matching metadata alone proves no model run.
+- API Guide: contract tests prove file shape only. They do not prove that a run reads the code correctly or that a published page is accurate.
 
 A pass does not prove general quality.
 

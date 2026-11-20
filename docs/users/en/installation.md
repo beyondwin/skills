@@ -1,6 +1,6 @@
 # Installation
 
-Both skills require an explicit `$skill-name` or `/skill-name` invocation; matching task text alone does not activate them.
+Every skill requires an explicit `$skill-name` or `/skill-name` invocation; matching task text alone does not activate them.
 
 [한국어](../ko/installation.md) · [Compatibility](compatibility.md) · [Safety and privacy](safety-and-privacy.md) · [Verification](verification.md)
 
@@ -10,5 +10,6 @@ Find your skill below and follow its guide. Each guide also covers update and un
 | --- | --- | --- |
 | [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md) | Codex `$skill-installer` | [Codex install](install-codex.md) |
 | [`how-it-works`](../../../skills/how-it-works/README.md) | Local link | [Local links](install-local.md) |
+| [`api-guide`](../../../skills/api-guide/README.md) | Claude Code: local link | [Local links](install-local.md) |
 
 All skills are under the Apache-2.0 license.

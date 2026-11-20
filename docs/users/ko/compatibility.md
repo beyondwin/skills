@@ -2,12 +2,13 @@
 
 [English](../en/compatibility.md) · [설치](installation.md)
 
-각 스킬이 어느 호스트에서 돌아가는지 정리합니다. 호스트는 스킬을 실행하는 에이전트 앱입니다. 제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md).
+각 스킬이 어느 호스트에서 돌아가는지 정리합니다. 호스트는 스킬을 실행하는 에이전트 앱입니다. 제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md), [`api-guide`](../../../skills/api-guide/README.ko.md).
 
 | 스킬 | 지원 호스트 | 설치 방법 |
 | --- | --- | --- |
 | Korean Writing Editor | Codex | `$skill-installer` |
 | How It Works | Codex, Claude Code | 로컬 링크 |
+| API Guide | Claude Code | 로컬 링크 |
 
 말 뜻:
 
@@ -21,6 +22,8 @@ korean-writing-editor: Codex supported; Agent Skills contract portable; other ho
 
 how-it-works: Codex and Claude Code supported for local or repository-based use.
 
+api-guide: Claude Code supported for local or repository-based use.
+
 ## 무엇을 지원으로 보나
 
 다른 호스트가 스킬 폴더를 읽을 수 있다고 지원하는 것은 아닙니다. 새 호스트를 지원하려면 지금 빌드로 돌린 smoke 기록과 별도 결정이 필요합니다. 지원 범위와 측정 상태는 따로 봅니다. 지금 파일을 돌려 보지 않았으면 상태는 `not_measured`이고, 지원 범위는 그대로입니다.
@@ -30,6 +33,7 @@ how-it-works: Codex and Claude Code supported for local or repository-based use.
 ## 스킬별 메모
 
 - `how-it-works`: 현재 설치 파일의 라이브 실행은 `not_measured`입니다.
+- `api-guide`: 현재 설치 파일의 라이브 실행은 `not_measured`입니다. Artifact 도구와 서버 소스 읽기 권한이 필요합니다. Codex는 지원하지 않습니다.
 
 ## 운영체제
 
