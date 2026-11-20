@@ -1,5 +1,5 @@
 <!--
-  Page template for api-guide. The API below is invented; replace every path, field, code,
+  Page template for kws-api-guide. The API below is invented; replace every path, field, code,
   and sentence with checked facts, written in the reader's language. Keep the tokens, the
   components, the section order, and the card order (head, when, Request, Response, Errors,
   Handling). The file is a page fragment: the publish step adds the document skeleton.
@@ -172,15 +172,23 @@ figcaption { font-size: 13px; color: var(--muted); max-width: 72ch; }
 
     <section id="common">
       <h2>Common rules</h2>
+      <h3>Handle in code</h3>
       <div class="table-wrap"><table>
         <thead><tr><th>Item</th><th>Rule</th></tr></thead>
         <tbody>
           <tr><td class="nw">Auth</td><td><code>Authorization: Bearer {token}</code> on every request.</td></tr>
-          <tr><td class="nw">Body</td><td>Success <code>{ "code": "OK", "data": ... }</code>, failure <code>{ "code": String, "data": null }</code>. Branch on <code>code</code>. A proxy 502 or 504 may return a body without <code>code</code>; treat it as an unknown code.</td></tr>
+          <tr><td class="nw">Body</td><td>Success <code>{ "code": "OK", "data": ... }</code>, failure <code>{ "code": String, "data": null }</code>. Branch on <code>code</code>.</td></tr>
           <tr><td class="nw">Success</td><td>200 and 202 are both success with the same <code>data</code> shape.</td></tr>
-          <tr><td class="nw">Types</td><td><code>String?</code> may be null. A field without <code>?</code> is always present and not null.</td></tr>
-          <tr><td class="nw">Dates</td><td><code>date</code> is <code>"2026-01-15"</code>, <code>date-time</code> is UTC.</td></tr>
+          <tr><td class="nw">No <code>code</code></td><td>A proxy 502 or 504 returns a body without <code>code</code>. Treat it as an unknown error.</td></tr>
           <tr><td class="nw">Enums</td><td>An unknown value must not reject the whole response.</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Formats</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Item</th><th>Rule</th></tr></thead>
+        <tbody>
+          <tr><td class="nw">Types</td><td><code>String?</code> may be null. A field without <code>?</code> is always present and not null.</td></tr>
+          <tr><td class="nw">Dates</td><td><code>date</code> is <code>"2026-01-15"</code>. <code>date-time</code> is UTC.</td></tr>
           <tr><td class="nw">Headers</td><td><code>Retry-After</code> comes only with 429 <code>EXPORT_4291</code>.</td></tr>
         </tbody>
       </table></div>

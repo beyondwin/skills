@@ -304,7 +304,7 @@ class ProductDownloadTests(unittest.TestCase):
         mutations = (
             ("how-it-works", "references/output.md"),
             ("korean-writing-editor", "references/editorial-guide.md"),
-            ("api-guide", "references/facts.md"),
+            ("kws-api-guide", "references/facts.md"),
         )
         for name, relative in mutations:
             with self.subTest(name=name), tempfile.TemporaryDirectory() as tmp:

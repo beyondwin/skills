@@ -2,7 +2,7 @@
 
 [한국어](../ko/compatibility.md) · [Installation](installation.md)
 
-This page says which hosts each skill runs on. A host is the agent app that runs the skill. Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`api-guide`](../../../skills/api-guide/README.md).
+This page says which hosts each skill runs on. A host is the agent app that runs the skill. Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`kws-api-guide`](../../../skills/kws-api-guide/README.md).
 
 | Skill | Supported hosts | How you install it |
 | --- | --- | --- |
@@ -22,7 +22,7 @@ korean-writing-editor: Codex supported; Agent Skills contract portable; other ho
 
 how-it-works: Codex and Claude Code supported for local or repository-based use.
 
-api-guide: Claude Code supported for local or repository-based use.
+kws-api-guide: Claude Code supported for local or repository-based use.
 
 ## What counts as support
 
@@ -33,7 +33,7 @@ None of these skills works through Claude.ai, Cowork, or a Skills API upload, an
 ## Per-skill notes
 
 - `how-it-works`: a live run of the current install files is `not_measured`.
-- `api-guide`: a live run of the current install files is `not_measured`. It needs the Artifact tool and read access to the server source. Codex is not supported.
+- `kws-api-guide`: a live run of the current install files is `not_measured`. It needs the Artifact tool and read access to the server source. Codex is not supported.
 
 ## Operating system
 

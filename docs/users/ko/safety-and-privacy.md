@@ -4,7 +4,7 @@
 
 이 프로젝트는 텔레메트리를 넣지 않습니다. 사용 기록을 어디에도 보내지 않습니다. 필수 CI와 `python3 scripts/verify.py`는 자격 증명을 쓰지 않고, 모델을 부르지 않고, 아무것도 올리지 않습니다. 선택 설치기 `npx skills add beyondwin/skills --skill korean-writing-editor`는 제3자 도구이며 자체 정책을 따릅니다.
 
-제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md), [`api-guide`](../../../skills/api-guide/README.ko.md).
+제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md), [`kws-api-guide`](../../../skills/kws-api-guide/README.ko.md).
 
 ## 한국어 원문
 
@@ -16,7 +16,7 @@
 
 ## API 안내 페이지
 
-`api-guide`는 저장소의 서버 소스를 읽습니다. 스킬 파일에는 회사나 제품 데이터가 없습니다. 만든 페이지에는 비공개 API 사실이 들어갈 수 있습니다. 페이지는 비공개 Claude 아티팩트로 올라가며, 사용자가 공유할 때만 공유됩니다.
+`kws-api-guide`는 저장소의 서버 소스를 읽습니다. 스킬 파일에는 회사나 제품 데이터가 없습니다. 만든 페이지에는 비공개 API 사실이 들어갈 수 있습니다. 페이지는 비공개 Claude 아티팩트로 올라가며, 사용자가 공유할 때만 공유됩니다.
 
 ## 이해관계가 큰 요청
 

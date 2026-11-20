@@ -1,5 +1,5 @@
 ---
-name: api-guide
+name: kws-api-guide
 description: Use when explicitly invoked and the user wants a shareable guide that tells web, app, or server developers how to call APIs that were added or changed, checked against the server code and published as a Claude artifact. Do not use for writing or fixing OpenAPI files, generating a reference site from a spec, code review, implementing the client, or explaining how one mechanism works (how-it-works).
 disable-model-invocation: true
 license: Apache-2.0
@@ -9,9 +9,9 @@ metadata:
   updated_at: "2026-11-20"
 ---
 
-# api-guide
+# kws-api-guide
 
-Activate only on explicit invocation: `/api-guide`. Matching task text alone does not activate it.
+Activate only on explicit invocation: `/kws-api-guide`. Matching task text alone does not activate it.
 
 The result is one page, published as a Claude artifact, that lets a developer on another team
 call the APIs without reading the server code. Server facts on the page must be exact. Advice
@@ -28,7 +28,7 @@ the first such slot; otherwise use the default and say which default you used.
 | reader: web, app, or server developers | ask; it sets the type notation (TypeScript, Dart, Kotlin, Swift, or Java) |
 | consumer repository (optional) | none; without it the page has no to-do section |
 | existing artifact URL (optional) | none; with it, read the page and update the same URL |
-| language | the user's language |
+| language | the language of the invocation text, for the page, progress updates, and the report |
 
 ## Steps
 
@@ -39,9 +39,9 @@ the first such slot; otherwise use the default and say which default you used.
 3. Tag each endpoint and field new, changed, or unchanged from the diff against the base,
    not from memory. A removed field goes on the changed card with what replaced it.
 4. Only with a consumer repository: read `references/consumer.md` and write the to-do section.
-5. Write the page from `references/page.html`. Keep its components and section order. Follow
-   the host's artifact design skill for the page contract; for a flow diagram, its
-   diagramming skill.
+5. Write the page from `references/page.html`. Keep its components and section order. Write
+   every sentence by `references/writing.md`. Follow the host's artifact design skill for the
+   page contract; for a flow diagram, its diagramming skill.
 6. Run the checks in Verify. Fix the page, then check again.
 7. Publish with the Artifact tool. A revision publishes the same file to the same URL. The page
    is private; tell the user it is shared from the page's Share menu. Without the Artifact tool
@@ -57,10 +57,11 @@ Fixed order. Leave out a section only where marked optional.
    card has the same order, whether examples were captured or composed), and chips for each
    base path and for `as of {date}, server {short sha}`.
 2. To-do (optional, needs a consumer repository).
-3. Common rules: authentication, the response envelope and what to branch on, which 2xx codes
-   mean success, type notation and nullability, ID and date formats with time zone, unknown
-   enum values, headers (which endpoints send `Retry-After`, cache headers), errors any
-   endpoint can return, and bodies that are not the envelope (a proxy's 502 or 504).
+3. Common rules, in two tables. Handle in code: authentication, the response envelope and
+   what to branch on, which 2xx codes mean success, bodies that are not the envelope (a
+   proxy's 502 or 504), errors any endpoint can return, and unknown enum values. Formats:
+   type notation and nullability, ID and date formats with time zone, and headers (which
+   endpoints send `Retry-After`, cache headers).
 4. API cards, grouped by service or base path. Every card in this order: head (method, full
    path, new or changed tag), when to call it, Request, Response (type, field table, a table
    of which fields come with which status when that varies, an example in a collapsed block),
@@ -87,19 +88,21 @@ Before publishing, every item holds:
   says they were not.
 - An example is called captured only if a running server returned it; otherwise it is labeled
   composed from the response type. No real personal data, tokens, or keys appear.
+- After the fact checks, reread the page once against `references/writing.md`. Rewording
+  must not change a fact.
 - For a large scope, split fact checks across subagents by service, and reopen every finding
   that would change the page before you use it.
 
 ## Report
 
-In the user's language, briefly: the link, what was checked and at which commits, what was not
+In the language of the invocation text, briefly: the link, what was checked and at which commits, what was not
 checked (deployed values, live calls), gaps found in contract files (report them; do not fix
 them unless asked), and one next step.
 
 ## Gotchas
 
 From checking a hand-written guide of this kind against its server code before this skill
-existed (12 endpoints in two services, 2026-11). No run of the skill itself is recorded yet.
+existed (12 endpoints in two services, 2026-11).
 
 - The OpenAPI file listed fewer error codes than the handlers threw, and the guide also
   missed codes the handlers threw (a body size limit, a rejected extra query parameter).
@@ -123,3 +126,6 @@ existed (12 endpoints in two services, 2026-11). No run of the skill itself is r
 From the first run of the skill (one new endpoint, app readers, headless `claude -p`,
 2026-11-20): the session had no Artifact tool, saved the page as a file, and then suggested
 publishing it to unrelated hosts.
+
+From the second run (same scope, Korean prompt, 2026-11-20): the page was Korean, but every
+progress update and the final report were English. No loaded instruction asked for English.

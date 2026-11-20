@@ -24,7 +24,7 @@ from scripts.lib.product_registry import load_registry, PRODUCT_README_NAMES  # 
 EXPECTED = {
     "korean-writing-editor": "3.0.1",
     "how-it-works": "4.0.1",
-    "api-guide": "1.0.0",
+    "kws-api-guide": "1.0.0",
 }
 REGISTRY = load_registry(ROOT / "products.toml")
 

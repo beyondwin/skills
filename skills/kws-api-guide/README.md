@@ -1,6 +1,6 @@
 # API Guide
 
-Use this skill only by explicitly invoking `/api-guide` in Claude Code.
+Use this skill only by explicitly invoking `/kws-api-guide` in Claude Code.
 Matching requests alone do not activate it.
 
 [한국어](README.ko.md)
@@ -14,12 +14,16 @@ page is published as a Claude artifact you can share.
 
 The page has a fixed shape:
 
-- common rules that hold for every endpoint: auth, response body, types, dates, headers
+- common rules that hold for every endpoint, in two tables: what to handle in code (auth,
+  response body, errors) and formats (types, dates, headers)
 - one card per endpoint, always in the same order: request, response, errors, what the
   caller does
 - flows for multi-step operations such as uploads or jobs, keyed by the status the caller
   sees
 - an optional to-do list for the calling side, when you point it at that code
+
+Sentences follow short writing rules: at most two sentences in a table cell, one register
+in Korean, and the reader's own words instead of literal translations.
 
 ## When to use and not use
 
@@ -32,7 +36,7 @@ to review code, to implement the client, or to explain how one mechanism works
 
 ## Supported hosts
 
-api-guide: Claude Code supported for local or repository-based use.
+kws-api-guide: Claude Code supported for local or repository-based use.
 
 The host id is `claude-code`. The skill needs the Artifact tool and read access to the
 server source. Live runs of the current install files are `not_measured`. Codex, Grok,
@@ -46,7 +50,7 @@ Shared limits are in
 
 Clone the repo and link the skill folder into Claude Code's skill folder.
 
-Public path: https://github.com/beyondwin/skills/tree/main/skills/api-guide
+Public path: https://github.com/beyondwin/skills/tree/main/skills/kws-api-guide
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -62,7 +66,7 @@ The Python block below takes two arguments, source (the skill folder) and target
 - It does not replace a different link, dangling link, file, or directory.
 - It also stops if the target shows up after the check. Look at it, then retry.
 
-<!-- api-guide-local-links -->
+<!-- kws-api-guide-local-links -->
 ```python
 import os
 import sys
@@ -95,7 +99,7 @@ print("linked")
 
 Feed the block on standard input with a quoted here-document (`<<'PY'`):
 
-`python3 - "$PWD/skills/api-guide" "$HOME/.claude/skills/api-guide" <<'PY'`
+`python3 - "$PWD/skills/kws-api-guide" "$HOME/.claude/skills/kws-api-guide" <<'PY'`
 
 After that first line, paste the Python block as is, then end with `PY` on its own
 line. Keep the quotes around source and target.
@@ -109,8 +113,8 @@ Call it by name in the server repository. With no scope, it covers the current b
 against the default branch.
 
 ```text
-/api-guide
-/api-guide the export endpoints, for app developers, client code in ../mobile-app
+/kws-api-guide
+/kws-api-guide the export endpoints, for app developers, client code in ../mobile-app
 ```
 
 ## Expected result
@@ -134,7 +138,7 @@ page.
 - [Safety and privacy](https://github.com/beyondwin/skills/blob/main/docs/users/en/safety-and-privacy.md)
 - [Verification](https://github.com/beyondwin/skills/blob/main/docs/users/en/verification.md)
 - [Changelog](CHANGELOG.md)
-- [Contract](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/api-guide/contract.md)
-- [Testing](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/api-guide/testing.md)
-- [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/api-guide/compatibility.md)
-- [Release](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/api-guide/release.md)
+- [Contract](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/kws-api-guide/contract.md)
+- [Testing](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/kws-api-guide/testing.md)
+- [Compatibility](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/kws-api-guide/compatibility.md)
+- [Release](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/kws-api-guide/release.md)

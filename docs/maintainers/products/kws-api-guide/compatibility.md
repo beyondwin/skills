@@ -1,4 +1,4 @@
-# api-guide compatibility
+# kws-api-guide compatibility
 
 The supported host is `claude-code` from the product registry, for local or
 repository-based use. Live evidence for the current payload is `not_measured`.
@@ -18,8 +18,8 @@ not Linux support and is not macOS support evidence.
 ## Discovery path
 
 ```text
-skills/api-guide/              repository source
-└─ ~/.claude/skills/api-guide ─→ Claude Code
+skills/kws-api-guide/              repository source
+└─ ~/.claude/skills/kws-api-guide ─→ Claude Code
 ```
 
 The one-off Python block in the product README makes the link. It never replaces a

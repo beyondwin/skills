@@ -1,5 +1,5 @@
 schema_version = 1
-name = "api-guide"
+name = "kws-api-guide"
 version = "1.0.0"
-tag_prefix = "api-guide-v"
+tag_prefix = "kws-api-guide-v"
 license = "Apache-2.0"

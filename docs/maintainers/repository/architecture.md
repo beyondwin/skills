@@ -7,7 +7,7 @@ each skill.
 ## At a glance
 
 The current products are the ones in `products.toml`: `korean-writing-editor`,
-`how-it-works`, and `api-guide`. Each has
+`how-it-works`, and `kws-api-guide`. Each has
 its own version and installs on its own from a GitHub path.
 
 ```mermaid
@@ -16,7 +16,7 @@ flowchart TB
   subgraph live ["Current products"]
     K[korean-writing-editor]
     H[how-it-works]
-    A[api-guide]
+    A[kws-api-guide]
   end
   R --> live
   live --> SK["skills/ payload"]
@@ -81,7 +81,7 @@ Repository only, never installed:
 | `tests/products/korean-writing-editor/offline/` | Deterministic trigger, mode, preservation, and output fixtures |
 | `tests/products/korean-writing-editor/live/` | Synthetic live runner, unit tests, dry-run, operator notes |
 | `tests/products/how-it-works/` | Synthetic DNS and rebase fixtures and payload tests |
-| `tests/products/api-guide/` | Payload contract tests for frontmatter, references, and the page skeleton |
+| `tests/products/kws-api-guide/` | Payload contract tests for frontmatter, references, and the page skeleton |
 | `docs/README.md` | Routes to install, use, maintain, research, and decisions |
 | `docs/users/` | Shared install, compatibility, safety, and verification guides |
 | `docs/maintainers/` | Architecture, registry, versioning, release, product rules |
@@ -148,4 +148,4 @@ Korean live evaluation is an explicit local task.
 Product protocols:
 [korean-writing-editor](../products/korean-writing-editor/contract.md),
 [how-it-works](../products/how-it-works/contract.md),
-[api-guide](../products/api-guide/contract.md).
+[kws-api-guide](../products/kws-api-guide/contract.md).

@@ -6,18 +6,18 @@ This repository ships three standalone products. Where documents live is in
 
 - `korean-writing-editor`
 - `how-it-works`
-- `api-guide`
+- `kws-api-guide`
 
 ## Scope
 
-New skills are not accepted by default. The repository owner added `api-guide` by an explicit owner decision. A pull request that adds another skill is out of scope unless repository governance is changed first.
+New skills are not accepted by default. The repository owner added `kws-api-guide` by an explicit owner decision. A pull request that adds another skill is out of scope unless repository governance is changed first.
 
 The supported OS is macOS only. Windows and Linux are unsupported. An Ubuntu CI pass is not OS support evidence.
 
 Host support:
 
 - `how-it-works` currently claims Codex and Claude Code only.
-- `api-guide` currently claims Claude Code only.
+- `kws-api-guide` currently claims Claude Code only.
 - Do not broaden host support for `korean-writing-editor`.
 
 Host-support changes must update `products.toml`, the matching docs, and tests together.

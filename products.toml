@@ -36,15 +36,15 @@ owned_paths = [
 verify_stages = ["product-contract", "how-it-works-contract", "python-compile"]
 
 [[products]]
-name = "api-guide"
+name = "kws-api-guide"
 display_name = "API Guide"
-skill_path = "skills/api-guide"
-test_path = "tests/products/api-guide"
-maintainer_docs = "docs/maintainers/products/api-guide"
+skill_path = "skills/kws-api-guide"
+test_path = "tests/products/kws-api-guide"
+maintainer_docs = "docs/maintainers/products/kws-api-guide"
 supported_hosts = ["claude-code"]
 owned_paths = [
-  "skills/api-guide/",
-  "tests/products/api-guide/",
-  "docs/maintainers/products/api-guide/",
+  "skills/kws-api-guide/",
+  "tests/products/kws-api-guide/",
+  "docs/maintainers/products/kws-api-guide/",
 ]
-verify_stages = ["product-contract", "api-guide-contract", "python-compile"]
+verify_stages = ["product-contract", "kws-api-guide-contract", "python-compile"]

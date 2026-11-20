@@ -37,7 +37,7 @@ FULL_STAGE_NAMES = (
     "korean-live-unit",
     "korean-live-dry-run",
     "how-it-works-contract",
-    "api-guide-contract",
+    "kws-api-guide-contract",
     "python-compile",
 )
 LIVE_TEST_PATH = (

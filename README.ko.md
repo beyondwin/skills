@@ -21,7 +21,7 @@
 | --- | --- | --- |
 | [`korean-writing-editor`](skills/korean-writing-editor/README.ko.md) | 작성된 한국어 글의 뜻을 유지하면서 맞춤법과 문장을 고칩니다. | Codex |
 | [`how-it-works`](skills/how-it-works/README.ko.md) | 작동 원리를 원하는 깊이로 그림과 함께 설명합니다. | Codex, Claude Code |
-| [`api-guide`](skills/api-guide/README.ko.md) | 새로 생기거나 바뀐 API 를 붙일 개발자용 안내를, 서버 코드와 대조해 Claude 아티팩트로 만듭니다. | Claude Code |
+| [`kws-api-guide`](skills/kws-api-guide/README.ko.md) | 새로 생기거나 바뀐 API 를 붙일 개발자용 안내를, 서버 코드와 대조해 Claude 아티팩트로 만듭니다. | Claude Code |
 
 스킬 이름을 누르면 자세한 사용법과 첫 요청 예시를 볼 수 있습니다.
 
@@ -44,7 +44,7 @@ How It Works를 쓰려면 저장소를 클론한 뒤,
 API Guide는 Claude Code에서만 씁니다. 설치도 같은
 [로컬 링크](docs/users/ko/install-local.md) 방식입니다. 공개 경로는 다음과 같습니다.
 
-- https://github.com/beyondwin/skills/tree/main/skills/api-guide
+- https://github.com/beyondwin/skills/tree/main/skills/kws-api-guide
 
 설치 방법을 비교하거나 갱신·제거 안내를 찾으려면 [설치](docs/users/ko/installation.md)를 보세요.
 

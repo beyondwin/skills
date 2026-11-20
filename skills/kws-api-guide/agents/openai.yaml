@@ -1,6 +1,6 @@
 interface:
   display_name: "API Guide"
   short_description: "Write a checked API integration guide as a page"
-  default_prompt: "Use $api-guide to write an integration guide for the APIs this change added or changed."
+  default_prompt: "Use $kws-api-guide to write an integration guide for the APIs this change added or changed."
 policy:
   allow_implicit_invocation: false

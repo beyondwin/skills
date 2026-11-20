@@ -191,7 +191,7 @@ class TargetMappingTests(RegistryRoutingTestCase):
             (
                 "korean-writing-editor",
                 "how-it-works",
-                "api-guide",
+                "kws-api-guide",
             ),
         )
 

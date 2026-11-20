@@ -21,7 +21,7 @@ python3 scripts/verify.py
 - korean-live-unit
 - korean-live-dry-run
 - how-it-works-contract
-- api-guide-contract
+- kws-api-guide-contract
 - python-compile
 
 CI는 Ubuntu에서 이 검증을 돌립니다. Ubuntu CI 통과는 macOS 지원을 증명하지 않습니다.
@@ -32,7 +32,7 @@ CI는 Ubuntu에서 이 검증을 돌립니다. Ubuntu CI 통과는 macOS 지원�
 python3 scripts/verify.py --skill how-it-works
 ```
 
-제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md), [`api-guide`](../../../skills/api-guide/README.ko.md).
+제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md), [`kws-api-guide`](../../../skills/kws-api-guide/README.ko.md).
 
 ## 공유 증거 문장
 

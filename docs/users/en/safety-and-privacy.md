@@ -4,7 +4,7 @@
 
 This project has no telemetry: it sends no usage data anywhere. Required CI and `python3 scripts/verify.py` use no credentials, call no model, and upload nothing. The optional installer `npx skills add beyondwin/skills --skill korean-writing-editor` is third-party and follows its own policy.
 
-Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`api-guide`](../../../skills/api-guide/README.md).
+Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`kws-api-guide`](../../../skills/kws-api-guide/README.md).
 
 ## Korean source text
 
@@ -16,7 +16,7 @@ Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/
 
 ## API guide pages
 
-`api-guide` reads server source in your repository. The skill files carry no company or product data. A page it writes may contain your private API facts. It is published as a private Claude artifact and is shared only when you share it.
+`kws-api-guide` reads server source in your repository. The skill files carry no company or product data. A page it writes may contain your private API facts. It is published as a private Claude artifact and is shared only when you share it.
 
 ## High-stakes requests
 

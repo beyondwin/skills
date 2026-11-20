@@ -21,7 +21,7 @@ With no arguments it runs every stage in this order and stops at the first failu
 - korean-live-unit
 - korean-live-dry-run
 - how-it-works-contract
-- api-guide-contract
+- kws-api-guide-contract
 - python-compile
 
 CI runs this verification on Ubuntu. An Ubuntu CI pass does not prove macOS support.
@@ -32,7 +32,7 @@ To check one skill, pass its name. This runs `product-contract`, that skill's ow
 python3 scripts/verify.py --skill how-it-works
 ```
 
-Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`api-guide`](../../../skills/api-guide/README.md).
+Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`kws-api-guide`](../../../skills/kws-api-guide/README.md).
 
 ## Shared evidence sentences
 

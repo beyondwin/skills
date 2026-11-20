@@ -66,9 +66,9 @@ print("linked")
 
 3. First calls are in the [`how-it-works` README](../../../skills/how-it-works/README.md).
 
-## api-guide
+## kws-api-guide
 
-For Claude Code only. Public path: https://github.com/beyondwin/skills/tree/main/skills/api-guide. You make one link: Claude Code reads `~/.claude/skills/api-guide`.
+For Claude Code only. Public path: https://github.com/beyondwin/skills/tree/main/skills/kws-api-guide. You make one link: Claude Code reads `~/.claude/skills/kws-api-guide`.
 
 1. Clone and create the folder.
 
@@ -80,9 +80,9 @@ mkdir -p ~/.claude/skills
 
 2. Run the Python block from the how-it-works section with this first line:
 
-- Claude Code: `python3 - "$PWD/skills/api-guide" "$HOME/.claude/skills/api-guide" <<'PY'`
+- Claude Code: `python3 - "$PWD/skills/kws-api-guide" "$HOME/.claude/skills/kws-api-guide" <<'PY'`
 
-3. First calls are in the [`api-guide` README](../../../skills/api-guide/README.md).
+3. First calls are in the [`kws-api-guide` README](../../../skills/kws-api-guide/README.md).
 
 ## Update and uninstall
 
@@ -94,9 +94,9 @@ ls -ld ~/.agents/skills/how-it-works ~/.claude/skills/how-it-works
 unlink ~/.agents/skills/how-it-works
 unlink ~/.claude/skills/how-it-works
 
-# api-guide
-ls -ld ~/.claude/skills/api-guide
-unlink ~/.claude/skills/api-guide
+# kws-api-guide
+ls -ld ~/.claude/skills/kws-api-guide
+unlink ~/.claude/skills/kws-api-guide
 ```
 
 Never delete the parent `skills` folder or a home folder. Never pipe a remote script into a shell, and never replace an install you have not inspected.

@@ -1,6 +1,6 @@
 # API Guide
 
-Claude Code 에서 `/api-guide` 로 직접 호출할 때만 사용합니다.
+Claude Code 에서 `/kws-api-guide` 로 직접 호출할 때만 사용합니다.
 요청 내용이 맞아도 자동 활성화하지 않습니다.
 
 [English](README.md)
@@ -13,10 +13,13 @@ Claude Code 에서 `/api-guide` 로 직접 호출할 때만 사용합니다.
 
 페이지 모양은 정해져 있습니다.
 
-- 모든 API 공통 규칙: 인증, 응답 몸통, 타입, 날짜, 헤더
+- 모든 API 공통 규칙, 표 두 개: 코드에서 처리할 것(인증, 응답 몸통, 오류)과 형식(타입, 날짜, 헤더)
 - API 하나에 카드 하나, 늘 같은 순서: 요청, 응답, 오류, 호출하는 쪽 처리
 - 업로드나 작업처럼 여러 단계인 흐름, 호출하는 쪽이 보는 상태별 표
 - 호출하는 쪽 코드를 알려 주면 그쪽 할 일 표(선택)
+
+문장은 짧은 글쓰기 규칙을 따릅니다. 표 칸에는 두 문장까지, 한국어는 한 문체로, 직역한 말 대신
+읽는 팀이 쓰는 말로 씁니다.
 
 ## 사용할 때와 사용하지 않을 때
 
@@ -27,7 +30,7 @@ OpenAPI 파일 쓰기나 고치기, 스펙에서 레퍼런스 사이트 만들�
 
 ## 지원 호스트
 
-api-guide: Claude Code supported for local or repository-based use.
+kws-api-guide: Claude Code supported for local or repository-based use.
 
 호스트 id 는 `claude-code` 입니다. Artifact 도구와 서버 소스 읽기 권한이 필요합니다.
 지금 설치 파일의 실제 실행은 아직 확인하지 않았습니다(`not_measured`). Codex, Grok,
@@ -42,7 +45,7 @@ Claude.ai, Cowork, Skills API 업로드, marketplace 게시는 지원하지 않�
 
 저장소를 받은 뒤 스킬 폴더를 Claude Code 스킬 폴더에 링크합니다.
 
-공개 경로: https://github.com/beyondwin/skills/tree/main/skills/api-guide
+공개 경로: https://github.com/beyondwin/skills/tree/main/skills/kws-api-guide
 
 ```bash
 git clone https://github.com/beyondwin/skills.git
@@ -58,7 +61,7 @@ mkdir -p ~/.claude/skills
 - 다른 링크, 깨진 링크, 파일, 디렉터리는 자동으로 바꾸지 않습니다.
 - 확인한 뒤 target 이 새로 생겨도 멈춥니다. 살펴본 뒤 다시 실행하세요.
 
-<!-- api-guide-local-links -->
+<!-- kws-api-guide-local-links -->
 ```python
 import os
 import sys
@@ -91,7 +94,7 @@ print("linked")
 
 따옴표 친 here-document(`<<'PY'`)로 블록을 표준 입력에 넣습니다.
 
-`python3 - "$PWD/skills/api-guide" "$HOME/.claude/skills/api-guide" <<'PY'`
+`python3 - "$PWD/skills/kws-api-guide" "$HOME/.claude/skills/kws-api-guide" <<'PY'`
 
 이 첫 줄 다음에 Python 블록을 그대로 붙이고, 마지막 줄에 `PY` 만 씁니다. source 와
 target 의 따옴표는 그대로 둡니다.
@@ -106,8 +109,8 @@ target 의 따옴표는 그대로 둡니다.
 차이를 다룹니다.
 
 ```text
-/api-guide
-/api-guide 내보내기 API, 앱 개발자용, 앱 코드는 ../mobile-app
+/kws-api-guide
+/kws-api-guide 내보내기 API, 앱 개발자용, 앱 코드는 ../mobile-app
 ```
 
 ## 예상 결과
@@ -130,7 +133,7 @@ target 의 따옴표는 그대로 둡니다.
 - [안전과 개인정보](https://github.com/beyondwin/skills/blob/main/docs/users/ko/safety-and-privacy.md)
 - [검증](https://github.com/beyondwin/skills/blob/main/docs/users/ko/verification.md)
 - [CHANGELOG](CHANGELOG.md)
-- [계약](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/api-guide/contract.md)
-- [테스트](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/api-guide/testing.md)
-- [호환성](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/api-guide/compatibility.md)
-- [릴리스](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/api-guide/release.md)
+- [계약](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/kws-api-guide/contract.md)
+- [테스트](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/kws-api-guide/testing.md)
+- [호환성](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/kws-api-guide/compatibility.md)
+- [릴리스](https://github.com/beyondwin/skills/blob/main/docs/maintainers/products/kws-api-guide/release.md)

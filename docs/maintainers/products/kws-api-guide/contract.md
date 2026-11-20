@@ -1,19 +1,20 @@
-# api-guide contract
+# kws-api-guide contract
 
-This document sets api-guide's activation, inputs, page shape, checks, and the files that
+This document sets kws-api-guide's activation, inputs, page shape, checks, and the files that
 change together. When behavior changes, update `SKILL.md`, its references, the tests in
-`tests/products/api-guide/`, and both product READMEs in the same change.
+`tests/products/kws-api-guide/`, and both product READMEs in the same change.
 
 ## Activation
 
-Only `/api-guide` in Claude Code activates the skill (`disable-model-invocation: true`).
+Only `/kws-api-guide` in Claude Code activates the skill (`disable-model-invocation: true`).
 Codex is not a supported host; `agents/openai.yaml` exists because every payload carries
 one, and it keeps implicit invocation off.
 
 ## Inputs
 
 Scope, reader, optional consumer repository, optional existing artifact URL, and
-language. The default scope is the current branch against its merge base with the default
+language. The language is the invocation text's, for the page, progress updates, and the
+report. The default scope is the current branch against its merge base with the default
 branch. A missing slot that would change the page gets one question.
 
 ## Output
@@ -29,6 +30,11 @@ One page published as a Claude artifact, plus a short chat report.
   the host's artifact design skill. The template follows it and does not restate it.
 - Server facts are read from code at a recorded commit (`references/facts.md`).
   Contract files are a map, not the source.
+- Common rules are two tables in this order: Handle in code, then Formats. `SKILL.md`
+  skeleton item 3 and `references/page.html` agree, and a test checks both.
+- Sentences follow `references/writing.md`: at most two sentences per table cell, one
+  parenthetical per sentence, the reader's words, and one register on Korean pages. These
+  rules came from counting the first run's page; patterns with no hits there are left out.
 - The to-do section exists only with a consumer repository and stays at behavior level:
   no consumer file paths, line numbers, or class names (`references/consumer.md`).
 
@@ -37,7 +43,8 @@ One page published as a Claude artifact, plus a short chat report.
 `SKILL.md` "Verify" lists them: a code location for every fact, a counterexample search
 before any universal claim, per-card definitions for shared field names, appendix and
 examples agreeing with field tables, per-endpoint error tables from throw sites, config
-defaults named as defaults, and examples labeled captured or composed.
+defaults named as defaults, and examples labeled captured or composed. After the fact checks, one reread against
+`references/writing.md`; rewording must not change a fact.
 
 ## Safety
 

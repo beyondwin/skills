@@ -286,12 +286,12 @@ def _run_product_smoke(root: Path, name: str, skill_root: Path) -> list[str]:
         return _run_korean(root, skill_root)
     if name == "how-it-works":
         return _smoke_how_it_works(skill_root)
-    if name == "api-guide":
-        return _smoke_api_guide(skill_root)
+    if name == "kws-api-guide":
+        return _smoke_kws_api_guide(skill_root)
     return [f"unlisted skill is not accepted: {name}"]
 
 
-def _smoke_api_guide(skill_root: Path) -> list[str]:
+def _smoke_kws_api_guide(skill_root: Path) -> list[str]:
     errors: list[str] = []
     skill_md = skill_root / "SKILL.md"
     if skill_md.is_file():
@@ -299,11 +299,11 @@ def _smoke_api_guide(skill_root: Path) -> list[str]:
         parts = text.split("---", 2)
         frontmatter = parts[1] if len(parts) > 2 else ""
         if "disable-model-invocation: true" not in frontmatter:
-            errors.append("api-guide: SKILL.md is not explicit-only")
+            errors.append("kws-api-guide: SKILL.md is not explicit-only")
         if "Use when" not in frontmatter:
-            errors.append("api-guide: SKILL.md missing Use when")
-        if "/api-guide" not in text:
-            errors.append("api-guide: SKILL.md missing /api-guide")
+            errors.append("kws-api-guide: SKILL.md missing Use when")
+        if "/kws-api-guide" not in text:
+            errors.append("kws-api-guide: SKILL.md missing /kws-api-guide")
     for relative in (
         "SKILL.md",
         "LICENSE.txt",
@@ -311,12 +311,13 @@ def _smoke_api_guide(skill_root: Path) -> list[str]:
         "references/facts.md",
         "references/consumer.md",
         "references/page.html",
+        "references/writing.md",
     ):
         if not (skill_root / relative).is_file():
-            errors.append(f"api-guide: missing {relative}")
+            errors.append(f"kws-api-guide: missing {relative}")
     names = {path.name for path in skill_root.rglob("*") if path.is_file()}
     if "test_contract.py" in names:
-        errors.append("api-guide: payload includes test_contract.py")
+        errors.append("kws-api-guide: payload includes test_contract.py")
     return errors
 
 

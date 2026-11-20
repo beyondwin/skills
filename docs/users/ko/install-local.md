@@ -66,9 +66,9 @@ print("linked")
 
 3. 첫 호출은 [`how-it-works` README](../../../skills/how-it-works/README.ko.md)를 보세요.
 
-## api-guide
+## kws-api-guide
 
-Claude Code 전용입니다. 공개 경로: https://github.com/beyondwin/skills/tree/main/skills/api-guide. 링크는 하나입니다. Claude Code는 `~/.claude/skills/api-guide`를 읽습니다.
+Claude Code 전용입니다. 공개 경로: https://github.com/beyondwin/skills/tree/main/skills/kws-api-guide. 링크는 하나입니다. Claude Code는 `~/.claude/skills/kws-api-guide`를 읽습니다.
 
 1. 클론하고 폴더를 만듭니다.
 
@@ -80,9 +80,9 @@ mkdir -p ~/.claude/skills
 
 2. how-it-works 절의 Python 블록을 아래 첫 줄로 실행합니다.
 
-- Claude Code: `python3 - "$PWD/skills/api-guide" "$HOME/.claude/skills/api-guide" <<'PY'`
+- Claude Code: `python3 - "$PWD/skills/kws-api-guide" "$HOME/.claude/skills/kws-api-guide" <<'PY'`
 
-3. 첫 호출은 [`api-guide` README](../../../skills/api-guide/README.ko.md)를 보세요.
+3. 첫 호출은 [`kws-api-guide` README](../../../skills/kws-api-guide/README.ko.md)를 보세요.
 
 ## 갱신과 제거
 
@@ -94,9 +94,9 @@ ls -ld ~/.agents/skills/how-it-works ~/.claude/skills/how-it-works
 unlink ~/.agents/skills/how-it-works
 unlink ~/.claude/skills/how-it-works
 
-# api-guide
-ls -ld ~/.claude/skills/api-guide
-unlink ~/.claude/skills/api-guide
+# kws-api-guide
+ls -ld ~/.claude/skills/kws-api-guide
+unlink ~/.claude/skills/kws-api-guide
 ```
 
 상위 `skills` 폴더나 홈 폴더를 지우지 마세요. 원격 스크립트를 셸에 파이프하지 말고, 확인하지 않은 설치를 바꾸지 마세요.

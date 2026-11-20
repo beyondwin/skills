@@ -11,7 +11,7 @@
 | --- | --- | --- |
 | [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md) | Codex `$skill-installer` | [Codex 설치](install-codex.md) |
 | [`how-it-works`](../../../skills/how-it-works/README.ko.md) | Codex, Claude Code: 로컬 링크 | [로컬 링크](install-local.md) |
-| [`api-guide`](../../../skills/api-guide/README.ko.md) | Claude Code: 로컬 링크 | [로컬 링크](install-local.md) |
+| [`kws-api-guide`](../../../skills/kws-api-guide/README.ko.md) | Claude Code: 로컬 링크 | [로컬 링크](install-local.md) |
 
 로컬 링크는 저장소를 클론한 뒤, 실행 도구가 클론 안의 스킬 폴더를 읽도록 연결하는
 방법입니다. 설치가 끝나면 각 스킬 README의 첫 요청 예시로 사용을 시작하세요.

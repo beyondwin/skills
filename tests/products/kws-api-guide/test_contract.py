@@ -12,7 +12,7 @@ if str(ROOT) not in sys.path:
 
 from scripts.lib.product_contract import parse_skill_frontmatter  # noqa: E402
 
-SKILL = ROOT / "skills" / "api-guide"
+SKILL = ROOT / "skills" / "kws-api-guide"
 SKILL_TEXT = (SKILL / "SKILL.md").read_text(encoding="utf-8")
 PAGE_TEXT = (SKILL / "references" / "page.html").read_text(encoding="utf-8")
 
@@ -27,7 +27,13 @@ SKELETON = (
 )
 CARD_ORDER = ("Request", "Response", "Errors", "Handling")
 PAGE_SECTIONS = ('id="todo"', 'id="common"', 'id="api-list"', 'id="flow"', 'id="refs"')
-REFERENCES = ("references/facts.md", "references/consumer.md", "references/page.html")
+REFERENCES = (
+    "references/facts.md",
+    "references/consumer.md",
+    "references/page.html",
+    "references/writing.md",
+)
+COMMON_TABLES = ("Handle in code", "Formats")
 VERIFY_RULES = (
     "search for a counterexample",
     "same rule in both",
@@ -49,7 +55,7 @@ def section(text: str, heading: str) -> str:
 class FrontmatterTest(unittest.TestCase):
     def test_explicit_only_and_description_shape(self) -> None:
         data = parse_skill_frontmatter(SKILL_TEXT)
-        self.assertEqual(data["name"], "api-guide")
+        self.assertEqual(data["name"], "kws-api-guide")
         self.assertEqual(data["disable-model-invocation"], "true")
         description = str(data["description"])
         self.assertTrue(description.startswith("Use when explicitly invoked"))
@@ -76,6 +82,23 @@ class SkillBodyTest(unittest.TestCase):
         self.assertNotIn(-1, positions)
         self.assertEqual(positions, sorted(positions))
 
+    def test_common_rules_split_in_order(self) -> None:
+        body = section(SKILL_TEXT, "## Page skeleton")
+        positions = [body.find(f"{name}:") for name in COMMON_TABLES]
+        self.assertNotIn(-1, positions, positions)
+        self.assertEqual(positions, sorted(positions))
+
+    def test_writing_rules_cover_measured_patterns(self) -> None:
+        writing = " ".join((SKILL / "references" / "writing.md").read_text(encoding="utf-8").split())
+        for rule in ("at most two short sentences", "At most one parenthetical", "One register"):
+            self.assertIn(rule, writing)
+        verify = " ".join(section(SKILL_TEXT, "## Verify").split())
+        self.assertIn("reread the page once against `references/writing.md`", verify)
+
+    def test_language_follows_invocation(self) -> None:
+        self.assertIn("| language | the language of the invocation text", SKILL_TEXT)
+        self.assertIn("In the language of the invocation text", section(SKILL_TEXT, "## Report"))
+
     def test_verify_rules_present(self) -> None:
         body = " ".join(section(SKILL_TEXT, "## Verify").split())
         for rule in VERIFY_RULES:
@@ -92,6 +115,11 @@ class TemplateTest(unittest.TestCase):
         positions = [PAGE_TEXT.find(marker) for marker in PAGE_SECTIONS]
         self.assertNotIn(-1, positions, positions)
         self.assertEqual(positions, sorted(positions))
+
+    def test_common_rules_has_two_tables(self) -> None:
+        common = PAGE_TEXT[PAGE_TEXT.find('id="common"'):PAGE_TEXT.find('id="api-list"')]
+        headings = re.findall(r"<h3>([^<]+)</h3>", common)
+        self.assertEqual(tuple(headings), COMMON_TABLES)
 
     def test_card_blocks_in_order(self) -> None:
         card = PAGE_TEXT[PAGE_TEXT.find('id="api-list"'):PAGE_TEXT.find('id="api-create"')]
