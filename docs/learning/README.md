@@ -16,7 +16,7 @@
 
 | 질문 | 관련 작업 | 결정일 | 결과와 근거의 한계 |
 | --- | --- | --- | --- |
-| [API 연동 안내 문서를 만드는 일을 스킬로 만들까?](cases/2026-11-20-kws-api-guide.md) | kws-api-guide | 2026-11-20 | 소유자 결정으로 추가, 오프라인 검증과 화면 없는 실행 2회(두 번째는 글쓰기 규칙 시험). 게시와 읽는 사람 평가 미측정 |
+| [API 연동 안내 문서를 만드는 일을 스킬로 만들까?](cases/2026-11-20-kws-api-guide.md) | kws-api-guide | 2026-11-20 | 소유자 결정으로 추가, 오프라인 검증과 화면 없는 실행 3회(글쓰기 규칙, 보고 언어 시험). 게시와 읽는 사람 평가 미측정 |
 | [남은 두 스킬에서 어떤 규칙을 줄이고 무엇을 남길까?](cases/2026-10-28-simplify-active-skill-rules.md) | korean-writing-editor, how-it-works | 2026-10-28 | 중복·모순 정리와 전체 검증 완료. 호출 평가·릴리스 fixture 불일치 수정. 새 모델 품질 미측정 |
 | [이미지·동영상 스킬을 종료하고 저장소를 어떻게 줄였는가?](cases/2026-10-28-retire-image-workbench-and-simplify-repository.md) | image-workbench, grok-image, grok-video, 저장소 문서·검증 | 2026-10-28 | 사용자 요청으로 세 제품 제거. 남은 두 제품 기준으로 설치·검증 구성 정리, 과거 연구 보존 |
 | [어워드를 겨냥한 완성본 전략을 어디에 남길까?](cases/2026-10-25-grok-video-finished-piece.md) | grok-video | 2026-10-25 | 사용자 가이드로 남김. 스킬은 클립 하나. 새 생성 없음. 사람·대사·상영본은 미측정 |

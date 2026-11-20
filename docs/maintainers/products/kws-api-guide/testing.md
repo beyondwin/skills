@@ -1,6 +1,6 @@
 # kws-api-guide testing
 
-Activation is explicit-only. Two headless live runs are recorded below; artifact publishing
+Activation is explicit-only. Three headless live runs are recorded below; artifact publishing
 and page quality beyond spot checks are `not_measured`.
 
 ## Provider-free evidence
@@ -65,3 +65,21 @@ that a published page is accurate.
 - The chat report came back in English for a Korean prompt; the first run answered in
   Korean. One run cannot say why.
 - n=1 against one earlier run. It does not separate the rules from run-to-run variance.
+
+### 2026-11-20, headless Claude Code, opus high, language rule
+
+- Same scope, Korean prompt, pinned commits, fresh clones, and launch as the run above.
+  Skill at commit `dac5510`; skill file list SHA-256 starts `d38327ec9ba33b60`.
+- Transcript: `claude-opus-5-5`, effort `high`. 55 tool calls in the main session and 26 in
+  subagents, about 12 minutes, `total_cost_usd` 7.79.
+- Language: the final report and 10 of 11 progress updates were Korean. One short update
+  after a failed script edit was English.
+- Facts, within what was compared: field names (21) matched both earlier pages; paths and
+  codes matched except that this page left out a related retry endpoint the earlier pages
+  mentioned, and added the detail endpoints. The three spot-checked claims, the limit range
+  and default, ordering, and date rules held.
+- Counts: table cells with three or more sentences 1 (of about 100), parentheticals 3, skill
+  words copied onto the page 0, hedged "can be" endings 0, lede 3 sentences, plain-form
+  endings in cells 0 on reading. Common rules came as two tables.
+- With the run above, two runs under the writing rules both stayed far below the first
+  run's counts. Still two runs against one, on one API.
