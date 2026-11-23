@@ -126,6 +126,19 @@ def _stage_map(root: pathlib.Path) -> dict[str, Stage]:
             ),
             cwd=root,
         ),
+        "kws-book-writer-contract": Stage(
+            "kws-book-writer-contract",
+            _python(
+                "-m",
+                "unittest",
+                "discover",
+                "-s",
+                _posix("tests", "products", "kws-book-writer"),
+                "-p",
+                "test_*.py",
+            ),
+            cwd=root,
+        ),
     }
 
 

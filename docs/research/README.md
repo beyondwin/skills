@@ -15,6 +15,7 @@ or current support claim. The
 
 | Study | Date | What |
 | --- | --- | --- |
+| [kws-book-writer evaluation](2026-11-kws-book-writer-eval/README.md) | 2026-11-20 | Synthetic smoke, seeded-defect gate comparison (24/24 vs 22/24, gate simplified), private six-chapter pilot; reader adoption not measured |
 | [grok-video held-out travel check](2026-10-grok-video-heldout/README.md) | 2026-10-25 | Three new travels and one bare apple: 2/3 pinned first takes passed, bare end difference 47; hold plan has no start prompt; no skill edit |
 | [First-image visual direction with Grok alone](2026-10-image-first-direction/README.md) | 2026-10-23 | Four fresh one-call pairs: candidate 1 win, 2 losses, 1 disagreement; craft 4.30 vs 4.25, confirmed compliance 4/4 vs 3/4; no product change |
 | [Fresh image transfer and one stop-rule repair](2026-10-image-fresh-transfer/README.md) | 2026-10-23 | Four new requests: no-skill 4/4, 2.1.6 3/4, development repair 2.1.7 4/4; valid retention ties, count/occlusion failure denominators zero; no superiority claim |

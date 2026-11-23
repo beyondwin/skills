@@ -2,13 +2,14 @@
 
 [English](../en/compatibility.md) · [설치](installation.md)
 
-각 스킬이 어느 호스트에서 돌아가는지 정리합니다. 호스트는 스킬을 실행하는 에이전트 앱입니다. 제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md), [`kws-api-guide`](../../../skills/kws-api-guide/README.ko.md).
+각 스킬이 어느 호스트에서 돌아가는지 정리합니다. 호스트는 스킬을 실행하는 에이전트 앱입니다. 제품 안내: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.ko.md), [`how-it-works`](../../../skills/how-it-works/README.ko.md), [`kws-api-guide`](../../../skills/kws-api-guide/README.ko.md), [`kws-book-writer`](../../../skills/kws-book-writer/README.ko.md).
 
 | 스킬 | 지원 호스트 | 설치 방법 |
 | --- | --- | --- |
 | Korean Writing Editor | Codex | `$skill-installer` |
 | How It Works | Codex, Claude Code | 로컬 링크 |
 | API Guide | Claude Code | 로컬 링크 |
+| KWS Book Writer | Claude Code | 로컬 링크 |
 
 말 뜻:
 
@@ -23,6 +24,7 @@ korean-writing-editor: Codex supported; Agent Skills contract portable; other ho
 how-it-works: Codex and Claude Code supported for local or repository-based use.
 
 kws-api-guide: Claude Code supported for local or repository-based use.
+kws-book-writer: Claude Code supported for local or repository-based use.
 
 ## 무엇을 지원으로 보나
 
@@ -34,6 +36,7 @@ kws-api-guide: Claude Code supported for local or repository-based use.
 
 - `how-it-works`: 현재 설치 파일의 라이브 실행은 `not_measured`입니다.
 - `kws-api-guide`: 현재 설치 파일의 라이브 실행은 `not_measured`입니다. Artifact 도구와 서버 소스 읽기 권한이 필요합니다. Codex는 지원하지 않습니다.
+- `kws-book-writer`: macOS 실제 실행 기록은 저장소 평가 기록에 있고, 최종 설치 파일로 끝까지 돌려 보지는 않았습니다. Claude Code 서브에이전트와 작업 폴더 쓰기 권한이 필요합니다. Codex는 지원하지 않습니다.
 
 ## 운영체제
 

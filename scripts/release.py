@@ -288,6 +288,8 @@ def _run_product_smoke(root: Path, name: str, skill_root: Path) -> list[str]:
         return _smoke_how_it_works(skill_root)
     if name == "kws-api-guide":
         return _smoke_kws_api_guide(skill_root)
+    if name == "kws-book-writer":
+        return _smoke_kws_book_writer(skill_root)
     return [f"unlisted skill is not accepted: {name}"]
 
 
@@ -361,6 +363,35 @@ def _smoke_how_it_works(skill_root: Path) -> list[str]:
             continue
     if "<html" in "\n".join(markdown).lower():
         errors.append("how-it-works: payload includes html template")
+    return errors
+
+
+def _smoke_kws_book_writer(skill_root: Path) -> list[str]:
+    errors: list[str] = []
+    skill_md = skill_root / "SKILL.md"
+    if skill_md.is_file():
+        text = skill_md.read_text(encoding="utf-8")
+        parts = text.split("---", 2)
+        frontmatter = parts[1] if len(parts) > 2 else ""
+        if "disable-model-invocation: true" not in frontmatter:
+            errors.append("kws-book-writer: SKILL.md is not explicit-only")
+        if "Use when" not in frontmatter:
+            errors.append("kws-book-writer: SKILL.md missing Use when")
+        if "/kws-book-writer" not in text:
+            errors.append("kws-book-writer: SKILL.md missing /kws-book-writer")
+    for relative in (
+        "SKILL.md",
+        "LICENSE.txt",
+        "agents/openai.yaml",
+        "references/workflow.md",
+        "references/acceptance.md",
+        "scripts/book_check.py",
+    ):
+        if not (skill_root / relative).is_file():
+            errors.append(f"kws-book-writer: missing {relative}")
+    names = {path.name for path in skill_root.rglob("*") if path.is_file()}
+    if "test_contract.py" in names:
+        errors.append("kws-book-writer: payload includes test_contract.py")
     return errors
 
 

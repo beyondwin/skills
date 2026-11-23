@@ -22,6 +22,7 @@
 - [`korean-writing-editor`](../skills/korean-writing-editor/README.ko.md)
 - [`how-it-works`](../skills/how-it-works/README.ko.md)
 - [`kws-api-guide`](../skills/kws-api-guide/README.ko.md)
+- [`kws-book-writer`](../skills/kws-book-writer/README.ko.md)
 
 ## 관리·변경·릴리스
 

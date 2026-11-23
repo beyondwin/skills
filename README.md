@@ -6,7 +6,7 @@
 [![Release](https://img.shields.io/github/v/release/beyondwin/skills)](https://github.com/beyondwin/skills/releases)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-Three skills for AI coding tools: Codex and Claude Code. Install only
+Four skills for AI coding tools: Codex and Claude Code. Install only
 the ones you want; each one stands alone.
 
 The supported OS is macOS only. Windows and Linux are unsupported. A passing Ubuntu CI
@@ -21,6 +21,7 @@ These are the current standalone products. A host is the tool that runs the skil
 | [`korean-writing-editor`](skills/korean-writing-editor/README.md) | Fixes spelling and sentences in Korean text you already have, keeping the meaning. | Codex |
 | [`how-it-works`](skills/how-it-works/README.md) | Explains how something works, with a diagram, at the depth you pick. | Codex, Claude Code |
 | [`kws-api-guide`](skills/kws-api-guide/README.md) | Writes a guide for developers who call APIs that were added or changed, checked against the server code, as a Claude artifact. | Claude Code |
+| [`kws-book-writer`](skills/kws-book-writer/README.md) | Drafts a Korean technical or nonfiction book from an approved plan, chapter by chapter, with fact and acceptance checks. | Claude Code |
 
 Each skill README shows how to install it and make the first call.
 
@@ -38,10 +39,11 @@ How It Works links from a clone of this repo
 
 - https://github.com/beyondwin/skills/tree/main/skills/how-it-works
 
-API Guide runs in Claude Code only. It also links from a clone
+API Guide and KWS Book Writer run in Claude Code only. They also link from a clone
 ([Local links](docs/users/en/install-local.md)):
 
 - https://github.com/beyondwin/skills/tree/main/skills/kws-api-guide
+- https://github.com/beyondwin/skills/tree/main/skills/kws-book-writer
 
 Updates, removal, and every option are in [Installation](docs/users/en/installation.md).
 

@@ -85,10 +85,14 @@ HOW_IT_WORKS_SUPPORT = (
 API_GUIDE_SUPPORT = (
     "kws-api-guide: Claude Code supported for local or repository-based use."
 )
+KWS_BOOK_WRITER_SUPPORT = (
+    "kws-book-writer: Claude Code supported for local or repository-based use."
+)
 SUPPORT_BY_PRODUCT = {
     "korean-writing-editor": KOREAN_SUPPORT,
     "how-it-works": HOW_IT_WORKS_SUPPORT,
     "kws-api-guide": API_GUIDE_SUPPORT,
+    "kws-book-writer": KWS_BOOK_WRITER_SUPPORT,
 }
 HOW_IT_WORKS_MKDIR = "mkdir -p ~/.agents/skills ~/.claude/skills"
 HOW_IT_WORKS_AGENTS_INVOCATION = (
@@ -103,6 +107,10 @@ API_GUIDE_CLAUDE_INVOCATION = (
     'python3 - "$PWD/skills/kws-api-guide" "$HOME/.claude/skills/kws-api-guide" <<\'PY\''
 )
 API_GUIDE_UNLINK_CLAUDE = "unlink ~/.claude/skills/kws-api-guide"
+KWS_BOOK_WRITER_CLAUDE_INVOCATION = (
+    'python3 - "$PWD/skills/kws-book-writer" "$HOME/.claude/skills/kws-book-writer" <<\'PY\''
+)
+KWS_BOOK_WRITER_UNLINK_CLAUDE = "unlink ~/.claude/skills/kws-book-writer"
 HOW_IT_WORKS_EXPECTED_EN = (
     "one-sentence claim",
     "Mermaid",
@@ -648,7 +656,7 @@ class UserGuideFactTests(unittest.TestCase):
             "safety-and-privacy.md": all_products,
             "verification.md": all_products,
             "install-codex.md": CODEX_PRODUCTS,
-            "install-local.md": ("how-it-works", "kws-api-guide"),
+            "install-local.md": ("how-it-works", "kws-api-guide", "kws-book-writer"),
         }
         for language in ("ko", "en"):
             for filename, names in owned.items():
@@ -722,6 +730,8 @@ class UserGuideFactTests(unittest.TestCase):
             self.assertIn(HOW_IT_WORKS_UNLINK_CLAUDE, text)
             self.assertIn(API_GUIDE_CLAUDE_INVOCATION, text)
             self.assertIn(API_GUIDE_UNLINK_CLAUDE, text)
+            self.assertIn(KWS_BOOK_WRITER_CLAUDE_INVOCATION, text)
+            self.assertIn(KWS_BOOK_WRITER_UNLINK_CLAUDE, text)
             self.assertNotIn("$skill-installer https://github.com/beyondwin/skills/tree/main/skills/korean-writing-editor", text)
             for name in CODEX_PRODUCTS:
                 self.assertNotIn(INSTALLER_COMMANDS[name], text, rel)
@@ -1303,6 +1313,7 @@ class MaintainerStructureTests(unittest.TestCase):
             "korean-writing-editor": "tests/products/korean-writing-editor/offline/",
             "how-it-works": "tests/products/how-it-works/",
             "kws-api-guide": "tests/products/kws-api-guide/",
+            "kws-book-writer": "tests/products/kws-book-writer/",
         }
         for name, path in expected.items():
             text = _read(ROOT / "docs" / "maintainers" / "products" / name / "testing.md")

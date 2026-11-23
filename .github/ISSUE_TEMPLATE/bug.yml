@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Report a defect in `korean-writing-editor`, `how-it-works`, or `kws-api-guide` only.
+        Report a defect in `korean-writing-editor`, `how-it-works`, `kws-api-guide`, or `kws-book-writer` only.
         Host-support claims
         must match `products.toml`, the docs, and the tests.
 
@@ -23,6 +23,7 @@ body:
         - korean-writing-editor
         - how-it-works
         - kws-api-guide
+        - kws-book-writer
     validations:
       required: true
   - type: textarea

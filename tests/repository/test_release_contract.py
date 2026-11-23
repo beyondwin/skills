@@ -25,6 +25,7 @@ EXPECTED = {
     "korean-writing-editor": "3.0.1",
     "how-it-works": "4.0.1",
     "kws-api-guide": "1.0.0",
+    "kws-book-writer": "0.1.0",
 }
 REGISTRY = load_registry(ROOT / "products.toml")
 

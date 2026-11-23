@@ -1,0 +1,5 @@
+schema_version = 1
+name = "kws-book-writer"
+version = "0.1.0"
+tag_prefix = "kws-book-writer-v"
+license = "Apache-2.0"

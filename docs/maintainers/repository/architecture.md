@@ -1,13 +1,13 @@
 # Repository architecture
 
-This repository holds three skills that install separately. This doc says where to look
+This repository holds four skills that install separately. This doc says where to look
 and what to check when you change something. Apache-2.0 applies to the root and to
 each skill.
 
 ## At a glance
 
 The current products are the ones in `products.toml`: `korean-writing-editor`,
-`how-it-works`, and `kws-api-guide`. Each has
+`how-it-works`, `kws-api-guide`, and `kws-book-writer`. Each has
 its own version and installs on its own from a GitHub path.
 
 ```mermaid
@@ -17,6 +17,7 @@ flowchart TB
     K[korean-writing-editor]
     H[how-it-works]
     A[kws-api-guide]
+    B[kws-book-writer]
   end
   R --> live
   live --> SK["skills/ payload"]
@@ -82,6 +83,7 @@ Repository only, never installed:
 | `tests/products/korean-writing-editor/live/` | Synthetic live runner, unit tests, dry-run, operator notes |
 | `tests/products/how-it-works/` | Synthetic DNS and rebase fixtures and payload tests |
 | `tests/products/kws-api-guide/` | Payload contract tests for frontmatter, references, and the page skeleton |
+| `tests/products/kws-book-writer/` | Payload contract tests and synthetic `book_check.py` fixtures |
 | `docs/README.md` | Routes to install, use, maintain, research, and decisions |
 | `docs/users/` | Shared install, compatibility, safety, and verification guides |
 | `docs/maintainers/` | Architecture, registry, versioning, release, product rules |
@@ -148,4 +150,5 @@ Korean live evaluation is an explicit local task.
 Product protocols:
 [korean-writing-editor](../products/korean-writing-editor/contract.md),
 [how-it-works](../products/how-it-works/contract.md),
-[kws-api-guide](../products/kws-api-guide/contract.md).
+[kws-api-guide](../products/kws-api-guide/contract.md),
+[kws-book-writer](../products/kws-book-writer/contract.md).

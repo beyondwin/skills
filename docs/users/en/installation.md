@@ -11,5 +11,6 @@ Find your skill below and follow its guide. Each guide also covers update and un
 | [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md) | Codex `$skill-installer` | [Codex install](install-codex.md) |
 | [`how-it-works`](../../../skills/how-it-works/README.md) | Local link | [Local links](install-local.md) |
 | [`kws-api-guide`](../../../skills/kws-api-guide/README.md) | Claude Code: local link | [Local links](install-local.md) |
+| [`kws-book-writer`](../../../skills/kws-book-writer/README.md) | Claude Code: local link | [Local links](install-local.md) |
 
 All skills are under the Apache-2.0 license.

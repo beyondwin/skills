@@ -194,6 +194,8 @@ LINKER_SURFACES = (
     ("docs/users/en/install-local.md", "<!-- how-it-works-local-links -->"),
     ("skills/kws-api-guide/README.md", "<!-- kws-api-guide-local-links -->"),
     ("skills/kws-api-guide/README.ko.md", "<!-- kws-api-guide-local-links -->"),
+    ("skills/kws-book-writer/README.md", "<!-- kws-book-writer-local-links -->"),
+    ("skills/kws-book-writer/README.ko.md", "<!-- kws-book-writer-local-links -->"),
 )
 
 

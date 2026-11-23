@@ -14,7 +14,7 @@ Each skill lands in `$CODEX_HOME/skills/<skill-name>` (`~/.codex/skills` when `C
 
 Then start a new turn and try the first call in the product README.
 
-How It Works and API Guide are not installed this way. Use [Local links](install-local.md).
+How It Works, API Guide, and KWS Book Writer are not installed this way. Use [Local links](install-local.md).
 
 ## Optional: third-party installer
 

@@ -22,6 +22,7 @@ With no arguments it runs every stage in this order and stops at the first failu
 - korean-live-dry-run
 - how-it-works-contract
 - kws-api-guide-contract
+- kws-book-writer-contract
 - python-compile
 
 CI runs this verification on Ubuntu. An Ubuntu CI pass does not prove macOS support.
@@ -32,7 +33,7 @@ To check one skill, pass its name. This runs `product-contract`, that skill's ow
 python3 scripts/verify.py --skill how-it-works
 ```
 
-Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`kws-api-guide`](../../../skills/kws-api-guide/README.md).
+Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`kws-api-guide`](../../../skills/kws-api-guide/README.md), [`kws-book-writer`](../../../skills/kws-book-writer/README.md).
 
 ## Shared evidence sentences
 
@@ -48,6 +49,7 @@ Offline tests prove the fixed contract only. Each product's fixture paths are in
 - Korean candidates: any hard failure makes the result `failed`. If hard checks pass but meaning, attribution, or the requested edit was not observed, the result is `partially_verified`. An offline pass alone is never a live status.
 - How It Works: fence/hop validity, loading, syntax, and meaning each need their own evidence. Matching metadata alone proves no model run.
 - API Guide: contract tests prove file shape only. They do not prove that a run reads the code correctly or that a published page is accurate.
+- KWS Book Writer: contract tests prove file shape and the mechanical manuscript check only. They do not prove that a run writes an accurate or readable book.
 
 A pass does not prove general quality.
 

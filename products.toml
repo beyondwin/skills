@@ -48,3 +48,17 @@ owned_paths = [
   "docs/maintainers/products/kws-api-guide/",
 ]
 verify_stages = ["product-contract", "kws-api-guide-contract", "python-compile"]
+
+[[products]]
+name = "kws-book-writer"
+display_name = "KWS Book Writer"
+skill_path = "skills/kws-book-writer"
+test_path = "tests/products/kws-book-writer"
+maintainer_docs = "docs/maintainers/products/kws-book-writer"
+supported_hosts = ["claude-code"]
+owned_paths = [
+  "skills/kws-book-writer/",
+  "tests/products/kws-book-writer/",
+  "docs/maintainers/products/kws-book-writer/",
+]
+verify_stages = ["product-contract", "kws-book-writer-contract", "python-compile"]

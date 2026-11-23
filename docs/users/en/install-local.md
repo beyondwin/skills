@@ -2,7 +2,7 @@
 
 [한국어](../ko/install-local.md) · [Installation](installation.md) · [Compatibility](compatibility.md) · [Safety and privacy](safety-and-privacy.md) · [Verification](verification.md)
 
-How It Works and API Guide use a local link. You clone this repo once and add a link (symlink) from each host's skill folder to the skill folder in your clone. A `git pull` in the clone then updates every host at once.
+How It Works, API Guide, and KWS Book Writer use a local link. You clone this repo once and add a link (symlink) from each host's skill folder to the skill folder in your clone. A `git pull` in the clone then updates every host at once.
 
 Installation has three steps:
 
@@ -84,6 +84,24 @@ mkdir -p ~/.claude/skills
 
 3. First calls are in the [`kws-api-guide` README](../../../skills/kws-api-guide/README.md).
 
+## kws-book-writer
+
+For Claude Code only. Public path: https://github.com/beyondwin/skills/tree/main/skills/kws-book-writer. You make one link: Claude Code reads `~/.claude/skills/kws-book-writer`.
+
+1. Clone and create the folder.
+
+```bash
+git clone https://github.com/beyondwin/skills.git
+cd skills
+mkdir -p ~/.claude/skills
+```
+
+2. Run the Python block from the how-it-works section with this first line:
+
+- Claude Code: `python3 - "$PWD/skills/kws-book-writer" "$HOME/.claude/skills/kws-book-writer" <<'PY'`
+
+3. First calls are in the [`kws-book-writer` README](../../../skills/kws-book-writer/README.md).
+
 ## Update and uninstall
 
 To update, run `git pull` in your clone; the links pick up the change. To remove a skill, inspect each link with `ls -ld`, then remove only that link.
@@ -97,6 +115,9 @@ unlink ~/.claude/skills/how-it-works
 # kws-api-guide
 ls -ld ~/.claude/skills/kws-api-guide
 unlink ~/.claude/skills/kws-api-guide
+# kws-book-writer
+ls -ld ~/.claude/skills/kws-book-writer
+unlink ~/.claude/skills/kws-book-writer
 ```
 
 Never delete the parent `skills` folder or a home folder. Never pipe a remote script into a shell, and never replace an install you have not inspected.

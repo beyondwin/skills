@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Report a documentation issue for `korean-writing-editor`, `how-it-works`,
-        `kws-api-guide`, or repository documentation.
+        `kws-api-guide`, `kws-book-writer`, or repository documentation.
         Host-support claims must match `products.toml`, the docs, and the
         tests.
 
@@ -24,6 +24,7 @@ body:
         - korean-writing-editor
         - how-it-works
         - kws-api-guide
+        - kws-book-writer
         - repository docs
     validations:
       required: true

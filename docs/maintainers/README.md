@@ -69,6 +69,7 @@ change in one product never requires a version bump in another.
 | korean-writing-editor | [contract](products/korean-writing-editor/contract.md) | [testing](products/korean-writing-editor/testing.md) | [compatibility](products/korean-writing-editor/compatibility.md) | [release](products/korean-writing-editor/release.md) |
 | how-it-works | [contract](products/how-it-works/contract.md) | [testing](products/how-it-works/testing.md) | [compatibility](products/how-it-works/compatibility.md) | [release](products/how-it-works/release.md) |
 | kws-api-guide | [contract](products/kws-api-guide/contract.md) | [testing](products/kws-api-guide/testing.md) | [compatibility](products/kws-api-guide/compatibility.md) | [release](products/kws-api-guide/release.md) |
+| kws-book-writer | [contract](products/kws-book-writer/contract.md) | [testing](products/kws-book-writer/testing.md) | [compatibility](products/kws-book-writer/compatibility.md) | [release](products/kws-book-writer/release.md) |
 
 What each doc holds:
 

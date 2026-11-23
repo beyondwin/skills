@@ -2,13 +2,14 @@
 
 [한국어](../ko/compatibility.md) · [Installation](installation.md)
 
-This page says which hosts each skill runs on. A host is the agent app that runs the skill. Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`kws-api-guide`](../../../skills/kws-api-guide/README.md).
+This page says which hosts each skill runs on. A host is the agent app that runs the skill. Product guides: [`korean-writing-editor`](../../../skills/korean-writing-editor/README.md), [`how-it-works`](../../../skills/how-it-works/README.md), [`kws-api-guide`](../../../skills/kws-api-guide/README.md), [`kws-book-writer`](../../../skills/kws-book-writer/README.md).
 
 | Skill | Supported hosts | How you install it |
 | --- | --- | --- |
 | Korean Writing Editor | Codex | `$skill-installer` |
 | How It Works | Codex, Claude Code | Local link |
 | API Guide | Claude Code | Local link |
+| KWS Book Writer | Claude Code | Local link |
 
 Terms:
 
@@ -23,6 +24,7 @@ korean-writing-editor: Codex supported; Agent Skills contract portable; other ho
 how-it-works: Codex and Claude Code supported for local or repository-based use.
 
 kws-api-guide: Claude Code supported for local or repository-based use.
+kws-book-writer: Claude Code supported for local or repository-based use.
 
 ## What counts as support
 
@@ -34,6 +36,7 @@ None of these skills works through Claude.ai, Cowork, or a Skills API upload, an
 
 - `how-it-works`: a live run of the current install files is `not_measured`.
 - `kws-api-guide`: a live run of the current install files is `not_measured`. It needs the Artifact tool and read access to the server source. Codex is not supported.
+- `kws-book-writer`: macOS live runs are recorded in the repository's evaluation; the final install files were not run end to end. It needs Claude Code subagents and write access to the workspace folder. Codex is not supported.
 
 ## Operating system
 

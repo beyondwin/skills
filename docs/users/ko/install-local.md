@@ -2,7 +2,7 @@
 
 [English](../en/install-local.md) · [설치](installation.md) · [호환성](compatibility.md) · [안전과 개인정보](safety-and-privacy.md) · [검증](verification.md)
 
-How It Works와 API Guide는 로컬 링크로 설치합니다. 저장소를 한 번 클론하고, 각 호스트의 스킬 폴더에서 클론 안 스킬 폴더로 가는 링크(심볼릭 링크)를 겁니다. 그러면 클론에서 `git pull` 한 번으로 모든 호스트가 함께 갱신됩니다.
+How It Works, API Guide, KWS Book Writer는 로컬 링크로 설치합니다. 저장소를 한 번 클론하고, 각 호스트의 스킬 폴더에서 클론 안 스킬 폴더로 가는 링크(심볼릭 링크)를 겁니다. 그러면 클론에서 `git pull` 한 번으로 모든 호스트가 함께 갱신됩니다.
 
 설치는 세 단계입니다.
 
@@ -84,6 +84,24 @@ mkdir -p ~/.claude/skills
 
 3. 첫 호출은 [`kws-api-guide` README](../../../skills/kws-api-guide/README.ko.md)를 보세요.
 
+## kws-book-writer
+
+Claude Code 전용입니다. 공개 경로: https://github.com/beyondwin/skills/tree/main/skills/kws-book-writer. 링크는 하나입니다. Claude Code는 `~/.claude/skills/kws-book-writer`를 읽습니다.
+
+1. 클론하고 폴더를 만듭니다.
+
+```bash
+git clone https://github.com/beyondwin/skills.git
+cd skills
+mkdir -p ~/.claude/skills
+```
+
+2. how-it-works 절의 Python 블록을 아래 첫 줄로 실행합니다.
+
+- Claude Code: `python3 - "$PWD/skills/kws-book-writer" "$HOME/.claude/skills/kws-book-writer" <<'PY'`
+
+3. 첫 호출은 [`kws-book-writer` README](../../../skills/kws-book-writer/README.ko.md)를 보세요.
+
 ## 갱신과 제거
 
 갱신은 클론에서 `git pull`을 하면 됩니다. 링크가 바뀐 내용을 그대로 씁니다. 제거할 때는 `ls -ld`로 링크를 먼저 확인한 뒤 그 링크만 지웁니다.
@@ -97,6 +115,9 @@ unlink ~/.claude/skills/how-it-works
 # kws-api-guide
 ls -ld ~/.claude/skills/kws-api-guide
 unlink ~/.claude/skills/kws-api-guide
+# kws-book-writer
+ls -ld ~/.claude/skills/kws-book-writer
+unlink ~/.claude/skills/kws-book-writer
 ```
 
 상위 `skills` 폴더나 홈 폴더를 지우지 마세요. 원격 스크립트를 셸에 파이프하지 말고, 확인하지 않은 설치를 바꾸지 마세요.

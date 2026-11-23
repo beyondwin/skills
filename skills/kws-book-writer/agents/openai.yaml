@@ -1,0 +1,6 @@
+interface:
+  display_name: "KWS Book Writer"
+  short_description: "Draft a Korean nonfiction book with checks"
+  default_prompt: "Use $kws-book-writer to draft a Korean nonfiction book from my brief."
+policy:
+  allow_implicit_invocation: false

@@ -26,6 +26,7 @@ Each skill README covers install, first call, and limits.
 | `korean-writing-editor` | [en](../skills/korean-writing-editor/README.md) | [ko](../skills/korean-writing-editor/README.ko.md) |
 | `how-it-works` | [en](../skills/how-it-works/README.md) | [ko](../skills/how-it-works/README.ko.md) |
 | `kws-api-guide` | [en](../skills/kws-api-guide/README.md) | [ko](../skills/kws-api-guide/README.ko.md) |
+| `kws-book-writer` | [en](../skills/kws-book-writer/README.md) | [ko](../skills/kws-book-writer/README.ko.md) |
 
 ## Maintain, change, or release
 

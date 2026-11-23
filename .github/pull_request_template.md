@@ -1,6 +1,6 @@
 ## Summary
 
-Describe the change for `korean-writing-editor`, `how-it-works`, and/or `kws-api-guide`,
+Describe the change for `korean-writing-editor`, `how-it-works`, `kws-api-guide`, and/or `kws-book-writer`,
 or repository documentation and tooling. Historical records do not restore retired products.
 
 For a significant decision, link its learning case and note any unknown reason or
