@@ -12,6 +12,7 @@ docs/superpowers/
 .worktrees/
 .pre-sdd-review/
 .playwright-mcp/
+.playwright-cli/
 
 # Python bytecode
 __pycache__/
